@@ -53,7 +53,7 @@ PrintUsageAndExit()
 {
     fprintf(stderr, 
         BANNER 
-        "\n\nusage: mp4rtphintinfo [--trackid<hinttrackid>] <input>\n");
+        "\n\nusage: mp4rtphintinfo [--trackid <hinttrackid>] <input>\n");
     exit(1);
 }
 
