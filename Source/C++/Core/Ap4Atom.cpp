@@ -29,7 +29,7 @@
 /*----------------------------------------------------------------------
 |       includes
 +---------------------------------------------------------------------*/
-#include "Ap4.h"
+#include "Ap4Types.h"
 #include "Ap4Atom.h"
 #include "Ap4Utils.h"
 #include "Ap4ContainerAtom.h"
@@ -406,13 +406,8 @@ AP4_AtomParent::FindChild(const char* path,
         if (atom == NULL) {
             // not found
             if (auto_create && (index == 0)) {
-                AP4_ContainerAtom* container = dynamic_cast<AP4_ContainerAtom*>(parent);
-                if (parent) {
-                    atom = new AP4_ContainerAtom(type, false);
-                    container->AddChild(atom);
-                } else {
-                    return NULL;
-                }
+                atom = new AP4_ContainerAtom(type, false);
+                parent->AddChild(atom);
             } else {
                 return NULL;
             }

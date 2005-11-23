@@ -29,13 +29,13 @@
 /*----------------------------------------------------------------------
 |       includes
 +---------------------------------------------------------------------*/
-#include "Ap4.h"
 #include "Ap4DescriptorFactory.h"
 #include "Ap4EsDescriptor.h"
 #include "Ap4DecoderConfigDescriptor.h"
 #include "Ap4DecoderSpecificInfoDescriptor.h"
 #include "Ap4SLConfigDescriptor.h"
 #include "Ap4UnknownDescriptor.h"
+#include "Ap4ByteStream.h"
 
 /*----------------------------------------------------------------------
 |       AP4_DescriptorFactory::CreateDescriptorFromStream

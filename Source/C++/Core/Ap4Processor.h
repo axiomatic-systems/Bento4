@@ -26,10 +26,13 @@
 |
 ****************************************************************/
 
+#ifndef _AP4_PROCESSOR_H_
+#define _AP4_PROCESSOR_H_
+
 /*----------------------------------------------------------------------
 |       includes
 +---------------------------------------------------------------------*/
-#include "Ap4.h"
+#include "Ap4Types.h"
 #include "Ap4AtomFactory.h"
 
 /*----------------------------------------------------------------------
@@ -63,10 +66,12 @@ public:
     AP4_Result Process(AP4_ByteStream&  input, 
                        AP4_ByteStream&  output,
                        AP4_AtomFactory& atom_factory = 
-                       AP4_AtomFactory::DefaultFactory);
+                       AP4_DefaultAtomFactory::Instance);
 
     // overridable methods
     virtual AP4_Result Initialize(AP4_AtomParent& top_level);
     virtual AP4_Result Finalize(AP4_AtomParent& top_level);
     virtual TrackHandler* CreateTrackHandler(AP4_TrakAtom* trak);
 };
+
+#endif // _AP4_PROCESSOR_H_

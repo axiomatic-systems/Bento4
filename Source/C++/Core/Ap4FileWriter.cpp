@@ -31,6 +31,12 @@
 +---------------------------------------------------------------------*/
 #include "Ap4MoovAtom.h"
 #include "Ap4FileWriter.h"
+#include "Ap4Movie.h"
+#include "Ap4File.h"
+#include "Ap4TrakAtom.h"
+#include "Ap4Track.h"
+#include "Ap4Sample.h"
+#include "Ap4DataBuffer.h"
 
 /*----------------------------------------------------------------------
 |       AP4_FileWriter::AP4_FileWriter

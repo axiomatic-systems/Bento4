@@ -33,15 +33,11 @@
 #include <stdlib.h>
 
 #include "Ap4.h"
-#include "Ap4FileByteStream.h"
-#include "Ap4Processor.h"
-#include "Ap4Utils.h"
-#include "Ap4ContainerAtom.h"
 
 /*----------------------------------------------------------------------
 |       constants
 +---------------------------------------------------------------------*/
-#define BANNER "MP4 File Editor - Version 0.5a\n"\
+#define BANNER "MP4 File Editor - Version 0.6\n"\
                "(c) 2003-2005 Gilles Boccon-Gibod & Julien Boeuf"
  
 /*----------------------------------------------------------------------
@@ -175,9 +171,9 @@ AP4_EditingProcessor::Initialize(AP4_AtomParent& top_level)
 AP4_Result
 AP4_EditingProcessor::DoRemove(Command* command, AP4_AtomParent& top_level)
 {
-    AP4_Atom* atom = top_level.FindChild(command->m_AtomPath.c_str());
+    AP4_Atom* atom = top_level.FindChild(command->m_AtomPath.GetChars());
     if (atom == NULL) {
-        fprintf(stderr, "ERROR: atom '%s' not found\n", command->m_AtomPath.c_str());
+        fprintf(stderr, "ERROR: atom '%s' not found\n", command->m_AtomPath.GetChars());
         return AP4_FAILURE;
     } else {
         atom->Detach();
@@ -205,7 +201,7 @@ AP4_EditingProcessor::InsertAtom(const char*     file_path,
         return AP4_FAILURE;
     }
     AP4_Result result;
-    result = AP4_AtomFactory::DefaultFactory.CreateAtomFromStream(*input, child);
+    result = AP4_DefaultAtomFactory::Instance.CreateAtomFromStream(*input, child);
     input->Release();
     if (AP4_FAILED(result)) {
         fprintf(stderr, "ERROR: failed to create atom\n");
@@ -230,15 +226,15 @@ AP4_Result
 AP4_EditingProcessor::DoInsert(Command* command, AP4_AtomParent& top_level)
 {
     AP4_AtomParent* parent = NULL;
-    if (command->m_AtomPath.length() == 0) {
+    if (command->m_AtomPath.GetLength() == 0) {
         // insert into the toplevel list
         parent = &top_level;
     } else {
         // find the atom to insert into
-        AP4_Atom* atom = top_level.FindChild(command->m_AtomPath.c_str(), true);
+        AP4_Atom* atom = top_level.FindChild(command->m_AtomPath.GetChars(), true);
         if (atom == NULL) {
             fprintf(stderr, "ERROR: atom '%s' not found\n", 
-                command->m_AtomPath.c_str());
+                command->m_AtomPath.GetChars());
             return AP4_FAILURE;
         }
 
@@ -249,11 +245,11 @@ AP4_EditingProcessor::DoInsert(Command* command, AP4_AtomParent& top_level)
     // check that we have a place to insert into
     if (parent == NULL) {
         fprintf(stderr, "ERROR: atom '%s' is not a container\n",
-            command->m_AtomPath.c_str());
+            command->m_AtomPath.GetChars());
         return AP4_FAILURE;
     }
 
-    return InsertAtom(command->m_FilePath.c_str(), parent, command->m_Position);
+    return InsertAtom(command->m_FilePath.GetChars(), parent, command->m_Position);
 }
 
 /*----------------------------------------------------------------------
@@ -263,9 +259,9 @@ AP4_Result
 AP4_EditingProcessor::DoReplace(Command* command, AP4_AtomParent& top_level)
 {
     // remove the atom
-    AP4_Atom* atom = top_level.FindChild(command->m_AtomPath.c_str());
+    AP4_Atom* atom = top_level.FindChild(command->m_AtomPath.GetChars());
     if (atom == NULL) {
-        fprintf(stderr, "ERROR: atom '%s' not found\n", command->m_AtomPath.c_str());
+        fprintf(stderr, "ERROR: atom '%s' not found\n", command->m_AtomPath.GetChars());
         return AP4_FAILURE;
     } else {
         // find the position of the atom in the parent
@@ -283,7 +279,7 @@ AP4_EditingProcessor::DoReplace(Command* command, AP4_AtomParent& top_level)
         delete atom;
 
         // insert the replacement
-        return InsertAtom(command->m_FilePath.c_str(), parent, position);
+        return InsertAtom(command->m_FilePath.GetChars(), parent, position);
     }
 }
 
@@ -305,7 +301,7 @@ main(int argc, char** argv)
     const char* output_filename = NULL;
     char* arg;
     while ((arg = *++argv)) {
-        if (!strcmp(arg, "--insert")) {
+        if (!AP4_CompareStrings(arg, "--insert")) {
             char* param = *++argv;
             if (param == NULL) {
                 fprintf(stderr, "ERROR: missing argument for --insert command\n");
@@ -314,6 +310,11 @@ main(int argc, char** argv)
             char* atom_path = NULL;
             char* file_path = NULL;
             if (AP4_SUCCEEDED(AP4_SplitArgs(param, atom_path, file_path))) {
+                if (file_path[0] == '\0') {
+                    // empty file path
+                    fprintf(stderr, "ERROR: missing file path in --insert argument\n");
+                    return 1;
+                }
                 int position = -1;
                 char* position_str = NULL;
                 if (AP4_SUCCEEDED(AP4_SplitArgs(file_path, file_path, position_str))) {
@@ -326,14 +327,14 @@ main(int argc, char** argv)
                 fprintf(stderr, "ERROR: invalid format for --insert command argument\n");
                 return 1;
             }
-        } else if (!strcmp(arg, "--remove")) {
+        } else if (!AP4_CompareStrings(arg, "--remove")) {
             char* atom_path = *++argv;
             if (atom_path == NULL) {
                 fprintf(stderr, "ERROR: missing argument for --remove command\n");
                 return 1;
             }
             processor.AddCommand(AP4_EditingProcessor::Command::TYPE_REMOVE, atom_path, "");
-        } else if (!strcmp(arg, "--replace")) {
+        } else if (!AP4_CompareStrings(arg, "--replace")) {
             char* param = *++argv;
             if (param == NULL) {
                 fprintf(stderr, "ERROR: missing argument for --replace command\n");

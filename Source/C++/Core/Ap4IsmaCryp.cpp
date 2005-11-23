@@ -87,7 +87,7 @@ AP4_EncaSampleEntry::ToSampleDescription()
         original_format,
         schm->GetSchemeType(),
         schm->GetSchemeVersion(),
-        schm->GetSchemeUri().c_str(),
+        schm->GetSchemeUri().GetChars(),
         schi);
 }
 
@@ -137,7 +137,7 @@ AP4_EncvSampleEntry::ToSampleDescription()
         original_format,
         schm->GetSchemeType(),
         schm->GetSchemeVersion(),
-        schm->GetSchemeUri().c_str(),
+        schm->GetSchemeUri().GetChars(),
         schi);
 }
 
@@ -543,7 +543,7 @@ AP4_IsmaTrackEncrypter::ProcessTrack()
     
     // scheme info
     AP4_ContainerAtom* schi = new AP4_ContainerAtom(AP4_ATOM_TYPE_SCHI);
-    AP4_IkmsAtom* ikms      = new AP4_IkmsAtom(m_KmsUri.c_str());
+    AP4_IkmsAtom* ikms      = new AP4_IkmsAtom(m_KmsUri.GetChars());
     AP4_IsfmAtom* isfm      = new AP4_IsfmAtom(false, 0, 4);
 
     // populate the schi container
@@ -620,7 +620,7 @@ AP4_IsmaEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
                 break;
         }
         if (format) {
-            return new AP4_IsmaTrackEncrypter(m_KmsUri.c_str(), 
+            return new AP4_IsmaTrackEncrypter(m_KmsUri.GetChars(), 
                                               key, 
                                               salt, 
                                               entry,

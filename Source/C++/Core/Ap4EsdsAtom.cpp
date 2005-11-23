@@ -29,7 +29,6 @@
 /*----------------------------------------------------------------------
 |       includes
 +---------------------------------------------------------------------*/
-#include "Ap4.h"
 #include "Ap4EsdsAtom.h"
 #include "Ap4DescriptorFactory.h"
 #include "Ap4Utils.h"

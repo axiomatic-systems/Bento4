@@ -614,7 +614,7 @@ AP4_VisualSampleEntry::WriteFields(AP4_ByteStream& stream)
     
     // compressor name
     unsigned char compressor_name[32];
-    unsigned int name_length = m_CompressorName.length();
+    unsigned int name_length = m_CompressorName.GetLength();
     if (name_length > 31) name_length = 31;
     compressor_name[0] = name_length;
     for (unsigned int i=0; i<name_length; i++) {
@@ -649,7 +649,7 @@ AP4_VisualSampleEntry::InspectFields(AP4_AtomInspector& inspector)
     // fields
     inspector.AddField("width", m_Width);
     inspector.AddField("height", m_Height);
-    inspector.AddField("compressor", m_CompressorName.c_str());
+    inspector.AddField("compressor", m_CompressorName.GetChars());
 
     return AP4_SUCCESS;
 }
@@ -666,7 +666,7 @@ AP4_VisualSampleEntry::ToSampleDescription()
         m_Width,
         m_Height,
         m_Depth,
-        m_CompressorName.c_str());
+        m_CompressorName.GetChars());
 }
 
 /*----------------------------------------------------------------------
@@ -682,7 +682,7 @@ AP4_VisualSampleEntry::ToTargetSampleDescription(AP4_UI32 format)
                 m_Width,
                 m_Height,
                 m_Depth,
-                m_CompressorName.c_str());
+                m_CompressorName.GetChars());
 
         default:
             return new AP4_GenericVideoSampleDescription(
@@ -690,7 +690,7 @@ AP4_VisualSampleEntry::ToTargetSampleDescription(AP4_UI32 format)
                 m_Width,
                 m_Height,
                 m_Depth,
-                m_CompressorName.c_str());
+                m_CompressorName.GetChars());
     }
 }
 
@@ -737,7 +737,7 @@ AP4_MpegVideoSampleEntry::ToSampleDescription()
         m_Width,
         m_Height,
         m_Depth,
-        m_CompressorName.c_str());
+        m_CompressorName.GetChars());
 }
 
 /*----------------------------------------------------------------------

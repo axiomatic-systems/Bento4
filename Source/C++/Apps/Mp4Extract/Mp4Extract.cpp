@@ -33,9 +33,6 @@
 #include <stdlib.h>
 
 #include "Ap4.h"
-#include "Ap4FileByteStream.h"
-#include "Ap4AtomFactory.h"
-#include "Ap4Utils.h"
 
 /*----------------------------------------------------------------------
 |       constants
@@ -115,7 +112,7 @@ main(int argc, char** argv)
     // parse the atoms
     AP4_AtomParent top_level;
     AP4_Atom* atom;
-    AP4_AtomFactory& atom_factory = AP4_AtomFactory::DefaultFactory;
+    AP4_AtomFactory& atom_factory = AP4_DefaultAtomFactory::Instance;
     while (atom_factory.CreateAtomFromStream(*input, atom) == AP4_SUCCESS) {
         top_level.AddChild(atom);
     }

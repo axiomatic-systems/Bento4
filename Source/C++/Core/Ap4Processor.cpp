@@ -34,6 +34,9 @@
 #include "Ap4AtomFactory.h"
 #include "Ap4MoovAtom.h"
 #include "Ap4Array.h"
+#include "Ap4Sample.h"
+#include "Ap4TrakAtom.h"
+#include "Ap4DataBuffer.h"
 #include "Ap4Debug.h"
 
 /*----------------------------------------------------------------------

@@ -32,10 +32,11 @@
 /*----------------------------------------------------------------------
 |       includes
 +---------------------------------------------------------------------*/
-#include "Ap4.h"
-#include "Ap4Atom.h"
 #include "Ap4Array.h"
+#include "Ap4List.h"
+#include "Ap4Sample.h"
 #include "Ap4SampleTable.h"
+#include "Ap4SampleDescription.h"
 
 /*----------------------------------------------------------------------
 |       forward declarations

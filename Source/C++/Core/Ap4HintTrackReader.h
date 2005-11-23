@@ -32,7 +32,7 @@
 /*----------------------------------------------------------------------
 |       includes
 +---------------------------------------------------------------------*/
-#include "Ap4.h"
+#include "Ap4Types.h"
 #include "Ap4Sample.h"
 
 /*----------------------------------------------------------------------
@@ -45,6 +45,7 @@ class AP4_RtpSampleData;
 class AP4_RtpPacket;
 class AP4_ImmediateRtpConstructor;
 class AP4_SampleRtpConstructor;
+class AP4_String;
 
 /*----------------------------------------------------------------------
 |       AP4_HintTrackReader

@@ -2,7 +2,7 @@
 |
 |    AP4 - Shared Types
 |
-|    Copyright 2002 Gilles Boccon-Gibod
+|    Copyright 2002-2005 Gilles Boccon-Gibod
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -33,9 +33,6 @@
 |       includes
 +---------------------------------------------------------------------*/
 #include "Ap4Config.h"
-#if defined(AP4_CONFIG_HAVE_CPP_STRING_H)
-#include <string>
-#endif
 
 /*----------------------------------------------------------------------
 |       types
@@ -43,9 +40,6 @@
 typedef int            AP4_Result;
 typedef unsigned long  AP4_Flags;
 typedef unsigned long  AP4_Mask;
-typedef unsigned long  AP4_Size;
-typedef unsigned long  AP4_Offset;
-typedef unsigned long  AP4_Range;
 typedef unsigned long  AP4_Cardinal;
 typedef unsigned long  AP4_Ordinal;
 typedef unsigned long  AP4_TimeStamp;
@@ -57,7 +51,22 @@ typedef unsigned int   AP4_UI32;
 typedef unsigned short AP4_UI16;
 typedef unsigned char  AP4_UI08;
 typedef float          AP4_Float;
-typedef std::string    AP4_String;
+//typedef std::string    AP4_String;
 typedef unsigned char  AP4_Byte;
+
+// the rest depends on whether the platform supports 64-bit integers
+#if defined(AP4_CONFIG_HAVE_INT64)
+    // we have 64-bit integers
+    typedef unsigned long  AP4_Size;
+    typedef unsigned long  AP4_Offset;
+#else
+    // use only 32-bit integers
+    typedef unsigned long  AP4_Size;
+    typedef unsigned long  AP4_Offset;
+#endif
+
+#ifndef NULL
+#define NULL 0
+#endif
 
 #endif // _AP4_TYPES_H_

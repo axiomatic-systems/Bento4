@@ -30,6 +30,7 @@
 |       includes
 +---------------------------------------------------------------------*/
 #include "Ap4DataBuffer.h"
+#include "Ap4Utils.h"
 
 /*----------------------------------------------------------------------
 |       AP4_DataBuffer::AP4_DataBuffer
@@ -64,7 +65,7 @@ AP4_DataBuffer::AP4_DataBuffer(const AP4_DataBuffer& other) :
     m_DataSize(other.m_DataSize)
 {
     m_Buffer = new AP4_Byte[m_BufferSize];
-    memcpy(m_Buffer, other.m_Buffer, m_BufferSize);
+    AP4_CopyMemory(m_Buffer, other.m_Buffer, m_BufferSize);
 }
 
 /*----------------------------------------------------------------------

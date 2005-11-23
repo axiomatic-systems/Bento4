@@ -33,10 +33,6 @@
 #include <stdlib.h>
 
 #include "Ap4.h"
-#include "Ap4File.h"
-#include "Ap4FileWriter.h"
-#include "Ap4FileByteStream.h"
-#include "Ap4SyntheticSampleTable.h"
 #include "Ap4AdtsParser.h"
 
 /*----------------------------------------------------------------------

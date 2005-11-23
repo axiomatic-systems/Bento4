@@ -32,7 +32,8 @@
 /*----------------------------------------------------------------------
 |       includes
 +---------------------------------------------------------------------*/
-#include "Ap4.h"
+#include "Ap4Types.h"
+#include "Ap4Results.h"
 #include "Ap4Config.h"
 #include "Ap4Atom.h"
 
@@ -68,6 +69,13 @@ unsigned long AP4_ConvertTime(unsigned long time_value,
 #define AP4_StringFormat snprintf
 #else
 int AP4_StringFormat(char* str, AP4_Size size, const char* format, ...);
+#endif
+
+#if defined (AP4_CONFIG_HAVE_STRING_H)
+#include <string.h>
+#define AP4_StringLength(x) strlen(x)
+#define AP4_CopyMemory(x,y,z) memcpy(x,y,z)
+#define AP4_CompareStrings(x,y) strcmp(x,y)
 #endif
 
 void AP4_FormatFourChars(char* str, AP4_UI32 value);

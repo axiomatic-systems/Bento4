@@ -29,7 +29,6 @@
 /*----------------------------------------------------------------------
 |       includes
 +---------------------------------------------------------------------*/
-#include "Ap4.h"
 #include "Ap4UrlAtom.h"
 #include "Ap4AtomFactory.h"
 #include "Ap4Utils.h"
@@ -73,11 +72,11 @@ AP4_UrlAtom::WriteFields(AP4_ByteStream& stream)
         return AP4_SUCCESS;
     } else {
         // url (not self contained)
-        AP4_Result result = stream.Write(m_Url.c_str(), m_Url.length()+1);
+        AP4_Result result = stream.Write(m_Url.GetChars(), m_Url.GetLength()+1);
         if (AP4_FAILED(result)) return result;
 
         // pad with zeros if necessary
-        AP4_Size padding = m_Size-(AP4_FULL_ATOM_HEADER_SIZE+m_Url.length()+1);
+        AP4_Size padding = m_Size-(AP4_FULL_ATOM_HEADER_SIZE+m_Url.GetLength()+1);
         while (padding--) stream.WriteUI08(0);
         return AP4_SUCCESS;
     }
@@ -92,7 +91,7 @@ AP4_UrlAtom::InspectFields(AP4_AtomInspector& inspector)
     if (m_Flags & 1) {
         inspector.AddField("location", "[local to file]");
     } else {
-        inspector.AddField("location", m_Url.c_str());
+        inspector.AddField("location", m_Url.GetChars());
     }
 
     return AP4_SUCCESS;

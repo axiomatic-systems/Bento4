@@ -70,9 +70,11 @@
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
-			CharacterSet="2">
+			CharacterSet="2"
+			WholeProgramOptimization="TRUE">
 			<Tool
 				Name="VCCLCompilerTool"
+				GlobalOptimizations="TRUE"
 				InlineFunctionExpansion="1"
 				AdditionalIncludeDirectories="..\..\..\..\Source\C++\Config;..\..\..\..\Source\C++\Crypto"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
@@ -80,7 +82,7 @@
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="TRUE"
 				RuntimeTypeInfo="TRUE"
-				UsePrecompiledHeader="2"
+				UsePrecompiledHeader="0"
 				PrecompiledHeaderFile=".\Release/Core.pch"
 				AssemblerListingLocation=".\Release/"
 				ObjectFile=".\Release/"
@@ -301,6 +303,9 @@
 				RelativePath="..\..\..\..\Source\C++\Core\Ap4StcoAtom.cpp">
 			</File>
 			<File
+				RelativePath="..\..\..\..\Source\C++\Core\Ap4String.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\..\Source\C++\Core\Ap4StscAtom.cpp">
 			</File>
 			<File
@@ -498,6 +503,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\..\Source\C++\Core\Ap4StcoAtom.h">
+			</File>
+			<File
+				RelativePath="..\..\..\..\Source\C++\Core\Ap4String.h">
 			</File>
 			<File
 				RelativePath="..\..\..\..\Source\C++\Core\Ap4StscAtom.h">

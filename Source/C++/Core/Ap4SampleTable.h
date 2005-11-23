@@ -32,10 +32,14 @@
 /*----------------------------------------------------------------------
 |       includes
 +---------------------------------------------------------------------*/
-#include "Ap4Sample.h"
-#include "Ap4Atom.h"
-#include "Ap4ContainerAtom.h"
-#include "Ap4SampleDescription.h"
+#include "Ap4Types.h"
+
+/*----------------------------------------------------------------------
+|       class references
++---------------------------------------------------------------------*/
+class AP4_Sample;
+class AP4_ContainerAtom;
+class AP4_SampleDescription;
 
 /*----------------------------------------------------------------------
 |       AP4_SampleTable

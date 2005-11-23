@@ -29,8 +29,9 @@
 /*----------------------------------------------------------------------
 |       includes
 +---------------------------------------------------------------------*/
-#include "Ap4.h"
+#include "Ap4Types.h"
 #include "Ap4UnknownDescriptor.h"
+#include "Ap4ByteStream.h"
 
 /*----------------------------------------------------------------------
 |       AP4_UnknownDescriptor::AP4_UnknownDescriptor

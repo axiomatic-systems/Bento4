@@ -54,6 +54,7 @@ CORE_SOURCES = 								\
 	Ap4File.cpp 							\
 	Ap4Track.cpp 							\
 	Ap4Utils.cpp							\
+	Ap4String.cpp                           \
 	Ap4Movie.cpp							\
 	Ap4RtpHint.cpp  						\
 	Ap4Sample.cpp							\

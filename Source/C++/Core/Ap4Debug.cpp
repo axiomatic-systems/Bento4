@@ -32,7 +32,9 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-#include "Ap4.h"
+#include "Ap4Config.h"
+#include "Ap4Types.h"
+#include "Ap4Utils.h"
 #include "Ap4Debug.h"
 
 /*----------------------------------------------------------------------

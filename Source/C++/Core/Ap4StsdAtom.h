@@ -32,20 +32,16 @@
 /*----------------------------------------------------------------------
 |       includes
 +---------------------------------------------------------------------*/
-#include "Ap4.h"
 #include "Ap4Types.h"
 #include "Ap4Array.h"
-#include "Ap4ByteStream.h"
-#include "Ap4List.h"
-#include "Ap4Atom.h"
-#include "Ap4SampleDescription.h"
-#include "Ap4AtomFactory.h"
 #include "Ap4ContainerAtom.h"
 
 /*----------------------------------------------------------------------
 |       class references
 +---------------------------------------------------------------------*/
 class AP4_SampleTable;
+class AP4_SampleDescription;
+class AP4_SampleEntry;
 
 /*----------------------------------------------------------------------
 |       AP4_StsdAtom

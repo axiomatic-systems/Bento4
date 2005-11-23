@@ -33,11 +33,6 @@
 #include <stdlib.h>
 
 #include "Ap4.h"
-#include "Ap4HintTrackReader.h"
-#include "Ap4ByteStream.h"
-#include "Ap4File.h"
-#include "Ap4Movie.h"
-#include "Ap4FileByteStream.h"
 
 /*----------------------------------------------------------------------
 |       constants
@@ -152,7 +147,7 @@ main(int argc, char** argv)
         // display the sdp
         AP4_String sdp;
         reader.GetSdpText(sdp);
-        AP4_Debug("sdp:\n%s\n\n", sdp.c_str());
+        AP4_Debug("sdp:\n%s\n\n", sdp.GetChars());
 
         // dump the packet
         result = DumpRtpPackets(reader, rtp_file_name);
