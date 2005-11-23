@@ -29,12 +29,12 @@
 /*----------------------------------------------------------------------
 |       includes
 +---------------------------------------------------------------------*/
-#include "Ap4.h"
 #include "Ap4StsdAtom.h"
 #include "Ap4AtomFactory.h"
 #include "Ap4Utils.h"
 #include "Ap4SampleEntry.h"
 #include "Ap4SampleTable.h"
+#include "Ap4SampleDescription.h"
 
 /*----------------------------------------------------------------------
 |       AP4_StsdAtom::AP4_StsdAtom

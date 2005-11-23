@@ -32,7 +32,7 @@
 /*----------------------------------------------------------------------
 |       includes
 +---------------------------------------------------------------------*/
-#include "Ap4.h"
+#include "Ap4Types.h"
 #include "Ap4List.h"
 #include "Ap4DataBuffer.h"
 #include "Ap4Interfaces.h"

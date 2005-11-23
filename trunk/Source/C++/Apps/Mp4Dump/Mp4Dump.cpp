@@ -33,13 +33,6 @@
 #include <stdlib.h>
 
 #include "Ap4.h"
-#include "Ap4FileByteStream.h"
-#include "Ap4Atom.h"
-#include "Ap4File.h"
-#include "Ap4Sample.h"
-#include "Ap4DataBuffer.h"
-#include "Ap4AtomFactory.h"
-#include "Ap4Utils.h"
 
 /*----------------------------------------------------------------------
 |       constants
@@ -138,7 +131,7 @@ main(int argc, char** argv)
     // inspect the atoms one by one
     AP4_Atom* atom;
     //for (int i=0; i<1000; i++) {
-    AP4_AtomFactory& atom_factory = AP4_AtomFactory::DefaultFactory;
+    AP4_AtomFactory& atom_factory = AP4_DefaultAtomFactory::Instance;
     //MyTypeHandler my_type_handler;
     //atom_factory.AddTypeHandler(&my_type_handler);
     while (atom_factory.CreateAtomFromStream(*input, atom) == 

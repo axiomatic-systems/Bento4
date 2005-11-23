@@ -32,14 +32,14 @@
 /*----------------------------------------------------------------------
 |       includes
 +---------------------------------------------------------------------*/
-#include "Ap4.h"
-#include "Ap4ByteStream.h"
-#include "Ap4List.h"
-#include "Ap4Atom.h"
-#include "Ap4HdlrAtom.h"
-#include "Ap4TkhdAtom.h"
 #include "Ap4ContainerAtom.h"
-#include "Ap4SampleTable.h"
+#include "Ap4TkhdAtom.h"
+
+/*----------------------------------------------------------------------
+|       class references
++---------------------------------------------------------------------*/
+class AP4_HdlrAtom;
+class AP4_SampleTable;
 
 /*----------------------------------------------------------------------
 |       AP4_TrakAtom

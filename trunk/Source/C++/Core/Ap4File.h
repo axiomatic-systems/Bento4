@@ -32,13 +32,15 @@
 /*----------------------------------------------------------------------
 |       includes
 +---------------------------------------------------------------------*/
-#include "Ap4.h"
-#include "Ap4Atom.h"
-#include "Ap4Track.h"
+#include "Ap4Types.h"
 #include "Ap4List.h"
-#include "Ap4Movie.h"
-#include "Ap4ByteStream.h"
 #include "Ap4AtomFactory.h"
+
+/*----------------------------------------------------------------------
+|       class references
++---------------------------------------------------------------------*/
+class AP4_ByteStream;
+class AP4_Movie;
 
 /*----------------------------------------------------------------------
 |       AP4_File
@@ -48,7 +50,7 @@ public:
     // constructors and destructor
     AP4_File(AP4_Movie* movie);
     AP4_File(AP4_ByteStream& stream, 
-             AP4_AtomFactory& atom_factory = AP4_AtomFactory::DefaultFactory);
+             AP4_AtomFactory& atom_factory = AP4_DefaultAtomFactory::Instance);
     virtual ~AP4_File();
 
     // methods

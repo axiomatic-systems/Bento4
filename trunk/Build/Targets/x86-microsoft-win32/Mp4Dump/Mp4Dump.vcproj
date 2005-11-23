@@ -78,16 +78,18 @@
 			ConfigurationType="1"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
-			CharacterSet="2">
+			CharacterSet="2"
+			WholeProgramOptimization="TRUE">
 			<Tool
 				Name="VCCLCompilerTool"
+				GlobalOptimizations="TRUE"
 				InlineFunctionExpansion="1"
 				AdditionalIncludeDirectories="..\..\..\..\Source\C++\Core,..\..\..\..\Source\C++\Config"
 				PreprocessorDefinitions="WIN32,NDEBUG,_CONSOLE"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="TRUE"
-				UsePrecompiledHeader="2"
+				UsePrecompiledHeader="0"
 				PrecompiledHeaderFile=".\Release/Mp4Dump.pch"
 				AssemblerListingLocation=".\Release/"
 				ObjectFile=".\Release/"
@@ -105,6 +107,9 @@
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
 				ProgramDatabaseFile=".\Release/Mp4Dump.pdb"
+				GenerateMapFile="TRUE"
+				MapFileName="m4pdump.map"
+				MapExports="TRUE"
 				SubSystem="1"/>
 			<Tool
 				Name="VCMIDLTool"

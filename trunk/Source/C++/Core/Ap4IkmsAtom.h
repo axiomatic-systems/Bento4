@@ -33,8 +33,8 @@
 |       includes
 +---------------------------------------------------------------------*/
 #include "Ap4Types.h"
-#include "Ap4ByteStream.h"
 #include "Ap4Atom.h"
+#include "Ap4String.h"
 
 /*----------------------------------------------------------------------
 |       AP4_IkmsAtom

@@ -29,7 +29,7 @@
 /*----------------------------------------------------------------------
 |       includes
 +---------------------------------------------------------------------*/
-#include "Ap4.h"
+#include "Ap4Types.h"
 #include "Ap4AtomFactory.h"
 #include "Ap4SampleEntry.h"
 #include "Ap4IsmaCryp.h"
@@ -64,9 +64,12 @@
 #include "Ap4TrefTypeAtom.h"
 
 /*----------------------------------------------------------------------
-|       class variables
+|       AP4_AtomFactory::~AP4_AtomFactory
 +---------------------------------------------------------------------*/
-AP4_AtomFactory AP4_AtomFactory::DefaultFactory;
+AP4_AtomFactory::~AP4_AtomFactory()
+{
+    m_TypeHandlers.DeleteReferences();
+}
 
 /*----------------------------------------------------------------------
 |       AP4_AtomFactory::AddTypeHandler
@@ -361,3 +364,16 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
     return result;
 }
 
+/*----------------------------------------------------------------------
+|       AP4_DefaultAtomFactory::Instance
++---------------------------------------------------------------------*/
+AP4_DefaultAtomFactory AP4_DefaultAtomFactory::Instance;
+
+/*----------------------------------------------------------------------
+|       AP4_DefaultAtomFactory::Instance
++---------------------------------------------------------------------*/
+AP4_DefaultAtomFactory::AP4_DefaultAtomFactory()
+{
+    // register built-in type handlers
+    //AddTypeHandler(foo);
+}

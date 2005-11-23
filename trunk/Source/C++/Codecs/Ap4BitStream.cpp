@@ -18,6 +18,7 @@
 |       includes
 +---------------------------------------------------------------------*/
 #include "Ap4BitStream.h"
+#include "Ap4Utils.h"
 
 /*----------------------------------------------------------------------
 |       AP4_BitStream::AP4_BitStream
@@ -106,18 +107,18 @@ AP4_BitStream::WriteBytes(const AP4_UI08* bytes,
 
     /* write the bytes */
     if (m_In < m_Out) {
-        memcpy(m_Buffer+m_In, bytes, byte_count);
+        AP4_CopyMemory(m_Buffer+m_In, bytes, byte_count);
         AP4_BITSTREAM_POINTER_ADD(m_In, byte_count);
     } else {
         unsigned int chunk = AP4_BITSTREAM_BUFFER_SIZE - m_In;
         if (chunk > byte_count) chunk = byte_count;
 
-        memcpy(m_Buffer+m_In, bytes, chunk);
+        AP4_CopyMemory(m_Buffer+m_In, bytes, chunk);
         AP4_BITSTREAM_POINTER_ADD(m_In, chunk);
 
         if (chunk != byte_count) {
-            memcpy(m_Buffer+m_In, 
-                   bytes+chunk, byte_count-chunk);
+            AP4_CopyMemory(m_Buffer+m_In, 
+                           bytes+chunk, byte_count-chunk);
             AP4_BITSTREAM_POINTER_ADD(m_In, byte_count-chunk);
         }
     }
@@ -171,19 +172,19 @@ AP4_BitStream::ReadBytes(AP4_UI08* bytes,
    /* Get other bytes */
    if (byte_count > 0) {
       if (m_Out < m_In) {
-         memcpy(bytes, m_Buffer + m_Out, byte_count);
+         AP4_CopyMemory(bytes, m_Buffer + m_Out, byte_count);
          AP4_BITSTREAM_POINTER_ADD(m_Out, byte_count);
       } else {
          unsigned int chunk = AP4_BITSTREAM_BUFFER_SIZE - m_Out;
          if (chunk >= byte_count) chunk = byte_count;
 
-         memcpy(bytes, m_Buffer+m_Out, chunk);
+         AP4_CopyMemory(bytes, m_Buffer+m_Out, chunk);
          AP4_BITSTREAM_POINTER_ADD(m_Out, chunk);
 
          if (chunk != byte_count) {
-            memcpy(bytes+chunk, 
-                   m_Buffer+m_Out, 
-                   byte_count-chunk);
+            AP4_CopyMemory(bytes+chunk, 
+                           m_Buffer+m_Out, 
+                           byte_count-chunk);
             AP4_BITSTREAM_POINTER_ADD(m_Out, byte_count-chunk);
          }
       }
@@ -217,7 +218,7 @@ AP4_BitStream::PeekBytes(AP4_UI08* bytes,
    /* Get other bytes */
    if (byte_count > 0) {
       if (m_In > m_Out) {
-         memcpy(bytes, m_Buffer + m_Out, byte_count);
+         AP4_CopyMemory(bytes, m_Buffer + m_Out, byte_count);
       } else {
          unsigned int out = m_Out;
          unsigned int chunk = AP4_BITSTREAM_BUFFER_SIZE - out;
@@ -225,13 +226,13 @@ AP4_BitStream::PeekBytes(AP4_UI08* bytes,
             chunk = byte_count;
          }
 
-         memcpy(bytes, m_Buffer+out, chunk);
+         AP4_CopyMemory(bytes, m_Buffer+out, chunk);
          AP4_BITSTREAM_POINTER_ADD(out, chunk);
 
          if (chunk != byte_count) {
-            memcpy(bytes+chunk, 
-                   m_Buffer+out, 
-                   byte_count-chunk);
+            AP4_CopyMemory(bytes+chunk, 
+                           m_Buffer+out, 
+                           byte_count-chunk);
          }
       }
    }

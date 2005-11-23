@@ -35,6 +35,7 @@
 #include "Ap4MoovAtom.h"
 #include "Ap4MvhdAtom.h"
 #include "Ap4AtomFactory.h"
+#include "Ap4Movie.h"
 
 /*----------------------------------------------------------------------
 |       AP4_File::AP4_File

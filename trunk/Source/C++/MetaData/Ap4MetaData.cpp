@@ -1,14 +1,12 @@
 /*****************************************************************
 |
-|    AP4 - Target Platform and Compiler Configuration
+|    AP4 - MetaData 
 |
 |    Copyright 2002 Gilles Boccon-Gibod
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
 |
-|    Unless you have obtained Bento4 under a difference license,
-|    this version of Bento4 is Bento4|GPL.
 |    Unless you have obtained Bento4 under a difference license,
 |    this version of Bento4 is Bento4|GPL.
 |    Bento4|GPL is free software; you can redistribute it and/or modify
@@ -26,40 +24,33 @@
 |    Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 |    02111-1307, USA.
 |
- ****************************************************************/
-
-#ifndef _AP4_CONFIG_H_
-#define _AP4_CONFIG_H_
+****************************************************************/
 
 /*----------------------------------------------------------------------
-|       defaults
+|       includes
 +---------------------------------------------------------------------*/
-#define AP4_CONFIG_HAVE_STDIO_H
-#define AP4_CONFIG_HAVE_ASSERT_H
-#define AP4_CONFIG_HAVE_STRING_H
-
-#define AP4_CONFIG_HAVE_SNPRINTF
+#include "Ap4MetaData.h"
+#include "Ap4ContainerAtom.h"
 
 /*----------------------------------------------------------------------
-|       byte order
+|       AP4_MetaDataAtomTypeHandler::CreateAtom
 +---------------------------------------------------------------------*/
-// define AP4_PLATFORM_BYTE_ORDER to one of these two choices
-#define AP4_PLATFORM_BYTE_ORDER_BIG_ENDIAN    0
-#define AP4_PLATFORM_BYTE_ORDER_LITTLE_ENDIAN 1
+AP4_Result 
+AP4_MetaDataAtomTypeHandler::CreateAtom(AP4_Atom::Type  type,
+                                        AP4_Size        size,
+                                        AP4_ByteStream& stream,
+                                        AP4_Atom*&      atom)
+{
+    switch (type) {
+        case AP4_ATOM_TYPE_cNAM:
+        case AP4_ATOM_TYPE_cGEN:
+        case AP4_ATOM_TYPE_cALB:
+        case AP4_ATOM_TYPE_cART:
+            atom = new AP4_ContainerAtom(type, size, false, stream, *m_AtomFactory);
+            return AP4_SUCCESS;
 
-#ifdef __ppc__
-#define AP4_PLATFORM_BYTE_ORDER AP4_PLATFORM_BYTE_ORDER_BIG_ENDIAN
-#endif
-
-/*----------------------------------------------------------------------
-|       Win32 specifics
-+---------------------------------------------------------------------*/
-#ifdef WIN32
-#define snprintf _snprintf
-#define vsnprintf _vsnprintf
-#if defined(_DEBUG)
-#define AP4_DEBUG
-#endif
-#endif
-
-#endif // _AP4_CONFIG_H_
+        default:
+            atom = NULL;
+            return AP4_FAILURE;
+    }
+}

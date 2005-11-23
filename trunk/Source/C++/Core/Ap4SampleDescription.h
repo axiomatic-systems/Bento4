@@ -32,9 +32,7 @@
 /*----------------------------------------------------------------------
 |       includes
 +---------------------------------------------------------------------*/
-#include "Ap4.h"
-#include "Ap4ByteStream.h"
-#include "Ap4DataBuffer.h"
+#include "Ap4Types.h"
 #include "Ap4Atom.h"
 #include "Ap4EsDescriptor.h"
 #include "Ap4EsdsAtom.h"
@@ -43,6 +41,7 @@
 |       class references
 +---------------------------------------------------------------------*/
 class AP4_SampleEntry;
+class AP4_DataBuffer;
 
 /*----------------------------------------------------------------------
 |       AP4_SampleDescription
@@ -120,7 +119,7 @@ public:
     AP4_UI32    GetWidth()          { return m_Width;   }
     AP4_UI16    GetHeight()         { return m_Height;   }
     AP4_UI16    GetDepth()          { return m_Depth; }
-    const char* GetCompressorName() { return m_CompressorName.c_str(); }
+    const char* GetCompressorName() { return m_CompressorName.GetChars(); }
 
 protected:
     // members

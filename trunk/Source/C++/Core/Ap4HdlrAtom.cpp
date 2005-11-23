@@ -29,7 +29,6 @@
 /*----------------------------------------------------------------------
 |       includes
 +---------------------------------------------------------------------*/
-#include "Ap4.h"
 #include "Ap4HdlrAtom.h"
 #include "Ap4AtomFactory.h"
 #include "Ap4Utils.h"
@@ -42,7 +41,7 @@ AP4_HdlrAtom::AP4_HdlrAtom(AP4_Atom::Type hdlr_type, const char* hdlr_name) :
     m_HandlerType(hdlr_type),
     m_HandlerName(hdlr_name)
 {
-    m_Size += 20+m_HandlerName.length()+1;
+    m_Size += 20+m_HandlerName.GetLength()+1;
 }
 
 /*----------------------------------------------------------------------
@@ -86,10 +85,10 @@ AP4_HdlrAtom::WriteFields(AP4_ByteStream& stream)
     if (AP4_FAILED(result)) return result;
     result = stream.Write(reserved, 12);
     if (AP4_FAILED(result)) return result;
-    AP4_UI08 name_size = m_HandlerName.length();
+    AP4_UI08 name_size = (AP4_UI08)m_HandlerName.GetLength();
     result = stream.WriteUI08(name_size);
     if (AP4_FAILED(result)) return result;
-    result = stream.Write(m_HandlerName.c_str(), name_size+1);
+    result = stream.Write(m_HandlerName.GetChars(), name_size+1);
     if (AP4_FAILED(result)) return result;
 
     // pad with zeros if necessary
@@ -108,7 +107,7 @@ AP4_HdlrAtom::InspectFields(AP4_AtomInspector& inspector)
     char type[5];
     AP4_FormatFourChars(type, m_HandlerType);
     inspector.AddField("handler_type", type);
-    inspector.AddField("handler_name", m_HandlerName.c_str());
+    inspector.AddField("handler_name", m_HandlerName.GetChars());
 
     return AP4_SUCCESS;
 }

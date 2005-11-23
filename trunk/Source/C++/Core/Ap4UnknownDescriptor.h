@@ -32,11 +32,8 @@
 /*----------------------------------------------------------------------
 |       includes
 +---------------------------------------------------------------------*/
-#include "Ap4.h"
-#include "Ap4ByteStream.h"
-#include "Ap4List.h"
-#include "Ap4DataBuffer.h"
 #include "Ap4Descriptor.h"
+#include "Ap4DataBuffer.h"
 
 /*----------------------------------------------------------------------
 |       AP4_UnknownDescriptor

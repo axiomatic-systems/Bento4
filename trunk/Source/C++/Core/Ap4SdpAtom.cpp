@@ -29,7 +29,6 @@
 /*----------------------------------------------------------------------
 |       includes
 +---------------------------------------------------------------------*/
-#include "Ap4.h"
 #include "Ap4SdpAtom.h"
 #include "Ap4AtomFactory.h"
 #include "Ap4Utils.h"
@@ -42,7 +41,7 @@ AP4_SdpAtom::AP4_SdpAtom(const char* sdp_text) :
     AP4_Atom(AP4_ATOM_TYPE_SDP, AP4_ATOM_HEADER_SIZE, false),
     m_SdpText(sdp_text)
 {
-    m_Size += m_SdpText.length()+1;
+    m_Size += m_SdpText.GetLength()+1;
 }
 
 /*----------------------------------------------------------------------
@@ -69,11 +68,11 @@ AP4_Result
 AP4_SdpAtom::WriteFields(AP4_ByteStream& stream)
 {
     // sdptext
-    AP4_Result result = stream.Write(m_SdpText.c_str(), m_SdpText.length());
+    AP4_Result result = stream.Write(m_SdpText.GetChars(), m_SdpText.GetLength());
     if (AP4_FAILED(result)) return result;
 
     // pad with zeros if necessary
-    AP4_Size padding = m_Size-(AP4_ATOM_HEADER_SIZE+m_SdpText.length());
+    AP4_Size padding = m_Size-(AP4_ATOM_HEADER_SIZE+m_SdpText.GetLength());
     while (padding--) stream.WriteUI08(0);
     
     return AP4_SUCCESS;
@@ -85,7 +84,7 @@ AP4_SdpAtom::WriteFields(AP4_ByteStream& stream)
 AP4_Result
 AP4_SdpAtom::InspectFields(AP4_AtomInspector& inspector)
 {
-    inspector.AddField("sdp_text", m_SdpText.c_str());
+    inspector.AddField("sdp_text", m_SdpText.GetChars());
 
     return AP4_SUCCESS;
 }

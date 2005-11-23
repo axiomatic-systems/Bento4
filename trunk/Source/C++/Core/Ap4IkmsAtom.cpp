@@ -39,7 +39,7 @@ AP4_IkmsAtom::AP4_IkmsAtom(const char* kms_uri) :
     AP4_Atom(AP4_ATOM_TYPE_IKMS, AP4_FULL_ATOM_HEADER_SIZE, true),
     m_KmsUri(kms_uri)
 {
-    m_Size += m_KmsUri.length()+1;
+    m_Size += m_KmsUri.GetLength()+1;
 }
 
 /*----------------------------------------------------------------------
@@ -64,7 +64,7 @@ AP4_IkmsAtom::AP4_IkmsAtom(AP4_Size size, AP4_ByteStream& stream) :
 AP4_Atom* 
 AP4_IkmsAtom::Clone()
 {
-    return new AP4_IkmsAtom(m_KmsUri.c_str());
+    return new AP4_IkmsAtom(m_KmsUri.GetChars());
 }
 
 /*----------------------------------------------------------------------
@@ -74,11 +74,11 @@ AP4_Result
 AP4_IkmsAtom::WriteFields(AP4_ByteStream& stream)
 {
     // kms uri
-    AP4_Result result = stream.Write(m_KmsUri.c_str(), m_KmsUri.length()+1);
+    AP4_Result result = stream.Write(m_KmsUri.GetChars(), m_KmsUri.GetLength()+1);
     if (AP4_FAILED(result)) return result;
 
     // pad with zeros if necessary
-    AP4_Size padding = m_Size-(AP4_FULL_ATOM_HEADER_SIZE+m_KmsUri.length()+1);
+    AP4_Size padding = m_Size-(AP4_FULL_ATOM_HEADER_SIZE+m_KmsUri.GetLength()+1);
     while (padding--) stream.WriteUI08(0);
     
     return AP4_SUCCESS;
@@ -90,7 +90,7 @@ AP4_IkmsAtom::WriteFields(AP4_ByteStream& stream)
 AP4_Result
 AP4_IkmsAtom::InspectFields(AP4_AtomInspector& inspector)
 {
-    inspector.AddField("kms_uri", m_KmsUri.c_str());
+    inspector.AddField("kms_uri", m_KmsUri.GetChars());
 
     return AP4_SUCCESS;
 }

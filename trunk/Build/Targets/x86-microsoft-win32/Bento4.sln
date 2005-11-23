@@ -92,6 +92,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Mp4RtpHintInfo", "Mp4RtpHin
 		{A714AA1C-45A9-403D-A6E1-020E520119A2} = {A714AA1C-45A9-403D-A6E1-020E520119A2}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MetaData", "MetaData\MetaData.vcproj", "{D2A66E1B-6C25-4D48-8908-F70AD585A7E1}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfiguration) = preSolution
 		Debug = Debug
@@ -158,6 +162,10 @@ Global
 		{D100E130-718D-4060-ACD9-1061A159DD79}.Debug.Build.0 = Debug|Win32
 		{D100E130-718D-4060-ACD9-1061A159DD79}.Release.ActiveCfg = Release|Win32
 		{D100E130-718D-4060-ACD9-1061A159DD79}.Release.Build.0 = Release|Win32
+		{D2A66E1B-6C25-4D48-8908-F70AD585A7E1}.Debug.ActiveCfg = Debug|Win32
+		{D2A66E1B-6C25-4D48-8908-F70AD585A7E1}.Debug.Build.0 = Debug|Win32
+		{D2A66E1B-6C25-4D48-8908-F70AD585A7E1}.Release.ActiveCfg = Release|Win32
+		{D2A66E1B-6C25-4D48-8908-F70AD585A7E1}.Release.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 	EndGlobalSection

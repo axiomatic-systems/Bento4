@@ -29,9 +29,10 @@
 /*----------------------------------------------------------------------
 |       includes
 +---------------------------------------------------------------------*/
-#include "Ap4.h"
+#include "Ap4Types.h"
 #include "Ap4Atom.h"
 #include "Ap4SyntheticSampleTable.h"
+#include "Ap4Sample.h"
 
 /*----------------------------------------------------------------------
 |       AP4_SyntheticSampleTable::AP4_SyntheticSampleTable()

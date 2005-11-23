@@ -32,10 +32,8 @@
 /*----------------------------------------------------------------------
 |       includes
 +---------------------------------------------------------------------*/
-#include "Ap4.h"
+#include "Ap4Types.h"
 #include "Ap4Array.h"
-#include "Ap4SampleDescription.h"
-#include "Ap4SampleTable.h"
 
 /*----------------------------------------------------------------------
 |       forward declarations
@@ -46,6 +44,8 @@ class AP4_Sample;
 class AP4_DataBuffer;
 class AP4_TrakAtom;
 class AP4_MoovAtom;
+class AP4_SampleDescription;
+class AP4_SampleTable;
 
 /*----------------------------------------------------------------------
 |       constants

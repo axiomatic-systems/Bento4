@@ -29,7 +29,6 @@
 /*----------------------------------------------------------------------
 |       includes
 +---------------------------------------------------------------------*/
-#include "Ap4.h"
 #include "Ap4DecoderConfigDescriptor.h"
 #include "Ap4DescriptorFactory.h"
 #include "Ap4Utils.h"

@@ -33,13 +33,7 @@
 #include <stdlib.h>
 
 #include "Ap4.h"
-#include "Ap4FileByteStream.h"
-#include "Ap4Atom.h"
-#include "Ap4File.h"
-#include "Ap4Sample.h"
-#include "Ap4SampleDescription.h"
 #include "Ap4IsmaCryp.h"
-#include "Ap4Utils.h"
 
 /*----------------------------------------------------------------------
 |       constants

@@ -280,7 +280,7 @@ AP4_MpegVideoSampleDescription::ToAtom() const
     return new AP4_Mp4vSampleEntry(m_Width,
                                    m_Height,
                                    m_Depth,
-                                   m_CompressorName.c_str(),
+                                   m_CompressorName.GetChars(),
                                    CreateEsDescriptor());
 }
 

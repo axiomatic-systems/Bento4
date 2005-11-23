@@ -29,7 +29,6 @@
 /*----------------------------------------------------------------------
 |       includes
 +---------------------------------------------------------------------*/
-#include "Ap4.h"
 #include "Ap4SchmAtom.h"
 #include "Ap4AtomFactory.h"
 #include "Ap4Utils.h"
@@ -47,7 +46,7 @@ AP4_SchmAtom::AP4_SchmAtom(AP4_UI32    scheme_type,
     if (scheme_uri) {
         m_SchemeUri = scheme_uri;
         m_Flags = 1;
-        m_Size += m_SchemeUri.length()+1;
+        m_Size += m_SchemeUri.GetLength()+1;
     }
 }
 
@@ -89,11 +88,11 @@ AP4_SchmAtom::WriteFields(AP4_ByteStream& stream)
 
     // uri if needed
     if (m_Flags & 1) {
-        result = stream.Write(m_SchemeUri.c_str(), m_SchemeUri.length()+1);
+        result = stream.Write(m_SchemeUri.GetChars(), m_SchemeUri.GetLength()+1);
         if (AP4_FAILED(result)) return result;
 
         // pad with zeros if necessary
-        AP4_Size padding = m_Size-(AP4_FULL_ATOM_HEADER_SIZE+8+m_SchemeUri.length()+1);
+        AP4_Size padding = m_Size-(AP4_FULL_ATOM_HEADER_SIZE+8+m_SchemeUri.GetLength()+1);
         while (padding--) {
             stream.WriteUI08(0);
         }
@@ -113,7 +112,7 @@ AP4_SchmAtom::InspectFields(AP4_AtomInspector& inspector)
     inspector.AddField("scheme_type", st);
     inspector.AddField("scheme_version", m_SchemeVersion);
     if (m_Flags & 1) {
-        inspector.AddField("scheme_uri", m_SchemeUri.c_str());    
+        inspector.AddField("scheme_uri", m_SchemeUri.GetChars());    
     }
 
     return AP4_SUCCESS;

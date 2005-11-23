@@ -29,7 +29,6 @@
 /*----------------------------------------------------------------------
 |       includes
 +---------------------------------------------------------------------*/
-#include "Ap4.h"
 #include "Ap4Utils.h"
 
 /*----------------------------------------------------------------------
@@ -214,7 +213,7 @@ AP4_HexNibble(char c)
 AP4_Result
 AP4_ParseHex(const char* hex, unsigned char* bytes, unsigned int count)
 {
-    if (strlen(hex) != 2*count) return AP4_ERROR_INVALID_PARAMETERS;
+    if (AP4_StringLength(hex) != 2*count) return AP4_ERROR_INVALID_PARAMETERS;
     for (unsigned int i=0; i<count; i++) {
         bytes[i] = (AP4_HexNibble(hex[2*i]) << 4) | (AP4_HexNibble(hex[2*i+1]));
     }

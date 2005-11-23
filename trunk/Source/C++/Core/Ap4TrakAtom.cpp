@@ -29,9 +29,9 @@
 /*----------------------------------------------------------------------
 |       includes
 +---------------------------------------------------------------------*/
-#include "Ap4.h"
 #include "Ap4TrakAtom.h"
 #include "Ap4MdhdAtom.h"
+#include "Ap4HdlrAtom.h"
 #include "Ap4VmhdAtom.h"
 #include "Ap4SmhdAtom.h"
 #include "Ap4HmhdAtom.h"
@@ -40,6 +40,7 @@
 #include "Ap4UrlAtom.h"
 #include "Ap4StcoAtom.h"
 #include "Ap4AtomFactory.h"
+#include "Ap4SampleTable.h"
 #include "Ap4Utils.h"
 
 /*----------------------------------------------------------------------

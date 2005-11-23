@@ -29,7 +29,6 @@
 /*----------------------------------------------------------------------
 |       includes
 +---------------------------------------------------------------------*/
-#include "Ap4.h"
 #include "Ap4RtpAtom.h"
 #include "Ap4AtomFactory.h"
 #include "Ap4Utils.h"
@@ -68,11 +67,11 @@ AP4_RtpAtom::WriteFields(AP4_ByteStream& stream)
     if (AP4_FAILED(result)) return result;
 
     // sdp text
-    result = stream.Write(m_SdpText.c_str(), m_SdpText.length());
+    result = stream.Write(m_SdpText.GetChars(), m_SdpText.GetLength());
     if (AP4_FAILED(result)) return result;
 
     // pad with zeros if necessary
-    AP4_Size padding = m_Size-(AP4_ATOM_HEADER_SIZE+4+m_SdpText.length());
+    AP4_Size padding = m_Size-(AP4_ATOM_HEADER_SIZE+4+m_SdpText.GetLength());
     while (padding--) stream.WriteUI08(0);
     
     return AP4_SUCCESS;
@@ -87,7 +86,7 @@ AP4_RtpAtom::InspectFields(AP4_AtomInspector& inspector)
     char format_string[5];
     AP4_FormatFourChars(format_string, m_DescriptionFormat);
     inspector.AddField("description_format", format_string);
-    inspector.AddField("sdp_text", m_SdpText.c_str());
+    inspector.AddField("sdp_text", m_SdpText.GetChars());
 
     return AP4_SUCCESS;
 }

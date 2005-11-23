@@ -49,17 +49,17 @@ class AP4_AtomFactory {
      class TypeHandler {
      public:
          virtual ~TypeHandler() {};
-         virtual AP4_Result CreateAtom(AP4_Atom::Type   type,
-                                       AP4_Size         size,
-                                       AP4_ByteStream&  stream,
-                                       AP4_Atom*&       atom) = 0;
+         virtual AP4_Result CreateAtom(AP4_Atom::Type  type,
+                                       AP4_Size        size,
+                                       AP4_ByteStream& stream,
+                                       AP4_Atom*&      atom) = 0;
     };
-
-    // class members
-    static AP4_AtomFactory DefaultFactory;
 
     // constructor
     AP4_AtomFactory() : m_Context(0) {}
+
+    // destructor
+    ~AP4_AtomFactory();
 
     // methods
     AP4_Result AddTypeHandler(TypeHandler* handler);
@@ -78,6 +78,18 @@ private:
     // members
     AP4_Atom::Type        m_Context;
     AP4_List<TypeHandler> m_TypeHandlers;
+};
+
+/*----------------------------------------------------------------------
+|       AP4_DefaultAtomFactory
++---------------------------------------------------------------------*/
+class AP4_DefaultAtomFactory : public AP4_AtomFactory {
+public:
+    // class members
+    static AP4_DefaultAtomFactory Instance;
+
+    // constructor
+    AP4_DefaultAtomFactory();
 };
 
 #endif // _AP4_ATOM_FACTORY_H_

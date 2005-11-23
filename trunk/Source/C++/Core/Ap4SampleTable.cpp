@@ -36,6 +36,7 @@
 #include "Ap4StscAtom.h"
 #include "Ap4StcoAtom.h"
 #include "Ap4SttsAtom.h"
+#include "Ap4Sample.h"
 
 /*----------------------------------------------------------------------
 |       AP4_SampleTable::GenerateStblAtom

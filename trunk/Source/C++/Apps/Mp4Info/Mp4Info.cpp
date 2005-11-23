@@ -33,15 +33,7 @@
 #include <stdlib.h>
 
 #include "Ap4.h"
-#include "Ap4FileByteStream.h"
-#include "Ap4Atom.h"
-#include "Ap4File.h"
-#include "Ap4Sample.h"
-#include "Ap4SampleDescription.h"
 #include "Ap4IsmaCryp.h"
-#include "Ap4IsfmAtom.h"
-#include "Ap4IkmsAtom.h"
-#include "Ap4Utils.h"
 
 /*----------------------------------------------------------------------
 |       constants
@@ -79,7 +71,7 @@ ShowIsmaSampleDescription(AP4_IsmaCrypSampleDescription* desc)
         (char)((st>> 8) & 0xFF),
         (char)((st    ) & 0xFF));
     AP4_Debug("      Scheme Version: %d\n", desc->GetSchemeVersion());
-    AP4_Debug("      Scheme URI:     %s\n", desc->GetSchemeUri().c_str());
+    AP4_Debug("      Scheme URI:     %s\n", desc->GetSchemeUri().GetChars());
     AP4_IsmaCrypSchemeInfo* scheme_info = desc->GetSchemeInfo();
     if (scheme_info == NULL) return;
     if (desc->GetSchemeType() != AP4_ISMACRYP_SCHEME_TYPE_IAEC) {
@@ -89,7 +81,7 @@ ShowIsmaSampleDescription(AP4_IsmaCrypSampleDescription* desc)
     AP4_Debug("      iAEC Scheme Info:\n");
     AP4_IkmsAtom* ikms = (AP4_IkmsAtom*)scheme_info->GetSchiAtom().FindChild("iKMS");
     if (ikms) {
-        AP4_Debug("        KMS URI:              %s\n", ikms->GetKmsUri().c_str());
+        AP4_Debug("        KMS URI:              %s\n", ikms->GetKmsUri().GetChars());
     }
     AP4_IsfmAtom* isfm = (AP4_IsfmAtom*)scheme_info->GetSchiAtom().FindChild("iSFM");
     if (isfm) {

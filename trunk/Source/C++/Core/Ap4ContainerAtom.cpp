@@ -29,7 +29,7 @@
 /*----------------------------------------------------------------------
 |       includes
 +---------------------------------------------------------------------*/
-#include "Ap4.h"
+#include "Ap4Types.h"
 #include "Ap4Atom.h"
 #include "Ap4Utils.h"
 #include "Ap4ContainerAtom.h"
