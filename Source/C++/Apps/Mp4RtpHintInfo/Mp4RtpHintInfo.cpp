@@ -115,7 +115,7 @@ main(int argc, char** argv)
         }
     }
     // create the input stream
-    AP4_ByteStream* input;
+    AP4_ByteStream* input = NULL;
     try {
         input = new AP4_FileByteStream(input_filename,
             AP4_FileByteStream::STREAM_MODE_READ);
