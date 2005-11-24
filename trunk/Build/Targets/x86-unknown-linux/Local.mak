@@ -33,10 +33,10 @@ STRIP = strip
 COMPILE_CPP  = g++
 
 # how to link object files
-LINK_CPP = g++ -L.
+LINK_CPP = g++ -Wl,--gc-sections -L.
 
 # optimization flags
-OPTIMIZE_CPP = -O6
+OPTIMIZE_CPP = -Os -ffunction-sections
 
 # debug flags
 DEBUG_CPP = -g
