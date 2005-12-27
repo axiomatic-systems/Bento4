@@ -50,7 +50,7 @@ PrintUsageAndExit()
             BANNER 
             "\n\nusage: mp4dump [options] <input>\n"
             "options are:\n"
-            "  -track <track_id> <data_file>: writes the track data in data_file");
+            "  -track <track_id> <data_file>: writes the track data in data_file\n");
     exit(1);
 }
 

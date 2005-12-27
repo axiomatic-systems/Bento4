@@ -49,9 +49,9 @@ class AP4_Array
 {
 public:
     // methods
-             AP4_Array<T>(): m_AllocatedCount(0), m_ItemCount(0), m_Items(0) {}
-             AP4_Array<T>(const T* items, AP4_Size count);
-    virtual ~AP4_Array<T>();
+             AP4_Array(): m_AllocatedCount(0), m_ItemCount(0), m_Items(0) {}
+             AP4_Array(const T* items, AP4_Size count);
+    virtual ~AP4_Array();
     AP4_Cardinal ItemCount() { return m_ItemCount; }
     AP4_Result   Append(const T& item);
     T& operator[](unsigned long idx) { return m_Items[idx]; }
@@ -69,7 +69,7 @@ protected:
 |       AP4_Array<T>::AP4_Array<T>
 +---------------------------------------------------------------------*/
 template <typename T>
-AP4_Array<T>::AP4_Array<T>(const T* items, AP4_Size count) :
+AP4_Array<T>::AP4_Array(const T* items, AP4_Size count) :
     m_AllocatedCount(count),
     m_ItemCount(count),
     m_Items((T*)::operator new(count*sizeof(T)))
@@ -83,7 +83,7 @@ AP4_Array<T>::AP4_Array<T>(const T* items, AP4_Size count) :
 |       AP4_Array<T>::~AP4_Array<T>
 +---------------------------------------------------------------------*/
 template <typename T>
-AP4_Array<T>::~AP4_Array<T>()
+AP4_Array<T>::~AP4_Array()
 {
     Clear();
     ::operator delete((void*)m_Items);

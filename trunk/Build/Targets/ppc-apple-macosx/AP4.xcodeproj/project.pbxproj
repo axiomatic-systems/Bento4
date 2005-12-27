@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		CAA7120A09611FBD00D25C6F /* Ap4Version.h in Headers */ = {isa = PBXBuildFile; fileRef = CAA7120909611FBD00D25C6F /* Ap4Version.h */; };
 		F91796B7092CD16F005C081F /* Ap4AdtsParser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F9179624092CD16E005C081F /* Ap4AdtsParser.cpp */; };
 		F91796B8092CD16F005C081F /* Ap4AdtsParser.h in Headers */ = {isa = PBXBuildFile; fileRef = F9179625092CD16E005C081F /* Ap4AdtsParser.h */; };
 		F91796B9092CD16F005C081F /* Ap4BitStream.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F9179626092CD16E005C081F /* Ap4BitStream.cpp */; };
@@ -265,6 +266,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		CAA7120909611FBD00D25C6F /* Ap4Version.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = Ap4Version.h; sourceTree = "<group>"; };
 		D2AAC046055464E500DB518D /* libAP4.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libAP4.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		F9179610092CD16E005C081F /* Aac2Mp4.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = Aac2Mp4.cpp; sourceTree = "<group>"; };
 		F9179612092CD16E005C081F /* Mp42Aac.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = Mp42Aac.cpp; sourceTree = "<group>"; };
@@ -408,16 +410,16 @@
 		F91796A8092CD16F005C081F /* Ap4StreamCipher.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4StreamCipher.cpp; sourceTree = "<group>"; };
 		F91796A9092CD16F005C081F /* Ap4StreamCipher.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = Ap4StreamCipher.h; sourceTree = "<group>"; };
 		F91796AC092CD16F005C081F /* Ap4StdCFileByteStream.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4StdCFileByteStream.cpp; sourceTree = "<group>"; };
-		F9179745092CD29F005C081F /* Mp4Edit */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "compiled.mach-o.executable"; path = Mp4Edit; sourceTree = BUILT_PRODUCTS_DIR; };
-		F9179751092CD364005C081F /* Mp4Extract */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "compiled.mach-o.executable"; path = Mp4Extract; sourceTree = BUILT_PRODUCTS_DIR; };
-		F917975F092CD409005C081F /* Mp4RtpHintInfo */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "compiled.mach-o.executable"; path = Mp4RtpHintInfo; sourceTree = BUILT_PRODUCTS_DIR; };
-		F91BDA4608E77EE200653EAA /* Mp4Decrypt */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Mp4Decrypt; sourceTree = BUILT_PRODUCTS_DIR; };
-		F91BDA5708E77F5100653EAA /* Mp4Dump */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Mp4Dump; sourceTree = BUILT_PRODUCTS_DIR; };
-		F91BDA6708E77FE000653EAA /* Mp4Encrypt */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Mp4Encrypt; sourceTree = BUILT_PRODUCTS_DIR; };
-		F91BDB7808E7889500653EAA /* Mp4Info */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Mp4Info; sourceTree = BUILT_PRODUCTS_DIR; };
-		F91BDB8508E7890000653EAA /* Mp4Tag */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Mp4Tag; sourceTree = BUILT_PRODUCTS_DIR; };
-		F993835006038A1200FCB9EC /* Aac2Mp4 */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "compiled.mach-o.executable"; path = Aac2Mp4; sourceTree = BUILT_PRODUCTS_DIR; };
-		F993836406038AAE00FCB9EC /* Mp42Aac */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Mp42Aac; sourceTree = BUILT_PRODUCTS_DIR; };
+		F9179745092CD29F005C081F /* mp4edit */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mp4edit; sourceTree = BUILT_PRODUCTS_DIR; };
+		F9179751092CD364005C081F /* mp4extract */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mp4extract; sourceTree = BUILT_PRODUCTS_DIR; };
+		F917975F092CD409005C081F /* mp4rtphintinfo */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mp4rtphintinfo; sourceTree = BUILT_PRODUCTS_DIR; };
+		F91BDA4608E77EE200653EAA /* mp4decrypt */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mp4decrypt; sourceTree = BUILT_PRODUCTS_DIR; };
+		F91BDA5708E77F5100653EAA /* mp4dump */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mp4dump; sourceTree = BUILT_PRODUCTS_DIR; };
+		F91BDA6708E77FE000653EAA /* mp4encrypt */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mp4encrypt; sourceTree = BUILT_PRODUCTS_DIR; };
+		F91BDB7808E7889500653EAA /* mp4info */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mp4info; sourceTree = BUILT_PRODUCTS_DIR; };
+		F91BDB8508E7890000653EAA /* mp4tag */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mp4tag; sourceTree = BUILT_PRODUCTS_DIR; };
+		F993835006038A1200FCB9EC /* aac2mp4 */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = aac2mp4; sourceTree = BUILT_PRODUCTS_DIR; };
+		F993836406038AAE00FCB9EC /* mp42aac */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mp42aac; sourceTree = BUILT_PRODUCTS_DIR; };
 		F9F528920936256000A5BF72 /* Ap4String.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4String.cpp; sourceTree = "<group>"; };
 		F9F528930936256000A5BF72 /* Ap4String.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = Ap4String.h; sourceTree = "<group>"; };
 		F9F528970936257700A5BF72 /* Ap4MetaData.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4MetaData.cpp; sourceTree = "<group>"; };
@@ -522,16 +524,16 @@
 			isa = PBXGroup;
 			children = (
 				D2AAC046055464E500DB518D /* libAP4.a */,
-				F993835006038A1200FCB9EC /* Aac2Mp4 */,
-				F993836406038AAE00FCB9EC /* Mp42Aac */,
-				F91BDA4608E77EE200653EAA /* Mp4Decrypt */,
-				F91BDA5708E77F5100653EAA /* Mp4Dump */,
-				F91BDA6708E77FE000653EAA /* Mp4Encrypt */,
-				F91BDB7808E7889500653EAA /* Mp4Info */,
-				F91BDB8508E7890000653EAA /* Mp4Tag */,
-				F9179745092CD29F005C081F /* Mp4Edit */,
-				F9179751092CD364005C081F /* Mp4Extract */,
-				F917975F092CD409005C081F /* Mp4RtpHintInfo */,
+				F993835006038A1200FCB9EC /* aac2mp4 */,
+				F993836406038AAE00FCB9EC /* mp42aac */,
+				F91BDA4608E77EE200653EAA /* mp4decrypt */,
+				F91BDA5708E77F5100653EAA /* mp4dump */,
+				F91BDA6708E77FE000653EAA /* mp4encrypt */,
+				F91BDB7808E7889500653EAA /* mp4info */,
+				F91BDB8508E7890000653EAA /* mp4tag */,
+				F9179745092CD29F005C081F /* mp4edit */,
+				F9179751092CD364005C081F /* mp4extract */,
+				F917975F092CD409005C081F /* mp4rtphintinfo */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -668,6 +670,7 @@
 		F9179628092CD16E005C081F /* Config */ = {
 			isa = PBXGroup;
 			children = (
+				CAA7120909611FBD00D25C6F /* Ap4Version.h */,
 				F9179629092CD16E005C081F /* Ap4Config.h */,
 			);
 			path = Config;
@@ -928,6 +931,7 @@
 				F9179739092CD16F005C081F /* Ap4StreamCipher.h in Headers */,
 				F9F528950936256000A5BF72 /* Ap4String.h in Headers */,
 				F9F5289A0936257700A5BF72 /* Ap4MetaData.h in Headers */,
+				CAA7120A09611FBD00D25C6F /* Ap4Version.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1007,7 +1011,7 @@
 			);
 			name = Mp4Edit;
 			productName = Mp4Edit;
-			productReference = F9179745092CD29F005C081F /* Mp4Edit */;
+			productReference = F9179745092CD29F005C081F /* mp4edit */;
 			productType = "com.apple.product-type.tool";
 		};
 		F9179750092CD364005C081F /* Mp4Extract */ = {
@@ -1041,7 +1045,7 @@
 			);
 			name = Mp4Extract;
 			productName = Mp4Extract;
-			productReference = F9179751092CD364005C081F /* Mp4Extract */;
+			productReference = F9179751092CD364005C081F /* mp4extract */;
 			productType = "com.apple.product-type.tool";
 		};
 		F917975E092CD409005C081F /* Mp4RtpHintInfo */ = {
@@ -1075,7 +1079,7 @@
 			);
 			name = Mp4RtpHintInfo;
 			productName = Mp4RtpHintInfo;
-			productReference = F917975F092CD409005C081F /* Mp4RtpHintInfo */;
+			productReference = F917975F092CD409005C081F /* mp4rtphintinfo */;
 			productType = "com.apple.product-type.tool";
 		};
 		F91BDA4508E77EE200653EAA /* Mp4Decrypt */ = {
@@ -1109,7 +1113,7 @@
 			);
 			name = Mp4Decrypt;
 			productName = Mp4Decrypt;
-			productReference = F91BDA4608E77EE200653EAA /* Mp4Decrypt */;
+			productReference = F91BDA4608E77EE200653EAA /* mp4decrypt */;
 			productType = "com.apple.product-type.tool";
 		};
 		F91BDA5608E77F5100653EAA /* Mp4Dump */ = {
@@ -1143,7 +1147,7 @@
 			);
 			name = Mp4Dump;
 			productName = Mp4Dump;
-			productReference = F91BDA5708E77F5100653EAA /* Mp4Dump */;
+			productReference = F91BDA5708E77F5100653EAA /* mp4dump */;
 			productType = "com.apple.product-type.tool";
 		};
 		F91BDA6608E77FE000653EAA /* Mp4Encrypt */ = {
@@ -1177,7 +1181,7 @@
 			);
 			name = Mp4Encrypt;
 			productName = Mp4Encrypt;
-			productReference = F91BDA6708E77FE000653EAA /* Mp4Encrypt */;
+			productReference = F91BDA6708E77FE000653EAA /* mp4encrypt */;
 			productType = "com.apple.product-type.tool";
 		};
 		F91BDB7708E7889500653EAA /* Mp4Info */ = {
@@ -1211,7 +1215,7 @@
 			);
 			name = Mp4Info;
 			productName = Mp4Info;
-			productReference = F91BDB7808E7889500653EAA /* Mp4Info */;
+			productReference = F91BDB7808E7889500653EAA /* mp4info */;
 			productType = "com.apple.product-type.tool";
 		};
 		F91BDB8408E7890000653EAA /* Mp4Tag */ = {
@@ -1245,7 +1249,7 @@
 			);
 			name = Mp4Tag;
 			productName = Mp4Tag;
-			productReference = F91BDB8508E7890000653EAA /* Mp4Tag */;
+			productReference = F91BDB8508E7890000653EAA /* mp4tag */;
 			productType = "com.apple.product-type.tool";
 		};
 		F993834F06038A1200FCB9EC /* Aac2Mp4 */ = {
@@ -1275,7 +1279,7 @@
 			);
 			name = Aac2Mp4;
 			productName = Aac2Mp4;
-			productReference = F993835006038A1200FCB9EC /* Aac2Mp4 */;
+			productReference = F993835006038A1200FCB9EC /* aac2mp4 */;
 			productType = "com.apple.product-type.tool";
 		};
 		F993836306038AAE00FCB9EC /* Mp42Aac */ = {
@@ -1304,7 +1308,7 @@
 			);
 			name = Mp42Aac;
 			productName = Mp42Aac;
-			productReference = F993836406038AAE00FCB9EC /* Mp42Aac */;
+			productReference = F993836406038AAE00FCB9EC /* mp42aac */;
 			productType = "com.apple.product-type.tool";
 		};
 /* End PBXNativeTarget section */
@@ -1553,12 +1557,11 @@
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_MODEL_TUNING = G5;
 				INSTALL_PATH = "$(HOME)/bin";
-				OPTIMIZATION_CFLAGS = "-O0";
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
 				OTHER_REZFLAGS = "";
 				PREBINDING = NO;
-				PRODUCT_NAME = Mp4Edit;
+				PRODUCT_NAME = mp4edit;
 				SECTORDER_FLAGS = "";
 				WARNING_CFLAGS = (
 					"-Wmost",
@@ -1575,12 +1578,11 @@
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_MODEL_TUNING = G5;
 				INSTALL_PATH = "$(HOME)/bin";
-				OPTIMIZATION_CFLAGS = "-O0";
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
 				OTHER_REZFLAGS = "";
 				PREBINDING = NO;
-				PRODUCT_NAME = Mp4Edit;
+				PRODUCT_NAME = mp4edit;
 				SECTORDER_FLAGS = "";
 				WARNING_CFLAGS = (
 					"-Wmost",
@@ -1596,12 +1598,11 @@
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_MODEL_TUNING = G5;
 				INSTALL_PATH = "$(HOME)/bin";
-				OPTIMIZATION_CFLAGS = "-O0";
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
 				OTHER_REZFLAGS = "";
 				PREBINDING = NO;
-				PRODUCT_NAME = Mp4Edit;
+				PRODUCT_NAME = mp4edit;
 				SECTORDER_FLAGS = "";
 				WARNING_CFLAGS = (
 					"-Wmost",
@@ -1618,12 +1619,11 @@
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_MODEL_TUNING = G5;
 				INSTALL_PATH = "$(HOME)/bin";
-				OPTIMIZATION_CFLAGS = "-O0";
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
 				OTHER_REZFLAGS = "";
 				PREBINDING = NO;
-				PRODUCT_NAME = Mp4Extract;
+				PRODUCT_NAME = mp4extract;
 				SECTORDER_FLAGS = "";
 				WARNING_CFLAGS = (
 					"-Wmost",
@@ -1640,12 +1640,11 @@
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_MODEL_TUNING = G5;
 				INSTALL_PATH = "$(HOME)/bin";
-				OPTIMIZATION_CFLAGS = "-O0";
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
 				OTHER_REZFLAGS = "";
 				PREBINDING = NO;
-				PRODUCT_NAME = Mp4Extract;
+				PRODUCT_NAME = mp4extract;
 				SECTORDER_FLAGS = "";
 				WARNING_CFLAGS = (
 					"-Wmost",
@@ -1661,12 +1660,11 @@
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_MODEL_TUNING = G5;
 				INSTALL_PATH = "$(HOME)/bin";
-				OPTIMIZATION_CFLAGS = "-O0";
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
 				OTHER_REZFLAGS = "";
 				PREBINDING = NO;
-				PRODUCT_NAME = Mp4Extract;
+				PRODUCT_NAME = mp4extract;
 				SECTORDER_FLAGS = "";
 				WARNING_CFLAGS = (
 					"-Wmost",
@@ -1683,12 +1681,11 @@
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_MODEL_TUNING = G5;
 				INSTALL_PATH = "$(HOME)/bin";
-				OPTIMIZATION_CFLAGS = "-O0";
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
 				OTHER_REZFLAGS = "";
 				PREBINDING = NO;
-				PRODUCT_NAME = Mp4RtpHintInfo;
+				PRODUCT_NAME = mp4rtphintinfo;
 				SECTORDER_FLAGS = "";
 				WARNING_CFLAGS = (
 					"-Wmost",
@@ -1705,12 +1702,11 @@
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_MODEL_TUNING = G5;
 				INSTALL_PATH = "$(HOME)/bin";
-				OPTIMIZATION_CFLAGS = "-O0";
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
 				OTHER_REZFLAGS = "";
 				PREBINDING = NO;
-				PRODUCT_NAME = Mp4RtpHintInfo;
+				PRODUCT_NAME = mp4rtphintinfo;
 				SECTORDER_FLAGS = "";
 				WARNING_CFLAGS = (
 					"-Wmost",
@@ -1726,12 +1722,11 @@
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_MODEL_TUNING = G5;
 				INSTALL_PATH = "$(HOME)/bin";
-				OPTIMIZATION_CFLAGS = "-O0";
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
 				OTHER_REZFLAGS = "";
 				PREBINDING = NO;
-				PRODUCT_NAME = Mp4RtpHintInfo;
+				PRODUCT_NAME = mp4rtphintinfo;
 				SECTORDER_FLAGS = "";
 				WARNING_CFLAGS = (
 					"-Wmost",
@@ -1748,12 +1743,11 @@
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_MODEL_TUNING = G5;
 				INSTALL_PATH = "$(HOME)/bin";
-				OPTIMIZATION_CFLAGS = "-O0";
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
 				OTHER_REZFLAGS = "";
 				PREBINDING = NO;
-				PRODUCT_NAME = Mp4Decrypt;
+				PRODUCT_NAME = mp4decrypt;
 				SECTORDER_FLAGS = "";
 				WARNING_CFLAGS = (
 					"-Wmost",
@@ -1770,12 +1764,11 @@
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_MODEL_TUNING = G5;
 				INSTALL_PATH = "$(HOME)/bin";
-				OPTIMIZATION_CFLAGS = "-O0";
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
 				OTHER_REZFLAGS = "";
 				PREBINDING = NO;
-				PRODUCT_NAME = Mp4Decrypt;
+				PRODUCT_NAME = mp4decrypt;
 				SECTORDER_FLAGS = "";
 				WARNING_CFLAGS = (
 					"-Wmost",
@@ -1791,12 +1784,11 @@
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_MODEL_TUNING = G5;
 				INSTALL_PATH = "$(HOME)/bin";
-				OPTIMIZATION_CFLAGS = "-O0";
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
 				OTHER_REZFLAGS = "";
 				PREBINDING = NO;
-				PRODUCT_NAME = Mp4Decrypt;
+				PRODUCT_NAME = mp4decrypt;
 				SECTORDER_FLAGS = "";
 				WARNING_CFLAGS = (
 					"-Wmost",
@@ -1812,19 +1804,20 @@
 				COPY_PHASE_STRIP = NO;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 1;
 				INSTALL_PATH = "$(HOME)/bin";
-				OPTIMIZATION_CFLAGS = "-O0";
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
 				OTHER_REZFLAGS = "";
 				PREBINDING = NO;
-				PRODUCT_NAME = Mp4Dump;
+				PRODUCT_NAME = mp4dump;
 				SECTORDER_FLAGS = "";
 				WARNING_CFLAGS = (
 					"-Wmost",
 					"-Wno-four-char-constants",
 					"-Wno-unknown-pragmas",
 				);
+				ZERO_LINK = YES;
 			};
 			name = Development;
 		};
@@ -1835,12 +1828,11 @@
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_MODEL_TUNING = G5;
 				INSTALL_PATH = "$(HOME)/bin";
-				OPTIMIZATION_CFLAGS = "-O0";
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
 				OTHER_REZFLAGS = "";
 				PREBINDING = NO;
-				PRODUCT_NAME = Mp4Dump;
+				PRODUCT_NAME = mp4dump;
 				SECTORDER_FLAGS = "";
 				WARNING_CFLAGS = (
 					"-Wmost",
@@ -1856,12 +1848,11 @@
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_MODEL_TUNING = G5;
 				INSTALL_PATH = "$(HOME)/bin";
-				OPTIMIZATION_CFLAGS = "-O0";
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
 				OTHER_REZFLAGS = "";
 				PREBINDING = NO;
-				PRODUCT_NAME = Mp4Dump;
+				PRODUCT_NAME = mp4dump;
 				SECTORDER_FLAGS = "";
 				WARNING_CFLAGS = (
 					"-Wmost",
@@ -1878,12 +1869,11 @@
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_MODEL_TUNING = G5;
 				INSTALL_PATH = "$(HOME)/bin";
-				OPTIMIZATION_CFLAGS = "-O0";
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
 				OTHER_REZFLAGS = "";
 				PREBINDING = NO;
-				PRODUCT_NAME = Mp4Encrypt;
+				PRODUCT_NAME = mp4encrypt;
 				SECTORDER_FLAGS = "";
 				WARNING_CFLAGS = (
 					"-Wmost",
@@ -1900,12 +1890,11 @@
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_MODEL_TUNING = G5;
 				INSTALL_PATH = "$(HOME)/bin";
-				OPTIMIZATION_CFLAGS = "-O0";
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
 				OTHER_REZFLAGS = "";
 				PREBINDING = NO;
-				PRODUCT_NAME = Mp4Encrypt;
+				PRODUCT_NAME = mp4encrypt;
 				SECTORDER_FLAGS = "";
 				WARNING_CFLAGS = (
 					"-Wmost",
@@ -1921,12 +1910,11 @@
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_MODEL_TUNING = G5;
 				INSTALL_PATH = "$(HOME)/bin";
-				OPTIMIZATION_CFLAGS = "-O0";
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
 				OTHER_REZFLAGS = "";
 				PREBINDING = NO;
-				PRODUCT_NAME = Mp4Encrypt;
+				PRODUCT_NAME = mp4encrypt;
 				SECTORDER_FLAGS = "";
 				WARNING_CFLAGS = (
 					"-Wmost",
@@ -1943,12 +1931,11 @@
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_MODEL_TUNING = G5;
 				INSTALL_PATH = "$(HOME)/bin";
-				OPTIMIZATION_CFLAGS = "-O0";
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
 				OTHER_REZFLAGS = "";
 				PREBINDING = NO;
-				PRODUCT_NAME = Mp4Info;
+				PRODUCT_NAME = mp4info;
 				SECTORDER_FLAGS = "";
 				WARNING_CFLAGS = (
 					"-Wmost",
@@ -1965,12 +1952,11 @@
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_MODEL_TUNING = G5;
 				INSTALL_PATH = "$(HOME)/bin";
-				OPTIMIZATION_CFLAGS = "-O0";
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
 				OTHER_REZFLAGS = "";
 				PREBINDING = NO;
-				PRODUCT_NAME = Mp4Info;
+				PRODUCT_NAME = mp4info;
 				SECTORDER_FLAGS = "";
 				WARNING_CFLAGS = (
 					"-Wmost",
@@ -1986,12 +1972,11 @@
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_MODEL_TUNING = G5;
 				INSTALL_PATH = "$(HOME)/bin";
-				OPTIMIZATION_CFLAGS = "-O0";
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
 				OTHER_REZFLAGS = "";
 				PREBINDING = NO;
-				PRODUCT_NAME = Mp4Info;
+				PRODUCT_NAME = mp4info;
 				SECTORDER_FLAGS = "";
 				WARNING_CFLAGS = (
 					"-Wmost",
@@ -2008,12 +1993,11 @@
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_MODEL_TUNING = G5;
 				INSTALL_PATH = "$(HOME)/bin";
-				OPTIMIZATION_CFLAGS = "-O0";
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
 				OTHER_REZFLAGS = "";
 				PREBINDING = NO;
-				PRODUCT_NAME = Mp4Tag;
+				PRODUCT_NAME = mp4tag;
 				SECTORDER_FLAGS = "";
 				WARNING_CFLAGS = (
 					"-Wmost",
@@ -2030,12 +2014,11 @@
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_MODEL_TUNING = G5;
 				INSTALL_PATH = "$(HOME)/bin";
-				OPTIMIZATION_CFLAGS = "-O0";
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
 				OTHER_REZFLAGS = "";
 				PREBINDING = NO;
-				PRODUCT_NAME = Mp4Tag;
+				PRODUCT_NAME = mp4tag;
 				SECTORDER_FLAGS = "";
 				WARNING_CFLAGS = (
 					"-Wmost",
@@ -2051,12 +2034,11 @@
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_MODEL_TUNING = G5;
 				INSTALL_PATH = "$(HOME)/bin";
-				OPTIMIZATION_CFLAGS = "-O0";
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
 				OTHER_REZFLAGS = "";
 				PREBINDING = NO;
-				PRODUCT_NAME = Mp4Tag;
+				PRODUCT_NAME = mp4tag;
 				SECTORDER_FLAGS = "";
 				WARNING_CFLAGS = (
 					"-Wmost",
@@ -2074,12 +2056,11 @@
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_FIX_AND_CONTINUE = YES;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
-				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_OPTIMIZATION_LEVEL = 1;
 				GCC_WARN_FOUR_CHARACTER_CONSTANTS = NO;
 				GCC_WARN_UNKNOWN_PRAGMAS = NO;
 				INSTALL_PATH = /usr/local/lib;
 				LIBRARY_STYLE = STATIC;
-				OPTIMIZATION_CFLAGS = "-O0";
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
 				OTHER_REZFLAGS = "";
@@ -2133,16 +2114,15 @@
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_FIX_AND_CONTINUE = YES;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
-				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_OPTIMIZATION_LEVEL = 1;
 				GCC_WARN_FOUR_CHARACTER_CONSTANTS = NO;
 				GCC_WARN_UNKNOWN_PRAGMAS = NO;
 				INSTALL_PATH = /usr/local/bin;
 				LIBRARY_STYLE = STATIC;
-				OPTIMIZATION_CFLAGS = "-O0";
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
 				OTHER_REZFLAGS = "";
-				PRODUCT_NAME = Aac2Mp4;
+				PRODUCT_NAME = aac2mp4;
 				SECTORDER_FLAGS = "";
 				WARNING_CFLAGS = "-Wmost";
 				ZERO_LINK = YES;
@@ -2161,7 +2141,7 @@
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
 				OTHER_REZFLAGS = "";
-				PRODUCT_NAME = Aac2Mp4;
+				PRODUCT_NAME = aac2mp4;
 				SECTORDER_FLAGS = "";
 				WARNING_CFLAGS = "-Wmost";
 				ZERO_LINK = NO;
@@ -2178,7 +2158,7 @@
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
 				OTHER_REZFLAGS = "";
-				PRODUCT_NAME = Aac2Mp4;
+				PRODUCT_NAME = aac2mp4;
 				SECTORDER_FLAGS = "";
 				WARNING_CFLAGS = "-Wmost";
 			};
@@ -2192,15 +2172,14 @@
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_FIX_AND_CONTINUE = YES;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
-				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_OPTIMIZATION_LEVEL = 1;
 				GCC_WARN_FOUR_CHARACTER_CONSTANTS = NO;
 				GCC_WARN_UNKNOWN_PRAGMAS = NO;
 				INSTALL_PATH = /usr/local/bin;
-				OPTIMIZATION_CFLAGS = "-O0";
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
 				OTHER_REZFLAGS = "";
-				PRODUCT_NAME = Mp42Aac;
+				PRODUCT_NAME = mp42aac;
 				SECTORDER_FLAGS = "";
 				WARNING_CFLAGS = "-Wmost";
 				ZERO_LINK = YES;
@@ -2218,7 +2197,7 @@
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
 				OTHER_REZFLAGS = "";
-				PRODUCT_NAME = Mp42Aac;
+				PRODUCT_NAME = mp42aac;
 				SECTORDER_FLAGS = "";
 				WARNING_CFLAGS = "-Wmost";
 				ZERO_LINK = NO;
@@ -2234,7 +2213,7 @@
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
 				OTHER_REZFLAGS = "";
-				PRODUCT_NAME = Mp42Aac;
+				PRODUCT_NAME = mp42aac;
 				SECTORDER_FLAGS = "";
 				WARNING_CFLAGS = "-Wmost";
 			};
@@ -2243,12 +2222,50 @@
 		F98F761408C40CF20048D3AE /* Development */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				GCC_OPTIMIZATION_LEVEL = 1;
+				GCC_TREAT_NONCONFORMANT_CODE_ERRORS_AS_WARNINGS = YES;
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
+				GCC_WARN_ABOUT_INVALID_OFFSETOF_MACRO = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_HIDDEN_VIRTUAL_FUNCTIONS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_NON_VIRTUAL_DESTRUCTOR = YES;
+				GCC_WARN_PEDANTIC = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				ZERO_LINK = YES;
 			};
 			name = Development;
 		};
 		F98F761508C40CF20048D3AE /* Deployment */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				DEAD_CODE_STRIPPING = YES;
+				GCC_TREAT_NONCONFORMANT_CODE_ERRORS_AS_WARNINGS = YES;
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_EFFECTIVE_CPLUSPLUS_VIOLATIONS = NO;
+				GCC_WARN_HIDDEN_VIRTUAL_FUNCTIONS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_NON_VIRTUAL_DESTRUCTOR = YES;
+				GCC_WARN_PEDANTIC = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_PARAMETER = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
 			};
 			name = Deployment;
 		};
