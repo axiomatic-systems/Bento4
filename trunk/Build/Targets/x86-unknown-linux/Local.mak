@@ -36,7 +36,7 @@ COMPILE_CPP  = g++
 LINK_CPP = g++ -Wl,--gc-sections -L.
 
 # optimization flags
-OPTIMIZE_CPP = -Os -ffunction-sections
+OPTIMIZE_CPP = -Os -ffunction-sections -fdata-sections
 
 # debug flags
 DEBUG_CPP = -g

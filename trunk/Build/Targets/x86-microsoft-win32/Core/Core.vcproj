@@ -22,7 +22,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\Source\C++\Config;..\..\..\..\Source\C++\Crypto"
+				AdditionalIncludeDirectories="..\..\..\..\Source\C++\Config;..\..\..\..\Source\C++\Crypto;..\..\..\..\Source\C++\MetaData"
 				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -76,7 +76,7 @@
 				Name="VCCLCompilerTool"
 				GlobalOptimizations="TRUE"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\Source\C++\Config;..\..\..\..\Source\C++\Crypto"
+				AdditionalIncludeDirectories="..\..\..\..\Source\C++\Config;..\..\..\..\Source\C++\Crypto;..\..\..\..\Source\C++\MetaData"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
@@ -128,7 +128,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\Source\C++\Config;..\..\..\..\Source\C++\Crypto"
+				AdditionalIncludeDirectories="..\..\..\..\Source\C++\Config;..\..\..\..\Source\C++\Crypto;..\..\..\..\Source\C++\MetaData"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="4"
@@ -354,9 +354,6 @@
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl">
-			<File
-				RelativePath="..\..\..\..\Source\C++\Core\Ap4.h">
-			</File>
 			<File
 				RelativePath="..\..\..\..\Source\C++\Core\Ap4Array.h">
 			</File>

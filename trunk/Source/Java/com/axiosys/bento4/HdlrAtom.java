@@ -16,14 +16,17 @@ public class HdlrAtom extends Atom {
         source.skipBytes(12);
         
         // read the name unless it is empty
-        int nameSize = size-(FULL_HEADER_SIZE+20);
+        int nameMaxSize = size-(FULL_HEADER_SIZE+20)-1;
+        int nameSize = source.readByte();
+        if (nameSize > nameMaxSize) nameSize = nameMaxSize;
+        if (nameSize < 0) nameSize = 0;
         if (nameSize > 0) {
             byte[] name = new byte[nameSize];
             source.read(name);
             int nameChars = 0;
             while (nameChars < name.length && name[nameChars] != 0) nameChars++;
             handlerName = new String(name, 0, nameChars, "UTF-8");
-        }
+        } 
     }
 
     public String getHandlerName() {
@@ -42,7 +45,7 @@ public class HdlrAtom extends Atom {
     public String toString(String indentation) {
         StringBuffer result = new StringBuffer(super.toString(indentation));
         result.append("\n" + indentation + " handler_type      = " + Atom.typeString(handlerType));
-        result.append("\n" + indentation +"  handler_name      = " + handlerName);
+        result.append("\n" + indentation + " handler_name      = " + handlerName);
         
         return result.toString();  
     }

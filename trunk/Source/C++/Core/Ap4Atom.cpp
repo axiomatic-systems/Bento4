@@ -93,7 +93,7 @@ AP4_Atom::AP4_Atom(Type            type,
 |       AP4_Atom::GetHeaderSize
 +---------------------------------------------------------------------*/
 AP4_Size
-AP4_Atom::GetHeaderSize() 
+AP4_Atom::GetHeaderSize() const
 {
     return m_IsFull ? AP4_FULL_ATOM_HEADER_SIZE : AP4_ATOM_HEADER_SIZE;
 }
@@ -349,7 +349,7 @@ AP4_AtomParent::DeleteChild(AP4_Atom::Type type)
 |       AP4_AtomParent::GetChild
 +---------------------------------------------------------------------*/
 AP4_Atom*
-AP4_AtomParent::GetChild(AP4_Atom::Type type, AP4_Ordinal index /* = 0 */)
+AP4_AtomParent::GetChild(AP4_Atom::Type type, AP4_Ordinal index /* = 0 */) const
 {
     AP4_Atom* atom;
     AP4_Result result = m_Children.Find(AP4_AtomFinder(type, index), atom);

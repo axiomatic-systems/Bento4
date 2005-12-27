@@ -28,10 +28,18 @@ public class ContainerAtom extends Atom implements AtomParent {
     protected void readChildren(AtomFactory atomFactory, RandomAccessFile source, int size) throws IOException, InvalidFormatException {
         int[] bytesAvailable = new int[] { size };
         Atom atom;
+        
+        // save and switch the context
+        int savedContext = atomFactory.getContext();
+        atomFactory.setContext(type);
+        
         do {
             atom = atomFactory.createAtom(source, bytesAvailable);
             if (atom != null) children.add(atom);
         } while (atom != null);
+        
+        // restore the saved context
+        atomFactory.setContext(savedContext);
     }
 
     protected void writeChildren(DataOutputStream stream) throws IOException {

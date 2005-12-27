@@ -1,39 +1,36 @@
 ##########################################################################
 #
-#    Mp42Aac Program
+#    MetaData target
 #
-#    (c) 2002-2003 Gilles Boccon-Gibod & Julien Boeuf
+#    (c) 2001-2005 Gilles Boccon-Gibod
+#    Author: Gilles Boccon-Gibod (bok@bok.net)
 #
 ##########################################################################
-all: mp42aac
+
+##########################################################################
+# sources
+##########################################################################
+METADATA_SOURCES = Ap4MetaData.cpp
 
 ##########################################################################
 # includes
 ##########################################################################
-include $(BUILD_ROOT)/Makefiles/Crypto.exp
 include $(BUILD_ROOT)/Makefiles/Core.exp
-include $(BUILD_ROOT)/Makefiles/System.exp
 include $(BUILD_ROOT)/Makefiles/MetaData.exp
 
 ##########################################################################
 # targets
 ##########################################################################
-TARGET_SOURCES = Mp42Aac.cpp
+TARGET_SOURCES = $(METADATA_SOURCES)
+
+libAP4_MetaData.a: $(patsubst %.cpp,%.o,$(TARGET_SOURCES))
 
 ##########################################################################
 # make path
 ##########################################################################
-VPATH += $(SOURCE_ROOT)/Apps/Mp42Aac
+VPATH += $(SOURCE_ROOT)/MetaData
 
 ##########################################################################
 # includes
 ##########################################################################
 include $(BUILD_ROOT)/Makefiles/Rules.mak
-
-##########################################################################
-# rules
-##########################################################################
-mp42aac: $(TARGET_OBJECTS) $(TARGET_LIBRARY_FILES)
-	$(LINK) $(TARGET_OBJECTS) -o $@ 
-
-

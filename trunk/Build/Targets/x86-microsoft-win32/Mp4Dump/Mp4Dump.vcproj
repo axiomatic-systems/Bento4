@@ -22,7 +22,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\Source\C++\Core,..\..\..\..\Source\C++\Config"
+				AdditionalIncludeDirectories="..\..\..\..\Source\C++\Core,..\..\..\..\Source\C++\MetaData,,..\..\..\..\Source\C++\Config"
 				PreprocessorDefinitions="WIN32,_DEBUG,_CONSOLE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -82,9 +82,10 @@
 			WholeProgramOptimization="TRUE">
 			<Tool
 				Name="VCCLCompilerTool"
+				Optimization="3"
 				GlobalOptimizations="TRUE"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\Source\C++\Core,..\..\..\..\Source\C++\Config"
+				AdditionalIncludeDirectories="..\..\..\..\Source\C++\Core,..\..\..\..\Source\C++\MetaData,,..\..\..\..\Source\C++\Config"
 				PreprocessorDefinitions="WIN32,NDEBUG,_CONSOLE"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
@@ -107,10 +108,12 @@
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
 				ProgramDatabaseFile=".\Release/Mp4Dump.pdb"
-				GenerateMapFile="TRUE"
-				MapFileName="m4pdump.map"
-				MapExports="TRUE"
-				SubSystem="1"/>
+				GenerateMapFile="FALSE"
+				MapFileName=""
+				MapExports="FALSE"
+				SubSystem="1"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"/>
 			<Tool
 				Name="VCMIDLTool"
 				TypeLibraryName=".\Release/Mp4Dump.tlb"/>

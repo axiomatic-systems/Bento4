@@ -5,32 +5,32 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 
 public class UnknownAtom extends Atom {
-    private final static int       CHUNK_SIZE = 4096;
 
     private final RandomAccessFile source;
-    private final int              offset;
+    private final long             sourceOffset;
     
-    public UnknownAtom(int type, int size, RandomAccessFile source, int offset) {
+    public UnknownAtom(int type, int size, RandomAccessFile source, long sourceOffset) {
         super(type, size, false);
-        this.source = source;
-        this.offset = offset;
+        this.source        = source;
+        this.sourceOffset = sourceOffset;
     }
     
     public UnknownAtom(int type, int size, RandomAccessFile source) throws IOException {
-        this(type, size, source, (int)source.getFilePointer());
+        this(type, size, source, source.getFilePointer());
     }
     
-    public void writeFields(DataOutputStream stream) throws IOException {
-        int position = offset;
-        byte[] buffer = new byte[CHUNK_SIZE];
-        int toCopy = getPayloadSize();
-        while (toCopy > 0) {
-            int chunk = toCopy > CHUNK_SIZE ? CHUNK_SIZE : toCopy;
-            source.seek(position);
-            source.readFully(buffer, 0, chunk);
-            stream.write(buffer, 0, chunk);
-            toCopy -= chunk;
-            position += chunk;
+    public RandomAccessFile getSource()       { return source; }
+    public long             getSourceOffset() { return sourceOffset; }
+
+    protected void writeFields(DataOutputStream stream) throws IOException {
+        // position into the source
+        source.seek(sourceOffset);
+        
+        // read/write using a buffer
+        int read;
+        byte[] buffer = new byte[4096];        
+        while ((read = source.read(buffer)) != -1) {
+            stream.write(buffer, 0, read);
         }
     }
 }

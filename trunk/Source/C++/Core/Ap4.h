@@ -33,6 +33,7 @@
 |       includes
 +---------------------------------------------------------------------*/
 #include "Ap4Config.h"
+#include "Ap4Version.h"
 #include "Ap4Types.h"
 #include "Ap4Constants.h"
 #include "Ap4Results.h"
@@ -45,6 +46,7 @@
 #include "Ap4FileWriter.h"
 #include "Ap4HintTrackReader.h"
 #include "Ap4Processor.h"
+#include "Ap4MetaData.h"
 #include "Ap4AtomFactory.h"
 #include "Ap4SampleEntry.h"
 #include "Ap4Sample.h"
