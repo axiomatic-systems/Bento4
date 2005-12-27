@@ -63,6 +63,7 @@
 				AdditionalIncludeDirectories="..\..\..\..\Source\C++\Config;..\..\..\..\Source\C++\Core"
 				PreprocessorDefinitions="AP4_PLATFORM_BYTE_ORDER=AP4_PLATFORM_LITTLE_ENDIAN"
 				RuntimeLibrary="2"
+				EnableFunctionLevelLinking="TRUE"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="TRUE"

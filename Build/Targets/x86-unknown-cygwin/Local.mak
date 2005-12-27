@@ -36,7 +36,7 @@ COMPILE_CPP  = g++
 LINK_CPP = g++ -L.
 
 # optimization flags
-OPTIMIZE_CPP = -O6
+OPTIMIZE_CPP = -Os
 
 # debug flags
 DEBUG_CPP = -g

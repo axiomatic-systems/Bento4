@@ -296,30 +296,3 @@ AP4_Track::GetMediaTimeScale()
 {
     return m_MediaTimeScale;
 }
-
-// save the implementation for later
-#if 0 
-/*----------------------------------------------------------------------
-|       AP4_HintTrack::SetSdpText
-+---------------------------------------------------------------------*/
-void
-AP4_HintTrack::SetSdpText(const char* text)
-{
-    // build an sdp atom
-    AP4_SdpAtom* sdp = new AP4_SdpAtom(text);
-
-    // build the hnti
-    AP4_ContainerAtom* hnti = new AP4_ContainerAtom(AP4_ATOM_TYPE_HNTI);
-    hnti->AddChild(sdp);
-
-    // check if there's already a user data atom
-    AP4_ContainerAtom* udta = dynamic_cast<AP4_ContainerAtom*>(m_TrakAtom->FindChild("udta"));
-    if (udta == NULL) {
-        // otherwise create it
-        udta = new AP4_ContainerAtom(AP4_ATOM_TYPE_UDTA);
-        m_TrakAtom->AddChild(udta);
-    }
-    udta->AddChild(hnti);
-}
-
-#endif

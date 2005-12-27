@@ -68,6 +68,24 @@ AP4_BytesToUInt16BE(const unsigned char* bytes)
 }
 
 /*----------------------------------------------------------------------
+|       AP4_BytesToInt32BE
++---------------------------------------------------------------------*/
+signed long 
+AP4_BytesToInt32BE(const unsigned char* bytes)
+{
+    return (signed long)AP4_BytesToUInt32BE(bytes);
+}
+
+/*----------------------------------------------------------------------
+|       AP4_BytesToInt16BE
++---------------------------------------------------------------------*/
+signed short
+AP4_BytesToInt16BE(const unsigned char* bytes)
+{
+    return (signed short)AP4_BytesToUInt16BE(bytes);
+}
+
+/*----------------------------------------------------------------------
 |       AP4_BytesFromUInt32BE
 +---------------------------------------------------------------------*/
 void
@@ -147,6 +165,19 @@ AP4_FormatFourChars(char* str, AP4_UI32 value) {
     str[2] = (value >>  8) & 0xFF;
     str[3] = (value      ) & 0xFF;
     str[4] = '\0';
+}
+
+/*----------------------------------------------------------------------
+|       AP4_FormatFourCharsPrintable
++---------------------------------------------------------------------*/
+void
+AP4_FormatFourCharsPrintable(char* str, AP4_UI32 value) {
+    AP4_FormatFourChars(str, value);
+    for (int i=0; i<4; i++) {
+        if (str[i]<' ' || str[i] >= 127) {
+            str[i] = '.';
+        }
+    }
 }
 
 /*----------------------------------------------------------------------
@@ -298,4 +329,29 @@ AP4_PrintInspector::AddField(const char* name, AP4_UI32 value, FormatHint hint)
     m_Stream->WriteString(" = ");
     m_Stream->WriteString(str);
     m_Stream->Write("\n", 1);
+}
+
+/*----------------------------------------------------------------------
+|       AP4_PrintInspector::AddField
++---------------------------------------------------------------------*/
+void
+AP4_PrintInspector::AddField(const char*          name, 
+                             const unsigned char* bytes, 
+                             AP4_Size             byte_count,
+                             FormatHint           hint)
+{
+    char prefix[256];
+    AP4_MakePrefixString(m_Indent, prefix, sizeof(prefix));
+    m_Stream->WriteString(prefix);
+
+    m_Stream->WriteString(name);
+    m_Stream->WriteString(" = [");
+    unsigned int offset = 1;
+    char byte[4];
+    for (unsigned int i=0; i<byte_count; i++) {
+        AP4_StringFormat(byte, 4, " %02x", bytes[i]);
+        m_Stream->Write(&byte[offset], 3-offset);
+        offset = 0;
+    }
+    m_Stream->Write("]\n", 2);
 }

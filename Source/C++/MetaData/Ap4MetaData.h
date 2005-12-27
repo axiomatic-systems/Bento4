@@ -34,14 +34,164 @@
 +---------------------------------------------------------------------*/
 #include "Ap4Atom.h"
 #include "Ap4AtomFactory.h"
+#include "Ap4String.h"
+#include "Ap4Array.h"
+#include "Ap4List.h"
+
+/*----------------------------------------------------------------------
+|       class references
++---------------------------------------------------------------------*/
+class AP4_MoovAtom;
+class AP4_DataBuffer;
+class AP4_ContainerAtom;
+class AP4_DataAtom;
 
 /*----------------------------------------------------------------------
 |       metadata keys
 +---------------------------------------------------------------------*/
-const AP4_Atom::Type AP4_ATOM_TYPE_cNAM = AP4_ATOM_TYPE('©','n','a','m');
-const AP4_Atom::Type AP4_ATOM_TYPE_cART = AP4_ATOM_TYPE('©','A','R','T');
-const AP4_Atom::Type AP4_ATOM_TYPE_cALB = AP4_ATOM_TYPE('©','a','l','b');
-const AP4_Atom::Type AP4_ATOM_TYPE_cGEN = AP4_ATOM_TYPE('©','g','e','n');
+const AP4_Atom::Type AP4_ATOM_TYPE_DATA = AP4_ATOM_TYPE('d','a','t','a'); // data
+const AP4_Atom::Type AP4_ATOM_TYPE_MEAN = AP4_ATOM_TYPE('m','e','a','n'); // namespace
+const AP4_Atom::Type AP4_ATOM_TYPE_NAME = AP4_ATOM_TYPE('n','a','m','e'); // name
+const AP4_Atom::Type AP4_ATOM_TYPE_dddd = AP4_ATOM_TYPE('-','-','-','-'); // free form
+const AP4_Atom::Type AP4_ATOM_TYPE_cNAM = AP4_ATOM_TYPE('©','n','a','m'); // name
+const AP4_Atom::Type AP4_ATOM_TYPE_cART = AP4_ATOM_TYPE('©','A','R','T'); // artist
+const AP4_Atom::Type AP4_ATOM_TYPE_cCOM = AP4_ATOM_TYPE('©','c','o','m'); // composer
+const AP4_Atom::Type AP4_ATOM_TYPE_cWRT = AP4_ATOM_TYPE('©','w','r','t'); // writer
+const AP4_Atom::Type AP4_ATOM_TYPE_cALB = AP4_ATOM_TYPE('©','a','l','b'); // album
+const AP4_Atom::Type AP4_ATOM_TYPE_cGEN = AP4_ATOM_TYPE('©','g','e','n'); // genre
+const AP4_Atom::Type AP4_ATOM_TYPE_cGRP = AP4_ATOM_TYPE('©','g','r','p'); // group
+const AP4_Atom::Type AP4_ATOM_TYPE_cDAY = AP4_ATOM_TYPE('©','d','a','y'); // date
+const AP4_Atom::Type AP4_ATOM_TYPE_cTOO = AP4_ATOM_TYPE('©','t','o','o'); // tool
+const AP4_Atom::Type AP4_ATOM_TYPE_cCMT = AP4_ATOM_TYPE('©','c','m','t'); // comment
+const AP4_Atom::Type AP4_ATOM_TYPE_cLYR = AP4_ATOM_TYPE('©','l','y','r'); // lyrics
+const AP4_Atom::Type AP4_ATOM_TYPE_CPRT = AP4_ATOM_TYPE('c','p','r','t'); // copyright
+const AP4_Atom::Type AP4_ATOM_TYPE_TRKN = AP4_ATOM_TYPE('t','r','k','n'); // track#
+const AP4_Atom::Type AP4_ATOM_TYPE_DISK = AP4_ATOM_TYPE('d','i','s','k'); // disk#
+const AP4_Atom::Type AP4_ATOM_TYPE_COVR = AP4_ATOM_TYPE('c','o','v','r'); // cover art
+const AP4_Atom::Type AP4_ATOM_TYPE_DESC = AP4_ATOM_TYPE('d','e','s','c'); // description
+const AP4_Atom::Type AP4_ATOM_TYPE_GNRE = AP4_ATOM_TYPE('g','n','r','e'); // genre (ID3v1 index + 1)
+const AP4_Atom::Type AP4_ATOM_TYPE_CPIL = AP4_ATOM_TYPE('c','p','i','l'); // compilation?
+const AP4_Atom::Type AP4_ATOM_TYPE_TMPO = AP4_ATOM_TYPE('t','m','p','o'); // tempo
+const AP4_Atom::Type AP4_ATOM_TYPE_RTNG = AP4_ATOM_TYPE('r','t','n','g'); // rating
+const AP4_Atom::Type AP4_ATOM_TYPE_apID = AP4_ATOM_TYPE('a','p','I','D');
+const AP4_Atom::Type AP4_ATOM_TYPE_cnID = AP4_ATOM_TYPE('c','n','I','D');
+const AP4_Atom::Type AP4_ATOM_TYPE_atID = AP4_ATOM_TYPE('a','t','I','D');
+const AP4_Atom::Type AP4_ATOM_TYPE_plID = AP4_ATOM_TYPE('p','l','I','D');
+const AP4_Atom::Type AP4_ATOM_TYPE_geID = AP4_ATOM_TYPE('g','e','I','D');
+const AP4_Atom::Type AP4_ATOM_TYPE_sfID = AP4_ATOM_TYPE('s','f','I','D');
+const AP4_Atom::Type AP4_ATOM_TYPE_akID = AP4_ATOM_TYPE('a','k','I','D');
+const AP4_Atom::Type AP4_ATOM_TYPE_aART = AP4_ATOM_TYPE('a','A','R','T');
+const AP4_Atom::Type AP4_ATOM_TYPE_TVNN = AP4_ATOM_TYPE('t','v','n','n'); // TV network
+const AP4_Atom::Type AP4_ATOM_TYPE_TVSH = AP4_ATOM_TYPE('t','v','s','h'); // TV show
+const AP4_Atom::Type AP4_ATOM_TYPE_TVEN = AP4_ATOM_TYPE('t','v','e','n'); // TV episode name
+const AP4_Atom::Type AP4_ATOM_TYPE_TVSN = AP4_ATOM_TYPE('t','v','s','n'); // TV show season #
+const AP4_Atom::Type AP4_ATOM_TYPE_TVES = AP4_ATOM_TYPE('t','v','e','s'); // TV show episode #
+const AP4_Atom::Type AP4_ATOM_TYPE_STIK = AP4_ATOM_TYPE('s','t','i','k');
+
+/*----------------------------------------------------------------------
+|       AP4_MetaData
++---------------------------------------------------------------------*/
+class AP4_MetaData {
+public:
+    typedef enum {
+        DATA_TYPE_BINARY             = 0,
+        DATA_TYPE_STRING_UTF8        = 1,
+        DATA_TYPE_STRING_UTF16       = 2,
+        DATA_TYPE_STRING_MAC_ENCODED = 3,
+        DATA_TYPE_JPEG               = 14,
+        DATA_TYPE_SIGNED_INT_BE      = 21, /* the size of the integer is derived from the container size */
+        DATA_TYPE_FLOAT32_BE         = 22,
+        DATA_TYPE_FLOAT64_BE         = 23
+    } DataType;
+
+    typedef enum {
+        LANG_ENGLISH = 0
+    } Language;
+
+    class Key {
+    public:
+        // constructors
+        Key(const char* name, const char* ns) :
+          m_Name(name), m_Namespace(ns) {}
+
+        // methods
+        const char* GetNamespace() { return m_Namespace.GetChars(); }
+        const char* GetName()      { return m_Name.GetChars();      }
+
+    private:
+        // members
+        const AP4_String m_Name;
+        const AP4_String m_Namespace;
+    };
+
+    class Value {
+    public:
+        // types 
+        typedef enum {
+            TYPE_STRING,
+            TYPE_BINARY,
+            TYPE_INTEGER
+        } Type;
+
+        // destructor
+        virtual ~Value() {}
+
+        // methods
+        Type               GetType() { return m_Type; }
+        virtual AP4_String ToString() = 0;
+        virtual AP4_Result ToBytes(AP4_DataBuffer& bytes) = 0;
+        virtual long       ToInteger() = 0;
+
+    protected:
+        // constructor
+        Value(Type type) : m_Type(type          ) {}
+
+        // members
+        Type m_Type;
+    };
+
+    class KeyInfo {
+    public:
+        // members
+        const char* name;
+        const char* description;
+        AP4_UI32    four_cc;
+        Value::Type value_type;
+    };
+
+    class Entry {
+    public:
+        // constructor
+        Entry(const char* name, const char* ns, Value* value) :
+          m_Key(name, ns), m_Value(value) {}
+
+        // destructor
+        ~Entry() { delete m_Value; }
+
+        // members
+        Key    m_Key;
+        Value* m_Value;    
+    };
+
+    // class members
+    static AP4_Array<KeyInfo> KeysInfos;
+
+    // constructor
+    AP4_MetaData(AP4_MoovAtom* moov);
+
+    // destructor
+    ~AP4_MetaData();
+
+    // accessors
+    const AP4_List<Entry>& GetEntries() const { return m_Entries; }
+
+    // methods
+    AP4_Result AddEntries(AP4_ContainerAtom* atom);
+
+private:
+    // members
+    AP4_List<Entry> m_Entries;
+};
 
 /*----------------------------------------------------------------------
 |       AP4_MetaDataAtomTypeHandler
@@ -55,11 +205,113 @@ public:
     virtual AP4_Result CreateAtom(AP4_Atom::Type  type,
                                   AP4_Size        size,
                                   AP4_ByteStream& stream,
-                                  AP4_Atom*&      atom) = 0;
+                                  AP4_Atom::Type  context,
+                                  AP4_Atom*&      atom);
+
+private:
+    // methods
+    bool IsMetaDataType(AP4_Atom::Type type);
+
+    // members
+    AP4_AtomFactory* m_AtomFactory;
+};
+
+/*----------------------------------------------------------------------
+|       AP4_MetaDataTag
++---------------------------------------------------------------------*/
+class AP4_MetaDataTag
+{
+public:
+
+    // destructor
+    virtual ~AP4_MetaDataTag() {}
+
+    // methods
+    virtual AP4_Result Write(AP4_ByteStream& stream);
+    virtual AP4_Result Inspect(AP4_AtomInspector& inspector);
+
+protected:
+    // constructor
+    AP4_MetaDataTag(AP4_UI32        data_type, 
+                    AP4_UI32        data_lang,
+                    AP4_Size        size, 
+                    AP4_ByteStream& stream);
+
+};
+
+/*----------------------------------------------------------------------
+|       AP4_StringAtom
++---------------------------------------------------------------------*/
+class AP4_StringAtom : public AP4_Atom
+{
+public:
+    // constructor
+    AP4_StringAtom(Type type, AP4_Size size, AP4_ByteStream& stream);
+
+    // AP4_Atom methods
+    virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
+    virtual AP4_Result WriteFields(AP4_ByteStream& stream);
+
+    // methods
+    const AP4_String& GetValue() { return m_Value; }
 
 private:
     // members
-    AP4_AtomFactory* m_AtomFactory;
+    AP4_String m_Value;
+};
+
+/*----------------------------------------------------------------------
+|       AP4_DataAtom
++---------------------------------------------------------------------*/
+class AP4_DataAtom : public AP4_Atom
+{
+public:
+    // constructor
+    AP4_DataAtom(AP4_Size size, AP4_ByteStream& stream);
+
+    // destructor
+    ~AP4_DataAtom();
+
+    // AP4_Atom methods
+    virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
+    virtual AP4_Result WriteFields(AP4_ByteStream& stream);
+
+    // accessors
+    AP4_MetaData::DataType GetDataType() { return m_DataType; }
+    AP4_MetaData::Language GetDataLang() { return m_DataLang; }
+
+    // methods
+    AP4_Result LoadString(AP4_String*& string);
+    AP4_Result LoadBytes(AP4_DataBuffer& bytes);
+    AP4_Result LoadInteger(long& value);
+
+private:
+    // members
+    AP4_MetaData::DataType m_DataType;
+    AP4_MetaData::Language m_DataLang;
+    AP4_ByteStream*        m_Source;
+};
+
+/*----------------------------------------------------------------------
+|       AP4_AtomMetaDataValue
++---------------------------------------------------------------------*/
+class AP4_AtomMetaDataValue : public AP4_MetaData::Value
+{
+public:
+    // constructor
+    AP4_AtomMetaDataValue(AP4_DataAtom* atom);
+
+    // AP4_MetaData::Value methods
+    virtual AP4_String ToString();
+    virtual AP4_Result ToBytes(AP4_DataBuffer& bytes);
+    virtual long       ToInteger();
+
+private:
+    // class methods
+    static AP4_MetaData::Value::Type MapDataType(AP4_MetaData::DataType data_type);
+
+    // members
+    AP4_DataAtom* m_DataAtom;
 };
 
 #endif // _AP4_META_DATA_H_

@@ -49,6 +49,8 @@
 unsigned long AP4_BytesToUInt32BE(const unsigned char* bytes);
 unsigned long AP4_BytesToUInt24BE(const unsigned char* bytes);
 unsigned short AP4_BytesToUInt16BE(const unsigned char* bytes);
+signed long AP4_BytesToInt32BE(const unsigned char* bytes);
+signed short AP4_BytesToInt16BE(const unsigned char* bytes);
 void AP4_BytesFromUInt32BE(unsigned char* bytes, unsigned long value);
 void AP4_BytesFromUInt24BE(unsigned char* bytes, unsigned long value);
 void AP4_BytesFromUInt16BE(unsigned char* bytes, unsigned short value);
@@ -79,6 +81,7 @@ int AP4_StringFormat(char* str, AP4_Size size, const char* format, ...);
 #endif
 
 void AP4_FormatFourChars(char* str, AP4_UI32 value);
+void AP4_FormatFourCharsPrintable(char* str, AP4_UI32 value);
 AP4_Result
 AP4_ParseHex(const char* hex, unsigned char* bytes, unsigned int count);
 AP4_Result
@@ -99,6 +102,7 @@ public:
     void EndElement();
     void AddField(const char* name, AP4_UI32 value, FormatHint hint);
     void AddField(const char* name, const char* value, FormatHint hint);
+    void AddField(const char* name, const unsigned char* bytes, AP4_Size size, FormatHint hint);
 
 private:
     // members

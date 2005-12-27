@@ -74,6 +74,7 @@ CORE_SOURCES = 								\
 # includes
 ##########################################################################
 include $(BUILD_ROOT)/Makefiles/Crypto.exp
+include $(BUILD_ROOT)/Makefiles/MetaData.exp
 include $(BUILD_ROOT)/Makefiles/Core.exp
 
 ##########################################################################

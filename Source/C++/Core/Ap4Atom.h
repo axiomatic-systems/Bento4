@@ -80,6 +80,8 @@ public:
     virtual void EndElement() {}
     virtual void AddField(const char* name, AP4_UI32 value, FormatHint hint = HINT_NONE) {}
     virtual void AddField(const char* name, const char* value, FormatHint hint = HINT_NONE) {}
+    virtual void AddField(const char* name, const unsigned char* bytes, 
+                          AP4_Size byte_count, FormatHint hint = HINT_NONE) {}
 };
 
 /*----------------------------------------------------------------------
@@ -101,10 +103,10 @@ class AP4_Atom {
                                 bool            is_full,
                                 AP4_ByteStream& stream);
     virtual           ~AP4_Atom() {}
-    Type               GetType() { return m_Type; }
+    Type               GetType() const { return m_Type; }
     void               SetType(Type type) { m_Type = type; }
-    AP4_Size           GetHeaderSize();
-    virtual AP4_Size   GetSize() { return m_Size; }
+    AP4_Size           GetHeaderSize() const;
+    AP4_Size           GetSize() const { return m_Size; }
     virtual AP4_Result Write(AP4_ByteStream& stream);
     virtual AP4_Result WriteHeader(AP4_ByteStream& stream);
     virtual AP4_Result WriteFields(AP4_ByteStream& stream) = 0;
@@ -146,7 +148,7 @@ public:
     virtual AP4_Result  AddChild(AP4_Atom* child, int position = -1);
     virtual AP4_Result  RemoveChild(AP4_Atom* child);
     virtual AP4_Result  DeleteChild(AP4_Atom::Type type);
-    virtual AP4_Atom*   GetChild(AP4_Atom::Type type, AP4_Ordinal index = 0);
+    virtual AP4_Atom*   GetChild(AP4_Atom::Type type, AP4_Ordinal index = 0) const;
     virtual AP4_Atom*   FindChild(const char* path, 
                                   bool        auto_create = false);
 

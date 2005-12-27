@@ -32,6 +32,7 @@
 /*----------------------------------------------------------------------
 |       includes
 +---------------------------------------------------------------------*/
+#include <new>
 #include "Ap4Types.h"
 #include "Ap4Results.h"
 
@@ -49,10 +50,12 @@ class AP4_Array
 public:
     // methods
              AP4_Array<T>(): m_AllocatedCount(0), m_ItemCount(0), m_Items(0) {}
+             AP4_Array<T>(const T* items, AP4_Size count);
     virtual ~AP4_Array<T>();
     AP4_Cardinal ItemCount() { return m_ItemCount; }
     AP4_Result   Append(const T& item);
-    T& operator[](unsigned long idx);
+    T& operator[](unsigned long idx) { return m_Items[idx]; }
+    AP4_Result Clear();
     AP4_Result EnsureCapacity(AP4_Cardinal count);
 
 protected:
@@ -60,8 +63,21 @@ protected:
     AP4_Cardinal m_AllocatedCount;
     AP4_Cardinal m_ItemCount;
     T*           m_Items;
-    T            m_OverflowItem;
 };
+
+/*----------------------------------------------------------------------
+|       AP4_Array<T>::AP4_Array<T>
++---------------------------------------------------------------------*/
+template <typename T>
+AP4_Array<T>::AP4_Array<T>(const T* items, AP4_Size count) :
+    m_AllocatedCount(count),
+    m_ItemCount(count),
+    m_Items((T*)::operator new(count*sizeof(T)))
+{
+    for (unsigned int i=0; i<count; i++) {
+        new ((void*)&m_Items[i]) T(items[i]);
+    }
+}
 
 /*----------------------------------------------------------------------
 |       AP4_Array<T>::~AP4_Array<T>
@@ -69,7 +85,25 @@ protected:
 template <typename T>
 AP4_Array<T>::~AP4_Array<T>()
 {
-    delete[] m_Items;
+    Clear();
+    ::operator delete((void*)m_Items);
+}
+
+/*----------------------------------------------------------------------
+|       NPT_Array<T>::Clear
++---------------------------------------------------------------------*/
+template <typename T>
+AP4_Result
+AP4_Array<T>::Clear()
+{
+    // destroy all items
+    for (AP4_Ordinal i=0; i<m_ItemCount; i++) {
+        m_Items[i].~T();
+    }
+
+    m_ItemCount = 0;
+
+    return AP4_SUCCESS;
 }
 
 /*----------------------------------------------------------------------
@@ -89,34 +123,21 @@ AP4_Array<T>::EnsureCapacity(AP4_Cardinal count)
     }
 
     // (re)allocate the items
-    T* new_items = new T[new_count];
+    T* new_items = (T*) ::operator new (new_count*sizeof(T));
     if (new_items == NULL) {
         return AP4_ERROR_OUT_OF_MEMORY;
     }
     if (m_ItemCount && m_Items) {
         for (unsigned int i=0; i<m_ItemCount; i++) {
-            new_items[i] = m_Items[i];
+            new ((void*)&new_items[i]) T(m_Items[i]);
+            m_Items[i].~T();
         }
-        delete[] m_Items;
+        ::operator delete((void*)m_Items);
     }
     m_Items = new_items;
     m_AllocatedCount = new_count;
 
     return AP4_SUCCESS;
-}
-
-/*----------------------------------------------------------------------
-|       AP4_Array<T>::operator[]
-+---------------------------------------------------------------------*/
-template <typename T>
-T&
-AP4_Array<T>::operator[](unsigned long idx)
-{
-    if (idx >= m_ItemCount) {
-        return m_OverflowItem;
-    } else {
-        return m_Items[idx];
-    }
 }
 
 /*----------------------------------------------------------------------
@@ -131,7 +152,7 @@ AP4_Array<T>::Append(const T& item)
     if (result != AP4_SUCCESS) return result;
     
     // store the item
-    m_Items[m_ItemCount++] = item;
+    new ((void*)&m_Items[m_ItemCount++]) T(item);
 
     return AP4_SUCCESS;
 }

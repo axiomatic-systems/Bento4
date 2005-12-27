@@ -43,6 +43,7 @@
 +---------------------------------------------------------------------*/
 class AP4_ByteStream;
 class AP4_AtomInspector;
+class AP4_MetaData;
 
 /*----------------------------------------------------------------------
 |       AP4_Movie
@@ -64,12 +65,14 @@ public:
     AP4_UI32   GetTimeScale();
     AP4_UI32   GetDuration();
     AP4_UI32   GetDurationMs();
+    const AP4_MetaData* GetMetaData();
 
 private:
     // members
     AP4_MoovAtom*       m_MoovAtom;
     AP4_MvhdAtom*       m_MvhdAtom;
     AP4_List<AP4_Track> m_Tracks;
+    AP4_MetaData*       m_MetaData;
 };
 
 #endif // _AP4_MOVIE_H_

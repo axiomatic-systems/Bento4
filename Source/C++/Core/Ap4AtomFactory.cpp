@@ -63,6 +63,9 @@
 #include "Ap4IsfmAtom.h"
 #include "Ap4TrefTypeAtom.h"
 
+// builtin extensions
+#include "Ap4MetaData.h"
+
 /*----------------------------------------------------------------------
 |       AP4_AtomFactory::~AP4_AtomFactory
 +---------------------------------------------------------------------*/
@@ -320,13 +323,9 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
       case AP4_ATOM_TYPE_SINF:
       case AP4_ATOM_TYPE_UDTA:
       case AP4_ATOM_TYPE_ILST:
-      case AP4_ATOM_TYPE_EDTS: {
-          AP4_UI32 context = m_Context;
-          m_Context = type; // set the context for the children
-          atom = new AP4_ContainerAtom(type, size, false, stream, *this);
-          m_Context = context; // restore the previous context
-          break;
-      }
+      case AP4_ATOM_TYPE_EDTS: 
+        atom = new AP4_ContainerAtom(type, size, false, stream, *this);
+        break;
 
       // full container atoms
       case AP4_ATOM_TYPE_META:
@@ -340,7 +339,7 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
             AP4_List<TypeHandler>::Item* handler_item = m_TypeHandlers.FirstItem();
             while (handler_item) {
                 TypeHandler* handler = handler_item->GetData();
-                if (AP4_SUCCEEDED(handler->CreateAtom(type, size, stream, atom))) {
+                if (AP4_SUCCEEDED(handler->CreateAtom(type, size, stream, m_Context, atom))) {
                     break;
                 }
                 handler_item = handler_item->GetNext();
@@ -375,5 +374,5 @@ AP4_DefaultAtomFactory AP4_DefaultAtomFactory::Instance;
 AP4_DefaultAtomFactory::AP4_DefaultAtomFactory()
 {
     // register built-in type handlers
-    //AddTypeHandler(foo);
+    AddTypeHandler(new AP4_MetaDataAtomTypeHandler(this));
 }

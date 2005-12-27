@@ -19,7 +19,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\Source\C++\Core;..\..\..\..\Source\C++\Config;..\..\..\..\Source\C++\Codecs"
+				AdditionalIncludeDirectories="&quot;..\..\..\..\Source\C++\Core&quot;;&quot;..\..\..\..\Source\C++\Codecs&quot;;&quot;..\..\..\..\Source\C++\MetaData&quot;;&quot;..\..\..\..\Source\C++\Config&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
@@ -67,7 +67,7 @@
 			CharacterSet="2">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\..\..\..\Source\C++\Core;..\..\..\..\Source\C++\Config;..\..\..\..\Source\C++\Codecs"
+				AdditionalIncludeDirectories="&quot;..\..\..\..\Source\C++\Core&quot;;&quot;..\..\..\..\Source\C++\Codecs&quot;;&quot;..\..\..\..\Source\C++\MetaData&quot;;&quot;..\..\..\..\Source\C++\Config&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"

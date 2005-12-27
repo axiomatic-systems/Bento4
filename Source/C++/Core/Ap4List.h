@@ -92,18 +92,18 @@ public:
     AP4_Result   Add(Item* item);
     AP4_Result   Remove(T* data);
     AP4_Result   Insert(Item* where, T* data);
-    AP4_Result   Get(AP4_Ordinal idx, T*& data);
+    AP4_Result   Get(AP4_Ordinal idx, T*& data) const;
     AP4_Result   PopHead(T*& data);
-    AP4_Result   Apply(const typename Item::Operator& op);
-    AP4_Result   ApplyUntilFailure(const typename Item::Operator& op);
-    AP4_Result   ApplyUntilSuccess(const typename Item::Operator& op);
-    AP4_Result   ReverseApply(const typename Item::Operator& op);
-    AP4_Result   Find(const typename Item::Finder& finder, T*& data);
-    AP4_Result   ReverseFind(const typename Item::Finder& finder, T*& data);
+    AP4_Result   Apply(const typename Item::Operator& op) const;
+    AP4_Result   ApplyUntilFailure(const typename Item::Operator& op) const;
+    AP4_Result   ApplyUntilSuccess(const typename Item::Operator& op) const ;
+    AP4_Result   ReverseApply(const typename Item::Operator& op) const;
+    AP4_Result   Find(const typename Item::Finder& finder, T*& data) const;
+    AP4_Result   ReverseFind(const typename Item::Finder& finder, T*& data) const;
     AP4_Result   DeleteReferences();
-    AP4_Cardinal ItemCount() { return m_ItemCount; }
-    Item*        FirstItem() { return m_Head; }
-    Item*        LastItem()  { return m_Tail; }
+    AP4_Cardinal ItemCount() const { return m_ItemCount; }
+    Item*        FirstItem() const { return m_Head; }
+    Item*        LastItem()  const { return m_Tail; }
  
 protected:
     // members
@@ -267,7 +267,7 @@ AP4_List<T>::Insert(Item* where, T* data)
 +---------------------------------------------------------------------*/
 template <typename T>
 AP4_Result
-AP4_List<T>::Get(AP4_Ordinal idx, T*& data)
+AP4_List<T>::Get(AP4_Ordinal idx, T*& data) const
 {
     Item* item = m_Head;
 
@@ -318,7 +318,7 @@ AP4_List<T>::PopHead(T*& data)
 template <typename T>
 inline 
 AP4_Result
-AP4_List<T>::Apply(const typename Item::Operator& op)
+AP4_List<T>::Apply(const typename Item::Operator& op) const
 {
     Item* item = m_Head;
  
@@ -336,7 +336,7 @@ AP4_List<T>::Apply(const typename Item::Operator& op)
 template <typename T>
 inline 
 AP4_Result
-AP4_List<T>::ApplyUntilFailure(const typename Item::Operator& op)
+AP4_List<T>::ApplyUntilFailure(const typename Item::Operator& op) const
 {
     Item* item = m_Head;
  
@@ -356,7 +356,7 @@ AP4_List<T>::ApplyUntilFailure(const typename Item::Operator& op)
 template <typename T>
 inline 
 AP4_Result
-AP4_List<T>::ApplyUntilSuccess(const typename Item::Operator& op)
+AP4_List<T>::ApplyUntilSuccess(const typename Item::Operator& op) const
 {
     Item* item = m_Head;
  
@@ -376,7 +376,7 @@ AP4_List<T>::ApplyUntilSuccess(const typename Item::Operator& op)
 template <typename T>
 inline 
 AP4_Result
-AP4_List<T>::ReverseApply(const typename Item::Operator& op)
+AP4_List<T>::ReverseApply(const typename Item::Operator& op) const
 {
     Item* item = m_Tail;
  
@@ -396,7 +396,7 @@ AP4_List<T>::ReverseApply(const typename Item::Operator& op)
 template <typename T>
 inline 
 AP4_Result
-AP4_List<T>::Find(const typename Item::Finder& finder, T*& data)
+AP4_List<T>::Find(const typename Item::Finder& finder, T*& data) const
 {
     Item* item = m_Head;
  
@@ -418,7 +418,7 @@ AP4_List<T>::Find(const typename Item::Finder& finder, T*& data)
 template <typename T>
 inline 
 AP4_Result
-AP4_List<T>::ReverseFind(const typename Item::Finder& finder, T*& data)
+AP4_List<T>::ReverseFind(const typename Item::Finder& finder, T*& data) const
 {
     Item* item = m_Tail;
  

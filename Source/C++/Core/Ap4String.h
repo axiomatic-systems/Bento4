@@ -44,7 +44,9 @@ public:
     // constructors
     AP4_String();
     AP4_String(const char* s);
+    AP4_String(const char* s, AP4_Size size);
     AP4_String(const AP4_String& s);
+    explicit AP4_String(AP4_Size size);
 
     // destructor
     ~AP4_String();
@@ -56,8 +58,9 @@ public:
     }
 
     // methods
-    AP4_Size GetLength() const   { return m_Length; }
-    const char* GetChars() const { return m_Chars;  }
+    AP4_Size    GetLength() const { return m_Length; }
+    const char* GetChars() const  { return m_Chars;  }
+    char*       UseChars()        { return m_Chars;  }
 
 private:
     // class members

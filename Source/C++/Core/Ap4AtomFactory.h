@@ -52,6 +52,7 @@ class AP4_AtomFactory {
          virtual AP4_Result CreateAtom(AP4_Atom::Type  type,
                                        AP4_Size        size,
                                        AP4_ByteStream& stream,
+                                       AP4_Atom::Type  context,
                                        AP4_Atom*&      atom) = 0;
     };
 

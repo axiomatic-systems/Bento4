@@ -47,7 +47,7 @@ Setup:
 	mkdir $(OUTPUT_DIR)
     
 # ------- Core -------------
-Core: Crypto
+Core: Crypto MetaData
 	$(TITLE)
 	@$(INVOKE_SUBMAKE) -f $(BUILD_ROOT)/Makefiles/Core.mak
 
@@ -66,8 +66,13 @@ Crypto:
 	$(TITLE)
 	@$(INVOKE_SUBMAKE) -f $(BUILD_ROOT)/Makefiles/Crypto.mak
 
+# ------- MetaData -----------
+MetaData:
+	$(TITLE)
+	@$(INVOKE_SUBMAKE) -f $(BUILD_ROOT)/Makefiles/MetaData.mak
+
 # ------- Apps -----------
-ALL_APPS = mp4dump mp4info mp42aac aac2mp4 mp4decrypt mp4encrypt mp4edit mp4extract mp4rtphintinfo
+ALL_APPS = mp4dump mp4info mp42aac aac2mp4 mp4decrypt mp4encrypt mp4edit mp4extract mp4rtphintinfo mp4tag
 export ALL_APPS
 Apps: $(ALL_APPS)
 
@@ -87,37 +92,41 @@ mp4dump: Core System
 	$(TITLE)
 	@$(INVOKE_SUBMAKE) -f $(BUILD_ROOT)/Makefiles/Mp4Dump.mak
 
-mp4info: Core System
+mp4info: Core MetaData System
 	$(TITLE)
 	@$(INVOKE_SUBMAKE) -f $(BUILD_ROOT)/Makefiles/Mp4Info.mak
 
-mp42aac: Core System
+mp42aac: Core MetaData System
 	$(TITLE)
 	@$(INVOKE_SUBMAKE) -f $(BUILD_ROOT)/Makefiles/Mp42Aac.mak
 
-aac2mp4: Codecs Core System
+aac2mp4: Core MetaData Codecs System
 	$(TITLE)
 	@$(INVOKE_SUBMAKE) -f $(BUILD_ROOT)/Makefiles/Aac2Mp4.mak
 
-mp4decrypt: Crypto Core System
+mp4decrypt: Core MetaData Crypto System
 	$(TITLE)
 	@$(INVOKE_SUBMAKE) -f $(BUILD_ROOT)/Makefiles/Mp4Decrypt.mak
 
-mp4encrypt: Crypto Core System
+mp4encrypt: Core MetaData Crypto System
 	$(TITLE)
 	@$(INVOKE_SUBMAKE) -f $(BUILD_ROOT)/Makefiles/Mp4Encrypt.mak
 
-mp4edit: Crypto Core System
+mp4edit: Core MetaData Crypto System
 	$(TITLE)
 	@$(INVOKE_SUBMAKE) -f $(BUILD_ROOT)/Makefiles/Mp4Edit.mak
 
-mp4extract: Crypto Core System
+mp4extract: Core MetaData Crypto System
 	$(TITLE)
 	@$(INVOKE_SUBMAKE) -f $(BUILD_ROOT)/Makefiles/Mp4Extract.mak
 
-mp4rtphintinfo: Crypto Core System
+mp4rtphintinfo: Core MetaData Crypto System
 	$(TITLE)
 	@$(INVOKE_SUBMAKE) -f $(BUILD_ROOT)/Makefiles/Mp4RtpHintInfo.mak
+
+mp4tag: Core MetaData Crypto System
+	$(TITLE)
+	@$(INVOKE_SUBMAKE) -f $(BUILD_ROOT)/Makefiles/Mp4Tag.mak
 
 ##################################################################
 # includes

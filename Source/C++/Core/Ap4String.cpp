@@ -60,10 +60,30 @@ AP4_String::AP4_String(const char* s) {
 /*----------------------------------------------------------------------
 |       AP4_String::AP4_String
 +---------------------------------------------------------------------*/
+AP4_String::AP4_String(const char* s, AP4_Size size) :
+    m_Chars(new char[size+1]), 
+    m_Length(size)
+{
+    m_Chars[size] = 0;
+    AP4_CopyMemory(m_Chars, s, size);
+}
+
+/*----------------------------------------------------------------------
+|       AP4_String::AP4_String
++---------------------------------------------------------------------*/
 AP4_String::AP4_String(const AP4_String& s) {
     m_Length = s.m_Length;
     m_Chars = new char[m_Length+1];
     AP4_CopyMemory(m_Chars, s.m_Chars, m_Length+1);
+}
+
+/*----------------------------------------------------------------------
+|       AP4_String::AP4_String
++---------------------------------------------------------------------*/
+AP4_String::AP4_String(AP4_Size size) {
+    m_Length = size;
+    m_Chars = new char[m_Length+1];
+    for (unsigned int i=0; i<size+1; i++) m_Chars[i] = 0;
 }
 
 /*----------------------------------------------------------------------

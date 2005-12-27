@@ -2,19 +2,41 @@ package com.axiosys.bento4;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 import com.axiosys.bento4.ismacryp.EncaSampleEntry;
 import com.axiosys.bento4.ismacryp.EncvSampleEntry;
 import com.axiosys.bento4.ismacryp.IkmsAtom;
 import com.axiosys.bento4.ismacryp.SchmAtom;
+import com.axiosys.bento4.metadata.MetaDataTypeHandler;
 
 public class AtomFactory {
     public static final AtomFactory DefaultFactory = new AtomFactory();
     
     private int context = 0;
+    private List typeHandlers = new ArrayList();
+    
+    public AtomFactory() {
+        // add builtin type handler
+        typeHandlers.add(new MetaDataTypeHandler(this));
+    }
     
     public Atom createAtom(RandomAccessFile file) throws IOException, InvalidFormatException {
         return createAtom(file, new int[] { (int) (file.length()-file.getFilePointer()) });
+    }
+
+    public void addTypeHandler(TypeHandler handler) {
+        typeHandlers.add(handler);
+    }
+    
+    public void setContext(int context) {
+        this.context = context;
+    }
+
+    public int getContext() {
+        return context;
     }
 
     Atom createAtom(RandomAccessFile source, int[] bytesAvailable /* by reference */) throws IOException, InvalidFormatException {
@@ -85,17 +107,13 @@ public class AtomFactory {
           case Atom.TYPE_SINF:
           case Atom.TYPE_UDTA:
           case Atom.TYPE_ILST:
-          case Atom.TYPE_EDTS: {
-              int previousContext = context;
-              context = type; // set the context for the children
-              atom = new ContainerAtom(type, size, false, source, this);
-              context = previousContext; // restore the previous context
-              break;
-          }
+          case Atom.TYPE_EDTS:
+            atom = new ContainerAtom(type, size, false, source, this);
+            break;
 
           // full container atoms
           case Atom.TYPE_META:
-            atom = new ContainerAtom(type, size, false, source, this);
+            atom = new ContainerAtom(type, size, true, source, this);
             break;
 
           // sample entries
@@ -116,7 +134,15 @@ public class AtomFactory {
               break;
 
           default:
-              atom = new UnknownAtom(type, size, source);
+              // try all external type handlers
+              for (Iterator i=typeHandlers.iterator(); i.hasNext();) {
+                  TypeHandler handler = (TypeHandler)i.next();
+                  atom = handler.createAtom(type, size, source, context);
+                  if (atom != null) break;
+              }
+          
+              // not type handler could handle this, create a generic atom
+              if (atom == null) atom = new UnknownAtom(type, size, source);
               break;
         }
 

@@ -41,11 +41,6 @@ public class TkhdAtom extends Atom {
         height = source.readInt();
     }
     
-    protected void writeFields(DataOutputStream stream) throws IOException {
-        // not implemented yet
-        throw new RuntimeException("not implemented yet");
-    }
-
     public String toString(String indentation) {
         StringBuffer result = new StringBuffer(super.toString(indentation));
         result.append("\n" + indentation + " track_id          = " + trackId);
@@ -59,5 +54,10 @@ public class TkhdAtom extends Atom {
         result.append("\n" + indentation +"  volume            = " + volume);
         
         return result.toString();  
+    }
+    
+    protected void writeFields(DataOutputStream stream) throws IOException {
+        // not implemented yet
+        throw new RuntimeException("not implemented yet");        
     }
 }
