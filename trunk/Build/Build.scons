@@ -77,7 +77,6 @@ class LibraryModule(Module):
         cpp_defines={}
         
         # the product is a library
-        print "LIBRARAY:", name, "sources=", sources, "includes=", cpp_path
         self.env.AppendUnique(CPPDEFINES=cpp_defines)
         self.env.AppendUnique(CPPPATH=cpp_path)
         self.product = self.env.Library(target=name, source=sources)

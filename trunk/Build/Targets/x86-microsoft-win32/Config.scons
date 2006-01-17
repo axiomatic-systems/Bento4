@@ -1,0 +1,2 @@
+env.AppendUnique(CPPDEFINES = {'AP4_PLATFORM_BYTE_ORDER':'AP4_PLATFORM_LITTLE_ENDIAN'})
+env.Append(CPPFLAGS = "/DWIN32 /GR /EHsc") # MS Visual Studio Compiler specific options
