@@ -62,8 +62,6 @@
 #include "Ap4IkmsAtom.h"
 #include "Ap4IsfmAtom.h"
 #include "Ap4TrefTypeAtom.h"
-
-// builtin extensions
 #include "Ap4MetaData.h"
 
 /*----------------------------------------------------------------------
