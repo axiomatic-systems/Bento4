@@ -91,6 +91,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MetaData", "MetaData\MetaDa
 	ProjectSection(ProjectDependencies) = postProject
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Config", "Config\Config.vcproj", "{0775F43A-0D4B-45EA-9509-9CE457B3B9EE}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfiguration) = preSolution
 		Debug = Debug
@@ -161,6 +165,10 @@ Global
 		{D2A66E1B-6C25-4D48-8908-F70AD585A7E1}.Debug.Build.0 = Debug|Win32
 		{D2A66E1B-6C25-4D48-8908-F70AD585A7E1}.Release.ActiveCfg = Release|Win32
 		{D2A66E1B-6C25-4D48-8908-F70AD585A7E1}.Release.Build.0 = Release|Win32
+		{0775F43A-0D4B-45EA-9509-9CE457B3B9EE}.Debug.ActiveCfg = Debug|Win32
+		{0775F43A-0D4B-45EA-9509-9CE457B3B9EE}.Debug.Build.0 = Debug|Win32
+		{0775F43A-0D4B-45EA-9509-9CE457B3B9EE}.Release.ActiveCfg = Release|Win32
+		{0775F43A-0D4B-45EA-9509-9CE457B3B9EE}.Release.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 	EndGlobalSection

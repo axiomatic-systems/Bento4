@@ -1,0 +1,37 @@
+import sys
+
+#######################################################
+# reusable functions and data structures
+#######################################################
+
+# Platform to Target Map (specifies which default target to build on a platform)
+PLATFORM_TO_TARGET_MAP = { 
+    'linux-i386' : 'x86-unknown-linux',
+    'linux2'     : 'x86-unknown-linux',
+    'win32'      : 'x86-microsoft-win32',
+    'cygwin'     : 'x86-unknown-cygwin'
+}
+    
+def DefaultTarget():
+    if PLATFORM_TO_TARGET_MAP.has_key(sys.platform):
+        return PLATFORM_TO_TARGET_MAP[sys.platform]
+    else:
+        return None
+        
+#######################################################
+# Main Build
+#######################################################
+
+options = Options()
+options.AddOptions(
+    EnumOption('target', 'build target', DefaultTarget(), allowed_values=PLATFORM_TO_TARGET_MAP.values()),
+    EnumOption('build_config', 'build config', 'Debug', allowed_values=('Debug', 'Release'))
+)
+
+env = Environment(options=options)
+Help(options.GenerateHelpText(env))
+
+print '********** Building for target =', env['target'], '/', env['build_config'], '********'
+
+### call the actual build script    
+SConscript('Build.scons', build_dir='Targets/'+env['target']+'/'+env['build_config'], exports='env', duplicate=0)
