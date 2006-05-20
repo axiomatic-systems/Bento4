@@ -2,7 +2,7 @@
 |
 |    AP4 - Utilities
 |
-|    Copyright 2002 Gilles Boccon-Gibod
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -30,7 +30,7 @@
 #define _AP4_UTILS_H_
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4Types.h"
 #include "Ap4Results.h"
@@ -38,13 +38,13 @@
 #include "Ap4Atom.h"
 
 /*----------------------------------------------------------------------
-|       MIN & MAX
+|   MIN & MAX
 +---------------------------------------------------------------------*/
 #define MIN(a,b) (a<b)?a:b
 #define MAX(a,b) (a>b)?a:b
 
 /*----------------------------------------------------------------------
-|       byte I/O
+|   byte I/O
 +---------------------------------------------------------------------*/
 unsigned long AP4_BytesToUInt32BE(const unsigned char* bytes);
 unsigned long AP4_BytesToUInt24BE(const unsigned char* bytes);
@@ -61,7 +61,7 @@ unsigned long AP4_ConvertTime(unsigned long time_value,
                               unsigned long to_time_scale);
 
 /*----------------------------------------------------------------------
-|       string utils
+|   string utils
 +---------------------------------------------------------------------*/
 #if defined (AP4_CONFIG_HAVE_STDIO_H)
 #include <stdio.h>
@@ -90,7 +90,7 @@ AP4_Result
 AP4_SplitArgs(char* arg, char*& arg0, char*& arg1);
 
 /*----------------------------------------------------------------------
-|       AP4_PrintInspector
+|   AP4_PrintInspector
 +---------------------------------------------------------------------*/
 class AP4_PrintInspector : public AP4_AtomInspector {
 public:

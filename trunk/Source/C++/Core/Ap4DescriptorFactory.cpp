@@ -2,7 +2,7 @@
 |
 |    AP4 - Descriptor Factory
 |
-|    Copyright 2002 Gilles Boccon-Gibod
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -27,7 +27,7 @@
  ****************************************************************/
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4DescriptorFactory.h"
 #include "Ap4EsDescriptor.h"
@@ -38,7 +38,7 @@
 #include "Ap4ByteStream.h"
 
 /*----------------------------------------------------------------------
-|       AP4_DescriptorFactory::CreateDescriptorFromStream
+|   AP4_DescriptorFactory::CreateDescriptorFromStream
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_DescriptorFactory::CreateDescriptorFromStream(AP4_ByteStream&  stream, 

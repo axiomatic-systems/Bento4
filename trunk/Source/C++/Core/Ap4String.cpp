@@ -2,7 +2,7 @@
 |
 |    AP4 - Strings
 |
-|    Copyright 2002 Gilles Boccon-Gibod
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -27,24 +27,24 @@
 ****************************************************************/
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4String.h"
 #include "Ap4Types.h"
 #include "Ap4Utils.h"
 
 /*----------------------------------------------------------------------
-|       AP4_String::EmptyString
+|   AP4_String::EmptyString
 +---------------------------------------------------------------------*/
 char AP4_String::EmptyString = 0;
 
 /*----------------------------------------------------------------------
-|       AP4_String::AP4_String
+|   AP4_String::AP4_String
 +---------------------------------------------------------------------*/
 AP4_String::AP4_String() : m_Chars(&EmptyString), m_Length(0) {}
 
 /*----------------------------------------------------------------------
-|       AP4_String::AP4_String
+|   AP4_String::AP4_String
 +---------------------------------------------------------------------*/
 AP4_String::AP4_String(const char* s) {
     if (s == NULL) {
@@ -58,7 +58,7 @@ AP4_String::AP4_String(const char* s) {
 }
 
 /*----------------------------------------------------------------------
-|       AP4_String::AP4_String
+|   AP4_String::AP4_String
 +---------------------------------------------------------------------*/
 AP4_String::AP4_String(const char* s, AP4_Size size) :
     m_Chars(new char[size+1]), 
@@ -69,7 +69,7 @@ AP4_String::AP4_String(const char* s, AP4_Size size) :
 }
 
 /*----------------------------------------------------------------------
-|       AP4_String::AP4_String
+|   AP4_String::AP4_String
 +---------------------------------------------------------------------*/
 AP4_String::AP4_String(const AP4_String& s) {
     m_Length = s.m_Length;
@@ -78,7 +78,7 @@ AP4_String::AP4_String(const AP4_String& s) {
 }
 
 /*----------------------------------------------------------------------
-|       AP4_String::AP4_String
+|   AP4_String::AP4_String
 +---------------------------------------------------------------------*/
 AP4_String::AP4_String(AP4_Size size) {
     m_Length = size;
@@ -87,7 +87,7 @@ AP4_String::AP4_String(AP4_Size size) {
 }
 
 /*----------------------------------------------------------------------
-|       AP4_String::~AP4_String
+|   AP4_String::~AP4_String
 +---------------------------------------------------------------------*/
 AP4_String::~AP4_String() 
 {
@@ -95,7 +95,7 @@ AP4_String::~AP4_String()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_String::operator=
+|   AP4_String::operator=
 +---------------------------------------------------------------------*/
 const AP4_String&
 AP4_String::operator=(const AP4_String& s)

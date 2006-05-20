@@ -2,7 +2,7 @@
 |
 |    AP4 - tims Atoms 
 |
-|    Copyright 2002 Gilles Boccon-Gibod & Julien Boeuf
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -27,7 +27,7 @@
 ****************************************************************/
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4TimsAtom.h"
 #include "Ap4AtomFactory.h"
@@ -35,7 +35,7 @@
 #include "Ap4Types.h"
 
 /*----------------------------------------------------------------------
-|       AP4_TimsAtom::AP4_TimsAtom
+|   AP4_TimsAtom::AP4_TimsAtom
 +---------------------------------------------------------------------*/
 AP4_TimsAtom::AP4_TimsAtom(AP4_UI32 timescale) :
     AP4_Atom(AP4_ATOM_TYPE_TIMS, 4, false),
@@ -44,7 +44,7 @@ AP4_TimsAtom::AP4_TimsAtom(AP4_UI32 timescale) :
 }
 
 /*----------------------------------------------------------------------
-|       AP4_TimsAtom::AP4_TimsAtom
+|   AP4_TimsAtom::AP4_TimsAtom
 +---------------------------------------------------------------------*/
 AP4_TimsAtom::AP4_TimsAtom(AP4_Size size, AP4_ByteStream& stream) :
     AP4_Atom(AP4_ATOM_TYPE_TIMS, size, false, stream)
@@ -53,7 +53,7 @@ AP4_TimsAtom::AP4_TimsAtom(AP4_Size size, AP4_ByteStream& stream) :
 }
 
 /*----------------------------------------------------------------------
-|       AP4_TimsAtom::WriteFields
+|   AP4_TimsAtom::WriteFields
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_TimsAtom::WriteFields(AP4_ByteStream& stream)
@@ -64,7 +64,7 @@ AP4_TimsAtom::WriteFields(AP4_ByteStream& stream)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_TimsAtom::InspectFields
+|   AP4_TimsAtom::InspectFields
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_TimsAtom::InspectFields(AP4_AtomInspector& inspector)

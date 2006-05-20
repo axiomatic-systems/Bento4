@@ -2,7 +2,7 @@
 |
 |    AP4 - Container Atoms
 |
-|    Copyright 2002 Gilles Boccon-Gibod
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -30,20 +30,20 @@
 #define _AP4_CONTAINER_ATOM_H_
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4Types.h"
 #include "Ap4List.h"
 #include "Ap4Atom.h"
 
 /*----------------------------------------------------------------------
-|       class references
+|   class references
 +---------------------------------------------------------------------*/
 class AP4_ByteStream;
 class AP4_AtomFactory;
 
 /*----------------------------------------------------------------------
-|       AP4_ContainerAtom
+|   AP4_ContainerAtom
 +---------------------------------------------------------------------*/
 class AP4_ContainerAtom : public AP4_Atom, public AP4_AtomParent {
 public:

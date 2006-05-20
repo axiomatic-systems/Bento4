@@ -2,7 +2,7 @@
 |
 |    AP4 - tims Atoms 
 |
-|    Copyright 2002 Gilles Boccon-Gibod & Julien Boeuf
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -30,12 +30,12 @@
 #define _AP4_TIMS_ATOM_H_
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4Atom.h"
 
 /*----------------------------------------------------------------------
-|       AP4_TimsAtom
+|   AP4_TimsAtom
 +---------------------------------------------------------------------*/
 class AP4_TimsAtom : public AP4_Atom
 {

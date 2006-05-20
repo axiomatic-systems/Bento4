@@ -2,7 +2,7 @@
 |
 |    AP4 - vmhd Atoms 
 |
-|    Copyright 2002 Gilles Boccon-Gibod
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -27,7 +27,7 @@
 ****************************************************************/
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4VmhdAtom.h"
 #include "Ap4AtomFactory.h"
@@ -35,7 +35,7 @@
 #include "Ap4Types.h"
 
 /*----------------------------------------------------------------------
-|       AP4_VmhdAtom::AP4_VmhdAtom
+|   AP4_VmhdAtom::AP4_VmhdAtom
 +---------------------------------------------------------------------*/
 AP4_VmhdAtom::AP4_VmhdAtom(AP4_UI16 graphics_mode, AP4_UI16 r, AP4_UI16 g, AP4_UI16 b) :
     AP4_Atom(AP4_ATOM_TYPE_VMHD, 8+AP4_FULL_ATOM_HEADER_SIZE, true),
@@ -47,7 +47,7 @@ AP4_VmhdAtom::AP4_VmhdAtom(AP4_UI16 graphics_mode, AP4_UI16 r, AP4_UI16 g, AP4_U
 }
 
 /*----------------------------------------------------------------------
-|       AP4_VmhdAtom::AP4_VmhdAtom
+|   AP4_VmhdAtom::AP4_VmhdAtom
 +---------------------------------------------------------------------*/
 AP4_VmhdAtom::AP4_VmhdAtom(AP4_Size size, AP4_ByteStream& stream) :
     AP4_Atom(AP4_ATOM_TYPE_VMHD, size, true, stream)
@@ -57,7 +57,7 @@ AP4_VmhdAtom::AP4_VmhdAtom(AP4_Size size, AP4_ByteStream& stream) :
 }
 
 /*----------------------------------------------------------------------
-|       AP4_VmhdAtom::WriteFields
+|   AP4_VmhdAtom::WriteFields
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_VmhdAtom::WriteFields(AP4_ByteStream& stream)
@@ -76,7 +76,7 @@ AP4_VmhdAtom::WriteFields(AP4_ByteStream& stream)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_VmhdAtom::InspectFields
+|   AP4_VmhdAtom::InspectFields
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_VmhdAtom::InspectFields(AP4_AtomInspector& inspector)

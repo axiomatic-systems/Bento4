@@ -2,7 +2,7 @@
 |
 |    AP4 - stsz Atoms 
 |
-|    Copyright 2002 Gilles Boccon-Gibod
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -30,13 +30,13 @@
 #define _AP4_STSZ_ATOM_H_
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4Array.h"
 #include "Ap4Atom.h"
 
 /*----------------------------------------------------------------------
-|       AP4_StszAtom
+|   AP4_StszAtom
 +---------------------------------------------------------------------*/
 class AP4_StszAtom : public AP4_Atom
 {

@@ -2,7 +2,7 @@
 |
 |    AP4 - Sample Objects
 |
-|    Copyright 2002 Gilles Boccon-Gibod & Julien Boeuf
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -27,14 +27,14 @@
  ****************************************************************/
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4Sample.h"
 #include "Ap4Utils.h"
 #include "Ap4DataBuffer.h"
 
 /*----------------------------------------------------------------------
-|       AP4_Sample::AP4_Sample
+|   AP4_Sample::AP4_Sample
 +---------------------------------------------------------------------*/
 AP4_Sample::AP4_Sample() :
     m_DataStream(NULL),
@@ -47,7 +47,7 @@ AP4_Sample::AP4_Sample() :
 }
 
 /*----------------------------------------------------------------------
-|       AP4_Sample::AP4_Sample
+|   AP4_Sample::AP4_Sample
 +---------------------------------------------------------------------*/
 AP4_Sample::AP4_Sample(AP4_ByteStream& data_stream,
                        AP4_Offset      offset,
@@ -66,7 +66,7 @@ AP4_Sample::AP4_Sample(AP4_ByteStream& data_stream,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_Sample::AP4_Sample
+|   AP4_Sample::AP4_Sample
 +---------------------------------------------------------------------*/
 AP4_Sample::AP4_Sample(const AP4_Sample& other) :
     m_DataStream(other.m_DataStream),
@@ -80,7 +80,7 @@ AP4_Sample::AP4_Sample(const AP4_Sample& other) :
 }
 
 /*----------------------------------------------------------------------
-|       AP4_Sample::~AP4_Sample
+|   AP4_Sample::~AP4_Sample
 +---------------------------------------------------------------------*/
 AP4_Sample::~AP4_Sample()
 {
@@ -88,7 +88,7 @@ AP4_Sample::~AP4_Sample()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_Sample::operator=
+|   AP4_Sample::operator=
 +---------------------------------------------------------------------*/
 AP4_Sample&
 AP4_Sample::operator=(const AP4_Sample& other)
@@ -106,7 +106,7 @@ AP4_Sample::operator=(const AP4_Sample& other)
     return *this;
 }
 /*----------------------------------------------------------------------
-|       AP4_Sample::ReadData
+|   AP4_Sample::ReadData
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_Sample::ReadData(AP4_DataBuffer& data)
@@ -116,7 +116,7 @@ AP4_Sample::ReadData(AP4_DataBuffer& data)
 
 
 /*----------------------------------------------------------------------
-|       AP4_Sample::ReadData
+|   AP4_Sample::ReadData
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_Sample::ReadData(AP4_DataBuffer& data, AP4_Size size, AP4_Offset offset)
@@ -140,7 +140,7 @@ AP4_Sample::ReadData(AP4_DataBuffer& data, AP4_Size size, AP4_Offset offset)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_Sample::GetDataStream
+|   AP4_Sample::GetDataStream
 +---------------------------------------------------------------------*/
 AP4_ByteStream*
 AP4_Sample::GetDataStream()
@@ -150,7 +150,7 @@ AP4_Sample::GetDataStream()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_Sample::SetDataStream
+|   AP4_Sample::SetDataStream
 +---------------------------------------------------------------------*/
 void
 AP4_Sample::SetDataStream(AP4_ByteStream& stream)

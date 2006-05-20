@@ -2,7 +2,7 @@
 |
 |    AP4 - esds Atoms 
 |
-|    Copyright 2002 Gilles Boccon-Gibod
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -27,14 +27,14 @@
  ****************************************************************/
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4EsdsAtom.h"
 #include "Ap4DescriptorFactory.h"
 #include "Ap4Utils.h"
 
 /*----------------------------------------------------------------------
-|       AP4_EsdsAtom::AP4_EsdsAtom
+|   AP4_EsdsAtom::AP4_EsdsAtom
 +---------------------------------------------------------------------*/
 AP4_EsdsAtom::AP4_EsdsAtom(AP4_EsDescriptor* descriptor) :
     AP4_Atom(AP4_ATOM_TYPE_ESDS, AP4_FULL_ATOM_HEADER_SIZE, true),
@@ -44,7 +44,7 @@ AP4_EsdsAtom::AP4_EsdsAtom(AP4_EsDescriptor* descriptor) :
 }
 
 /*----------------------------------------------------------------------
-|       AP4_EsdsAtom::AP4_EsdsAtom
+|   AP4_EsdsAtom::AP4_EsdsAtom
 +---------------------------------------------------------------------*/
 AP4_EsdsAtom::AP4_EsdsAtom(AP4_Size size, AP4_ByteStream& stream) :
     AP4_Atom(AP4_ATOM_TYPE_ESDS, size, true, stream)
@@ -60,7 +60,7 @@ AP4_EsdsAtom::AP4_EsdsAtom(AP4_Size size, AP4_ByteStream& stream) :
 }
 
 /*----------------------------------------------------------------------
-|       AP4_EsdsAtom::~AP4_EsdsAtom
+|   AP4_EsdsAtom::~AP4_EsdsAtom
 +---------------------------------------------------------------------*/
 AP4_EsdsAtom::~AP4_EsdsAtom()
 {
@@ -68,7 +68,7 @@ AP4_EsdsAtom::~AP4_EsdsAtom()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_EsdsAtom::WriteFields
+|   AP4_EsdsAtom::WriteFields
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_EsdsAtom::WriteFields(AP4_ByteStream& stream)
@@ -80,7 +80,7 @@ AP4_EsdsAtom::WriteFields(AP4_ByteStream& stream)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_EsdsAtom::InspectFields
+|   AP4_EsdsAtom::InspectFields
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_EsdsAtom::InspectFields(AP4_AtomInspector& inspector)

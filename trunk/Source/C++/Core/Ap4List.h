@@ -2,7 +2,7 @@
 |
 |    AP4 - Lists
 |
-|    Copyright 2002 Gilles Boccon-Gibod
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -30,18 +30,18 @@
 #define _AP4_LIST_H_
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4Types.h"
 #include "Ap4Results.h"
 
 /*----------------------------------------------------------------------
-|       forward references
+|   forward references
 +---------------------------------------------------------------------*/
 template <typename T> class AP4_List;
 
 /*----------------------------------------------------------------------
-|       AP4_List
+|   AP4_List
 +---------------------------------------------------------------------*/
 template <typename T> 
 class AP4_List 
@@ -118,7 +118,7 @@ private:
 };
 
 /*----------------------------------------------------------------------
-|       AP4_List<T>::~AP4_List<T>
+|   AP4_List<T>::~AP4_List<T>
 +---------------------------------------------------------------------*/
 template <typename T>
 AP4_List<T>::~AP4_List<T>()
@@ -133,7 +133,7 @@ AP4_List<T>::~AP4_List<T>()
 }
  
 /*----------------------------------------------------------------------
-|       AP4_List<T>::Add
+|   AP4_List<T>::Add
 +---------------------------------------------------------------------*/
 template <typename T>
 inline
@@ -144,7 +144,7 @@ AP4_List<T>::Add(T* data)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_List<T>::Add
+|   AP4_List<T>::Add
 +---------------------------------------------------------------------*/
 template <typename T>
 AP4_Result
@@ -170,7 +170,7 @@ AP4_List<T>::Add(Item* item)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_List<T>::Remove
+|   AP4_List<T>::Remove
 +---------------------------------------------------------------------*/
 template <typename T>
 AP4_Result
@@ -219,7 +219,7 @@ AP4_List<T>::Remove(T* data)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_List<T>::Insert
+|   AP4_List<T>::Insert
 +---------------------------------------------------------------------*/
 template <typename T>
 AP4_Result
@@ -263,7 +263,7 @@ AP4_List<T>::Insert(Item* where, T* data)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_List<T>::Get
+|   AP4_List<T>::Get
 +---------------------------------------------------------------------*/
 template <typename T>
 AP4_Result
@@ -282,7 +282,7 @@ AP4_List<T>::Get(AP4_Ordinal idx, T*& data) const
 }
 
 /*----------------------------------------------------------------------
-|       AP4_List<T>::PopHead
+|   AP4_List<T>::PopHead
 +---------------------------------------------------------------------*/
 template <typename T>
 AP4_Result
@@ -313,7 +313,7 @@ AP4_List<T>::PopHead(T*& data)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_List<T>::Apply
+|   AP4_List<T>::Apply
 +---------------------------------------------------------------------*/
 template <typename T>
 inline 
@@ -331,7 +331,7 @@ AP4_List<T>::Apply(const typename Item::Operator& op) const
 }
 
 /*----------------------------------------------------------------------
-|       AP4_List<T>::ApplyUntilFailure
+|   AP4_List<T>::ApplyUntilFailure
 +---------------------------------------------------------------------*/
 template <typename T>
 inline 
@@ -351,7 +351,7 @@ AP4_List<T>::ApplyUntilFailure(const typename Item::Operator& op) const
 }
 
 /*----------------------------------------------------------------------
-|       AP4_List<T>::ApplyUntilSuccess
+|   AP4_List<T>::ApplyUntilSuccess
 +---------------------------------------------------------------------*/
 template <typename T>
 inline 
@@ -371,7 +371,7 @@ AP4_List<T>::ApplyUntilSuccess(const typename Item::Operator& op) const
 }
 
 /*----------------------------------------------------------------------
-|       AP4_List<T>::ReverseApply
+|   AP4_List<T>::ReverseApply
 +---------------------------------------------------------------------*/
 template <typename T>
 inline 
@@ -391,7 +391,7 @@ AP4_List<T>::ReverseApply(const typename Item::Operator& op) const
 }
 
 /*----------------------------------------------------------------------
-|       AP4_List<T>::Find
+|   AP4_List<T>::Find
 +---------------------------------------------------------------------*/
 template <typename T>
 inline 
@@ -413,7 +413,7 @@ AP4_List<T>::Find(const typename Item::Finder& finder, T*& data) const
 }
 
 /*----------------------------------------------------------------------
-|       AP4_List<T>::ReverseFind
+|   AP4_List<T>::ReverseFind
 +---------------------------------------------------------------------*/
 template <typename T>
 inline 
@@ -435,7 +435,7 @@ AP4_List<T>::ReverseFind(const typename Item::Finder& finder, T*& data) const
 }
 
 /*----------------------------------------------------------------------
-|       AP4_List<T>::DeleteReferences
+|   AP4_List<T>::DeleteReferences
 +---------------------------------------------------------------------*/
 template <typename T>
 inline 

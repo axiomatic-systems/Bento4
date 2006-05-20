@@ -2,7 +2,7 @@
 |
 |    AP4 - dref Atoms 
 |
-|    Copyright 2002 Gilles Boccon-Gibod
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -27,7 +27,7 @@
  ****************************************************************/
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4DrefAtom.h"
 #include "Ap4AtomFactory.h"
@@ -35,7 +35,7 @@
 #include "Ap4ContainerAtom.h"
 
 /*----------------------------------------------------------------------
-|       AP4_DrefAtom::AP4_DrefAtom
+|   AP4_DrefAtom::AP4_DrefAtom
 +---------------------------------------------------------------------*/
 AP4_DrefAtom::AP4_DrefAtom(AP4_Atom** refs, AP4_Cardinal refs_count) :
     AP4_ContainerAtom(AP4_ATOM_TYPE_DREF, AP4_FULL_ATOM_HEADER_SIZE+4, true)
@@ -47,7 +47,7 @@ AP4_DrefAtom::AP4_DrefAtom(AP4_Atom** refs, AP4_Cardinal refs_count) :
 }
 
 /*----------------------------------------------------------------------
-|       AP4_DrefAtom::AP4_DrefAtom
+|   AP4_DrefAtom::AP4_DrefAtom
 +---------------------------------------------------------------------*/
 AP4_DrefAtom::AP4_DrefAtom(AP4_Size         size,
                            AP4_ByteStream&  stream,
@@ -71,7 +71,7 @@ AP4_DrefAtom::AP4_DrefAtom(AP4_Size         size,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_DrefAtom::WriteFields
+|   AP4_DrefAtom::WriteFields
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_DrefAtom::WriteFields(AP4_ByteStream& stream)

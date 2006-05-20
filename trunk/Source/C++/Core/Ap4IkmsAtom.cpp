@@ -2,7 +2,7 @@
 |
 |    AP4 - iKMS Atoms 
 |
-|    Copyright 2002-2005 Gilles Boccon-Gibod & Julien Boeuf
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -27,13 +27,13 @@
 ****************************************************************/
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4IkmsAtom.h"
 #include "Ap4Utils.h"
 
 /*----------------------------------------------------------------------
-|       AP4_IkmsAtom::AP4_IkmsAtom
+|   AP4_IkmsAtom::AP4_IkmsAtom
 +---------------------------------------------------------------------*/
 AP4_IkmsAtom::AP4_IkmsAtom(const char* kms_uri) :
     AP4_Atom(AP4_ATOM_TYPE_IKMS, AP4_FULL_ATOM_HEADER_SIZE, true),
@@ -43,7 +43,7 @@ AP4_IkmsAtom::AP4_IkmsAtom(const char* kms_uri) :
 }
 
 /*----------------------------------------------------------------------
-|       AP4_IkmsAtom::AP4_IkmsAtom
+|   AP4_IkmsAtom::AP4_IkmsAtom
 +---------------------------------------------------------------------*/
 AP4_IkmsAtom::AP4_IkmsAtom(AP4_Size size, AP4_ByteStream& stream) :
     AP4_Atom(AP4_ATOM_TYPE_IKMS, size, true, stream)
@@ -59,7 +59,7 @@ AP4_IkmsAtom::AP4_IkmsAtom(AP4_Size size, AP4_ByteStream& stream) :
 }
 
 /*----------------------------------------------------------------------
-|       AP4_IkmsAtom::Clone
+|   AP4_IkmsAtom::Clone
 +---------------------------------------------------------------------*/
 AP4_Atom* 
 AP4_IkmsAtom::Clone()
@@ -68,7 +68,7 @@ AP4_IkmsAtom::Clone()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_IkmsAtom::WriteFields
+|   AP4_IkmsAtom::WriteFields
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_IkmsAtom::WriteFields(AP4_ByteStream& stream)
@@ -85,7 +85,7 @@ AP4_IkmsAtom::WriteFields(AP4_ByteStream& stream)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_IkmsAtom::InspectFields
+|   AP4_IkmsAtom::InspectFields
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_IkmsAtom::InspectFields(AP4_AtomInspector& inspector)

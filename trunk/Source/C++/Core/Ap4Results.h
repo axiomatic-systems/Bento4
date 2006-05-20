@@ -2,7 +2,7 @@
 |
 |    AP4 - Result Codes
 |
-|    Copyright 2002 Gilles Boccon-Gibod
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -30,7 +30,7 @@
 #define _AP4_RESULTS_H_
 
 /*----------------------------------------------------------------------
-|       constants
+|   constants
 +---------------------------------------------------------------------*/
 const int AP4_SUCCESS                               =  0;
 const int AP4_FAILURE                               = -1;
@@ -55,7 +55,7 @@ const int AP4_ERROR_INVALID_TRACK_TYPE              = -19;
 const int AP4_ERROR_INVALID_RTP_PACKET_EXTRA_DATA   = -20;
 
 /*----------------------------------------------------------------------
-|       macros
+|   macros
 +---------------------------------------------------------------------*/
 #define AP4_FAILED(result) ((result) != AP4_SUCCESS)
 #define AP4_SUCCEEDED(result) ((result) == AP4_SUCCESS)

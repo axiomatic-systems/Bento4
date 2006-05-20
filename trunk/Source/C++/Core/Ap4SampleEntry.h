@@ -2,7 +2,7 @@
 |
 |    AP4 - sample entries
 |
-|    Copyright 2002 Gilles Boccon-Gibod & Julien Boeuf
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -30,7 +30,7 @@
 #define _AP4_SAMPLE_ENTRY_H_
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4Types.h"
 #include "Ap4List.h"
@@ -40,12 +40,12 @@
 #include "Ap4ContainerAtom.h"
 
 /*----------------------------------------------------------------------
-|       class references
+|   class references
 +---------------------------------------------------------------------*/
 class AP4_SampleDescription;
 
 /*----------------------------------------------------------------------
-|       AP4_SampleEntry
+|   AP4_SampleEntry
 +---------------------------------------------------------------------*/
 class AP4_SampleEntry : public AP4_ContainerAtom
 {
@@ -80,7 +80,7 @@ class AP4_SampleEntry : public AP4_ContainerAtom
 };
 
 /*----------------------------------------------------------------------
-|       AP4_AudioSampleEntry
+|   AP4_AudioSampleEntry
 +---------------------------------------------------------------------*/
 class AP4_AudioSampleEntry : public AP4_SampleEntry
 {
@@ -126,7 +126,7 @@ protected:
 };
 
 /*----------------------------------------------------------------------
-|       AP4_VisualSampleEntry
+|   AP4_VisualSampleEntry
 +---------------------------------------------------------------------*/
 class AP4_VisualSampleEntry : public AP4_SampleEntry
 {
@@ -180,7 +180,7 @@ protected:
 };
 
 /*----------------------------------------------------------------------
-|       AP4_MpegSystemSampleEntry
+|   AP4_MpegSystemSampleEntry
 +---------------------------------------------------------------------*/
 class AP4_MpegSystemSampleEntry : public AP4_SampleEntry
 {
@@ -198,7 +198,7 @@ public:
 };
 
 /*----------------------------------------------------------------------
-|       AP4_MpegAudioSampleEntry
+|   AP4_MpegAudioSampleEntry
 +---------------------------------------------------------------------*/
 class AP4_MpegAudioSampleEntry : public AP4_AudioSampleEntry
 {
@@ -219,7 +219,7 @@ public:
 };
 
 /*----------------------------------------------------------------------
-|       AP4_MpegVideoSampleEntry
+|   AP4_MpegVideoSampleEntry
 +---------------------------------------------------------------------*/
 class AP4_MpegVideoSampleEntry : public AP4_VisualSampleEntry
 {
@@ -241,7 +241,7 @@ public:
 };
 
 /*----------------------------------------------------------------------
-|       AP4_Mp4sSampleEntry
+|   AP4_Mp4sSampleEntry
 +---------------------------------------------------------------------*/
 class AP4_Mp4sSampleEntry : public AP4_MpegSystemSampleEntry
 {
@@ -257,7 +257,7 @@ class AP4_Mp4sSampleEntry : public AP4_MpegSystemSampleEntry
 };
 
 /*----------------------------------------------------------------------
-|       AP4_Mp4aSampleEntry
+|   AP4_Mp4aSampleEntry
 +---------------------------------------------------------------------*/
 class AP4_Mp4aSampleEntry : public AP4_MpegAudioSampleEntry
 {
@@ -273,7 +273,7 @@ class AP4_Mp4aSampleEntry : public AP4_MpegAudioSampleEntry
 };
 
 /*----------------------------------------------------------------------
-|       AP4_Mp4vSampleEntry
+|   AP4_Mp4vSampleEntry
 +---------------------------------------------------------------------*/
 class AP4_Mp4vSampleEntry : public AP4_MpegVideoSampleEntry
 {
@@ -290,7 +290,7 @@ class AP4_Mp4vSampleEntry : public AP4_MpegVideoSampleEntry
 };
 
 /*----------------------------------------------------------------------
-|       AP4_Avc1SampleEntry
+|   AP4_Avc1SampleEntry
 +---------------------------------------------------------------------*/
 class AP4_Avc1SampleEntry : public AP4_VisualSampleEntry
 {
@@ -306,7 +306,7 @@ public:
 };
 
 /*----------------------------------------------------------------------
-|       AP4_RtpHintSampleEntry
+|   AP4_RtpHintSampleEntry
 +---------------------------------------------------------------------*/
 class AP4_RtpHintSampleEntry : public AP4_SampleEntry
 {

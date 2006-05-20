@@ -2,7 +2,7 @@
 |
 |    AP4 - tkhd Atoms 
 |
-|    Copyright 2002 Gilles Boccon-Gibod
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -30,12 +30,12 @@
 #define _AP4_TKHD_ATOM_H_
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4Atom.h"
 
 /*----------------------------------------------------------------------
-|       constants
+|   constants
 +---------------------------------------------------------------------*/
 const int AP4_TKHD_FLAG_TRACK_ENABLED    = 1;
 const int AP4_TKHD_FLAG_TRACK_IN_MOVIE   = 2;
@@ -44,7 +44,7 @@ const int AP4_TKHD_FLAG_TRACK_IN_PREVIEW = 4;
 const int AP4_TKHD_FLAG_DEFAULTS         = 7;
 
 /*----------------------------------------------------------------------
-|       AP4_TkhdAtom
+|   AP4_TkhdAtom
 +---------------------------------------------------------------------*/
 class AP4_TkhdAtom : public AP4_Atom
 {

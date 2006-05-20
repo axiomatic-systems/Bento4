@@ -2,7 +2,7 @@
 |
 |    AP4 - dref Atoms 
 |
-|    Copyright 2002 Gilles Boccon-Gibod
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -30,19 +30,19 @@
 #define _AP4_DREF_ATOM_H_
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4Types.h"
 #include "Ap4ContainerAtom.h"
 
 /*----------------------------------------------------------------------
-|       class references
+|   class references
 +---------------------------------------------------------------------*/
 class AP4_ByteStream;
 class AP4_AtomFactory;
 
 /*----------------------------------------------------------------------
-|       AP4_DrefAtom
+|   AP4_DrefAtom
 +---------------------------------------------------------------------*/
 class AP4_DrefAtom : public AP4_ContainerAtom
 {

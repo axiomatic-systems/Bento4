@@ -2,7 +2,7 @@
 |
 |    AP4 - url Atoms 
 |
-|    Copyright 2002 Gilles Boccon-Gibod
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -30,13 +30,13 @@
 #define _AP4_URL_ATOM_H_
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4Atom.h"
 #include "Ap4String.h"
 
 /*----------------------------------------------------------------------
-|       AP4_UrlAtom
+|   AP4_UrlAtom
 +---------------------------------------------------------------------*/
 class AP4_UrlAtom : public AP4_Atom
 {

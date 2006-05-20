@@ -10,10 +10,7 @@ all: mp4rtphintinfo
 ##########################################################################
 # includes
 ##########################################################################
-include $(BUILD_ROOT)/Makefiles/Crypto.exp
-include $(BUILD_ROOT)/Makefiles/Core.exp
-include $(BUILD_ROOT)/Makefiles/System.exp
-include $(BUILD_ROOT)/Makefiles/MetaData.exp
+include $(BUILD_ROOT)/Makefiles/Lib.exp
 
 ##########################################################################
 # targets
@@ -34,5 +31,5 @@ include $(BUILD_ROOT)/Makefiles/Rules.mak
 # rules
 ##########################################################################
 mp4rtphintinfo: $(TARGET_OBJECTS) $(TARGET_LIBRARY_FILES)
-	$(LINK) $(TARGET_OBJECTS) -o $@ 
+	$(LINK) $(TARGET_OBJECTS) -o $@ $(LINK_LIBRARIES)
 

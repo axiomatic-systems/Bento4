@@ -2,7 +2,7 @@
 |
 |    AP4 - Target Platform and Compiler Configuration
 |
-|    Copyright 2002 Gilles Boccon-Gibod
+|    Copyright 2002-2006 Gilles Boccon-Gibod
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -32,7 +32,7 @@
 #define _AP4_CONFIG_H_
 
 /*----------------------------------------------------------------------
-|       defaults
+|   defaults
 +---------------------------------------------------------------------*/
 #define AP4_CONFIG_HAVE_STDIO_H
 #define AP4_CONFIG_HAVE_ASSERT_H
@@ -41,7 +41,7 @@
 #define AP4_CONFIG_HAVE_SNPRINTF
 
 /*----------------------------------------------------------------------
-|       byte order
+|   byte order
 +---------------------------------------------------------------------*/
 // define AP4_PLATFORM_BYTE_ORDER to one of these two choices
 #define AP4_PLATFORM_BYTE_ORDER_BIG_ENDIAN    0
@@ -52,7 +52,7 @@
 #endif
 
 /*----------------------------------------------------------------------
-|       Win32 specifics
+|   Win32 specifics
 +---------------------------------------------------------------------*/
 #ifdef WIN32
 #define snprintf _snprintf

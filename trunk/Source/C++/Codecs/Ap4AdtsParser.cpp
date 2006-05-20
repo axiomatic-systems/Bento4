@@ -11,13 +11,13 @@
  ****************************************************************/
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4BitStream.h"
 #include "Ap4AdtsParser.h"
 
 /*----------------------------------------------------------------------
-|       constants
+|   constants
 +---------------------------------------------------------------------*/
 #define AP4_ADTS_HEADER_SIZE 7
 
@@ -46,7 +46,7 @@ AP4_AdtsSamplingFrequencyTable[16] =
 };
 
 /*----------------------------------------------------------------------+
-|        AP4_AdtsHeader::AP4_AdtsHeader
+|    AP4_AdtsHeader::AP4_AdtsHeader
 +----------------------------------------------------------------------*/
 AP4_AdtsHeader::AP4_AdtsHeader(const AP4_UI08* bytes)
 {
@@ -65,7 +65,7 @@ AP4_AdtsHeader::AP4_AdtsHeader(const AP4_UI08* bytes)
 }
 
 /*----------------------------------------------------------------------+
-|        AP4_AdtsHeader::MatchFixed
+|    AP4_AdtsHeader::MatchFixed
 |
 |    Check that two fixed headers are the same
 |
@@ -84,7 +84,7 @@ AP4_AdtsHeader::MatchFixed(unsigned char* a, unsigned char* b)
 }
 
 /*----------------------------------------------------------------------+
-|        AP4_AdtsHeader::Check
+|    AP4_AdtsHeader::Check
 +----------------------------------------------------------------------*/
 AP4_Result
 AP4_AdtsHeader::Check()
@@ -103,21 +103,21 @@ AP4_AdtsHeader::Check()
 }
 
 /*----------------------------------------------------------------------+
-|        AP4_AdtsParser::AP4_AdtsParser
+|    AP4_AdtsParser::AP4_AdtsParser
 +----------------------------------------------------------------------*/
 AP4_AdtsParser::AP4_AdtsParser()
 {
 }
 
 /*----------------------------------------------------------------------+
-|        AP4_AdtsParser::~AP4_AdtsParser
+|    AP4_AdtsParser::~AP4_AdtsParser
 +----------------------------------------------------------------------*/
 AP4_AdtsParser::~AP4_AdtsParser()
 {
 }
 
 /*----------------------------------------------------------------------+
-|        AP4_AdtsParser::Reset
+|    AP4_AdtsParser::Reset
 +----------------------------------------------------------------------*/
 AP4_Result
 AP4_AdtsParser::Reset()
@@ -128,7 +128,7 @@ AP4_AdtsParser::Reset()
 }
 
 /*----------------------------------------------------------------------+
-|        AP4_AdtsParser::Feed
+|    AP4_AdtsParser::Feed
 +----------------------------------------------------------------------*/
 AP4_Result
 AP4_AdtsParser::Feed(const AP4_UI08* buffer, 
@@ -156,7 +156,7 @@ AP4_AdtsParser::Feed(const AP4_UI08* buffer,
 }
 
 /*----------------------------------------------------------------------+
-|        AP4_AdtsParser::FindHeader
+|    AP4_AdtsParser::FindHeader
 +----------------------------------------------------------------------*/
 AP4_Result
 AP4_AdtsParser::FindHeader(AP4_UI08* header)
@@ -184,7 +184,7 @@ AP4_AdtsParser::FindHeader(AP4_UI08* header)
 }
 
 /*----------------------------------------------------------------------+
-|        AP4_AdtsParser::FindFrame
+|    AP4_AdtsParser::FindFrame
 +----------------------------------------------------------------------*/
 AP4_Result
 AP4_AdtsParser::FindFrame(AP4_AacFrame& frame)
@@ -280,7 +280,7 @@ fail:
 }
 
 /*----------------------------------------------------------------------+
-|        AP4_AdtsParser::GetBytesFree
+|    AP4_AdtsParser::GetBytesFree
 +----------------------------------------------------------------------*/
 AP4_Size
 AP4_AdtsParser::GetBytesFree()
@@ -291,7 +291,7 @@ AP4_AdtsParser::GetBytesFree()
 
 
 /*----------------------------------------------------------------------+
-|        AP4_AdtsParser::GetBytesAvailable
+|    AP4_AdtsParser::GetBytesAvailable
 +----------------------------------------------------------------------*/
 AP4_Size	
 AP4_AdtsParser::GetBytesAvailable()

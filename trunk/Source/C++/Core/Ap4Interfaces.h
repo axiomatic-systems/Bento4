@@ -2,7 +2,7 @@
 |
 |    AP4 - Common Interfaces
 |
-|    Copyright 2002 Gilles Boccon-Gibod
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -30,18 +30,18 @@
 #define _AP4_INTERFACES_H_
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4Types.h"
 
 /*----------------------------------------------------------------------
-|       macros
+|   macros
 +---------------------------------------------------------------------*/
 #define AP4_RELEASE(o) do { if (o) (o)->Release(); (o) = NULL; } while (0)
 #define AP4_ADD_REFERENCE(o) do { if (o) (o)->AddReference(); } while (0)
 
 /*----------------------------------------------------------------------
-|       AP4_Exception
+|   AP4_Exception
 +---------------------------------------------------------------------*/
 class AP4_Exception
 {
@@ -54,7 +54,7 @@ public:
 };
 
 /*----------------------------------------------------------------------
-|       AP4_Referenceable
+|   AP4_Referenceable
 +---------------------------------------------------------------------*/
 class AP4_Referenceable
 {

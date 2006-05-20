@@ -2,7 +2,7 @@
 |
 |    AP4 - File Processor
 |
-|    Copyright 2003-2005 Gilles Boccon-Gibod & Julien Boeuf
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -27,7 +27,7 @@
 ****************************************************************/
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4Processor.h"
 #include "Ap4AtomSampleTable.h"
@@ -40,7 +40,7 @@
 #include "Ap4Debug.h"
 
 /*----------------------------------------------------------------------
-|       types
+|   types
 +---------------------------------------------------------------------*/
 class AP4_SampleLocator {
 public:
@@ -62,7 +62,7 @@ struct AP4_SampleCursor {
 };
 
 /*----------------------------------------------------------------------
-|       AP4_Processor::Process
+|   AP4_Processor::Process
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_Processor::Process(AP4_ByteStream&  input, 
@@ -260,7 +260,7 @@ AP4_Processor::Process(AP4_ByteStream&  input,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_Processor:Initialize
+|   AP4_Processor:Initialize
 +---------------------------------------------------------------------*/
 AP4_Result 
 AP4_Processor::Initialize(AP4_AtomParent& top_level)
@@ -270,7 +270,7 @@ AP4_Processor::Initialize(AP4_AtomParent& top_level)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_Processor:Finalize
+|   AP4_Processor:Finalize
 +---------------------------------------------------------------------*/
 AP4_Result 
 AP4_Processor::Finalize(AP4_AtomParent& top_level)
@@ -280,7 +280,7 @@ AP4_Processor::Finalize(AP4_AtomParent& top_level)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_Processor:CreateTrackHandler
+|   AP4_Processor:CreateTrackHandler
 +---------------------------------------------------------------------*/
 AP4_Processor::TrackHandler* 
 AP4_Processor::CreateTrackHandler(AP4_TrakAtom* /* trak */)
@@ -290,7 +290,7 @@ AP4_Processor::CreateTrackHandler(AP4_TrakAtom* /* trak */)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_Processor::TrackHandler::GetProcessedSampleSize
+|   AP4_Processor::TrackHandler::GetProcessedSampleSize
 +---------------------------------------------------------------------*/
 AP4_Size   
 AP4_Processor::TrackHandler::GetProcessedSampleSize(AP4_Sample& sample)

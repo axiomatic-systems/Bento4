@@ -7,14 +7,14 @@
 #define _AP4_STREAM_CIPHER_H_
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4AesBlockCipher.h"
 #include "Ap4Results.h"
 #include "Ap4Types.h"
 
 /*----------------------------------------------------------------------
-|       AP4_StreamCipher class
+|   AP4_StreamCipher class
 +---------------------------------------------------------------------*/
 class AP4_StreamCipher
 {

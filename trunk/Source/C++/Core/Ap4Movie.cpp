@@ -2,7 +2,7 @@
 |
 |    AP4 - Movie
 |
-|    Copyright 2002-2005 Gilles Boccon-Gibod
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -27,7 +27,7 @@
  ****************************************************************/
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4File.h"
 #include "Ap4Atom.h"
@@ -39,7 +39,7 @@
 #include "Ap4MetaData.h"
 
 /*----------------------------------------------------------------------
-|       AP4_TrackFinderById
+|   AP4_TrackFinderById
 +---------------------------------------------------------------------*/
 class AP4_TrackFinderById : public AP4_List<AP4_Track>::Item::Finder
 {
@@ -53,7 +53,7 @@ private:
 };
 
 /*----------------------------------------------------------------------
-|       AP4_TrackFinderByType
+|   AP4_TrackFinderByType
 +---------------------------------------------------------------------*/
 class AP4_TrackFinderByType : public AP4_List<AP4_Track>::Item::Finder
 {
@@ -73,7 +73,7 @@ private:
 };
 
 /*----------------------------------------------------------------------
-|       AP4_Movie::AP4_Movie
+|   AP4_Movie::AP4_Movie
 +---------------------------------------------------------------------*/
 AP4_Movie::AP4_Movie(AP4_UI32 time_scale) : m_MetaData(NULL)
 {
@@ -87,7 +87,7 @@ AP4_Movie::AP4_Movie(AP4_UI32 time_scale) : m_MetaData(NULL)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_Movie::AP4_Moovie
+|   AP4_Movie::AP4_Moovie
 +---------------------------------------------------------------------*/
 AP4_Movie::AP4_Movie(AP4_MoovAtom* moov, AP4_ByteStream& mdat) :
     m_MoovAtom(moov), m_MetaData(NULL)
@@ -118,7 +118,7 @@ AP4_Movie::AP4_Movie(AP4_MoovAtom* moov, AP4_ByteStream& mdat) :
 }
     
 /*----------------------------------------------------------------------
-|       AP4_Movie::~AP4_Movie
+|   AP4_Movie::~AP4_Movie
 +---------------------------------------------------------------------*/
 AP4_Movie::~AP4_Movie()
 {
@@ -128,7 +128,7 @@ AP4_Movie::~AP4_Movie()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_Movie::Inspect
+|   AP4_Movie::Inspect
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_Movie::Inspect(AP4_AtomInspector& inspector)
@@ -138,7 +138,7 @@ AP4_Movie::Inspect(AP4_AtomInspector& inspector)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_Movie::GetTrack
+|   AP4_Movie::GetTrack
 +---------------------------------------------------------------------*/
 AP4_Track*
 AP4_Movie::GetTrack(AP4_UI32 track_id)
@@ -152,7 +152,7 @@ AP4_Movie::GetTrack(AP4_UI32 track_id)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_Movie::GetTrack
+|   AP4_Movie::GetTrack
 +---------------------------------------------------------------------*/
 AP4_Track*
 AP4_Movie::GetTrack(AP4_Track::Type track_type, AP4_Ordinal index)
@@ -166,7 +166,7 @@ AP4_Movie::GetTrack(AP4_Track::Type track_type, AP4_Ordinal index)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_Movie::AddTrack
+|   AP4_Movie::AddTrack
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_Movie::AddTrack(AP4_Track* track)
@@ -197,7 +197,7 @@ AP4_Movie::AddTrack(AP4_Track* track)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_Movie::GetTimeScale
+|   AP4_Movie::GetTimeScale
 +---------------------------------------------------------------------*/
 AP4_UI32
 AP4_Movie::GetTimeScale()
@@ -210,7 +210,7 @@ AP4_Movie::GetTimeScale()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_Movie::GetDuration
+|   AP4_Movie::GetDuration
 +---------------------------------------------------------------------*/
 AP4_UI32
 AP4_Movie::GetDuration()
@@ -223,7 +223,7 @@ AP4_Movie::GetDuration()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_Movie::GetDurationMs
+|   AP4_Movie::GetDurationMs
 +---------------------------------------------------------------------*/
 AP4_UI32
 AP4_Movie::GetDurationMs()
@@ -236,7 +236,7 @@ AP4_Movie::GetDurationMs()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_Movie::GetMetaData
+|   AP4_Movie::GetMetaData
 +---------------------------------------------------------------------*/
 const AP4_MetaData*
 AP4_Movie::GetMetaData()

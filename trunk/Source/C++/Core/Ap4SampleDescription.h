@@ -30,7 +30,7 @@
 #define _AP4_SAMPLE_DESCRIPTION_H_
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4Types.h"
 #include "Ap4Atom.h"
@@ -38,13 +38,13 @@
 #include "Ap4EsdsAtom.h"
 
 /*----------------------------------------------------------------------
-|       class references
+|   class references
 +---------------------------------------------------------------------*/
 class AP4_SampleEntry;
 class AP4_DataBuffer;
 
 /*----------------------------------------------------------------------
-|       AP4_SampleDescription
+|   AP4_SampleDescription
 +---------------------------------------------------------------------*/
 class AP4_SampleDescription
 {
@@ -74,7 +74,7 @@ class AP4_SampleDescription
 };
 
 /*----------------------------------------------------------------------
-|       AP4_AudioSampleDescription  // MIXIN class
+|   AP4_AudioSampleDescription  // MIXIN class
 +---------------------------------------------------------------------*/
 class AP4_AudioSampleDescription
 {
@@ -100,7 +100,7 @@ protected:
 };
 
 /*----------------------------------------------------------------------
-|       AP4_VideoSampleDescription  // MIXIN class
+|   AP4_VideoSampleDescription  // MIXIN class
 +---------------------------------------------------------------------*/
 class AP4_VideoSampleDescription
 {
@@ -130,7 +130,7 @@ protected:
 };
 
 /*----------------------------------------------------------------------
-|       AP4_UnknownSampleDescription
+|   AP4_UnknownSampleDescription
 +---------------------------------------------------------------------*/
 class AP4_UnknownSampleDescription : public AP4_SampleDescription
 {
@@ -142,7 +142,7 @@ public:
 };
 
 /*----------------------------------------------------------------------
-|       AP4_GenericAudioSampleDescription
+|   AP4_GenericAudioSampleDescription
 +---------------------------------------------------------------------*/
 class AP4_GenericAudioSampleDescription : public AP4_UnknownSampleDescription,
                                           public AP4_AudioSampleDescription
@@ -158,7 +158,7 @@ public:
 };
 
 /*----------------------------------------------------------------------
-|       AP4_GenericVideoSampleDescription
+|   AP4_GenericVideoSampleDescription
 +---------------------------------------------------------------------*/
 class AP4_GenericVideoSampleDescription : public AP4_UnknownSampleDescription,
                                           public AP4_VideoSampleDescription
@@ -175,7 +175,7 @@ public:
 };
 
 /*----------------------------------------------------------------------
-|       AP4_MpegSampleDescription
+|   AP4_MpegSampleDescription
 +---------------------------------------------------------------------*/
 class AP4_MpegSampleDescription : public AP4_SampleDescription
 {
@@ -224,7 +224,7 @@ class AP4_MpegSampleDescription : public AP4_SampleDescription
 };
 
 /*----------------------------------------------------------------------
-|       AP4_MpegSystemSampleDescription
+|   AP4_MpegSystemSampleDescription
 +---------------------------------------------------------------------*/
 class AP4_MpegSystemSampleDescription : public AP4_MpegSampleDescription
 {
@@ -243,7 +243,7 @@ public:
 };
 
 /*----------------------------------------------------------------------
-|       AP4_MpegAudioSampleDescription
+|   AP4_MpegAudioSampleDescription
 +---------------------------------------------------------------------*/
 class AP4_MpegAudioSampleDescription : public AP4_MpegSampleDescription,
                                        public AP4_AudioSampleDescription
@@ -268,7 +268,7 @@ public:
 };
 
 /*----------------------------------------------------------------------
-|       AP4_MpegVideoSampleDescription
+|   AP4_MpegVideoSampleDescription
 +---------------------------------------------------------------------*/
 class AP4_MpegVideoSampleDescription : public AP4_MpegSampleDescription,
                                        public AP4_VideoSampleDescription
@@ -295,7 +295,7 @@ public:
 };
 
 /*----------------------------------------------------------------------
-|       constants
+|   constants
 +---------------------------------------------------------------------*/
 const AP4_MpegSampleDescription::StreamType AP4_FORBIDDEN_STREAM_TYPE = 0x00;
 const AP4_MpegSampleDescription::StreamType AP4_OD_STREAM_TYPE        = 0x01;

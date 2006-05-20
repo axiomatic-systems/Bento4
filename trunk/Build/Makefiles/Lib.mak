@@ -1,15 +1,12 @@
 ##########################################################################
 #
-#    Core target
+#    Bento4 Runtime Lib
 #
-#    (c) 2001-2002 Gilles Boccon-Gibod
-#    Author: Gilles Boccon-Gibod (bok@bok.net)
+#    (c) 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 #
 ##########################################################################
+all: libAP4.a
 
-##########################################################################
-# source files
-##########################################################################
 CORE_SOURCES = 								\
 	Ap4Atom.cpp 							\
 	Ap4AtomFactory.cpp						\
@@ -69,27 +66,44 @@ CORE_SOURCES = 								\
 	Ap4ByteStream.cpp 						\
 	Ap4DataBuffer.cpp						\
 	Ap4Debug.cpp 							\
+	
+CORE_OBJECTS=$(CORE_SOURCES:.cpp=.o)
 
+CRYPTO_SOURCES = Ap4StreamCipher.cpp Ap4AesBlockCipher.cpp
+CRYPTO_OBJECTS = $(CRYPTO_SOURCES:.cpp=.o)
+
+METADATA_SOURCES = Ap4MetaData.cpp
+METADATA_OBJECTS = $(METADATA_SOURCES:.cpp=.o)
+
+SYSTEM_SOURCES = $(FILE_BYTE_STREAM_IMPLEMENTATION).cpp
+SYSTEM_OBJECTS = $(SYSTEM_SOURCES:.cpp=.o)
+
+CODECS_SOURCES = Ap4AdtsParser.cpp Ap4BitStream.cpp
+CODECS_OBJECTS = $(CODECS_SOURCES:.cpp=.o)
+
+TARGET_SOURCES = $(CORE_SOURCES) $(SYSTEM_SOURCES) $(METADATA_SOURCES) $(CRYPTO_SOURCES) $(CODECS_SOURCES)
+
+##########################################################################
+# search path
+##########################################################################
+VPATH += $(SOURCE_ROOT)/Core
+VPATH += $(SOURCE_ROOT)/Crypto
+VPATH += $(SOURCE_ROOT)/System/StdC
+VPATH += $(SOURCE_ROOT)/Codecs
+VPATH += $(SOURCE_ROOT)/MetaData
+		
 ##########################################################################
 # includes
 ##########################################################################
-include $(BUILD_ROOT)/Makefiles/Crypto.exp
-include $(BUILD_ROOT)/Makefiles/MetaData.exp
-include $(BUILD_ROOT)/Makefiles/Core.exp
-
-##########################################################################
-# targets
-##########################################################################
-TARGET_SOURCES = $(CORE_SOURCES)
-
-libAP4_Core.a: $(patsubst %.cpp,%.o,$(TARGET_SOURCES))
-
-##########################################################################
-# make path
-##########################################################################
-VPATH += $(SOURCE_ROOT)/Core
+include $(BUILD_ROOT)/Makefiles/Lib.exp
 
 ##########################################################################
 # includes
 ##########################################################################
 include $(BUILD_ROOT)/Makefiles/Rules.mak
+
+##########################################################################
+# rules
+##########################################################################
+libAP4.a: $(CORE_OBJECTS) $(SYSTEM_OBJECTS) $(CRYPTO_OBJECTS) $(METADATA_OBJECTS) $(CODECS_OBJECTS)
+

@@ -2,7 +2,7 @@
 |
 |    AP4 - File Writer
 |
-|    Copyright 2002-2005 Gilles Boccon-Gibod
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -27,7 +27,7 @@
  ****************************************************************/
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4MoovAtom.h"
 #include "Ap4FileWriter.h"
@@ -39,21 +39,21 @@
 #include "Ap4DataBuffer.h"
 
 /*----------------------------------------------------------------------
-|       AP4_FileWriter::AP4_FileWriter
+|   AP4_FileWriter::AP4_FileWriter
 +---------------------------------------------------------------------*/
 AP4_FileWriter::AP4_FileWriter(AP4_File& file) : m_File(file)
 {
 }
 
 /*----------------------------------------------------------------------
-|       AP4_FileWriter::~AP4_FileWriter
+|   AP4_FileWriter::~AP4_FileWriter
 +---------------------------------------------------------------------*/
 AP4_FileWriter::~AP4_FileWriter()
 {
 }
 
 /*----------------------------------------------------------------------
-|       AP4_FileWriter::Write
+|   AP4_FileWriter::Write
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_FileWriter::Write(AP4_ByteStream& stream)

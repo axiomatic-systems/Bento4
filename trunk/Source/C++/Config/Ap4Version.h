@@ -2,7 +2,7 @@
 |
 |    AP4 - Target Platform and Compiler Configuration
 |
-|    Copyright 2002 Gilles Boccon-Gibod
+|    Copyright 2002-2006 Gilles Boccon-Gibod
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -32,8 +32,8 @@
 #define _AP4_VERSION_H_
 
 /*----------------------------------------------------------------------
-|       version constants
+|   version constants
 +---------------------------------------------------------------------*/
-#define AP4_VERSION_STRING "0.6.5"
+#define AP4_VERSION_STRING "0.7.5"
 
 #endif // _AP4_VERSION_H_

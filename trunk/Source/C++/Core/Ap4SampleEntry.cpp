@@ -2,7 +2,7 @@
 |
 |    AP4 - sample entries
 |
-|    Copyright 2002 Gilles Boccon-Gibod & Julien Boeuf
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -27,7 +27,7 @@
  ****************************************************************/
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4SampleEntry.h"
 #include "Ap4Utils.h"
@@ -36,7 +36,7 @@
 #include "Ap4SampleDescription.h"
 
 /*----------------------------------------------------------------------
-|       AP4_SampleEntry::AP4_SampleEntry
+|   AP4_SampleEntry::AP4_SampleEntry
 +---------------------------------------------------------------------*/
 AP4_SampleEntry::AP4_SampleEntry(AP4_Atom::Type format,
                                  AP4_UI16       data_reference_index) :
@@ -52,7 +52,7 @@ AP4_SampleEntry::AP4_SampleEntry(AP4_Atom::Type format,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_SampleEntry::AP4_SampleEntry
+|   AP4_SampleEntry::AP4_SampleEntry
 +---------------------------------------------------------------------*/
 AP4_SampleEntry::AP4_SampleEntry(AP4_Atom::Type format,
                                  AP4_Size       size) :
@@ -61,7 +61,7 @@ AP4_SampleEntry::AP4_SampleEntry(AP4_Atom::Type format,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_SampleEntry::AP4_SampleEntry
+|   AP4_SampleEntry::AP4_SampleEntry
 +---------------------------------------------------------------------*/
 AP4_SampleEntry::AP4_SampleEntry(AP4_Atom::Type   format,
                                  AP4_Size         size,
@@ -78,7 +78,7 @@ AP4_SampleEntry::AP4_SampleEntry(AP4_Atom::Type   format,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_SampleEntry::GetFieldsSize
+|   AP4_SampleEntry::GetFieldsSize
 +---------------------------------------------------------------------*/
 AP4_Size
 AP4_SampleEntry::GetFieldsSize()
@@ -87,7 +87,7 @@ AP4_SampleEntry::GetFieldsSize()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_SampleEntry::ReadFields
+|   AP4_SampleEntry::ReadFields
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_SampleEntry::ReadFields(AP4_ByteStream& stream)
@@ -99,7 +99,7 @@ AP4_SampleEntry::ReadFields(AP4_ByteStream& stream)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_SampleEntry::WriteFields
+|   AP4_SampleEntry::WriteFields
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_SampleEntry::WriteFields(AP4_ByteStream& stream)
@@ -118,7 +118,7 @@ AP4_SampleEntry::WriteFields(AP4_ByteStream& stream)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_SampleEntry::Write
+|   AP4_SampleEntry::Write
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_SampleEntry::Write(AP4_ByteStream& stream)
@@ -138,7 +138,7 @@ AP4_SampleEntry::Write(AP4_ByteStream& stream)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_SampleEntry::InspectFields
+|   AP4_SampleEntry::InspectFields
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_SampleEntry::InspectFields(AP4_AtomInspector& inspector)
@@ -149,7 +149,7 @@ AP4_SampleEntry::InspectFields(AP4_AtomInspector& inspector)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_SampleEntry::Inspect
+|   AP4_SampleEntry::Inspect
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_SampleEntry::Inspect(AP4_AtomInspector& inspector)
@@ -170,7 +170,7 @@ AP4_SampleEntry::Inspect(AP4_AtomInspector& inspector)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_SampleEntry::OnChildChanged
+|   AP4_SampleEntry::OnChildChanged
 +---------------------------------------------------------------------*/
 void
 AP4_SampleEntry::OnChildChanged(AP4_Atom*)
@@ -184,7 +184,7 @@ AP4_SampleEntry::OnChildChanged(AP4_Atom*)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_SampleEntry::ToSampleDescription
+|   AP4_SampleEntry::ToSampleDescription
 +---------------------------------------------------------------------*/
 AP4_SampleDescription*
 AP4_SampleEntry::ToSampleDescription()
@@ -193,7 +193,7 @@ AP4_SampleEntry::ToSampleDescription()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_MpegSystemSampleEntry::AP4_MpegSystemSampleEntry
+|   AP4_MpegSystemSampleEntry::AP4_MpegSystemSampleEntry
 +---------------------------------------------------------------------*/
 AP4_MpegSystemSampleEntry::AP4_MpegSystemSampleEntry(
     AP4_UI32          type,
@@ -204,7 +204,7 @@ AP4_MpegSystemSampleEntry::AP4_MpegSystemSampleEntry(
 }
 
 /*----------------------------------------------------------------------
-|       AP4_MpegSystemSampleEntry::AP4_MpegSystemSampleEntry
+|   AP4_MpegSystemSampleEntry::AP4_MpegSystemSampleEntry
 +---------------------------------------------------------------------*/
 AP4_MpegSystemSampleEntry::AP4_MpegSystemSampleEntry(
     AP4_UI32         type,
@@ -216,7 +216,7 @@ AP4_MpegSystemSampleEntry::AP4_MpegSystemSampleEntry(
 }
 
 /*----------------------------------------------------------------------
-|       AP4_MpegSystemSampleEntry::ToSampleDescription
+|   AP4_MpegSystemSampleEntry::ToSampleDescription
 +---------------------------------------------------------------------*/
 AP4_SampleDescription*
 AP4_MpegSystemSampleEntry::ToSampleDescription()
@@ -226,7 +226,7 @@ AP4_MpegSystemSampleEntry::ToSampleDescription()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_Mp4sSampleEntry::AP4_Mp4sSampleEntry
+|   AP4_Mp4sSampleEntry::AP4_Mp4sSampleEntry
 +---------------------------------------------------------------------*/
 AP4_Mp4sSampleEntry::AP4_Mp4sSampleEntry(AP4_EsDescriptor* descriptor) :
     AP4_MpegSystemSampleEntry(AP4_ATOM_TYPE_MP4S, descriptor)
@@ -234,7 +234,7 @@ AP4_Mp4sSampleEntry::AP4_Mp4sSampleEntry(AP4_EsDescriptor* descriptor) :
 }
 
 /*----------------------------------------------------------------------
-|       AP4_Mp4sSampleEntry::AP4_Mp4sSampleEntry
+|   AP4_Mp4sSampleEntry::AP4_Mp4sSampleEntry
 +---------------------------------------------------------------------*/
 AP4_Mp4sSampleEntry::AP4_Mp4sSampleEntry(AP4_Size         size,
                                          AP4_ByteStream&  stream,
@@ -244,7 +244,7 @@ AP4_Mp4sSampleEntry::AP4_Mp4sSampleEntry(AP4_Size         size,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_Mp4sSampleEntry::ToSampleDescription
+|   AP4_Mp4sSampleEntry::ToSampleDescription
 +---------------------------------------------------------------------*/
 AP4_SampleDescription*
 AP4_Mp4sSampleEntry::ToSampleDescription()
@@ -255,7 +255,7 @@ AP4_Mp4sSampleEntry::ToSampleDescription()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_AudioSampleEntry::AP4_AudioSampleEntry
+|   AP4_AudioSampleEntry::AP4_AudioSampleEntry
 +---------------------------------------------------------------------*/
 AP4_AudioSampleEntry::AP4_AudioSampleEntry(AP4_Atom::Type format,
                                            AP4_UI32       sample_rate,
@@ -274,7 +274,7 @@ AP4_AudioSampleEntry::AP4_AudioSampleEntry(AP4_Atom::Type format,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_AudioSampleEntry::AP4_AudioSampleEntry
+|   AP4_AudioSampleEntry::AP4_AudioSampleEntry
 +---------------------------------------------------------------------*/
 AP4_AudioSampleEntry::AP4_AudioSampleEntry(AP4_Atom::Type   format,
                                            AP4_Size         size,
@@ -291,7 +291,7 @@ AP4_AudioSampleEntry::AP4_AudioSampleEntry(AP4_Atom::Type   format,
 }
     
 /*----------------------------------------------------------------------
-|       AP4_AudioSampleEntry::GetFieldsSize
+|   AP4_AudioSampleEntry::GetFieldsSize
 +---------------------------------------------------------------------*/
 AP4_Size
 AP4_AudioSampleEntry::GetFieldsSize()
@@ -300,7 +300,7 @@ AP4_AudioSampleEntry::GetFieldsSize()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_AudioSampleEntry::ReadFields
+|   AP4_AudioSampleEntry::ReadFields
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_AudioSampleEntry::ReadFields(AP4_ByteStream& stream)
@@ -321,7 +321,7 @@ AP4_AudioSampleEntry::ReadFields(AP4_ByteStream& stream)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_AudioSampleEntry::WriteFields
+|   AP4_AudioSampleEntry::WriteFields
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_AudioSampleEntry::WriteFields(AP4_ByteStream& stream)
@@ -359,7 +359,7 @@ AP4_AudioSampleEntry::WriteFields(AP4_ByteStream& stream)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_AudioSampleEntry::InspectFields
+|   AP4_AudioSampleEntry::InspectFields
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_AudioSampleEntry::InspectFields(AP4_AtomInspector& inspector)
@@ -376,7 +376,7 @@ AP4_AudioSampleEntry::InspectFields(AP4_AtomInspector& inspector)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_AudioSampleEntry::ToSampleDescription
+|   AP4_AudioSampleEntry::ToSampleDescription
 +---------------------------------------------------------------------*/
 AP4_SampleDescription*
 AP4_AudioSampleEntry::ToSampleDescription()
@@ -390,7 +390,7 @@ AP4_AudioSampleEntry::ToSampleDescription()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_AudioSampleEntry::ToTargetSampleDescription
+|   AP4_AudioSampleEntry::ToTargetSampleDescription
 +---------------------------------------------------------------------*/
 AP4_SampleDescription*
 AP4_AudioSampleEntry::ToTargetSampleDescription(AP4_UI32 format)
@@ -413,7 +413,7 @@ AP4_AudioSampleEntry::ToTargetSampleDescription(AP4_UI32 format)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_MpegAudioSampleEntry::AP4_MpegAudioSampleEntry
+|   AP4_MpegAudioSampleEntry::AP4_MpegAudioSampleEntry
 +---------------------------------------------------------------------*/
 AP4_MpegAudioSampleEntry::AP4_MpegAudioSampleEntry(
     AP4_UI32          type,
@@ -427,7 +427,7 @@ AP4_MpegAudioSampleEntry::AP4_MpegAudioSampleEntry(
 }
 
 /*----------------------------------------------------------------------
-|       AP4_MpegAudioSampleEntry::AP4_MpegAudioSampleEntry
+|   AP4_MpegAudioSampleEntry::AP4_MpegAudioSampleEntry
 +---------------------------------------------------------------------*/
 AP4_MpegAudioSampleEntry::AP4_MpegAudioSampleEntry(
     AP4_UI32         type,
@@ -439,7 +439,7 @@ AP4_MpegAudioSampleEntry::AP4_MpegAudioSampleEntry(
 }
 
 /*----------------------------------------------------------------------
-|       AP4_MpegAudioSampleEntry::ToSampleDescription
+|   AP4_MpegAudioSampleEntry::ToSampleDescription
 +---------------------------------------------------------------------*/
 AP4_SampleDescription*
 AP4_MpegAudioSampleEntry::ToSampleDescription()
@@ -453,7 +453,7 @@ AP4_MpegAudioSampleEntry::ToSampleDescription()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_Mp4aSampleEntry::AP4_Mp4aSampleEntry
+|   AP4_Mp4aSampleEntry::AP4_Mp4aSampleEntry
 +---------------------------------------------------------------------*/
 AP4_Mp4aSampleEntry::AP4_Mp4aSampleEntry(AP4_UI32          sample_rate, 
                                          AP4_UI16          sample_size,
@@ -468,7 +468,7 @@ AP4_Mp4aSampleEntry::AP4_Mp4aSampleEntry(AP4_UI32          sample_rate,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_Mp4aSampleEntry::AP4_Mp4aSampleEntry
+|   AP4_Mp4aSampleEntry::AP4_Mp4aSampleEntry
 +---------------------------------------------------------------------*/
 AP4_Mp4aSampleEntry::AP4_Mp4aSampleEntry(AP4_Size         size,
                                          AP4_ByteStream&  stream,
@@ -478,7 +478,7 @@ AP4_Mp4aSampleEntry::AP4_Mp4aSampleEntry(AP4_Size         size,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_VisualSampleEntry::AP4_VisualSampleEntry
+|   AP4_VisualSampleEntry::AP4_VisualSampleEntry
 +---------------------------------------------------------------------*/
 AP4_VisualSampleEntry::AP4_VisualSampleEntry(
     AP4_Atom::Type    format, 
@@ -504,7 +504,7 @@ AP4_VisualSampleEntry::AP4_VisualSampleEntry(
 }
 
 /*----------------------------------------------------------------------
-|       AP4_VisualSampleEntry::AP4_VisualSampleEntry
+|   AP4_VisualSampleEntry::AP4_VisualSampleEntry
 +---------------------------------------------------------------------*/
 AP4_VisualSampleEntry::AP4_VisualSampleEntry(AP4_Atom::Type   format,
                                              AP4_Size         size, 
@@ -521,7 +521,7 @@ AP4_VisualSampleEntry::AP4_VisualSampleEntry(AP4_Atom::Type   format,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_VisualSampleEntry::GetFieldsSize
+|   AP4_VisualSampleEntry::GetFieldsSize
 +---------------------------------------------------------------------*/
 AP4_Size
 AP4_VisualSampleEntry::GetFieldsSize()
@@ -530,7 +530,7 @@ AP4_VisualSampleEntry::GetFieldsSize()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_VisualSampleEntry::ReadFields
+|   AP4_VisualSampleEntry::ReadFields
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_VisualSampleEntry::ReadFields(AP4_ByteStream& stream)
@@ -565,7 +565,7 @@ AP4_VisualSampleEntry::ReadFields(AP4_ByteStream& stream)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_VisualSampleEntry::WriteFields
+|   AP4_VisualSampleEntry::WriteFields
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_VisualSampleEntry::WriteFields(AP4_ByteStream& stream)
@@ -638,7 +638,7 @@ AP4_VisualSampleEntry::WriteFields(AP4_ByteStream& stream)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_VisualSampleEntry::InspectFields
+|   AP4_VisualSampleEntry::InspectFields
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_VisualSampleEntry::InspectFields(AP4_AtomInspector& inspector)
@@ -655,7 +655,7 @@ AP4_VisualSampleEntry::InspectFields(AP4_AtomInspector& inspector)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_VisualSampleEntry::ToSampleDescription
+|   AP4_VisualSampleEntry::ToSampleDescription
 +---------------------------------------------------------------------*/
 AP4_SampleDescription*
 AP4_VisualSampleEntry::ToSampleDescription()
@@ -670,7 +670,7 @@ AP4_VisualSampleEntry::ToSampleDescription()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_VisualSampleEntry::ToTargetSampleDescription
+|   AP4_VisualSampleEntry::ToTargetSampleDescription
 +---------------------------------------------------------------------*/
 AP4_SampleDescription*
 AP4_VisualSampleEntry::ToTargetSampleDescription(AP4_UI32 format)
@@ -695,7 +695,7 @@ AP4_VisualSampleEntry::ToTargetSampleDescription(AP4_UI32 format)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_MpegVideoSampleEntry::AP4_MpegVideoSampleEntry
+|   AP4_MpegVideoSampleEntry::AP4_MpegVideoSampleEntry
 +---------------------------------------------------------------------*/
 AP4_MpegVideoSampleEntry::AP4_MpegVideoSampleEntry(
     AP4_UI32          type,
@@ -714,7 +714,7 @@ AP4_MpegVideoSampleEntry::AP4_MpegVideoSampleEntry(
 }
 
 /*----------------------------------------------------------------------
-|       AP4_MpegVideoSampleEntry::AP4_MpegVideoSampleEntry
+|   AP4_MpegVideoSampleEntry::AP4_MpegVideoSampleEntry
 +---------------------------------------------------------------------*/
 AP4_MpegVideoSampleEntry::AP4_MpegVideoSampleEntry(
     AP4_UI32         type,
@@ -726,7 +726,7 @@ AP4_MpegVideoSampleEntry::AP4_MpegVideoSampleEntry(
 }
 
 /*----------------------------------------------------------------------
-|       AP4_MpegVideoSampleEntry::ToSampleDescription
+|   AP4_MpegVideoSampleEntry::ToSampleDescription
 +---------------------------------------------------------------------*/
 AP4_SampleDescription*
 AP4_MpegVideoSampleEntry::ToSampleDescription()
@@ -741,7 +741,7 @@ AP4_MpegVideoSampleEntry::ToSampleDescription()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_Mp4vSampleEntry::AP4_Mp4vSampleEntry
+|   AP4_Mp4vSampleEntry::AP4_Mp4vSampleEntry
 +---------------------------------------------------------------------*/
 AP4_Mp4vSampleEntry::AP4_Mp4vSampleEntry(AP4_UI16          width,
                                          AP4_UI16          height,
@@ -758,7 +758,7 @@ AP4_Mp4vSampleEntry::AP4_Mp4vSampleEntry(AP4_UI16          width,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_Mp4vSampleEntry::AP4_Mp4aSampleEntry
+|   AP4_Mp4vSampleEntry::AP4_Mp4aSampleEntry
 +---------------------------------------------------------------------*/
 AP4_Mp4vSampleEntry::AP4_Mp4vSampleEntry(AP4_Size         size,
                                          AP4_ByteStream&  stream,
@@ -768,7 +768,7 @@ AP4_Mp4vSampleEntry::AP4_Mp4vSampleEntry(AP4_Size         size,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_Avc1SampleEntry::AP4_Avc1SampleEntry
+|   AP4_Avc1SampleEntry::AP4_Avc1SampleEntry
 +---------------------------------------------------------------------*/
 AP4_Avc1SampleEntry::AP4_Avc1SampleEntry(AP4_UI16    width,
                                          AP4_UI16    height,
@@ -783,7 +783,7 @@ AP4_Avc1SampleEntry::AP4_Avc1SampleEntry(AP4_UI16    width,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_Avc1SampleEntry::AP4_Avc1SampleEntry
+|   AP4_Avc1SampleEntry::AP4_Avc1SampleEntry
 +---------------------------------------------------------------------*/
 AP4_Avc1SampleEntry::AP4_Avc1SampleEntry(AP4_Size         size,
                                          AP4_ByteStream&  stream,
@@ -793,7 +793,7 @@ AP4_Avc1SampleEntry::AP4_Avc1SampleEntry(AP4_Size         size,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_RtpHintSampleEntry::AP4_RtpHintSampleEntry
+|   AP4_RtpHintSampleEntry::AP4_RtpHintSampleEntry
 +---------------------------------------------------------------------*/
 AP4_RtpHintSampleEntry::AP4_RtpHintSampleEntry(AP4_UI16 hint_track_version,
                                                AP4_UI16 highest_compatible_version,
@@ -809,7 +809,7 @@ AP4_RtpHintSampleEntry::AP4_RtpHintSampleEntry(AP4_UI16 hint_track_version,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_RtpHintSampleEntry::AP4_RtpHintSampleEntry
+|   AP4_RtpHintSampleEntry::AP4_RtpHintSampleEntry
 +---------------------------------------------------------------------*/
 AP4_RtpHintSampleEntry::AP4_RtpHintSampleEntry(AP4_Size         size,
                                                AP4_ByteStream&  stream,
@@ -825,14 +825,14 @@ AP4_RtpHintSampleEntry::AP4_RtpHintSampleEntry(AP4_Size         size,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_RtpHintSampleEntry::~AP4_RtpHintSampleEntry
+|   AP4_RtpHintSampleEntry::~AP4_RtpHintSampleEntry
 +---------------------------------------------------------------------*/
 AP4_RtpHintSampleEntry::~AP4_RtpHintSampleEntry() 
 {
 }
 
 /*----------------------------------------------------------------------
-|       AP4_RtpHintSampleEntry::GetFieldsSize
+|   AP4_RtpHintSampleEntry::GetFieldsSize
 +---------------------------------------------------------------------*/
 AP4_Size
 AP4_RtpHintSampleEntry::GetFieldsSize()
@@ -841,7 +841,7 @@ AP4_RtpHintSampleEntry::GetFieldsSize()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_RtpHintSampleEntry::ReadFields
+|   AP4_RtpHintSampleEntry::ReadFields
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_RtpHintSampleEntry::ReadFields(AP4_ByteStream& stream)
@@ -862,7 +862,7 @@ AP4_RtpHintSampleEntry::ReadFields(AP4_ByteStream& stream)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_RtpHintSampleEntry::WriteFields
+|   AP4_RtpHintSampleEntry::WriteFields
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_RtpHintSampleEntry::WriteFields(AP4_ByteStream& stream)
@@ -883,7 +883,7 @@ AP4_RtpHintSampleEntry::WriteFields(AP4_ByteStream& stream)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_RtpHintSampleEntry::InspectFields
+|   AP4_RtpHintSampleEntry::InspectFields
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_RtpHintSampleEntry::InspectFields(AP4_AtomInspector& inspector)

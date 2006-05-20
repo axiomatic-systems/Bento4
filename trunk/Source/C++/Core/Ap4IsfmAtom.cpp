@@ -2,7 +2,7 @@
 |
 |    AP4 - iSFM Atoms 
 |
-|    Copyright 2002-2005 Gilles Boccon-Gibod & Julien Boeuf
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -27,13 +27,13 @@
 ****************************************************************/
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4Utils.h"
 #include "Ap4IsfmAtom.h"
 
 /*----------------------------------------------------------------------
-|       AP4_IsfmAtom::AP4_IsfmAtom
+|   AP4_IsfmAtom::AP4_IsfmAtom
 +---------------------------------------------------------------------*/
 AP4_IsfmAtom::AP4_IsfmAtom(bool     selective_encryption,
                            AP4_UI08 key_length_indicator,
@@ -46,7 +46,7 @@ AP4_IsfmAtom::AP4_IsfmAtom(bool     selective_encryption,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_IsfmAtom::AP4_IsfmAtom
+|   AP4_IsfmAtom::AP4_IsfmAtom
 +---------------------------------------------------------------------*/
 AP4_IsfmAtom::AP4_IsfmAtom(AP4_Size size, AP4_ByteStream& stream) :
     AP4_Atom(AP4_ATOM_TYPE_ISFM, size, true, stream)
@@ -59,7 +59,7 @@ AP4_IsfmAtom::AP4_IsfmAtom(AP4_Size size, AP4_ByteStream& stream) :
 }
 
 /*----------------------------------------------------------------------
-|       AP4_IsfmAtom::Clone
+|   AP4_IsfmAtom::Clone
 +---------------------------------------------------------------------*/
 AP4_Atom* 
 AP4_IsfmAtom::Clone()
@@ -70,7 +70,7 @@ AP4_IsfmAtom::Clone()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_IsfmAtom::WriteFields
+|   AP4_IsfmAtom::WriteFields
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_IsfmAtom::WriteFields(AP4_ByteStream& stream)
@@ -93,7 +93,7 @@ AP4_IsfmAtom::WriteFields(AP4_ByteStream& stream)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_IsfmAtom::InspectFields
+|   AP4_IsfmAtom::InspectFields
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_IsfmAtom::InspectFields(AP4_AtomInspector& inspector)

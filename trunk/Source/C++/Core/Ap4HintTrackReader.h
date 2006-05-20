@@ -30,13 +30,13 @@
 #define _AP4_HINT_TRACK_READER_H_
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4Types.h"
 #include "Ap4Sample.h"
 
 /*----------------------------------------------------------------------
-|       class declarations
+|   class declarations
 +---------------------------------------------------------------------*/
 class AP4_DataBuffer;
 class AP4_Movie;
@@ -48,7 +48,7 @@ class AP4_SampleRtpConstructor;
 class AP4_String;
 
 /*----------------------------------------------------------------------
-|       AP4_HintTrackReader
+|   AP4_HintTrackReader
 +---------------------------------------------------------------------*/
 class AP4_HintTrackReader
 {

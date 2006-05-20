@@ -2,7 +2,7 @@
 |
 |    AP4 - ES Descriptor 
 |
-|    Copyright 2002 Gilles Boccon-Gibod
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -30,7 +30,7 @@
 #define _AP4_ES_DESCRIPTOR_H_
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4List.h"
 #include "Ap4String.h"
@@ -38,12 +38,12 @@
 #include "Ap4DecoderConfigDescriptor.h"
 
 /*----------------------------------------------------------------------
-|       class references
+|   class references
 +---------------------------------------------------------------------*/
 class AP4_ByteStream;
 
 /*----------------------------------------------------------------------
-|       constants
+|   constants
 +---------------------------------------------------------------------*/
 const AP4_Descriptor::Tag AP4_DESCRIPTOR_TAG_ES = 0x03;
 
@@ -52,7 +52,7 @@ const int AP4_ES_DESCRIPTOR_FLAG_URL               = 2;
 const int AP4_ES_DESCRIPTOR_FLAG_OCR_STREAM        = 4;
 
 /*----------------------------------------------------------------------
-|       AP4_EsDescriptor
+|   AP4_EsDescriptor
 +---------------------------------------------------------------------*/
 class AP4_EsDescriptor : public AP4_Descriptor
 {

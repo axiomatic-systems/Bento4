@@ -2,7 +2,7 @@
 |
 |    AP4 - moov Atoms 
 |
-|    Copyright 2002 Gilles Boccon-Gibod
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -30,19 +30,19 @@
 #define _AP4_MOOV_ATOM_H_
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4List.h"
 #include "Ap4ContainerAtom.h"
 
 /*----------------------------------------------------------------------
-|       class references
+|   class references
 +---------------------------------------------------------------------*/
 class AP4_AtomFactory;
 class AP4_TrakAtom;
 
 /*----------------------------------------------------------------------
-|       AP4_MoovAtom
+|   AP4_MoovAtom
 +---------------------------------------------------------------------*/
 class AP4_MoovAtom : public AP4_ContainerAtom
 {

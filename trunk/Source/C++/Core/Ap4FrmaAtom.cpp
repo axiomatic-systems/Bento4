@@ -2,7 +2,7 @@
 |
 |    AP4 - frma Atoms 
 |
-|    Copyright 2002 Gilles Boccon-Gibod
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -27,14 +27,14 @@
  ****************************************************************/
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4FrmaAtom.h"
 #include "Ap4AtomFactory.h"
 #include "Ap4Utils.h"
 
 /*----------------------------------------------------------------------
-|       AP4_FrmaAtom::AP4_FrmaAtom
+|   AP4_FrmaAtom::AP4_FrmaAtom
 +---------------------------------------------------------------------*/
 AP4_FrmaAtom::AP4_FrmaAtom(AP4_UI32 original_format) :
     AP4_Atom(AP4_ATOM_TYPE_FRMA, AP4_ATOM_HEADER_SIZE+4, false),
@@ -43,7 +43,7 @@ AP4_FrmaAtom::AP4_FrmaAtom(AP4_UI32 original_format) :
 }
 
 /*----------------------------------------------------------------------
-|       AP4_FrmaAtom::AP4_FrmaAtom
+|   AP4_FrmaAtom::AP4_FrmaAtom
 +---------------------------------------------------------------------*/
 AP4_FrmaAtom::AP4_FrmaAtom(AP4_Size size, AP4_ByteStream& stream) :
     AP4_Atom(AP4_ATOM_TYPE_FRMA, size, false, stream)
@@ -52,7 +52,7 @@ AP4_FrmaAtom::AP4_FrmaAtom(AP4_Size size, AP4_ByteStream& stream) :
 }
 
 /*----------------------------------------------------------------------
-|       AP4_FrmaAtom::WriteFields
+|   AP4_FrmaAtom::WriteFields
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_FrmaAtom::WriteFields(AP4_ByteStream& stream)
@@ -62,7 +62,7 @@ AP4_FrmaAtom::WriteFields(AP4_ByteStream& stream)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_FrmaAtom::InspectFields
+|   AP4_FrmaAtom::InspectFields
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_FrmaAtom::InspectFields(AP4_AtomInspector& inspector)

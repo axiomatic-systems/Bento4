@@ -2,7 +2,7 @@
 |
 |    AP4 - Unknown Descriptor 
 |
-|    Copyright 2002 Gilles Boccon-Gibod & Julien Boeuf
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -30,13 +30,13 @@
 #define _AP4_UNKNOWN_DESCRIPTOR_H_
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4Descriptor.h"
 #include "Ap4DataBuffer.h"
 
 /*----------------------------------------------------------------------
-|       AP4_UnknownDescriptor
+|   AP4_UnknownDescriptor
 +---------------------------------------------------------------------*/
 class AP4_UnknownDescriptor : public AP4_Descriptor 
 {

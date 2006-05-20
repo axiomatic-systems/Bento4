@@ -2,7 +2,7 @@
 |
 |    AP4 - FileByteStream 
 |
-|    Copyright 2002 Gilles Boccon-Gibod
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -27,7 +27,7 @@
  ****************************************************************/
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4Types.h"
 #include "Ap4ByteStream.h"
@@ -36,7 +36,7 @@
 #define _AP4_FILE_BYTE_STREAM_H_
 
 /*----------------------------------------------------------------------
-|       AP4_FileByteStream
+|   AP4_FileByteStream
 +---------------------------------------------------------------------*/
 class AP4_FileByteStream: public AP4_ByteStream
 {

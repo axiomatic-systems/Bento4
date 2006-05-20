@@ -2,7 +2,7 @@
 |
 |    AP4 - Sample Table Interface
 |
-|    Copyright 2003-2004 Gilles Boccon-Gibod & Julien Boeuf
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -27,7 +27,7 @@
 ****************************************************************/
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4SampleTable.h"
 #include "Ap4ContainerAtom.h"
@@ -39,7 +39,7 @@
 #include "Ap4Sample.h"
 
 /*----------------------------------------------------------------------
-|       AP4_SampleTable::GenerateStblAtom
+|   AP4_SampleTable::GenerateStblAtom
 +---------------------------------------------------------------------*/
 AP4_Result 
 AP4_SampleTable::GenerateStblAtom(AP4_ContainerAtom*& stbl)

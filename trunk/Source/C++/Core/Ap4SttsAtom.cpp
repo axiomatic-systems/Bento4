@@ -27,14 +27,14 @@
  ****************************************************************/
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4SttsAtom.h"
 #include "Ap4AtomFactory.h"
 #include "Ap4Utils.h"
 
 /*----------------------------------------------------------------------
-|       AP4_SttsAtom::AP4_SttsAtom
+|   AP4_SttsAtom::AP4_SttsAtom
 +---------------------------------------------------------------------*/
 AP4_SttsAtom::AP4_SttsAtom() :
     AP4_Atom(AP4_ATOM_TYPE_STTS, AP4_FULL_ATOM_HEADER_SIZE+4, true)
@@ -42,7 +42,7 @@ AP4_SttsAtom::AP4_SttsAtom() :
 }
 
 /*----------------------------------------------------------------------
-|       AP4_SttsAtom::AP4_SttsAtom
+|   AP4_SttsAtom::AP4_SttsAtom
 +---------------------------------------------------------------------*/
 AP4_SttsAtom::AP4_SttsAtom(AP4_Size size, AP4_ByteStream& stream) :
     AP4_Atom(AP4_ATOM_TYPE_STTS, size, true, stream)
@@ -61,7 +61,7 @@ AP4_SttsAtom::AP4_SttsAtom(AP4_Size size, AP4_ByteStream& stream) :
 }
 
 /*----------------------------------------------------------------------
-|       AP4_SttsAtom::GetDts
+|   AP4_SttsAtom::GetDts
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_SttsAtom::GetDts(AP4_Ordinal sample, AP4_TimeStamp& dts)
@@ -87,7 +87,7 @@ AP4_SttsAtom::GetDts(AP4_Ordinal sample, AP4_TimeStamp& dts)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_SttsAtom::AddEntry
+|   AP4_SttsAtom::AddEntry
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_SttsAtom::AddEntry(AP4_UI32 sample_count, AP4_UI32 sample_duration)
@@ -99,7 +99,7 @@ AP4_SttsAtom::AddEntry(AP4_UI32 sample_count, AP4_UI32 sample_duration)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_SttsAtom::WriteFields
+|   AP4_SttsAtom::WriteFields
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_SttsAtom::WriteFields(AP4_ByteStream& stream)
@@ -126,7 +126,7 @@ AP4_SttsAtom::WriteFields(AP4_ByteStream& stream)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_SttsAtom::GetSampleIndexForTimeStamp
+|   AP4_SttsAtom::GetSampleIndexForTimeStamp
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_SttsAtom::GetSampleIndexForTimeStamp(AP4_TimeStamp ts, AP4_Ordinal& sample)
@@ -156,7 +156,7 @@ AP4_SttsAtom::GetSampleIndexForTimeStamp(AP4_TimeStamp ts, AP4_Ordinal& sample)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_SttsAtom::InspectFields
+|   AP4_SttsAtom::InspectFields
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_SttsAtom::InspectFields(AP4_AtomInspector& inspector)

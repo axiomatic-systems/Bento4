@@ -2,7 +2,7 @@
 |
 |    AP4 - hdlr Atoms 
 |
-|    Copyright 2002 Gilles Boccon-Gibod
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -27,25 +27,25 @@
  ****************************************************************/
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4HdlrAtom.h"
 #include "Ap4AtomFactory.h"
 #include "Ap4Utils.h"
 
 /*----------------------------------------------------------------------
-|       AP4_HdlrAtom::AP4_HdlrAtom
+|   AP4_HdlrAtom::AP4_HdlrAtom
 +---------------------------------------------------------------------*/
 AP4_HdlrAtom::AP4_HdlrAtom(AP4_Atom::Type hdlr_type, const char* hdlr_name) :
     AP4_Atom(AP4_ATOM_TYPE_HDLR, true),
     m_HandlerType(hdlr_type),
     m_HandlerName(hdlr_name)
 {
-    m_Size += 20+m_HandlerName.GetLength()+1;
+    m_Size += 20+1+m_HandlerName.GetLength()+1;
 }
 
 /*----------------------------------------------------------------------
-|       AP4_HdlrAtom::AP4_HdlrAtom
+|   AP4_HdlrAtom::AP4_HdlrAtom
 +---------------------------------------------------------------------*/
 AP4_HdlrAtom::AP4_HdlrAtom(AP4_Size size, AP4_ByteStream& stream) :
     AP4_Atom(AP4_ATOM_TYPE_HDLR, size, true, stream)
@@ -56,20 +56,20 @@ AP4_HdlrAtom::AP4_HdlrAtom(AP4_Size size, AP4_ByteStream& stream) :
     stream.Read(reserved, 12, NULL);
     
     // read the name unless it is empty
-    int max_name_size = size-(AP4_FULL_ATOM_HEADER_SIZE+20);
+    int max_name_size = size-(AP4_FULL_ATOM_HEADER_SIZE+20+1);
     if (max_name_size == 0) return;
     AP4_UI08 name_size = 0;
     stream.ReadUI08(name_size);
     if (name_size > max_name_size) return;
     char* name = new char[name_size+1];
-    stream.Read(name, name_size+1);
+    if (name_size) stream.Read(name, name_size);
     name[name_size] = '\0'; // force a null termination
     m_HandlerName = name;
     delete[] name;
 }
 
 /*----------------------------------------------------------------------
-|       AP4_HdlrAtom::WriteFields
+|   AP4_HdlrAtom::WriteFields
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_HdlrAtom::WriteFields(AP4_ByteStream& stream)
@@ -88,18 +88,18 @@ AP4_HdlrAtom::WriteFields(AP4_ByteStream& stream)
     AP4_UI08 name_size = (AP4_UI08)m_HandlerName.GetLength();
     result = stream.WriteUI08(name_size);
     if (AP4_FAILED(result)) return result;
-    result = stream.Write(m_HandlerName.GetChars(), name_size+1);
+    result = stream.Write(m_HandlerName.GetChars(), name_size);
     if (AP4_FAILED(result)) return result;
 
     // pad with zeros if necessary
-    AP4_Size padding = m_Size-(AP4_FULL_ATOM_HEADER_SIZE+20+1+name_size+1);
+    AP4_Size padding = m_Size-(AP4_FULL_ATOM_HEADER_SIZE+20+1+name_size);
     while (padding--) stream.WriteUI08(0);
 
     return AP4_SUCCESS;
 }
 
 /*----------------------------------------------------------------------
-|       AP4_HdlrAtom::InspectFields
+|   AP4_HdlrAtom::InspectFields
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_HdlrAtom::InspectFields(AP4_AtomInspector& inspector)

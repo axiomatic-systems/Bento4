@@ -2,7 +2,7 @@
 |
 |    AP4 - Atoms 
 |
-|    Copyright 2002 Gilles Boccon-Gibod
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -30,7 +30,7 @@
 #define _AP4_ATOM_H_
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4Types.h"
 #include "Ap4List.h"
@@ -38,7 +38,7 @@
 #include "Ap4Debug.h"
 
 /*----------------------------------------------------------------------
-|       macros
+|   macros
 +---------------------------------------------------------------------*/
 #define AP4_ATOM_TYPE(a,b,c,d)  \
    ((((unsigned long)a)<<24) |  \
@@ -47,7 +47,7 @@
     (((unsigned long)d)    ))
 
 /*----------------------------------------------------------------------
-|       constants
+|   constants
 +---------------------------------------------------------------------*/
 const int AP4_ATOM_HEADER_SIZE      = 8;
 const int AP4_FULL_ATOM_HEADER_SIZE = 12;
@@ -55,12 +55,12 @@ const int AP4_ATOM_MAX_NAME_SIZE    = 256;
 const int AP4_ATOM_MAX_URI_SIZE     = 512;
 
 /*----------------------------------------------------------------------
-|       forward references
+|   forward references
 +---------------------------------------------------------------------*/
 class AP4_AtomParent;
 
 /*----------------------------------------------------------------------
-|       AP4_AtomInspector
+|   AP4_AtomInspector
 +---------------------------------------------------------------------*/
 class AP4_AtomInspector {
 public:
@@ -85,7 +85,7 @@ public:
 };
 
 /*----------------------------------------------------------------------
-|       AP4_Atom
+|   AP4_Atom
 +---------------------------------------------------------------------*/
 class AP4_Atom {
  public:
@@ -138,7 +138,7 @@ class AP4_Atom {
 };
 
 /*----------------------------------------------------------------------
-|       AP4_AtomParent
+|   AP4_AtomParent
 +---------------------------------------------------------------------*/
 class AP4_AtomParent {
 public:
@@ -163,7 +163,7 @@ protected:
 };
 
 /*----------------------------------------------------------------------
-|       AP4_UnknownAtom
+|   AP4_UnknownAtom
 +---------------------------------------------------------------------*/
 class AP4_UnknownAtom : public AP4_Atom {
 public:
@@ -184,7 +184,7 @@ private:
 };
 
 /*----------------------------------------------------------------------
-|       atom types
+|   atom types
 +---------------------------------------------------------------------*/
 const AP4_Atom::Type AP4_ATOM_TYPE_UDTA = AP4_ATOM_TYPE('u','d','t','a');
 const AP4_Atom::Type AP4_ATOM_TYPE_URL  = AP4_ATOM_TYPE('u','r','l',' ');
@@ -239,7 +239,7 @@ const AP4_Atom::Type AP4_ATOM_TYPE_HINT = AP4_ATOM_TYPE('h','i','n','t');
 const AP4_Atom::Type AP4_ATOM_TYPE_TREF = AP4_ATOM_TYPE('t','r','e','f');
 
 /*----------------------------------------------------------------------
-|       AP4_AtomListInspector
+|   AP4_AtomListInspector
 +---------------------------------------------------------------------*/
 class AP4_AtomListInspector : public AP4_List<AP4_Atom>::Item::Operator
 {
@@ -256,7 +256,7 @@ class AP4_AtomListInspector : public AP4_List<AP4_Atom>::Item::Operator
 };
 
 /*----------------------------------------------------------------------
-|       AP4_AtomListWriter
+|   AP4_AtomListWriter
 +---------------------------------------------------------------------*/
 class AP4_AtomListWriter : public AP4_List<AP4_Atom>::Item::Operator
 {
@@ -264,7 +264,16 @@ class AP4_AtomListWriter : public AP4_List<AP4_Atom>::Item::Operator
     AP4_AtomListWriter(AP4_ByteStream& stream) :
         m_Stream(stream) {}
     AP4_Result Action(AP4_Atom* atom) const {
+#if defined(AP4_DEBUG)
+        AP4_Offset before;
+        m_Stream.Tell(before);
+#endif
         atom->Write(m_Stream);
+#if defined(AP4_DEBUG)
+        AP4_Offset after;
+        m_Stream.Tell(after);
+        AP4_ASSERT(after-before == atom->GetSize());
+#endif
         return AP4_SUCCESS;
     }
 
@@ -273,7 +282,7 @@ class AP4_AtomListWriter : public AP4_List<AP4_Atom>::Item::Operator
 };
 
 /*----------------------------------------------------------------------
-|       AP4_AtomFinder
+|   AP4_AtomFinder
 +---------------------------------------------------------------------*/
 class AP4_AtomFinder : public AP4_List<AP4_Atom>::Item::Finder
 {
@@ -297,7 +306,7 @@ class AP4_AtomFinder : public AP4_List<AP4_Atom>::Item::Finder
 };
 
 /*----------------------------------------------------------------------
-|       AP4_AtomSizeAdder
+|   AP4_AtomSizeAdder
 +---------------------------------------------------------------------*/
 class AP4_AtomSizeAdder : public AP4_List<AP4_Atom>::Item::Operator {
 public:

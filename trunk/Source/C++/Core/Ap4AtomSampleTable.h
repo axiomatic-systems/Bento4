@@ -30,13 +30,13 @@
 #define _AP4_ATOM_SAMPLE_TABLE_H_
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4Types.h"
 #include "Ap4SampleTable.h"
 
 /*----------------------------------------------------------------------
-|       forward declarations
+|   forward declarations
 +---------------------------------------------------------------------*/
 class AP4_Atom;
 class AP4_ByteStream;
@@ -49,7 +49,7 @@ class AP4_StssAtom;
 class AP4_StsdAtom;
 
 /*----------------------------------------------------------------------
-|       AP4_AtomSampleTable
+|   AP4_AtomSampleTable
 +---------------------------------------------------------------------*/
 class AP4_AtomSampleTable : public AP4_SampleTable
 {

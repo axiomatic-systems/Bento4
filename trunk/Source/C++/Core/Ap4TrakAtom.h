@@ -2,7 +2,7 @@
 |
 |    AP4 - trak Atoms 
 |
-|    Copyright 2002 Gilles Boccon-Gibod
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -30,19 +30,19 @@
 #define _AP4_TRAK_ATOM_H_
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4ContainerAtom.h"
 #include "Ap4TkhdAtom.h"
 
 /*----------------------------------------------------------------------
-|       class references
+|   class references
 +---------------------------------------------------------------------*/
 class AP4_HdlrAtom;
 class AP4_SampleTable;
 
 /*----------------------------------------------------------------------
-|       AP4_TrakAtom
+|   AP4_TrakAtom
 +---------------------------------------------------------------------*/
 class AP4_TrakAtom : public AP4_ContainerAtom
 {

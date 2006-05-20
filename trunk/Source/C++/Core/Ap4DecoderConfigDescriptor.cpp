@@ -2,7 +2,7 @@
 |
 |    AP4 - DecoderConfig Descriptors
 |
-|    Copyright 2002 Gilles Boccon-Gibod
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -27,14 +27,14 @@
  ****************************************************************/
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4DecoderConfigDescriptor.h"
 #include "Ap4DescriptorFactory.h"
 #include "Ap4Utils.h"
 
 /*----------------------------------------------------------------------
-|       AP4_DecoderConfigDescriptor::AP4_DecoderConfigDescriptor
+|   AP4_DecoderConfigDescriptor::AP4_DecoderConfigDescriptor
 +---------------------------------------------------------------------*/
 AP4_DecoderConfigDescriptor::AP4_DecoderConfigDescriptor(
     AP4_UI08 stream_type,
@@ -58,7 +58,7 @@ AP4_DecoderConfigDescriptor::AP4_DecoderConfigDescriptor(
 }
 
 /*----------------------------------------------------------------------
-|       AP4_DecoderConfigDescriptor::AP4_DecoderConfigDescriptor
+|   AP4_DecoderConfigDescriptor::AP4_DecoderConfigDescriptor
 +---------------------------------------------------------------------*/
 AP4_DecoderConfigDescriptor::AP4_DecoderConfigDescriptor(
     AP4_ByteStream& stream, AP4_Size header_size, AP4_Size payload_size) :
@@ -92,7 +92,7 @@ AP4_DecoderConfigDescriptor::AP4_DecoderConfigDescriptor(
 }
 
 /*----------------------------------------------------------------------
-|       AP4_DecoderConfigDescriptor::~AP4_DecoderConfigDescriptor
+|   AP4_DecoderConfigDescriptor::~AP4_DecoderConfigDescriptor
 +---------------------------------------------------------------------*/
 AP4_DecoderConfigDescriptor::~AP4_DecoderConfigDescriptor()
 {
@@ -100,7 +100,7 @@ AP4_DecoderConfigDescriptor::~AP4_DecoderConfigDescriptor()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_DecoderConfigDescriptor::WriteFields
+|   AP4_DecoderConfigDescriptor::WriteFields
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_DecoderConfigDescriptor::WriteFields(AP4_ByteStream& stream)
@@ -118,7 +118,7 @@ AP4_DecoderConfigDescriptor::WriteFields(AP4_ByteStream& stream)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_DecoderConfigDescriptor::Inspect
+|   AP4_DecoderConfigDescriptor::Inspect
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_DecoderConfigDescriptor::Inspect(AP4_AtomInspector& inspector)
@@ -144,7 +144,7 @@ AP4_DecoderConfigDescriptor::Inspect(AP4_AtomInspector& inspector)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_DecoderConfigDescriptor::GetDecoderSpecificInfoDescriptor
+|   AP4_DecoderConfigDescriptor::GetDecoderSpecificInfoDescriptor
 +---------------------------------------------------------------------*/
 const AP4_DecoderSpecificInfoDescriptor*
 AP4_DecoderConfigDescriptor::GetDecoderSpecificInfoDescriptor() const

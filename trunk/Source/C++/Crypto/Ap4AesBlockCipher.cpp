@@ -34,20 +34,20 @@ Issue Date: 29/07/2002
 */
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4AesBlockCipher.h"
 #include "Ap4Results.h"
 
 /*----------------------------------------------------------------------
-|       build options
+|   build options
 +---------------------------------------------------------------------*/
 #define ENCRYPTION_KEY_SCHEDULE
 #define ENCRYPTION
 #define BLOCK_SIZE AP4_AES_BLOCK_SIZE
 
 /*----------------------------------------------------------------------
-|       options
+|   options
 +---------------------------------------------------------------------*/
 /*  START OF CONFIGURATION OPTIONS
 
@@ -632,7 +632,7 @@ void gen_tabs(void);
 #endif
 
 /*----------------------------------------------------------------------
-|       tables
+|   tables
 +---------------------------------------------------------------------*/
 #if defined(FIXED_TABLES) || !defined(FF_TABLES) 
 
@@ -1099,7 +1099,7 @@ void gen_tabs(void)
 #endif
 
 /*----------------------------------------------------------------------
-|       key schedule
+|   key schedule
 +---------------------------------------------------------------------*/
 #if !defined(BLOCK_SIZE)
 
@@ -1424,7 +1424,7 @@ static aes_rval aes_dec_key(const unsigned char in_key[], unsigned int klen, aes
 #endif
 
 /*----------------------------------------------------------------------
-|       cipher
+|   cipher
 +---------------------------------------------------------------------*/
 #define unused  77  /* Sunset Strip */
 
@@ -1810,7 +1810,7 @@ static aes_rval aes_dec_blk(const unsigned char in_blk[], unsigned char out_blk[
 #endif
 
 /*----------------------------------------------------------------------
-|       AP4_AesBlockCipher::AP4_AesBlockCipher
+|   AP4_AesBlockCipher::AP4_AesBlockCipher
 +---------------------------------------------------------------------*/
 AP4_AesBlockCipher::AP4_AesBlockCipher(const AP4_UI08* key)
 {
@@ -1818,14 +1818,14 @@ AP4_AesBlockCipher::AP4_AesBlockCipher(const AP4_UI08* key)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_AesBlockCipher::~AP4_AesBlockCipher
+|   AP4_AesBlockCipher::~AP4_AesBlockCipher
 +---------------------------------------------------------------------*/
 AP4_AesBlockCipher::~AP4_AesBlockCipher()
 {
 }
 
 /*----------------------------------------------------------------------
-|       AP4_AesCipher::EncryptBlock
+|   AP4_AesCipher::EncryptBlock
 +---------------------------------------------------------------------*/
 AP4_Result 
 AP4_AesBlockCipher::EncryptBlock(const AP4_UI08* block_in, AP4_UI08* block_out)

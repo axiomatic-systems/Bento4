@@ -2,7 +2,7 @@
 |
 |    AP4 - ByteStream Interface
 |
-|    Copyright 2002 Gilles Boccon-Gibod
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -30,14 +30,14 @@
 #define _AP4_BYTE_STREAM_H_
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4Types.h"
 #include "Ap4Interfaces.h"
 #include "Ap4Results.h"
 
 /*----------------------------------------------------------------------
-|       AP4_ByteStream
+|   AP4_ByteStream
 +---------------------------------------------------------------------*/
 class AP4_ByteStream : public AP4_Referenceable
 {
@@ -66,7 +66,7 @@ class AP4_ByteStream : public AP4_Referenceable
 };
 
 /*----------------------------------------------------------------------
-|       AP4_SubStream
+|   AP4_SubStream
 +---------------------------------------------------------------------*/
 class AP4_SubStream : public AP4_ByteStream
 {
@@ -106,7 +106,7 @@ class AP4_SubStream : public AP4_ByteStream
 };
 
 /*----------------------------------------------------------------------
-|       AP4_MemoryByteStream
+|   AP4_MemoryByteStream
 +---------------------------------------------------------------------*/
 class AP4_MemoryByteStream : public AP4_ByteStream
 {

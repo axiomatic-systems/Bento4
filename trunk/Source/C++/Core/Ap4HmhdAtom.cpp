@@ -2,7 +2,7 @@
 |
 |    AP4 - hmhd Atoms 
 |
-|    Copyright 2002 Gilles Boccon-Gibod
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -27,14 +27,14 @@
 ****************************************************************/
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4HmhdAtom.h"
 #include "Ap4AtomFactory.h"
 #include "Ap4Utils.h"
 
 /*----------------------------------------------------------------------
-|       AP4_HmhdAtom::AP4_HmhdAtom
+|   AP4_HmhdAtom::AP4_HmhdAtom
 +---------------------------------------------------------------------*/
 AP4_HmhdAtom::AP4_HmhdAtom(AP4_Size size, AP4_ByteStream& stream) :
     AP4_Atom(AP4_ATOM_TYPE_HMHD, size, true, stream)
@@ -47,7 +47,7 @@ AP4_HmhdAtom::AP4_HmhdAtom(AP4_Size size, AP4_ByteStream& stream) :
 }
 
 /*----------------------------------------------------------------------
-|       AP4_HmhdAtom::WriteFields
+|   AP4_HmhdAtom::WriteFields
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_HmhdAtom::WriteFields(AP4_ByteStream& stream)
@@ -78,7 +78,7 @@ AP4_HmhdAtom::WriteFields(AP4_ByteStream& stream)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_HmhdAtom::InspectFields
+|   AP4_HmhdAtom::InspectFields
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_HmhdAtom::InspectFields(AP4_AtomInspector& inspector)
