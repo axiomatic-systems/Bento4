@@ -27,14 +27,14 @@
  ****************************************************************/
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4StscAtom.h"
 #include "Ap4AtomFactory.h"
 #include "Ap4Utils.h"
 
 /*----------------------------------------------------------------------
-|       AP4_StscAtom::AP4_StscAtom
+|   AP4_StscAtom::AP4_StscAtom
 +---------------------------------------------------------------------*/
 AP4_StscAtom::AP4_StscAtom() :
     AP4_Atom(AP4_ATOM_TYPE_STSC, 4+AP4_FULL_ATOM_HEADER_SIZE, true),   
@@ -43,7 +43,7 @@ AP4_StscAtom::AP4_StscAtom() :
 }
 
 /*----------------------------------------------------------------------
-|       AP4_StscAtom::AP4_StscAtom
+|   AP4_StscAtom::AP4_StscAtom
 +---------------------------------------------------------------------*/
 AP4_StscAtom::AP4_StscAtom(AP4_Size size, AP4_ByteStream& stream) :
     AP4_Atom(AP4_ATOM_TYPE_STSC, size, true, stream),
@@ -76,7 +76,7 @@ AP4_StscAtom::AP4_StscAtom(AP4_Size size, AP4_ByteStream& stream) :
 }
 
 /*----------------------------------------------------------------------
-|       AP4_StscAtom::WriteFields
+|   AP4_StscAtom::WriteFields
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_StscAtom::WriteFields(AP4_ByteStream& stream)
@@ -101,7 +101,7 @@ AP4_StscAtom::WriteFields(AP4_ByteStream& stream)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_StscAtom::AddEntry
+|   AP4_StscAtom::AddEntry
 +---------------------------------------------------------------------*/
 AP4_Result 
 AP4_StscAtom::AddEntry(AP4_Cardinal chunk_count,
@@ -131,7 +131,7 @@ AP4_StscAtom::AddEntry(AP4_Cardinal chunk_count,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_StscAtom::GetChunkForSample
+|   AP4_StscAtom::GetChunkForSample
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_StscAtom::GetChunkForSample(AP4_Ordinal  sample,
@@ -200,7 +200,7 @@ AP4_StscAtom::GetChunkForSample(AP4_Ordinal  sample,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_StscAtom::InspectFields
+|   AP4_StscAtom::InspectFields
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_StscAtom::InspectFields(AP4_AtomInspector& inspector)

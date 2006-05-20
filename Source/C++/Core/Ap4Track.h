@@ -2,7 +2,7 @@
 |
 |    AP4 - Track Objects
 |
-|    Copyright 2002 Gilles Boccon-Gibod
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -30,13 +30,13 @@
 #define _AP4_TRAK_H_
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4Types.h"
 #include "Ap4Array.h"
 
 /*----------------------------------------------------------------------
-|       forward declarations
+|   forward declarations
 +---------------------------------------------------------------------*/
 class AP4_StblAtom;
 class AP4_ByteStream;
@@ -48,12 +48,12 @@ class AP4_SampleDescription;
 class AP4_SampleTable;
 
 /*----------------------------------------------------------------------
-|       constants
+|   constants
 +---------------------------------------------------------------------*/
 const AP4_UI32 AP4_TRACK_DEFAULT_MOVIE_TIMESCALE = 1000;
 
 /*----------------------------------------------------------------------
-|       AP4_Track
+|   AP4_Track
 +---------------------------------------------------------------------*/
 class AP4_Track {
  public:

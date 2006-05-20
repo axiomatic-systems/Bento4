@@ -2,7 +2,7 @@
 |
 |    AP4 - File 
 |
-|    Copyright 2002 Gilles Boccon-Gibod
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -30,20 +30,20 @@
 #define _AP4_FILE_H_
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4Types.h"
 #include "Ap4List.h"
 #include "Ap4AtomFactory.h"
 
 /*----------------------------------------------------------------------
-|       class references
+|   class references
 +---------------------------------------------------------------------*/
 class AP4_ByteStream;
 class AP4_Movie;
 
 /*----------------------------------------------------------------------
-|       AP4_File
+|   AP4_File
 +---------------------------------------------------------------------*/
 class AP4_File {
 public:

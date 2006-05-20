@@ -2,7 +2,7 @@
 |
 |    AP4 - Byte Stream support
 |
-|    Copyright 2002 Gilles Boccon-Gibod
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -27,19 +27,19 @@
  ****************************************************************/
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4ByteStream.h"
 #include "Ap4Utils.h"
 #include "Ap4Debug.h"
 
 /*----------------------------------------------------------------------
-|       constants
+|   constants
 +---------------------------------------------------------------------*/
 const int AP4_BYTE_STREAM_COPY_BUFFER_SIZE = 4096;
 
 /*----------------------------------------------------------------------
-|       AP4_ByteStream::WriteString
+|   AP4_ByteStream::WriteString
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_ByteStream::WriteString(const char* buffer)
@@ -54,7 +54,7 @@ AP4_ByteStream::WriteString(const char* buffer)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_ByteStream::WriteUI32
+|   AP4_ByteStream::WriteUI32
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_ByteStream::WriteUI32(AP4_UI32 value)
@@ -69,7 +69,7 @@ AP4_ByteStream::WriteUI32(AP4_UI32 value)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_ByteStream::WriteUI24
+|   AP4_ByteStream::WriteUI24
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_ByteStream::WriteUI24(AP4_UI32 value)
@@ -84,7 +84,7 @@ AP4_ByteStream::WriteUI24(AP4_UI32 value)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_ByteStream::WriteUI16
+|   AP4_ByteStream::WriteUI16
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_ByteStream::WriteUI16(AP4_UI16 value)
@@ -99,7 +99,7 @@ AP4_ByteStream::WriteUI16(AP4_UI16 value)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_ByteStream::WriteUI08
+|   AP4_ByteStream::WriteUI08
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_ByteStream::WriteUI08(AP4_UI08 value)
@@ -108,7 +108,7 @@ AP4_ByteStream::WriteUI08(AP4_UI08 value)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_ByteStream::ReadUI32
+|   AP4_ByteStream::ReadUI32
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_ByteStream::ReadUI32(AP4_UI32& value)
@@ -130,7 +130,7 @@ AP4_ByteStream::ReadUI32(AP4_UI32& value)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_ByteStream::ReadUI24
+|   AP4_ByteStream::ReadUI24
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_ByteStream::ReadUI24(AP4_UI32& value)
@@ -152,7 +152,7 @@ AP4_ByteStream::ReadUI24(AP4_UI32& value)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_ByteStream::ReadUI16
+|   AP4_ByteStream::ReadUI16
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_ByteStream::ReadUI16(AP4_UI16& value)
@@ -174,7 +174,7 @@ AP4_ByteStream::ReadUI16(AP4_UI16& value)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_ByteStream::ReadUI08
+|   AP4_ByteStream::ReadUI08
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_ByteStream::ReadUI08(AP4_UI08& value)
@@ -196,7 +196,7 @@ AP4_ByteStream::ReadUI08(AP4_UI08& value)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_ByteStream::ReadString
+|   AP4_ByteStream::ReadString
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_ByteStream::ReadString(char* buffer, AP4_Size size)
@@ -226,7 +226,7 @@ AP4_ByteStream::ReadString(char* buffer, AP4_Size size)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_ByteStream::CopyTo
+|   AP4_ByteStream::CopyTo
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_ByteStream::CopyTo(AP4_ByteStream& stream, AP4_Size size)
@@ -262,7 +262,7 @@ AP4_ByteStream::CopyTo(AP4_ByteStream& stream, AP4_Size size)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_SubStream::AP4_SubStream
+|   AP4_SubStream::AP4_SubStream
 +---------------------------------------------------------------------*/
 AP4_SubStream::AP4_SubStream(AP4_ByteStream& container, 
                              AP4_Offset      offset, 
@@ -277,7 +277,7 @@ AP4_SubStream::AP4_SubStream(AP4_ByteStream& container,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_SubStream::~AP4_SubStream
+|   AP4_SubStream::~AP4_SubStream
 +---------------------------------------------------------------------*/
 AP4_SubStream::~AP4_SubStream()
 {
@@ -285,7 +285,7 @@ AP4_SubStream::~AP4_SubStream()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_SubStream::Read
+|   AP4_SubStream::Read
 +---------------------------------------------------------------------*/
 AP4_Result 
 AP4_SubStream::Read(void*     buffer, 
@@ -328,7 +328,7 @@ AP4_SubStream::Read(void*     buffer,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_SubStream::Write
+|   AP4_SubStream::Write
 +---------------------------------------------------------------------*/
 AP4_Result 
 AP4_SubStream::Write(const void* buffer, 
@@ -369,7 +369,7 @@ AP4_SubStream::Write(const void* buffer,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_SubStream::Seek
+|   AP4_SubStream::Seek
 +---------------------------------------------------------------------*/
 AP4_Result 
 AP4_SubStream::Seek(AP4_Offset offset)
@@ -384,7 +384,7 @@ AP4_SubStream::Seek(AP4_Offset offset)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_SubStream::AddReference
+|   AP4_SubStream::AddReference
 +---------------------------------------------------------------------*/
 void
 AP4_SubStream::AddReference()
@@ -393,7 +393,7 @@ AP4_SubStream::AddReference()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_SubStream::Release
+|   AP4_SubStream::Release
 +---------------------------------------------------------------------*/
 void
 AP4_SubStream::Release()
@@ -404,7 +404,7 @@ AP4_SubStream::Release()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_MemoryByteStream::AP4_MemoryByteStream
+|   AP4_MemoryByteStream::AP4_MemoryByteStream
 +---------------------------------------------------------------------*/
 AP4_MemoryByteStream::AP4_MemoryByteStream(AP4_Size size) :
     m_BufferIsLocal(true),
@@ -416,7 +416,7 @@ AP4_MemoryByteStream::AP4_MemoryByteStream(AP4_Size size) :
 }
 
 /*----------------------------------------------------------------------
-|       AP4_MemoryByteStream::AP4_MemoryByteStream
+|   AP4_MemoryByteStream::AP4_MemoryByteStream
 +---------------------------------------------------------------------*/
 AP4_MemoryByteStream::AP4_MemoryByteStream(AP4_UI08* buffer, AP4_Size size) :
     m_BufferIsLocal(false),
@@ -427,7 +427,7 @@ AP4_MemoryByteStream::AP4_MemoryByteStream(AP4_UI08* buffer, AP4_Size size) :
 {}
 
 /*----------------------------------------------------------------------
-|       AP4_MemoryByteStream::~AP4_MemoryByteStream
+|   AP4_MemoryByteStream::~AP4_MemoryByteStream
 +---------------------------------------------------------------------*/
 AP4_MemoryByteStream::~AP4_MemoryByteStream()
 {
@@ -435,7 +435,7 @@ AP4_MemoryByteStream::~AP4_MemoryByteStream()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_MemoryByteStream::Read
+|   AP4_MemoryByteStream::Read
 +---------------------------------------------------------------------*/
 AP4_Result 
 AP4_MemoryByteStream::Read(void*     buffer, 
@@ -470,7 +470,7 @@ AP4_MemoryByteStream::Read(void*     buffer,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_MemoryByteStream::Write
+|   AP4_MemoryByteStream::Write
 +---------------------------------------------------------------------*/
 AP4_Result 
 AP4_MemoryByteStream::Write(const void* buffer, 
@@ -505,7 +505,7 @@ AP4_MemoryByteStream::Write(const void* buffer,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_MemoryByteStream::Seek
+|   AP4_MemoryByteStream::Seek
 +---------------------------------------------------------------------*/
 AP4_Result 
 AP4_MemoryByteStream::Seek(AP4_Offset offset)
@@ -516,7 +516,7 @@ AP4_MemoryByteStream::Seek(AP4_Offset offset)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_MemoryByteStream::AddReference
+|   AP4_MemoryByteStream::AddReference
 +---------------------------------------------------------------------*/
 void
 AP4_MemoryByteStream::AddReference()
@@ -525,7 +525,7 @@ AP4_MemoryByteStream::AddReference()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_MemoryByteStream::Release
+|   AP4_MemoryByteStream::Release
 +---------------------------------------------------------------------*/
 void
 AP4_MemoryByteStream::Release()

@@ -2,7 +2,7 @@
 |
 |    AP4 - Descriptors
 |
-|    Copyright 2002 Gilles Boccon-Gibod
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -27,13 +27,13 @@
  ****************************************************************/
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4Descriptor.h"
 #include "Ap4Utils.h"
 
 /*----------------------------------------------------------------------
-|       AP4_Descriptor::MinHeaderSize
+|   AP4_Descriptor::MinHeaderSize
 +---------------------------------------------------------------------*/
 AP4_Size
 AP4_Descriptor::MinHeaderSize(AP4_Size payload_size)
@@ -44,7 +44,7 @@ AP4_Descriptor::MinHeaderSize(AP4_Size payload_size)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_Descriptor::AP4_Descriptor
+|   AP4_Descriptor::AP4_Descriptor
 +---------------------------------------------------------------------*/
 AP4_Descriptor::AP4_Descriptor(Tag      tag, 
                                AP4_Size header_size, 
@@ -58,7 +58,7 @@ AP4_Descriptor::AP4_Descriptor(Tag      tag,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_Descriptor::Write
+|   AP4_Descriptor::Write
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_Descriptor::Write(AP4_ByteStream& stream)
@@ -97,7 +97,7 @@ AP4_Descriptor::Write(AP4_ByteStream& stream)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_Descriptor::Inspect
+|   AP4_Descriptor::Inspect
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_Descriptor::Inspect(AP4_AtomInspector& inspector)

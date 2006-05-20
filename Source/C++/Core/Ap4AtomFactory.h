@@ -2,7 +2,7 @@
 |
 |    AP4 - Atom Factory
 |
-|    Copyright 2002 Gilles Boccon-Gibod
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -30,18 +30,18 @@
 #define _AP4_ATOM_FACTORY_H_
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4Types.h"
 #include "Ap4Atom.h"
 
 /*----------------------------------------------------------------------
-|       class references
+|   class references
 +---------------------------------------------------------------------*/
 class AP4_ByteStream;
 
 /*----------------------------------------------------------------------
-|       AP4_AtomFactory
+|   AP4_AtomFactory
 +---------------------------------------------------------------------*/
 class AP4_AtomFactory {
  public:
@@ -82,7 +82,7 @@ private:
 };
 
 /*----------------------------------------------------------------------
-|       AP4_DefaultAtomFactory
+|   AP4_DefaultAtomFactory
 +---------------------------------------------------------------------*/
 class AP4_DefaultAtomFactory : public AP4_AtomFactory {
 public:

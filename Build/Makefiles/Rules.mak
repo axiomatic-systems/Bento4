@@ -10,7 +10,7 @@
 ##########################################################################
 # build configurations
 ##########################################################################
-VPATH += $(AP4_BUILD_CONFIG)
+#VPATH += $(AP4_BUILD_CONFIG)
 
 COMPILE_CPP_OPTIONS = $(WARNINGS_CPP) 
 
@@ -29,19 +29,12 @@ endif
 %.d: %.cpp
 	$(AUTODEP_CPP) $(DEFINES_CPP) $(INCLUDES_CPP) $< -o $@
 
-ifneq ($(AUTODEP_STDOUT),)
-%.d: %.c
-	$(AUTODEP_C) $(DEFINES_C) $(INCLUDES_C) $< > $@
-else
-%.d: %.c
-	$(AUTODEP_CPP) $(DEFINES_CPP) $(INCLUDES_CPP) $< -o $@
-endif
-
 %.o: %.cpp
 	$(COMPILE_CPP) $(COMPILE_CPP_OPTIONS) $($@_LOCAL_DEFINES_CPP) $(DEFINES_CPP) $(INCLUDES_CPP) -c $< -o $@
 
 %.a:
-	$(ARCHIVE) -o $@ $^
+	$(ARCHIVE) $@ $^
+	$(RANLIB) $@
 
 .PHONY: clean
 clean:
@@ -53,16 +46,15 @@ INVOKE_SUBMAKE = $(MAKE) --no-print-directory
 ##########################################################################
 # variables
 ##########################################################################
-LINK                 = $(LINK_CPP) $(LINK_CPP_OPTIONS) 
-LINK_CPP_OPTIONS    += $(foreach lib,$(TARGET_LIBRARIES),-l$(lib))
+LINK                 = $(LINK_CPP)
+LINK_LIBRARIES      += $(foreach lib,$(TARGET_LIBRARIES),-l$(lib))
 TARGET_LIBRARY_FILES = $(foreach lib,$(TARGET_LIBRARIES),lib$(lib).a)
 TARGET_OBJECTS       = $(TARGET_SOURCES:.cpp=.o)
 
 ##########################################################################
 # auto dependencies
 ##########################################################################
-TARGET_DEPENDENCIES := $(patsubst %.c,%.d,$(TARGET_SOURCES))
-TARGET_DEPENDENCIES := $(patsubst %.cpp,%.d,$(TARGET_DEPENDENCIES))
+TARGET_DEPENDENCIES := $(TARGET_SOURCES:.cpp=.d)
 
 ifneq ($(TARGET_DEPENDENCIES),)
 include $(TARGET_DEPENDENCIES)

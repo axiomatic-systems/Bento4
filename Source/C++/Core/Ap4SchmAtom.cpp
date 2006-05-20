@@ -2,7 +2,7 @@
 |
 |    AP4 - schm Atoms 
 |
-|    Copyright 2002 Gilles Boccon-Gibod
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -27,14 +27,14 @@
  ****************************************************************/
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4SchmAtom.h"
 #include "Ap4AtomFactory.h"
 #include "Ap4Utils.h"
 
 /*----------------------------------------------------------------------
-|       AP4_SchmAtom::AP4_SchmAtom
+|   AP4_SchmAtom::AP4_SchmAtom
 +---------------------------------------------------------------------*/
 AP4_SchmAtom::AP4_SchmAtom(AP4_UI32    scheme_type,
                            AP4_UI32    scheme_version,
@@ -51,7 +51,7 @@ AP4_SchmAtom::AP4_SchmAtom(AP4_UI32    scheme_type,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_SchmAtom::AP4_SchmAtom
+|   AP4_SchmAtom::AP4_SchmAtom
 +---------------------------------------------------------------------*/
 AP4_SchmAtom::AP4_SchmAtom(AP4_Size size, AP4_ByteStream& stream) :
     AP4_Atom(AP4_ATOM_TYPE_SCHM, size, true, stream)
@@ -71,7 +71,7 @@ AP4_SchmAtom::AP4_SchmAtom(AP4_Size size, AP4_ByteStream& stream) :
 }
 
 /*----------------------------------------------------------------------
-|       AP4_SchmAtom::WriteFields
+|   AP4_SchmAtom::WriteFields
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_SchmAtom::WriteFields(AP4_ByteStream& stream)
@@ -93,16 +93,14 @@ AP4_SchmAtom::WriteFields(AP4_ByteStream& stream)
 
         // pad with zeros if necessary
         AP4_Size padding = m_Size-(AP4_FULL_ATOM_HEADER_SIZE+8+m_SchemeUri.GetLength()+1);
-        while (padding--) {
-            stream.WriteUI08(0);
-        }
+        while (padding--) stream.WriteUI08(0);
     }
 
     return result;
 }
 
 /*----------------------------------------------------------------------
-|       AP4_SchmAtom::InspectFields
+|   AP4_SchmAtom::InspectFields
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_SchmAtom::InspectFields(AP4_AtomInspector& inspector)

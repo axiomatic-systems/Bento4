@@ -2,7 +2,7 @@
 |
 |    AP4 - url Atoms 
 |
-|    Copyright 2002 Gilles Boccon-Gibod
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -27,14 +27,14 @@
  ****************************************************************/
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4UrlAtom.h"
 #include "Ap4AtomFactory.h"
 #include "Ap4Utils.h"
 
 /*----------------------------------------------------------------------
-|       AP4_UrlAtom::AP4_UrlAtom
+|   AP4_UrlAtom::AP4_UrlAtom
 +---------------------------------------------------------------------*/
 AP4_UrlAtom::AP4_UrlAtom() :
     AP4_Atom(AP4_ATOM_TYPE_URL, AP4_FULL_ATOM_HEADER_SIZE, true)
@@ -43,7 +43,7 @@ AP4_UrlAtom::AP4_UrlAtom() :
 }
 
 /*----------------------------------------------------------------------
-|       AP4_UrlAtom::AP4_UrlAtom
+|   AP4_UrlAtom::AP4_UrlAtom
 +---------------------------------------------------------------------*/
 AP4_UrlAtom::AP4_UrlAtom(AP4_Size size, AP4_ByteStream& stream) :
     AP4_Atom(AP4_ATOM_TYPE_URL, size, true, stream)
@@ -62,7 +62,7 @@ AP4_UrlAtom::AP4_UrlAtom(AP4_Size size, AP4_ByteStream& stream) :
 }
 
 /*----------------------------------------------------------------------
-|       AP4_UrlAtom::WriteFields
+|   AP4_UrlAtom::WriteFields
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_UrlAtom::WriteFields(AP4_ByteStream& stream)
@@ -83,7 +83,7 @@ AP4_UrlAtom::WriteFields(AP4_ByteStream& stream)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_UrlAtom::InspectFields
+|   AP4_UrlAtom::InspectFields
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_UrlAtom::InspectFields(AP4_AtomInspector& inspector)

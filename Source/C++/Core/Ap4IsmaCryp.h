@@ -2,7 +2,7 @@
 |
 |    AP4 - Sample Description Objects
 |
-|    Copyright 2002 Gilles Boccon-Gibod & Julien Boeuf
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -30,7 +30,7 @@
 #define _AP4_ISMACRYP_H_
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4Types.h"
 #include "Ap4SampleEntry.h"
@@ -40,18 +40,18 @@
 #include "Ap4Processor.h"
 
 /*----------------------------------------------------------------------
-|       class references
+|   class references
 +---------------------------------------------------------------------*/
 class AP4_StreamCipher;
 
 /*----------------------------------------------------------------------
-|       constants
+|   constants
 +---------------------------------------------------------------------*/
 const AP4_UI32 AP4_ISMACRYP_SCHEME_TYPE_IAEC = AP4_ATOM_TYPE('i','A','E','C');
 const AP4_Size AP4_ISMACRYP_IAEC_KEY_LENGTH = 16;
 
 /*----------------------------------------------------------------------
-|       AP4_EncaSampleEntry
+|   AP4_EncaSampleEntry
 +---------------------------------------------------------------------*/
 class AP4_EncaSampleEntry : public AP4_AudioSampleEntry
 {
@@ -70,7 +70,7 @@ public:
 };
 
 /*----------------------------------------------------------------------
-|       AP4_EncvSampleEntry
+|   AP4_EncvSampleEntry
 +---------------------------------------------------------------------*/
 class AP4_EncvSampleEntry : public AP4_VisualSampleEntry
 {
@@ -89,7 +89,7 @@ public:
 };
 
 /*----------------------------------------------------------------------
-|       AP4_DrmsSampleEntry
+|   AP4_DrmsSampleEntry
 +---------------------------------------------------------------------*/
 class AP4_DrmsSampleEntry : public AP4_EncaSampleEntry
 {
@@ -101,7 +101,7 @@ public:
 };
 
 /*----------------------------------------------------------------------
-|       AP4_DrmiSampleEntry
+|   AP4_DrmiSampleEntry
 +---------------------------------------------------------------------*/
 class AP4_DrmiSampleEntry : public AP4_EncvSampleEntry
 {
@@ -113,7 +113,7 @@ public:
 };
 
 /*----------------------------------------------------------------------
-|       AP4_IsmaKeyMap
+|   AP4_IsmaKeyMap
 +---------------------------------------------------------------------*/
 class AP4_IsmaKeyMap
 {
@@ -145,7 +145,7 @@ private:
 };
 
 /*----------------------------------------------------------------------
-|       AP4_IsmaSchemeInfo
+|   AP4_IsmaSchemeInfo
 +---------------------------------------------------------------------*/
 class AP4_IsmaCrypSchemeInfo
 {
@@ -162,7 +162,7 @@ protected:
 };
 
 /*----------------------------------------------------------------------
-|       AP4_IsmaCrypSampleDescription
+|   AP4_IsmaCrypSampleDescription
 +---------------------------------------------------------------------*/
 class AP4_IsmaCrypSampleDescription : public AP4_SampleDescription
 {
@@ -203,7 +203,7 @@ private:
 };
 
 /*----------------------------------------------------------------------
-|       AP4_IsmaCipher
+|   AP4_IsmaCipher
 +---------------------------------------------------------------------*/
 class AP4_IsmaCipher
 {
@@ -231,7 +231,7 @@ private:
 };
 
 /*----------------------------------------------------------------------
-|       AP4_IsmaDecryptingProcessor
+|   AP4_IsmaDecryptingProcessor
 +---------------------------------------------------------------------*/
 class AP4_IsmaDecryptingProcessor : public AP4_Processor
 {
@@ -248,7 +248,7 @@ private:
 };
 
 /*----------------------------------------------------------------------
-|       AP4_IsmaEncryptingProcessor
+|   AP4_IsmaEncryptingProcessor
 +---------------------------------------------------------------------*/
 class AP4_IsmaEncryptingProcessor : public AP4_Processor
 {

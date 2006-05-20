@@ -2,7 +2,7 @@
 |
 |    AP4 - Hint Track Reader
 |
-|    Copyright 2002-2005 Gilles Boccon-Gibod & Julien Boeuf
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -27,7 +27,7 @@
 ****************************************************************/
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include <stdlib.h>
 #include <time.h>
@@ -43,7 +43,7 @@
 #include "Ap4Utils.h"
 
 /*----------------------------------------------------------------------
-|       AP4_HintTrackReader::AP4_HintTrackReader
+|   AP4_HintTrackReader::AP4_HintTrackReader
 +---------------------------------------------------------------------*/
 AP4_HintTrackReader::AP4_HintTrackReader(AP4_Track& hint_track, 
                                          AP4_Movie& movie, 
@@ -100,7 +100,7 @@ AP4_HintTrackReader::AP4_HintTrackReader(AP4_Track& hint_track,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_HintTrackReader::~AP4_HintTrackReader
+|   AP4_HintTrackReader::~AP4_HintTrackReader
 +---------------------------------------------------------------------*/
 AP4_HintTrackReader::~AP4_HintTrackReader()
 {
@@ -108,7 +108,7 @@ AP4_HintTrackReader::~AP4_HintTrackReader()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_HintTrackReader::GetRtpSample
+|   AP4_HintTrackReader::GetRtpSample
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_HintTrackReader::GetRtpSample(AP4_Ordinal index)
@@ -134,7 +134,7 @@ AP4_HintTrackReader::GetRtpSample(AP4_Ordinal index)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_HintTrackReader::GetCurrentTimeStampMs
+|   AP4_HintTrackReader::GetCurrentTimeStampMs
 +---------------------------------------------------------------------*/
 AP4_TimeStamp
 AP4_HintTrackReader::GetCurrentTimeStampMs()
@@ -145,7 +145,7 @@ AP4_HintTrackReader::GetCurrentTimeStampMs()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_HintTrackReader::Rewind
+|   AP4_HintTrackReader::Rewind
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_HintTrackReader::Rewind()
@@ -155,7 +155,7 @@ AP4_HintTrackReader::Rewind()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_HintTrackReader::GetSdpText
+|   AP4_HintTrackReader::GetSdpText
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_HintTrackReader::GetSdpText(AP4_String& sdp_text)
@@ -169,7 +169,7 @@ AP4_HintTrackReader::GetSdpText(AP4_String& sdp_text)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_HintTrackReader::SeekToTimeStampMs
+|   AP4_HintTrackReader::SeekToTimeStampMs
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_HintTrackReader::SeekToTimeStampMs(AP4_TimeStamp desired_ts, 
@@ -190,7 +190,7 @@ AP4_HintTrackReader::SeekToTimeStampMs(AP4_TimeStamp desired_ts,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_HintTrackReader::GetNextPacket
+|   AP4_HintTrackReader::GetNextPacket
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_HintTrackReader::GetNextPacket(AP4_DataBuffer& packet_data, 
@@ -222,7 +222,7 @@ AP4_HintTrackReader::GetNextPacket(AP4_DataBuffer& packet_data,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_HintTrackReader::BuildRtpPacket
+|   AP4_HintTrackReader::BuildRtpPacket
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_HintTrackReader::BuildRtpPacket(AP4_RtpPacket* packet, 
@@ -281,7 +281,7 @@ AP4_HintTrackReader::BuildRtpPacket(AP4_RtpPacket* packet,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_HintTrackReader::WriteImmediateRtpData
+|   AP4_HintTrackReader::WriteImmediateRtpData
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_HintTrackReader::WriteImmediateRtpData(AP4_ImmediateRtpConstructor* constructor, 
@@ -292,7 +292,7 @@ AP4_HintTrackReader::WriteImmediateRtpData(AP4_ImmediateRtpConstructor* construc
 }
 
 /*----------------------------------------------------------------------
-|       AP4_HintTrackReader::WriteSampleRtpData
+|   AP4_HintTrackReader::WriteSampleRtpData
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_HintTrackReader::WriteSampleRtpData(AP4_SampleRtpConstructor* constructor, 

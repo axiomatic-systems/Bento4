@@ -30,7 +30,7 @@
 #define _AP4_RTP_HINT_H_
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4Types.h"
 #include "Ap4List.h"
@@ -38,14 +38,14 @@
 #include "Ap4Interfaces.h"
 
 /*----------------------------------------------------------------------
-|       forward declarations
+|   forward declarations
 +---------------------------------------------------------------------*/
 class AP4_ByteStream;
 class AP4_RtpConstructor;
 class AP4_RtpPacket;
 
 /*----------------------------------------------------------------------
-|       AP4_RtpSampleData
+|   AP4_RtpSampleData
 +---------------------------------------------------------------------*/
 class AP4_RtpSampleData
 {
@@ -75,7 +75,7 @@ protected:
 };
 
 /*----------------------------------------------------------------------
-|       AP4_RtpPacket
+|   AP4_RtpPacket
 +---------------------------------------------------------------------*/
 class AP4_RtpPacket : public AP4_Referenceable
 {
@@ -133,7 +133,7 @@ private:
 };
 
 /*----------------------------------------------------------------------
-|       AP4_RtpContructor
+|   AP4_RtpContructor
 +---------------------------------------------------------------------*/
 class AP4_RtpConstructor : public AP4_Referenceable
 {
@@ -164,12 +164,12 @@ protected:
 };
 
 /*----------------------------------------------------------------------
-|       constructor size
+|   constructor size
 +---------------------------------------------------------------------*/
 const AP4_Size AP4_RTP_CONSTRUCTOR_SIZE = 16;
 
 /*----------------------------------------------------------------------
-|       constructor types
+|   constructor types
 +---------------------------------------------------------------------*/
 const AP4_RtpConstructor::Type AP4_RTP_CONSTRUCTOR_TYPE_NOOP        = 0;
 const AP4_RtpConstructor::Type AP4_RTP_CONSTRUCTOR_TYPE_IMMEDIATE   = 1;
@@ -177,7 +177,7 @@ const AP4_RtpConstructor::Type AP4_RTP_CONSTRUCTOR_TYPE_SAMPLE      = 2;
 const AP4_RtpConstructor::Type AP4_RTP_CONSTRUCTOR_TYPE_SAMPLE_DESC = 3;
 
 /*----------------------------------------------------------------------
-|       AP4_NoopRtpConstructor
+|   AP4_NoopRtpConstructor
 +---------------------------------------------------------------------*/
 class AP4_NoopRtpConstructor : public AP4_RtpConstructor
 {
@@ -195,7 +195,7 @@ protected:
 };
 
 /*----------------------------------------------------------------------
-|       AP4_ImmediateRtpConstructor
+|   AP4_ImmediateRtpConstructor
 +---------------------------------------------------------------------*/
 class AP4_ImmediateRtpConstructor : public AP4_RtpConstructor
 {
@@ -219,7 +219,7 @@ protected:
 };
 
 /*----------------------------------------------------------------------
-|       AP4_SampleRtpConstructor
+|   AP4_SampleRtpConstructor
 +---------------------------------------------------------------------*/
 class AP4_SampleRtpConstructor : public AP4_RtpConstructor
 {
@@ -252,7 +252,7 @@ protected:
 };
 
 /*----------------------------------------------------------------------
-|       AP4_SampleDescRtpConstructor
+|   AP4_SampleDescRtpConstructor
 +---------------------------------------------------------------------*/
 class AP4_SampleDescRtpConstructor : public AP4_RtpConstructor
 {
@@ -285,7 +285,7 @@ protected:
 };
 
 /*----------------------------------------------------------------------
-|       AP4_RtpConstructorFactory
+|   AP4_RtpConstructorFactory
 +---------------------------------------------------------------------*/
 class AP4_RtpConstructorFactory 
 {

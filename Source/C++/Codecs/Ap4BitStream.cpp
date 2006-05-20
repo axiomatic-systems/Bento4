@@ -10,18 +10,18 @@
  ****************************************************************/
 
 /*----------------------------------------------------------------------
-|       For efficiency reasons, this bitstream library only handles
-|       data buffers that are a power of 2 in size
+|   For efficiency reasons, this bitstream library only handles
+|   data buffers that are a power of 2 in size
 +---------------------------------------------------------------------*/
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4BitStream.h"
 #include "Ap4Utils.h"
 
 /*----------------------------------------------------------------------
-|       AP4_BitStream::AP4_BitStream
+|   AP4_BitStream::AP4_BitStream
 +---------------------------------------------------------------------*/
 AP4_BitStream::AP4_BitStream()
 {
@@ -30,7 +30,7 @@ AP4_BitStream::AP4_BitStream()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_BitStream::~AP4_BitStream
+|   AP4_BitStream::~AP4_BitStream
 +---------------------------------------------------------------------*/
 AP4_BitStream::~AP4_BitStream()
 {
@@ -38,7 +38,7 @@ AP4_BitStream::~AP4_BitStream()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_BitStream::Reset
+|   AP4_BitStream::Reset
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_BitStream::Reset()
@@ -53,7 +53,7 @@ AP4_BitStream::Reset()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_BitStream::ByteAlign
+|   AP4_BitStream::ByteAlign
 +---------------------------------------------------------------------*/
 AP4_Result   
 AP4_BitStream::ByteAlign()
@@ -65,7 +65,7 @@ AP4_BitStream::ByteAlign()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_BitStream::GetContiguousBytesFree
+|   AP4_BitStream::GetContiguousBytesFree
 +---------------------------------------------------------------------*/
 AP4_Size
 AP4_BitStream::GetContiguousBytesFree()
@@ -78,7 +78,7 @@ AP4_BitStream::GetContiguousBytesFree()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_BitStream_GetBytesFree
+|   AP4_BitStream_GetBytesFree
 +---------------------------------------------------------------------*/
 AP4_Size
 AP4_BitStream::GetBytesFree()
@@ -90,7 +90,7 @@ AP4_BitStream::GetBytesFree()
 }
 
 /*----------------------------------------------------------------------+
-|        AP4_BitStream::WriteBytes
+|    AP4_BitStream::WriteBytes
 +----------------------------------------------------------------------*/
 AP4_Result
 AP4_BitStream::WriteBytes(const AP4_UI08* bytes, 
@@ -127,7 +127,7 @@ AP4_BitStream::WriteBytes(const AP4_UI08* bytes,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_BitStream_GetContiguousBytesAvailable
+|   AP4_BitStream_GetContiguousBytesAvailable
 +---------------------------------------------------------------------*/
 AP4_Size
 AP4_BitStream::GetContiguousBytesAvailable()
@@ -139,7 +139,7 @@ AP4_BitStream::GetContiguousBytesAvailable()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_BitStream::GetBytesAvailable
+|   AP4_BitStream::GetBytesAvailable
 +---------------------------------------------------------------------*/
 AP4_Size
 AP4_BitStream::GetBytesAvailable()
@@ -151,7 +151,7 @@ AP4_BitStream::GetBytesAvailable()
 }
 
 /*----------------------------------------------------------------------+
-|        AP4_BitStream::ReadBytes
+|    AP4_BitStream::ReadBytes
 +----------------------------------------------------------------------*/
 AP4_Result
 AP4_BitStream::ReadBytes(AP4_UI08* bytes, 
@@ -194,7 +194,7 @@ AP4_BitStream::ReadBytes(AP4_UI08* bytes,
 }
 
 /*----------------------------------------------------------------------+
-|        AP4_BitStream::PeekBytes
+|    AP4_BitStream::PeekBytes
 +----------------------------------------------------------------------*/
 AP4_Result
 AP4_BitStream::PeekBytes(AP4_UI08* bytes, 
@@ -241,7 +241,7 @@ AP4_BitStream::PeekBytes(AP4_UI08* bytes,
 }
 
 /*----------------------------------------------------------------------+
-|        AP4_BitStream::SkipBytes
+|    AP4_BitStream::SkipBytes
 +----------------------------------------------------------------------*/
 AP4_Result
 AP4_BitStream::SkipBytes(AP4_Size byte_count)

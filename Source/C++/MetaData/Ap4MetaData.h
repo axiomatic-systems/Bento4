@@ -2,7 +2,7 @@
 |
 |    AP4 - MetaData 
 |
-|    Copyright 2002 Gilles Boccon-Gibod & Julien Boeuf
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -30,7 +30,7 @@
 #define _AP4_META_DATA_H_
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4Atom.h"
 #include "Ap4AtomFactory.h"
@@ -39,7 +39,7 @@
 #include "Ap4List.h"
 
 /*----------------------------------------------------------------------
-|       class references
+|   class references
 +---------------------------------------------------------------------*/
 class AP4_MoovAtom;
 class AP4_DataBuffer;
@@ -47,7 +47,7 @@ class AP4_ContainerAtom;
 class AP4_DataAtom;
 
 /*----------------------------------------------------------------------
-|       metadata keys
+|   metadata keys
 +---------------------------------------------------------------------*/
 const AP4_Atom::Type AP4_ATOM_TYPE_DATA = AP4_ATOM_TYPE('d','a','t','a'); // data
 const AP4_Atom::Type AP4_ATOM_TYPE_MEAN = AP4_ATOM_TYPE('m','e','a','n'); // namespace
@@ -89,7 +89,7 @@ const AP4_Atom::Type AP4_ATOM_TYPE_TVES = AP4_ATOM_TYPE('t','v','e','s'); // TV 
 const AP4_Atom::Type AP4_ATOM_TYPE_STIK = AP4_ATOM_TYPE('s','t','i','k');
 
 /*----------------------------------------------------------------------
-|       AP4_MetaData
+|   AP4_MetaData
 +---------------------------------------------------------------------*/
 class AP4_MetaData {
 public:
@@ -194,7 +194,7 @@ private:
 };
 
 /*----------------------------------------------------------------------
-|       AP4_MetaDataAtomTypeHandler
+|   AP4_MetaDataAtomTypeHandler
 +---------------------------------------------------------------------*/
 class AP4_MetaDataAtomTypeHandler : public AP4_AtomFactory::TypeHandler
 {
@@ -217,7 +217,7 @@ private:
 };
 
 /*----------------------------------------------------------------------
-|       AP4_MetaDataTag
+|   AP4_MetaDataTag
 +---------------------------------------------------------------------*/
 class AP4_MetaDataTag
 {
@@ -240,7 +240,7 @@ protected:
 };
 
 /*----------------------------------------------------------------------
-|       AP4_StringAtom
+|   AP4_StringAtom
 +---------------------------------------------------------------------*/
 class AP4_StringAtom : public AP4_Atom
 {
@@ -261,7 +261,7 @@ private:
 };
 
 /*----------------------------------------------------------------------
-|       AP4_DataAtom
+|   AP4_DataAtom
 +---------------------------------------------------------------------*/
 class AP4_DataAtom : public AP4_Atom
 {
@@ -293,7 +293,7 @@ private:
 };
 
 /*----------------------------------------------------------------------
-|       AP4_AtomMetaDataValue
+|   AP4_AtomMetaDataValue
 +---------------------------------------------------------------------*/
 class AP4_AtomMetaDataValue : public AP4_MetaData::Value
 {

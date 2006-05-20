@@ -60,9 +60,13 @@
 			CharacterSet="2">
 			<Tool
 				Name="VCCLCompilerTool"
+				Optimization="3"
+				GlobalOptimizations="TRUE"
+				OmitFramePointers="TRUE"
 				AdditionalIncludeDirectories="..\..\..\..\Source\C++\Config;..\..\..\..\Source\C++\Core"
 				PreprocessorDefinitions="AP4_PLATFORM_BYTE_ORDER=AP4_PLATFORM_LITTLE_ENDIAN"
 				RuntimeLibrary="2"
+				BufferSecurityCheck="FALSE"
 				EnableFunctionLevelLinking="TRUE"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"

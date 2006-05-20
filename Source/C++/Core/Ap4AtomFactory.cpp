@@ -2,7 +2,7 @@
 |
 |    AP4 - Atom Factory
 |
-|    Copyright 2002 Gilles Boccon-Gibod & Julien Boeuf
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -27,7 +27,7 @@
  ****************************************************************/
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4Types.h"
 #include "Ap4AtomFactory.h"
@@ -65,7 +65,7 @@
 #include "Ap4MetaData.h"
 
 /*----------------------------------------------------------------------
-|       AP4_AtomFactory::~AP4_AtomFactory
+|   AP4_AtomFactory::~AP4_AtomFactory
 +---------------------------------------------------------------------*/
 AP4_AtomFactory::~AP4_AtomFactory()
 {
@@ -73,7 +73,7 @@ AP4_AtomFactory::~AP4_AtomFactory()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_AtomFactory::AddTypeHandler
+|   AP4_AtomFactory::AddTypeHandler
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_AtomFactory::AddTypeHandler(TypeHandler* handler)
@@ -82,7 +82,7 @@ AP4_AtomFactory::AddTypeHandler(TypeHandler* handler)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_AtomFactory::RemoveTypeHandler
+|   AP4_AtomFactory::RemoveTypeHandler
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_AtomFactory::RemoveTypeHandler(TypeHandler* handler)
@@ -91,7 +91,7 @@ AP4_AtomFactory::RemoveTypeHandler(TypeHandler* handler)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_AtomFactory::CreateAtomFromStream
+|   AP4_AtomFactory::CreateAtomFromStream
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream, 
@@ -106,7 +106,7 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_AtomFactory::CreateAtomFromStream
+|   AP4_AtomFactory::CreateAtomFromStream
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream, 
@@ -362,12 +362,12 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_DefaultAtomFactory::Instance
+|   AP4_DefaultAtomFactory::Instance
 +---------------------------------------------------------------------*/
 AP4_DefaultAtomFactory AP4_DefaultAtomFactory::Instance;
 
 /*----------------------------------------------------------------------
-|       AP4_DefaultAtomFactory::Instance
+|   AP4_DefaultAtomFactory::Instance
 +---------------------------------------------------------------------*/
 AP4_DefaultAtomFactory::AP4_DefaultAtomFactory()
 {

@@ -2,7 +2,7 @@
 |
 |    AP4 - moov Atoms 
 |
-|    Copyright 2002 Gilles Boccon-Gibod
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -27,14 +27,14 @@
  ****************************************************************/
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4MoovAtom.h"
 #include "Ap4TrakAtom.h"
 #include "Ap4AtomFactory.h"
 
 /*----------------------------------------------------------------------
-|       AP4_TrakAtomCollector
+|   AP4_TrakAtomCollector
 +---------------------------------------------------------------------*/
 class AP4_TrakAtomCollector : public AP4_List<AP4_Atom>::Item::Operator
 {
@@ -57,7 +57,7 @@ private:
 };
 
 /*----------------------------------------------------------------------
-|       AP4_MoovAtom::AP4_MoovAtom
+|   AP4_MoovAtom::AP4_MoovAtom
 +---------------------------------------------------------------------*/
 AP4_MoovAtom::AP4_MoovAtom() :
     AP4_ContainerAtom(AP4_ATOM_TYPE_MOOV),
@@ -66,7 +66,7 @@ AP4_MoovAtom::AP4_MoovAtom() :
 }
 
 /*----------------------------------------------------------------------
-|       AP4_MoovAtom::AP4_MoovAtom
+|   AP4_MoovAtom::AP4_MoovAtom
 +---------------------------------------------------------------------*/
 AP4_MoovAtom::AP4_MoovAtom(AP4_Size         size,
                            AP4_ByteStream&  stream,
@@ -79,7 +79,7 @@ AP4_MoovAtom::AP4_MoovAtom(AP4_Size         size,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_MoovAtom::OnChildAdded
+|   AP4_MoovAtom::OnChildAdded
 +---------------------------------------------------------------------*/
 void
 AP4_MoovAtom::OnChildAdded(AP4_Atom* atom)
@@ -97,7 +97,7 @@ AP4_MoovAtom::OnChildAdded(AP4_Atom* atom)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_MoovAtom::OnChildRemoved
+|   AP4_MoovAtom::OnChildRemoved
 +---------------------------------------------------------------------*/
 void
 AP4_MoovAtom::OnChildRemoved(AP4_Atom* atom)

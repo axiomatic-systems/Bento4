@@ -27,14 +27,14 @@
  ****************************************************************/
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4StssAtom.h"
 #include "Ap4AtomFactory.h"
 #include "Ap4Utils.h"
 
 /*----------------------------------------------------------------------
-|       AP4_StssAtom::AP4_StssAtom
+|   AP4_StssAtom::AP4_StssAtom
 +---------------------------------------------------------------------*/
 AP4_StssAtom::AP4_StssAtom(AP4_Size size, AP4_ByteStream& stream) :
     AP4_Atom(AP4_ATOM_TYPE_STSS, size, true, stream)
@@ -50,7 +50,7 @@ AP4_StssAtom::AP4_StssAtom(AP4_Size size, AP4_ByteStream& stream) :
 }
 
 /*----------------------------------------------------------------------
-|       AP4_StssAtom::WriteFields
+|   AP4_StssAtom::WriteFields
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_StssAtom::WriteFields(AP4_ByteStream& stream)
@@ -72,7 +72,7 @@ AP4_StssAtom::WriteFields(AP4_ByteStream& stream)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_StssAtom::IsSampleSync
+|   AP4_StssAtom::IsSampleSync
 +---------------------------------------------------------------------*/
 bool
 AP4_StssAtom::IsSampleSync(AP4_Ordinal sample)
@@ -91,7 +91,7 @@ AP4_StssAtom::IsSampleSync(AP4_Ordinal sample)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_StssAtom::InspectFields
+|   AP4_StssAtom::InspectFields
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_StssAtom::InspectFields(AP4_AtomInspector& inspector)

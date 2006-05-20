@@ -2,7 +2,7 @@
 |
 |    AP4 - Container Atoms
 |
-|    Copyright 2002 Gilles Boccon-Gibod
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -27,7 +27,7 @@
  ****************************************************************/
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4Types.h"
 #include "Ap4Atom.h"
@@ -36,7 +36,7 @@
 #include "Ap4AtomFactory.h"
 
 /*----------------------------------------------------------------------
-|       AP4_ContainerAtom::AP4_ContainerAtom
+|   AP4_ContainerAtom::AP4_ContainerAtom
 +---------------------------------------------------------------------*/
 AP4_ContainerAtom::AP4_ContainerAtom(Type type, bool is_full) :
     AP4_Atom(type, is_full)
@@ -44,7 +44,7 @@ AP4_ContainerAtom::AP4_ContainerAtom(Type type, bool is_full) :
 }
 
 /*----------------------------------------------------------------------
-|       AP4_ContainerAtom::AP4_ContainerAtom
+|   AP4_ContainerAtom::AP4_ContainerAtom
 +---------------------------------------------------------------------*/
 AP4_ContainerAtom::AP4_ContainerAtom(Type type, AP4_Size size, bool is_full) :
     AP4_Atom(type, size, is_full)
@@ -52,7 +52,7 @@ AP4_ContainerAtom::AP4_ContainerAtom(Type type, AP4_Size size, bool is_full) :
 }
 
 /*----------------------------------------------------------------------
-|       AP4_ContainerAtom::AP4_ContainerAtom
+|   AP4_ContainerAtom::AP4_ContainerAtom
 +---------------------------------------------------------------------*/
 AP4_ContainerAtom::AP4_ContainerAtom(Type             type, 
                                      AP4_Size         size,
@@ -65,7 +65,7 @@ AP4_ContainerAtom::AP4_ContainerAtom(Type             type,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_ContainerAtom::AP4_ContainerAtom
+|   AP4_ContainerAtom::AP4_ContainerAtom
 +---------------------------------------------------------------------*/
 AP4_ContainerAtom::AP4_ContainerAtom(Type             type, 
                                      AP4_Size         size,
@@ -76,7 +76,7 @@ AP4_ContainerAtom::AP4_ContainerAtom(Type             type,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_ContainerAtom::ReadChildren
+|   AP4_ContainerAtom::ReadChildren
 +---------------------------------------------------------------------*/
 void
 AP4_ContainerAtom::ReadChildren(AP4_AtomFactory& atom_factory,
@@ -101,7 +101,7 @@ AP4_ContainerAtom::ReadChildren(AP4_AtomFactory& atom_factory,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_ContainerAtom::InspectFields
+|   AP4_ContainerAtom::InspectFields
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_ContainerAtom::InspectFields(AP4_AtomInspector& inspector)
@@ -110,7 +110,7 @@ AP4_ContainerAtom::InspectFields(AP4_AtomInspector& inspector)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_ContainerAtom::InspectChildren
+|   AP4_ContainerAtom::InspectChildren
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_ContainerAtom::InspectChildren(AP4_AtomInspector& inspector)
@@ -122,7 +122,7 @@ AP4_ContainerAtom::InspectChildren(AP4_AtomInspector& inspector)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_ContainerAtom::WriteFields
+|   AP4_ContainerAtom::WriteFields
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_ContainerAtom::WriteFields(AP4_ByteStream& stream)
@@ -132,7 +132,7 @@ AP4_ContainerAtom::WriteFields(AP4_ByteStream& stream)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_ContainerAtom::OnChildChanged
+|   AP4_ContainerAtom::OnChildChanged
 +---------------------------------------------------------------------*/
 void
 AP4_ContainerAtom::OnChildChanged(AP4_Atom*)
@@ -146,7 +146,7 @@ AP4_ContainerAtom::OnChildChanged(AP4_Atom*)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_ContainerAtom::OnChildAdded
+|   AP4_ContainerAtom::OnChildAdded
 +---------------------------------------------------------------------*/
 void
 AP4_ContainerAtom::OnChildAdded(AP4_Atom* child)
@@ -159,7 +159,7 @@ AP4_ContainerAtom::OnChildAdded(AP4_Atom* child)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_ContainerAtom::OnChildRemoved
+|   AP4_ContainerAtom::OnChildRemoved
 +---------------------------------------------------------------------*/
 void
 AP4_ContainerAtom::OnChildRemoved(AP4_Atom* child)

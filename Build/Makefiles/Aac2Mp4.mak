@@ -9,11 +9,7 @@
 ##########################################################################
 # includes
 ##########################################################################
-include $(BUILD_ROOT)/Makefiles/Crypto.exp
-include $(BUILD_ROOT)/Makefiles/Core.exp
-include $(BUILD_ROOT)/Makefiles/System.exp
-include $(BUILD_ROOT)/Makefiles/Codecs.exp
-include $(BUILD_ROOT)/Makefiles/MetaData.exp
+include $(BUILD_ROOT)/Makefiles/Lib.exp
 
 ##########################################################################
 # targets
@@ -34,7 +30,7 @@ LINK = $(LINK_CPP_OPTIONS) $(OPTIMIZE_CPP) $(DEBUG_CPP) $(PROFILE_CPP)
 # rules
 ##########################################################################
 aac2mp4: $(TARGET_SOURCES:.cpp=.o) $(TARGET_OBJECTS) $(TARGET_LIBRARY_FILES)
-	$(LINK) $^ -o $@ 
+	$(LINK) $(TARGET_OBJECTS) -o $@ $(LINK_LIBRARIES)
 
 ##########################################################################
 # includes

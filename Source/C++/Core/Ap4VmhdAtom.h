@@ -2,7 +2,7 @@
 |
 |    AP4 - vmhd Atoms 
 |
-|    Copyright 2002 Gilles Boccon-Gibod
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -30,12 +30,12 @@
 #define _AP4_VMHD_ATOM_H_
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4Atom.h"
 
 /*----------------------------------------------------------------------
-|       AP4_VmhdAtom
+|   AP4_VmhdAtom
 +---------------------------------------------------------------------*/
 class AP4_VmhdAtom : public AP4_Atom
 {

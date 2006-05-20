@@ -2,7 +2,7 @@
 |
 |    AP4 - trak Atoms 
 |
-|    Copyright 2002 Gilles Boccon-Gibod
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -27,7 +27,7 @@
  ****************************************************************/
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4TrakAtom.h"
 #include "Ap4MdhdAtom.h"
@@ -44,7 +44,7 @@
 #include "Ap4Utils.h"
 
 /*----------------------------------------------------------------------
-|       AP4_TrakAtom::AP4_TrakAtom
+|   AP4_TrakAtom::AP4_TrakAtom
 +---------------------------------------------------------------------*/
 AP4_TrakAtom::AP4_TrakAtom(AP4_SampleTable* sample_table,
                            AP4_Atom::Type   hdlr_type,
@@ -139,7 +139,7 @@ AP4_TrakAtom::AP4_TrakAtom(AP4_SampleTable* sample_table,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_TrakAtom::AP4_TrakAtom
+|   AP4_TrakAtom::AP4_TrakAtom
 +---------------------------------------------------------------------*/
 AP4_TrakAtom::AP4_TrakAtom(AP4_Size         size,
                            AP4_ByteStream&  stream,
@@ -157,7 +157,7 @@ AP4_TrakAtom::AP4_TrakAtom(AP4_Size         size,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_TrakAtom::GetDuration
+|   AP4_TrakAtom::GetDuration
 +---------------------------------------------------------------------*/
 AP4_UI32
 AP4_TrakAtom::GetDuration()
@@ -170,7 +170,7 @@ AP4_TrakAtom::GetDuration()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_TrakAtom::SetDuration
+|   AP4_TrakAtom::SetDuration
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_TrakAtom::SetDuration(AP4_UI32 duration)
@@ -183,7 +183,7 @@ AP4_TrakAtom::SetDuration(AP4_UI32 duration)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_TrakAtom::AdjustChunkOffsets
+|   AP4_TrakAtom::AdjustChunkOffsets
 +---------------------------------------------------------------------*/
 AP4_Result    
 AP4_TrakAtom::AdjustChunkOffsets(AP4_Offset offset)

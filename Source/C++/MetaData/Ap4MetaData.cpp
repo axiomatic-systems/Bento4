@@ -2,7 +2,7 @@
 |
 |    AP4 - MetaData 
 |
-|    Copyright 2002 Gilles Boccon-Gibod
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -27,7 +27,7 @@
 ****************************************************************/
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4MetaData.h"
 #include "Ap4ContainerAtom.h"
@@ -37,7 +37,7 @@
 #include "Ap4String.h"
 
 /*----------------------------------------------------------------------
-|       metadata keys
+|   metadata keys
 +---------------------------------------------------------------------*/
 static const AP4_MetaData::KeyInfo AP4_MetaData_KeyInfos [] = {
     {"Name",      "Name",        AP4_ATOM_TYPE_NAME, AP4_MetaData::Value::TYPE_STRING},
@@ -61,7 +61,7 @@ AP4_Array<AP4_MetaData::KeyInfo> AP4_MetaData::KeysInfos(
     sizeof(AP4_MetaData_KeyInfos)/sizeof(KeyInfo));
 
 /*----------------------------------------------------------------------
-|       genre IDs
+|   genre IDs
 +---------------------------------------------------------------------*/
 static const char* const Ap4Id3Genres[] = 
 {
@@ -194,7 +194,7 @@ static const char* const Ap4Id3Genres[] =
 };
 
 /*----------------------------------------------------------------------
-|       AP4_MetaDataAtomTypeHandler::CreateAtom
+|   AP4_MetaDataAtomTypeHandler::CreateAtom
 +---------------------------------------------------------------------*/
 AP4_Result 
 AP4_MetaDataAtomTypeHandler::CreateAtom(AP4_Atom::Type  type,
@@ -225,7 +225,7 @@ AP4_MetaDataAtomTypeHandler::CreateAtom(AP4_Atom::Type  type,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_MetaDataAtomTypeHandler::IsMetaDataType
+|   AP4_MetaDataAtomTypeHandler::IsMetaDataType
 +---------------------------------------------------------------------*/
 bool
 AP4_MetaDataAtomTypeHandler::IsMetaDataType(AP4_Atom::Type type)
@@ -273,7 +273,7 @@ AP4_MetaDataAtomTypeHandler::IsMetaDataType(AP4_Atom::Type type)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_MetaData::AP4_MetaData
+|   AP4_MetaData::AP4_MetaData
 +---------------------------------------------------------------------*/
 AP4_MetaData::AP4_MetaData(AP4_MoovAtom* moov)
 {
@@ -292,7 +292,7 @@ AP4_MetaData::AP4_MetaData(AP4_MoovAtom* moov)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_MetaData::~AP4_MetaData
+|   AP4_MetaData::~AP4_MetaData
 +---------------------------------------------------------------------*/
 AP4_MetaData::~AP4_MetaData()
 {
@@ -300,7 +300,7 @@ AP4_MetaData::~AP4_MetaData()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_MetaData::AddEntries
+|   AP4_MetaData::AddEntries
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_MetaData::AddEntries(AP4_ContainerAtom* atom)
@@ -364,7 +364,7 @@ AP4_MetaData::AddEntries(AP4_ContainerAtom* atom)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_AtomMetaDataValue::MapDataType
+|   AP4_AtomMetaDataValue::MapDataType
 +---------------------------------------------------------------------*/
 AP4_MetaData::Value::Type
 AP4_AtomMetaDataValue::MapDataType(AP4_MetaData::DataType data_type)
@@ -384,7 +384,7 @@ AP4_AtomMetaDataValue::MapDataType(AP4_MetaData::DataType data_type)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_AtomMetaDataValue::AP4_AtomMetaDataValue
+|   AP4_AtomMetaDataValue::AP4_AtomMetaDataValue
 +---------------------------------------------------------------------*/
 AP4_AtomMetaDataValue::AP4_AtomMetaDataValue(AP4_DataAtom* atom) :
     Value(MapDataType(atom->GetDataType())),
@@ -393,7 +393,7 @@ AP4_AtomMetaDataValue::AP4_AtomMetaDataValue(AP4_DataAtom* atom) :
 }
 
 /*----------------------------------------------------------------------
-|       AP4_AtomMetaDataValue::ToString
+|   AP4_AtomMetaDataValue::ToString
 +---------------------------------------------------------------------*/
 AP4_String 
 AP4_AtomMetaDataValue::ToString() 
@@ -438,7 +438,7 @@ AP4_AtomMetaDataValue::ToString()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_AtomMetaDataValue::ToBytes
+|   AP4_AtomMetaDataValue::ToBytes
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_AtomMetaDataValue::ToBytes(AP4_DataBuffer& bytes)
@@ -447,7 +447,7 @@ AP4_AtomMetaDataValue::ToBytes(AP4_DataBuffer& bytes)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_AtomMetaDataValue::ToInteger
+|   AP4_AtomMetaDataValue::ToInteger
 +---------------------------------------------------------------------*/
 long       
 AP4_AtomMetaDataValue::ToInteger()
@@ -461,7 +461,7 @@ AP4_AtomMetaDataValue::ToInteger()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_DataAtom::AP4_DataAtom
+|   AP4_DataAtom::AP4_DataAtom
 +---------------------------------------------------------------------*/
 AP4_DataAtom::AP4_DataAtom(AP4_Size size, AP4_ByteStream& stream) :
     AP4_Atom(AP4_ATOM_TYPE_DATA, size, false),
@@ -482,7 +482,7 @@ AP4_DataAtom::AP4_DataAtom(AP4_Size size, AP4_ByteStream& stream) :
 }
 
 /*----------------------------------------------------------------------
-|       AP4_DataAtom::~AP4_DataAtom
+|   AP4_DataAtom::~AP4_DataAtom
 +---------------------------------------------------------------------*/
 AP4_DataAtom::~AP4_DataAtom()
 {
@@ -490,7 +490,7 @@ AP4_DataAtom::~AP4_DataAtom()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_DataAtom::WriteFields
+|   AP4_DataAtom::WriteFields
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_DataAtom::WriteFields(AP4_ByteStream& stream)
@@ -498,7 +498,7 @@ AP4_DataAtom::WriteFields(AP4_ByteStream& stream)
     stream.WriteUI32(m_DataType);
     stream.WriteUI32(m_DataLang);
     if (m_Source) {
-        AP4_Size size = 0;
+        AP4_Size   size = 0;
         m_Source->GetSize(size);
         m_Source->Seek(0);
         m_Source->CopyTo(stream, size);
@@ -508,7 +508,7 @@ AP4_DataAtom::WriteFields(AP4_ByteStream& stream)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_DataAtom::InspectFields
+|   AP4_DataAtom::InspectFields
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_DataAtom::InspectFields(AP4_AtomInspector& inspector)
@@ -533,7 +533,7 @@ AP4_DataAtom::InspectFields(AP4_AtomInspector& inspector)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_DataAtom::LoadString
+|   AP4_DataAtom::LoadString
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_DataAtom::LoadString(AP4_String*& string)
@@ -546,18 +546,21 @@ AP4_DataAtom::LoadString(AP4_String*& string)
         AP4_Size size = 0;
         m_Source->GetSize(size);
         string = new AP4_String(size);
+
+        // read from the start of the stream
         m_Source->Seek(0);
         AP4_Result result = m_Source->Read(string->UseChars(), size);
         if (AP4_FAILED(result)) {
             delete string;
             string = NULL;
         }
+
         return result;
     }
 }
 
 /*----------------------------------------------------------------------
-|       AP4_DataAtom::LoadBytes
+|   AP4_DataAtom::LoadBytes
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_DataAtom::LoadBytes(AP4_DataBuffer& bytes)
@@ -578,7 +581,7 @@ AP4_DataAtom::LoadBytes(AP4_DataBuffer& bytes)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_DataAtom::LoadInteger
+|   AP4_DataAtom::LoadInteger
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_DataAtom::LoadInteger(long& value) 
@@ -604,7 +607,7 @@ AP4_DataAtom::LoadInteger(long& value)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_StringAtom::AP4_StringAtom
+|   AP4_StringAtom::AP4_StringAtom
 +---------------------------------------------------------------------*/
 AP4_StringAtom::AP4_StringAtom(Type type, AP4_Size size, AP4_ByteStream& stream) :
     AP4_Atom(type, size, true, stream),
@@ -614,7 +617,7 @@ AP4_StringAtom::AP4_StringAtom(Type type, AP4_Size size, AP4_ByteStream& stream)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_StringAtom::WriteFields
+|   AP4_StringAtom::WriteFields
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_StringAtom::WriteFields(AP4_ByteStream& stream)
@@ -623,7 +626,7 @@ AP4_StringAtom::WriteFields(AP4_ByteStream& stream)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_StringAtom::InspectFields
+|   AP4_StringAtom::InspectFields
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_StringAtom::InspectFields(AP4_AtomInspector& inspector)

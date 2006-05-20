@@ -46,31 +46,6 @@ export LIBRARIES_CPP
 Setup:
 	mkdir $(OUTPUT_DIR)
     
-# ------- Core -------------
-Core: Crypto MetaData
-	$(TITLE)
-	@$(INVOKE_SUBMAKE) -f $(BUILD_ROOT)/Makefiles/Core.mak
-
-# ------- System -----------
-System:
-	$(TITLE)
-	@$(INVOKE_SUBMAKE) -f $(BUILD_ROOT)/Makefiles/System.mak
-
-# ------- Codecs -----------
-Codecs:
-	$(TITLE)
-	@$(INVOKE_SUBMAKE) -f $(BUILD_ROOT)/Makefiles/Codecs.mak
-
-# ------- Crypto -----------
-Crypto:
-	$(TITLE)
-	@$(INVOKE_SUBMAKE) -f $(BUILD_ROOT)/Makefiles/Crypto.mak
-
-# ------- MetaData -----------
-MetaData:
-	$(TITLE)
-	@$(INVOKE_SUBMAKE) -f $(BUILD_ROOT)/Makefiles/MetaData.mak
-
 # ------- Apps -----------
 ALL_APPS = mp4dump mp4info mp42aac aac2mp4 mp4decrypt mp4encrypt mp4edit mp4extract mp4rtphintinfo mp4tag
 export ALL_APPS
@@ -84,47 +59,53 @@ TO_CLEAN += *.d *.o *.a *.exe $(ALL_APPS) SDK
 ##################################################################
 # end targets
 ##################################################################
-sdk: Core System Codecs Crypto Apps
+.PHONY: lib
+lib:
+	$(TITLE)
+	@$(INVOKE_SUBMAKE) -f $(BUILD_ROOT)/Makefiles/Lib.mak
+
+ .PHONY: sdk
+sdk:
 	$(TITLE)
 	@$(INVOKE_SUBMAKE) -f $(BUILD_ROOT)/Makefiles/SDK.mak
-
-mp4dump: Core System
+   
+mp4dump: lib
 	$(TITLE)
 	@$(INVOKE_SUBMAKE) -f $(BUILD_ROOT)/Makefiles/Mp4Dump.mak
 
-mp4info: Core MetaData System
+mp4info: lib
 	$(TITLE)
 	@$(INVOKE_SUBMAKE) -f $(BUILD_ROOT)/Makefiles/Mp4Info.mak
 
-mp42aac: Core MetaData System
+mp42aac: lib
 	$(TITLE)
 	@$(INVOKE_SUBMAKE) -f $(BUILD_ROOT)/Makefiles/Mp42Aac.mak
 
-aac2mp4: Core MetaData Codecs System
+aac2mp4: lib
 	$(TITLE)
 	@$(INVOKE_SUBMAKE) -f $(BUILD_ROOT)/Makefiles/Aac2Mp4.mak
 
-mp4decrypt: Core MetaData Crypto System
+mp4decrypt: lib
 	$(TITLE)
 	@$(INVOKE_SUBMAKE) -f $(BUILD_ROOT)/Makefiles/Mp4Decrypt.mak
 
-mp4encrypt: Core MetaData Crypto System
+mp4encrypt: lib
 	$(TITLE)
 	@$(INVOKE_SUBMAKE) -f $(BUILD_ROOT)/Makefiles/Mp4Encrypt.mak
 
-mp4edit: Core MetaData Crypto System
+mp4edit: lib
 	$(TITLE)
 	@$(INVOKE_SUBMAKE) -f $(BUILD_ROOT)/Makefiles/Mp4Edit.mak
 
-mp4extract: Core MetaData Crypto System
+mp4extract: lib
 	$(TITLE)
 	@$(INVOKE_SUBMAKE) -f $(BUILD_ROOT)/Makefiles/Mp4Extract.mak
 
-mp4rtphintinfo: Core MetaData Crypto System
+mp4rtphintinfo: lib
 	$(TITLE)
 	@$(INVOKE_SUBMAKE) -f $(BUILD_ROOT)/Makefiles/Mp4RtpHintInfo.mak
 
-mp4tag: Core MetaData Crypto System
+mp4tag: lib
 	$(TITLE)
 	@$(INVOKE_SUBMAKE) -f $(BUILD_ROOT)/Makefiles/Mp4Tag.mak
 

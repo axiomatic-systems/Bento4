@@ -2,7 +2,7 @@
 |
 |    AP4 - Utilities
 |
-|    Copyright 2002 Gilles Boccon-Gibod
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -27,12 +27,12 @@
  ****************************************************************/
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4Utils.h"
 
 /*----------------------------------------------------------------------
-|       AP4_BytesToUInt32BE
+|   AP4_BytesToUInt32BE
 +---------------------------------------------------------------------*/
 unsigned long 
 AP4_BytesToUInt32BE(const unsigned char* bytes)
@@ -45,7 +45,7 @@ AP4_BytesToUInt32BE(const unsigned char* bytes)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_BytesToUInt24BE
+|   AP4_BytesToUInt24BE
 +---------------------------------------------------------------------*/
 unsigned long
 AP4_BytesToUInt24BE(const unsigned char* bytes)
@@ -57,7 +57,7 @@ AP4_BytesToUInt24BE(const unsigned char* bytes)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_BytesToUInt16BE
+|   AP4_BytesToUInt16BE
 +---------------------------------------------------------------------*/
 unsigned short
 AP4_BytesToUInt16BE(const unsigned char* bytes)
@@ -68,7 +68,7 @@ AP4_BytesToUInt16BE(const unsigned char* bytes)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_BytesToInt32BE
+|   AP4_BytesToInt32BE
 +---------------------------------------------------------------------*/
 signed long 
 AP4_BytesToInt32BE(const unsigned char* bytes)
@@ -77,7 +77,7 @@ AP4_BytesToInt32BE(const unsigned char* bytes)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_BytesToInt16BE
+|   AP4_BytesToInt16BE
 +---------------------------------------------------------------------*/
 signed short
 AP4_BytesToInt16BE(const unsigned char* bytes)
@@ -86,7 +86,7 @@ AP4_BytesToInt16BE(const unsigned char* bytes)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_BytesFromUInt32BE
+|   AP4_BytesFromUInt32BE
 +---------------------------------------------------------------------*/
 void
 AP4_BytesFromUInt32BE(unsigned char* bytes, unsigned long value)
@@ -98,7 +98,7 @@ AP4_BytesFromUInt32BE(unsigned char* bytes, unsigned long value)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_BytesFromUInt24BE
+|   AP4_BytesFromUInt24BE
 +---------------------------------------------------------------------*/
 void
 AP4_BytesFromUInt24BE(unsigned char* bytes, unsigned long value)
@@ -109,7 +109,7 @@ AP4_BytesFromUInt24BE(unsigned char* bytes, unsigned long value)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_BytesFromUInt16BE
+|   AP4_BytesFromUInt16BE
 +---------------------------------------------------------------------*/
 void
 AP4_BytesFromUInt16BE(unsigned char* bytes, unsigned short value)
@@ -119,7 +119,7 @@ AP4_BytesFromUInt16BE(unsigned char* bytes, unsigned short value)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_MakePrefixString
+|   AP4_MakePrefixString
 +---------------------------------------------------------------------*/
 static void
 AP4_MakePrefixString(AP4_Offset indent, char* prefix, AP4_Size size)
@@ -133,7 +133,7 @@ AP4_MakePrefixString(AP4_Offset indent, char* prefix, AP4_Size size)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_DurationMsFromUnits
+|   AP4_DurationMsFromUnits
 +---------------------------------------------------------------------*/
 unsigned long
 AP4_DurationMsFromUnits(unsigned long units, unsigned long units_per_second)
@@ -143,7 +143,7 @@ AP4_DurationMsFromUnits(unsigned long units, unsigned long units_per_second)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_ConvertTime
+|   AP4_ConvertTime
 +---------------------------------------------------------------------*/
 unsigned long 
 AP4_ConvertTime(unsigned long time_value,
@@ -156,7 +156,7 @@ AP4_ConvertTime(unsigned long time_value,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_FormatFourChars
+|   AP4_FormatFourChars
 +---------------------------------------------------------------------*/
 void
 AP4_FormatFourChars(char* str, AP4_UI32 value) {
@@ -168,7 +168,7 @@ AP4_FormatFourChars(char* str, AP4_UI32 value) {
 }
 
 /*----------------------------------------------------------------------
-|       AP4_FormatFourCharsPrintable
+|   AP4_FormatFourCharsPrintable
 +---------------------------------------------------------------------*/
 void
 AP4_FormatFourCharsPrintable(char* str, AP4_UI32 value) {
@@ -181,7 +181,7 @@ AP4_FormatFourCharsPrintable(char* str, AP4_UI32 value) {
 }
 
 /*----------------------------------------------------------------------
-|       AP4_SplitArgs
+|   AP4_SplitArgs
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_SplitArgs(char* arg, char*& arg0, char*& arg1)
@@ -201,7 +201,7 @@ AP4_SplitArgs(char* arg, char*& arg0, char*& arg1)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_SplitArgs
+|   AP4_SplitArgs
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_SplitArgs(char* arg, char*& arg0, char*& arg1, char*& arg2)
@@ -212,7 +212,7 @@ AP4_SplitArgs(char* arg, char*& arg0, char*& arg1, char*& arg2)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_HexNibble
+|   AP4_HexNibble
 +---------------------------------------------------------------------*/
 static unsigned char
 AP4_HexNibble(char c)
@@ -239,7 +239,7 @@ AP4_HexNibble(char c)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_ParseHex
+|   AP4_ParseHex
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_ParseHex(const char* hex, unsigned char* bytes, unsigned int count)
@@ -252,7 +252,7 @@ AP4_ParseHex(const char* hex, unsigned char* bytes, unsigned int count)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_PrintInspector::AP4_PrintInspector
+|   AP4_PrintInspector::AP4_PrintInspector
 +---------------------------------------------------------------------*/
 AP4_PrintInspector::AP4_PrintInspector(AP4_ByteStream& stream) :
     m_Stream(&stream),
@@ -262,7 +262,7 @@ AP4_PrintInspector::AP4_PrintInspector(AP4_ByteStream& stream) :
 }
 
 /*----------------------------------------------------------------------
-|       AP4_PrintInspector::~AP4_PrintInspector
+|   AP4_PrintInspector::~AP4_PrintInspector
 +---------------------------------------------------------------------*/
 AP4_PrintInspector::~AP4_PrintInspector()
 {
@@ -270,7 +270,7 @@ AP4_PrintInspector::~AP4_PrintInspector()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_PrintInspector::StartElement
+|   AP4_PrintInspector::StartElement
 +---------------------------------------------------------------------*/
 void
 AP4_PrintInspector::StartElement(const char* name, const char* info)
@@ -289,7 +289,7 @@ AP4_PrintInspector::StartElement(const char* name, const char* info)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_PrintInspector::EndElement
+|   AP4_PrintInspector::EndElement
 +---------------------------------------------------------------------*/
 void
 AP4_PrintInspector::EndElement()
@@ -298,7 +298,7 @@ AP4_PrintInspector::EndElement()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_PrintInspector::AddField
+|   AP4_PrintInspector::AddField
 +---------------------------------------------------------------------*/
 void
 AP4_PrintInspector::AddField(const char* name, const char* value, FormatHint hint)
@@ -314,7 +314,7 @@ AP4_PrintInspector::AddField(const char* name, const char* value, FormatHint hin
 }
 
 /*----------------------------------------------------------------------
-|       AP4_PrintInspector::AddField
+|   AP4_PrintInspector::AddField
 +---------------------------------------------------------------------*/
 void
 AP4_PrintInspector::AddField(const char* name, AP4_UI32 value, FormatHint hint)
@@ -332,7 +332,7 @@ AP4_PrintInspector::AddField(const char* name, AP4_UI32 value, FormatHint hint)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_PrintInspector::AddField
+|   AP4_PrintInspector::AddField
 +---------------------------------------------------------------------*/
 void
 AP4_PrintInspector::AddField(const char*          name, 

@@ -2,7 +2,7 @@
 |
 |    AP4 - sdp Atoms 
 |
-|    Copyright 2002-2005 Gilles Boccon-Gibod & Julien Boeuf
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -27,7 +27,7 @@
 ****************************************************************/
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4SdpAtom.h"
 #include "Ap4AtomFactory.h"
@@ -35,7 +35,7 @@
 
 
 /*----------------------------------------------------------------------
-|       AP4_SdpAtom::AP4_SdpAtom
+|   AP4_SdpAtom::AP4_SdpAtom
 +---------------------------------------------------------------------*/
 AP4_SdpAtom::AP4_SdpAtom(const char* sdp_text) :
     AP4_Atom(AP4_ATOM_TYPE_SDP, AP4_ATOM_HEADER_SIZE, false),
@@ -45,7 +45,7 @@ AP4_SdpAtom::AP4_SdpAtom(const char* sdp_text) :
 }
 
 /*----------------------------------------------------------------------
-|       AP4_SdpAtom::AP4_SdpAtom
+|   AP4_SdpAtom::AP4_SdpAtom
 +---------------------------------------------------------------------*/
 AP4_SdpAtom::AP4_SdpAtom(AP4_Size size, AP4_ByteStream& stream) :
     AP4_Atom(AP4_ATOM_TYPE_SDP, size, false, stream)
@@ -62,7 +62,7 @@ AP4_SdpAtom::AP4_SdpAtom(AP4_Size size, AP4_ByteStream& stream) :
 }
 
 /*----------------------------------------------------------------------
-|       AP4_SdpAtom::WriteFields
+|   AP4_SdpAtom::WriteFields
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_SdpAtom::WriteFields(AP4_ByteStream& stream)
@@ -79,7 +79,7 @@ AP4_SdpAtom::WriteFields(AP4_ByteStream& stream)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_SdpAtom::InspectFields
+|   AP4_SdpAtom::InspectFields
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_SdpAtom::InspectFields(AP4_AtomInspector& inspector)
@@ -90,7 +90,7 @@ AP4_SdpAtom::InspectFields(AP4_AtomInspector& inspector)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_SdpAtom::GetSdpText
+|   AP4_SdpAtom::GetSdpText
 +---------------------------------------------------------------------*/
 const AP4_String&
 AP4_SdpAtom::GetSdpText() const

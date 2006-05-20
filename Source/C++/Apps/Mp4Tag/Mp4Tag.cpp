@@ -27,7 +27,7 @@
  ****************************************************************/
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include <stdio.h>
 #include <stdlib.h>
@@ -35,14 +35,14 @@
 #include "Ap4.h"
 
 /*----------------------------------------------------------------------
-|       constants
+|   constants
 +---------------------------------------------------------------------*/
 #define BANNER "MP4 File Tagger - Version 0.2a "\
                "(Bento4 Version " AP4_VERSION_STRING ")\n"\
                "(c) 2002-2005 Gilles Boccon-Gibod & Julien Boeuf"
 
 /*----------------------------------------------------------------------
-|       types
+|   types
 +---------------------------------------------------------------------*/
 class AP4_TaggerCommand 
 {
@@ -77,7 +77,7 @@ typedef struct {
 } TableCell;
 
 /*----------------------------------------------------------------------
-|       options
+|   options
 +---------------------------------------------------------------------*/
 static struct {
     const char*                 input_filename;
@@ -91,7 +91,7 @@ static struct {
 static const int LINE_WIDTH = 79;
 
 /*----------------------------------------------------------------------
-|       PrintUsageAndExit
+|   PrintUsageAndExit
 +---------------------------------------------------------------------*/
 static void
 PrintUsageAndExit()
@@ -124,7 +124,7 @@ PrintUsageAndExit()
 }
 
 /*----------------------------------------------------------------------
-|       ParseCommandLine
+|   ParseCommandLine
 +---------------------------------------------------------------------*/
 static void
 ParseCommandLine(int argc, char** argv) 
@@ -152,7 +152,7 @@ ParseCommandLine(int argc, char** argv)
 }
 
 /*----------------------------------------------------------------------
-|       PrintTableSeparator
+|   PrintTableSeparator
 +---------------------------------------------------------------------*/
 static void
 PrintTableSeparator(TableCell* cells, AP4_Cardinal cell_count)
@@ -168,7 +168,7 @@ PrintTableSeparator(TableCell* cells, AP4_Cardinal cell_count)
 }
 
 /*----------------------------------------------------------------------
-|       PrintTableRow
+|   PrintTableRow
 +---------------------------------------------------------------------*/
 static void
 PrintTableRow(TableCell* cells, AP4_Cardinal cell_count)
@@ -185,7 +185,7 @@ PrintTableRow(TableCell* cells, AP4_Cardinal cell_count)
 }
 
 /*----------------------------------------------------------------------
-|       TypeCode
+|   TypeCode
 +---------------------------------------------------------------------*/
 static const char*
 TypeCode(AP4_MetaData::Value::Type type) {
@@ -198,7 +198,7 @@ TypeCode(AP4_MetaData::Value::Type type) {
 }
 
 /*----------------------------------------------------------------------
-|       ListKeys
+|   ListKeys
 +---------------------------------------------------------------------*/
 static void
 ListKeys()
@@ -237,7 +237,7 @@ ListKeys()
 }
 
 /*----------------------------------------------------------------------
-|       ListSymbols
+|   ListSymbols
 +---------------------------------------------------------------------*/
 static void
 ListSymbols()
@@ -246,7 +246,7 @@ ListSymbols()
 }
 
 /*----------------------------------------------------------------------
-|       ShowTag
+|   ShowTag
 +---------------------------------------------------------------------*/
 static void
 ShowTag(AP4_MetaData::Entry* entry)
@@ -267,7 +267,7 @@ ShowTag(AP4_MetaData::Entry* entry)
 }
 
 /*----------------------------------------------------------------------
-|       ShowTags
+|   ShowTags
 +---------------------------------------------------------------------*/
 static void
 ShowTags(AP4_File* file) 
@@ -290,7 +290,7 @@ ShowTags(AP4_File* file)
 }
 
 /*----------------------------------------------------------------------
-|       main
+|   main
 +---------------------------------------------------------------------*/
 int
 main(int argc, char** argv)

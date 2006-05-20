@@ -2,7 +2,7 @@
 |
 |    AP4 - Sample Description Objects
 |
-|    Copyright 2002 Gilles Boccon-Gibod & Julien Boeuf
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -27,14 +27,14 @@
  ****************************************************************/
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4SampleDescription.h"
 #include "Ap4EsDescriptor.h"
 #include "Ap4SampleEntry.h"
 
 /*----------------------------------------------------------------------
-|       AP4_UnknownSampleDescription::AP4_UnknownSampleDescription
+|   AP4_UnknownSampleDescription::AP4_UnknownSampleDescription
 +---------------------------------------------------------------------*/
 AP4_UnknownSampleDescription::AP4_UnknownSampleDescription(
     AP4_UI32 format) :
@@ -43,14 +43,14 @@ AP4_UnknownSampleDescription::AP4_UnknownSampleDescription(
 }
 
 /*----------------------------------------------------------------------
-|       AP4_UnknownSampleDescription::~AP4_UnknownSampleDescription
+|   AP4_UnknownSampleDescription::~AP4_UnknownSampleDescription
 +---------------------------------------------------------------------*/
 AP4_UnknownSampleDescription::~AP4_UnknownSampleDescription()
 {
 }
 
 /*----------------------------------------------------------------------
-|       AP4_UnknownSampleDescription::ToAtom
+|   AP4_UnknownSampleDescription::ToAtom
 +---------------------------------------------------------------------*/
 AP4_Atom*
 AP4_UnknownSampleDescription::ToAtom() const
@@ -59,7 +59,7 @@ AP4_UnknownSampleDescription::ToAtom() const
 }
 
 /*----------------------------------------------------------------------
-|       AP4_MpegSampleDescription::AP4_MpegSampleDescription
+|   AP4_MpegSampleDescription::AP4_MpegSampleDescription
 +---------------------------------------------------------------------*/
 AP4_MpegSampleDescription::AP4_MpegSampleDescription(AP4_UI32      format,
                                                      AP4_EsdsAtom* esds) :
@@ -95,7 +95,7 @@ AP4_MpegSampleDescription::AP4_MpegSampleDescription(AP4_UI32      format,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_MpegSampleDescription::AP4_MpegSampleDescription
+|   AP4_MpegSampleDescription::AP4_MpegSampleDescription
 +---------------------------------------------------------------------*/
 AP4_MpegSampleDescription::AP4_MpegSampleDescription(
     AP4_UI32              format,
@@ -119,7 +119,7 @@ AP4_MpegSampleDescription::AP4_MpegSampleDescription(
 }
 
 /*----------------------------------------------------------------------
-|       AP4_MpegSampleDescription::~AP4_MpegSampleDescription
+|   AP4_MpegSampleDescription::~AP4_MpegSampleDescription
 +---------------------------------------------------------------------*/
 AP4_MpegSampleDescription::~AP4_MpegSampleDescription()
 {
@@ -127,7 +127,7 @@ AP4_MpegSampleDescription::~AP4_MpegSampleDescription()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_MpegSampleDescription::CreateEsDescriptor
+|   AP4_MpegSampleDescription::CreateEsDescriptor
 +---------------------------------------------------------------------*/
 AP4_EsDescriptor* 
 AP4_MpegSampleDescription::CreateEsDescriptor() const
@@ -151,7 +151,7 @@ AP4_MpegSampleDescription::CreateEsDescriptor() const
 }
 
 /*----------------------------------------------------------------------
-|       AP4_MpegSystemSampleDescription::AP4_MpegSystemSampleDescription
+|   AP4_MpegSystemSampleDescription::AP4_MpegSystemSampleDescription
 +---------------------------------------------------------------------*/
 AP4_MpegSystemSampleDescription::AP4_MpegSystemSampleDescription(AP4_EsdsAtom* esds) :
     AP4_MpegSampleDescription(AP4_ATOM_TYPE_MP4S, esds)
@@ -159,7 +159,7 @@ AP4_MpegSystemSampleDescription::AP4_MpegSystemSampleDescription(AP4_EsdsAtom* e
 }
 
 /*----------------------------------------------------------------------
-|       AP4_MpegSystemSampleDescription::AP4_MpegSystemSampleDescription
+|   AP4_MpegSystemSampleDescription::AP4_MpegSystemSampleDescription
 +---------------------------------------------------------------------*/
 AP4_MpegSystemSampleDescription::AP4_MpegSystemSampleDescription(
     StreamType            stream_type,
@@ -179,7 +179,7 @@ AP4_MpegSystemSampleDescription::AP4_MpegSystemSampleDescription(
 }
 
 /*----------------------------------------------------------------------
-|       AP4_MpegSystemSampleDescription::ToAtom
+|   AP4_MpegSystemSampleDescription::ToAtom
 +---------------------------------------------------------------------*/
 AP4_Atom*
 AP4_MpegSystemSampleDescription::ToAtom() const
@@ -188,7 +188,7 @@ AP4_MpegSystemSampleDescription::ToAtom() const
 }
 
 /*----------------------------------------------------------------------
-|       AP4_MpegAudioSampleDescription::AP4_MpegAudioSampleDescription
+|   AP4_MpegAudioSampleDescription::AP4_MpegAudioSampleDescription
 +---------------------------------------------------------------------*/
 AP4_MpegAudioSampleDescription::AP4_MpegAudioSampleDescription(
     AP4_EsdsAtom* esds,
@@ -201,7 +201,7 @@ AP4_MpegAudioSampleDescription::AP4_MpegAudioSampleDescription(
 }
 
 /*----------------------------------------------------------------------
-|       AP4_MpegAudioSampleDescription::AP4_MpegAudioSampleDescription
+|   AP4_MpegAudioSampleDescription::AP4_MpegAudioSampleDescription
 +---------------------------------------------------------------------*/
 AP4_MpegAudioSampleDescription::AP4_MpegAudioSampleDescription(
     OTI                   oti,
@@ -222,7 +222,7 @@ AP4_MpegAudioSampleDescription::AP4_MpegAudioSampleDescription(
 }
 
 /*----------------------------------------------------------------------
-|       AP4_MpegAudioSampleDescription::ToAtom
+|   AP4_MpegAudioSampleDescription::ToAtom
 +---------------------------------------------------------------------*/
 AP4_Atom*
 AP4_MpegAudioSampleDescription::ToAtom() const
@@ -234,7 +234,7 @@ AP4_MpegAudioSampleDescription::ToAtom() const
 }
 
 /*----------------------------------------------------------------------
-|       AP4_MpegVideoSampleDescription::AP4_MpegVideoSampleDescription
+|   AP4_MpegVideoSampleDescription::AP4_MpegVideoSampleDescription
 +---------------------------------------------------------------------*/
 AP4_MpegVideoSampleDescription::AP4_MpegVideoSampleDescription(
     AP4_EsdsAtom* esds,
@@ -248,7 +248,7 @@ AP4_MpegVideoSampleDescription::AP4_MpegVideoSampleDescription(
 }
 
 /*----------------------------------------------------------------------
-|       AP4_MpegVideoSampleDescription::AP4_MpegVideoSampleDescription
+|   AP4_MpegVideoSampleDescription::AP4_MpegVideoSampleDescription
 +---------------------------------------------------------------------*/
 AP4_MpegVideoSampleDescription::AP4_MpegVideoSampleDescription(
     OTI                   oti,
@@ -272,7 +272,7 @@ AP4_MpegVideoSampleDescription::AP4_MpegVideoSampleDescription(
 }
 
 /*----------------------------------------------------------------------
-|       AP4_MpegVideoSampleDescription::ToAtom
+|   AP4_MpegVideoSampleDescription::ToAtom
 +---------------------------------------------------------------------*/
 AP4_Atom*
 AP4_MpegVideoSampleDescription::ToAtom() const
@@ -285,7 +285,7 @@ AP4_MpegVideoSampleDescription::ToAtom() const
 }
 
 /*----------------------------------------------------------------------
-|       AP4_MpegSampleDescription::GetStreamTypeString
+|   AP4_MpegSampleDescription::GetStreamTypeString
 +---------------------------------------------------------------------*/
 const char* 
 AP4_MpegSampleDescription::GetStreamTypeString(StreamType type)
@@ -306,7 +306,7 @@ AP4_MpegSampleDescription::GetStreamTypeString(StreamType type)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_MpegSampleDescription::GetObjectTypeString
+|   AP4_MpegSampleDescription::GetObjectTypeString
 +---------------------------------------------------------------------*/
 const char* 
 AP4_MpegSampleDescription::GetObjectTypeString(OTI oti)

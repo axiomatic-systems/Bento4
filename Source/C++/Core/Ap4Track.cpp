@@ -2,7 +2,7 @@
 |
 |    AP4 - Track Objects
 |
-|    Copyright 2002 Gilles Boccon-Gibod & Julien Boeuf
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -27,7 +27,7 @@
  ****************************************************************/
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4ByteStream.h"
 #include "Ap4HdlrAtom.h"
@@ -43,7 +43,7 @@
 #include "Ap4MdhdAtom.h"
 
 /*----------------------------------------------------------------------
-|       AP4_Track::AP4_Track
+|   AP4_Track::AP4_Track
 +---------------------------------------------------------------------*/
 AP4_Track::AP4_Track(Type             type,
                      AP4_SampleTable* sample_table,
@@ -114,7 +114,7 @@ AP4_Track::AP4_Track(Type             type,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_Track::AP4_Track
+|   AP4_Track::AP4_Track
 +---------------------------------------------------------------------*/
 AP4_Track::AP4_Track(AP4_TrakAtom&   atom, 
                      AP4_ByteStream& sample_stream, 
@@ -161,7 +161,7 @@ AP4_Track::AP4_Track(AP4_TrakAtom&   atom,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_Track::~AP4_Track
+|   AP4_Track::~AP4_Track
 +---------------------------------------------------------------------*/
 AP4_Track::~AP4_Track()
 {
@@ -170,7 +170,7 @@ AP4_Track::~AP4_Track()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_Track::GetId
+|   AP4_Track::GetId
 +---------------------------------------------------------------------*/
 AP4_UI32
 AP4_Track::GetId()
@@ -179,7 +179,7 @@ AP4_Track::GetId()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_Track::SetId
+|   AP4_Track::SetId
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_Track::SetId(AP4_UI32 id)
@@ -190,7 +190,7 @@ AP4_Track::SetId(AP4_UI32 id)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_Track::GetDuration
+|   AP4_Track::GetDuration
 +---------------------------------------------------------------------*/
 AP4_UI32
 AP4_Track::GetDuration()
@@ -199,7 +199,7 @@ AP4_Track::GetDuration()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_Track::GetDurationMs
+|   AP4_Track::GetDurationMs
 +---------------------------------------------------------------------*/
 AP4_Duration
 AP4_Track::GetDurationMs()
@@ -209,7 +209,7 @@ AP4_Track::GetDurationMs()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_Track::GetSampleCount
+|   AP4_Track::GetSampleCount
 +---------------------------------------------------------------------*/
 AP4_Cardinal
 AP4_Track::GetSampleCount()
@@ -219,7 +219,7 @@ AP4_Track::GetSampleCount()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_Track::GetSample
+|   AP4_Track::GetSample
 +---------------------------------------------------------------------*/
 AP4_Result 
 AP4_Track::GetSample(AP4_Ordinal index, AP4_Sample& sample)
@@ -229,7 +229,7 @@ AP4_Track::GetSample(AP4_Ordinal index, AP4_Sample& sample)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_Track::GetSampleDescription
+|   AP4_Track::GetSampleDescription
 +---------------------------------------------------------------------*/
 AP4_SampleDescription*
 AP4_Track::GetSampleDescription(AP4_Ordinal index)
@@ -239,7 +239,7 @@ AP4_Track::GetSampleDescription(AP4_Ordinal index)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_Track::ReadSample
+|   AP4_Track::ReadSample
 +---------------------------------------------------------------------*/
 AP4_Result   
 AP4_Track::ReadSample(AP4_Ordinal     index, 
@@ -257,7 +257,7 @@ AP4_Track::ReadSample(AP4_Ordinal     index,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_Track::GetSampleIndexForTimeStampMs
+|   AP4_Track::GetSampleIndexForTimeStampMs
 +---------------------------------------------------------------------*/
 AP4_Result  
 AP4_Track::GetSampleIndexForTimeStampMs(AP4_TimeStamp ts, AP4_Ordinal& index)
@@ -269,7 +269,7 @@ AP4_Track::GetSampleIndexForTimeStampMs(AP4_TimeStamp ts, AP4_Ordinal& index)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_Track::SetMovieTimeScale
+|   AP4_Track::SetMovieTimeScale
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_Track::SetMovieTimeScale(AP4_UI32 time_scale)
@@ -289,7 +289,7 @@ AP4_Track::SetMovieTimeScale(AP4_UI32 time_scale)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_Track::GetMediaTimeScale
+|   AP4_Track::GetMediaTimeScale
 +---------------------------------------------------------------------*/
 AP4_UI32
 AP4_Track::GetMediaTimeScale()

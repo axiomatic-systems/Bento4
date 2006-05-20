@@ -2,7 +2,7 @@
 |
 |    AP4 - ES Descriptors
 |
-|    Copyright 2002 Gilles Boccon-Gibod
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -27,14 +27,14 @@
  ****************************************************************/
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4EsDescriptor.h"
 #include "Ap4DescriptorFactory.h"
 #include "Ap4Utils.h"
 
 /*----------------------------------------------------------------------
-|       AP4_EsDescriptor::AP4_EsDescriptor
+|   AP4_EsDescriptor::AP4_EsDescriptor
 +---------------------------------------------------------------------*/
 AP4_EsDescriptor::AP4_EsDescriptor(AP4_UI16 es_id) :
     AP4_Descriptor(AP4_DESCRIPTOR_TAG_ES, 2, 2+1),
@@ -47,7 +47,7 @@ AP4_EsDescriptor::AP4_EsDescriptor(AP4_UI16 es_id) :
 }
 
 /*----------------------------------------------------------------------
-|       AP4_EsDescriptor::AP4_EsDescriptor
+|   AP4_EsDescriptor::AP4_EsDescriptor
 +---------------------------------------------------------------------*/
 AP4_EsDescriptor::AP4_EsDescriptor(AP4_ByteStream& stream, 
                                    AP4_Size        header_size,
@@ -102,7 +102,7 @@ AP4_EsDescriptor::AP4_EsDescriptor(AP4_ByteStream& stream,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_EsDescriptor::~AP4_EsDescriptor
+|   AP4_EsDescriptor::~AP4_EsDescriptor
 +---------------------------------------------------------------------*/
 AP4_EsDescriptor::~AP4_EsDescriptor()
 {
@@ -110,7 +110,7 @@ AP4_EsDescriptor::~AP4_EsDescriptor()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_EsDescriptor::WriteFields
+|   AP4_EsDescriptor::WriteFields
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_EsDescriptor::WriteFields(AP4_ByteStream& stream)
@@ -151,7 +151,7 @@ AP4_EsDescriptor::WriteFields(AP4_ByteStream& stream)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_EsDescriptor::Inspect
+|   AP4_EsDescriptor::Inspect
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_EsDescriptor::Inspect(AP4_AtomInspector& inspector)
@@ -172,7 +172,7 @@ AP4_EsDescriptor::Inspect(AP4_AtomInspector& inspector)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_EsDescriptor::AddSubDescriptor
+|   AP4_EsDescriptor::AddSubDescriptor
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_EsDescriptor::AddSubDescriptor(AP4_Descriptor* descriptor)
@@ -184,7 +184,7 @@ AP4_EsDescriptor::AddSubDescriptor(AP4_Descriptor* descriptor)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_EsDescriptor::GetDecoderConfigDescriptor
+|   AP4_EsDescriptor::GetDecoderConfigDescriptor
 +---------------------------------------------------------------------*/
 const AP4_DecoderConfigDescriptor*
 AP4_EsDescriptor::GetDecoderConfigDescriptor() const

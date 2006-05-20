@@ -2,7 +2,7 @@
 |
 |    AP4 - File
 |
-|    Copyright 2002 Gilles Boccon-Gibod
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -27,7 +27,7 @@
  ****************************************************************/
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4File.h"
 #include "Ap4Atom.h"
@@ -38,7 +38,7 @@
 #include "Ap4Movie.h"
 
 /*----------------------------------------------------------------------
-|       AP4_File::AP4_File
+|   AP4_File::AP4_File
 +---------------------------------------------------------------------*/
 AP4_File::AP4_File(AP4_Movie* movie) :
     m_Movie(movie)
@@ -46,7 +46,7 @@ AP4_File::AP4_File(AP4_Movie* movie) :
 }
 
 /*----------------------------------------------------------------------
-|       AP4_File::AP4_File
+|   AP4_File::AP4_File
 +---------------------------------------------------------------------*/
 AP4_File::AP4_File(AP4_ByteStream& stream, AP4_AtomFactory& atom_factory) :
     m_Movie(NULL)
@@ -67,7 +67,7 @@ AP4_File::AP4_File(AP4_ByteStream& stream, AP4_AtomFactory& atom_factory) :
 }
     
 /*----------------------------------------------------------------------
-|       AP4_File::~AP4_File
+|   AP4_File::~AP4_File
 +---------------------------------------------------------------------*/
 AP4_File::~AP4_File()
 {
@@ -76,7 +76,7 @@ AP4_File::~AP4_File()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_File::Inspect
+|   AP4_File::Inspect
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_File::Inspect(AP4_AtomInspector& inspector)

@@ -2,7 +2,7 @@
 |
 |    AP4 - Atoms 
 |
-|    Copyright 2002 Gilles Boccon-Gibod
+|    Copyright 2002-2006 Gilles Boccon-Gibod
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -27,7 +27,7 @@
  ****************************************************************/
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4Types.h"
 #include "Ap4Atom.h"
@@ -37,7 +37,7 @@
 #include "Ap4Debug.h"
 
 /*----------------------------------------------------------------------
-|       AP4_Atom::AP4_Atom
+|   AP4_Atom::AP4_Atom
 +---------------------------------------------------------------------*/
 AP4_Atom::AP4_Atom(Type type, 
                    bool is_full) : 
@@ -51,7 +51,7 @@ AP4_Atom::AP4_Atom(Type type,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_Atom::AP4_Atom
+|   AP4_Atom::AP4_Atom
 +---------------------------------------------------------------------*/
 AP4_Atom::AP4_Atom(Type     type, 
                    AP4_Size size,
@@ -66,7 +66,7 @@ AP4_Atom::AP4_Atom(Type     type,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_Atom::AP4_Atom
+|   AP4_Atom::AP4_Atom
 +---------------------------------------------------------------------*/
 AP4_Atom::AP4_Atom(Type            type, 
                    AP4_Size        size,
@@ -90,7 +90,7 @@ AP4_Atom::AP4_Atom(Type            type,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_Atom::GetHeaderSize
+|   AP4_Atom::GetHeaderSize
 +---------------------------------------------------------------------*/
 AP4_Size
 AP4_Atom::GetHeaderSize() const
@@ -99,7 +99,7 @@ AP4_Atom::GetHeaderSize() const
 }
 
 /*----------------------------------------------------------------------
-|       AP4_Atom::WriteHeader
+|   AP4_Atom::WriteHeader
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_Atom::WriteHeader(AP4_ByteStream& stream)
@@ -126,7 +126,7 @@ AP4_Atom::WriteHeader(AP4_ByteStream& stream)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_Atom::Write
+|   AP4_Atom::Write
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_Atom::Write(AP4_ByteStream& stream)
@@ -156,7 +156,7 @@ AP4_Atom::Write(AP4_ByteStream& stream)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_Atom::Inspect
+|   AP4_Atom::Inspect
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_Atom::Inspect(AP4_AtomInspector& inspector)
@@ -169,7 +169,7 @@ AP4_Atom::Inspect(AP4_AtomInspector& inspector)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_Atom::InspectHeader
+|   AP4_Atom::InspectHeader
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_Atom::InspectHeader(AP4_AtomInspector& inspector)
@@ -189,7 +189,7 @@ AP4_Atom::InspectHeader(AP4_AtomInspector& inspector)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_Atom::Detach
+|   AP4_Atom::Detach
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_Atom::Detach() 
@@ -202,7 +202,7 @@ AP4_Atom::Detach()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_UnknownAtom::AP4_UnknownAtom
+|   AP4_UnknownAtom::AP4_UnknownAtom
 +---------------------------------------------------------------------*/
 AP4_UnknownAtom::AP4_UnknownAtom(Type            type, 
                                  AP4_Size        size,
@@ -219,7 +219,7 @@ AP4_UnknownAtom::AP4_UnknownAtom(Type            type,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_UnknownAtom::~AP4_UnknownAtom
+|   AP4_UnknownAtom::~AP4_UnknownAtom
 +---------------------------------------------------------------------*/
 AP4_UnknownAtom::~AP4_UnknownAtom()
 {
@@ -230,7 +230,7 @@ AP4_UnknownAtom::~AP4_UnknownAtom()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_UnknownAtom::WriteFields
+|   AP4_UnknownAtom::WriteFields
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_UnknownAtom::WriteFields(AP4_ByteStream& stream)
@@ -243,6 +243,10 @@ AP4_UnknownAtom::WriteFields(AP4_ByteStream& stream)
         return AP4_FAILURE;
     }
 
+    // remember the source position
+    AP4_Offset position;
+    m_SourceStream->Tell(position);
+
     // seek into the source at the stored offset
     result = m_SourceStream->Seek(m_SourceOffset);
     if (AP4_FAILED(result)) return result;
@@ -251,11 +255,14 @@ AP4_UnknownAtom::WriteFields(AP4_ByteStream& stream)
     result = m_SourceStream->CopyTo(stream, m_Size-GetHeaderSize());
     if (AP4_FAILED(result)) return result;
 
+    // restore the original stream position
+    m_SourceStream->Seek(position);
+
     return AP4_SUCCESS;
 }
 
 /*----------------------------------------------------------------------
-|       AP4_AtomParent::~AP4_AtomParent
+|   AP4_AtomParent::~AP4_AtomParent
 +---------------------------------------------------------------------*/
 AP4_AtomParent::~AP4_AtomParent()
 {
@@ -263,7 +270,7 @@ AP4_AtomParent::~AP4_AtomParent()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_AtomParent::AddChild
+|   AP4_AtomParent::AddChild
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_AtomParent::AddChild(AP4_Atom* child, int position)
@@ -304,7 +311,7 @@ AP4_AtomParent::AddChild(AP4_Atom* child, int position)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_AtomParent::RemoveChild
+|   AP4_AtomParent::RemoveChild
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_AtomParent::RemoveChild(AP4_Atom* child)
@@ -326,7 +333,7 @@ AP4_AtomParent::RemoveChild(AP4_Atom* child)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_AtomParent::DeleteChild
+|   AP4_AtomParent::DeleteChild
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_AtomParent::DeleteChild(AP4_Atom::Type type)
@@ -346,7 +353,7 @@ AP4_AtomParent::DeleteChild(AP4_Atom::Type type)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_AtomParent::GetChild
+|   AP4_AtomParent::GetChild
 +---------------------------------------------------------------------*/
 AP4_Atom*
 AP4_AtomParent::GetChild(AP4_Atom::Type type, AP4_Ordinal index /* = 0 */) const
@@ -361,7 +368,7 @@ AP4_AtomParent::GetChild(AP4_Atom::Type type, AP4_Ordinal index /* = 0 */) const
 }
 
 /*----------------------------------------------------------------------
-|       AP4_AtomParent::FindChild
+|   AP4_AtomParent::FindChild
 +---------------------------------------------------------------------*/
 AP4_Atom*
 AP4_AtomParent::FindChild(const char* path, 

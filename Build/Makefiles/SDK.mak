@@ -10,11 +10,7 @@ all: sdk
 ##########################################################################
 # includes
 ##########################################################################
-include $(BUILD_ROOT)/Makefiles/Crypto.exp
-include $(BUILD_ROOT)/Makefiles/Core.exp
-include $(BUILD_ROOT)/Makefiles/Codecs.exp
-include $(BUILD_ROOT)/Makefiles/System.exp
-include $(BUILD_ROOT)/Makefiles/MetaData.exp
+include $(BUILD_ROOT)/Makefiles/Lib.exp
 
 ##########################################################################
 # variables

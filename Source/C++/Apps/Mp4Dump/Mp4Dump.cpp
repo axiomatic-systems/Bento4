@@ -2,7 +2,7 @@
 |
 |    AP4 - MP4 File Dumper
 |
-|    Copyright 2002 Gilles Boccon-Gibod
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -27,7 +27,7 @@
  ****************************************************************/
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include <stdio.h>
 #include <stdlib.h>
@@ -35,13 +35,13 @@
 #include "Ap4.h"
 
 /*----------------------------------------------------------------------
-|       constants
+|   constants
 +---------------------------------------------------------------------*/
 #define BANNER "MP4 File Dumper - Version 0.2a\n"\
                "(c) 2002-2005 Gilles Boccon-Gibod & Julien Boeuf"
  
 /*----------------------------------------------------------------------
-|       PrintUsageAndExit
+|   PrintUsageAndExit
 +---------------------------------------------------------------------*/
 static void
 PrintUsageAndExit()
@@ -55,7 +55,7 @@ PrintUsageAndExit()
 }
 
 /*----------------------------------------------------------------------
-|       DumpTrackData
+|   DumpTrackData
 +---------------------------------------------------------------------*/
 void
 DumpTrackData(AP4_File* mp4_file, AP4_UI32 track_id, AP4_ByteStream* track_data)
@@ -79,7 +79,7 @@ DumpTrackData(AP4_File* mp4_file, AP4_UI32 track_id, AP4_ByteStream* track_data)
 }
 
 /*----------------------------------------------------------------------
-|       main
+|   main
 +---------------------------------------------------------------------*/
 int
 main(int argc, char** argv)
@@ -130,13 +130,21 @@ main(int argc, char** argv)
 
     // inspect the atoms one by one
     AP4_Atom* atom;
-    //for (int i=0; i<1000; i++) {
     AP4_AtomFactory& atom_factory = AP4_DefaultAtomFactory::Instance;
-    //MyTypeHandler my_type_handler;
-    //atom_factory.AddTypeHandler(&my_type_handler);
-    while (atom_factory.CreateAtomFromStream(*input, atom) == 
-        AP4_SUCCESS) {
+    while (atom_factory.CreateAtomFromStream(*input, atom) == AP4_SUCCESS) {
+        // remember the current stream position because the Inspect method
+        // may read from the stream (there may be stream references in some
+        // of the atoms
+        AP4_Offset position;
+        input->Tell(position);
+
+        // inspect the atom
         atom->Inspect(inspector);
+
+        // restore the previous stream position
+        input->Seek(position);
+
+        // destroy the atom
         delete atom;
     }  
 

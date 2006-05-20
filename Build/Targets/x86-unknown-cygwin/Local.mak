@@ -18,7 +18,7 @@ ROOT   = ../../../..
 AUTODEP_CPP = gcc -MM
 
 # how to archive of object files
-ARCHIVE = ld -r
+ARCHIVE = ar rs
 
 # how to make a library
 MAKELIB = ar rs
@@ -49,6 +49,7 @@ DEFINES_CPP = -D_REENTRANT -DAP4_PLATFORM_BYTE_ORDER=AP4_PLATFORM_LITTLE_ENDIAN
 
 # warning flags
 WARNINGS_CPP = -Wall -Werror -Wshadow -Wpointer-arith -Wcast-qual 
+
 # include directories
 INCLUDES_CPP =
 

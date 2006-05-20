@@ -2,7 +2,7 @@
 |
 |    AP4 - Data Buffer
 |
-|    Copyright 2002-2005 Gilles Boccon-Gibod & Julien Boeuf
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -27,13 +27,13 @@
  ****************************************************************/
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4DataBuffer.h"
 #include "Ap4Utils.h"
 
 /*----------------------------------------------------------------------
-|       AP4_DataBuffer::AP4_DataBuffer
+|   AP4_DataBuffer::AP4_DataBuffer
 +---------------------------------------------------------------------*/
 AP4_DataBuffer::AP4_DataBuffer() :
     m_BufferIsLocal(true),
@@ -44,7 +44,7 @@ AP4_DataBuffer::AP4_DataBuffer() :
 }
 
 /*----------------------------------------------------------------------
-|       AP4_DataBuffer::AP4_DataBuffer
+|   AP4_DataBuffer::AP4_DataBuffer
 +---------------------------------------------------------------------*/
 AP4_DataBuffer::AP4_DataBuffer(AP4_Size buffer_size) :
     m_BufferIsLocal(true),
@@ -56,7 +56,7 @@ AP4_DataBuffer::AP4_DataBuffer(AP4_Size buffer_size) :
 }
 
 /*----------------------------------------------------------------------
-|       AP4_DataBuffer::AP4_DataBuffer
+|   AP4_DataBuffer::AP4_DataBuffer
 +---------------------------------------------------------------------*/
 AP4_DataBuffer::AP4_DataBuffer(const AP4_DataBuffer& other) :
     m_BufferIsLocal(true),
@@ -69,7 +69,7 @@ AP4_DataBuffer::AP4_DataBuffer(const AP4_DataBuffer& other) :
 }
 
 /*----------------------------------------------------------------------
-|       AP4_DataBuffer::~AP4_DataBuffer
+|   AP4_DataBuffer::~AP4_DataBuffer
 +---------------------------------------------------------------------*/
 AP4_DataBuffer::~AP4_DataBuffer()
 {
@@ -79,7 +79,7 @@ AP4_DataBuffer::~AP4_DataBuffer()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_DataBuffer::SetBuffer
+|   AP4_DataBuffer::SetBuffer
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_DataBuffer::SetBuffer(AP4_Byte* buffer, AP4_Size buffer_size)
@@ -98,7 +98,7 @@ AP4_DataBuffer::SetBuffer(AP4_Byte* buffer, AP4_Size buffer_size)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_DataBuffer::SetBufferSize
+|   AP4_DataBuffer::SetBufferSize
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_DataBuffer::SetBufferSize(AP4_Size buffer_size)
@@ -112,7 +112,7 @@ AP4_DataBuffer::SetBufferSize(AP4_Size buffer_size)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_DataBuffer::SetDataSize
+|   AP4_DataBuffer::SetDataSize
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_DataBuffer::SetDataSize(AP4_Size size)
@@ -130,7 +130,7 @@ AP4_DataBuffer::SetDataSize(AP4_Size size)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_DataBuffer::SetData
+|   AP4_DataBuffer::SetData
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_DataBuffer::SetData(AP4_Byte* data, AP4_Size size)
@@ -151,7 +151,7 @@ AP4_DataBuffer::SetData(AP4_Byte* data, AP4_Size size)
 
 
 /*----------------------------------------------------------------------
-|       AP4_DataBuffer::ReallocateBuffer
+|   AP4_DataBuffer::ReallocateBuffer
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_DataBuffer::ReallocateBuffer(AP4_Size size)

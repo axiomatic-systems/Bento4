@@ -3,12 +3,12 @@
  */
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4StreamCipher.h"
 
 /*----------------------------------------------------------------------
-|       AP4_StreamCipher::AP4_StreamCipher
+|   AP4_StreamCipher::AP4_StreamCipher
 +---------------------------------------------------------------------*/
 AP4_StreamCipher::AP4_StreamCipher(const AP4_UI08* key,
                                    const AP4_UI08* salt,
@@ -27,7 +27,7 @@ AP4_StreamCipher::AP4_StreamCipher(const AP4_UI08* key,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_StreamCipher::~AP4_StreamCipher
+|   AP4_StreamCipher::~AP4_StreamCipher
 +---------------------------------------------------------------------*/
 AP4_StreamCipher::~AP4_StreamCipher()
 {
@@ -38,7 +38,7 @@ AP4_StreamCipher::~AP4_StreamCipher()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_StreamCipher::Reset
+|   AP4_StreamCipher::Reset
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_StreamCipher::Reset(const AP4_UI08* key, const AP4_UI08* salt) 
@@ -73,7 +73,7 @@ AP4_StreamCipher::Reset(const AP4_UI08* key, const AP4_UI08* salt)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_StreamCipher::SetCounter
+|   AP4_StreamCipher::SetCounter
 +---------------------------------------------------------------------*/
 void
 AP4_StreamCipher::SetCounter(AP4_Offset block_offset)
@@ -86,7 +86,7 @@ AP4_StreamCipher::SetCounter(AP4_Offset block_offset)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_StreamCipher::SetStreamOffset
+|   AP4_StreamCipher::SetStreamOffset
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_StreamCipher::SetStreamOffset(AP4_Offset offset)
@@ -106,7 +106,7 @@ AP4_StreamCipher::SetStreamOffset(AP4_Offset offset)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_StreamCipher::UpdateKeyStream
+|   AP4_StreamCipher::UpdateKeyStream
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_StreamCipher::UpdateKeyStream(AP4_Offset block_offset)
@@ -119,7 +119,7 @@ AP4_StreamCipher::UpdateKeyStream(AP4_Offset block_offset)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_StreamCipher::ProcessBuffer
+|   AP4_StreamCipher::ProcessBuffer
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_StreamCipher::ProcessBuffer(const AP4_UI08* in, 

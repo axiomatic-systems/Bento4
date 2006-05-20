@@ -2,7 +2,7 @@
 |
 |    AP4 - stco Atoms 
 |
-|    Copyright 2002 Gilles Boccon-Gibod
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -27,14 +27,14 @@
  ****************************************************************/
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4StcoAtom.h"
 #include "Ap4AtomFactory.h"
 #include "Ap4Utils.h"
 
 /*----------------------------------------------------------------------
-|       AP4_StcoAtom::AP4_StcoAtom
+|   AP4_StcoAtom::AP4_StcoAtom
 +---------------------------------------------------------------------*/
 AP4_StcoAtom::AP4_StcoAtom(AP4_UI32* entries, AP4_UI32 entry_count) :
 AP4_Atom(AP4_ATOM_TYPE_STCO,  
@@ -47,7 +47,7 @@ AP4_Atom(AP4_ATOM_TYPE_STCO,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_StcoAtom::AP4_StcoAtom
+|   AP4_StcoAtom::AP4_StcoAtom
 +---------------------------------------------------------------------*/
 AP4_StcoAtom::AP4_StcoAtom(AP4_Size size, AP4_ByteStream& stream) :
     AP4_Atom(AP4_ATOM_TYPE_STCO, size, true, stream)
@@ -63,7 +63,7 @@ AP4_StcoAtom::AP4_StcoAtom(AP4_Size size, AP4_ByteStream& stream) :
 }
 
 /*----------------------------------------------------------------------
-|       AP4_StcoAtom::~AP4_StcoAtom
+|   AP4_StcoAtom::~AP4_StcoAtom
 +---------------------------------------------------------------------*/
 AP4_StcoAtom::~AP4_StcoAtom()
 {
@@ -71,7 +71,7 @@ AP4_StcoAtom::~AP4_StcoAtom()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_StcoAtom::GetChunkOffset
+|   AP4_StcoAtom::GetChunkOffset
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_StcoAtom::GetChunkOffset(AP4_Ordinal chunk, AP4_Offset& chunk_offset)
@@ -88,7 +88,7 @@ AP4_StcoAtom::GetChunkOffset(AP4_Ordinal chunk, AP4_Offset& chunk_offset)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_StcoAtom::SetChunkOffset
+|   AP4_StcoAtom::SetChunkOffset
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_StcoAtom::SetChunkOffset(AP4_Ordinal chunk, AP4_Offset chunk_offset)
@@ -105,7 +105,7 @@ AP4_StcoAtom::SetChunkOffset(AP4_Ordinal chunk, AP4_Offset chunk_offset)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_StcoAtom::AdjustChunkOffsets
+|   AP4_StcoAtom::AdjustChunkOffsets
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_StcoAtom::AdjustChunkOffsets(AP4_Offset offset)
@@ -118,7 +118,7 @@ AP4_StcoAtom::AdjustChunkOffsets(AP4_Offset offset)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_StcoAtom::WriteFields
+|   AP4_StcoAtom::WriteFields
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_StcoAtom::WriteFields(AP4_ByteStream& stream)
@@ -139,7 +139,7 @@ AP4_StcoAtom::WriteFields(AP4_ByteStream& stream)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_StcoAtom::InspectFields
+|   AP4_StcoAtom::InspectFields
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_StcoAtom::InspectFields(AP4_AtomInspector& inspector)

@@ -2,7 +2,7 @@
 |
 |    AP4 - Atom Based Sample Tables
 |
-|    Copyright 2003 Gilles Boccon-Gibod & Julien Boeuf
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This atom is part of AP4 (MP4 Audio Proatom Library).
@@ -27,7 +27,7 @@
  ****************************************************************/
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4AtomSampleTable.h"
 #include "Ap4ByteStream.h"
@@ -42,7 +42,7 @@
 #include "Ap4Atom.h"
 
 /*----------------------------------------------------------------------
-|       AP4_AtomSampleTable::AP4_AtomSampleTable
+|   AP4_AtomSampleTable::AP4_AtomSampleTable
 +---------------------------------------------------------------------*/
 AP4_AtomSampleTable::AP4_AtomSampleTable(AP4_ContainerAtom* stbl, 
                                          AP4_ByteStream&    sample_stream) :
@@ -61,7 +61,7 @@ AP4_AtomSampleTable::AP4_AtomSampleTable(AP4_ContainerAtom* stbl,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_AtomSampleTable::~AP4_AtomSampleTable
+|   AP4_AtomSampleTable::~AP4_AtomSampleTable
 +---------------------------------------------------------------------*/
 AP4_AtomSampleTable::~AP4_AtomSampleTable()
 {
@@ -69,7 +69,7 @@ AP4_AtomSampleTable::~AP4_AtomSampleTable()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_AtomSampleTable::GetSample
+|   AP4_AtomSampleTable::GetSample
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_AtomSampleTable::GetSample(AP4_Ordinal index, 
@@ -133,7 +133,7 @@ AP4_AtomSampleTable::GetSample(AP4_Ordinal index,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_AtomSampleTable::GetSampleCount
+|   AP4_AtomSampleTable::GetSampleCount
 +---------------------------------------------------------------------*/
 AP4_Cardinal
 AP4_AtomSampleTable::GetSampleCount()
@@ -142,7 +142,7 @@ AP4_AtomSampleTable::GetSampleCount()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_AtomSampleTable::GetSampleDescription
+|   AP4_AtomSampleTable::GetSampleDescription
 +---------------------------------------------------------------------*/
 AP4_SampleDescription*
 AP4_AtomSampleTable::GetSampleDescription(AP4_Ordinal index)
@@ -151,7 +151,7 @@ AP4_AtomSampleTable::GetSampleDescription(AP4_Ordinal index)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_AtomSampleTable::GetSampleDescriptionCount
+|   AP4_AtomSampleTable::GetSampleDescriptionCount
 +---------------------------------------------------------------------*/
 AP4_Cardinal
 AP4_AtomSampleTable::GetSampleDescriptionCount()
@@ -160,7 +160,7 @@ AP4_AtomSampleTable::GetSampleDescriptionCount()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_AtomSampleTable::GetChunkForSample
+|   AP4_AtomSampleTable::GetChunkForSample
 +---------------------------------------------------------------------*/
 AP4_Result 
 AP4_AtomSampleTable::GetChunkForSample(AP4_Ordinal  sample,
@@ -172,7 +172,7 @@ AP4_AtomSampleTable::GetChunkForSample(AP4_Ordinal  sample,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_AtomSampleTable::GetChunkOffset
+|   AP4_AtomSampleTable::GetChunkOffset
 +---------------------------------------------------------------------*/
 AP4_Result 
 AP4_AtomSampleTable::GetChunkOffset(AP4_Ordinal chunk, AP4_Offset& offset)
@@ -181,7 +181,7 @@ AP4_AtomSampleTable::GetChunkOffset(AP4_Ordinal chunk, AP4_Offset& offset)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_AtomSampleTable::SetChunkOffset
+|   AP4_AtomSampleTable::SetChunkOffset
 +---------------------------------------------------------------------*/
 AP4_Result 
 AP4_AtomSampleTable::SetChunkOffset(AP4_Ordinal chunk, AP4_Offset offset)
@@ -190,7 +190,7 @@ AP4_AtomSampleTable::SetChunkOffset(AP4_Ordinal chunk, AP4_Offset offset)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_AtomSampleTable::SetSampleSize
+|   AP4_AtomSampleTable::SetSampleSize
 +---------------------------------------------------------------------*/
 AP4_Result 
 AP4_AtomSampleTable::SetSampleSize(AP4_Ordinal sample, AP4_Size size)
@@ -199,7 +199,7 @@ AP4_AtomSampleTable::SetSampleSize(AP4_Ordinal sample, AP4_Size size)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_AtomSampleTable::GetSample
+|   AP4_AtomSampleTable::GetSample
 +---------------------------------------------------------------------*/
 AP4_Result 
 AP4_AtomSampleTable::GetSampleIndexForTimeStamp(AP4_TimeStamp ts, 

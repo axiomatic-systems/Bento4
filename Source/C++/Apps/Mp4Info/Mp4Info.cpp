@@ -27,7 +27,7 @@
  ****************************************************************/
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include <stdio.h>
 #include <stdlib.h>
@@ -36,13 +36,13 @@
 #include "Ap4IsmaCryp.h"
 
 /*----------------------------------------------------------------------
-|       constants
+|   constants
 +---------------------------------------------------------------------*/
 #define BANNER "MP4 File Info - Version 0.1a\n"\
                "(c) 2002-2005 Gilles Boccon-Gibod & Julien Boeuf"
  
 /*----------------------------------------------------------------------
-|       PrintUsageAndExit
+|   PrintUsageAndExit
 +---------------------------------------------------------------------*/
 static void
 PrintUsageAndExit()
@@ -54,7 +54,7 @@ PrintUsageAndExit()
 }
 
 /*----------------------------------------------------------------------
-|       ShowIsmaSampleDescription
+|   ShowIsmaSampleDescription
 +---------------------------------------------------------------------*/
 static void
 ShowIsmaSampleDescription(AP4_IsmaCrypSampleDescription* desc)
@@ -92,7 +92,7 @@ ShowIsmaSampleDescription(AP4_IsmaCrypSampleDescription* desc)
 }
 
 /*----------------------------------------------------------------------
-|       ShowSampleDescription
+|   ShowSampleDescription
 +---------------------------------------------------------------------*/
 static void
 ShowSampleDescription(AP4_SampleDescription* desc)
@@ -131,7 +131,7 @@ ShowSampleDescription(AP4_SampleDescription* desc)
 }
 
 /*----------------------------------------------------------------------
-|       ShowTrackInfo
+|   ShowTrackInfo
 +---------------------------------------------------------------------*/
 static void
 ShowTrackInfo(AP4_Track* track)
@@ -167,7 +167,7 @@ ShowTrackInfo(AP4_Track* track)
 }
 
 /*----------------------------------------------------------------------
-|       ShowMovieInfo
+|   ShowMovieInfo
 +---------------------------------------------------------------------*/
 static void
 ShowMovieInfo(AP4_Movie* movie)
@@ -179,7 +179,7 @@ ShowMovieInfo(AP4_Movie* movie)
 }
 
 /*----------------------------------------------------------------------
-|       main
+|   main
 +---------------------------------------------------------------------*/
 int
 main(int argc, char** argv)

@@ -2,7 +2,7 @@
 |
 |    AP4 - stsc Atoms 
 |
-|    Copyright 2002 Gilles Boccon-Gibod
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -30,14 +30,14 @@
 #define _AP4_STSC_ATOM_H_
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4Types.h"
 #include "Ap4Atom.h"
 #include "Ap4Array.h"
 
 /*----------------------------------------------------------------------
-|       AP4_StscTableEntry
+|   AP4_StscTableEntry
 +---------------------------------------------------------------------*/
 class AP4_StscTableEntry {
  public:
@@ -74,7 +74,7 @@ class AP4_StscTableEntry {
 };
 
 /*----------------------------------------------------------------------
-|       AP4_StscAtom
+|   AP4_StscAtom
 +---------------------------------------------------------------------*/
 class AP4_StscAtom : public AP4_Atom
 {

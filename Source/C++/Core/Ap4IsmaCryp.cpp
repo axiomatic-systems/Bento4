@@ -2,7 +2,7 @@
 |
 |    AP4 - Sample Description Objects
 |
-|    Copyright 2002 Gilles Boccon-Gibod & Julien Boeuf
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -27,7 +27,7 @@
 ****************************************************************/
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4IsmaCryp.h"
 #include "Ap4SchmAtom.h"
@@ -42,7 +42,7 @@
 #include "Ap4TrakAtom.h"
 
 /*----------------------------------------------------------------------
-|       AP4_EncaSampleEntry::AP4_EncaSampleEntry
+|   AP4_EncaSampleEntry::AP4_EncaSampleEntry
 +---------------------------------------------------------------------*/
 AP4_EncaSampleEntry::AP4_EncaSampleEntry(AP4_UI32         type,
                                          AP4_Size         size,
@@ -53,7 +53,7 @@ AP4_EncaSampleEntry::AP4_EncaSampleEntry(AP4_UI32         type,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_EncaSampleEntry::AP4_EncaSampleEntry
+|   AP4_EncaSampleEntry::AP4_EncaSampleEntry
 +---------------------------------------------------------------------*/
 AP4_EncaSampleEntry::AP4_EncaSampleEntry(AP4_Size         size,
                                          AP4_ByteStream&  stream,
@@ -63,7 +63,7 @@ AP4_EncaSampleEntry::AP4_EncaSampleEntry(AP4_Size         size,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_EncaSampleEntry::ToSampleDescription
+|   AP4_EncaSampleEntry::ToSampleDescription
 +---------------------------------------------------------------------*/
 AP4_SampleDescription*
 AP4_EncaSampleEntry::ToSampleDescription()
@@ -92,7 +92,7 @@ AP4_EncaSampleEntry::ToSampleDescription()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_EncvSampleEntry::AP4_EncvSampleEntry
+|   AP4_EncvSampleEntry::AP4_EncvSampleEntry
 +---------------------------------------------------------------------*/
 AP4_EncvSampleEntry::AP4_EncvSampleEntry(AP4_UI32         type,
                                          AP4_Size         size,
@@ -103,7 +103,7 @@ AP4_EncvSampleEntry::AP4_EncvSampleEntry(AP4_UI32         type,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_EncvSampleEntry::AP4_EncvSampleEntry
+|   AP4_EncvSampleEntry::AP4_EncvSampleEntry
 +---------------------------------------------------------------------*/
 AP4_EncvSampleEntry::AP4_EncvSampleEntry(AP4_Size         size,
                                          AP4_ByteStream&  stream,
@@ -113,7 +113,7 @@ AP4_EncvSampleEntry::AP4_EncvSampleEntry(AP4_Size         size,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_EncvSampleEntry::ToSampleDescription
+|   AP4_EncvSampleEntry::ToSampleDescription
 +---------------------------------------------------------------------*/
 AP4_SampleDescription*
 AP4_EncvSampleEntry::ToSampleDescription()
@@ -142,7 +142,7 @@ AP4_EncvSampleEntry::ToSampleDescription()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_DrmsSampleEntry::AP4_DrmsSampleEntry
+|   AP4_DrmsSampleEntry::AP4_DrmsSampleEntry
 +---------------------------------------------------------------------*/
 AP4_DrmsSampleEntry::AP4_DrmsSampleEntry(AP4_Size         size,
                                          AP4_ByteStream&  stream,
@@ -152,7 +152,7 @@ AP4_DrmsSampleEntry::AP4_DrmsSampleEntry(AP4_Size         size,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_DrmiSampleEntry::AP4_DrmiSampleEntry
+|   AP4_DrmiSampleEntry::AP4_DrmiSampleEntry
 +---------------------------------------------------------------------*/
 AP4_DrmiSampleEntry::AP4_DrmiSampleEntry(AP4_Size         size,
                                          AP4_ByteStream&  stream,
@@ -162,7 +162,7 @@ AP4_DrmiSampleEntry::AP4_DrmiSampleEntry(AP4_Size         size,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_IsmaCrypSampleDescription::AP4_IsmaCrypSampleDescription
+|   AP4_IsmaCrypSampleDescription::AP4_IsmaCrypSampleDescription
 +---------------------------------------------------------------------*/
 AP4_IsmaCrypSampleDescription::AP4_IsmaCrypSampleDescription(
     AP4_UI32               format,
@@ -183,7 +183,7 @@ AP4_IsmaCrypSampleDescription::AP4_IsmaCrypSampleDescription(
 }
 
 /*----------------------------------------------------------------------
-|       AP4_IsmaCrypSampleDescription::~AP4_IsmaCrypSampleDescription
+|   AP4_IsmaCrypSampleDescription::~AP4_IsmaCrypSampleDescription
 +---------------------------------------------------------------------*/
 AP4_IsmaCrypSampleDescription::~AP4_IsmaCrypSampleDescription()
 {
@@ -192,7 +192,7 @@ AP4_IsmaCrypSampleDescription::~AP4_IsmaCrypSampleDescription()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_IsmaCrypSampleDescription::ToAtom
+|   AP4_IsmaCrypSampleDescription::ToAtom
 +---------------------------------------------------------------------*/
 AP4_Atom*
 AP4_IsmaCrypSampleDescription::ToAtom() const
@@ -202,7 +202,7 @@ AP4_IsmaCrypSampleDescription::ToAtom() const
 }
 
 /*----------------------------------------------------------------------
-|       AP4_IsmaCrypSchemeInfo::AP4_IsmaCrypSchemeInfo
+|   AP4_IsmaCrypSchemeInfo::AP4_IsmaCrypSchemeInfo
 +---------------------------------------------------------------------*/
 AP4_IsmaCrypSchemeInfo::AP4_IsmaCrypSchemeInfo(AP4_ContainerAtom* schi) :
     m_SchiAtom(AP4_ATOM_TYPE_SCHI)
@@ -220,7 +220,7 @@ AP4_IsmaCrypSchemeInfo::AP4_IsmaCrypSchemeInfo(AP4_ContainerAtom* schi) :
 }
 
 /*----------------------------------------------------------------------
-|       AP4_IsmaCrypCipher::AP4_IsmaCipher
+|   AP4_IsmaCrypCipher::AP4_IsmaCipher
 +---------------------------------------------------------------------*/
 AP4_IsmaCipher::AP4_IsmaCipher(const AP4_UI08* key, 
                                const AP4_UI08* salt, 
@@ -247,7 +247,7 @@ AP4_IsmaCipher::AP4_IsmaCipher(const AP4_UI08* key,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_IsmaCipher::~AP4_IsmaCipher
+|   AP4_IsmaCipher::~AP4_IsmaCipher
 +---------------------------------------------------------------------*/
 AP4_IsmaCipher::~AP4_IsmaCipher()
 {
@@ -255,7 +255,7 @@ AP4_IsmaCipher::~AP4_IsmaCipher()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_IsmaCipher::DecryptSample
+|   AP4_IsmaCipher::DecryptSample
 +---------------------------------------------------------------------*/
 AP4_Result 
 AP4_IsmaCipher::DecryptSample(AP4_DataBuffer& data_in,
@@ -268,7 +268,7 @@ AP4_IsmaCipher::DecryptSample(AP4_DataBuffer& data_in,
         in++;
     }
 
-    // get the IV (this implementation only supports un to 32 bits of IV)
+    // get the IV (this implementation only supports up to 32 bits of IV)
     // so we skip anything beyond the last 4 bytes
     unsigned int to_read = m_IvLength;
     if (to_read > 16 || to_read == 0) return AP4_ERROR_INVALID_FORMAT;
@@ -313,7 +313,7 @@ AP4_IsmaCipher::DecryptSample(AP4_DataBuffer& data_in,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_IsmaCipher::EncryptSample
+|   AP4_IsmaCipher::EncryptSample
 +---------------------------------------------------------------------*/
 AP4_Result 
 AP4_IsmaCipher::EncryptSample(AP4_DataBuffer& data_in,
@@ -338,7 +338,7 @@ AP4_IsmaCipher::EncryptSample(AP4_DataBuffer& data_in,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_IsmaTrackDecrypter
+|   AP4_IsmaTrackDecrypter
 +---------------------------------------------------------------------*/
 class AP4_IsmaTrackDecrypter : public AP4_Processor::TrackHandler {
 public:
@@ -364,7 +364,7 @@ private:
 };
 
 /*----------------------------------------------------------------------
-|       AP4_IsmaTrackDecrypter::AP4_IsmaTrackDecrypter
+|   AP4_IsmaTrackDecrypter::AP4_IsmaTrackDecrypter
 +---------------------------------------------------------------------*/
 AP4_IsmaTrackDecrypter::AP4_IsmaTrackDecrypter(
     const AP4_UI08*                key,
@@ -387,7 +387,7 @@ AP4_IsmaTrackDecrypter::AP4_IsmaTrackDecrypter(
 }
 
 /*----------------------------------------------------------------------
-|       AP4_IsmaTrackDecrypter::~AP4_IsmaTrackDecrypter
+|   AP4_IsmaTrackDecrypter::~AP4_IsmaTrackDecrypter
 +---------------------------------------------------------------------*/
 AP4_IsmaTrackDecrypter::~AP4_IsmaTrackDecrypter()
 {
@@ -395,7 +395,7 @@ AP4_IsmaTrackDecrypter::~AP4_IsmaTrackDecrypter()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_IsmaTrackDecrypter::GetProcessedSampleSize
+|   AP4_IsmaTrackDecrypter::GetProcessedSampleSize
 +---------------------------------------------------------------------*/
 AP4_Size   
 AP4_IsmaTrackDecrypter::GetProcessedSampleSize(AP4_Sample& sample)
@@ -410,7 +410,7 @@ AP4_IsmaTrackDecrypter::GetProcessedSampleSize(AP4_Sample& sample)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_IsmaTrackDecrypter::ProcessTrack
+|   AP4_IsmaTrackDecrypter::ProcessTrack
 +---------------------------------------------------------------------*/
 AP4_Result   
 AP4_IsmaTrackDecrypter::ProcessTrack()
@@ -421,7 +421,7 @@ AP4_IsmaTrackDecrypter::ProcessTrack()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_IsmaDecrypter::ProcessSample
+|   AP4_IsmaDecrypter::ProcessSample
 +---------------------------------------------------------------------*/
 AP4_Result 
 AP4_IsmaTrackDecrypter::ProcessSample(AP4_DataBuffer& data_in,
@@ -431,7 +431,7 @@ AP4_IsmaTrackDecrypter::ProcessSample(AP4_DataBuffer& data_in,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_IsmaDecryptingProcessor:CreateTrackHandler
+|   AP4_IsmaDecryptingProcessor:CreateTrackHandler
 +---------------------------------------------------------------------*/
 AP4_Processor::TrackHandler* 
 AP4_IsmaDecryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
@@ -464,7 +464,7 @@ AP4_IsmaDecryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_IsmaTrackEncrypter
+|   AP4_IsmaTrackEncrypter
 +---------------------------------------------------------------------*/
 class AP4_IsmaTrackEncrypter : public AP4_Processor::TrackHandler {
 public:
@@ -492,7 +492,7 @@ private:
 };
 
 /*----------------------------------------------------------------------
-|       AP4_IsmaTrackEncrypter::AP4_IsmaTrackEncrypter
+|   AP4_IsmaTrackEncrypter::AP4_IsmaTrackEncrypter
 +---------------------------------------------------------------------*/
 AP4_IsmaTrackEncrypter::AP4_IsmaTrackEncrypter(
     const char*      kms_uri,
@@ -510,7 +510,7 @@ AP4_IsmaTrackEncrypter::AP4_IsmaTrackEncrypter(
 }
 
 /*----------------------------------------------------------------------
-|       AP4_IsmaTrackEncrypter::~AP4_IsmaTrackEncrypter
+|   AP4_IsmaTrackEncrypter::~AP4_IsmaTrackEncrypter
 +---------------------------------------------------------------------*/
 AP4_IsmaTrackEncrypter::~AP4_IsmaTrackEncrypter()
 {
@@ -518,7 +518,7 @@ AP4_IsmaTrackEncrypter::~AP4_IsmaTrackEncrypter()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_IsmaTrackEncrypter::GetProcessedSampleSize
+|   AP4_IsmaTrackEncrypter::GetProcessedSampleSize
 +---------------------------------------------------------------------*/
 AP4_Size   
 AP4_IsmaTrackEncrypter::GetProcessedSampleSize(AP4_Sample& sample)
@@ -527,7 +527,7 @@ AP4_IsmaTrackEncrypter::GetProcessedSampleSize(AP4_Sample& sample)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_IsmaTrackEncrypter::ProcessTrack
+|   AP4_IsmaTrackEncrypter::ProcessTrack
 +---------------------------------------------------------------------*/
 AP4_Result   
 AP4_IsmaTrackEncrypter::ProcessTrack()
@@ -565,7 +565,7 @@ AP4_IsmaTrackEncrypter::ProcessTrack()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_IsmaTrackEncrypter::ProcessSample
+|   AP4_IsmaTrackEncrypter::ProcessSample
 +---------------------------------------------------------------------*/
 AP4_Result 
 AP4_IsmaTrackEncrypter::ProcessSample(AP4_DataBuffer& data_in,
@@ -579,7 +579,7 @@ AP4_IsmaTrackEncrypter::ProcessSample(AP4_DataBuffer& data_in,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_IsmaEncryptingProcessor::AP4_IsmaEncryptingProcessor
+|   AP4_IsmaEncryptingProcessor::AP4_IsmaEncryptingProcessor
 +---------------------------------------------------------------------*/
 AP4_IsmaEncryptingProcessor::AP4_IsmaEncryptingProcessor(const char* kms_uri) :
     m_KmsUri(kms_uri)
@@ -587,7 +587,7 @@ AP4_IsmaEncryptingProcessor::AP4_IsmaEncryptingProcessor(const char* kms_uri) :
 }
 
 /*----------------------------------------------------------------------
-|       AP4_IsmaEncryptingProcessor:CreateTrackHandler
+|   AP4_IsmaEncryptingProcessor:CreateTrackHandler
 +---------------------------------------------------------------------*/
 AP4_Processor::TrackHandler* 
 AP4_IsmaEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
@@ -632,14 +632,14 @@ AP4_IsmaEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_IsmaKeyMap::AP4_IsmaKeyMap
+|   AP4_IsmaKeyMap::AP4_IsmaKeyMap
 +---------------------------------------------------------------------*/
 AP4_IsmaKeyMap::AP4_IsmaKeyMap()
 {
 }
 
 /*----------------------------------------------------------------------
-|       AP4_IsmaKeyMap::~AP4_IsmaKeyMap
+|   AP4_IsmaKeyMap::~AP4_IsmaKeyMap
 +---------------------------------------------------------------------*/
 AP4_IsmaKeyMap::~AP4_IsmaKeyMap()
 {
@@ -647,7 +647,7 @@ AP4_IsmaKeyMap::~AP4_IsmaKeyMap()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_IsmaKeyMap::SetKey
+|   AP4_IsmaKeyMap::SetKey
 +---------------------------------------------------------------------*/
 AP4_Result 
 AP4_IsmaKeyMap::SetKey(AP4_UI32 track_id, const AP4_UI08* key, const AP4_UI08* salt)
@@ -663,7 +663,7 @@ AP4_IsmaKeyMap::SetKey(AP4_UI32 track_id, const AP4_UI08* key, const AP4_UI08* s
 }
 
 /*----------------------------------------------------------------------
-|       AP4_IsmaKeyMap::GetKey
+|   AP4_IsmaKeyMap::GetKey
 +---------------------------------------------------------------------*/
 AP4_Result 
 AP4_IsmaKeyMap::GetKey(AP4_UI32 track_id, const AP4_UI08*& key, const AP4_UI08*& salt)
@@ -679,7 +679,7 @@ AP4_IsmaKeyMap::GetKey(AP4_UI32 track_id, const AP4_UI08*& key, const AP4_UI08*&
 }
 
 /*----------------------------------------------------------------------
-|       AP4_IsmaKeyMap::GetEntry
+|   AP4_IsmaKeyMap::GetEntry
 +---------------------------------------------------------------------*/
 AP4_IsmaKeyMap::KeyEntry*
 AP4_IsmaKeyMap::GetEntry(AP4_UI32 track_id)
@@ -695,7 +695,7 @@ AP4_IsmaKeyMap::GetEntry(AP4_UI32 track_id)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_IsmaKeyMap::KeyEntry::KeyEntry
+|   AP4_IsmaKeyMap::KeyEntry::KeyEntry
 +---------------------------------------------------------------------*/
 AP4_IsmaKeyMap::KeyEntry::KeyEntry(AP4_UI32        track_id, 
                                    const AP4_UI08* key, 
@@ -706,7 +706,7 @@ AP4_IsmaKeyMap::KeyEntry::KeyEntry(AP4_UI32        track_id,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_IsmaKeyMap::KeyEntry::SetKey
+|   AP4_IsmaKeyMap::KeyEntry::SetKey
 +---------------------------------------------------------------------*/
 void
 AP4_IsmaKeyMap::KeyEntry::SetKey(const AP4_UI08* key, const AP4_UI08* salt)

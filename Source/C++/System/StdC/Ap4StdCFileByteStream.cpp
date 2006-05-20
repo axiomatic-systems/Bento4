@@ -8,7 +8,7 @@
  ****************************************************************/
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include <stdio.h>
 #include <string.h>
@@ -18,7 +18,7 @@
 #include "Ap4FileByteStream.h"
 
 /*----------------------------------------------------------------------
-|       AP4_StdcFileByteStream
+|   AP4_StdcFileByteStream
 +---------------------------------------------------------------------*/
 class AP4_StdcFileByteStream: public AP4_ByteStream
 {
@@ -52,7 +52,7 @@ private:
 };
 
 /*----------------------------------------------------------------------
-|       AP4_StdcFileByteStream::AP4_StdcFileByteStream
+|   AP4_StdcFileByteStream::AP4_StdcFileByteStream
 +---------------------------------------------------------------------*/
 AP4_StdcFileByteStream::AP4_StdcFileByteStream(
     AP4_ByteStream  *        delegator,
@@ -95,7 +95,7 @@ AP4_StdcFileByteStream::AP4_StdcFileByteStream(
 }
 
 /*----------------------------------------------------------------------
-|       AP4_StdcFileByteStream::~AP4_StdcFileByteStream
+|   AP4_StdcFileByteStream::~AP4_StdcFileByteStream
 +---------------------------------------------------------------------*/
 AP4_StdcFileByteStream::~AP4_StdcFileByteStream()
 {
@@ -105,7 +105,7 @@ AP4_StdcFileByteStream::~AP4_StdcFileByteStream()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_StdcFileByteStream::AddReference
+|   AP4_StdcFileByteStream::AddReference
 +---------------------------------------------------------------------*/
 void
 AP4_StdcFileByteStream::AddReference()
@@ -114,7 +114,7 @@ AP4_StdcFileByteStream::AddReference()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_StdcFileByteStream::Release
+|   AP4_StdcFileByteStream::Release
 +---------------------------------------------------------------------*/
 void
 AP4_StdcFileByteStream::Release()
@@ -125,7 +125,7 @@ AP4_StdcFileByteStream::Release()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_StdcFileByteStream::Read
+|   AP4_StdcFileByteStream::Read
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_StdcFileByteStream::Read(void*    buffer, 
@@ -149,7 +149,7 @@ AP4_StdcFileByteStream::Read(void*    buffer,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_StdcFileByteStream::Write
+|   AP4_StdcFileByteStream::Write
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_StdcFileByteStream::Write(const void* buffer, 
@@ -158,6 +158,7 @@ AP4_StdcFileByteStream::Write(const void* buffer,
 {
     size_t nbWritten;
 
+    if (bytesToWrite == 0) return AP4_SUCCESS;
     nbWritten = fwrite(buffer, 1, bytesToWrite, m_File);
     
     if (nbWritten > 0) {
@@ -170,7 +171,7 @@ AP4_StdcFileByteStream::Write(const void* buffer,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_StdcFileByteStream::Seek
+|   AP4_StdcFileByteStream::Seek
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_StdcFileByteStream::Seek(AP4_Offset offset)
@@ -186,7 +187,7 @@ AP4_StdcFileByteStream::Seek(AP4_Offset offset)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_StdcFileByteStream::Tell
+|   AP4_StdcFileByteStream::Tell
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_StdcFileByteStream::Tell(AP4_Offset& offset)
@@ -196,7 +197,7 @@ AP4_StdcFileByteStream::Tell(AP4_Offset& offset)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_StdcFileByteStream::GetSize
+|   AP4_StdcFileByteStream::GetSize
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_StdcFileByteStream::GetSize(AP4_Size& size)
@@ -214,7 +215,7 @@ AP4_StdcFileByteStream::GetSize(AP4_Size& size)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_FileByteStream::AP4_FileByteStream
+|   AP4_FileByteStream::AP4_FileByteStream
 +---------------------------------------------------------------------*/
 AP4_FileByteStream::AP4_FileByteStream(const char*             name, 
                                      AP4_FileByteStream::Mode mode)

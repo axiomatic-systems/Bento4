@@ -2,7 +2,7 @@
 |
 |    AP4 - ctts Atoms 
 |
-|    Copyright 2003 Gilles Boccon-Gibod & Julien Boeuf
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -27,14 +27,14 @@
  ****************************************************************/
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4CttsAtom.h"
 #include "Ap4AtomFactory.h"
 #include "Ap4Utils.h"
 
 /*----------------------------------------------------------------------
-|       AP4_CttsAtom::AP4_CttsAtom
+|   AP4_CttsAtom::AP4_CttsAtom
 +---------------------------------------------------------------------*/
 AP4_CttsAtom::AP4_CttsAtom(AP4_Size size, AP4_ByteStream& stream) :
     AP4_Atom(AP4_ATOM_TYPE_CTTS, size, true, stream)
@@ -53,7 +53,7 @@ AP4_CttsAtom::AP4_CttsAtom(AP4_Size size, AP4_ByteStream& stream) :
 }
 
 /*----------------------------------------------------------------------
-|       AP4_CttsAtom::GetCtsOffset
+|   AP4_CttsAtom::GetCtsOffset
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_CttsAtom::GetCtsOffset(AP4_Ordinal sample, AP4_Offset& cts_offset)
@@ -76,7 +76,7 @@ AP4_CttsAtom::GetCtsOffset(AP4_Ordinal sample, AP4_Offset& cts_offset)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_CttsAtom::WriteFields
+|   AP4_CttsAtom::WriteFields
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_CttsAtom::WriteFields(AP4_ByteStream& stream)
@@ -103,7 +103,7 @@ AP4_CttsAtom::WriteFields(AP4_ByteStream& stream)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_CttsAtom::InspectFields
+|   AP4_CttsAtom::InspectFields
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_CttsAtom::InspectFields(AP4_AtomInspector& inspector)

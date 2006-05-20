@@ -30,7 +30,7 @@
 #define _AP4_SYNTHETIC_SAMPLE_TABLE_H_
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4Array.h"
 #include "Ap4List.h"
@@ -39,12 +39,12 @@
 #include "Ap4SampleDescription.h"
 
 /*----------------------------------------------------------------------
-|       forward declarations
+|   forward declarations
 +---------------------------------------------------------------------*/
 class AP4_ByteStream;
 
 /*----------------------------------------------------------------------
-|       AP4_SyntheticSampleTable
+|   AP4_SyntheticSampleTable
 +---------------------------------------------------------------------*/
 class AP4_SyntheticSampleTable : public AP4_SampleTable
 {

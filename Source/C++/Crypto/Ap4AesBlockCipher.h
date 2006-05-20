@@ -37,19 +37,19 @@
 #define _AP4_AES_BLOCK_CIPHER_H_
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4Types.h"
 #include "Ap4Config.h"
 
 /*----------------------------------------------------------------------
-|       AES constants
+|   AES constants
 +---------------------------------------------------------------------*/
 #define AP4_AES_BLOCK_SIZE  16
 #define AP4_AES_KEY_LENGTH  16
 
 /*----------------------------------------------------------------------
-|       AES types
+|   AES types
 +---------------------------------------------------------------------*/
 typedef AP4_UI32     aes_32t;
 typedef AP4_UI08     aes_08t;
@@ -63,7 +63,7 @@ typedef struct                     // the AES context for encryption
 #define aes_good     1             // good function return value
 
 /*----------------------------------------------------------------------
-|       AP4_AesBlockCipher class
+|   AP4_AesBlockCipher class
 +---------------------------------------------------------------------*/
 class AP4_AesBlockCipher
 {

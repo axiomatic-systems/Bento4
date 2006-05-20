@@ -2,7 +2,7 @@
 |
 |    AP4 - mdhd Atoms 
 |
-|    Copyright 2002 Gilles Boccon-Gibod
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -30,18 +30,18 @@
 #define _AP4_MDHD_ATOM_H_
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4Atom.h"
 
 /*----------------------------------------------------------------------
-|       constants
+|   constants
 +---------------------------------------------------------------------*/
 const AP4_UI32 AP4_MDHD_DEFAULT_GENERIC_TIMESCALE = 1000;
 const AP4_UI32 AP4_MDHD_DEFAULT_VIDEO_TIMESCALE = 90000;
 
 /*----------------------------------------------------------------------
-|       AP4_MdhdAtom
+|   AP4_MdhdAtom
 +---------------------------------------------------------------------*/
 class AP4_MdhdAtom : public AP4_Atom
 {

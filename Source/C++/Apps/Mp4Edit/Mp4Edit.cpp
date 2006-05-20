@@ -27,7 +27,7 @@
  ****************************************************************/
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include <stdio.h>
 #include <stdlib.h>
@@ -35,13 +35,13 @@
 #include "Ap4.h"
 
 /*----------------------------------------------------------------------
-|       constants
+|   constants
 +---------------------------------------------------------------------*/
 #define BANNER "MP4 File Editor - Version 0.6\n"\
                "(c) 2003-2005 Gilles Boccon-Gibod & Julien Boeuf"
  
 /*----------------------------------------------------------------------
-|       PrintUsageAndExit
+|   PrintUsageAndExit
 +---------------------------------------------------------------------*/
 static void
 PrintUsageAndExit()
@@ -57,7 +57,7 @@ PrintUsageAndExit()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_EditingProcessor
+|   AP4_EditingProcessor
 +---------------------------------------------------------------------*/
 class AP4_EditingProcessor : public AP4_Processor
 {
@@ -113,7 +113,7 @@ private:
 };
 
 /*----------------------------------------------------------------------
-|       AP4_EditingProcessor::~AP4_EditingProcessor
+|   AP4_EditingProcessor::~AP4_EditingProcessor
 +---------------------------------------------------------------------*/
 AP4_EditingProcessor::~AP4_EditingProcessor()
 {
@@ -121,7 +121,7 @@ AP4_EditingProcessor::~AP4_EditingProcessor()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_EditingProcessor::AddCommand
+|   AP4_EditingProcessor::AddCommand
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_EditingProcessor::AddCommand(Command::Type type, 
@@ -133,7 +133,7 @@ AP4_EditingProcessor::AddCommand(Command::Type type,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_EditingProcessor::Initialize
+|   AP4_EditingProcessor::Initialize
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_EditingProcessor::Initialize(AP4_AtomParent& top_level)
@@ -166,7 +166,7 @@ AP4_EditingProcessor::Initialize(AP4_AtomParent& top_level)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_EditingProcessor::DoRemove
+|   AP4_EditingProcessor::DoRemove
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_EditingProcessor::DoRemove(Command* command, AP4_AtomParent& top_level)
@@ -183,7 +183,7 @@ AP4_EditingProcessor::DoRemove(Command* command, AP4_AtomParent& top_level)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_EditingProcessor::InsertAtom
+|   AP4_EditingProcessor::InsertAtom
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_EditingProcessor::InsertAtom(const char*     file_path, 
@@ -220,7 +220,7 @@ AP4_EditingProcessor::InsertAtom(const char*     file_path,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_EditingProcessor::DoInsert
+|   AP4_EditingProcessor::DoInsert
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_EditingProcessor::DoInsert(Command* command, AP4_AtomParent& top_level)
@@ -253,7 +253,7 @@ AP4_EditingProcessor::DoInsert(Command* command, AP4_AtomParent& top_level)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_EditingProcessor::DoReplace
+|   AP4_EditingProcessor::DoReplace
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_EditingProcessor::DoReplace(Command* command, AP4_AtomParent& top_level)
@@ -284,7 +284,7 @@ AP4_EditingProcessor::DoReplace(Command* command, AP4_AtomParent& top_level)
 }
 
 /*----------------------------------------------------------------------
-|       main
+|   main
 +---------------------------------------------------------------------*/
 int
 main(int argc, char** argv)

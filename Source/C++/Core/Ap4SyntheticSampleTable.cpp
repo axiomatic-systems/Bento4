@@ -27,7 +27,7 @@
  ****************************************************************/
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4Types.h"
 #include "Ap4Atom.h"
@@ -35,14 +35,14 @@
 #include "Ap4Sample.h"
 
 /*----------------------------------------------------------------------
-|       AP4_SyntheticSampleTable::AP4_SyntheticSampleTable()
+|   AP4_SyntheticSampleTable::AP4_SyntheticSampleTable()
 +---------------------------------------------------------------------*/
 AP4_SyntheticSampleTable::AP4_SyntheticSampleTable()
 {
 }
 
 /*----------------------------------------------------------------------
-|       AP4_SyntheticSampleTable::~AP4_SyntheticSampleTable()
+|   AP4_SyntheticSampleTable::~AP4_SyntheticSampleTable()
 +---------------------------------------------------------------------*/
 AP4_SyntheticSampleTable::~AP4_SyntheticSampleTable()
 {
@@ -50,7 +50,7 @@ AP4_SyntheticSampleTable::~AP4_SyntheticSampleTable()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_SyntheticSampleTable::GetSample
+|   AP4_SyntheticSampleTable::GetSample
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_SyntheticSampleTable::GetSample(AP4_Ordinal index, AP4_Sample& sample)
@@ -64,7 +64,7 @@ AP4_SyntheticSampleTable::GetSample(AP4_Ordinal index, AP4_Sample& sample)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_SyntheticSampleTable::GetSampleCount
+|   AP4_SyntheticSampleTable::GetSampleCount
 +---------------------------------------------------------------------*/
 AP4_Cardinal 
 AP4_SyntheticSampleTable::GetSampleCount()
@@ -73,7 +73,7 @@ AP4_SyntheticSampleTable::GetSampleCount()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_SyntheticSampleTable::GetSampleDescriptionCount
+|   AP4_SyntheticSampleTable::GetSampleDescriptionCount
 +---------------------------------------------------------------------*/
 AP4_Cardinal 
 AP4_SyntheticSampleTable::GetSampleDescriptionCount()
@@ -82,7 +82,7 @@ AP4_SyntheticSampleTable::GetSampleDescriptionCount()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_SyntheticSampleTable::GetSampleDescription
+|   AP4_SyntheticSampleTable::GetSampleDescription
 +---------------------------------------------------------------------*/
 AP4_SampleDescription* 
 AP4_SyntheticSampleTable::GetSampleDescription(AP4_Ordinal index)
@@ -96,7 +96,7 @@ AP4_SyntheticSampleTable::GetSampleDescription(AP4_Ordinal index)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_SyntheticSampleTable::AddSampleDescription
+|   AP4_SyntheticSampleTable::AddSampleDescription
 +---------------------------------------------------------------------*/
 AP4_Result 
 AP4_SyntheticSampleTable::AddSampleDescription(AP4_SampleDescription* description)
@@ -105,7 +105,7 @@ AP4_SyntheticSampleTable::AddSampleDescription(AP4_SampleDescription* descriptio
 }
 
 /*----------------------------------------------------------------------
-|       AP4_SyntheticSampleTable::AddSample
+|   AP4_SyntheticSampleTable::AddSample
 +---------------------------------------------------------------------*/
 AP4_Result 
 AP4_SyntheticSampleTable::AddSample(AP4_ByteStream& data_stream,
@@ -121,7 +121,7 @@ AP4_SyntheticSampleTable::AddSample(AP4_ByteStream& data_stream,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_SyntheticSampleTable::GetSample
+|   AP4_SyntheticSampleTable::GetSample
 +---------------------------------------------------------------------*/
 AP4_Result 
 AP4_SyntheticSampleTable::GetSampleIndexForTimeStamp(AP4_TimeStamp ts, 

@@ -2,7 +2,7 @@
 |
 |    AP4 - stsd Atoms 
 |
-|    Copyright 2002 Gilles Boccon-Gibod
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -27,7 +27,7 @@
  ****************************************************************/
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4StsdAtom.h"
 #include "Ap4AtomFactory.h"
@@ -37,7 +37,7 @@
 #include "Ap4SampleDescription.h"
 
 /*----------------------------------------------------------------------
-|       AP4_StsdAtom::AP4_StsdAtom
+|   AP4_StsdAtom::AP4_StsdAtom
 +---------------------------------------------------------------------*/
 AP4_StsdAtom::AP4_StsdAtom(AP4_SampleTable* sample_table) :
     AP4_ContainerAtom(AP4_ATOM_TYPE_STSD, 4+AP4_FULL_ATOM_HEADER_SIZE, true)
@@ -59,7 +59,7 @@ AP4_StsdAtom::AP4_StsdAtom(AP4_SampleTable* sample_table) :
 }
 
 /*----------------------------------------------------------------------
-|       AP4_StsdAtom::AP4_StsdAtom
+|   AP4_StsdAtom::AP4_StsdAtom
 +---------------------------------------------------------------------*/
 AP4_StsdAtom::AP4_StsdAtom(AP4_Size         size,
                            AP4_ByteStream&  stream,
@@ -90,7 +90,7 @@ AP4_StsdAtom::AP4_StsdAtom(AP4_Size         size,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_StsdAtom::~AP4_StsdAtom
+|   AP4_StsdAtom::~AP4_StsdAtom
 +---------------------------------------------------------------------*/
 AP4_StsdAtom::~AP4_StsdAtom()
 {
@@ -100,7 +100,7 @@ AP4_StsdAtom::~AP4_StsdAtom()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_StsdAtom::WriteFields
+|   AP4_StsdAtom::WriteFields
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_StsdAtom::WriteFields(AP4_ByteStream& stream)
@@ -116,7 +116,7 @@ AP4_StsdAtom::WriteFields(AP4_ByteStream& stream)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_StsdAtom::OnChildChanged
+|   AP4_StsdAtom::OnChildChanged
 +---------------------------------------------------------------------*/
 void
 AP4_StsdAtom::OnChildChanged(AP4_Atom*)
@@ -130,7 +130,7 @@ AP4_StsdAtom::OnChildChanged(AP4_Atom*)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_StsdAtom::GetSampleDescription
+|   AP4_StsdAtom::GetSampleDescription
 +---------------------------------------------------------------------*/
 AP4_SampleDescription*
 AP4_StsdAtom::GetSampleDescription(AP4_Ordinal index)
@@ -151,7 +151,7 @@ AP4_StsdAtom::GetSampleDescription(AP4_Ordinal index)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_StsdAtom::GetSampleEntry
+|   AP4_StsdAtom::GetSampleEntry
 +---------------------------------------------------------------------*/
 AP4_SampleEntry*
 AP4_StsdAtom::GetSampleEntry(AP4_Ordinal index)
@@ -166,7 +166,7 @@ AP4_StsdAtom::GetSampleEntry(AP4_Ordinal index)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_StsdAtom::GetSampleDescriptionCount
+|   AP4_StsdAtom::GetSampleDescriptionCount
 +---------------------------------------------------------------------*/
 AP4_Cardinal
 AP4_StsdAtom::GetSampleDescriptionCount()
@@ -175,7 +175,7 @@ AP4_StsdAtom::GetSampleDescriptionCount()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_StsdAtom::InspectFields
+|   AP4_StsdAtom::InspectFields
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_StsdAtom::InspectFields(AP4_AtomInspector& inspector)

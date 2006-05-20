@@ -2,7 +2,7 @@
 |
 |    AP4 - Arrays
 |
-|    Copyright 2002 Gilles Boccon-Gibod
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -30,19 +30,19 @@
 #define _AP4_ARRAY_H_
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include <new>
 #include "Ap4Types.h"
 #include "Ap4Results.h"
 
 /*----------------------------------------------------------------------
-|       constants
+|   constants
 +---------------------------------------------------------------------*/
 const int AP4_ARRAY_INITIAL_COUNT = 64;
 
 /*----------------------------------------------------------------------
-|       AP4_Array
+|   AP4_Array
 +---------------------------------------------------------------------*/
 template <typename T> 
 class AP4_Array 
@@ -66,7 +66,7 @@ protected:
 };
 
 /*----------------------------------------------------------------------
-|       AP4_Array<T>::AP4_Array<T>
+|   AP4_Array<T>::AP4_Array<T>
 +---------------------------------------------------------------------*/
 template <typename T>
 AP4_Array<T>::AP4_Array(const T* items, AP4_Size count) :
@@ -80,7 +80,7 @@ AP4_Array<T>::AP4_Array(const T* items, AP4_Size count) :
 }
 
 /*----------------------------------------------------------------------
-|       AP4_Array<T>::~AP4_Array<T>
+|   AP4_Array<T>::~AP4_Array<T>
 +---------------------------------------------------------------------*/
 template <typename T>
 AP4_Array<T>::~AP4_Array()
@@ -90,7 +90,7 @@ AP4_Array<T>::~AP4_Array()
 }
 
 /*----------------------------------------------------------------------
-|       NPT_Array<T>::Clear
+|   NPT_Array<T>::Clear
 +---------------------------------------------------------------------*/
 template <typename T>
 AP4_Result
@@ -107,7 +107,7 @@ AP4_Array<T>::Clear()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_Array<T>::EnsureCapacity
+|   AP4_Array<T>::EnsureCapacity
 +---------------------------------------------------------------------*/
 template <typename T>
 AP4_Result
@@ -141,7 +141,7 @@ AP4_Array<T>::EnsureCapacity(AP4_Cardinal count)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_Array<T>::Append
+|   AP4_Array<T>::Append
 +---------------------------------------------------------------------*/
 template <typename T>
 AP4_Result

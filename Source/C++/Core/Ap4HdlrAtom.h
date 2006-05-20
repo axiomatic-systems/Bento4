@@ -2,7 +2,7 @@
 |
 |    AP4 - hdlr Atoms 
 |
-|    Copyright 2002 Gilles Boccon-Gibod
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -30,25 +30,25 @@
 #define _AP4_HDLR_ATOM_H_
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4Atom.h"
 #include "Ap4String.h"
 
 /*----------------------------------------------------------------------
-|       class references
+|   class references
 +---------------------------------------------------------------------*/
 class AP4_ByteStream;
 
 /*----------------------------------------------------------------------
-|       constants
+|   constants
 +---------------------------------------------------------------------*/
 const AP4_UI32 AP4_HANDLER_TYPE_SOUN = AP4_ATOM_TYPE('s','o','u','n');
 const AP4_UI32 AP4_HANDLER_TYPE_VIDE = AP4_ATOM_TYPE('v','i','d','e');
 const AP4_UI32 AP4_HANDLER_TYPE_HINT = AP4_ATOM_TYPE('h','i','n','t');
 
 /*----------------------------------------------------------------------
-|       AP4_HdlrAtom
+|   AP4_HdlrAtom
 +---------------------------------------------------------------------*/
 class AP4_HdlrAtom : public AP4_Atom
 {

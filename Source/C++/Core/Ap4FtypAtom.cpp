@@ -2,7 +2,7 @@
 |
 |    AP4 - ftyp Atoms 
 |
-|    Copyright 2002 Gilles Boccon-Gibod
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -27,14 +27,14 @@
  ****************************************************************/
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4FtypAtom.h"
 #include "Ap4AtomFactory.h"
 #include "Ap4Utils.h"
 
 /*----------------------------------------------------------------------
-|       AP4_FtypAtom::AP4_FtypAtom
+|   AP4_FtypAtom::AP4_FtypAtom
 +---------------------------------------------------------------------*/
 AP4_FtypAtom::AP4_FtypAtom(AP4_Size size, AP4_ByteStream& stream) :
     AP4_Atom(AP4_ATOM_TYPE_FTYP, size, false, stream)
@@ -51,7 +51,7 @@ AP4_FtypAtom::AP4_FtypAtom(AP4_Size size, AP4_ByteStream& stream) :
 }
 
 /*----------------------------------------------------------------------
-|       AP4_FtypAtom::WriteFields
+|   AP4_FtypAtom::WriteFields
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_FtypAtom::WriteFields(AP4_ByteStream& stream)
@@ -77,7 +77,7 @@ AP4_FtypAtom::WriteFields(AP4_ByteStream& stream)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_FtypAtom::InspectFields
+|   AP4_FtypAtom::InspectFields
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_FtypAtom::InspectFields(AP4_AtomInspector& inspector)

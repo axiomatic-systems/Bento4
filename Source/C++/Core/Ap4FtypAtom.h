@@ -2,7 +2,7 @@
 |
 |    AP4 - ftyp Atoms 
 |
-|    Copyright 2002 Gilles Boccon-Gibod
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -30,19 +30,19 @@
 #define _AP4_FTYP_ATOM_H_
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4Types.h"
 #include "Ap4Atom.h"
 #include "Ap4Array.h"
 
 /*----------------------------------------------------------------------
-|       class references
+|   class references
 +---------------------------------------------------------------------*/
 class AP4_ByteStream;
 
 /*----------------------------------------------------------------------
-|       AP4_FtypAtom
+|   AP4_FtypAtom
 +---------------------------------------------------------------------*/
 class AP4_FtypAtom : public AP4_Atom
 {

@@ -2,7 +2,7 @@
 |
 |    AP4 - stsz Atoms 
 |
-|    Copyright 2002 Gilles Boccon-Gibod
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -27,14 +27,14 @@
  ****************************************************************/
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4StszAtom.h"
 #include "Ap4AtomFactory.h"
 #include "Ap4Utils.h"
 
 /*----------------------------------------------------------------------
-|       AP4_StszAtom::AP4_StszAtom
+|   AP4_StszAtom::AP4_StszAtom
 +---------------------------------------------------------------------*/
 AP4_StszAtom::AP4_StszAtom() :
     AP4_Atom(AP4_ATOM_TYPE_STSZ, AP4_FULL_ATOM_HEADER_SIZE+8, true),
@@ -44,7 +44,7 @@ AP4_StszAtom::AP4_StszAtom() :
 }
 
 /*----------------------------------------------------------------------
-|       AP4_StszAtom::AP4_StszAtom
+|   AP4_StszAtom::AP4_StszAtom
 +---------------------------------------------------------------------*/
 AP4_StszAtom::AP4_StszAtom(AP4_Size size, AP4_ByteStream& stream) :
     AP4_Atom(AP4_ATOM_TYPE_STSZ, size, true, stream)
@@ -63,7 +63,7 @@ AP4_StszAtom::AP4_StszAtom(AP4_Size size, AP4_ByteStream& stream) :
 }
 
 /*----------------------------------------------------------------------
-|       AP4_StszAtom::WriteFields
+|   AP4_StszAtom::WriteFields
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_StszAtom::WriteFields(AP4_ByteStream& stream)
@@ -90,7 +90,7 @@ AP4_StszAtom::WriteFields(AP4_ByteStream& stream)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_StszAtom::GetSampleCount
+|   AP4_StszAtom::GetSampleCount
 +---------------------------------------------------------------------*/
 AP4_UI32
 AP4_StszAtom::GetSampleCount()
@@ -99,7 +99,7 @@ AP4_StszAtom::GetSampleCount()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_StszAtom::GetSampleSize
+|   AP4_StszAtom::GetSampleSize
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_StszAtom::GetSampleSize(AP4_Ordinal sample, AP4_Size& sample_size)
@@ -120,7 +120,7 @@ AP4_StszAtom::GetSampleSize(AP4_Ordinal sample, AP4_Size& sample_size)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_StszAtom::SetSampleSize
+|   AP4_StszAtom::SetSampleSize
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_StszAtom::SetSampleSize(AP4_Ordinal sample, AP4_Size sample_size)
@@ -135,7 +135,7 @@ AP4_StszAtom::SetSampleSize(AP4_Ordinal sample, AP4_Size sample_size)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_StszAtom::AddEntry
+|   AP4_StszAtom::AddEntry
 +---------------------------------------------------------------------*/
 AP4_Result 
 AP4_StszAtom::AddEntry(AP4_UI32 size)
@@ -148,7 +148,7 @@ AP4_StszAtom::AddEntry(AP4_UI32 size)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_StszAtom::InspectFields
+|   AP4_StszAtom::InspectFields
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_StszAtom::InspectFields(AP4_AtomInspector& inspector)

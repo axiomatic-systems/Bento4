@@ -2,7 +2,7 @@
 |
 |    AP4 - Descriptors 
 |
-|    Copyright 2002 Gilles Boccon-Gibod
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -30,19 +30,19 @@
 #define _AP4_DESCRIPTOR_H_
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4Types.h"
 #include "Ap4List.h"
 
 /*----------------------------------------------------------------------
-|       class references
+|   class references
 +---------------------------------------------------------------------*/
 class AP4_ByteStream;
 class AP4_AtomInspector;
 
 /*----------------------------------------------------------------------
-|       AP4_Descriptor
+|   AP4_Descriptor
 +---------------------------------------------------------------------*/
 class AP4_Descriptor 
 {
@@ -71,7 +71,7 @@ class AP4_Descriptor
 };
 
 /*----------------------------------------------------------------------
-|       AP4_DescriptorFinder
+|   AP4_DescriptorFinder
 +---------------------------------------------------------------------*/
 class AP4_DescriptorFinder : public AP4_List<AP4_Descriptor>::Item::Finder
 {
@@ -85,7 +85,7 @@ class AP4_DescriptorFinder : public AP4_List<AP4_Descriptor>::Item::Finder
 };
 
 /*----------------------------------------------------------------------
-|       AP4_DescriptorListWriter
+|   AP4_DescriptorListWriter
 +---------------------------------------------------------------------*/
 class AP4_DescriptorListWriter : public AP4_List<AP4_Descriptor>::Item::Operator
 {
@@ -101,7 +101,7 @@ private:
 };
 
 /*----------------------------------------------------------------------
-|       AP4_DescriptorListInspector
+|   AP4_DescriptorListInspector
 +---------------------------------------------------------------------*/
 class AP4_DescriptorListInspector : public AP4_List<AP4_Descriptor>::Item::Operator
 {

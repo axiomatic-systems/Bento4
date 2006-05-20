@@ -2,7 +2,7 @@
 |
 |    AP4 - mdhd Atoms 
 |
-|    Copyright 2002 Gilles Boccon-Gibod
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -27,14 +27,14 @@
  ****************************************************************/
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include "Ap4MdhdAtom.h"
 #include "Ap4AtomFactory.h"
 #include "Ap4Utils.h"
 
 /*----------------------------------------------------------------------
-|       AP4_MdhdAtom::AP4_MdhdAtom
+|   AP4_MdhdAtom::AP4_MdhdAtom
 +---------------------------------------------------------------------*/
 AP4_MdhdAtom::AP4_MdhdAtom(AP4_UI32    creation_time,
                            AP4_UI32    modification_time,
@@ -53,7 +53,7 @@ AP4_MdhdAtom::AP4_MdhdAtom(AP4_UI32    creation_time,
 }
 
 /*----------------------------------------------------------------------
-|       AP4_MdhdAtom::AP4_MdhdAtom
+|   AP4_MdhdAtom::AP4_MdhdAtom
 +---------------------------------------------------------------------*/
 AP4_MdhdAtom::AP4_MdhdAtom(AP4_Size size, AP4_ByteStream& stream) :
     AP4_Atom(AP4_ATOM_TYPE_MDHD, size, true, stream),
@@ -93,7 +93,7 @@ AP4_MdhdAtom::AP4_MdhdAtom(AP4_Size size, AP4_ByteStream& stream) :
 }
 
 /*----------------------------------------------------------------------
-|       AP4_MdhdAtom::WriteFields
+|   AP4_MdhdAtom::WriteFields
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_MdhdAtom::WriteFields(AP4_ByteStream& stream)
@@ -129,7 +129,7 @@ AP4_MdhdAtom::WriteFields(AP4_ByteStream& stream)
 }
 
 /*----------------------------------------------------------------------
-|       AP4_MdhdAtom::GetDurationMs
+|   AP4_MdhdAtom::GetDurationMs
 +---------------------------------------------------------------------*/
 AP4_UI32
 AP4_MdhdAtom::GetDurationMs()
@@ -138,7 +138,7 @@ AP4_MdhdAtom::GetDurationMs()
 }
 
 /*----------------------------------------------------------------------
-|       AP4_MdhdAtom::InspectFields
+|   AP4_MdhdAtom::InspectFields
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_MdhdAtom::InspectFields(AP4_AtomInspector& inspector)

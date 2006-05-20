@@ -27,7 +27,7 @@
 ****************************************************************/
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
 #include <stdio.h>
 #include <stdlib.h>
@@ -36,13 +36,13 @@
 #include "Ap4IsmaCryp.h"
 
 /*----------------------------------------------------------------------
-|       constants
+|   constants
 +---------------------------------------------------------------------*/
 #define BANNER "MP4 Encrypter - Version 0.1a\n"\
                "(c) 2002-2005 Gilles Boccon-Gibod & Julien Boeuf"
 
 /*----------------------------------------------------------------------
-|       PrintUsageAndExit
+|   PrintUsageAndExit
 +---------------------------------------------------------------------*/
 static void
 PrintUsageAndExit()
@@ -52,13 +52,13 @@ PrintUsageAndExit()
         "\n\n"
         "usage: mp4encrypt --kms-uri <uri> [--key <n>:<k>:<salt>] <input> <output>\n"
         "    where <n> is a track index, <k> a 128-bit key in hex\n"
-        "    and <salt> a 128-bit salting key\n"
+        "    and <salt> a 64-bit salting key\n"
         "    (several --key options can be used, one for each track)\n");
     exit(1);
 }
 
 /*----------------------------------------------------------------------
-|       main
+|   main
 +---------------------------------------------------------------------*/
 int
 main(int argc, char** argv)
