@@ -62,7 +62,11 @@ class AP4_Track {
         TYPE_UNKNOWN,
         TYPE_AUDIO,
         TYPE_VIDEO,
-        TYPE_HINT
+        TYPE_SYSTEM,
+        TYPE_HINT,
+        TYPE_TEXT,
+        TYPE_JPEG,
+        TYPE_RTP
     } Type;
 
     // methods
@@ -80,6 +84,7 @@ class AP4_Track {
               AP4_UI32        movie_time_scale);
     virtual ~AP4_Track();
     AP4_Track::Type GetType() { return m_Type; }
+    AP4_UI32     GetHandlerType();
     AP4_UI32     GetDuration();
     AP4_Duration GetDurationMs();
     AP4_Cardinal GetSampleCount();

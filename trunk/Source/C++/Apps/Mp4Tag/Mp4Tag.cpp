@@ -39,26 +39,30 @@
 +---------------------------------------------------------------------*/
 #define BANNER "MP4 File Tagger - Version 0.2a "\
                "(Bento4 Version " AP4_VERSION_STRING ")\n"\
-               "(c) 2002-2005 Gilles Boccon-Gibod & Julien Boeuf"
+               "(c) 2002-2006 Gilles Boccon-Gibod & Julien Boeuf"
 
 /*----------------------------------------------------------------------
 |   types
 +---------------------------------------------------------------------*/
-class AP4_TaggerCommand 
+class Command 
 {
 public:
     // types
     typedef enum {
+        TYPE_SHOW_TAGS,
+        TYPE_LIST_KEYS,
+        TYPE_LIST_SYMBOLS,
         TYPE_SET,
         TYPE_UNSET,
         TYPE_EXTRACT
     } Type;
 
-    // constructor
-    AP4_TaggerCommand(Type        type,
-                      const char* key, 
-                      const char* arg1 = NULL,
-                      const char* arg2 = NULL) :
+    // constructors
+    Command(Type type) : m_Type(type) {}
+    Command(Type        type,
+            const char* key, 
+            const char* arg1 = NULL,
+            const char* arg2 = NULL) :
         m_Type(type),
         m_Key(key),
         m_Arg1(arg1),
@@ -80,12 +84,11 @@ typedef struct {
 |   options
 +---------------------------------------------------------------------*/
 static struct {
-    const char*                 input_filename;
-    const char*                 output_filename;
-    bool                        show_tags;
-    bool                        list_symbols;
-    bool                        list_keys;
-    AP4_List<AP4_TaggerCommand> command;
+    const char*       input_filename;
+    const char*       output_filename;
+    AP4_List<Command> commands;
+    bool              need_input;
+    bool              need_output;
 } Options;
 
 static const int LINE_WIDTH = 79;
@@ -99,27 +102,32 @@ PrintUsageAndExit()
     fprintf(stderr, 
             BANNER 
             "\n\nusage: mp4tag [options] [commands...] <input> [<output>]\n"
-            "options:\n"
+            "commands:\n"
             "  --help            print this usage information\n"
             "  --show-tags       show tags found in the input file\n"
             "  --list-symbols    list all the builtin symbols\n"
-            "  --list-keys       list all builtin keys\n"
-            "commands:\n"
+            "  --list-keys       list all the builtin keys\n"
             "  --set <key>:<encoding>:<value>\n"
+            "      set a tag (if the tag does not already exist, set behaves like add)\n"
             "  --add <key>:<encoding>:<value>\n"
-            "      set/add a tag (if the tag does not already exist, set behaves like add)\n"
+            "      set/add a tag\n"
             "      where <encoding> is:\n"
             "        s if <value> is a direct string\n"
             "        i if <value> is a decimal integer\n"
             "        f if <value> is a filename\n"
-            "        z if <value> is a the name of a builtin  symbol\n"
+            "        z if <value> is a the name of a builtin symbol\n"
             "  --remove <key>\n"
             "       remove a tag\n"
             "  --extract <key>:<file>\n"
             "       extract the value of a tag and save it to a file\n"
             "\n"
-            "  in all commands, <key> can be a key name, or <key_name#n> where n is\n"
-            "  the index of the key when there is more than one key with the same name\n");
+            "  In all commands with a <key> argument, except for 'add', <key> can be a\n"
+            "  key name or name#n where n is the index of the key when there is\n"
+            "  more than one key with the same name (ex: multiple images for cover art)\n"
+            "  The name of a key is either one of the builtin keys (see --list-keys)\n"
+            "  or namespace/key where namespace is either 'meta' for the default metadata\n"
+            "  namespace or a user defined namespace. For the 'meta' namespace, the key\n"
+            "  name must be a 4 character atom name\n");
     exit(1);
 }
 
@@ -130,14 +138,15 @@ static void
 ParseCommandLine(int argc, char** argv) 
 {
     for (int i=0; i<argc; i++) {
-        if (AP4_CompareStrings("--show-tags", argv[i]) == 0) {
-            Options.show_tags = true;
-        } else if (AP4_CompareStrings("--help", argv[i]) == 0) {
-            PrintUsageAndExit();
+        if (AP4_CompareStrings("--help", argv[i]) == 0) {
+        PrintUsageAndExit();
+        } else if (AP4_CompareStrings("--show-tags", argv[i]) == 0) {
+            Options.commands.Add(new Command(Command::TYPE_SHOW_TAGS));
+            Options.need_input = true;
         } else if (AP4_CompareStrings("--list-keys", argv[i]) == 0) {
-            Options.list_keys = true;
+            Options.commands.Add(new Command(Command::TYPE_LIST_KEYS));
         } else if (AP4_CompareStrings("--list-symbols", argv[i]) == 0) {
-            Options.list_symbols = true;
+            Options.commands.Add(new Command(Command::TYPE_LIST_SYMBOLS));
         } else {
             if (Options.input_filename == NULL) {
                 Options.input_filename = argv[i];
@@ -147,6 +156,15 @@ ParseCommandLine(int argc, char** argv)
                 fprintf(stderr, "ERROR: unpexpected option \"%s\"\n", argv[i]);
                 PrintUsageAndExit();
             }
+        }
+    }
+
+    if (Options.commands.ItemCount() == 0) {
+        if (Options.input_filename) {
+            Options.commands.Add(new Command(Command::TYPE_SHOW_TAGS));
+            Options.need_input = true;
+        } else {
+            PrintUsageAndExit();
         }
     }
 }
@@ -194,6 +212,18 @@ TypeCode(AP4_MetaData::Value::Type type) {
         case AP4_MetaData::Value::TYPE_STRING:  return "S";
         case AP4_MetaData::Value::TYPE_INTEGER: return "I";
         default: return "?";
+    }
+}
+
+/*----------------------------------------------------------------------
+|   MeaningCode
++---------------------------------------------------------------------*/
+static const char*
+MeaningCode(AP4_MetaData::Value::Meaning meaning) {
+    switch (meaning) {
+        case AP4_MetaData::Value::MEANING_BOOLEAN:    return "/Bool";
+        case AP4_MetaData::Value::MEANING_ID3_GENRE:  return "/ID3";
+        default: return "";
     }
 }
 
@@ -260,8 +290,9 @@ ShowTag(AP4_MetaData::Entry* entry)
     printf("%s:", entry->m_Key.GetName());
 
     // print the value type
-    printf("[%s] %s", 
+    printf("[%s%s] %s", 
            TypeCode(entry->m_Value->GetType()),
+           MeaningCode(entry->m_Value->GetMeaning()),
            entry->m_Value->ToString().GetChars());
     printf("\n");
 }
@@ -302,25 +333,14 @@ main(int argc, char** argv)
     // init options
     Options.input_filename  = NULL;
     Options.output_filename = NULL;
-    Options.show_tags       = false;
-    Options.list_symbols    = false;
-    Options.list_keys       = false;
+    Options.need_input      = false;
+    Options.need_output     = false;
 
     // parse command line
     ParseCommandLine(argc-1, argv+1);
 
-    // process general options first
-    if (Options.list_keys) {
-        ListKeys();
-    }
-    if (Options.list_symbols) {
-        ListSymbols();
-    }
-
     // check options
-    if (Options.input_filename == NULL &&
-        !Options.list_keys &&
-        !Options.list_symbols) {
+    if (Options.need_input && Options.input_filename == NULL) {
         fprintf(stderr, "ERROR: input file name missing\n");
         PrintUsageAndExit();
     }
@@ -329,24 +349,40 @@ main(int argc, char** argv)
     //    PrintUsageAndExit();
     //}
 
-    AP4_ByteStream* input;
-    try {
-        input = new AP4_FileByteStream(Options.input_filename,
-                                       AP4_FileByteStream::STREAM_MODE_READ);
-    } catch (AP4_Exception&) {
-        fprintf(stderr, "ERROR: cannot open input file\n");
-        return 1;
+    AP4_ByteStream* input = NULL;
+    AP4_File* file = NULL;
+    if (Options.need_input) {
+        try {
+            input = new AP4_FileByteStream(Options.input_filename,
+                                           AP4_FileByteStream::STREAM_MODE_READ);
+        } catch (AP4_Exception&) {
+            fprintf(stderr, "ERROR: cannot open input file\n");
+            return 1;
+        }
+        file = new AP4_File(*input);
     }
 
     AP4_ByteStream* output = NULL;
     //    new AP4_FileByteStream(argv[2],
     //                           AP4_FileByteStream::STREAM_MODE_WRITE);
 
-    AP4_File* file = new AP4_File(*input);
 
-    // show the tags if required
-    if (Options.show_tags) {
-        ShowTags(file);
+    for (AP4_List<Command>::Item* item = Options.commands.FirstItem();
+         item;
+         item = item->GetNext()) {
+        switch (item->GetData()->m_Type) {
+            case Command::TYPE_LIST_KEYS:
+                ListKeys();
+                break;
+
+            case Command::TYPE_LIST_SYMBOLS:
+                ListSymbols();
+                break;
+
+            case Command::TYPE_SHOW_TAGS:
+                ShowTags(file);
+                break;
+        }
     }
 
     //file->Write(output);
@@ -354,7 +390,7 @@ main(int argc, char** argv)
     delete file;
     delete input;
     delete output;
-    Options.command.DeleteReferences();
+    Options.commands.DeleteReferences();
 
     return 0;
 }

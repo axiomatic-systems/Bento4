@@ -133,21 +133,30 @@ public:
             TYPE_INTEGER
         } Type;
 
+        typedef enum {
+            MEANING_UNKNOWN,
+            MEANING_ID3_GENRE,
+            MEANING_BOOLEAN
+        } Meaning;
+
         // destructor
         virtual ~Value() {}
 
         // methods
-        Type               GetType() { return m_Type; }
+        Type               GetType()    { return m_Type;    }
+        Meaning            GetMeaning() { return m_Meaning; }
         virtual AP4_String ToString() = 0;
         virtual AP4_Result ToBytes(AP4_DataBuffer& bytes) = 0;
         virtual long       ToInteger() = 0;
 
     protected:
         // constructor
-        Value(Type type) : m_Type(type          ) {}
+        Value(Type type, Meaning meaning = MEANING_UNKNOWN) : 
+             m_Type(type), m_Meaning(meaning) {}
 
         // members
-        Type m_Type;
+        Type     m_Type;
+        Meaning m_Meaning;
     };
 
     class KeyInfo {
@@ -299,7 +308,7 @@ class AP4_AtomMetaDataValue : public AP4_MetaData::Value
 {
 public:
     // constructor
-    AP4_AtomMetaDataValue(AP4_DataAtom* atom);
+    AP4_AtomMetaDataValue(AP4_DataAtom* data_atom, AP4_UI32 parent_type);
 
     // AP4_MetaData::Value methods
     virtual AP4_String ToString();

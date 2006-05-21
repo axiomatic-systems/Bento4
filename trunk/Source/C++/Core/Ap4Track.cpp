@@ -86,6 +86,11 @@ AP4_Track::AP4_Track(Type             type,
             hdlr_name = "Bento4 Hint Handler";
             break;
 
+        case TYPE_TEXT:
+            hdlr_type = AP4_HANDLER_TYPE_TEXT;
+            hdlr_name = "Bento4 Text Handler";
+            break;
+
         default:
             hdlr_type = 0;
             hdlr_name = NULL;
@@ -132,13 +137,20 @@ AP4_Track::AP4_Track(AP4_TrakAtom&   atom,
     if (sub) {
         AP4_HdlrAtom* hdlr = dynamic_cast<AP4_HdlrAtom*>(sub);
         if (hdlr) {
-            AP4_Atom::Type type = hdlr->GetHandlerType();
+            AP4_UI32 type = hdlr->GetHandlerType();
             if (type == AP4_HANDLER_TYPE_SOUN) {
                 m_Type = TYPE_AUDIO;
             } else if (type == AP4_HANDLER_TYPE_VIDE) {
                 m_Type = TYPE_VIDEO;
             } else if (type == AP4_HANDLER_TYPE_HINT) {
                 m_Type = TYPE_HINT;
+            } else if (type == AP4_HANDLER_TYPE_ODSM ||
+                       type == AP4_HANDLER_TYPE_SDSM) {
+                m_Type = TYPE_SYSTEM;
+            } else if (type == AP4_HANDLER_TYPE_TEXT) {
+                m_Type = TYPE_TEXT;
+            } else if (type == AP4_HANDLER_TYPE_JPEG) {
+                m_Type = TYPE_JPEG;
             }
         }
     }
@@ -167,6 +179,21 @@ AP4_Track::~AP4_Track()
 {
     if (m_TrakAtomIsOwned) delete m_TrakAtom;
     if (m_SampleTableIsOwned) delete m_SampleTable;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_Track::GetHandlerType
++---------------------------------------------------------------------*/
+AP4_UI32
+AP4_Track::GetHandlerType()
+{
+    if (m_TrakAtom) {
+        AP4_HdlrAtom* hdlr = dynamic_cast<AP4_HdlrAtom*>(m_TrakAtom->FindChild("mdia/hdlr"));
+        if (hdlr) {
+            return hdlr->GetHandlerType();
+        }
+    }
+    return 0;
 }
 
 /*----------------------------------------------------------------------
