@@ -49,7 +49,6 @@ Setup:
 # ------- Apps -----------
 ALL_APPS = mp4dump mp4info mp42aac aac2mp4 mp4decrypt mp4encrypt mp4edit mp4extract mp4rtphintinfo mp4tag
 export ALL_APPS
-Apps: $(ALL_APPS)
 
 ##################################################################
 # cleanup
@@ -64,8 +63,11 @@ lib:
 	$(TITLE)
 	@$(INVOKE_SUBMAKE) -f $(BUILD_ROOT)/Makefiles/Lib.mak
 
+.PHONY: apps
+apps: $(ALL_APPS)
+
  .PHONY: sdk
-sdk:
+sdk: lib apps
 	$(TITLE)
 	@$(INVOKE_SUBMAKE) -f $(BUILD_ROOT)/Makefiles/SDK.mak
    

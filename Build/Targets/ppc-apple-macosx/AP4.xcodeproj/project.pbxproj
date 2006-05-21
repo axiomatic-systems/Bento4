@@ -416,7 +416,7 @@
 		F91BDA4608E77EE200653EAA /* mp4decrypt */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mp4decrypt; sourceTree = BUILT_PRODUCTS_DIR; };
 		F91BDA5708E77F5100653EAA /* mp4dump */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mp4dump; sourceTree = BUILT_PRODUCTS_DIR; };
 		F91BDA6708E77FE000653EAA /* mp4encrypt */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mp4encrypt; sourceTree = BUILT_PRODUCTS_DIR; };
-		F91BDB7808E7889500653EAA /* mp4info */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mp4info; sourceTree = BUILT_PRODUCTS_DIR; };
+		F91BDB7808E7889500653EAA /* mp4info */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "compiled.mach-o.executable"; path = mp4info; sourceTree = BUILT_PRODUCTS_DIR; };
 		F91BDB8508E7890000653EAA /* mp4tag */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mp4tag; sourceTree = BUILT_PRODUCTS_DIR; };
 		F993835006038A1200FCB9EC /* aac2mp4 */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = aac2mp4; sourceTree = BUILT_PRODUCTS_DIR; };
 		F993836406038AAE00FCB9EC /* mp42aac */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mp42aac; sourceTree = BUILT_PRODUCTS_DIR; };
