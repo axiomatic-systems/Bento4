@@ -382,6 +382,9 @@ main(int argc, char** argv)
             case Command::TYPE_SHOW_TAGS:
                 ShowTags(file);
                 break;
+
+            default:
+                break;
         }
     }
 
