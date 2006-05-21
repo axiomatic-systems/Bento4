@@ -17,9 +17,6 @@ ROOT   = ../../../..
 # how to make dependencies
 AUTODEP_CPP = $(GCC_CROSS_PREFIX)gcc -MM
 
-# how to archive of object files
-ARCHIVE = $(GCC_CROSS_PREFIX)ld -r
-
 # how to make a library
 MAKELIB = $(GCC_CROSS_PREFIX)ar rs
 
@@ -33,7 +30,7 @@ STRIP = $(GCC_CROSS_PREFIX)strip
 COMPILE_CPP  = $(GCC_CROSS_PREFIX)g++
 
 # how to link object files
-LINK_CPP = $(GCC_CROSS_PREFIX)g++ -Wl,--gc-sections -L.
+LINK_CPP = $(GCC_CROSS_PREFIX)g++ -L.
 
 # optimization flags
 OPTIMIZE_CPP = -Os -ffunction-sections -fdata-sections
@@ -45,7 +42,10 @@ DEBUG_CPP = -g
 PROFILE_CPP = -pg
 
 # compilation flags
-DEFINES_CPP = -D_REENTRANT -DAP4_PLATFORM_BYTE_ORDER=AP4_PLATFORM_LITTLE_ENDIAN
+ifneq ($(AP4_PLATFORM_BYTE_ORDER),)
+DEFINES_CPP_BYTE_ORDER = -DAP4_PLATFORM_BYTE_ORDER=$(AP4_PLATFORM_BYTE_ORDER)
+endif
+DEFINES_CPP = -D_REENTRANT $(DEFINED_CPP_BYTE_ORDER)
 
 # warning flags
 WARNINGS_CPP = -Wall -Werror -Wshadow -Wpointer-arith -Wcast-qual 
