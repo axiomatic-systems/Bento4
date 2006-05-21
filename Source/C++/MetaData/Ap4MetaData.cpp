@@ -32,6 +32,7 @@
 #include "Ap4MetaData.h"
 #include "Ap4ContainerAtom.h"
 #include "Ap4MoovAtom.h"
+#include "Ap4HdlrAtom.h"
 #include "Ap4DataBuffer.h"
 #include "Ap4Utils.h"
 #include "Ap4String.h"
@@ -40,21 +41,25 @@
 |   metadata keys
 +---------------------------------------------------------------------*/
 static const AP4_MetaData::KeyInfo AP4_MetaData_KeyInfos [] = {
-    {"Name",      "Name",        AP4_ATOM_TYPE_NAME, AP4_MetaData::Value::TYPE_STRING},
-    {"Artist",    "Artist",      AP4_ATOM_TYPE_cART, AP4_MetaData::Value::TYPE_STRING},
-    {"Composer",  "Composer",    AP4_ATOM_TYPE_cCOM, AP4_MetaData::Value::TYPE_STRING},
-    {"Writer",    "Writer",      AP4_ATOM_TYPE_cWRT, AP4_MetaData::Value::TYPE_STRING},
-    {"Album",     "Album",       AP4_ATOM_TYPE_cALB, AP4_MetaData::Value::TYPE_STRING},
-    {"Genre",     "Genre",       AP4_ATOM_TYPE_cGEN, AP4_MetaData::Value::TYPE_INTEGER},
-    {"Grouping",  "Grouping",    AP4_ATOM_TYPE_cGRP, AP4_MetaData::Value::TYPE_STRING},
-    {"Date",      "Date",        AP4_ATOM_TYPE_cDAY, AP4_MetaData::Value::TYPE_STRING},
-    {"Tool",      "Tool",        AP4_ATOM_TYPE_cTOO, AP4_MetaData::Value::TYPE_STRING},
-    {"Comment",   "Comment",     AP4_ATOM_TYPE_cCMT, AP4_MetaData::Value::TYPE_STRING},
-    {"Lyrics",    "Lyrics",      AP4_ATOM_TYPE_cCMT, AP4_MetaData::Value::TYPE_STRING},
-    {"Copyright", "Copyright",   AP4_ATOM_TYPE_CPRT, AP4_MetaData::Value::TYPE_STRING},
-    {"Track",     "Track Number",AP4_ATOM_TYPE_TRKN, AP4_MetaData::Value::TYPE_INTEGER},
-    {"Disc",      "Disc Number", AP4_ATOM_TYPE_DISK, AP4_MetaData::Value::TYPE_INTEGER},
-    {"Cover",     "Cover Art",   AP4_ATOM_TYPE_COVR, AP4_MetaData::Value::TYPE_BINARY},
+    {"Name",       "Name",        AP4_ATOM_TYPE_cNAM, AP4_MetaData::Value::TYPE_STRING},
+    {"Artist",     "Artist",      AP4_ATOM_TYPE_cART, AP4_MetaData::Value::TYPE_STRING},
+    {"Composer",   "Composer",    AP4_ATOM_TYPE_cCOM, AP4_MetaData::Value::TYPE_STRING},
+    {"Writer",     "Writer",      AP4_ATOM_TYPE_cWRT, AP4_MetaData::Value::TYPE_STRING},
+    {"Album",      "Album",       AP4_ATOM_TYPE_cALB, AP4_MetaData::Value::TYPE_STRING},
+    {"Genre",      "Genre",       AP4_ATOM_TYPE_GNRE, AP4_MetaData::Value::TYPE_INTEGER},
+    {"Genre2",     "Genre",       AP4_ATOM_TYPE_cGEN, AP4_MetaData::Value::TYPE_INTEGER},
+    {"Grouping",   "Grouping",    AP4_ATOM_TYPE_cGRP, AP4_MetaData::Value::TYPE_STRING},
+    {"Date",       "Date",        AP4_ATOM_TYPE_cDAY, AP4_MetaData::Value::TYPE_STRING},
+    {"Tool",       "Tool",        AP4_ATOM_TYPE_cTOO, AP4_MetaData::Value::TYPE_STRING},
+    {"Comment",    "Comment",     AP4_ATOM_TYPE_cCMT, AP4_MetaData::Value::TYPE_STRING},
+    {"Lyrics",     "Lyrics",      AP4_ATOM_TYPE_cCMT, AP4_MetaData::Value::TYPE_STRING},
+    {"Copyright",  "Copyright",   AP4_ATOM_TYPE_CPRT, AP4_MetaData::Value::TYPE_STRING},
+    {"Track",      "Track Number",AP4_ATOM_TYPE_TRKN, AP4_MetaData::Value::TYPE_INTEGER},
+    {"Disc",       "Disc Number", AP4_ATOM_TYPE_DISK, AP4_MetaData::Value::TYPE_INTEGER},
+    {"Cover",      "Cover Art",   AP4_ATOM_TYPE_COVR, AP4_MetaData::Value::TYPE_BINARY},
+    {"Description","Description", AP4_ATOM_TYPE_DESC, AP4_MetaData::Value::TYPE_STRING},
+    {"Rating",     "Rating",      AP4_ATOM_TYPE_RTNG, AP4_MetaData::Value::TYPE_INTEGER},
+    {"Compilation","Compilation", AP4_ATOM_TYPE_CPIL, AP4_MetaData::Value::TYPE_INTEGER},
 };
 AP4_Array<AP4_MetaData::KeyInfo> AP4_MetaData::KeysInfos(
     AP4_MetaData_KeyInfos, 
@@ -277,6 +282,10 @@ AP4_MetaDataAtomTypeHandler::IsMetaDataType(AP4_Atom::Type type)
 +---------------------------------------------------------------------*/
 AP4_MetaData::AP4_MetaData(AP4_MoovAtom* moov)
 {
+    // look for a 'meta' atom with 'hdlr' type 'mdir'
+    AP4_HdlrAtom* hdlr = dynamic_cast<AP4_HdlrAtom*>(moov->FindChild("udta/meta/hdlr"));
+    if (hdlr == NULL || hdlr->GetHandlerType() != AP4_HANDLER_TYPE_MDIR) return;
+
     // get the list of entries
     AP4_ContainerAtom* ilst = dynamic_cast<AP4_ContainerAtom*>(moov->FindChild("udta/meta/ilst"));
     if (ilst == NULL) return;
@@ -318,11 +327,11 @@ AP4_MetaData::AddEntries(AP4_ContainerAtom* atom)
 
         // get the value
         AP4_DataAtom* data_atom = static_cast<AP4_DataAtom*>(atom->GetChild(AP4_ATOM_TYPE_DATA));
-        value = new AP4_AtomMetaDataValue(data_atom);
+        value = new AP4_AtomMetaDataValue(data_atom, atom->GetType());
         if (value == NULL) return AP4_ERROR_INVALID_FORMAT;
         
-        return m_Entries.Add(new Entry(mean->GetValue().GetChars(),
-                                       name->GetValue().GetChars(),
+        return m_Entries.Add(new Entry(name->GetValue().GetChars(),
+                                       mean->GetValue().GetChars(),
                                        value));
     } else {
         const char* key_name = NULL;
@@ -353,7 +362,7 @@ AP4_MetaData::AddEntries(AP4_ContainerAtom* atom)
             AP4_Atom* item_atom = data_item->GetData();
             if (item_atom->GetType() == AP4_ATOM_TYPE_DATA) {
                 AP4_DataAtom* data_atom = static_cast<AP4_DataAtom*>(item_atom);
-                value = new AP4_AtomMetaDataValue(data_atom);
+                value = new AP4_AtomMetaDataValue(data_atom, atom->GetType());
                 m_Entries.Add(new Entry(key_name, key_namespace, value));
             }
             data_item = data_item->GetNext();
@@ -386,10 +395,23 @@ AP4_AtomMetaDataValue::MapDataType(AP4_MetaData::DataType data_type)
 /*----------------------------------------------------------------------
 |   AP4_AtomMetaDataValue::AP4_AtomMetaDataValue
 +---------------------------------------------------------------------*/
-AP4_AtomMetaDataValue::AP4_AtomMetaDataValue(AP4_DataAtom* atom) :
+AP4_AtomMetaDataValue::AP4_AtomMetaDataValue(AP4_DataAtom*  atom,
+                                             AP4_UI32       parent_type) :
     Value(MapDataType(atom->GetDataType())),
     m_DataAtom(atom)
 {
+    switch (parent_type) {
+        case AP4_ATOM_TYPE_GNRE:
+            m_Meaning = MEANING_ID3_GENRE;
+            break;
+
+        case AP4_ATOM_TYPE_CPIL:
+            m_Meaning = MEANING_BOOLEAN;
+            break;
+
+        default:
+            break;
+    }
 }
 
 /*----------------------------------------------------------------------
@@ -404,8 +426,16 @@ AP4_AtomMetaDataValue::ToString()
                 long value;
                 char string[32];
                 if (AP4_SUCCEEDED(m_DataAtom->LoadInteger(value))) {
-                    AP4_StringFormat(string, sizeof(string), "%ld", value);
-                    return AP4_String((const char*)string);
+                    if (m_Meaning == MEANING_BOOLEAN) {
+                        if (value) {
+                            return "True";
+                        } else {
+                            return "False";
+                        }
+                    } else {
+                        AP4_StringFormat(string, sizeof(string), "%ld", value);
+                        return AP4_String((const char*)string);
+                    }
                 }
                 break;
             }
@@ -426,7 +456,16 @@ AP4_AtomMetaDataValue::ToString()
                 char string[32] = "";
                 AP4_DataBuffer data;
                 if (AP4_SUCCEEDED(m_DataAtom->LoadBytes(data))) {
-                    AP4_StringFormat(string, sizeof(string), "[%ld bytes]", data.GetDataSize());
+                    if (m_Meaning == MEANING_ID3_GENRE && data.GetDataSize() == 2) {
+                        unsigned int genre = (data.GetData()[0])*256+data.GetData()[1];
+                        if (genre >= 1 && genre <= sizeof(Ap4Id3Genres)/sizeof(Ap4Id3Genres[0])) {
+                            return Ap4Id3Genres[genre-1];
+                        } else {
+                            return "Unknown";
+                        }
+                    } else {
+                        AP4_StringFormat(string, sizeof(string), "[%ld bytes]", data.GetDataSize());
+                    }
                 }
                 return AP4_String(string);
             }

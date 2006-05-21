@@ -78,7 +78,7 @@ AP4_TrakAtom::AP4_TrakAtom(AP4_SampleTable* sample_table,
     AP4_ContainerAtom* mdia = new AP4_ContainerAtom(AP4_ATOM_TYPE_MDIA);
 
     // create a hdlr atom for the mdia atom
-    m_HdlrAtom = new AP4_HdlrAtom(hdlr_type, hdlr_name);
+    AP4_HdlrAtom* hdlr = new AP4_HdlrAtom(hdlr_type, hdlr_name);
 
     // create a minf atom 
     AP4_ContainerAtom* minf = new AP4_ContainerAtom(AP4_ATOM_TYPE_MINF);
@@ -130,7 +130,7 @@ AP4_TrakAtom::AP4_TrakAtom(AP4_SampleTable* sample_table,
 
     // populate the mdia atom
     mdia->AddChild(mdhd);
-    mdia->AddChild(m_HdlrAtom);
+    mdia->AddChild(hdlr);
     mdia->AddChild(minf);
 
     // attach the children
@@ -144,16 +144,9 @@ AP4_TrakAtom::AP4_TrakAtom(AP4_SampleTable* sample_table,
 AP4_TrakAtom::AP4_TrakAtom(AP4_Size         size,
                            AP4_ByteStream&  stream,
                            AP4_AtomFactory& atom_factory) :
-    AP4_ContainerAtom(AP4_ATOM_TYPE_TRAK, size, false, stream, atom_factory),
-    m_HdlrAtom(NULL),
-    m_TkhdAtom(NULL)
+    AP4_ContainerAtom(AP4_ATOM_TYPE_TRAK, size, false, stream, atom_factory)
 {
-    AP4_Atom* tkhd = FindChild("tkhd");
-    if (tkhd != NULL) {
-        m_TkhdAtom = dynamic_cast<AP4_TkhdAtom*>(tkhd);
-    } else {
-        m_TkhdAtom  = NULL;
-    }
+    m_TkhdAtom = dynamic_cast<AP4_TkhdAtom*>(FindChild("tkhd"));
 }
 
 /*----------------------------------------------------------------------

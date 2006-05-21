@@ -74,11 +74,9 @@ class AP4_TrakAtom : public AP4_ContainerAtom
     AP4_UI32   GetDuration();
     AP4_Result SetDuration(AP4_UI32 duration);
     AP4_TkhdAtom* GetTkhdAtom() { return m_TkhdAtom; }
-    AP4_HdlrAtom* GetHdlrAtom() { return m_HdlrAtom; }
 
  private:
     // members
-    AP4_HdlrAtom* m_HdlrAtom;
     AP4_TkhdAtom* m_TkhdAtom;
 };
 

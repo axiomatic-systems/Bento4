@@ -8,13 +8,12 @@ all: Apps
 #######################################################################
 #    configuration variables
 #######################################################################
-TARGET = any-gnu-gcc
+#TARGET = any-gnu-gcc
 ROOT   = ../../../..
 
 #######################################################################
 #    tools
 #######################################################################
-
 # how to make dependencies
 AUTODEP_CPP = $(GCC_CROSS_PREFIX)gcc -MM
 
@@ -50,6 +49,7 @@ DEFINES_CPP = -D_REENTRANT -DAP4_PLATFORM_BYTE_ORDER=AP4_PLATFORM_LITTLE_ENDIAN
 
 # warning flags
 WARNINGS_CPP = -Wall -Werror -Wshadow -Wpointer-arith -Wcast-qual 
+
 # include directories
 INCLUDES_CPP =
 

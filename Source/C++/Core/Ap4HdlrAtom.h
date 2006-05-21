@@ -46,6 +46,11 @@ class AP4_ByteStream;
 const AP4_UI32 AP4_HANDLER_TYPE_SOUN = AP4_ATOM_TYPE('s','o','u','n');
 const AP4_UI32 AP4_HANDLER_TYPE_VIDE = AP4_ATOM_TYPE('v','i','d','e');
 const AP4_UI32 AP4_HANDLER_TYPE_HINT = AP4_ATOM_TYPE('h','i','n','t');
+const AP4_UI32 AP4_HANDLER_TYPE_MDIR = AP4_ATOM_TYPE('m','d','i','r');
+const AP4_UI32 AP4_HANDLER_TYPE_TEXT = AP4_ATOM_TYPE('t','e','x','t');
+const AP4_UI32 AP4_HANDLER_TYPE_JPEG = AP4_ATOM_TYPE('j','p','e','g');
+const AP4_UI32 AP4_HANDLER_TYPE_ODSM = AP4_ATOM_TYPE('o','d','s','m');
+const AP4_UI32 AP4_HANDLER_TYPE_SDSM = AP4_ATOM_TYPE('s','d','s','m');
 
 /*----------------------------------------------------------------------
 |   AP4_HdlrAtom

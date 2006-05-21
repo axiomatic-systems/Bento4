@@ -139,10 +139,20 @@ ShowTrackInfo(AP4_Track* track)
 	AP4_Debug("  id:           %ld\n", track->GetId());
     AP4_Debug("  type:         ");
     switch (track->GetType()) {
-        case AP4_Track::TYPE_AUDIO: AP4_Debug("Audio\n"); break;
-        case AP4_Track::TYPE_VIDEO: AP4_Debug("Video\n"); break;
-        case AP4_Track::TYPE_HINT:  AP4_Debug("Hint\n");  break;
-        default:                    AP4_Debug("System\n");break;
+        case AP4_Track::TYPE_AUDIO:   AP4_Debug("Audio\n"); break;
+        case AP4_Track::TYPE_VIDEO:   AP4_Debug("Video\n"); break;
+        case AP4_Track::TYPE_HINT:    AP4_Debug("Hint\n");  break;
+        case AP4_Track::TYPE_SYSTEM:  AP4_Debug("System\n");  break;
+        case AP4_Track::TYPE_TEXT:    AP4_Debug("Text\n");  break;
+        case AP4_Track::TYPE_JPEG:    AP4_Debug("Jpeg\n");  break;
+        default: {
+            char hdlr[5];
+            AP4_FormatFourChars(hdlr, track->GetHandlerType());
+            AP4_Debug("Unknown [");
+            AP4_Debug(hdlr);
+            AP4_Debug("]\n");
+            break;
+        }
     }
     AP4_Debug("  duration:     %ld ms\n", track->GetDurationMs());
     AP4_Debug("  timescale:    %ld\n", track->GetMediaTimeScale());

@@ -77,6 +77,9 @@ AP4_AtomSampleTable::GetSample(AP4_Ordinal index,
 {
     AP4_Result result;
 
+    // check that we have a chunk offset table
+    if (m_StcoAtom == NULL) return AP4_ERROR_INVALID_FORMAT;
+
     // MP4 uses 1-based indexes internally, so adjust by one
     index++;
 
