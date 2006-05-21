@@ -33,7 +33,7 @@ endif
 	$(COMPILE_CPP) $(COMPILE_CPP_OPTIONS) $($@_LOCAL_DEFINES_CPP) $(DEFINES_CPP) $(INCLUDES_CPP) -c $< -o $@
 
 %.a:
-	$(ARCHIVE) $@ $^
+	$(MAKELIB) $@ $^
 	$(RANLIB) $@
 
 .PHONY: clean
