@@ -493,7 +493,7 @@ AP4_MemoryByteStream::Write(const void* buffer,
     }
 
     // write to memory
-    AP4_CopyMemory((void*)(m_Buffer.GetData()+m_Position), buffer, bytes_to_write);
+    AP4_CopyMemory((void*)(m_Buffer.UseData()+m_Position), buffer, bytes_to_write);
     m_Position += bytes_to_write;
 
     if (bytes_written) *bytes_written = bytes_to_write;
