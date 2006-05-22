@@ -122,12 +122,7 @@ main(int argc, char** argv)
             }
 
             AP4_MemoryByteStream* sample_data = new AP4_MemoryByteStream(frame.m_Info.m_FrameLength);
-            frame.m_Source->ReadBytes(sample_data->GetBuffer(), frame.m_Info.m_FrameLength);
-            printf("%02x %02x %02x %02x\n", 
-                sample_data->GetBuffer()[0],
-                sample_data->GetBuffer()[1],
-                sample_data->GetBuffer()[2],
-                sample_data->GetBuffer()[3]);
+            frame.m_Source->ReadBytes(sample_data->UseData(), frame.m_Info.m_FrameLength);
             sample_table->AddSample(*sample_data, 0, frame.m_Info.m_FrameLength, sample_description_index);
             sample_data->Release();
             sample_count++;

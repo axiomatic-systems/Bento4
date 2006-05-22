@@ -35,6 +35,7 @@
 #include "Ap4Types.h"
 #include "Ap4Interfaces.h"
 #include "Ap4Results.h"
+#include "Ap4DataBuffer.h"
 
 /*----------------------------------------------------------------------
 |   AP4_ByteStream
@@ -46,19 +47,19 @@ class AP4_ByteStream : public AP4_Referenceable
     virtual AP4_Result Read(void*     buffer, 
                             AP4_Size  bytes_to_read, 
                             AP4_Size* bytes_read = 0) = 0;
-    virtual AP4_Result ReadUI32(AP4_UI32& value);
-    virtual AP4_Result ReadUI24(AP4_UI32& value);
-    virtual AP4_Result ReadUI16(AP4_UI16& value);
-    virtual AP4_Result ReadUI08(AP4_UI08& value);
-    virtual AP4_Result ReadString(char* buffer, AP4_Size size);
+    AP4_Result ReadUI32(AP4_UI32& value);
+    AP4_Result ReadUI24(AP4_UI32& value);
+    AP4_Result ReadUI16(AP4_UI16& value);
+    AP4_Result ReadUI08(AP4_UI08& value);
+    AP4_Result ReadString(char* buffer, AP4_Size size);
     virtual AP4_Result Write(const void* buffer, 
                              AP4_Size    bytes_to_write, 
                              AP4_Size*   bytes_written = 0) = 0;
-    virtual AP4_Result WriteString(const char* stringBuffer);
-    virtual AP4_Result WriteUI32(AP4_UI32 value);
-    virtual AP4_Result WriteUI24(AP4_UI32 value);
-    virtual AP4_Result WriteUI16(AP4_UI16 value);
-    virtual AP4_Result WriteUI08(AP4_UI08 value);
+    AP4_Result WriteString(const char* stringBuffer);
+    AP4_Result WriteUI32(AP4_UI32 value);
+    AP4_Result WriteUI24(AP4_UI32 value);
+    AP4_Result WriteUI16(AP4_UI16 value);
+    AP4_Result WriteUI08(AP4_UI08 value);
     virtual AP4_Result Seek(AP4_Offset offset) = 0;
     virtual AP4_Result Tell(AP4_Offset& offset) = 0;
     virtual AP4_Result GetSize(AP4_Size& size) = 0;
@@ -111,7 +112,7 @@ class AP4_SubStream : public AP4_ByteStream
 class AP4_MemoryByteStream : public AP4_ByteStream
 {
 public:
-    AP4_MemoryByteStream(AP4_Size size);
+    AP4_MemoryByteStream(AP4_Size size); // filled with zeros
     AP4_MemoryByteStream(AP4_UI08* buffer, AP4_Size size);
 
     // AP4_ByteStream methods
@@ -127,7 +128,7 @@ public:
         return AP4_SUCCESS;
     }
     AP4_Result GetSize(AP4_Size& size) {
-        size = m_Size;
+        size = m_Buffer.GetDataSize();
         return AP4_SUCCESS;
     }
 
@@ -136,17 +137,17 @@ public:
     void Release();
 
     // methods
-    AP4_UI08* GetBuffer() { return m_Buffer; }
+    const AP4_UI08* GetData() { return m_Buffer.GetData(); }
+    AP4_UI08*       UseData() { return m_Buffer.UseData(); }
+    AP4_Size        GetSize() { return m_Buffer.GetDataSize(); }
 
 protected:
-    virtual ~AP4_MemoryByteStream();
+    virtual ~AP4_MemoryByteStream() {};
 
 private:
-    bool         m_BufferIsLocal;
-    AP4_UI08*    m_Buffer;
-    AP4_Size     m_Size;
-    AP4_Offset   m_Position;
-    AP4_Cardinal m_ReferenceCount;
+    AP4_DataBuffer m_Buffer;
+    AP4_Offset     m_Position;
+    AP4_Cardinal   m_ReferenceCount;
 };
 
 #endif // _AP4_BYTE_STREAM_H_

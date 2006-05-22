@@ -58,6 +58,19 @@ AP4_DataBuffer::AP4_DataBuffer(AP4_Size buffer_size) :
 /*----------------------------------------------------------------------
 |   AP4_DataBuffer::AP4_DataBuffer
 +---------------------------------------------------------------------*/
+AP4_DataBuffer::AP4_DataBuffer(const void* data, AP4_Size data_size) :
+    m_BufferIsLocal(true),
+    m_Buffer(NULL),
+    m_BufferSize(data_size),
+    m_DataSize(data_size)
+{
+    m_Buffer = new AP4_Byte[data_size];
+    AP4_CopyMemory(m_Buffer, data, data_size);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_DataBuffer::AP4_DataBuffer
++---------------------------------------------------------------------*/
 AP4_DataBuffer::AP4_DataBuffer(const AP4_DataBuffer& other) :
     m_BufferIsLocal(true),
     m_Buffer(NULL),
@@ -76,6 +89,20 @@ AP4_DataBuffer::~AP4_DataBuffer()
     if (m_BufferIsLocal) {
         delete[] m_Buffer;
     }
+}
+
+/*----------------------------------------------------------------------
+|   AP4_DataBuffer::Reserve
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_DataBuffer::Reserve(AP4_Size size)
+{
+    if (size <= m_BufferSize) return AP4_SUCCESS;
+
+    // try doubling the buffer to accomodate for the new size
+    AP4_Size new_size = m_BufferSize*2+1024;
+    if (new_size < size) new_size = size;
+    return SetBufferSize(new_size);
 }
 
 /*----------------------------------------------------------------------

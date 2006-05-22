@@ -77,6 +77,7 @@ int AP4_StringFormat(char* str, AP4_Size size, const char* format, ...);
 #include <string.h>
 #define AP4_StringLength(x) strlen(x)
 #define AP4_CopyMemory(x,y,z) memcpy(x,y,z)
+#define AP4_SetMemory(x,y,z) memset(x,y,z)
 #define AP4_CompareStrings(x,y) strcmp(x,y)
 #endif
 
