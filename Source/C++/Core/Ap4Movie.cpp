@@ -190,7 +190,7 @@ AP4_Movie::AddTrack(AP4_Track* track)
     }
     
     // attach the track as a child
-    m_MoovAtom->AddChild(track->GetTrakAtom());
+    track->Attach(m_MoovAtom);
     m_Tracks.Add(track);
 
     return AP4_SUCCESS;

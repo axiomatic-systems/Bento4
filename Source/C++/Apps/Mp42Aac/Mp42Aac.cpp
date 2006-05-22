@@ -48,7 +48,7 @@ PrintUsageAndExit()
 {
     fprintf(stderr, 
             BANNER 
-            "\n\nusage: ap42aac [options] <input> <output>\n");
+            "\n\nusage: mp42aac [options] <input> <output>\n");
     exit(1);
 }
 

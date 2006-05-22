@@ -182,6 +182,18 @@ AP4_Track::~AP4_Track()
 }
 
 /*----------------------------------------------------------------------
+|   AP4_Track::Attach
++---------------------------------------------------------------------*/
+AP4_Track::Attach(AP4_MoovAtom* moov)
+{
+    if (!m_TrakAtomIsOwned) return AP4_ERROR_INTERNAL;
+    moov->AddChild(m_TrakAtom);
+    m_TrakAtomIsOwned = false;
+
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
 |   AP4_Track::GetHandlerType
 +---------------------------------------------------------------------*/
 AP4_UI32
