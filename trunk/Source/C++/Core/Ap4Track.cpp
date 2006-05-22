@@ -184,6 +184,7 @@ AP4_Track::~AP4_Track()
 /*----------------------------------------------------------------------
 |   AP4_Track::Attach
 +---------------------------------------------------------------------*/
+AP4_Result
 AP4_Track::Attach(AP4_MoovAtom* moov)
 {
     if (!m_TrakAtomIsOwned) return AP4_ERROR_INTERNAL;
