@@ -122,9 +122,9 @@
 *
 * To create a new MP4 file, you first create an #AP4_SyntheticSampleTable
 * sample table for each track in your file. You specify the sample description
-* for the media samples in each track by calling #AP4_SampleTable::AddSampleDescription
+* for the media samples in each track by calling #AP4_SyntheticSampleTable::AddSampleDescription
 * with the description for the samples of that track. Samples can then be added
-* to the sample table with the #AP4_SampleTable::AddSample method. 
+* to the sample table with the #AP4_SyntheticSampleTable::AddSample method. 
 * Once all the samples of all the tracks have been added to the sample tables, 
 * you can create an #AP4_Movie, and an #AP4_Track from each sample table, add the track
 * to the movie, and finally create an #AP4_File from the movie object.
@@ -190,7 +190,7 @@
 *
 * The SDK has support for encrypting and decrypting tracks as specified by the
 * ISMA Encryption and Authentication specification. The supporing classes 
-* found in #Ap4IsmaCryp.h provide a subclass of #AP4_Processor for encrypting
+* found in Ap4IsmaCryp.h provide a subclass of #AP4_Processor for encrypting
 * or decrypting entire tracks. The class #AP4_IsmaCipher provides support for 
 * encrypting or decrypting individual samples. The parameters necessary to 
 * instantiate an #AP4_IsmaCipher can be retrieved from an encrypted track by
