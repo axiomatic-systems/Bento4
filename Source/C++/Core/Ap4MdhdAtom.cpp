@@ -34,6 +34,19 @@
 #include "Ap4Utils.h"
 
 /*----------------------------------------------------------------------
+|   AP4_MdhdAtom::Create
++---------------------------------------------------------------------*/
+AP4_MdhdAtom*
+AP4_MdhdAtom::Create(AP4_Size size, AP4_ByteStream& stream)
+{
+    AP4_UI32 version;
+    AP4_UI32 flags;
+    if (AP4_FAILED(AP4_Atom::ReadFullHeader(stream, version, flags))) return NULL;
+    if (version != 0) return NULL;
+    return new AP4_MdhdAtom(size, version, flags, stream);
+}
+
+/*----------------------------------------------------------------------
 |   AP4_MdhdAtom::AP4_MdhdAtom
 +---------------------------------------------------------------------*/
 AP4_MdhdAtom::AP4_MdhdAtom(AP4_UI32    creation_time,
@@ -41,10 +54,13 @@ AP4_MdhdAtom::AP4_MdhdAtom(AP4_UI32    creation_time,
                            AP4_UI32    time_scale,
                            AP4_UI32    duration,
                            const char* language) :
-    AP4_Atom(AP4_ATOM_TYPE_MDHD, 20+AP4_FULL_ATOM_HEADER_SIZE, true),
+    AP4_Atom(AP4_ATOM_TYPE_MDHD, AP4_FULL_ATOM_HEADER_SIZE+20, 0, 0),
+    m_CreationTimeH(0),
     m_CreationTime(creation_time),
+    m_ModificationTimeH(0),
     m_ModificationTime(modification_time),
     m_TimeScale(time_scale),
+    m_DurationH(0),
     m_Duration(duration)
 {
     m_Language[0] = language[0];
@@ -55,25 +71,29 @@ AP4_MdhdAtom::AP4_MdhdAtom(AP4_UI32    creation_time,
 /*----------------------------------------------------------------------
 |   AP4_MdhdAtom::AP4_MdhdAtom
 +---------------------------------------------------------------------*/
-AP4_MdhdAtom::AP4_MdhdAtom(AP4_Size size, AP4_ByteStream& stream) :
-    AP4_Atom(AP4_ATOM_TYPE_MDHD, size, true, stream),
-    m_CreationTime(0),
-    m_ModificationTime(0),
-    m_TimeScale(0),
-    m_Duration(0)
+AP4_MdhdAtom::AP4_MdhdAtom(AP4_Size        size, 
+                           AP4_UI32        version,
+                           AP4_UI32        flags,
+                           AP4_ByteStream& stream) :
+    AP4_Atom(AP4_ATOM_TYPE_MDHD, size, version, flags)
 {
     m_Language[0] = 0;
     m_Language[1] = 0;
     m_Language[2] = 0;
 
     if (m_Version == 0) {
-        // we only deal with version 0 for now
         stream.ReadUI32(m_CreationTime);
         stream.ReadUI32(m_ModificationTime);
         stream.ReadUI32(m_TimeScale);
         stream.ReadUI32(m_Duration);
     } else {
-        stream.Read((void*)m_Reserved1, sizeof(m_Reserved1));
+        stream.ReadUI32(m_CreationTimeH);
+        stream.ReadUI32(m_CreationTime);
+        stream.ReadUI32(m_ModificationTimeH);
+        stream.ReadUI32(m_ModificationTime);
+        stream.ReadUI32(m_TimeScale);
+        stream.ReadUI32(m_DurationH);
+        stream.ReadUI32(m_Duration);
     }
     
     unsigned char lang[2];
@@ -101,7 +121,6 @@ AP4_MdhdAtom::WriteFields(AP4_ByteStream& stream)
     AP4_Result result;
 
     if (m_Version == 0) {
-        // we only deal with version 0 for the moment
         result = stream.WriteUI32(m_CreationTime);
         if (AP4_FAILED(result)) return result;
         result = stream.WriteUI32(m_ModificationTime);
@@ -111,7 +130,19 @@ AP4_MdhdAtom::WriteFields(AP4_ByteStream& stream)
         result = stream.WriteUI32(m_Duration);
         if (AP4_FAILED(result)) return result;
     } else {
-        result = stream.Write(m_Reserved1, sizeof(m_Reserved1));
+        result = stream.WriteUI32(m_CreationTimeH);
+        if (AP4_FAILED(result)) return result;
+        result = stream.WriteUI32(m_CreationTime);
+        if (AP4_FAILED(result)) return result;
+        result = stream.WriteUI32(m_ModificationTimeH);
+        if (AP4_FAILED(result)) return result;
+        result = stream.WriteUI32(m_ModificationTime);
+        if (AP4_FAILED(result)) return result;
+        result = stream.WriteUI32(m_TimeScale);
+        if (AP4_FAILED(result)) return result;
+        result = stream.WriteUI32(m_DurationH);
+        if (AP4_FAILED(result)) return result;
+        result = stream.WriteUI32(m_Duration);
         if (AP4_FAILED(result)) return result;
     }
 

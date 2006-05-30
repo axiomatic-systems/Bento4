@@ -39,11 +39,10 @@
 /*----------------------------------------------------------------------
 |   AP4_Atom::AP4_Atom
 +---------------------------------------------------------------------*/
-AP4_Atom::AP4_Atom(Type type, 
-                   bool is_full) : 
+AP4_Atom::AP4_Atom(Type type, AP4_Size size /* = AP4_ATOM_HEADER_SIZE */) : 
     m_Type(type),
-    m_Size(is_full ? AP4_FULL_ATOM_HEADER_SIZE : AP4_ATOM_HEADER_SIZE),
-    m_IsFull(is_full),
+    m_Size(size),
+    m_IsFull(false),
     m_Version(0),
     m_Flags(0),
     m_Parent(NULL)
@@ -54,39 +53,32 @@ AP4_Atom::AP4_Atom(Type type,
 |   AP4_Atom::AP4_Atom
 +---------------------------------------------------------------------*/
 AP4_Atom::AP4_Atom(Type     type, 
-                   AP4_Size size,
-                   bool     is_full) : 
+                   AP4_Size size, 
+                   AP4_UI32 version, 
+                   AP4_UI32 flags) :
     m_Type(type),
     m_Size(size),
-    m_IsFull(is_full),
-    m_Version(0),
-    m_Flags(0),
+    m_IsFull(true),
+    m_Version(version),
+    m_Flags(flags),
     m_Parent(NULL)
 {
 }
 
 /*----------------------------------------------------------------------
-|   AP4_Atom::AP4_Atom
+|   AP4_Atom::ReadFullHeader
 +---------------------------------------------------------------------*/
-AP4_Atom::AP4_Atom(Type            type, 
-                   AP4_Size        size,
-                   bool            is_full,
-                   AP4_ByteStream& stream) : 
-    m_Type(type),
-    m_Size(size),
-    m_IsFull(is_full),
-    m_Parent(NULL)
+AP4_Result
+AP4_Atom::ReadFullHeader(AP4_ByteStream& stream, 
+                         AP4_UI32&       version, 
+                         AP4_UI32&       flags)
 {
-    // if this is a full atom, read the version and flags
-    if (is_full) {
-        AP4_UI32 header;
-        stream.ReadUI32(header);
-        m_Version = (header>>24)&0xFF;
-        m_Flags   = (header&0xFFFFFF);
-    } else {
-        m_Version = 0;
-        m_Flags   = 0;
-    }
+    AP4_UI32 header;
+    AP4_CHECK(stream.ReadUI32(header));
+    version = (header>>24)&0x000000FF;
+    flags   = (header    )&0x00FFFFFF;
+
+    return AP4_SUCCESS;
 }
 
 /*----------------------------------------------------------------------
@@ -206,9 +198,8 @@ AP4_Atom::Detach()
 +---------------------------------------------------------------------*/
 AP4_UnknownAtom::AP4_UnknownAtom(Type            type, 
                                  AP4_Size        size,
-                                 bool            is_full,
                                  AP4_ByteStream& stream) : 
-    AP4_Atom(type, size, is_full, stream),
+    AP4_Atom(type, size),
     m_SourceStream(&stream)
 {
     // store source stream offset

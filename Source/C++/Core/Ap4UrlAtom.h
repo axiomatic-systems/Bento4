@@ -40,14 +40,22 @@
 +---------------------------------------------------------------------*/
 class AP4_UrlAtom : public AP4_Atom
 {
- public:
+public:
+    // class methods
+    static AP4_UrlAtom* Create(AP4_Size size, AP4_ByteStream& stream);
+
     // methods
     AP4_UrlAtom(); // local ref only (no URL string)
-    AP4_UrlAtom(AP4_Size size, AP4_ByteStream& stream);
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
 
- private:
+private:
+    // methods
+    AP4_UrlAtom(AP4_Size        size, 
+                AP4_UI32        version,
+                AP4_UI32        flags,
+                AP4_ByteStream& stream);
+
     // members
     AP4_String m_Url;
 };

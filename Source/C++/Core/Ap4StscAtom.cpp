@@ -34,10 +34,23 @@
 #include "Ap4Utils.h"
 
 /*----------------------------------------------------------------------
+|   AP4_StscAtom::Create
++---------------------------------------------------------------------*/
+AP4_StscAtom*
+AP4_StscAtom::Create(AP4_Size size, AP4_ByteStream& stream)
+{
+    AP4_UI32 version;
+    AP4_UI32 flags;
+    if (AP4_FAILED(AP4_Atom::ReadFullHeader(stream, version, flags))) return NULL;
+    if (version != 0) return NULL;
+    return new AP4_StscAtom(size, version, flags, stream);
+}
+
+/*----------------------------------------------------------------------
 |   AP4_StscAtom::AP4_StscAtom
 +---------------------------------------------------------------------*/
 AP4_StscAtom::AP4_StscAtom() :
-    AP4_Atom(AP4_ATOM_TYPE_STSC, 4+AP4_FULL_ATOM_HEADER_SIZE, true),   
+    AP4_Atom(AP4_ATOM_TYPE_STSC, AP4_FULL_ATOM_HEADER_SIZE+4),   
     m_CachedChunkGroup(0)
 {
 }
@@ -45,8 +58,11 @@ AP4_StscAtom::AP4_StscAtom() :
 /*----------------------------------------------------------------------
 |   AP4_StscAtom::AP4_StscAtom
 +---------------------------------------------------------------------*/
-AP4_StscAtom::AP4_StscAtom(AP4_Size size, AP4_ByteStream& stream) :
-    AP4_Atom(AP4_ATOM_TYPE_STSC, size, true, stream),
+AP4_StscAtom::AP4_StscAtom(AP4_Size        size, 
+                           AP4_UI32        version,
+                           AP4_UI32        flags,
+                           AP4_ByteStream& stream) :
+    AP4_Atom(AP4_ATOM_TYPE_STSC, size, version, flags),
     m_CachedChunkGroup(0)
 {
     AP4_UI32 first_sample = 1;

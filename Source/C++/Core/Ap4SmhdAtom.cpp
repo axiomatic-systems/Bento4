@@ -34,10 +34,23 @@
 #include "Ap4Utils.h"
 
 /*----------------------------------------------------------------------
+|   AP4_SmhdAtom::Create
++---------------------------------------------------------------------*/
+AP4_SmhdAtom*
+AP4_SmhdAtom::Create(AP4_Size size, AP4_ByteStream& stream)
+{
+    AP4_UI32 version;
+    AP4_UI32 flags;
+    if (AP4_FAILED(AP4_Atom::ReadFullHeader(stream, version, flags))) return NULL;
+    if (version != 0) return NULL;
+    return new AP4_SmhdAtom(size, version, flags, stream);
+}
+
+/*----------------------------------------------------------------------
 |   AP4_SmhdAtom::AP4_SmhdAtom
 +---------------------------------------------------------------------*/
 AP4_SmhdAtom::AP4_SmhdAtom(AP4_UI16 balance) :
-    AP4_Atom(AP4_ATOM_TYPE_SMHD, 4+AP4_FULL_ATOM_HEADER_SIZE, true),
+    AP4_Atom(AP4_ATOM_TYPE_SMHD, AP4_FULL_ATOM_HEADER_SIZE+4, 0, 0),
     m_Balance(balance)
 {
     m_Reserved = 0;
@@ -46,8 +59,11 @@ AP4_SmhdAtom::AP4_SmhdAtom(AP4_UI16 balance) :
 /*----------------------------------------------------------------------
 |   AP4_SmhdAtom::AP4_SmhdAtom
 +---------------------------------------------------------------------*/
-AP4_SmhdAtom::AP4_SmhdAtom(AP4_Size size, AP4_ByteStream& stream) :
-    AP4_Atom(AP4_ATOM_TYPE_SMHD, size, true, stream)
+AP4_SmhdAtom::AP4_SmhdAtom(AP4_Size        size, 
+                           AP4_UI32        version,
+                           AP4_UI32        flags,
+                           AP4_ByteStream& stream) :
+    AP4_Atom(AP4_ATOM_TYPE_SMHD, size, version, flags)
 {
     stream.ReadUI16(m_Balance);
     stream.ReadUI16(m_Reserved);

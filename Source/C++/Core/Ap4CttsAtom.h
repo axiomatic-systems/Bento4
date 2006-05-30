@@ -63,15 +63,24 @@ class AP4_CttsTableEntry {
 +---------------------------------------------------------------------*/
 class AP4_CttsAtom : public AP4_Atom
 {
- public:
+public:
+    // class methods
+    static AP4_CttsAtom* Create(AP4_Size size, AP4_ByteStream& stream);
+
     // methods
-    AP4_CttsAtom(AP4_Size size, AP4_ByteStream& stream);
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
     virtual AP4_Result GetCtsOffset(AP4_Ordinal sample, 
                                     AP4_Offset& cts_offset);
 
- private:
+private:
+    // methods
+    AP4_CttsAtom(AP4_Size        size, 
+                 AP4_UI32        version,
+                 AP4_UI32        flags,
+                 AP4_ByteStream& stream);
+
+    // members
     AP4_Array<AP4_CttsTableEntry> m_Entries;
 };
 

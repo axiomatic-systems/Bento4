@@ -265,7 +265,10 @@ public:
     const AP4_String& GetValue() { return m_Value; }
 
 private:
+    // methods
+
     // members
+    AP4_UI32   m_Reserved;
     AP4_String m_Value;
 };
 

@@ -49,6 +49,9 @@ const int AP4_TKHD_FLAG_DEFAULTS         = 7;
 class AP4_TkhdAtom : public AP4_Atom
 {
 public:
+    // class methods
+    static AP4_TkhdAtom* Create(AP4_Size size, AP4_ByteStream& stream);
+
     // methods
     AP4_TkhdAtom(AP4_UI32 creation_time,
                  AP4_UI32 modification_time,
@@ -57,7 +60,6 @@ public:
                  AP4_UI16 volume,
                  AP4_UI32 width,
                  AP4_UI32 height);    
-    AP4_TkhdAtom(AP4_Size size, AP4_ByteStream& stream);
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
 
@@ -72,14 +74,22 @@ public:
         return AP4_SUCCESS;  
     }
 
- private:
+private:
+    // methods
+    AP4_TkhdAtom(AP4_Size        size, 
+                 AP4_UI32        version,
+                 AP4_UI32        flags,
+                 AP4_ByteStream& stream);
+    
     // members
+    AP4_UI32 m_CreationTimeH;
     AP4_UI32 m_CreationTime;
+    AP4_UI32 m_ModificationTimeH;
     AP4_UI32 m_ModificationTime;
     AP4_UI32 m_TrackId;
     AP4_UI32 m_Reserved1;
+    AP4_UI32 m_DurationH;
     AP4_UI32 m_Duration;
-    AP4_UI08 m_DataVersion1[32];
     AP4_UI32 m_Reserved2[2];
     AP4_UI16 m_Layer;
     AP4_UI16 m_AlternateGroup;

@@ -40,13 +40,21 @@
 class AP4_VmhdAtom : public AP4_Atom
 {
 public:
+    // class methods
+    static AP4_VmhdAtom* Create(AP4_Size size, AP4_ByteStream& stream);
+
     // methods
     AP4_VmhdAtom(AP4_UI16 graphics_mode, AP4_UI16 r, AP4_UI16 g, AP4_UI16 b);
-    AP4_VmhdAtom(AP4_Size size, AP4_ByteStream& stream);
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
 
 private:
+    // methods
+    AP4_VmhdAtom(AP4_Size        size, 
+                 AP4_UI32        version,
+                 AP4_UI32        flags,
+                 AP4_ByteStream& stream);
+
     // members
     AP4_UI16 m_GraphicsMode;
     AP4_UI16 m_OpColor[3];

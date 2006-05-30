@@ -34,10 +34,26 @@
 #include "Ap4Utils.h"
 
 /*----------------------------------------------------------------------
+|   AP4_CttsAtom::Create
++---------------------------------------------------------------------*/
+AP4_CttsAtom*
+AP4_CttsAtom::Create(AP4_Size size, AP4_ByteStream& stream)
+{
+    AP4_UI32 version;
+    AP4_UI32 flags;
+    if (AP4_FAILED(AP4_Atom::ReadFullHeader(stream, version, flags))) return NULL;
+    if (version != 0) return NULL;
+    return new AP4_CttsAtom(size, version, flags, stream);
+}
+
+/*----------------------------------------------------------------------
 |   AP4_CttsAtom::AP4_CttsAtom
 +---------------------------------------------------------------------*/
-AP4_CttsAtom::AP4_CttsAtom(AP4_Size size, AP4_ByteStream& stream) :
-    AP4_Atom(AP4_ATOM_TYPE_CTTS, size, true, stream)
+AP4_CttsAtom::AP4_CttsAtom(AP4_Size        size, 
+                           AP4_UI32        version,
+                           AP4_UI32        flags,
+                           AP4_ByteStream& stream) :
+    AP4_Atom(AP4_ATOM_TYPE_CTTS, size, version, flags)
 {
     AP4_UI32 entry_count;
     stream.ReadUI32(entry_count);

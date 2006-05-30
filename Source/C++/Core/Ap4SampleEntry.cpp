@@ -40,7 +40,7 @@
 +---------------------------------------------------------------------*/
 AP4_SampleEntry::AP4_SampleEntry(AP4_Atom::Type format,
                                  AP4_UI16       data_reference_index) :
-    AP4_ContainerAtom(format, AP4_ATOM_HEADER_SIZE+8, false),
+    AP4_ContainerAtom(format, AP4_ATOM_HEADER_SIZE+8),
     m_DataReferenceIndex(data_reference_index)
 {
     m_Reserved1[0] = 0;

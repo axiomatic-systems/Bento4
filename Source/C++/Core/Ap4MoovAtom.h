@@ -47,11 +47,15 @@ class AP4_TrakAtom;
 class AP4_MoovAtom : public AP4_ContainerAtom
 {
 public:
+    // class methods
+    static AP4_MoovAtom* Create(AP4_Size         size,
+                                AP4_ByteStream&  stream,
+                                AP4_AtomFactory& atom_factory) {
+        return new AP4_MoovAtom(size, stream, atom_factory);
+    }
+
     // methods
     AP4_MoovAtom();
-    AP4_MoovAtom(AP4_Size         size,
-                 AP4_ByteStream&  stream,
-                 AP4_AtomFactory& atom_factory);
     AP4_List<AP4_TrakAtom>& GetTrakAtoms() {
         return m_TrakAtoms;
     }
@@ -64,6 +68,11 @@ public:
     void OnChildRemoved(AP4_Atom* atom);
 
 private:
+    // methods
+    AP4_MoovAtom(AP4_Size         size,
+                 AP4_ByteStream&  stream,
+                 AP4_AtomFactory& atom_factory);
+
     // members
     AP4_List<AP4_TrakAtom> m_TrakAtoms;
     AP4_UI32               m_TimeScale;

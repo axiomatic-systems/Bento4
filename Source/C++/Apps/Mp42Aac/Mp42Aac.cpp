@@ -37,7 +37,8 @@
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-#define BANNER "MP4 To AAC File Converter - Version 0.1a\n"\
+#define BANNER "MP4 To AAC File Converter - Version 1.0\n"\
+               "(Bento4 Version " AP4_VERSION_STRING ")\n"\
                "(c) 2003-2006 Gilles Boccon-Gibod & Julien Boeuf"
  
 /*----------------------------------------------------------------------

@@ -40,10 +40,12 @@
 +---------------------------------------------------------------------*/
 class AP4_StszAtom : public AP4_Atom
 {
- public:
+public:
+    // class methods
+    static AP4_StszAtom* Create(AP4_Size size, AP4_ByteStream& stream);
+
     // methods
     AP4_StszAtom();
-    AP4_StszAtom(AP4_Size size, AP4_ByteStream& stream);
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
     virtual AP4_UI32   GetSampleCount();
@@ -53,7 +55,14 @@ class AP4_StszAtom : public AP4_Atom
                                      AP4_Size    sample_size);
     virtual AP4_Result AddEntry(AP4_UI32 size);
 
- private:
+private:
+    // methods
+    AP4_StszAtom(AP4_Size        size, 
+                 AP4_UI32        version,
+                 AP4_UI32        flags,
+                 AP4_ByteStream& stream);
+
+    // members
     AP4_UI32            m_SampleSize;
     AP4_UI32            m_SampleCount;
     AP4_Array<AP4_UI32> m_Entries;

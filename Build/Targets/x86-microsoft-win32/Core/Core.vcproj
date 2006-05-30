@@ -249,6 +249,9 @@
 				RelativePath="..\..\..\..\Source\C++\Core\Ap4IsfmAtom.cpp">
 			</File>
 			<File
+				RelativePath="..\..\..\..\Source\C++\Core\Ap4IsltAtom.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\..\Source\C++\Core\Ap4IsmaCryp.cpp">
 			</File>
 			<File
@@ -437,6 +440,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\..\Source\C++\Core\Ap4IsfmAtom.h">
+			</File>
+			<File
+				RelativePath="..\..\..\..\Source\C++\Core\Ap4IsltAtom.h">
 			</File>
 			<File
 				RelativePath="..\..\..\..\Source\C++\Core\Ap4IsmaCryp.h">

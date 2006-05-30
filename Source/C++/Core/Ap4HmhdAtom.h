@@ -46,12 +46,20 @@ class AP4_ByteStream;
 class AP4_HmhdAtom : public AP4_Atom
 {
 public:
+    // class methods
+    static AP4_HmhdAtom* Create(AP4_Size size, AP4_ByteStream& stream);
+
     // methods
-    AP4_HmhdAtom(AP4_Size size, AP4_ByteStream& stream);
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
 
 private:
+    // methods
+    AP4_HmhdAtom(AP4_Size        size, 
+                 AP4_UI32        version,
+                 AP4_UI32        flags,
+                 AP4_ByteStream& stream);
+
     // members
     AP4_UI16 m_MaxPduSize;
     AP4_UI16 m_AvgPduSize;

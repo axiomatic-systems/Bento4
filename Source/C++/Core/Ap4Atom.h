@@ -25,6 +25,10 @@
 |    02111-1307, USA.
 |
  ****************************************************************/
+/**
+* @file 
+* @brief Atoms
+*/
 
 #ifndef _AP4_ATOM_H_
 #define _AP4_ATOM_H_
@@ -49,10 +53,10 @@
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-const int AP4_ATOM_HEADER_SIZE      = 8;
-const int AP4_FULL_ATOM_HEADER_SIZE = 12;
-const int AP4_ATOM_MAX_NAME_SIZE    = 256;
-const int AP4_ATOM_MAX_URI_SIZE     = 512;
+const unsigned int AP4_ATOM_HEADER_SIZE      = 8;
+const unsigned int AP4_FULL_ATOM_HEADER_SIZE = 12;
+const unsigned int AP4_ATOM_MAX_NAME_SIZE    = 256;
+const unsigned int AP4_ATOM_MAX_URI_SIZE     = 512;
 
 /*----------------------------------------------------------------------
 |   forward references
@@ -62,6 +66,10 @@ class AP4_AtomParent;
 /*----------------------------------------------------------------------
 |   AP4_AtomInspector
 +---------------------------------------------------------------------*/
+/**
+ * Class used in a visitor pattern to walk all the atoms in a tree of
+ * #AP4_Atom objects. 
+ */
 class AP4_AtomInspector {
 public:
     // types
@@ -87,22 +95,37 @@ public:
 /*----------------------------------------------------------------------
 |   AP4_Atom
 +---------------------------------------------------------------------*/
+/**
+ * Abstract base class for all atom types.
+ */
 class AP4_Atom {
  public:
     // types
     typedef AP4_UI32 Type;
 
+    // class methods
+    static AP4_Result ReadFullHeader(AP4_ByteStream& stream, 
+                                     AP4_UI32&       version, 
+                                     AP4_UI32&       flags);
+
+    // constructors
+    /**
+     * Create a simple atom with a specified type and size.
+     */
+    AP4_Atom(Type type, AP4_Size = AP4_ATOM_HEADER_SIZE);
+
+    /**
+     * Create a full atom with a specified type, size, version and flags.
+     */
+    AP4_Atom(Type     type, 
+             AP4_Size size,
+             AP4_UI32 version, 
+             AP4_UI32 flags);
+
+    // destructor
+    virtual ~AP4_Atom() {}
+
     // methods
-                       AP4_Atom(Type type, 
-                                bool is_full = false);
-                       AP4_Atom(Type     type, 
-                                AP4_Size size, 
-                                bool     is_full = false);
-                       AP4_Atom(Type            type, 
-                                AP4_Size        size, 
-                                bool            is_full,
-                                AP4_ByteStream& stream);
-    virtual           ~AP4_Atom() {}
     Type               GetType() const { return m_Type; }
     void               SetType(Type type) { m_Type = type; }
     AP4_Size           GetHeaderSize() const;
@@ -117,14 +140,19 @@ class AP4_Atom {
     }
 
     // parent/child realtionship methods
-    virtual AP4_Result      SetParent(AP4_AtomParent* parent) {
+    virtual AP4_Result SetParent(AP4_AtomParent* parent) {
         m_Parent = parent;
         return AP4_SUCCESS;
     }
     virtual AP4_AtomParent* GetParent() { return m_Parent; }
     virtual AP4_Result Detach();
 
-    // override this if your want to make an atom cloneable
+    /**
+     * Create a clone of the object.
+     * This method returns a clone of the atom, or NULL if
+     * the atom cannot be cloned.
+     * Override this if your want to make an atom cloneable.
+     */ 
     virtual AP4_Atom*  Clone() { return NULL; }
 
  protected:
@@ -140,6 +168,10 @@ class AP4_Atom {
 /*----------------------------------------------------------------------
 |   AP4_AtomParent
 +---------------------------------------------------------------------*/
+/**
+ * Base class for atoms that can have children atoms.
+ * This class also implements the logic for finding descendents by name.
+ */
 class AP4_AtomParent {
 public:
     // base methods
@@ -165,12 +197,17 @@ protected:
 /*----------------------------------------------------------------------
 |   AP4_UnknownAtom
 +---------------------------------------------------------------------*/
+/**
+ * Class that represents atoms for which there is no specific support.
+ * Instances of this class keep a reference to the stream from which 
+ * the atom is parsed, so that it can read the atom's payload when it
+ * is serialized.
+ */
 class AP4_UnknownAtom : public AP4_Atom {
 public:
     // constructor and destructor
     AP4_UnknownAtom(AP4_Atom::Type   type, 
                     AP4_Size         size, 
-                    bool             is_full,
                     AP4_ByteStream&  stream);
     ~AP4_UnknownAtom();
 
@@ -235,6 +272,7 @@ const AP4_Atom::Type AP4_ATOM_TYPE_HNTI = AP4_ATOM_TYPE('h','n','t','i');
 const AP4_Atom::Type AP4_ATOM_TYPE_SDP  = AP4_ATOM_TYPE('s','d','p',' ');
 const AP4_Atom::Type AP4_ATOM_TYPE_IKMS = AP4_ATOM_TYPE('i','K','M','S');
 const AP4_Atom::Type AP4_ATOM_TYPE_ISFM = AP4_ATOM_TYPE('i','S','F','M');
+const AP4_Atom::Type AP4_ATOM_TYPE_ISLT = AP4_ATOM_TYPE('i','S','L','T');
 const AP4_Atom::Type AP4_ATOM_TYPE_HINT = AP4_ATOM_TYPE('h','i','n','t');
 const AP4_Atom::Type AP4_ATOM_TYPE_TREF = AP4_ATOM_TYPE('t','r','e','f');
 

@@ -47,23 +47,27 @@ class AP4_SampleTable;
 class AP4_TrakAtom : public AP4_ContainerAtom
 {
  public:
+    // class methods
+     static AP4_TrakAtom* Create(AP4_Size         size,
+                                 AP4_ByteStream&  stream,
+                                 AP4_AtomFactory& atom_factory) {
+        return new AP4_TrakAtom(size, stream, atom_factory);
+    }
+
     // methods
-     AP4_TrakAtom(AP4_SampleTable* sample_table,
-                  AP4_Atom::Type   hdlr_type,
-                  const char*      hdlr_name,
-                  AP4_UI32         track_id, 
-                  AP4_UI32         creation_time,
-                  AP4_UI32         modification_time,
-                  AP4_UI32         track_duration,
-                  AP4_UI32         media_time_scale,
-                  AP4_UI32         media_duration,
-                  AP4_UI16         volume,
-                  const char*      language,
-                  AP4_UI32         width,
-                  AP4_UI32         heigh);
-    AP4_TrakAtom(AP4_Size         size,
-                 AP4_ByteStream&  stream,
-                 AP4_AtomFactory& atom_factory);
+    AP4_TrakAtom(AP4_SampleTable* sample_table,
+                 AP4_Atom::Type   hdlr_type,
+                 const char*      hdlr_name,
+                 AP4_UI32         track_id, 
+                 AP4_UI32         creation_time,
+                 AP4_UI32         modification_time,
+                 AP4_UI32         track_duration,
+                 AP4_UI32         media_time_scale,
+                 AP4_UI32         media_duration,
+                 AP4_UI16         volume,
+                 const char*      language,
+                 AP4_UI32         width,
+                 AP4_UI32         heigh);
     AP4_Result AdjustChunkOffsets(AP4_Offset offset);
     AP4_UI32   GetId() { 
         return m_TkhdAtom->GetTrackId(); 
@@ -76,6 +80,11 @@ class AP4_TrakAtom : public AP4_ContainerAtom
     AP4_TkhdAtom* GetTkhdAtom() { return m_TkhdAtom; }
 
  private:
+    // methods
+    AP4_TrakAtom(AP4_Size         size,
+                 AP4_ByteStream&  stream,
+                 AP4_AtomFactory& atom_factory);
+
     // members
     AP4_TkhdAtom* m_TkhdAtom;
 };

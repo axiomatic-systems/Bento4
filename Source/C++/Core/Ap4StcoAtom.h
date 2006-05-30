@@ -40,19 +40,28 @@
 +---------------------------------------------------------------------*/
 class AP4_StcoAtom : public AP4_Atom
 {
- public:
+public:
+    // class methods
+    static AP4_StcoAtom* Create(AP4_Size size, AP4_ByteStream& stream);
+
     // methods
     AP4_StcoAtom(AP4_UI32* offsets, AP4_UI32 offset_count);
-    AP4_StcoAtom(AP4_Size size, AP4_ByteStream& stream);
     ~AP4_StcoAtom();
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
     AP4_Cardinal GetChunkCount() { return m_EntryCount;  }
-    AP4_Result GetChunkOffset(AP4_Ordinal chunk, AP4_Offset& chunk_offset);
-    AP4_Result SetChunkOffset(AP4_Ordinal chunk, AP4_Offset chunk_offset);
-    AP4_Result AdjustChunkOffsets(AP4_Offset offset);
+    AP4_Result   GetChunkOffset(AP4_Ordinal chunk, AP4_Offset& chunk_offset);
+    AP4_Result   SetChunkOffset(AP4_Ordinal chunk, AP4_Offset chunk_offset);
+    AP4_Result   AdjustChunkOffsets(AP4_Offset offset);
 
- private:
+private:
+    // methods
+    AP4_StcoAtom(AP4_Size        size, 
+                 AP4_UI32        version,
+                 AP4_UI32        flags,
+                 AP4_ByteStream& stream);
+
+    // members
     AP4_UI32* m_Entries;
     AP4_UI32  m_EntryCount;
 };

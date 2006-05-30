@@ -46,12 +46,14 @@ class AP4_ByteStream;
 +---------------------------------------------------------------------*/
 class AP4_SchmAtom : public AP4_Atom
 {
- public:
+public:
+    // class methods
+    static AP4_SchmAtom* Create(AP4_Size size, AP4_ByteStream& stream);
+
     // constructors
     AP4_SchmAtom(AP4_UI32    scheme_type,
                  AP4_UI32    scheme_version,
                  const char* scheme_uri = NULL);
-    AP4_SchmAtom(AP4_Size size, AP4_ByteStream& stream);
 
     // methods
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
@@ -62,7 +64,13 @@ class AP4_SchmAtom : public AP4_Atom
     AP4_UI32    GetSchemeVersion() { return m_SchemeVersion; }
     AP4_String& GetSchemeUri()     { return m_SchemeUri;     }
 
- private:
+private:
+    // methods
+    AP4_SchmAtom(AP4_Size        size, 
+                 AP4_UI32        version,
+                 AP4_UI32        flags,
+                 AP4_ByteStream& stream);
+
     // members
     AP4_UI32   m_SchemeType;
     AP4_UI32   m_SchemeVersion;

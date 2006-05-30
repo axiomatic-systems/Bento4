@@ -58,9 +58,11 @@ const AP4_UI32 AP4_HANDLER_TYPE_SDSM = AP4_ATOM_TYPE('s','d','s','m');
 class AP4_HdlrAtom : public AP4_Atom
 {
 public:
+    // class methods
+    static AP4_HdlrAtom* Create(AP4_Size size, AP4_ByteStream& stream);
+
     // methods
     AP4_HdlrAtom(AP4_UI32 hdlr_type, const char* hdlr_name);
-    AP4_HdlrAtom(AP4_Size size, AP4_ByteStream& stream);
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
     AP4_UI32 GetHandlerType() {
         return m_HandlerType;
@@ -68,6 +70,12 @@ public:
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
 
 private:
+    // methods
+    AP4_HdlrAtom(AP4_Size        size, 
+                 AP4_UI32        version,
+                 AP4_UI32        flags,
+                 AP4_ByteStream& stream);
+
     // members
     AP4_UI32   m_HandlerType;
     AP4_String m_HandlerName;

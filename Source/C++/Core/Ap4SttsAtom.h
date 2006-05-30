@@ -57,10 +57,12 @@ class AP4_SttsTableEntry {
 +---------------------------------------------------------------------*/
 class AP4_SttsAtom : public AP4_Atom
 {
- public:
+public:
+    // class methods
+    static AP4_SttsAtom* Create(AP4_Size size, AP4_ByteStream& stream);
+
     // methods
     AP4_SttsAtom();
-    AP4_SttsAtom(AP4_Size size, AP4_ByteStream& stream);
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
     virtual AP4_Result GetDts(AP4_Ordinal sample, AP4_TimeStamp& dts);
     virtual AP4_Result AddEntry(AP4_UI32 sample_count, AP4_UI32 sample_duration);
@@ -68,7 +70,14 @@ class AP4_SttsAtom : public AP4_Atom
                                                   AP4_Ordinal& sample);
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
 
- private:
+private:
+    // methods
+    AP4_SttsAtom(AP4_Size        size, 
+                 AP4_UI32        version,
+                 AP4_UI32        flags,
+                 AP4_ByteStream& stream);
+
+    // members
     AP4_Array<AP4_SttsTableEntry> m_Entries;
 };
 

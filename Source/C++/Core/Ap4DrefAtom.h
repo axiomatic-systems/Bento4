@@ -47,12 +47,22 @@ class AP4_AtomFactory;
 class AP4_DrefAtom : public AP4_ContainerAtom
 {
 public:
+    // class methods
+    static AP4_DrefAtom* Create(AP4_Size         size,
+                                AP4_ByteStream&  stream,
+                                AP4_AtomFactory& atom_factory);
+
     // methods
     AP4_DrefAtom(AP4_Atom** refs, AP4_Cardinal refs_count);
+    virtual AP4_Result WriteFields(AP4_ByteStream& stream);
+
+private:
+    // methods
     AP4_DrefAtom(AP4_Size         size,
+                 AP4_UI32         version,
+                 AP4_UI32         flags,
                  AP4_ByteStream&  stream,
                  AP4_AtomFactory& atom_factory);
-    virtual AP4_Result WriteFields(AP4_ByteStream& stream);
 };
 
 #endif // _AP4_DREF_ATOM_H_

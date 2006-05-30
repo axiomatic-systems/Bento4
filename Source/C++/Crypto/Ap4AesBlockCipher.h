@@ -43,24 +43,15 @@
 #include "Ap4Config.h"
 
 /*----------------------------------------------------------------------
+|   class references
++---------------------------------------------------------------------*/
+struct aes_ctx;
+
+/*----------------------------------------------------------------------
 |   AES constants
 +---------------------------------------------------------------------*/
 #define AP4_AES_BLOCK_SIZE  16
 #define AP4_AES_KEY_LENGTH  16
-
-/*----------------------------------------------------------------------
-|   AES types
-+---------------------------------------------------------------------*/
-typedef AP4_UI32     aes_32t;
-typedef AP4_UI08     aes_08t;
-typedef unsigned int aes_rval;
-typedef struct                     // the AES context for encryption
-{   aes_32t    k_sch[4*AP4_AES_BLOCK_SIZE];   // the encryption key schedule
-    aes_32t    n_rnd;              // the number of cipher rounds
-    aes_32t    n_blk;              // the number of bytes in the state
-} aes_ctx;
-#define aes_bad      0             // bad function return value
-#define aes_good     1             // good function return value
 
 /*----------------------------------------------------------------------
 |   AP4_AesBlockCipher class
@@ -76,7 +67,7 @@ class AP4_AesBlockCipher
     AP4_Result EncryptBlock(const AP4_UI08* block_in, AP4_UI08* block_out);
 
  private:
-    aes_ctx m_Context;
+    aes_ctx* m_Context;
 };
 
 #endif // _AP4_AES_BLOCK_CIPHER_H_ 

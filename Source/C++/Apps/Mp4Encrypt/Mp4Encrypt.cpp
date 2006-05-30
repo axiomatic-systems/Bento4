@@ -38,8 +38,9 @@
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-#define BANNER "MP4 Encrypter - Version 0.1a\n"\
-               "(c) 2002-2005 Gilles Boccon-Gibod & Julien Boeuf"
+#define BANNER "MP4 Encrypter - Version 1.0\n"\
+               "(Bento4 Version " AP4_VERSION_STRING ")\n"\
+               "(c) 2002-2006 Gilles Boccon-Gibod & Julien Boeuf"
 
 /*----------------------------------------------------------------------
 |   PrintUsageAndExit

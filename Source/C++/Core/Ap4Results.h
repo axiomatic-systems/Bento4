@@ -61,4 +61,9 @@ const int AP4_ERROR_UNSUPPORTED                     = -21;
 #define AP4_FAILED(result) ((result) != AP4_SUCCESS)
 #define AP4_SUCCEEDED(result) ((result) == AP4_SUCCESS)
 
+#define AP4_CHECK(_x) do {                      \
+    AP4_Result _result = (_x);                  \
+    if (AP4_FAILED(_result)) return _result;    \
+} while(0)
+
 #endif // _AP4_RESULTS_H_

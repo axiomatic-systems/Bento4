@@ -34,18 +34,34 @@
 #include "Ap4Utils.h"
 
 /*----------------------------------------------------------------------
+|   AP4_NmhdAtom::Create
++---------------------------------------------------------------------*/
+AP4_NmhdAtom*
+AP4_NmhdAtom::Create(AP4_Size size, AP4_ByteStream& stream)
+{
+    AP4_UI32 version;
+    AP4_UI32 flags;
+    if (AP4_FAILED(AP4_Atom::ReadFullHeader(stream, version, flags))) return NULL;
+    if (version != 0) return NULL;
+    return new AP4_NmhdAtom(size, version, flags, stream);
+}
+
+/*----------------------------------------------------------------------
 |   AP4_NmhdAtom::AP4_NmhdAtom
 +---------------------------------------------------------------------*/
 AP4_NmhdAtom::AP4_NmhdAtom() :
-    AP4_Atom(AP4_ATOM_TYPE_NMHD, AP4_FULL_ATOM_HEADER_SIZE, true)
+    AP4_Atom(AP4_ATOM_TYPE_NMHD, AP4_FULL_ATOM_HEADER_SIZE, 0, 0)
 {
 }
 
 /*----------------------------------------------------------------------
 |   AP4_NmhdAtom::AP4_NmhdAtom
 +---------------------------------------------------------------------*/
-AP4_NmhdAtom::AP4_NmhdAtom(AP4_Size size, AP4_ByteStream& stream) :
-    AP4_Atom(AP4_ATOM_TYPE_NMHD, size, true, stream)
+AP4_NmhdAtom::AP4_NmhdAtom(AP4_Size        size, 
+                           AP4_UI32        version,
+                           AP4_UI32        flags,
+                           AP4_ByteStream& stream) :
+    AP4_Atom(AP4_ATOM_TYPE_NMHD, size, version, flags)
 {
 }
 
@@ -55,6 +71,5 @@ AP4_NmhdAtom::AP4_NmhdAtom(AP4_Size size, AP4_ByteStream& stream) :
 AP4_Result
 AP4_NmhdAtom::WriteFields(AP4_ByteStream& stream)
 {
-    // not implemented yet
     return AP4_SUCCESS;
 }

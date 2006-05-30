@@ -37,6 +37,7 @@
 #include "Ap4Track.h"
 #include "Ap4Sample.h"
 #include "Ap4DataBuffer.h"
+#include "Ap4FtypAtom.h"
 
 /*----------------------------------------------------------------------
 |   AP4_FileWriter::AP4_FileWriter
@@ -60,12 +61,18 @@ AP4_FileWriter::Write(AP4_ByteStream& stream)
 {
     //AP4_Result result;
 
+    // get the file type
+    AP4_FtypAtom* file_type = m_File.GetFileType();
+
     // get the movie object
     AP4_Movie* movie = m_File.GetMovie();
     if (movie == NULL) return AP4_SUCCESS;
 
     // compute the final offset of the sample data in mdat
-    AP4_Offset data_offset = movie->GetMoovAtom()->GetSize()+AP4_ATOM_HEADER_SIZE;
+    AP4_Offset data_offset = 0;
+    if (file_type) data_offset += file_type->GetSize();
+    data_offset += movie->GetMoovAtom()->GetSize();
+    data_offset += AP4_ATOM_HEADER_SIZE; // mdat header
 
     // adjust the tracks
     AP4_List<AP4_Track>::Item* track_item = movie->GetTracks().FirstItem();
@@ -74,6 +81,9 @@ AP4_FileWriter::Write(AP4_ByteStream& stream)
         track->GetTrakAtom()->AdjustChunkOffsets(data_offset);
         track_item = track_item->GetNext();
     }
+
+    // write the ftyp atom
+    if (file_type) file_type->Write(stream);
 
     // write the moov atom
     movie->GetMoovAtom()->Write(stream);

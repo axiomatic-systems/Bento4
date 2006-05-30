@@ -42,19 +42,31 @@
 class AP4_IkmsAtom : public AP4_Atom
 {
 public:
+    // class methods
+    static AP4_IkmsAtom* Create(AP4_Size size, AP4_ByteStream& stream);
+
     // methods
     AP4_IkmsAtom(const char* kms_uri);
-    AP4_IkmsAtom(AP4_Size size, AP4_ByteStream& stream);
     virtual AP4_Atom*  Clone();
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
 
     // accessors
-    const AP4_String& GetKmsUri() { return m_KmsUri; }
+    const AP4_String& GetKmsUri()     { return m_KmsUri;     }
+    AP4_UI32          GetKmsId()      { return m_KmsId;      }
+    AP4_UI32          GetKmsVersion() { return m_KmsVersion; }
 
 private:
+    // methods
+    AP4_IkmsAtom(AP4_Size        size, 
+                 AP4_UI32        version,
+                 AP4_UI32        flags,
+                 AP4_ByteStream& stream);
+
     // members
     AP4_String m_KmsUri;
+    AP4_UI32   m_KmsId;
+    AP4_UI32   m_KmsVersion;
 };
 
 #endif // _AP4_IKMS_ATOM_H_

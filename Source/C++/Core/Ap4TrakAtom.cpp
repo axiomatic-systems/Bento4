@@ -144,7 +144,7 @@ AP4_TrakAtom::AP4_TrakAtom(AP4_SampleTable* sample_table,
 AP4_TrakAtom::AP4_TrakAtom(AP4_Size         size,
                            AP4_ByteStream&  stream,
                            AP4_AtomFactory& atom_factory) :
-    AP4_ContainerAtom(AP4_ATOM_TYPE_TRAK, size, false, stream, atom_factory)
+    AP4_ContainerAtom(AP4_ATOM_TYPE_TRAK, size, stream, atom_factory)
 {
     m_TkhdAtom = dynamic_cast<AP4_TkhdAtom*>(FindChild("tkhd"));
 }

@@ -25,6 +25,185 @@
 |    02111-1307, USA.
 |
  ****************************************************************/
+/** 
+* @file
+* @brief Top Level include file
+*
+* Applications should only need to include that file, as it will
+* include all the more specific include files required to use the API
+*/
+
+/** @mainpage Bento4 SDK
+*
+* @section intro_sec Introduction
+* Bento4/AP4 is a C++ class library designed to read and write ISO-MP4 files.
+* This format is defined in ISO/IEC 14496-12, 14496-14 and 14496-15. 
+* The format is a derivative of the Apple Quicktime file format. 
+* Because of that, Bento4 can be used to read and write a number of Quicktime files 
+* as well, even though  some Quicktime specific features are not supported.
+* In addition, Bento4 supports a number of extensions as defined in various
+* other specifications. This includes some support for ISMA Encrytion as defined
+* in the ISMA E&A specification (http://www.isma.tv), and iTunes compatible
+* metadata.
+* The SDK includes a number of command line tools, built using the class library,
+* that serve as general purpose tools as well as examples of how to use the API.
+* 
+* The SDK is designed to be cross-platform. The code is very portable; it can
+* be compiled with any sufficiently modern C++ compiler. The code does not rely
+* on any external library; all the code necessary to compile the SDK and its
+* tools is included in the standard distribution. The standard distribution 
+* contains makefiles for unix-like operating systems, including Linux, project
+* files for Microsoft Visual Studio, and an XCode project for  MacOS X.
+*
+* @section building Building the SDK
+* Building the SDK will produce a C++ class library and some command line tools.
+* For the makefile-based configurations, 'make sdk' will produce an SDK
+* directory layout with a bin/ lib/ and include/ subdirectories containing
+* respectively the binaries, library and header files.
+*
+* @subsection build_win32 Windows
+* Open the solution file Build/Targets/Build/Targets/x86-microsoft-win32
+* Building the solution will build the class library and command line tools.
+* The script Build/Targets/Build/Targets/x86-microsoft-win32/make-sdk.sh
+* will create the SDK directory structure as described above.
+*
+* @subsection build_linux Linux
+* Go to Build/Targets/x86-unknown-linux or Build/Targets/<target-name> 
+* for any linux-based target, and use the 'make'
+* command to build the library and tools, or 'make sdk' to build the SDK 
+* directory structure.
+*
+* @subsection build_cygwin Cygwin
+* Go to Build/Targets/x86-unknown-cygwin and follow the same instructions as
+* for the Linux platform.
+*
+* @subsection build_macos MacOS
+* Use the XCode project file located under Build/Targets/ppc-apple-macosx
+*
+* @subsection build_scons Using SCons
+* There is experimental support for building the SDK using the python-based
+* SCons tool (http://www.scons.org). The top level configuration is located 
+* at the root of the SDK, and will output all the object files and binaries
+* to a sub-directory under Build/SCons/Targets/<target-name>/<config-name>.
+*
+* @subsection build_others Other Platforms
+* Other plaforms can be built by adapting the makefiles for the generic
+* gcc-based configurations. 
+*
+* @section mp4_structure Structure of an MP4 file
+*
+* An MP4 file consists of a tree of atoms (also known as boxes). The atoms
+* contain the information about the different media tracks for the file, as
+* well as other information, such as metadata.
+* The Bento4 class library parses files an constructs an in-memory representation 
+* of the atoms, and provides an API that is an abstraction layer for the
+* way the information is actually encoded in those atoms.
+*
+* @section reading Readind Files
+*
+* The class #AP4_File represents all the information about an MP4 file.
+* Internally, a tree of #AP4_Atom objects plus other helper objects holds 
+* the actual information.
+* To create an instance of the class, the caller must pass a pointer to 
+* an #AP4_ByteStream object that represents the file data storage. The SDK
+* includes two subclasses of the abstract #AP4_ByteStream class: 
+* #AP4_FileByteStream for reading/writing disk-based files and
+* #AP4_MemoryByteStream for working with in-memory file images.
+* Once one create an #AP4_File object, you can get to the media data by
+* accessing the #AP4_Track objects of its #AP4_Movie (see #AP4_File::GetMovie).
+* You can also explore the entire tree of atoms by calling #AP4_File::Inspect,
+* passing an instance of #AP4_AtomInspector. #AP4_AtomInspector is an abstract
+* base class for a visitor of the tree of #AP4_Atom objects. The SDK includes
+* an concrete subclass, #AP4_PrintInspector, can be used to print out a text
+* representation of the atoms as they are visited. See the Mp4Dump command line
+* application for an example. 
+* 
+* @section writing Writing Files
+*
+* To create a new MP4 file, you first create an #AP4_SyntheticSampleTable
+* sample table for each track in your file. You specify the sample description
+* for the media samples in each track by calling #AP4_SampleTable::AddSampleDescription
+* with the description for the samples of that track. Samples can then be added
+* to the sample table with the #AP4_SampleTable::AddSample method. 
+* Once all the samples of all the tracks have been added to the sample tables, 
+* you can create an #AP4_Movie, and an #AP4_Track from each sample table, add the track
+* to the movie, and finally create an #AP4_File from the movie object.
+* Finally, the #AP4_File object can be serialized to a byte stream (such as an
+* #AP4_FileByteStream) using the #AP4_FileWriter class.
+* See the Aac2Mp4 application for an example.
+*
+* @section tracks Tracks
+* 
+* The #AP4_Movie object of an #AP4_File has a list of #AP4_Track objects. Each
+* #AP4_Track represents a media track in the file. From this object, you can 
+* obtain the type, duration, etc.. of the tracks. This object also provides
+* access to the media samples in the track. Tracks are made up of media samples,
+* stored in an 'mdat' atom (media data) and a sample table that provides all the
+* information about the individual samples, such as size, timestamps, sample
+* description, etc... Media samples are represented by #AP4_Sample objects. 
+* You can obtain a track's samples by calling the #AP4_Track::GetSample method. 
+* You can also directly read the payload of a media sample by calling the
+* #AP4_Track::ReadSample method if you want to bypass the intermediate step of
+* going through an #AP4_Sample object.
+* The information about the samples in a track is represented by subclasses of
+* the #AP4_SampleDescription class. The sample descriptions contain information 
+* about media-specific parameters, such as video resolution, audio sampling rates
+* and others.
+* See the Mp4Info and Mp42Aac command line applications as examples.
+*
+* @section advanced Advances Topics
+*
+* @subsection factory Custom Atoms
+*
+* The SDK has built-in support for most of the standard atom types as defined
+* in the spec. But an application may want to extend the library to support 
+* non-standard atom type, such as custom atoms whose definition is proprietary.
+* The base class for all atoms is #AP4_Atom. Instances of subclasses of this class
+* are created by the #AP4_AtomFactory object. The factory knows about all the 
+* #AP4_Atom subclasses included in the SDK, and maintains a list of 
+* #AP4_AtomFactory::TypeHandler type handlers. When the factory encounters an atom
+* that is not one of the built-in atom type, it calls all the registered type
+* handlers, in turn, until one of them accept to handle the type and create the 
+* corresponding atom. The custom atoms must be implemented as subclasses of 
+* #AP4_Atom and override at least the #AP4_Atom::WriteFields method. The custom
+* atoms should also override #AP4_Atom::InspectFields if they want to provide
+* meaningfull information when inspected.
+*
+* @subsection tranformations Transformations
+* The SDK provides support for transforming MP4 files. Tranformations are usefull
+* to perform tasks such as editing (removing or adding atoms) and encryption or
+* decryption. When the atom tree for the file changes, the entire file needs to 
+* change, because in most cases, the size of the 'moov' atom will change, and
+* thus change the offset of the media samples in the 'mdat' atom.
+* To faciliate this operation, the class #AP4_Processor provides the base
+* functionality for managing all the updates to the sample tables. Subclasses
+* of the #AP4_Processor class can override certain methods to carry out specific
+* changes to the structure of the atom tree and/or the media samples. #AP4_Processor
+* defines an abstract base class, #AP4_Processor::TrackHandler that defines the
+* interface that specific track modification classes must implement. A subclass
+* of #AP4_Processor may create such an #AP4_Processor::TrackHandler subclass instance
+* when is #AP4_Processor::CreateTrackHandler is called for one of the tracks in the
+* file.
+* See the sample applications Mp4Edit, Mp4Encrpt and Mp4Decrypt as examples. 
+*
+* @subsection encryption Encryption and Decryption
+*
+* The SDK has support for encrypting and decrypting tracks as specified by the
+* ISMA Encryption and Authentication specification. The supporing classes 
+* found in #Ap4IsmaCryp.h provide a subclass of #AP4_Processor for encrypting
+* or decrypting entire tracks. The class #AP4_IsmaCipher provides support for 
+* encrypting or decrypting individual samples. The parameters necessary to 
+* instantiate an #AP4_IsmaCipher can be retrieved from an encrypted track by
+* accessing the track's sample descriptions, which are instances of the 
+* #AP4_IsmaCrypSampleDescription class.
+*
+* @subsection RTP Packets
+*
+* For files that contain hint tracks, the SDK provides support for generating
+* RTP packets that can be used to stream the media using the RTP and RTSP protocols.
+* See the application Mp4RtpHintInfo for an example of how to generate the create 
+* RTP packets from a file and generate the SDP information for the RTSP protocol.
+*/
 
 #ifndef _AP4_H_
 #define _AP4_H_
@@ -82,6 +261,7 @@
 #include "Ap4SdpAtom.h"
 #include "Ap4IkmsAtom.h"
 #include "Ap4IsfmAtom.h"
+#include "Ap4IsltAtom.h"
 #include "Ap4TrefTypeAtom.h"
 
 #endif // _AP4_H_

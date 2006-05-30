@@ -38,6 +38,7 @@
 #include "Ap4FrmaAtom.h"
 #include "Ap4IkmsAtom.h"
 #include "Ap4IsfmAtom.h"
+#include "Ap4IsltAtom.h"
 #include "Ap4Utils.h"
 #include "Ap4TrakAtom.h"
 
@@ -224,8 +225,8 @@ AP4_IsmaCrypSchemeInfo::AP4_IsmaCrypSchemeInfo(AP4_ContainerAtom* schi) :
 +---------------------------------------------------------------------*/
 AP4_IsmaCipher::AP4_IsmaCipher(const AP4_UI08* key, 
                                const AP4_UI08* salt, 
-                               AP4_Size        iv_length, 
-                               AP4_Size        key_indicator_length, 
+                               AP4_UI08        iv_length, 
+                               AP4_UI08        key_indicator_length, 
                                bool            selective_encryption) :
     m_IvLength(iv_length),
     m_KeyIndicatorLength(key_indicator_length),
@@ -235,11 +236,14 @@ AP4_IsmaCipher::AP4_IsmaCipher(const AP4_UI08* key,
 
     // left-align the salt
     unsigned char salt_128[AP4_ISMACRYP_IAEC_KEY_LENGTH];
-    for (unsigned int i=0; i<8; i++) {
-        salt_128[i] = salt[i];
+    unsigned int i;
+    if (salt) {
+        for (i=0; i<8; i++) {
+            salt_128[i] = salt[i];
+        }
     }
-    for (unsigned int i=0; i<8; i++) {
-        salt_128[8+i] = 0;
+    for (; i<AP4_ISMACRYP_IAEC_KEY_LENGTH; i++) {
+        salt_128[i] = 0;
     }
     
     // create a cipher
@@ -344,7 +348,6 @@ class AP4_IsmaTrackDecrypter : public AP4_Processor::TrackHandler {
 public:
     // constructor
     AP4_IsmaTrackDecrypter(const AP4_UI08*                key,
-                           const AP4_UI08*                salt,
                            AP4_IsmaCrypSampleDescription* sample_description,
                            AP4_SampleEntry*               sample_entry);
     virtual ~AP4_IsmaTrackDecrypter();
@@ -368,7 +371,6 @@ private:
 +---------------------------------------------------------------------*/
 AP4_IsmaTrackDecrypter::AP4_IsmaTrackDecrypter(
     const AP4_UI08*                key,
-    const AP4_UI08*                salt,
     AP4_IsmaCrypSampleDescription* sample_description,
     AP4_SampleEntry*               sample_entry) :
     m_SampleEntry(sample_entry)
@@ -376,8 +378,12 @@ AP4_IsmaTrackDecrypter::AP4_IsmaTrackDecrypter(
     // get the cipher params
     m_CipherParams = (AP4_IsfmAtom*)sample_description->GetSchemeInfo()->GetSchiAtom().FindChild("iSFM");
     
+    // get the salt
+    AP4_IsltAtom* salt = (AP4_IsltAtom*)sample_description->GetSchemeInfo()->GetSchiAtom().FindChild("iSLT");
+
     // instantiate the cipher
-    m_Cipher = new AP4_IsmaCipher(key, salt, 
+    m_Cipher = new AP4_IsmaCipher(key, 
+                                  salt?salt->GetSalt():NULL, 
                                   m_CipherParams->GetIvLength(),
                                   m_CipherParams->GetKeyIndicatorLength(),
                                   m_CipherParams->GetSelectiveEncryption());
@@ -453,9 +459,8 @@ AP4_IsmaDecryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
             static_cast<AP4_IsmaCrypSampleDescription*>(desc);
         if (ismacryp_desc->GetSchemeType() == AP4_ISMACRYP_SCHEME_TYPE_IAEC) {
             const AP4_UI08* key;
-            const AP4_UI08* salt;
-            if (AP4_SUCCEEDED(m_KeyMap.GetKey(trak->GetId(), key, salt))) {
-                return new AP4_IsmaTrackDecrypter(key, salt, ismacryp_desc, entry);
+            if (AP4_SUCCEEDED(m_KeyMap.GetKey(trak->GetId(), key))) {
+                return new AP4_IsmaTrackDecrypter(key, ismacryp_desc, entry);
             }
         }
     }
@@ -543,12 +548,16 @@ AP4_IsmaTrackEncrypter::ProcessTrack()
     
     // scheme info
     AP4_ContainerAtom* schi = new AP4_ContainerAtom(AP4_ATOM_TYPE_SCHI);
-    AP4_IkmsAtom* ikms      = new AP4_IkmsAtom(m_KmsUri.GetChars());
-    AP4_IsfmAtom* isfm      = new AP4_IsfmAtom(false, 0, 4);
+    AP4_IkmsAtom*      ikms = new AP4_IkmsAtom(m_KmsUri.GetChars());
+    AP4_IsfmAtom*      isfm = new AP4_IsfmAtom(m_Cipher->GetSelectiveEncryption(), 
+                                               m_Cipher->GetKeyIndicatorLength(), 
+                                               m_Cipher->GetIvLength());
+    AP4_IsltAtom*      islt = new AP4_IsltAtom(m_Cipher->GetCipher()->GetSalt());
 
     // populate the schi container
     schi->AddChild(ikms);
     schi->AddChild(isfm);
+    schi->AddChild(islt);
 
     // populate the sinf container
     sinf->AddChild(frma);
@@ -672,6 +681,21 @@ AP4_IsmaKeyMap::GetKey(AP4_UI32 track_id, const AP4_UI08*& key, const AP4_UI08*&
     if (entry) {
         key = entry->m_Key;
         salt = entry->m_Salt;
+        return AP4_SUCCESS;
+    } else {
+        return AP4_ERROR_NO_SUCH_ITEM;
+    }
+}
+
+/*----------------------------------------------------------------------
+|   AP4_IsmaKeyMap::GetKey
++---------------------------------------------------------------------*/
+AP4_Result 
+AP4_IsmaKeyMap::GetKey(AP4_UI32 track_id, const AP4_UI08*& key)
+{
+    KeyEntry* entry = GetEntry(track_id);
+    if (entry) {
+        key = entry->m_Key;
         return AP4_SUCCESS;
     } else {
         return AP4_ERROR_NO_SUCH_ITEM;

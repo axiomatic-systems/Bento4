@@ -67,7 +67,7 @@ AP4_HintTrackReader::AP4_HintTrackReader(AP4_Track& hint_track,
     AP4_TrakAtom* hint_trak_atom = hint_track.GetTrakAtom();
     AP4_Atom* atom = hint_trak_atom->FindChild("tref/hint");
     if (atom != NULL) {
-        AP4_UI32 media_track_id = ((AP4_TrefTypeAtom*) atom)->m_TrackIds[0];
+        AP4_UI32 media_track_id = ((AP4_TrefTypeAtom*) atom)->GetTrackIds()[0];
         m_MediaTrack = movie.GetTrack(media_track_id);
 
         // get the media time scale

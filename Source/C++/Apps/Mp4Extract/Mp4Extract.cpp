@@ -37,8 +37,9 @@
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-#define BANNER "MP4 Atom Extractor - Version 0.5a\n"\
-               "(c) 2003-2005 Gilles Boccon-Gibod & Julien Boeuf"
+#define BANNER "MP4 Atom Extractor - Version 1.0\n"\
+               "(Bento4 Version " AP4_VERSION_STRING ")\n"\
+               "(c) 2003-2006 Gilles Boccon-Gibod & Julien Boeuf"
  
 /*----------------------------------------------------------------------
 |   PrintUsageAndExit
