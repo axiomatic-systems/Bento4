@@ -45,9 +45,13 @@ class AP4_ByteStream;
 +---------------------------------------------------------------------*/
 class AP4_FrmaAtom : public AP4_Atom
 {
- public:
+public:
+    // class methods
+    static AP4_FrmaAtom* Create(AP4_Size size, AP4_ByteStream& stream) {
+        return new AP4_FrmaAtom(size, stream);
+    }
+
     // constructors 
-    AP4_FrmaAtom(AP4_Size size, AP4_ByteStream& stream);
     AP4_FrmaAtom(AP4_UI32 original_format);
 
     // methods
@@ -55,7 +59,10 @@ class AP4_FrmaAtom : public AP4_Atom
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
     AP4_UI32 GetOriginalFormat() { return m_OriginalFormat; }
 
- private:
+private:
+    // methods
+    AP4_FrmaAtom(AP4_Size size, AP4_ByteStream& stream);
+
     // members
     AP4_UI32 m_OriginalFormat;
 };

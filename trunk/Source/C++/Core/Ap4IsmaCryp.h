@@ -125,6 +125,7 @@ public:
     // methods
     AP4_Result SetKey(AP4_UI32 track_id, const AP4_UI08* key, const AP4_UI08* salt = NULL);
     AP4_Result GetKey(AP4_UI32 track_id, const AP4_UI08*& key, const AP4_UI08*& salt);
+    AP4_Result GetKey(AP4_UI32 track_id, const AP4_UI08*& key);
 
 private:
     // types
@@ -211,8 +212,8 @@ public:
     // constructor and destructor
     AP4_IsmaCipher(const AP4_UI08* key, 
                    const AP4_UI08* salt,
-                   AP4_Size        iv_length,
-                   AP4_Size        key_indicator_length,
+                   AP4_UI08        iv_length,
+                   AP4_UI08        key_indicator_length,
                    bool            selective_encryption);
    ~AP4_IsmaCipher();
     AP4_Result EncryptSample(AP4_DataBuffer& data_in,
@@ -221,12 +222,16 @@ public:
                              bool            skip_encryption);
     AP4_Result DecryptSample(AP4_DataBuffer& data_in,
                              AP4_DataBuffer& data_out);
+    AP4_StreamCipher* GetCipher()   { return m_Cipher;   }
+    AP4_UI08          GetIvLength() { return m_IvLength; }
+    AP4_UI08          GetKeyIndicatorLength() { return m_KeyIndicatorLength; }
+    bool              GetSelectiveEncryption(){ return m_SelectiveEncryption;}
 
 private:
     // members
     AP4_StreamCipher* m_Cipher;
-    AP4_Size          m_IvLength;
-    AP4_Size          m_KeyIndicatorLength;
+    AP4_UI08          m_IvLength;
+    AP4_UI08          m_KeyIndicatorLength;
     bool              m_SelectiveEncryption;
 };
 

@@ -34,10 +34,23 @@
 #include "Ap4Utils.h"
 
 /*----------------------------------------------------------------------
+|   AP4_HdlrAtom::Create
++---------------------------------------------------------------------*/
+AP4_HdlrAtom*
+AP4_HdlrAtom::Create(AP4_Size size, AP4_ByteStream& stream)
+{
+    AP4_UI32 version;
+    AP4_UI32 flags;
+    if (AP4_FAILED(AP4_Atom::ReadFullHeader(stream, version, flags))) return NULL;
+    if (version != 0) return NULL;
+    return new AP4_HdlrAtom(size, version, flags, stream);
+}
+
+/*----------------------------------------------------------------------
 |   AP4_HdlrAtom::AP4_HdlrAtom
 +---------------------------------------------------------------------*/
 AP4_HdlrAtom::AP4_HdlrAtom(AP4_Atom::Type hdlr_type, const char* hdlr_name) :
-    AP4_Atom(AP4_ATOM_TYPE_HDLR, true),
+    AP4_Atom(AP4_ATOM_TYPE_HDLR, AP4_FULL_ATOM_HEADER_SIZE, 0, 0),
     m_HandlerType(hdlr_type),
     m_HandlerName(hdlr_name)
 {
@@ -47,8 +60,11 @@ AP4_HdlrAtom::AP4_HdlrAtom(AP4_Atom::Type hdlr_type, const char* hdlr_name) :
 /*----------------------------------------------------------------------
 |   AP4_HdlrAtom::AP4_HdlrAtom
 +---------------------------------------------------------------------*/
-AP4_HdlrAtom::AP4_HdlrAtom(AP4_Size size, AP4_ByteStream& stream) :
-    AP4_Atom(AP4_ATOM_TYPE_HDLR, size, true, stream)
+AP4_HdlrAtom::AP4_HdlrAtom(AP4_Size        size, 
+                           AP4_UI32        version,
+                           AP4_UI32        flags,
+                           AP4_ByteStream& stream) :
+    AP4_Atom(AP4_ATOM_TYPE_HDLR, size, version, flags)
 {
     unsigned char reserved[12];
     stream.Read(reserved, 4, NULL);

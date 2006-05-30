@@ -35,10 +35,23 @@
 #include "Ap4Types.h"
 
 /*----------------------------------------------------------------------
+|   AP4_VmhdAtom::Create
++---------------------------------------------------------------------*/
+AP4_VmhdAtom*
+AP4_VmhdAtom::Create(AP4_Size size, AP4_ByteStream& stream)
+{
+    AP4_UI32 version;
+    AP4_UI32 flags;
+    if (AP4_FAILED(AP4_Atom::ReadFullHeader(stream, version, flags))) return NULL;
+    if (version != 0) return NULL;
+    return new AP4_VmhdAtom(size, version, flags, stream);
+}
+
+/*----------------------------------------------------------------------
 |   AP4_VmhdAtom::AP4_VmhdAtom
 +---------------------------------------------------------------------*/
 AP4_VmhdAtom::AP4_VmhdAtom(AP4_UI16 graphics_mode, AP4_UI16 r, AP4_UI16 g, AP4_UI16 b) :
-    AP4_Atom(AP4_ATOM_TYPE_VMHD, 8+AP4_FULL_ATOM_HEADER_SIZE, true),
+    AP4_Atom(AP4_ATOM_TYPE_VMHD, AP4_FULL_ATOM_HEADER_SIZE+8, 0, 0),
     m_GraphicsMode(graphics_mode)
 {
     m_OpColor[0] = r;
@@ -49,8 +62,11 @@ AP4_VmhdAtom::AP4_VmhdAtom(AP4_UI16 graphics_mode, AP4_UI16 r, AP4_UI16 g, AP4_U
 /*----------------------------------------------------------------------
 |   AP4_VmhdAtom::AP4_VmhdAtom
 +---------------------------------------------------------------------*/
-AP4_VmhdAtom::AP4_VmhdAtom(AP4_Size size, AP4_ByteStream& stream) :
-    AP4_Atom(AP4_ATOM_TYPE_VMHD, size, true, stream)
+AP4_VmhdAtom::AP4_VmhdAtom(AP4_Size        size, 
+                           AP4_UI32        version,
+                           AP4_UI32        flags,
+                           AP4_ByteStream& stream) :
+    AP4_Atom(AP4_ATOM_TYPE_VMHD, size, version, flags)
 {
     stream.ReadUI16(m_GraphicsMode);
     stream.Read(m_OpColor, sizeof(m_OpColor));

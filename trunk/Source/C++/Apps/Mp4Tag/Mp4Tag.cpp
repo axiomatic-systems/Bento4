@@ -37,7 +37,7 @@
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-#define BANNER "MP4 File Tagger - Version 0.2a "\
+#define BANNER "MP4 File Tagger - Version 1.0 "\
                "(Bento4 Version " AP4_VERSION_STRING ")\n"\
                "(c) 2002-2006 Gilles Boccon-Gibod & Julien Boeuf"
 

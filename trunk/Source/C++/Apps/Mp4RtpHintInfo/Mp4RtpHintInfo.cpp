@@ -37,8 +37,9 @@
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-#define BANNER "MP4 Rtp Hint Info - Version 0.1a\n"\
-    "(c) 2002-2005 Gilles Boccon-Gibod & Julien Boeuf"
+#define BANNER "MP4 Rtp Hint Info - Version 1.0\n"\
+               "(Bento4 Version " AP4_VERSION_STRING ")\n"\
+               "(c) 2002-2006 Gilles Boccon-Gibod & Julien Boeuf"
 
 /*----------------------------------------------------------------------
 |   PrintUsageAndExit

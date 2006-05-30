@@ -38,28 +38,52 @@
 /*----------------------------------------------------------------------
 |   AP4_ContainerAtom::AP4_ContainerAtom
 +---------------------------------------------------------------------*/
-AP4_ContainerAtom::AP4_ContainerAtom(Type type, bool is_full) :
-    AP4_Atom(type, is_full)
+AP4_ContainerAtom*
+AP4_ContainerAtom::Create(Type             type, 
+                          AP4_Size         size,
+                          bool             is_full,
+                          AP4_ByteStream&  stream,
+                          AP4_AtomFactory& atom_factory)
+{
+    if (is_full) {
+        AP4_UI32 version;
+        AP4_UI32 flags;
+        if (AP4_FAILED(AP4_Atom::ReadFullHeader(stream, version, flags))) return NULL;
+        if (version != 0) return NULL;
+        return new AP4_ContainerAtom(type, size, 0, 0, stream, atom_factory);
+    } else {
+        return new AP4_ContainerAtom(type, size, stream, atom_factory);
+    }
+}
+
+/*----------------------------------------------------------------------
+|   AP4_ContainerAtom::AP4_ContainerAtom
++---------------------------------------------------------------------*/
+AP4_ContainerAtom::AP4_ContainerAtom(Type type, AP4_Size size) :
+    AP4_Atom(type, size)
 {
 }
 
 /*----------------------------------------------------------------------
 |   AP4_ContainerAtom::AP4_ContainerAtom
 +---------------------------------------------------------------------*/
-AP4_ContainerAtom::AP4_ContainerAtom(Type type, AP4_Size size, bool is_full) :
-    AP4_Atom(type, size, is_full)
+AP4_ContainerAtom::AP4_ContainerAtom(Type     type, 
+                                     AP4_Size size,
+                                     AP4_UI32 version, 
+                                     AP4_UI32 flags) :
+    AP4_Atom(type, size, version, flags)
 {
 }
+
 
 /*----------------------------------------------------------------------
 |   AP4_ContainerAtom::AP4_ContainerAtom
 +---------------------------------------------------------------------*/
 AP4_ContainerAtom::AP4_ContainerAtom(Type             type, 
                                      AP4_Size         size,
-                                     bool             is_full,
                                      AP4_ByteStream&  stream,
                                      AP4_AtomFactory& atom_factory) :
-    AP4_Atom(type, size, is_full, stream)
+    AP4_Atom(type, size)
 {
     ReadChildren(atom_factory, stream, size-GetHeaderSize());
 }
@@ -69,10 +93,13 @@ AP4_ContainerAtom::AP4_ContainerAtom(Type             type,
 +---------------------------------------------------------------------*/
 AP4_ContainerAtom::AP4_ContainerAtom(Type             type, 
                                      AP4_Size         size,
-                                     bool             is_full,
-                                     AP4_ByteStream&  stream) :
-    AP4_Atom(type, size, is_full, stream)
+                                     AP4_UI32         version,
+                                     AP4_UI32         flags,
+                                     AP4_ByteStream&  stream,
+                                     AP4_AtomFactory& atom_factory) :
+    AP4_Atom(type, size, version, flags)
 {
+    ReadChildren(atom_factory, stream, size-GetHeaderSize());
 }
 
 /*----------------------------------------------------------------------

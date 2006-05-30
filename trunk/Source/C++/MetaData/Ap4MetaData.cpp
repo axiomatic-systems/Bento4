@@ -213,7 +213,7 @@ AP4_MetaDataAtomTypeHandler::CreateAtom(AP4_Atom::Type  type,
     if (context == AP4_ATOM_TYPE_ILST) {
         if (IsMetaDataType(type)) {
             m_AtomFactory->SetContext(type);
-            atom = new AP4_ContainerAtom(type, size, false, stream, *m_AtomFactory);
+            atom = AP4_ContainerAtom::Create(type, size, false, stream, *m_AtomFactory);
             m_AtomFactory->SetContext(context);
         }
     } else if (type == AP4_ATOM_TYPE_DATA) {
@@ -503,7 +503,7 @@ AP4_AtomMetaDataValue::ToInteger()
 |   AP4_DataAtom::AP4_DataAtom
 +---------------------------------------------------------------------*/
 AP4_DataAtom::AP4_DataAtom(AP4_Size size, AP4_ByteStream& stream) :
-    AP4_Atom(AP4_ATOM_TYPE_DATA, size, false),
+    AP4_Atom(AP4_ATOM_TYPE_DATA, size),
     m_DataType(AP4_MetaData::DATA_TYPE_BINARY),
     m_DataLang(AP4_MetaData::LANG_ENGLISH) 
 {
@@ -649,9 +649,10 @@ AP4_DataAtom::LoadInteger(long& value)
 |   AP4_StringAtom::AP4_StringAtom
 +---------------------------------------------------------------------*/
 AP4_StringAtom::AP4_StringAtom(Type type, AP4_Size size, AP4_ByteStream& stream) :
-    AP4_Atom(type, size, true, stream),
-    m_Value((AP4_Size)(size-AP4_ATOM_HEADER_SIZE))
+    AP4_Atom(type, size),
+    m_Value((AP4_Size)(size-AP4_ATOM_HEADER_SIZE-4))
 {
+    stream.ReadUI32(m_Reserved);
     stream.Read(m_Value.UseChars(), m_Value.GetLength());
 }
 
@@ -661,6 +662,7 @@ AP4_StringAtom::AP4_StringAtom(Type type, AP4_Size size, AP4_ByteStream& stream)
 AP4_Result
 AP4_StringAtom::WriteFields(AP4_ByteStream& stream)
 {
+    stream.WriteUI32(m_Reserved);
     return stream.Write(m_Value.GetChars(), m_Value.GetLength());
 }
 

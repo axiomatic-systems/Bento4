@@ -34,19 +34,34 @@
 #include "Ap4Utils.h"
 
 /*----------------------------------------------------------------------
-|   AP4_UrlAtom::AP4_UrlAtom
+|   AP4_UrlAtom::Create
 +---------------------------------------------------------------------*/
-AP4_UrlAtom::AP4_UrlAtom() :
-    AP4_Atom(AP4_ATOM_TYPE_URL, AP4_FULL_ATOM_HEADER_SIZE, true)
+AP4_UrlAtom*
+AP4_UrlAtom::Create(AP4_Size size, AP4_ByteStream& stream)
 {
-    m_Flags = 1; // local ref
+    AP4_UI32 version;
+    AP4_UI32 flags;
+    if (AP4_FAILED(AP4_Atom::ReadFullHeader(stream, version, flags))) return NULL;
+    if (version != 0) return NULL;
+    return new AP4_UrlAtom(size, version, flags, stream);
 }
 
 /*----------------------------------------------------------------------
 |   AP4_UrlAtom::AP4_UrlAtom
 +---------------------------------------------------------------------*/
-AP4_UrlAtom::AP4_UrlAtom(AP4_Size size, AP4_ByteStream& stream) :
-    AP4_Atom(AP4_ATOM_TYPE_URL, size, true, stream)
+AP4_UrlAtom::AP4_UrlAtom() :
+    AP4_Atom(AP4_ATOM_TYPE_URL, AP4_FULL_ATOM_HEADER_SIZE, 0, 1)
+{
+}
+
+/*----------------------------------------------------------------------
+|   AP4_UrlAtom::AP4_UrlAtom
++---------------------------------------------------------------------*/
+AP4_UrlAtom::AP4_UrlAtom(AP4_Size        size, 
+                         AP4_UI32        version,
+                         AP4_UI32        flags,
+                         AP4_ByteStream& stream) :
+    AP4_Atom(AP4_ATOM_TYPE_URL, size, version, flags)
 {
     if ((m_Flags & 1) == 0) {
         // not self contained
@@ -72,12 +87,14 @@ AP4_UrlAtom::WriteFields(AP4_ByteStream& stream)
         return AP4_SUCCESS;
     } else {
         // url (not self contained)
-        AP4_Result result = stream.Write(m_Url.GetChars(), m_Url.GetLength()+1);
-        if (AP4_FAILED(result)) return result;
+        if (m_Size > AP4_FULL_ATOM_HEADER_SIZE) {
+            AP4_Result result = stream.Write(m_Url.GetChars(), m_Url.GetLength()+1);
+            if (AP4_FAILED(result)) return result;
 
-        // pad with zeros if necessary
-        AP4_Size padding = m_Size-(AP4_FULL_ATOM_HEADER_SIZE+m_Url.GetLength()+1);
-        while (padding--) stream.WriteUI08(0);
+            // pad with zeros if necessary
+            AP4_Size padding = m_Size-(AP4_FULL_ATOM_HEADER_SIZE+m_Url.GetLength()+1);
+            while (padding--) stream.WriteUI08(0);
+        }
         return AP4_SUCCESS;
     }
 }

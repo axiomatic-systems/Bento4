@@ -1,8 +1,8 @@
 /*****************************************************************
 |
-|    AP4 - tref type Atoms 
+|    AP4 - iSLT Atom
 |
-|    Copyright 2002-2005 Gilles Boccon-Gibod & Julien Boeuf
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -26,42 +26,42 @@
 |
 ****************************************************************/
 
-#ifndef _AP4_TREF_TYPE_ATOM_H_
-#define _AP4_TREF_TYPE_ATOM_H_
+#ifndef _AP4_ISLT_ATOM_H_
+#define _AP4_ISLT_ATOM_H_
 
 /*----------------------------------------------------------------------
 |   includes
 +---------------------------------------------------------------------*/
+#include "Ap4Types.h"
 #include "Ap4Atom.h"
-#include "Ap4Array.h"
 
 /*----------------------------------------------------------------------
-|   AP4_TrefTypeAtom
+|   AP4_IsltAtom
 +---------------------------------------------------------------------*/
-class AP4_TrefTypeAtom : public AP4_Atom
+class AP4_IsltAtom : public AP4_Atom
 {
 public:
     // class methods
-    static AP4_TrefTypeAtom* Create(AP4_Atom::Type  type, 
-                                    AP4_Size        size, 
-                                    AP4_ByteStream& stream) {
-        return new AP4_TrefTypeAtom(type, size, stream);
+    static AP4_IsltAtom* Create(AP4_Size size, AP4_ByteStream& stream) {
+        if (size != AP4_ATOM_HEADER_SIZE+8) return NULL;
+        return new AP4_IsltAtom(size, stream);
     }
 
     // methods
+    AP4_IsltAtom(const AP4_UI08* salt);
+    virtual AP4_Atom*  Clone();
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
-    
+
     // accessors
-    const AP4_Array<AP4_UI32>& GetTrackIds() { return m_TrackIds; }
-    
+    const AP4_UI08* GetSalt() { return m_Salt; }
+
 private:
     // methods
-    AP4_TrefTypeAtom(AP4_Atom::Type type, AP4_Size size, AP4_ByteStream& stream);
+    AP4_IsltAtom(AP4_Size size, AP4_ByteStream& stream);
 
     // members
-    AP4_Array<AP4_UI32> m_TrackIds;
+    AP4_UI08 m_Salt[8];
 };
 
-#endif
-
+#endif // _AP4_ISLT_ATOM_H_

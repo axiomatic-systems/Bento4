@@ -40,14 +40,23 @@
 +---------------------------------------------------------------------*/
 class AP4_StssAtom : public AP4_Atom
 {
- public:
+public:
+    // class methods
+    static AP4_StssAtom* Create(AP4_Size size, AP4_ByteStream& stream);
+
     // methods
-    AP4_StssAtom(AP4_Size size, AP4_ByteStream& stream);
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
     virtual bool       IsSampleSync(AP4_Ordinal sample);
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
 
- private:
+private:
+    // methods
+    AP4_StssAtom(AP4_Size        size, 
+                 AP4_UI32        version,
+                 AP4_UI32        flags,
+                 AP4_ByteStream& stream);
+
+    // members
     AP4_Array<AP4_UI32> m_Entries;
 };
 

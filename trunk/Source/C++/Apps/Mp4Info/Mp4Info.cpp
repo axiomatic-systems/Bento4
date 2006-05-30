@@ -38,8 +38,9 @@
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-#define BANNER "MP4 File Info - Version 0.1a\n"\
-               "(c) 2002-2005 Gilles Boccon-Gibod & Julien Boeuf"
+#define BANNER "MP4 File Info - Version 1.0\n"\
+               "(Bento4 Version " AP4_VERSION_STRING ")\n"\
+               "(c) 2002-2006 Gilles Boccon-Gibod & Julien Boeuf"
  
 /*----------------------------------------------------------------------
 |   PrintUsageAndExit
@@ -88,6 +89,14 @@ ShowIsmaSampleDescription(AP4_IsmaCrypSampleDescription* desc)
         AP4_Debug("        Selective Encryption: %s\n", isfm->GetSelectiveEncryption()?"yes":"no");
         AP4_Debug("        Key Indicator Length: %d\n", isfm->GetKeyIndicatorLength());
         AP4_Debug("        IV Length:            %d\n", isfm->GetIvLength());
+    }
+    AP4_IsltAtom* islt = (AP4_IsltAtom*)scheme_info->GetSchiAtom().FindChild("iSLT");
+    if (islt) {
+        AP4_Debug("        Salt:                 ");
+        for (unsigned int i=0; i<8; i++) {
+            AP4_Debug("%02x",islt->GetSalt()[i]);
+        }
+        AP4_Debug("\n");
     }
 }
 
@@ -189,6 +198,32 @@ ShowMovieInfo(AP4_Movie* movie)
 }
 
 /*----------------------------------------------------------------------
+|   ShowFileInfo
++---------------------------------------------------------------------*/
+static void
+ShowFileInfo(AP4_File* file)
+{
+    AP4_FtypAtom* file_type = file->GetFileType();
+    if (file_type == NULL) return;
+    char four_cc[5];
+
+    AP4_FormatFourChars(four_cc, file_type->GetMajorBrand());
+    AP4_Debug("File:\n");
+    AP4_Debug("  major brand:      %s\n", four_cc);
+    AP4_Debug("  minor version:    %x\n", file_type->GetMinorVersion());
+
+    // compatible brands
+    for (unsigned int i=0; i<file_type->GetCompatibleBrands().ItemCount(); i++) {
+        AP4_UI32 cb = file_type->GetCompatibleBrands()[i];
+        if (cb == 0) continue;
+        AP4_FormatFourChars(four_cc, cb);
+        AP4_Debug("  compatible brand: %s\n", four_cc);
+    }
+    AP4_Debug("\n");
+}
+
+
+/*----------------------------------------------------------------------
 |   main
 +---------------------------------------------------------------------*/
 int
@@ -208,7 +243,8 @@ main(int argc, char** argv)
     }
 
     AP4_File* file = new AP4_File(*input);
-    
+    ShowFileInfo(file);
+
     AP4_Movie* movie = file->GetMovie();
     if (movie != NULL) {
         ShowMovieInfo(movie);

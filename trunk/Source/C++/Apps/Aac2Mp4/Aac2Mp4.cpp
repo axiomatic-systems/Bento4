@@ -38,7 +38,9 @@
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-#define BANNER "AAC to MP4 Converter - Version 0.1a - (c) 2002-2005 Gilles Boccon-Gibod"
+#define BANNER "AAC to MP4 Converter - Version 1.0\n"\
+               "(Bento4 Version " AP4_VERSION_STRING ")\n"\
+               "(c) 2002-2006 Gilles Boccon-Gibod & Julien Boeuf"
  
 /*----------------------------------------------------------------------
 |   PrintUsageAndExit
@@ -170,6 +172,13 @@ main(int argc, char** argv)
 
     // create a multimedia file
     AP4_File* file = new AP4_File(movie);
+
+    // set the file type
+    AP4_UI32 compatible_brands[2] = {
+        AP4_FILE_BRAND_ISOM,
+        AP4_FILE_BRAND_MP42
+    };
+    file->SetFileType(AP4_FILE_BRAND_M4A_, 0, compatible_brands, 2);
 
     // create a writer to write the file
     AP4_FileWriter* writer = new AP4_FileWriter(*file);

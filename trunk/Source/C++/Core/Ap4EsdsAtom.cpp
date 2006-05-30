@@ -34,10 +34,23 @@
 #include "Ap4Utils.h"
 
 /*----------------------------------------------------------------------
+|   AP4_EsdsAtom::Create
++---------------------------------------------------------------------*/
+AP4_EsdsAtom*
+AP4_EsdsAtom::Create(AP4_Size size, AP4_ByteStream& stream)
+{
+    AP4_UI32 version;
+    AP4_UI32 flags;
+    if (AP4_FAILED(AP4_Atom::ReadFullHeader(stream, version, flags))) return NULL;
+    if (version != 0) return NULL;
+    return new AP4_EsdsAtom(size, version, flags, stream);
+}
+
+/*----------------------------------------------------------------------
 |   AP4_EsdsAtom::AP4_EsdsAtom
 +---------------------------------------------------------------------*/
 AP4_EsdsAtom::AP4_EsdsAtom(AP4_EsDescriptor* descriptor) :
-    AP4_Atom(AP4_ATOM_TYPE_ESDS, AP4_FULL_ATOM_HEADER_SIZE, true),
+    AP4_Atom(AP4_ATOM_TYPE_ESDS, AP4_FULL_ATOM_HEADER_SIZE, 0, 0),
     m_EsDescriptor(descriptor)
 {
     if (m_EsDescriptor) m_Size += m_EsDescriptor->GetSize();
@@ -46,8 +59,11 @@ AP4_EsdsAtom::AP4_EsdsAtom(AP4_EsDescriptor* descriptor) :
 /*----------------------------------------------------------------------
 |   AP4_EsdsAtom::AP4_EsdsAtom
 +---------------------------------------------------------------------*/
-AP4_EsdsAtom::AP4_EsdsAtom(AP4_Size size, AP4_ByteStream& stream) :
-    AP4_Atom(AP4_ATOM_TYPE_ESDS, size, true, stream)
+AP4_EsdsAtom::AP4_EsdsAtom(AP4_Size        size, 
+                           AP4_UI32        version,
+                           AP4_UI32        flags,
+                           AP4_ByteStream& stream) :
+    AP4_Atom(AP4_ATOM_TYPE_ESDS, size, version, flags)
 {
     // read descriptor
     AP4_Descriptor* descriptor = NULL;

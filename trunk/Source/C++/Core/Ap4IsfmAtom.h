@@ -41,11 +41,13 @@
 class AP4_IsfmAtom : public AP4_Atom
 {
 public:
+    // class methods
+    static AP4_IsfmAtom* Create(AP4_Size size, AP4_ByteStream& stream);
+
     // methods
     AP4_IsfmAtom(bool     m_SelectiveEncryption,
                  AP4_UI08 m_KeyIndicatorLength,
                  AP4_UI08 m_IvLength);
-    AP4_IsfmAtom(AP4_Size size, AP4_ByteStream& stream);
     virtual AP4_Atom*  Clone();
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
@@ -56,6 +58,12 @@ public:
     AP4_UI08 GetIvLength()           { return m_IvLength;            }
 
 private:
+    // methods
+    AP4_IsfmAtom(AP4_Size        size, 
+                 AP4_UI32        version,
+                 AP4_UI32        flags,
+                 AP4_ByteStream& stream);
+
     // members
     bool     m_SelectiveEncryption;
     AP4_UI08 m_KeyIndicatorLength;

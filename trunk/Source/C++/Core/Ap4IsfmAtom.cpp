@@ -33,12 +33,25 @@
 #include "Ap4IsfmAtom.h"
 
 /*----------------------------------------------------------------------
+|   AP4_IsfmAtom::Create
++---------------------------------------------------------------------*/
+AP4_IsfmAtom*
+AP4_IsfmAtom::Create(AP4_Size size, AP4_ByteStream& stream)
+{
+    AP4_UI32 version;
+    AP4_UI32 flags;
+    if (AP4_FAILED(AP4_Atom::ReadFullHeader(stream, version, flags))) return NULL;
+    if (version != 0) return NULL;
+    return new AP4_IsfmAtom(size, version, flags, stream);
+}
+
+/*----------------------------------------------------------------------
 |   AP4_IsfmAtom::AP4_IsfmAtom
 +---------------------------------------------------------------------*/
 AP4_IsfmAtom::AP4_IsfmAtom(bool     selective_encryption,
                            AP4_UI08 key_length_indicator,
                            AP4_UI08 iv_length) :
-    AP4_Atom(AP4_ATOM_TYPE_ISFM, AP4_FULL_ATOM_HEADER_SIZE+3, true),
+    AP4_Atom(AP4_ATOM_TYPE_ISFM, AP4_FULL_ATOM_HEADER_SIZE+3, 0, 0),
     m_SelectiveEncryption(selective_encryption),
     m_KeyIndicatorLength(key_length_indicator),
     m_IvLength(iv_length)
@@ -48,8 +61,11 @@ AP4_IsfmAtom::AP4_IsfmAtom(bool     selective_encryption,
 /*----------------------------------------------------------------------
 |   AP4_IsfmAtom::AP4_IsfmAtom
 +---------------------------------------------------------------------*/
-AP4_IsfmAtom::AP4_IsfmAtom(AP4_Size size, AP4_ByteStream& stream) :
-    AP4_Atom(AP4_ATOM_TYPE_ISFM, size, true, stream)
+AP4_IsfmAtom::AP4_IsfmAtom(AP4_Size        size, 
+                           AP4_UI32        version,
+                           AP4_UI32        flags,
+                           AP4_ByteStream& stream) :
+    AP4_Atom(AP4_ATOM_TYPE_ISFM, size, version, flags)
 {
     AP4_UI08 s;
     stream.ReadUI08(s);

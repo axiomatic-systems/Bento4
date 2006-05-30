@@ -78,10 +78,12 @@ class AP4_StscTableEntry {
 +---------------------------------------------------------------------*/
 class AP4_StscAtom : public AP4_Atom
 {
- public:
+public:
+    // class methods
+    static AP4_StscAtom* Create(AP4_Size size, AP4_ByteStream& stream);
+
     // methods
     AP4_StscAtom();
-    AP4_StscAtom(AP4_Size size, AP4_ByteStream& stream);
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
     virtual AP4_Result GetChunkForSample(AP4_Ordinal   sample,
                                          AP4_Ordinal&  chunk,
@@ -92,8 +94,14 @@ class AP4_StscAtom : public AP4_Atom
                                 AP4_Ordinal  sample_description_index);
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
 
- private:
-    // data
+private:
+    // methods
+    AP4_StscAtom(AP4_Size        size, 
+                 AP4_UI32        version,
+                 AP4_UI32        flags,
+                 AP4_ByteStream& stream);
+
+    // members
     AP4_Array<AP4_StscTableEntry> m_Entries;
     AP4_Ordinal                   m_CachedChunkGroup;
 };

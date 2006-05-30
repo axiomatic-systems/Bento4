@@ -324,7 +324,9 @@ AP4_PrintInspector::AddField(const char* name, AP4_UI32 value, FormatHint hint)
     m_Stream->WriteString(prefix);
 
     char str[32];
-    AP4_StringFormat(str, sizeof(str), "%d", value);
+    AP4_StringFormat(str, sizeof(str), 
+                     hint == HINT_HEX ? "%x":"%d", 
+                     value);
     m_Stream->WriteString(name);
     m_Stream->WriteString(" = ");
     m_Stream->WriteString(str);

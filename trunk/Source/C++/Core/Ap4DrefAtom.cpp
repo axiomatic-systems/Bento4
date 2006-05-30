@@ -35,10 +35,25 @@
 #include "Ap4ContainerAtom.h"
 
 /*----------------------------------------------------------------------
+|   AP4_DrefAtom::Create
++---------------------------------------------------------------------*/
+AP4_DrefAtom* 
+AP4_DrefAtom::Create(AP4_Size         size,
+                     AP4_ByteStream&  stream,
+                     AP4_AtomFactory& atom_factory)
+{
+    AP4_UI32 version;
+    AP4_UI32 flags;
+    if (AP4_FAILED(AP4_Atom::ReadFullHeader(stream, version, flags))) return NULL;
+    if (version != 0) return NULL;
+    return new AP4_DrefAtom(size, version, flags, stream, atom_factory);
+}
+
+/*----------------------------------------------------------------------
 |   AP4_DrefAtom::AP4_DrefAtom
 +---------------------------------------------------------------------*/
 AP4_DrefAtom::AP4_DrefAtom(AP4_Atom** refs, AP4_Cardinal refs_count) :
-    AP4_ContainerAtom(AP4_ATOM_TYPE_DREF, AP4_FULL_ATOM_HEADER_SIZE+4, true)
+    AP4_ContainerAtom(AP4_ATOM_TYPE_DREF, AP4_FULL_ATOM_HEADER_SIZE+4, 0, 0)
 {
     for (unsigned i=0; i<refs_count; i++) {
         m_Children.Add(refs[i]);
@@ -50,9 +65,11 @@ AP4_DrefAtom::AP4_DrefAtom(AP4_Atom** refs, AP4_Cardinal refs_count) :
 |   AP4_DrefAtom::AP4_DrefAtom
 +---------------------------------------------------------------------*/
 AP4_DrefAtom::AP4_DrefAtom(AP4_Size         size,
+                           AP4_UI32         version,
+                           AP4_UI32         flags,
                            AP4_ByteStream&  stream,
                            AP4_AtomFactory& atom_factory) :
-    AP4_ContainerAtom(AP4_ATOM_TYPE_DREF, size, true, stream)
+    AP4_ContainerAtom(AP4_ATOM_TYPE_DREF, size, version, flags)
 {
     // read the number of entries
     AP4_UI32 entry_count;

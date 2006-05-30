@@ -46,16 +46,24 @@ class AP4_ByteStream;
 +---------------------------------------------------------------------*/
 class AP4_EsdsAtom : public AP4_Atom
 {
- public:
+public:
+    // class methods
+    static AP4_EsdsAtom* Create(AP4_Size size, AP4_ByteStream& stream);
+
     // methods
     AP4_EsdsAtom(AP4_EsDescriptor* descriptor);
-    AP4_EsdsAtom(AP4_Size size, AP4_ByteStream& stream);
    ~AP4_EsdsAtom();
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
     const AP4_EsDescriptor* GetEsDescriptor() const { return m_EsDescriptor; }
 
- private:
+private:
+    // methods
+    AP4_EsdsAtom(AP4_Size        size, 
+                 AP4_UI32        version,
+                 AP4_UI32        flags,
+                 AP4_ByteStream& stream);
+
     // members
     AP4_EsDescriptor* m_EsDescriptor;
 };

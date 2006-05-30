@@ -15,6 +15,7 @@ do
     $CP $SOURCE_ROOT/Core/*.h $SDK_DIR/include
     $CP $SOURCE_ROOT/Codecs/*.h $SDK_DIR/include
     $CP $SOURCE_ROOT/Crypto/*.h $SDK_DIR/include
+    $CP $SOURCE_ROOT/MetaData/*.h $SDK_DIR/include
     $CP $BUILD_TARGET_DIR/AP4/$config/AP4.lib $SDK_DIR/lib
     $CP $BUILD_TARGET_DIR/*/$config/*.exe $SDK_DIR/bin
 done

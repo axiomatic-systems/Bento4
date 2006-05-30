@@ -38,8 +38,9 @@
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-#define BANNER "MP4 Decrypter - Version 0.1a\n"\
-               "(c) 2002-2005 Gilles Boccon-Gibod & Julien Boeuf"
+#define BANNER "MP4 Decrypter - Version 1.0\n"\
+               "(Bento4 Version " AP4_VERSION_STRING ")\n"\
+               "(c) 2002-2006 Gilles Boccon-Gibod & Julien Boeuf"
  
 /*----------------------------------------------------------------------
 |   PrintUsageAndExit
@@ -50,9 +51,8 @@ PrintUsageAndExit()
     fprintf(stderr, 
             BANNER 
             "\n\n"
-            "usage: mp4decrypt [--key <n>:<k>:<salt>] <input> <output>\n"
+            "usage: mp4decrypt [--key <n>:<k>] <input> <output>\n"
             "    where <n> is a track index, <k> a 128-bit key in hex\n"
-            "    and <salt> a 128-bit salting key\n"
             "    (several --key options can be used, one for each track)\n");
     exit(1);
 }
@@ -84,22 +84,17 @@ main(int argc, char** argv)
             }
             char* track_ascii = NULL;
             char* key_ascii = NULL;
-            char* salt_ascii = NULL;
-            if (AP4_SplitArgs(arg, track_ascii, key_ascii, salt_ascii)) {
+            if (AP4_SplitArgs(arg, track_ascii, key_ascii)) {
                 fprintf(stderr, "ERROR: invalid argument for --key option\n");
                 return 1;
             }
             unsigned char key[16];
-            unsigned char salt[16];
             unsigned int track = strtoul(track_ascii, NULL, 10);
             if (AP4_ParseHex(key_ascii, key, 16)) {
                 fprintf(stderr, "ERROR: invalid hex format for key\n");
             }
-            if (AP4_ParseHex(salt_ascii, salt, 8)) {
-                fprintf(stderr, "ERROR: invalid hex format for salt\n");
-            }
             // set the key in the map
-            processor.GetKeyMap().SetKey(track, key, salt);
+            processor.GetKeyMap().SetKey(track, key);
         } else if (input_filename == NULL) {
             input_filename = arg;
         } else if (output_filename == NULL) {

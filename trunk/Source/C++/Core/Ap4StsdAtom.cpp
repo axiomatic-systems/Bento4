@@ -37,10 +37,25 @@
 #include "Ap4SampleDescription.h"
 
 /*----------------------------------------------------------------------
+|   AP4_StsdAtom::Create
++---------------------------------------------------------------------*/
+AP4_StsdAtom*
+AP4_StsdAtom::Create(AP4_Size         size, 
+                     AP4_ByteStream&  stream, 
+                     AP4_AtomFactory& atom_factory)
+{
+    AP4_UI32 version;
+    AP4_UI32 flags;
+    if (AP4_FAILED(AP4_Atom::ReadFullHeader(stream, version, flags))) return NULL;
+    if (version != 0) return NULL;
+    return new AP4_StsdAtom(size, version, flags, stream, atom_factory);
+}
+
+/*----------------------------------------------------------------------
 |   AP4_StsdAtom::AP4_StsdAtom
 +---------------------------------------------------------------------*/
 AP4_StsdAtom::AP4_StsdAtom(AP4_SampleTable* sample_table) :
-    AP4_ContainerAtom(AP4_ATOM_TYPE_STSD, 4+AP4_FULL_ATOM_HEADER_SIZE, true)
+    AP4_ContainerAtom(AP4_ATOM_TYPE_STSD, AP4_FULL_ATOM_HEADER_SIZE+4, 0, 0)
 {
     AP4_Cardinal sample_description_count = sample_table->GetSampleDescriptionCount();
     m_SampleDescriptions.EnsureCapacity(sample_description_count);
@@ -62,9 +77,11 @@ AP4_StsdAtom::AP4_StsdAtom(AP4_SampleTable* sample_table) :
 |   AP4_StsdAtom::AP4_StsdAtom
 +---------------------------------------------------------------------*/
 AP4_StsdAtom::AP4_StsdAtom(AP4_Size         size,
+                           AP4_UI32         version,
+                           AP4_UI32         flags,
                            AP4_ByteStream&  stream,
                            AP4_AtomFactory& atom_factory) :
-    AP4_ContainerAtom(AP4_ATOM_TYPE_STSD, size, true, stream)
+    AP4_ContainerAtom(AP4_ATOM_TYPE_STSD, size, version, flags)
 {
     // read the number of entries
     AP4_UI32 entry_count;

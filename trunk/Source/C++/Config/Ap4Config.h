@@ -27,7 +27,10 @@
 |    02111-1307, USA.
 |
  ****************************************************************/
-
+/**
+ * @file
+ * @brief Platform Configuration
+ */
 #ifndef _AP4_CONFIG_H_
 #define _AP4_CONFIG_H_
 

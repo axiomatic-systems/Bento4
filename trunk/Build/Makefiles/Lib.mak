@@ -31,6 +31,7 @@ CORE_SOURCES = 								\
 	Ap4TkhdAtom.cpp 						\
 	Ap4IsmaCryp.cpp                         \
 	Ap4IsfmAtom.cpp                         \
+	Ap4IsltAtom.cpp                         \
 	Ap4IkmsAtom.cpp                         \
 	Ap4TimsAtom.cpp                         \
 	Ap4TrakAtom.cpp 						\

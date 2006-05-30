@@ -61,6 +61,7 @@
 #include "Ap4SdpAtom.h"
 #include "Ap4IkmsAtom.h"
 #include "Ap4IsfmAtom.h"
+#include "Ap4IsltAtom.h"
 #include "Ap4TrefTypeAtom.h"
 #include "Ap4MetaData.h"
 
@@ -175,63 +176,63 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
     // create the atom
     switch (type) {
       case AP4_ATOM_TYPE_MOOV:
-        atom = new AP4_MoovAtom(size, stream, *this);
+        atom = AP4_MoovAtom::Create(size, stream, *this);
         break;
 
       case AP4_ATOM_TYPE_MVHD:
-        atom = new AP4_MvhdAtom(size, stream);
+        atom = AP4_MvhdAtom::Create(size, stream);
         break;
 
       case AP4_ATOM_TYPE_TRAK:
-        atom = new AP4_TrakAtom(size, stream, *this);
+        atom = AP4_TrakAtom::Create(size, stream, *this);
         break;
 
       case AP4_ATOM_TYPE_HDLR:
-        atom = new AP4_HdlrAtom(size, stream);
+        atom = AP4_HdlrAtom::Create(size, stream);
         break;
 
       case AP4_ATOM_TYPE_DREF:
-        atom = new AP4_DrefAtom(size, stream, *this);
+        atom = AP4_DrefAtom::Create(size, stream, *this);
         break;
 
       case AP4_ATOM_TYPE_URL:
-        atom = new AP4_UrlAtom(size, stream);
+        atom = AP4_UrlAtom::Create(size, stream);
         break;
 
       case AP4_ATOM_TYPE_TKHD:
-        atom = new AP4_TkhdAtom(size, stream);
+        atom = AP4_TkhdAtom::Create(size, stream);
         break;
 
       case AP4_ATOM_TYPE_MDHD:
-        atom = new AP4_MdhdAtom(size, stream);
+        atom = AP4_MdhdAtom::Create(size, stream);
         break;
 
       case AP4_ATOM_TYPE_STSD:
-        atom = new AP4_StsdAtom(size, stream, *this);
+        atom = AP4_StsdAtom::Create(size, stream, *this);
         break;
 
       case AP4_ATOM_TYPE_STSC:
-        atom = new AP4_StscAtom(size, stream);
+        atom = AP4_StscAtom::Create(size, stream);
         break;
 
       case AP4_ATOM_TYPE_STCO:
-        atom = new AP4_StcoAtom(size, stream);
+        atom = AP4_StcoAtom::Create(size, stream);
         break;
 
       case AP4_ATOM_TYPE_STSZ:
-        atom = new AP4_StszAtom(size, stream);
+        atom = AP4_StszAtom::Create(size, stream);
         break;
 
       case AP4_ATOM_TYPE_STTS:
-        atom = new AP4_SttsAtom(size, stream);
+        atom = AP4_SttsAtom::Create(size, stream);
         break;
 
       case AP4_ATOM_TYPE_CTTS:
-        atom = new AP4_CttsAtom(size, stream);
+        atom = AP4_CttsAtom::Create(size, stream);
         break;
 
       case AP4_ATOM_TYPE_STSS:
-        atom = new AP4_StssAtom(size, stream);
+        atom = AP4_StssAtom::Create(size, stream);
         break;
 
       case AP4_ATOM_TYPE_MP4S:
@@ -267,63 +268,67 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
         break;
 
       case AP4_ATOM_TYPE_ESDS:
-        atom = new AP4_EsdsAtom(size, stream);
+        atom = AP4_EsdsAtom::Create(size, stream);
         break;
 
       case AP4_ATOM_TYPE_VMHD:
-        atom = new AP4_VmhdAtom(size, stream);
+        atom = AP4_VmhdAtom::Create(size, stream);
         break;
 
       case AP4_ATOM_TYPE_SMHD:
-        atom = new AP4_SmhdAtom(size, stream);
+        atom = AP4_SmhdAtom::Create(size, stream);
         break;
 
       case AP4_ATOM_TYPE_NMHD:
-        atom = new AP4_NmhdAtom(size, stream);
+        atom = AP4_NmhdAtom::Create(size, stream);
         break;
 
       case AP4_ATOM_TYPE_HMHD:
-        atom = new AP4_HmhdAtom(size, stream);
+        atom = AP4_HmhdAtom::Create(size, stream);
         break;
 
       case AP4_ATOM_TYPE_FRMA:
-        atom = new AP4_FrmaAtom(size, stream);
+        atom = AP4_FrmaAtom::Create(size, stream);
         break;
 
       case AP4_ATOM_TYPE_SCHM:
-          atom = new AP4_SchmAtom(size, stream);
-          break;
+        atom = AP4_SchmAtom::Create(size, stream);
+        break;
 
       case AP4_ATOM_TYPE_FTYP:
-        atom = new AP4_FtypAtom(size, stream);
+        atom = AP4_FtypAtom::Create(size, stream);
         break;
           
       case AP4_ATOM_TYPE_RTP:
         if (m_Context == AP4_ATOM_TYPE_HNTI) {
-            atom = new AP4_RtpAtom(size, stream);
+            atom = AP4_RtpAtom::Create(size, stream);
         } else {
             atom = new AP4_RtpHintSampleEntry(size, stream, *this);
         }
         break;
       
       case AP4_ATOM_TYPE_TIMS:
-        atom = new AP4_TimsAtom(size, stream);
+        atom = AP4_TimsAtom::Create(size, stream);
         break;
  
       case AP4_ATOM_TYPE_SDP:
-        atom = new AP4_SdpAtom(size, stream);
+        atom = AP4_SdpAtom::Create(size, stream);
         break;
 
       case AP4_ATOM_TYPE_IKMS:
-        atom = new AP4_IkmsAtom(size, stream);
+        atom = AP4_IkmsAtom::Create(size, stream);
         break;
 
       case AP4_ATOM_TYPE_ISFM:
-        atom = new AP4_IsfmAtom(size, stream);
+        atom = AP4_IsfmAtom::Create(size, stream);
+        break;
+
+      case AP4_ATOM_TYPE_ISLT:
+        atom = AP4_IsltAtom::Create(size, stream);
         break;
 
       case AP4_ATOM_TYPE_HINT:
-        atom = new AP4_TrefTypeAtom(type, size, stream);
+        atom = AP4_TrefTypeAtom::Create(type, size, stream);
         break;
 
       // container atoms
@@ -338,12 +343,12 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
       case AP4_ATOM_TYPE_UDTA:
       case AP4_ATOM_TYPE_ILST:
       case AP4_ATOM_TYPE_EDTS: 
-        atom = new AP4_ContainerAtom(type, size, false, stream, *this);
+        atom = AP4_ContainerAtom::Create(type, size, false, stream, *this);
         break;
 
       // full container atoms
       case AP4_ATOM_TYPE_META:
-        atom = new AP4_ContainerAtom(type, size, true, stream, *this);
+        atom = AP4_ContainerAtom::Create(type, size, true, stream, *this);
         break;
 
       default:
@@ -358,12 +363,20 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
                 }
                 handler_item = handler_item->GetNext();
             }
+
             if (atom == NULL) {
                 // no custom handlers, create a generic atom
-                atom = new AP4_UnknownAtom(type, size, false, stream);
+                atom = new AP4_UnknownAtom(type, size, stream);
             }
+
             break;
         }
+    }
+    
+    // if we failed to create an atom, use a generic version
+    if (atom == NULL) {
+        stream.Seek(start+8);
+        atom = new AP4_UnknownAtom(type, size, stream);
     }
 
     // skip to the end of the atom

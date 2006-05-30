@@ -1,6 +1,6 @@
 /*****************************************************************
 |
-|    AP4 - File
+|    AP4 - iSLT Atom 
 |
 |    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
@@ -24,93 +24,64 @@
 |    Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 |    02111-1307, USA.
 |
- ****************************************************************/
+****************************************************************/
 
 /*----------------------------------------------------------------------
 |   includes
 +---------------------------------------------------------------------*/
-#include "Ap4File.h"
-#include "Ap4Atom.h"
-#include "Ap4TrakAtom.h"
-#include "Ap4MoovAtom.h"
-#include "Ap4MvhdAtom.h"
-#include "Ap4AtomFactory.h"
-#include "Ap4Movie.h"
-#include "Ap4FtypAtom.h"
+#include "Ap4Utils.h"
+#include "Ap4IsltAtom.h"
 
 /*----------------------------------------------------------------------
-|   AP4_File::AP4_File
+|   AP4_IsltAtom::AP4_IsltAtom
 +---------------------------------------------------------------------*/
-AP4_File::AP4_File(AP4_Movie* movie) :
-    m_Movie(movie),
-    m_FileType(NULL)
+AP4_IsltAtom::AP4_IsltAtom(const AP4_UI08* salt) :
+    AP4_Atom(AP4_ATOM_TYPE_ISLT, AP4_ATOM_HEADER_SIZE+8)
 {
-}
-
-/*----------------------------------------------------------------------
-|   AP4_File::AP4_File
-+---------------------------------------------------------------------*/
-AP4_File::AP4_File(AP4_ByteStream& stream, AP4_AtomFactory& atom_factory) :
-    m_Movie(NULL),
-    m_FileType(NULL)
-{
-    // get all atoms
-    AP4_Atom* atom;
-    while (AP4_SUCCEEDED(atom_factory.CreateAtomFromStream(stream, atom))) {
-        switch (atom->GetType()) {
-            case AP4_ATOM_TYPE_MOOV:
-                m_Movie = new AP4_Movie(dynamic_cast<AP4_MoovAtom*>(atom),
-                                        stream);
-                break;
-
-            case AP4_ATOM_TYPE_FTYP:
-                m_FileType = dynamic_cast<AP4_FtypAtom*>(atom);
-                break;
-
-            default:
-                m_OtherAtoms.Add(atom);
-        }
+    for (unsigned int i=0; i<8; i++) {
+        m_Salt[i] = salt[i];
     }
 }
-    
+
 /*----------------------------------------------------------------------
-|   AP4_File::~AP4_File
+|   AP4_IsltAtom::AP4_IsltAtom
 +---------------------------------------------------------------------*/
-AP4_File::~AP4_File()
+AP4_IsltAtom::AP4_IsltAtom(AP4_Size size, AP4_ByteStream& stream) :
+    AP4_Atom(AP4_ATOM_TYPE_ISLT, size)
 {
-    delete m_Movie;
-    delete m_FileType;
-    m_OtherAtoms.DeleteReferences();
+    stream.Read((void*)m_Salt, 8);
 }
 
 /*----------------------------------------------------------------------
-|   AP4_File::Inspect
+|   AP4_IsltAtom::Clone
 +---------------------------------------------------------------------*/
-AP4_Result
-AP4_File::Inspect(AP4_AtomInspector& inspector)
+AP4_Atom* 
+AP4_IsltAtom::Clone()
 {
-    // dump the moov atom first
-    if (m_Movie) m_Movie->Inspect(inspector);
-
-    // dump the other atoms
-    m_OtherAtoms.Apply(AP4_AtomListInspector(inspector));
-
-    return AP4_SUCCESS;
+    return new AP4_IsltAtom(m_Salt);
 }
 
 /*----------------------------------------------------------------------
-|   AP4_File::SetFileType
+|   AP4_IsltAtom::WriteFields
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_File::SetFileType(AP4_UI32     major_brand,
-                      AP4_UI32     minor_version,
-                      AP4_UI32*    compatible_brands,
-                      AP4_Cardinal compatible_brand_count)
+AP4_IsltAtom::WriteFields(AP4_ByteStream& stream)
 {
-    delete m_FileType;
-    m_FileType = new AP4_FtypAtom(major_brand, 
-                                  minor_version,
-                                  compatible_brands,
-                                  compatible_brand_count);
+    return stream.Write((const void*)m_Salt, 8);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_IsltAtom::InspectFields
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_IsltAtom::InspectFields(AP4_AtomInspector& inspector)
+{
+    char salt[16+1];
+    for (unsigned int i=0; i<8; i++) {
+        AP4_StringFormat(&salt[i*2], 3, "%02x", m_Salt[i]);
+    }
+    salt[16] = '\0';
+    inspector.AddField("salt", salt);
+
     return AP4_SUCCESS;
 }

@@ -34,10 +34,23 @@
 #include "Ap4Utils.h"
 
 /*----------------------------------------------------------------------
+|   AP4_StszAtom::Create
++---------------------------------------------------------------------*/
+AP4_StszAtom*
+AP4_StszAtom::Create(AP4_Size size, AP4_ByteStream& stream)
+{
+    AP4_UI32 version;
+    AP4_UI32 flags;
+    if (AP4_FAILED(AP4_Atom::ReadFullHeader(stream, version, flags))) return NULL;
+    if (version != 0) return NULL;
+    return new AP4_StszAtom(size, version, size, stream);
+}
+
+/*----------------------------------------------------------------------
 |   AP4_StszAtom::AP4_StszAtom
 +---------------------------------------------------------------------*/
 AP4_StszAtom::AP4_StszAtom() :
-    AP4_Atom(AP4_ATOM_TYPE_STSZ, AP4_FULL_ATOM_HEADER_SIZE+8, true),
+    AP4_Atom(AP4_ATOM_TYPE_STSZ, AP4_FULL_ATOM_HEADER_SIZE+8, 0, 0),
     m_SampleSize(0),
     m_SampleCount(0)
 {
@@ -46,8 +59,11 @@ AP4_StszAtom::AP4_StszAtom() :
 /*----------------------------------------------------------------------
 |   AP4_StszAtom::AP4_StszAtom
 +---------------------------------------------------------------------*/
-AP4_StszAtom::AP4_StszAtom(AP4_Size size, AP4_ByteStream& stream) :
-    AP4_Atom(AP4_ATOM_TYPE_STSZ, size, true, stream)
+AP4_StszAtom::AP4_StszAtom(AP4_Size        size, 
+                           AP4_UI32        version,
+                           AP4_UI32        flags,
+                           AP4_ByteStream& stream) :
+    AP4_Atom(AP4_ATOM_TYPE_STSZ, size, version, flags)
 {
     stream.ReadUI32(m_SampleSize);
     stream.ReadUI32(m_SampleCount);

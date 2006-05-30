@@ -34,12 +34,25 @@
 #include "Ap4Utils.h"
 
 /*----------------------------------------------------------------------
+|   AP4_SchmAtom::Create
++---------------------------------------------------------------------*/
+AP4_SchmAtom*
+AP4_SchmAtom::Create(AP4_Size size, AP4_ByteStream& stream)
+{
+    AP4_UI32 version;
+    AP4_UI32 flags;
+    if (AP4_FAILED(AP4_Atom::ReadFullHeader(stream, version, flags))) return NULL;
+    if (version != 0) return NULL;
+    return new AP4_SchmAtom(size, version, flags, stream);
+}
+
+/*----------------------------------------------------------------------
 |   AP4_SchmAtom::AP4_SchmAtom
 +---------------------------------------------------------------------*/
 AP4_SchmAtom::AP4_SchmAtom(AP4_UI32    scheme_type,
                            AP4_UI32    scheme_version,
                            const char* scheme_uri) :
-    AP4_Atom(AP4_ATOM_TYPE_SCHM, AP4_FULL_ATOM_HEADER_SIZE+8, true),
+    AP4_Atom(AP4_ATOM_TYPE_SCHM, AP4_FULL_ATOM_HEADER_SIZE+8, 0, 0),
     m_SchemeType(scheme_type),
     m_SchemeVersion(scheme_version)
 {
@@ -53,8 +66,11 @@ AP4_SchmAtom::AP4_SchmAtom(AP4_UI32    scheme_type,
 /*----------------------------------------------------------------------
 |   AP4_SchmAtom::AP4_SchmAtom
 +---------------------------------------------------------------------*/
-AP4_SchmAtom::AP4_SchmAtom(AP4_Size size, AP4_ByteStream& stream) :
-    AP4_Atom(AP4_ATOM_TYPE_SCHM, size, true, stream)
+AP4_SchmAtom::AP4_SchmAtom(AP4_Size        size, 
+                           AP4_UI32        version,
+                           AP4_UI32        flags,
+                           AP4_ByteStream& stream) :
+    AP4_Atom(AP4_ATOM_TYPE_SCHM, size, version, flags)
 {
     stream.ReadUI32(m_SchemeType);
     stream.ReadUI32(m_SchemeVersion);

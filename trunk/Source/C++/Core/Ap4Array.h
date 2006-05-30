@@ -25,6 +25,10 @@
 |    02111-1307, USA.
 |
  ****************************************************************/
+/**
+ * @file 
+ * @brief Arrays
+ */
 
 #ifndef _AP4_ARRAY_H_
 #define _AP4_ARRAY_H_
@@ -55,6 +59,7 @@ public:
     AP4_Cardinal ItemCount() { return m_ItemCount; }
     AP4_Result   Append(const T& item);
     T& operator[](unsigned long idx) { return m_Items[idx]; }
+    const T& operator[](unsigned long idx) const { return m_Items[idx]; }
     AP4_Result Clear();
     AP4_Result EnsureCapacity(AP4_Cardinal count);
 

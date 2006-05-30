@@ -34,10 +34,10 @@
 /*----------------------------------------------------------------------
 |   AP4_TrefTypeAtom::AP4_TrefTypeAtom
 +---------------------------------------------------------------------*/
-AP4_TrefTypeAtom::AP4_TrefTypeAtom(AP4_Atom::Type type, 
-                                   AP4_Size size, 
+AP4_TrefTypeAtom::AP4_TrefTypeAtom(AP4_Atom::Type  type, 
+                                   AP4_Size        size, 
                                    AP4_ByteStream& stream) :
-    AP4_Atom(type, size, false, stream)
+    AP4_Atom(type, size)
 {
     AP4_Size data_size = size - 8; // size and atom type
     

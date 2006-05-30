@@ -47,8 +47,12 @@ class AP4_ByteStream;
 class AP4_SdpAtom : public AP4_Atom
 {
 public:
+    // class methods
+    static AP4_SdpAtom* Create(AP4_Size size, AP4_ByteStream& stream) {
+        return new AP4_SdpAtom(size, stream);
+    }
+
     // methods
-    AP4_SdpAtom(AP4_Size size, AP4_ByteStream& stream);
     AP4_SdpAtom(const char* sdp_text);
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
@@ -57,6 +61,9 @@ public:
     const AP4_String& GetSdpText() const;
 
 private:
+    // methods
+    AP4_SdpAtom(AP4_Size size, AP4_ByteStream& stream);
+
     // members
     AP4_String m_SdpText;
 };

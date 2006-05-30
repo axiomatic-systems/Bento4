@@ -46,13 +46,31 @@ class AP4_ByteStream;
 +---------------------------------------------------------------------*/
 class AP4_FtypAtom : public AP4_Atom
 {
- public:
+public:
+    // class methods
+    static AP4_FtypAtom* Create(AP4_Size size, AP4_ByteStream& stream) {
+        return new AP4_FtypAtom(size, stream);
+    }
+
     // methods
-    AP4_FtypAtom(AP4_Size size, AP4_ByteStream& stream);
+    AP4_FtypAtom(AP4_UI32     major_brand,
+                 AP4_UI32     minor_version,
+                 AP4_UI32*    compatible_brands = NULL,
+                 AP4_Cardinal compatible_brand_count = 0);
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
+    
+    // accessors
+    AP4_UI32 GetMajorBrand()         { return m_MajorBrand;       }
+    AP4_UI32 GetMinorVersion()       { return m_MinorVersion;     }
+    AP4_Array<AP4_UI32>& GetCompatibleBrands() { 
+        return m_CompatibleBrands; 
+    }
 
- private:
+private:
+    // methods
+    AP4_FtypAtom(AP4_Size size, AP4_ByteStream& stream);
+
     // members
     AP4_UI32            m_MajorBrand;
     AP4_UI32            m_MinorVersion;

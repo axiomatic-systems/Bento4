@@ -37,7 +37,7 @@
 |   AP4_FtypAtom::AP4_FtypAtom
 +---------------------------------------------------------------------*/
 AP4_FtypAtom::AP4_FtypAtom(AP4_Size size, AP4_ByteStream& stream) :
-    AP4_Atom(AP4_ATOM_TYPE_FTYP, size, false, stream)
+    AP4_Atom(AP4_ATOM_TYPE_FTYP, size)
 {
     stream.ReadUI32(m_MajorBrand);
     stream.ReadUI32(m_MinorVersion);
@@ -48,6 +48,20 @@ AP4_FtypAtom::AP4_FtypAtom(AP4_Size size, AP4_ByteStream& stream) :
         m_CompatibleBrands.Append(compatible_brand);
         size -= 4;
     }
+}
+
+/*----------------------------------------------------------------------
+|   AP4_FtypAtom::AP4_FtypAtom
++---------------------------------------------------------------------*/
+AP4_FtypAtom::AP4_FtypAtom(AP4_UI32     major_brand,
+                           AP4_UI32     minor_version,
+                           AP4_UI32*    compatible_brands,
+                           AP4_Cardinal compatible_brand_count) :
+    AP4_Atom(AP4_ATOM_TYPE_FTYP, AP4_ATOM_HEADER_SIZE+8+4*compatible_brand_count),
+    m_MajorBrand(major_brand),
+    m_MinorVersion(minor_version),
+    m_CompatibleBrands(compatible_brands, compatible_brand_count)
+{
 }
 
 /*----------------------------------------------------------------------
@@ -85,7 +99,7 @@ AP4_FtypAtom::InspectFields(AP4_AtomInspector& inspector)
     char name[5];
     AP4_FormatFourChars(name, m_MajorBrand);
     inspector.AddField("major_brand", name);
-    inspector.AddField("minor_version", m_MinorVersion);
+    inspector.AddField("minor_version", m_MinorVersion, AP4_AtomInspector::HINT_HEX);
 
     // compatible brands
     for (unsigned int i=0; i<m_CompatibleBrands.ItemCount(); i++) {
