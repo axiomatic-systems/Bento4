@@ -236,9 +236,9 @@ AP4_IsmaCipher::AP4_IsmaCipher(const AP4_UI08* key,
 
     // left-align the salt
     unsigned char salt_128[AP4_ISMACRYP_IAEC_KEY_LENGTH];
-    unsigned int i;
+    unsigned int i=0;
     if (salt) {
-        for (i=0; i<8; i++) {
+        for (; i<8; i++) {
             salt_128[i] = salt[i];
         }
     }
