@@ -52,8 +52,8 @@ class AP4_StreamCipher
     AP4_Result ProcessBuffer(const AP4_UI08* in, 
                              AP4_UI08*       out,
                              AP4_Size        size);
-    AP4_Offset GeStreamOffset() { return m_StreamOffset; }
-    const AP4_UI08* GetSalt()   { return m_Salt;         }
+    AP4_Offset GetStreamOffset() { return m_StreamOffset; }
+    const AP4_UI08* GetSalt()    { return m_Salt;         }
 
  private:
     // members
