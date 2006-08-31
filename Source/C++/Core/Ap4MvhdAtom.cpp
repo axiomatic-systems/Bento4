@@ -178,7 +178,7 @@ AP4_MvhdAtom::WriteFields(AP4_ByteStream& stream)
 /*----------------------------------------------------------------------
 |   AP4_MvhdAtom::GetDurationMs
 +---------------------------------------------------------------------*/
-unsigned long
+AP4_Duration
 AP4_MvhdAtom::GetDurationMs()
 {
     if (m_TimeScale) {

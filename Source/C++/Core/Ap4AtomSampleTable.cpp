@@ -83,7 +83,7 @@ AP4_AtomSampleTable::GetSample(AP4_Ordinal index,
     // MP4 uses 1-based indexes internally, so adjust by one
     index++;
 
-	// find out in which chunk this sample is located
+    // find out in which chunk this sample is located
     AP4_Ordinal chunk, skip, desc;
     result = m_StscAtom->GetChunkForSample(index, chunk, skip, desc);
     if (AP4_FAILED(result)) return result;
@@ -108,7 +108,8 @@ AP4_AtomSampleTable::GetSample(AP4_Ordinal index,
     sample.SetDescriptionIndex(desc-1); // adjust for 0-based indexes
 
     // set the dts and cts
-    AP4_TimeStamp cts_offset, dts;
+    AP4_Offset    cts_offset;
+    AP4_TimeStamp dts;
     result = m_SttsAtom->GetDts(index, dts);
     if (AP4_FAILED(result)) return result;
     sample.SetDts(dts);

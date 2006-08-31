@@ -38,7 +38,7 @@
 |   AP4_RtpAtom::AP4_RtpAtom
 +---------------------------------------------------------------------*/
 AP4_RtpAtom::AP4_RtpAtom(AP4_Size size, AP4_ByteStream& stream) :
-    AP4_Atom(AP4_ATOM_TYPE_RTP, size)
+    AP4_Atom(AP4_ATOM_TYPE_RTP_, size)
 {
     // desc format
     stream.ReadUI32(m_DescriptionFormat);

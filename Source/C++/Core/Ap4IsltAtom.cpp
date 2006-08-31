@@ -76,12 +76,7 @@ AP4_IsltAtom::WriteFields(AP4_ByteStream& stream)
 AP4_Result
 AP4_IsltAtom::InspectFields(AP4_AtomInspector& inspector)
 {
-    char salt[16+1];
-    for (unsigned int i=0; i<8; i++) {
-        AP4_StringFormat(&salt[i*2], 3, "%02x", m_Salt[i]);
-    }
-    salt[16] = '\0';
-    inspector.AddField("salt", salt);
+    inspector.AddField("salt", m_Salt, 8);
 
     return AP4_SUCCESS;
 }

@@ -147,7 +147,8 @@ AP4_Track::AP4_Track(AP4_TrakAtom&   atom,
             } else if (type == AP4_HANDLER_TYPE_ODSM ||
                        type == AP4_HANDLER_TYPE_SDSM) {
                 m_Type = TYPE_SYSTEM;
-            } else if (type == AP4_HANDLER_TYPE_TEXT) {
+            } else if (type == AP4_HANDLER_TYPE_TEXT ||
+                       type == AP4_HANDLER_TYPE_TX3G) {
                 m_Type = TYPE_TEXT;
             } else if (type == AP4_HANDLER_TYPE_JPEG) {
                 m_Type = TYPE_JPEG;
@@ -335,4 +336,30 @@ AP4_UI32
 AP4_Track::GetMediaTimeScale()
 {
     return m_MediaTimeScale;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_Track::GetTrackName
++---------------------------------------------------------------------*/
+
+const char*
+AP4_Track::GetTrackName()
+{
+    if (AP4_HdlrAtom* hdlr = dynamic_cast<AP4_HdlrAtom*>(m_TrakAtom->FindChild("mdia/hdlr"))) {
+        return hdlr->GetHandlerName().GetChars();
+    }
+    return NULL;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_Track::GetTrackLanguage
++---------------------------------------------------------------------*/
+
+const char*
+AP4_Track::GetTrackLanguage()
+{
+    if (AP4_MdhdAtom* mdhd = dynamic_cast<AP4_MdhdAtom*>(m_TrakAtom->FindChild("mdia/mdhd"))) {
+        return mdhd->GetLanguage().GetChars();
+    }
+    return NULL;
 }

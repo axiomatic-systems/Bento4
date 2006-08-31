@@ -54,7 +54,7 @@ public:
                AP4_Size        size,
                AP4_Ordinal     description_index,
                AP4_TimeStamp   dts,
-               AP4_TimeStamp   cts_offset = 0);
+               AP4_Offset      cts_offset = 0);
     ~AP4_Sample(); // not virtual on purpose: do not derive from it
 
     // operators

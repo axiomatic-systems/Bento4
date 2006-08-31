@@ -299,7 +299,7 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
         atom = AP4_FtypAtom::Create(size, stream);
         break;
           
-      case AP4_ATOM_TYPE_RTP:
+      case AP4_ATOM_TYPE_RTP_:
         if (m_Context == AP4_ATOM_TYPE_HNTI) {
             atom = AP4_RtpAtom::Create(size, stream);
         } else {
@@ -311,7 +311,7 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
         atom = AP4_TimsAtom::Create(size, stream);
         break;
  
-      case AP4_ATOM_TYPE_SDP:
+      case AP4_ATOM_TYPE_SDP_:
         atom = AP4_SdpAtom::Create(size, stream);
         break;
 
