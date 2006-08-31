@@ -74,13 +74,18 @@ public:
         return AP4_SUCCESS;  
     }
 
-private:
+    void GetTranslation(AP4_Float& x, AP4_Float& y) {
+        x = (AP4_Float)(*(int*)&m_Matrix[6]) / 65536;
+        y = (AP4_Float)(*(int*)&m_Matrix[7]) / 65536;
+    }
+
+ private:
     // methods
     AP4_TkhdAtom(AP4_Size        size, 
                  AP4_UI32        version,
                  AP4_UI32        flags,
                  AP4_ByteStream& stream);
-    
+
     // members
     AP4_UI32 m_CreationTimeH;
     AP4_UI32 m_CreationTime;

@@ -100,6 +100,8 @@ class AP4_Track {
     AP4_TrakAtom* GetTrakAtom() { return m_TrakAtom; }
     AP4_Result    SetMovieTimeScale(AP4_UI32 time_scale);
     AP4_UI32      GetMediaTimeScale();
+    const char*   GetTrackName();
+    const char*   GetTrackLanguage();
     AP4_Result    Attach(AP4_MoovAtom* moov);
 
  protected:

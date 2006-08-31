@@ -87,7 +87,7 @@
 * to a sub-directory under Build/SCons/Targets/<target-name>/<config-name>.
 *
 * @subsection build_others Other Platforms
-* Other plaforms can be built by adapting the makefiles for the generic
+* Other plaftorms can be built by adapting the makefiles for the generic
 * gcc-based configurations. 
 *
 * @section mp4_structure Structure of an MP4 file
@@ -99,7 +99,7 @@
 * of the atoms, and provides an API that is an abstraction layer for the
 * way the information is actually encoded in those atoms.
 *
-* @section reading Readind Files
+* @section reading Reading Files
 *
 * The class #AP4_File represents all the information about an MP4 file.
 * Internally, a tree of #AP4_Atom objects plus other helper objects holds 
@@ -151,7 +151,7 @@
 * and others.
 * See the Mp4Info and Mp42Aac command line applications as examples.
 *
-* @section advanced Advances Topics
+* @section advanced Advanced Topics
 *
 * @subsection factory Custom Atoms
 *
@@ -167,15 +167,15 @@
 * corresponding atom. The custom atoms must be implemented as subclasses of 
 * #AP4_Atom and override at least the #AP4_Atom::WriteFields method. The custom
 * atoms should also override #AP4_Atom::InspectFields if they want to provide
-* meaningfull information when inspected.
+* meaningful information when inspected.
 *
 * @subsection tranformations Transformations
-* The SDK provides support for transforming MP4 files. Tranformations are usefull
+* The SDK provides support for transforming MP4 files. Transformations are useful
 * to perform tasks such as editing (removing or adding atoms) and encryption or
 * decryption. When the atom tree for the file changes, the entire file needs to 
 * change, because in most cases, the size of the 'moov' atom will change, and
 * thus change the offset of the media samples in the 'mdat' atom.
-* To faciliate this operation, the class #AP4_Processor provides the base
+* To facilitate this operation, the class #AP4_Processor provides the base
 * functionality for managing all the updates to the sample tables. Subclasses
 * of the #AP4_Processor class can override certain methods to carry out specific
 * changes to the structure of the atom tree and/or the media samples. #AP4_Processor
@@ -189,7 +189,7 @@
 * @subsection encryption Encryption and Decryption
 *
 * The SDK has support for encrypting and decrypting tracks as specified by the
-* ISMA Encryption and Authentication specification. The supporing classes 
+* ISMA Encryption and Authentication specification. The supporting classes 
 * found in Ap4IsmaCryp.h provide a subclass of #AP4_Processor for encrypting
 * or decrypting entire tracks. The class #AP4_IsmaCipher provides support for 
 * encrypting or decrypting individual samples. The parameters necessary to 

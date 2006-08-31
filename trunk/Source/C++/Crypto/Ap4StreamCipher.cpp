@@ -94,7 +94,8 @@ AP4_StreamCipher::Reset(const AP4_UI08* key, const AP4_UI08* salt)
 
     // reset the stream offset
     SetStreamOffset(0);
-  
+    SetCounter(0);
+
     return AP4_SUCCESS;
 }
 

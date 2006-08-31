@@ -799,7 +799,7 @@ AP4_RtpHintSampleEntry::AP4_RtpHintSampleEntry(AP4_UI16 hint_track_version,
                                                AP4_UI16 highest_compatible_version,
                                                AP4_UI32 max_packet_size,
                                                AP4_UI32 timescale):
-    AP4_SampleEntry(AP4_ATOM_TYPE_RTP),
+    AP4_SampleEntry(AP4_ATOM_TYPE_RTP_),
     m_HintTrackVersion(hint_track_version),
     m_HighestCompatibleVersion(highest_compatible_version),
     m_MaxPacketSize(max_packet_size)
@@ -814,7 +814,7 @@ AP4_RtpHintSampleEntry::AP4_RtpHintSampleEntry(AP4_UI16 hint_track_version,
 AP4_RtpHintSampleEntry::AP4_RtpHintSampleEntry(AP4_Size         size,
                                                AP4_ByteStream&  stream,
                                                AP4_AtomFactory& atom_factory): 
-    AP4_SampleEntry(AP4_ATOM_TYPE_RTP, size)
+    AP4_SampleEntry(AP4_ATOM_TYPE_RTP_, size)
 {
     // read fields
     AP4_Size fields_size = GetFieldsSize();

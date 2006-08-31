@@ -33,6 +33,7 @@
 |   includes
 +---------------------------------------------------------------------*/
 #include "Ap4Atom.h"
+#include "Ap4String.h"
 
 /*----------------------------------------------------------------------
 |   constants
@@ -58,9 +59,10 @@ public:
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
 
-    AP4_UI32 GetDurationMs();
-    AP4_UI32 GetDuration()  { return m_Duration;  }
-    AP4_UI32 GetTimeScale() { return m_TimeScale; }
+    AP4_UI32   GetDurationMs();
+    AP4_UI32   GetDuration()  { return m_Duration;  }
+    AP4_UI32   GetTimeScale() { return m_TimeScale; }
+    AP4_String GetLanguage()  { return AP4_String(m_Language, 3); }
 
 private:
     // methods

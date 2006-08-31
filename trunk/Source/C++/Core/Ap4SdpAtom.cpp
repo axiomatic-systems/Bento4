@@ -38,7 +38,7 @@
 |   AP4_SdpAtom::AP4_SdpAtom
 +---------------------------------------------------------------------*/
 AP4_SdpAtom::AP4_SdpAtom(const char* sdp_text) :
-    AP4_Atom(AP4_ATOM_TYPE_SDP, AP4_ATOM_HEADER_SIZE),
+    AP4_Atom(AP4_ATOM_TYPE_SDP_, AP4_ATOM_HEADER_SIZE),
     m_SdpText(sdp_text)
 {
     m_Size += m_SdpText.GetLength()+1;
@@ -48,7 +48,7 @@ AP4_SdpAtom::AP4_SdpAtom(const char* sdp_text) :
 |   AP4_SdpAtom::AP4_SdpAtom
 +---------------------------------------------------------------------*/
 AP4_SdpAtom::AP4_SdpAtom(AP4_Size size, AP4_ByteStream& stream) :
-    AP4_Atom(AP4_ATOM_TYPE_SDP, size)
+    AP4_Atom(AP4_ATOM_TYPE_SDP_, size)
 {
     // sdptext
     AP4_Size str_size = size-AP4_ATOM_HEADER_SIZE;
