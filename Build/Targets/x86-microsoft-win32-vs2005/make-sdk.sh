@@ -1,6 +1,6 @@
 AP4_ROOT=../../..
 SOURCE_ROOT=$AP4_ROOT/Source
-BUILD_TARGET_DIR=$AP4_ROOT/Build/Targets/x86-microsoft-win32-vs2003
+BUILD_TARGET_DIR=$AP4_ROOT/Build/Targets/x86-microsoft-win32-vs2005
 
 CP="cp"
 MKDIR="mkdir -p"

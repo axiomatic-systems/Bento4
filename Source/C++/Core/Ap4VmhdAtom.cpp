@@ -99,7 +99,7 @@ AP4_VmhdAtom::InspectFields(AP4_AtomInspector& inspector)
 {
     inspector.AddField("graphics_mode", m_GraphicsMode);
     char formatted[16];
-    AP4_StringFormat(formatted, sizeof(formatted), "%04x,%04x,%04x",
+    AP4_FormatString(formatted, sizeof(formatted), "%04x,%04x,%04x",
         m_OpColor[0], m_OpColor[1], m_OpColor[2]);
     inspector.AddField("op_color", formatted);
 

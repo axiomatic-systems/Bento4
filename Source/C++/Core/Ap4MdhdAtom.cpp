@@ -178,7 +178,7 @@ AP4_MdhdAtom::InspectFields(AP4_AtomInspector& inspector)
     inspector.AddField("duration", m_Duration);
     inspector.AddField("duration(ms)", GetDurationMs());
     char language[4];
-    AP4_StringFormat(language, sizeof(language), 
+    AP4_FormatString(language, sizeof(language), 
         "%c%c%c", 
         m_Language[0] ? m_Language[0]:'-',
         m_Language[1] ? m_Language[1]:'-',

@@ -324,7 +324,7 @@ AP4_PrintInspector::AddField(const char* name, AP4_UI32 value, FormatHint hint)
     m_Stream->WriteString(prefix);
 
     char str[32];
-    AP4_StringFormat(str, sizeof(str), 
+    AP4_FormatString(str, sizeof(str), 
                      hint == HINT_HEX ? "%x":"%d", 
                      value);
     m_Stream->WriteString(name);
@@ -351,7 +351,7 @@ AP4_PrintInspector::AddField(const char*          name,
     unsigned int offset = 1;
     char byte[4];
     for (unsigned int i=0; i<byte_count; i++) {
-        AP4_StringFormat(byte, 4, " %02x", bytes[i]);
+        AP4_FormatString(byte, 4, " %02x", bytes[i]);
         m_Stream->Write(&byte[offset], 3-offset);
         offset = 0;
     }

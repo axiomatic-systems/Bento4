@@ -75,7 +75,7 @@ AP4_HintTrackReader::AP4_HintTrackReader(AP4_Track& hint_track,
     }
 
     // initiate random generator
-    srand(time(NULL));
+    srand((int)time(NULL));
 
     // rtp sequence start init TODO!!
     m_RtpSequenceStart = rand();
