@@ -48,7 +48,7 @@ const int AP4_DEBUG_MAX_BUFFER = 1024;
 static void
 AP4_Print(const char* message)
 {
-    printf(message);
+    printf("%s", message);
 }
 
 /*----------------------------------------------------------------------
@@ -62,7 +62,7 @@ AP4_Debug(const char* format, ...)
     va_start(args, format);
 
     char buffer[AP4_DEBUG_MAX_BUFFER];
-    vsnprintf(buffer, sizeof(buffer), format, args);
+    AP4_FormatStringVN(buffer, sizeof(buffer), format, args);
     AP4_Print(buffer);
 
     va_end(args);

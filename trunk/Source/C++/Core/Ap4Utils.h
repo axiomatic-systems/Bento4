@@ -32,6 +32,7 @@
 /*----------------------------------------------------------------------
 |   includes
 +---------------------------------------------------------------------*/
+#include "Ap4Config.h"
 #include "Ap4Types.h"
 #include "Ap4Results.h"
 #include "Ap4Config.h"
@@ -68,9 +69,14 @@ unsigned long AP4_ConvertTime(unsigned long time_value,
 #endif
 
 #if defined (AP4_CONFIG_HAVE_SNPRINTF)
-#define AP4_StringFormat snprintf
+#define AP4_FormatString AP4_snprintf
 #else
-int AP4_StringFormat(char* str, AP4_Size size, const char* format, ...);
+int AP4_FormatString(char* str, AP4_Size size, const char* format, ...);
+#endif
+#if defined(AP4_CONFIG_HAVE_VSNPRINTF)
+#define AP4_FormatStringVN(s,c,f,a) AP4_vsnprintf(s,c,f,a)
+#else
+extern int AP4_FormatStringVN(char *buffer, size_t count, const char *format, va_list argptr);
 #endif
 
 #if defined (AP4_CONFIG_HAVE_STRING_H)

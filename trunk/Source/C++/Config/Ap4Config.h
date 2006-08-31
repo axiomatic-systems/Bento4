@@ -42,6 +42,7 @@
 #define AP4_CONFIG_HAVE_STRING_H
 
 #define AP4_CONFIG_HAVE_SNPRINTF
+#define AP4_CONFIG_HAVE_VSNPRINTF
 
 /*----------------------------------------------------------------------
 |   byte order
@@ -61,12 +62,32 @@
 /*----------------------------------------------------------------------
 |   Win32 specifics
 +---------------------------------------------------------------------*/
-#ifdef WIN32
-#define snprintf _snprintf
-#define vsnprintf _vsnprintf
-#if defined(_DEBUG)
-#define AP4_DEBUG
+#if defined(_MSC_VER)
+#define AP4_CONFIG_HAVE_INT64
+#define AP4_CONFIG_INT64_TYPE __int64
+#if (_MSC_VER >= 1400)
+#define AP4_CONFIG_HAVE_FOPEN_S
+#define AP4_snprintf(s,c,f,...) _snprintf_s(s,c,_TRUNCATE,f,__VA_ARGS__)
+#define AP4_vsnprintf(s,c,f,a)  _vsnprintf_s(s,c,_TRUNCATE,f,a)
+#define fileno _fileno
+#else
+#define AP4_snprintf   _snprintf
+#define AP4_vsnprintf  _vsnprintf
 #endif
+#if defined(_DEBUG)
+#define _CRTDBG_MAP_ALLOC
+#endif
+#endif
+
+/*----------------------------------------------------------------------
+|    defaults
++---------------------------------------------------------------------*/
+/* some compilers (ex: MSVC 8) deprecate those, so we rename them */
+#if !defined(AP4_snprintf)
+#define AP4_snprintf snprintf
+#endif
+#if !defined(AP4_vsnprintf)
+#define AP4_vsnprintf vsnprintf
 #endif
 
 #endif // _AP4_CONFIG_H_

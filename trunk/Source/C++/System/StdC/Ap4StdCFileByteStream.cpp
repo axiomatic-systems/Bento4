@@ -18,6 +18,20 @@
 #include "Ap4FileByteStream.h"
 
 /*----------------------------------------------------------------------
+|   compatibility wrappers
++---------------------------------------------------------------------*/
+#if !defined(AP4_CONFIG_HAVE_FOPEN_S)
+static int fopen_s(FILE**      file,
+                   const char* filename,
+                   const char* mode)
+{
+    *file = fopen(filename, mode);
+    if (*file == NULL) return errno;
+    return 0;
+}
+#endif // defined(AP4_CONFIG_HAVE_FOPEN_S
+
+/*----------------------------------------------------------------------
 |   AP4_StdcFileByteStream
 +---------------------------------------------------------------------*/
 class AP4_StdcFileByteStream: public AP4_ByteStream
@@ -69,23 +83,24 @@ AP4_StdcFileByteStream::AP4_StdcFileByteStream(
     } else if (!strcmp(name, "-stderr")) {
         m_File = stderr;
     } else {
+        int open_result;
         switch (mode) {
           case AP4_FileByteStream::STREAM_MODE_READ:
-            m_File = fopen(name, "rb");
+            open_result = fopen_s(&m_File, name, "rb");
             break;
 
           case AP4_FileByteStream::STREAM_MODE_WRITE:
-            m_File = fopen(name, "wb+");
+            open_result = fopen_s(&m_File, name, "wb+");
             break;
 
           default:
             throw AP4_Exception(AP4_ERROR_INVALID_PARAMETERS);
         }
     
-        if (m_File == NULL) {
-            if (errno == ENOENT) {
+        if (open_result != 0) {
+            if (open_result == ENOENT) {
                 throw AP4_Exception(AP4_ERROR_NO_SUCH_FILE);
-            } else if (errno == EACCES) {
+            } else if (open_result == EACCES) {
                 throw AP4_Exception(AP4_ERROR_PERMISSION_DENIED);
             } else {
                 throw AP4_Exception(AP4_ERROR_CANNOT_OPEN_FILE);

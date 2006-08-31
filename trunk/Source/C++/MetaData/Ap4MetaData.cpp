@@ -433,7 +433,7 @@ AP4_AtomMetaDataValue::ToString()
                             return "False";
                         }
                     } else {
-                        AP4_StringFormat(string, sizeof(string), "%ld", value);
+                        AP4_FormatString(string, sizeof(string), "%ld", value);
                         return AP4_String((const char*)string);
                     }
                 }
@@ -464,7 +464,7 @@ AP4_AtomMetaDataValue::ToString()
                             return "Unknown";
                         }
                     } else {
-                        AP4_StringFormat(string, sizeof(string), "[%ld bytes]", data.GetDataSize());
+                        AP4_FormatString(string, sizeof(string), "[%ld bytes]", data.GetDataSize());
                     }
                 }
                 return AP4_String(string);

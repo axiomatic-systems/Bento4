@@ -143,7 +143,7 @@ main(int argc, char** argv)
         }        	
         AP4_HintTrackReader reader(*hint_track, *movie, 0x01020304);
         char rtp_file_name[256];
-        sprintf(rtp_file_name, "%s-track-%d.rtp", input_filename, hint_track_id);
+        AP4_FormatString(rtp_file_name, 256, "%s-track-%d.rtp", input_filename, hint_track_id);
 
         // display the sdp
         AP4_String sdp;
