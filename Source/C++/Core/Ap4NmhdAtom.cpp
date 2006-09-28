@@ -60,7 +60,7 @@ AP4_NmhdAtom::AP4_NmhdAtom() :
 AP4_NmhdAtom::AP4_NmhdAtom(AP4_Size        size, 
                            AP4_UI32        version,
                            AP4_UI32        flags,
-                           AP4_ByteStream& stream) :
+                           AP4_ByteStream& /* stream */) :
     AP4_Atom(AP4_ATOM_TYPE_NMHD, size, version, flags)
 {
 }
@@ -69,7 +69,7 @@ AP4_NmhdAtom::AP4_NmhdAtom(AP4_Size        size,
 |   AP4_NmhdAtom::WriteFields
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_NmhdAtom::WriteFields(AP4_ByteStream& stream)
+AP4_NmhdAtom::WriteFields(AP4_ByteStream& /* stream */)
 {
     return AP4_SUCCESS;
 }

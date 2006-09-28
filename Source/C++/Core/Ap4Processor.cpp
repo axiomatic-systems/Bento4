@@ -263,7 +263,7 @@ AP4_Processor::Process(AP4_ByteStream&  input,
 |   AP4_Processor:Initialize
 +---------------------------------------------------------------------*/
 AP4_Result 
-AP4_Processor::Initialize(AP4_AtomParent& top_level)
+AP4_Processor::Initialize(AP4_AtomParent& /* top_level */)
 {
     // default implementation: do nothing
     return AP4_SUCCESS;
@@ -273,7 +273,7 @@ AP4_Processor::Initialize(AP4_AtomParent& top_level)
 |   AP4_Processor:Finalize
 +---------------------------------------------------------------------*/
 AP4_Result 
-AP4_Processor::Finalize(AP4_AtomParent& top_level)
+AP4_Processor::Finalize(AP4_AtomParent& /* top_level */)
 {
     // default implementation: do nothing
     return AP4_SUCCESS;

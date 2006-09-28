@@ -301,7 +301,7 @@ AP4_PrintInspector::EndElement()
 |   AP4_PrintInspector::AddField
 +---------------------------------------------------------------------*/
 void
-AP4_PrintInspector::AddField(const char* name, const char* value, FormatHint hint)
+AP4_PrintInspector::AddField(const char* name, const char* value, FormatHint)
 {
     char prefix[256];
     AP4_MakePrefixString(m_Indent, prefix, sizeof(prefix));
@@ -340,7 +340,7 @@ void
 AP4_PrintInspector::AddField(const char*          name, 
                              const unsigned char* bytes, 
                              AP4_Size             byte_count,
-                             FormatHint           hint)
+                             FormatHint           /* hint */)
 {
     char prefix[256];
     AP4_MakePrefixString(m_Indent, prefix, sizeof(prefix));

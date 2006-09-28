@@ -323,7 +323,7 @@ AP4_Result
 AP4_IsmaCipher::EncryptSample(AP4_DataBuffer& data_in,
                               AP4_DataBuffer& data_out,
                               AP4_Offset      iv,
-                              bool            skip_encryption)
+                              bool            /* skip_encryption */)
 {
     // setup the buffers
     const unsigned char* in = data_in.GetData();

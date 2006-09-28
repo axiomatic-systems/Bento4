@@ -1,10 +1,17 @@
 import sys
 import os
+import imp
 from glob import glob
 
 #######################################################
 # reusable functions and data structures
 #######################################################
+def LoadTool(name, env, **kw):
+    config_path = GetBuildPath('#/Build/Tools/SCons')
+    file, path, desc = imp.find_module(name, [config_path])
+    module = imp.load_module(name, file, path, desc)
+    module.generate(env, **kw)
+
 def GlobSources(dir, patterns):
     root = GetBuildPath('#'+SOURCE_ROOT)+'/'+dir+'/'
     files = []
@@ -101,11 +108,10 @@ Import("env")
 SOURCE_ROOT='Source/C++'
 
 ### try to read in any target specific configuration
-#try:
-if os.path.exists('../Config.scons'):
+target_config_file = env.GetBuildPath('#/Build/Targets/'+env['target']+'/Config.scons')
+if os.path.exists(target_config_file):
     # Load the target-specific config file    
-    execfile('../Config.scons')
-    print '@@@ Loaded target configuration @@@'
+    execfile(target_config_file)
 
 #######################################################
 # modules
