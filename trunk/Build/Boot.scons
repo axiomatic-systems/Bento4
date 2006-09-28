@@ -25,7 +25,8 @@ def DefaultTarget():
 options = Options()
 options.AddOptions(
     EnumOption('target', 'build target', DefaultTarget(), allowed_values=PLATFORM_TO_TARGET_MAP.values()),
-    EnumOption('build_config', 'build config', 'Debug', allowed_values=('Debug', 'Release'))
+    EnumOption('build_config', 'build config', 'Debug', allowed_values=('Debug', 'Release')),
+    BoolOption('enable_profiling', 'enable profiling', False)
 )
 
 env = Environment(options=options)

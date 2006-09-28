@@ -84,12 +84,25 @@ public:
     virtual ~AP4_AtomInspector() {}
 
     // methods
-    virtual void StartElement(const char* name, const char* extra = NULL) {}
+    virtual void StartElement(const char* /* name */, 
+                              const char* /* extra = NULL */) {}
     virtual void EndElement() {}
-    virtual void AddField(const char* name, AP4_UI32 value, FormatHint hint = HINT_NONE) {}
-    virtual void AddField(const char* name, const char* value, FormatHint hint = HINT_NONE) {}
-    virtual void AddField(const char* name, const unsigned char* bytes, 
-                          AP4_Size byte_count, FormatHint hint = HINT_NONE) {}
+    virtual void AddField(const char* /* name */, 
+                          AP4_UI32    /* value */, 
+                          FormatHint  hint = HINT_NONE) {
+        (void)hint; // gcc warning
+    }
+    virtual void AddField(const char* /* name */, 
+                          const char* /* value */, 
+                          FormatHint  hint = HINT_NONE) {
+        (void)hint; // gcc warning 
+    }
+    virtual void AddField(const char*          /* name */, 
+                          const unsigned char* /* bytes */, 
+                          AP4_Size             /* byte_count */, 
+                          FormatHint           hint = HINT_NONE) {
+        (void)hint; // gcc warning 
+    }
 };
 
 /*----------------------------------------------------------------------
@@ -135,7 +148,7 @@ class AP4_Atom {
     virtual AP4_Result WriteFields(AP4_ByteStream& stream) = 0;
     virtual AP4_Result Inspect(AP4_AtomInspector& inspector);
     virtual AP4_Result InspectHeader(AP4_AtomInspector& inspector);
-    virtual AP4_Result InspectFields(AP4_AtomInspector& inspector) {
+    virtual AP4_Result InspectFields(AP4_AtomInspector& /* inspector */) {
         return AP4_SUCCESS; 
     }
 
@@ -185,9 +198,9 @@ public:
                                   bool        auto_create = false);
 
     // methods designed to be overridden
-    virtual void OnChildChanged(AP4_Atom* child) {}
-    virtual void OnChildAdded(AP4_Atom* child)   {}
-    virtual void OnChildRemoved(AP4_Atom* child) {}
+    virtual void OnChildChanged(AP4_Atom* /* child */) {}
+    virtual void OnChildAdded(AP4_Atom* /* child */)   {}
+    virtual void OnChildRemoved(AP4_Atom* /* child */) {}
 
 protected:
     // members
