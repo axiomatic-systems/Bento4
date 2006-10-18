@@ -53,15 +53,22 @@ typedef unsigned char  AP4_UI08;
 typedef float          AP4_Float;
 typedef unsigned char  AP4_Byte;
 
+struct AP4_LargeInt {
+    AP4_UI32 hi;
+    AP4_UI32 lo;
+};
+
 // the rest depends on whether the platform supports 64-bit integers
 #if defined(AP4_CONFIG_HAVE_INT64)
     // we have 64-bit integers (not handled yet)
     typedef unsigned long  AP4_Size;
     typedef unsigned long  AP4_Offset;
+    typedef unsigned long  AP4_Position;
 #else
     // use only 32-bit integers
     typedef unsigned long  AP4_Size;
     typedef unsigned long  AP4_Offset;
+    typedef unsigned long  AP4_Position;
 #endif
 
 #ifndef NULL

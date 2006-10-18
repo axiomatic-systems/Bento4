@@ -126,7 +126,7 @@ AP4_Atom::Write(AP4_ByteStream& stream)
     AP4_Result result;
 
 #if defined(AP4_DEBUG)
-    AP4_Offset before;
+    AP4_Position before;
     stream.Tell(before);
 #endif
 
@@ -139,7 +139,7 @@ AP4_Atom::Write(AP4_ByteStream& stream)
     if (AP4_FAILED(result)) return result;
 
 #if defined(AP4_DEBUG)
-    AP4_Offset after;
+    AP4_Position after;
     stream.Tell(after);
     AP4_ASSERT(after-before == m_Size);
 #endif
@@ -202,8 +202,8 @@ AP4_UnknownAtom::AP4_UnknownAtom(Type            type,
     AP4_Atom(type, size),
     m_SourceStream(&stream)
 {
-    // store source stream offset
-    stream.Tell(m_SourceOffset);
+    // store source stream position
+    stream.Tell(m_SourcePosition);
 
     // keep a reference to the source stream
     m_SourceStream->AddReference();
@@ -235,11 +235,11 @@ AP4_UnknownAtom::WriteFields(AP4_ByteStream& stream)
     }
 
     // remember the source position
-    AP4_Offset position;
+    AP4_Position position;
     m_SourceStream->Tell(position);
 
     // seek into the source at the stored offset
-    result = m_SourceStream->Seek(m_SourceOffset);
+    result = m_SourceStream->Seek(m_SourcePosition);
     if (AP4_FAILED(result)) return result;
 
     // copy the source stream to the output

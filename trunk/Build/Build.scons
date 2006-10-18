@@ -89,15 +89,14 @@ class LibraryModule(Module):
         self.product = self.env.Library(target=name, source=sources)
         Alias(name, self.product)
         
-def Application(name, extra_deps=[]):
-    dir = 'Apps/'+name
-    DeclareBuildDir(dir)
+def Application(name, source_dir, extra_deps=[]):
+    DeclareBuildDir(source_dir)
     sdk = ['Core', 'System'] + Split(extra_deps)
     libs = GetLibraries(sdk)
     cpp_path = GetIncludeDirs(sdk)
     
     prog = env.Program(name, 
-                       GlobSources(dir, ['*.cpp']), 
+                       GlobSources(source_dir, ['*.cpp']), 
                        LIBS=libs, CPPPATH=cpp_path)
     Alias(name, prog)
     
@@ -129,6 +128,7 @@ LibraryModule(name               = 'Codecs',
               included_modules   = 'Core')
 
 for name in ['Mp4Dump', 'Mp4Info', 'Mp4Edit', 'Mp4Encrypt', 'Mp4Decrypt', 'Mp4Tag', 'Mp4Extract', 'Mp4RtpHintInfo', 'Mp42Aac']:       
-    Application(name)
+    Application(name, source_dir='Apps/'+name)
 
-Application('Aac2Mp4', 'Codecs')
+Application('Aac2Mp4', source_dir='Apps/Aac2Mp4', extra_deps='Codecs')
+Application('CryptoTest', source_dir='Test/Crypto')

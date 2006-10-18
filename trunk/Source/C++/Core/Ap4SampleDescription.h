@@ -51,9 +51,9 @@ class AP4_SampleDescription
  public:
     // type constants of the sample description
     enum Type {
-        TYPE_UNKNOWN  = 0x00,
-        TYPE_MPEG     = 0x01,
-        TYPE_ISMACRYP = 0x02
+        TYPE_UNKNOWN   = 0x00,
+        TYPE_MPEG      = 0x01,
+        TYPE_PROTECTED = 0x02
     };
 
     // constructors & destructor

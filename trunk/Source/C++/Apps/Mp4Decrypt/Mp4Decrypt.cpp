@@ -52,8 +52,8 @@ PrintUsageAndExit()
             BANNER 
             "\n\n"
             "usage: mp4decrypt [--key <n>:<k>] <input> <output>\n"
-            "    where <n> is a track index, <k> a 128-bit key in hex\n"
-            "    (several --key options can be used, one for each track)\n");
+            "  --key: <n> is a track index, <k> a 128-bit key in hex\n"
+            "         (several --key options can be used, one for each track)\n");
     exit(1);
 }
 
@@ -63,17 +63,18 @@ PrintUsageAndExit()
 int
 main(int argc, char** argv)
 {
-    if (argc < 3) {
+    if (argc == 1) {
         PrintUsageAndExit();
     }
 
-    // create a decrypting processor
-    AP4_IsmaDecryptingProcessor processor;
+    // create the decrypting processor
+    AP4_StandardDecryptingProcessor* processor = new AP4_StandardDecryptingProcessor();
 
     // parse options
     const char* input_filename = NULL;
     const char* output_filename = NULL;
 
+    AP4_ProtectionKeyMap key_map;
     char* arg;
     while ((arg = *++argv)) {
         if (!strcmp(arg, "--key")) {
@@ -94,7 +95,7 @@ main(int argc, char** argv)
                 fprintf(stderr, "ERROR: invalid hex format for key\n");
             }
             // set the key in the map
-            processor.GetKeyMap().SetKey(track, key);
+            processor->GetKeyMap().SetKey(track, key);
         } else if (input_filename == NULL) {
             input_filename = arg;
         } else if (output_filename == NULL) {
@@ -136,9 +137,10 @@ main(int argc, char** argv)
     }
 
     // process/decrypt the file
-    processor.Process(*input, *output);
+    processor->Process(*input, *output);
 
     // cleanup
+    delete processor;
     input->Release();
     output->Release();
 

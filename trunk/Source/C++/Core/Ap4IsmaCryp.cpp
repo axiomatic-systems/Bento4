@@ -1,6 +1,6 @@
 /*****************************************************************
 |
-|    AP4 - Sample Description Objects
+|    AP4 - ISMA E&A Support
 |
 |    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
@@ -43,184 +43,6 @@
 #include "Ap4TrakAtom.h"
 
 /*----------------------------------------------------------------------
-|   AP4_EncaSampleEntry::AP4_EncaSampleEntry
-+---------------------------------------------------------------------*/
-AP4_EncaSampleEntry::AP4_EncaSampleEntry(AP4_UI32         type,
-                                         AP4_Size         size,
-                                         AP4_ByteStream&  stream,
-                                         AP4_AtomFactory& atom_factory) :
-    AP4_AudioSampleEntry(type, size, stream, atom_factory)
-{
-}
-
-/*----------------------------------------------------------------------
-|   AP4_EncaSampleEntry::AP4_EncaSampleEntry
-+---------------------------------------------------------------------*/
-AP4_EncaSampleEntry::AP4_EncaSampleEntry(AP4_Size         size,
-                                         AP4_ByteStream&  stream,
-                                         AP4_AtomFactory& atom_factory) :
-    AP4_AudioSampleEntry(AP4_ATOM_TYPE_ENCA, size, stream, atom_factory)
-{
-}
-
-/*----------------------------------------------------------------------
-|   AP4_EncaSampleEntry::ToSampleDescription
-+---------------------------------------------------------------------*/
-AP4_SampleDescription*
-AP4_EncaSampleEntry::ToSampleDescription()
-{
-    // get the original sample format
-    AP4_FrmaAtom* frma = (AP4_FrmaAtom*)FindChild("sinf/frma");
-
-    // get the scheme info
-    AP4_SchmAtom* schm = (AP4_SchmAtom*)FindChild("sinf/schm");
-    if (schm == NULL) return NULL;
-
-    // get the schi atom
-    AP4_ContainerAtom* schi;
-    schi = static_cast<AP4_ContainerAtom*>(FindChild("sinf/schi"));
-
-    // create the original sample description
-    AP4_UI32 original_format = frma?frma->GetOriginalFormat():0;
-    return new AP4_IsmaCrypSampleDescription(
-        m_Type,
-        ToTargetSampleDescription(original_format),
-        original_format,
-        schm->GetSchemeType(),
-        schm->GetSchemeVersion(),
-        schm->GetSchemeUri().GetChars(),
-        schi);
-}
-
-/*----------------------------------------------------------------------
-|   AP4_EncvSampleEntry::AP4_EncvSampleEntry
-+---------------------------------------------------------------------*/
-AP4_EncvSampleEntry::AP4_EncvSampleEntry(AP4_UI32         type,
-                                         AP4_Size         size,
-                                         AP4_ByteStream&  stream,
-                                         AP4_AtomFactory& atom_factory) :
-    AP4_VisualSampleEntry(type, size, stream, atom_factory)
-{
-}
-
-/*----------------------------------------------------------------------
-|   AP4_EncvSampleEntry::AP4_EncvSampleEntry
-+---------------------------------------------------------------------*/
-AP4_EncvSampleEntry::AP4_EncvSampleEntry(AP4_Size         size,
-                                         AP4_ByteStream&  stream,
-                                         AP4_AtomFactory& atom_factory) :
-    AP4_VisualSampleEntry(AP4_ATOM_TYPE_ENCV, size, stream, atom_factory)
-{
-}
-
-/*----------------------------------------------------------------------
-|   AP4_EncvSampleEntry::ToSampleDescription
-+---------------------------------------------------------------------*/
-AP4_SampleDescription*
-AP4_EncvSampleEntry::ToSampleDescription()
-{
-    // get the original sample format
-    AP4_FrmaAtom* frma = (AP4_FrmaAtom*)FindChild("sinf/frma");
-
-    // get the scheme info
-    AP4_SchmAtom* schm = (AP4_SchmAtom*)FindChild("sinf/schm");
-    if (schm == NULL) return NULL;
-
-    // get the schi atom
-    AP4_ContainerAtom* schi;
-    schi = static_cast<AP4_ContainerAtom*>(FindChild("sinf/schi"));
-
-    // create the sample description
-    AP4_UI32 original_format = frma?frma->GetOriginalFormat():AP4_ATOM_TYPE_MP4V;
-    return new AP4_IsmaCrypSampleDescription(
-        m_Type,
-        ToTargetSampleDescription(original_format),
-        original_format,
-        schm->GetSchemeType(),
-        schm->GetSchemeVersion(),
-        schm->GetSchemeUri().GetChars(),
-        schi);
-}
-
-/*----------------------------------------------------------------------
-|   AP4_DrmsSampleEntry::AP4_DrmsSampleEntry
-+---------------------------------------------------------------------*/
-AP4_DrmsSampleEntry::AP4_DrmsSampleEntry(AP4_Size         size,
-                                         AP4_ByteStream&  stream,
-                                         AP4_AtomFactory& atom_factory) :
-    AP4_EncaSampleEntry(AP4_ATOM_TYPE_DRMS, size, stream, atom_factory)
-{
-}
-
-/*----------------------------------------------------------------------
-|   AP4_DrmiSampleEntry::AP4_DrmiSampleEntry
-+---------------------------------------------------------------------*/
-AP4_DrmiSampleEntry::AP4_DrmiSampleEntry(AP4_Size         size,
-                                         AP4_ByteStream&  stream,
-                                         AP4_AtomFactory& atom_factory) :
-    AP4_EncvSampleEntry(AP4_ATOM_TYPE_DRMI, size, stream, atom_factory)
-{
-}
-
-/*----------------------------------------------------------------------
-|   AP4_IsmaCrypSampleDescription::AP4_IsmaCrypSampleDescription
-+---------------------------------------------------------------------*/
-AP4_IsmaCrypSampleDescription::AP4_IsmaCrypSampleDescription(
-    AP4_UI32               format,
-    AP4_SampleDescription* original_sample_description,
-    AP4_UI32               original_format,
-    AP4_UI32               scheme_type,
-    AP4_UI32               scheme_version,
-    const char*            scheme_uri,
-    AP4_ContainerAtom*     schi) :
-    AP4_SampleDescription(TYPE_ISMACRYP, format),
-    m_OriginalSampleDescription(original_sample_description),
-    m_OriginalFormat(original_format),
-    m_SchemeType(scheme_type),
-    m_SchemeVersion(scheme_version),
-    m_SchemeUri(scheme_uri)
-{
-    m_SchemeInfo = new AP4_IsmaCrypSchemeInfo(schi);
-}
-
-/*----------------------------------------------------------------------
-|   AP4_IsmaCrypSampleDescription::~AP4_IsmaCrypSampleDescription
-+---------------------------------------------------------------------*/
-AP4_IsmaCrypSampleDescription::~AP4_IsmaCrypSampleDescription()
-{
-    delete m_SchemeInfo;
-    delete m_OriginalSampleDescription;
-}
-
-/*----------------------------------------------------------------------
-|   AP4_IsmaCrypSampleDescription::ToAtom
-+---------------------------------------------------------------------*/
-AP4_Atom*
-AP4_IsmaCrypSampleDescription::ToAtom() const
-{
-    // TODO: not implemented yet
-    return NULL;
-}
-
-/*----------------------------------------------------------------------
-|   AP4_IsmaCrypSchemeInfo::AP4_IsmaCrypSchemeInfo
-+---------------------------------------------------------------------*/
-AP4_IsmaCrypSchemeInfo::AP4_IsmaCrypSchemeInfo(AP4_ContainerAtom* schi) :
-    m_SchiAtom(AP4_ATOM_TYPE_SCHI)
-{
-    if (schi) {
-        AP4_List<AP4_Atom>& children = schi->GetChildren();
-        AP4_List<AP4_Atom>::Item* child_item = children.FirstItem();
-        while (child_item) {
-            AP4_Atom* child_atom = child_item->GetData();
-            AP4_Atom* clone = child_atom->Clone();
-            if (clone) m_SchiAtom.AddChild(clone);
-            child_item = child_item->GetNext();
-        }
-    }
-}
-
-/*----------------------------------------------------------------------
 |   AP4_IsmaCrypCipher::AP4_IsmaCipher
 +---------------------------------------------------------------------*/
 AP4_IsmaCipher::AP4_IsmaCipher(const AP4_UI08* key, 
@@ -232,22 +54,22 @@ AP4_IsmaCipher::AP4_IsmaCipher(const AP4_UI08* key,
     m_KeyIndicatorLength(key_indicator_length),
     m_SelectiveEncryption(selective_encryption)
 {
-    // NOTE: we do not handle key indicators yey, so there is only one key.
+    // NOTE: we do not handle key indicators yet, so there is only one key.
 
     // left-align the salt
-    unsigned char salt_128[AP4_ISMACRYP_IAEC_KEY_LENGTH];
+    unsigned char salt_128[AP4_AES_KEY_LENGTH];
     unsigned int i=0;
     if (salt) {
         for (; i<8; i++) {
             salt_128[i] = salt[i];
         }
     }
-    for (; i<AP4_ISMACRYP_IAEC_KEY_LENGTH; i++) {
+    for (; i<AP4_AES_KEY_LENGTH; i++) {
         salt_128[i] = 0;
     }
     
     // create a cipher
-    m_Cipher = new AP4_StreamCipher(key, salt_128);
+    m_Cipher = new AP4_CtrStreamCipher(key, salt_128, iv_length);
 }
 
 /*----------------------------------------------------------------------
@@ -267,50 +89,54 @@ AP4_IsmaCipher::DecryptSample(AP4_DataBuffer& data_in,
 {
     bool                 is_encrypted = true;
     const unsigned char* in = data_in.GetData();
+    AP4_Size             in_size = data_in.GetDataSize();
+    AP4_Size             header_size;
+
+    // default to 0 output 
+    data_out.SetDataSize(0);
+
+    // check the selective encryption flag
+    if (in_size < 1) return AP4_ERROR_INVALID_FORMAT;
     if (m_SelectiveEncryption) {
-        is_encrypted = ((in[0]&1)==1);
+        is_encrypted = ((in[0]&0x80)!=0);
         in++;
     }
 
-    // get the IV (this implementation only supports up to 32 bits of IV)
-    // so we skip anything beyond the last 4 bytes
-    unsigned int to_read = m_IvLength;
-    if (to_read > 16 || to_read == 0) return AP4_ERROR_INVALID_FORMAT;
-    while (to_read > 4) {
-        to_read--;
-        in++;
-    }
-    AP4_UI32 iv = 0;
-    while (to_read--) {
-        iv = (iv<<8) | *in++; 
-    }
-
-    // get the key indicator (we only support up to 32 bits as well)
-    to_read = m_KeyIndicatorLength;
-    if (to_read > 4 ) return AP4_ERROR_INVALID_FORMAT;
-    while (to_read > 4) {
-        to_read--;
-        in++;
-    }
-    AP4_UI32 key_indicator = 0;
-    while (to_read--) {
-        key_indicator = (key_indicator<<8) | *in++; 
-    }
-    // we only support key indicator = 0 for now... (TODO)
-    if (key_indicator != 0) {
-        return AP4_FAILURE;
-    }
+    // check the header size
+    header_size = (m_SelectiveEncryption?1:0)+
+                  (is_encrypted?m_KeyIndicatorLength+m_IvLength:0);
+    if (header_size > in_size) return AP4_ERROR_INVALID_FORMAT;
 
     // process the sample data
-    unsigned int header_size = in-data_in.GetData();
-    unsigned int payload_size = data_in.GetDataSize()-header_size;
+    unsigned int payload_size = in_size-header_size;
     data_out.SetDataSize(payload_size);
     unsigned char* out = data_out.UseData();
     if (is_encrypted) {
-        m_Cipher->SetStreamOffset(iv);
+        // get the IV
+        const AP4_UI08* iv = in;
+        in += m_IvLength;
+
+        // get the key indicator (we only support up to 32 bits)
+        unsigned int to_read = m_KeyIndicatorLength;
+        while (to_read > 4) {
+            // skip anything above 4 bytes
+            to_read--;
+            in++;
+        }
+        AP4_UI32 key_indicator = 0;
+        while (to_read--) {
+            key_indicator = (key_indicator<<8) | *in++; 
+            header_size++;
+        }
+        // we only support key indicator = 0 for now... (TODO)
+        if (key_indicator != 0) {
+            return AP4_ERROR_UNSUPPORTED;
+        }
+
+        m_Cipher->SetBaseCounter(iv);
         m_Cipher->ProcessBuffer(in, out, payload_size);
     } else {
-        memcpy(out, in, payload_size);
+        AP4_CopyMemory(out, in, payload_size);
     }
 
     return AP4_SUCCESS;
@@ -322,8 +148,7 @@ AP4_IsmaCipher::DecryptSample(AP4_DataBuffer& data_in,
 AP4_Result 
 AP4_IsmaCipher::EncryptSample(AP4_DataBuffer& data_in,
                               AP4_DataBuffer& data_out,
-                              AP4_Offset      iv,
-                              bool            /* skip_encryption */)
+                              AP4_UI32        iv)
 {
     // setup the buffers
     const unsigned char* in = data_in.GetData();
@@ -332,64 +157,55 @@ AP4_IsmaCipher::EncryptSample(AP4_DataBuffer& data_in,
 
     // IV on 4 bytes
     AP4_BytesFromUInt32BE(out, iv);
-    out += 4;
 
     // encrypt the payload
-    m_Cipher->SetStreamOffset(iv);
-    m_Cipher->ProcessBuffer(in, out, data_in.GetDataSize());
+    m_Cipher->SetBaseCounter(out);
+    m_Cipher->ProcessBuffer(in, out+4, data_in.GetDataSize());
 
     return AP4_SUCCESS;
 }
 
 /*----------------------------------------------------------------------
-|   AP4_IsmaTrackDecrypter
+|   AP4_IsmaTrackDecrypter::Create
 +---------------------------------------------------------------------*/
-class AP4_IsmaTrackDecrypter : public AP4_Processor::TrackHandler {
-public:
-    // constructor
-    AP4_IsmaTrackDecrypter(const AP4_UI08*                key,
-                           AP4_IsmaCrypSampleDescription* sample_description,
-                           AP4_SampleEntry*               sample_entry);
-    virtual ~AP4_IsmaTrackDecrypter();
-
-    // methods
-    virtual AP4_Size   GetProcessedSampleSize(AP4_Sample& sample);
-    virtual AP4_Result ProcessTrack();
-    virtual AP4_Result ProcessSample(AP4_DataBuffer& data_in,
-        AP4_DataBuffer& data_out);
-
-private:
-    // members
-    AP4_IsfmAtom*    m_CipherParams;
-    AP4_IsmaCipher*  m_Cipher;
-    AP4_SampleEntry* m_SampleEntry;
-    AP4_UI32         m_OriginalFormat;
-};
-
-/*----------------------------------------------------------------------
-|   AP4_IsmaTrackDecrypter::AP4_IsmaTrackDecrypter
-+---------------------------------------------------------------------*/
-AP4_IsmaTrackDecrypter::AP4_IsmaTrackDecrypter(
-    const AP4_UI08*                key,
-    AP4_IsmaCrypSampleDescription* sample_description,
-    AP4_SampleEntry*               sample_entry) :
-    m_SampleEntry(sample_entry)
+AP4_IsmaTrackDecrypter*
+AP4_IsmaTrackDecrypter::Create(const AP4_UI08*                 key, 
+                               AP4_ProtectedSampleDescription* sample_description, 
+                               AP4_SampleEntry*                sample_entry)
 {
     // get the cipher params
-    m_CipherParams = (AP4_IsfmAtom*)sample_description->GetSchemeInfo()->GetSchiAtom().FindChild("iSFM");
+    AP4_IsfmAtom* isfm = (AP4_IsfmAtom*)sample_description->GetSchemeInfo()->GetSchiAtom().FindChild("iSFM");
+    if (isfm == NULL) return NULL;
     
     // get the salt
     AP4_IsltAtom* salt = (AP4_IsltAtom*)sample_description->GetSchemeInfo()->GetSchiAtom().FindChild("iSLT");
 
     // instantiate the cipher
-    m_Cipher = new AP4_IsmaCipher(key, 
-                                  salt?salt->GetSalt():NULL, 
-                                  m_CipherParams->GetIvLength(),
-                                  m_CipherParams->GetKeyIndicatorLength(),
-                                  m_CipherParams->GetSelectiveEncryption());
+    AP4_IsmaCipher* cipher = new AP4_IsmaCipher(key, 
+                                                salt?salt->GetSalt():NULL, 
+                                                isfm->GetIvLength(),
+                                                isfm->GetKeyIndicatorLength(),
+                                                isfm->GetSelectiveEncryption());
 
-    // get the sample entry details
-    m_OriginalFormat = sample_description->GetOriginalFormat();
+    // instanciate the object
+    return new AP4_IsmaTrackDecrypter(isfm, 
+                                      cipher, 
+                                      sample_entry, 
+                                      sample_description->GetOriginalFormat());
+}
+
+/*----------------------------------------------------------------------
+|   AP4_IsmaTrackDecrypter::AP4_IsmaTrackDecrypter
++---------------------------------------------------------------------*/
+AP4_IsmaTrackDecrypter::AP4_IsmaTrackDecrypter(AP4_IsfmAtom*     cipher_params,
+                                               AP4_IsmaCipher*   cipher,
+                                               AP4_SampleEntry*  sample_entry,
+                                               AP4_UI32          original_format) :
+    m_CipherParams(cipher_params),
+    m_Cipher(cipher),
+    m_SampleEntry(sample_entry),
+    m_OriginalFormat(original_format)
+{
 }
 
 /*----------------------------------------------------------------------
@@ -437,38 +253,6 @@ AP4_IsmaTrackDecrypter::ProcessSample(AP4_DataBuffer& data_in,
 }
 
 /*----------------------------------------------------------------------
-|   AP4_IsmaDecryptingProcessor:CreateTrackHandler
-+---------------------------------------------------------------------*/
-AP4_Processor::TrackHandler* 
-AP4_IsmaDecryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
-{
-    // find the stsd atom
-    AP4_StsdAtom* stsd = dynamic_cast<AP4_StsdAtom*>(
-        trak->FindChild("mdia/minf/stbl/stsd"));
-
-    // avoid tracks with no stsd atom (should not happen)
-    if (stsd == NULL) return NULL;
-
-    // we only look at the first sample description
-    AP4_SampleDescription* desc = stsd->GetSampleDescription(0);
-    AP4_SampleEntry* entry = stsd->GetSampleEntry(0);
-    if (desc == NULL || entry == NULL) return NULL;
-    if (desc->GetType() == AP4_SampleDescription::TYPE_ISMACRYP) {
-        // create a handler for this track
-        AP4_IsmaCrypSampleDescription* ismacryp_desc = 
-            static_cast<AP4_IsmaCrypSampleDescription*>(desc);
-        if (ismacryp_desc->GetSchemeType() == AP4_ISMACRYP_SCHEME_TYPE_IAEC) {
-            const AP4_UI08* key;
-            if (AP4_SUCCEEDED(m_KeyMap.GetKey(trak->GetId(), key))) {
-                return new AP4_IsmaTrackDecrypter(key, ismacryp_desc, entry);
-            }
-        }
-    }
-
-    return NULL;
-}
-
-/*----------------------------------------------------------------------
 |   AP4_IsmaTrackEncrypter
 +---------------------------------------------------------------------*/
 class AP4_IsmaTrackEncrypter : public AP4_Processor::TrackHandler {
@@ -493,7 +277,7 @@ private:
     AP4_IsmaCipher*  m_Cipher;
     AP4_SampleEntry* m_SampleEntry;
     AP4_UI32         m_Format;
-    AP4_Offset       m_ByteOffset;
+    AP4_UI32         m_Counter;
 };
 
 /*----------------------------------------------------------------------
@@ -508,7 +292,7 @@ AP4_IsmaTrackEncrypter::AP4_IsmaTrackEncrypter(
     m_KmsUri(kms_uri),
     m_SampleEntry(sample_entry),
     m_Format(format),
-    m_ByteOffset(0)
+    m_Counter(0)
 {
     // instantiate the cipher (fixed params for now)
     m_Cipher = new AP4_IsmaCipher(key, salt, 4, 0, false);
@@ -544,7 +328,7 @@ AP4_IsmaTrackEncrypter::ProcessTrack()
     AP4_FrmaAtom* frma = new AP4_FrmaAtom(m_SampleEntry->GetType());
     
     // scheme
-    AP4_SchmAtom* schm = new AP4_SchmAtom(AP4_ISMACRYP_SCHEME_TYPE_IAEC, 1);
+    AP4_SchmAtom* schm = new AP4_SchmAtom(AP4_PROTECTION_SCHEME_TYPE_IAEC, 1);
     
     // scheme info
     AP4_ContainerAtom* schi = new AP4_ContainerAtom(AP4_ATOM_TYPE_SCHI);
@@ -552,7 +336,7 @@ AP4_IsmaTrackEncrypter::ProcessTrack()
     AP4_IsfmAtom*      isfm = new AP4_IsfmAtom(m_Cipher->GetSelectiveEncryption(), 
                                                m_Cipher->GetKeyIndicatorLength(), 
                                                m_Cipher->GetIvLength());
-    AP4_IsltAtom*      islt = new AP4_IsltAtom(m_Cipher->GetCipher()->GetSalt());
+    AP4_IsltAtom*      islt = new AP4_IsltAtom(m_Cipher->GetCipher()->GetBaseCounter());
 
     // populate the schi container
     schi->AddChild(ikms);
@@ -580,10 +364,10 @@ AP4_Result
 AP4_IsmaTrackEncrypter::ProcessSample(AP4_DataBuffer& data_in,
                                       AP4_DataBuffer& data_out)
 {
-    AP4_Result result = m_Cipher->EncryptSample(data_in, data_out, m_ByteOffset, false);
+    AP4_Result result = m_Cipher->EncryptSample(data_in, data_out, m_Counter);
     if (AP4_FAILED(result)) return result;
 
-    m_ByteOffset += data_in.GetDataSize();
+    m_Counter += (data_in.GetDataSize()+AP4_AES_BLOCK_SIZE-1)/AP4_AES_BLOCK_SIZE;
     return AP4_SUCCESS;
 }
 
@@ -617,7 +401,7 @@ AP4_IsmaEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
     const AP4_UI08* key;
     const AP4_UI08* salt;
     AP4_UI32        format = 0;
-    if (AP4_SUCCEEDED(m_KeyMap.GetKey(trak->GetId(), key, salt))) {
+    if (AP4_SUCCEEDED(m_KeyMap.GetKeyAndIv(trak->GetId(), key, salt))) {
         switch (entry->GetType()) {
             case AP4_ATOM_TYPE_MP4A:
                 format = AP4_ATOM_TYPE_ENCA;
@@ -639,107 +423,3 @@ AP4_IsmaEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
 
     return NULL;
 }
-
-/*----------------------------------------------------------------------
-|   AP4_IsmaKeyMap::AP4_IsmaKeyMap
-+---------------------------------------------------------------------*/
-AP4_IsmaKeyMap::AP4_IsmaKeyMap()
-{
-}
-
-/*----------------------------------------------------------------------
-|   AP4_IsmaKeyMap::~AP4_IsmaKeyMap
-+---------------------------------------------------------------------*/
-AP4_IsmaKeyMap::~AP4_IsmaKeyMap()
-{
-    m_KeyEntries.DeleteReferences();
-}
-
-/*----------------------------------------------------------------------
-|   AP4_IsmaKeyMap::SetKey
-+---------------------------------------------------------------------*/
-AP4_Result 
-AP4_IsmaKeyMap::SetKey(AP4_UI32 track_id, const AP4_UI08* key, const AP4_UI08* salt)
-{
-    KeyEntry* entry = GetEntry(track_id);
-    if (entry == NULL) {
-        m_KeyEntries.Add(new KeyEntry(track_id, key, salt));
-    } else {
-        entry->SetKey(key, salt);
-    }
-
-    return AP4_SUCCESS;
-}
-
-/*----------------------------------------------------------------------
-|   AP4_IsmaKeyMap::GetKey
-+---------------------------------------------------------------------*/
-AP4_Result 
-AP4_IsmaKeyMap::GetKey(AP4_UI32 track_id, const AP4_UI08*& key, const AP4_UI08*& salt)
-{
-    KeyEntry* entry = GetEntry(track_id);
-    if (entry) {
-        key = entry->m_Key;
-        salt = entry->m_Salt;
-        return AP4_SUCCESS;
-    } else {
-        return AP4_ERROR_NO_SUCH_ITEM;
-    }
-}
-
-/*----------------------------------------------------------------------
-|   AP4_IsmaKeyMap::GetKey
-+---------------------------------------------------------------------*/
-AP4_Result 
-AP4_IsmaKeyMap::GetKey(AP4_UI32 track_id, const AP4_UI08*& key)
-{
-    KeyEntry* entry = GetEntry(track_id);
-    if (entry) {
-        key = entry->m_Key;
-        return AP4_SUCCESS;
-    } else {
-        return AP4_ERROR_NO_SUCH_ITEM;
-    }
-}
-
-/*----------------------------------------------------------------------
-|   AP4_IsmaKeyMap::GetEntry
-+---------------------------------------------------------------------*/
-AP4_IsmaKeyMap::KeyEntry*
-AP4_IsmaKeyMap::GetEntry(AP4_UI32 track_id)
-{
-    AP4_List<KeyEntry>::Item* item = m_KeyEntries.FirstItem();
-    while (item) {
-        KeyEntry* entry = (KeyEntry*)item->GetData();
-        if (entry->m_TrackId == track_id) return entry;
-        item = item->GetNext();
-    }
-
-    return NULL;
-}
-
-/*----------------------------------------------------------------------
-|   AP4_IsmaKeyMap::KeyEntry::KeyEntry
-+---------------------------------------------------------------------*/
-AP4_IsmaKeyMap::KeyEntry::KeyEntry(AP4_UI32        track_id, 
-                                   const AP4_UI08* key, 
-                                   const AP4_UI08* salt /* = NULL */) :
-    m_TrackId(track_id)
-{
-    SetKey(key, salt);
-}
-
-/*----------------------------------------------------------------------
-|   AP4_IsmaKeyMap::KeyEntry::SetKey
-+---------------------------------------------------------------------*/
-void
-AP4_IsmaKeyMap::KeyEntry::SetKey(const AP4_UI08* key, const AP4_UI08* salt)
-{
-    memcpy(m_Key, key, sizeof(m_Key));
-    if (salt) {
-        memcpy(m_Salt, salt, sizeof(m_Salt));
-    } else {
-        memset(m_Salt, 0, sizeof(m_Salt));
-    }
-}
-

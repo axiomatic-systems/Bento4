@@ -33,7 +33,6 @@
 #include <stdlib.h>
 
 #include "Ap4.h"
-#include "Ap4IsmaCryp.h"
 
 /*----------------------------------------------------------------------
 |   constants
@@ -55,10 +54,10 @@ PrintUsageAndExit()
 }
 
 /*----------------------------------------------------------------------
-|   ShowIsmaSampleDescription
+|   ShowProtectedSampleDescription
 +---------------------------------------------------------------------*/
 static void
-ShowIsmaSampleDescription(AP4_IsmaCrypSampleDescription* desc)
+ShowProtectedSampleDescription(AP4_ProtectedSampleDescription* desc)
 {
     if (desc == NULL) return;
     AP4_Debug("    [ENCRYPTED]\n");
@@ -73,30 +72,36 @@ ShowIsmaSampleDescription(AP4_IsmaCrypSampleDescription* desc)
         (char)((st    ) & 0xFF));
     AP4_Debug("      Scheme Version: %d\n", desc->GetSchemeVersion());
     AP4_Debug("      Scheme URI:     %s\n", desc->GetSchemeUri().GetChars());
-    AP4_IsmaCrypSchemeInfo* scheme_info = desc->GetSchemeInfo();
+    AP4_ProtectionSchemeInfo* scheme_info = desc->GetSchemeInfo();
     if (scheme_info == NULL) return;
-    if (desc->GetSchemeType() != AP4_ISMACRYP_SCHEME_TYPE_IAEC) {
-        return;
-    }
-
-    AP4_Debug("      iAEC Scheme Info:\n");
-    AP4_IkmsAtom* ikms = (AP4_IkmsAtom*)scheme_info->GetSchiAtom().FindChild("iKMS");
-    if (ikms) {
-        AP4_Debug("        KMS URI:              %s\n", ikms->GetKmsUri().GetChars());
-    }
-    AP4_IsfmAtom* isfm = (AP4_IsfmAtom*)scheme_info->GetSchiAtom().FindChild("iSFM");
-    if (isfm) {
-        AP4_Debug("        Selective Encryption: %s\n", isfm->GetSelectiveEncryption()?"yes":"no");
-        AP4_Debug("        Key Indicator Length: %d\n", isfm->GetKeyIndicatorLength());
-        AP4_Debug("        IV Length:            %d\n", isfm->GetIvLength());
-    }
-    AP4_IsltAtom* islt = (AP4_IsltAtom*)scheme_info->GetSchiAtom().FindChild("iSLT");
-    if (islt) {
-        AP4_Debug("        Salt:                 ");
-        for (unsigned int i=0; i<8; i++) {
-            AP4_Debug("%02x",islt->GetSalt()[i]);
+    if (desc->GetSchemeType() == AP4_PROTECTION_SCHEME_TYPE_IAEC) {
+        AP4_Debug("      iAEC Scheme Info:\n");
+        AP4_IkmsAtom* ikms = (AP4_IkmsAtom*)scheme_info->GetSchiAtom().FindChild("iKMS");
+        if (ikms) {
+            AP4_Debug("        KMS URI:              %s\n", ikms->GetKmsUri().GetChars());
         }
-        AP4_Debug("\n");
+        AP4_IsfmAtom* isfm = (AP4_IsfmAtom*)scheme_info->GetSchiAtom().FindChild("iSFM");
+        if (isfm) {
+            AP4_Debug("        Selective Encryption: %s\n", isfm->GetSelectiveEncryption()?"yes":"no");
+            AP4_Debug("        Key Indicator Length: %d\n", isfm->GetKeyIndicatorLength());
+            AP4_Debug("        IV Length:            %d\n", isfm->GetIvLength());
+        }
+        AP4_IsltAtom* islt = (AP4_IsltAtom*)scheme_info->GetSchiAtom().FindChild("iSLT");
+        if (islt) {
+            AP4_Debug("        Salt:                 ");
+            for (unsigned int i=0; i<8; i++) {
+                AP4_Debug("%02x",islt->GetSalt()[i]);
+            }
+            AP4_Debug("\n");
+        }
+    } else if (desc->GetSchemeType() == AP4_PROTECTION_SCHEME_TYPE_OMA) {
+        AP4_Debug("      odkm Scheme Info:\n");
+        AP4_OdafAtom* odaf = (AP4_OdafAtom*)scheme_info->GetSchiAtom().FindChild("odaf");
+        if (odaf) {
+            AP4_Debug("        Selective Encryption: %s\n", odaf->GetSelectiveEncryption()?"yes":"no");
+            AP4_Debug("        Key Indicator Length: %d\n", odaf->GetKeyIndicatorLength());
+            AP4_Debug("        IV Length:            %d\n", odaf->GetIvLength());
+        }
     }
 }
 
@@ -106,9 +111,9 @@ ShowIsmaSampleDescription(AP4_IsmaCrypSampleDescription* desc)
 static void
 ShowSampleDescription(AP4_SampleDescription* desc)
 {
-    if (desc->GetType() == AP4_SampleDescription::TYPE_ISMACRYP) {
-        AP4_IsmaCrypSampleDescription* isma_desc = dynamic_cast<AP4_IsmaCrypSampleDescription*>(desc);
-        ShowIsmaSampleDescription(isma_desc);
+    if (desc->GetType() == AP4_SampleDescription::TYPE_PROTECTED) {
+        AP4_ProtectedSampleDescription* isma_desc = dynamic_cast<AP4_ProtectedSampleDescription*>(desc);
+        ShowProtectedSampleDescription(isma_desc);
         desc = isma_desc->GetOriginalSampleDescription();
     }
     char coding[5];

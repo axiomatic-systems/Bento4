@@ -103,6 +103,29 @@ AP4_ContainerAtom::AP4_ContainerAtom(Type             type,
 }
 
 /*----------------------------------------------------------------------
+|   AP4_ContainerAtom::Clone
++---------------------------------------------------------------------*/
+AP4_Atom* 
+AP4_ContainerAtom::Clone()
+{
+    AP4_ContainerAtom* clone;
+    if (m_IsFull) {
+        clone = new AP4_ContainerAtom(m_Type, AP4_FULL_ATOM_HEADER_SIZE, m_Version, m_Flags);
+    } else {
+        clone = new AP4_ContainerAtom(m_Type, AP4_ATOM_HEADER_SIZE);
+    }
+
+    AP4_List<AP4_Atom>::Item* child_item = m_Children.FirstItem();
+    while (child_item) {
+        AP4_Atom* child_clone = child_item->GetData()->Clone();
+        if (child_clone) clone->AddChild(child_clone);
+        child_item = child_item->GetNext();
+    }
+
+    return clone;
+}
+
+/*----------------------------------------------------------------------
 |   AP4_ContainerAtom::ReadChildren
 +---------------------------------------------------------------------*/
 void

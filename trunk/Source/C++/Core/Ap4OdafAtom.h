@@ -1,8 +1,8 @@
 /*****************************************************************
 |
-|    AP4 - Strings
+|    AP4 - odaf Atom
 |
-|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
+|    Copyright 2002-2005 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -26,51 +26,48 @@
 |
 ****************************************************************/
 
-#ifndef _AP4_STRING_H_
-#define _AP4_STRING_H_
+#ifndef _AP4_ODAF_ATOM_H_
+#define _AP4_ODAF_ATOM_H_
 
 /*----------------------------------------------------------------------
 |   includes
 +---------------------------------------------------------------------*/
-#include "Ap4Config.h"
 #include "Ap4Types.h"
+#include "Ap4Atom.h"
 
 /*----------------------------------------------------------------------
-|   AP4_String
+|   AP4_OdafAtom
 +---------------------------------------------------------------------*/
-class AP4_String
+class AP4_OdafAtom : public AP4_Atom
 {
 public:
-    // constructors
-    AP4_String();
-    AP4_String(const char* s);
-    AP4_String(const char* s, AP4_Size size);
-    AP4_String(const AP4_String& s);
-    explicit AP4_String(AP4_Size size);
-
-    // destructor
-    ~AP4_String();
-
-    // operators
-    const AP4_String& operator=(const AP4_String& s);
-    const AP4_String& operator=(const char* s);
-    char operator[](unsigned int index) const {
-        return m_Chars[index];
-    }
+    // class methods
+    static AP4_OdafAtom* Create(AP4_Size size, AP4_ByteStream& stream);
 
     // methods
-    AP4_Size    GetLength() const { return m_Length; }
-    const char* GetChars() const  { return m_Chars;  }
-    char*       UseChars()        { return m_Chars;  }
-    void        Assign(const char* chars, AP4_Size size);
+    AP4_OdafAtom(bool     m_SelectiveEncryption,
+                 AP4_UI08 m_KeyIndicatorLength,
+                 AP4_UI08 m_IvLength);
+    virtual AP4_Atom*  Clone();
+    virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
+    virtual AP4_Result WriteFields(AP4_ByteStream& stream);
+
+    // accessors
+    bool GetSelectiveEncryption()    { return m_SelectiveEncryption; }
+    AP4_UI08 GetKeyIndicatorLength() { return m_KeyIndicatorLength;  }
+    AP4_UI08 GetIvLength()           { return m_IvLength;            }
 
 private:
-    // class members
-    static char EmptyString;
+    // methods
+    AP4_OdafAtom(AP4_Size        size, 
+                 AP4_UI32        version,
+                 AP4_UI32        flags,
+                 AP4_ByteStream& stream);
 
     // members
-    char*    m_Chars;
-    AP4_Size m_Length;
+    bool     m_SelectiveEncryption;
+    AP4_UI08 m_KeyIndicatorLength;
+    AP4_UI08 m_IvLength;
 };
 
-#endif // _AP4_STRING_H_
+#endif // _AP4_ODAF_ATOM_H_

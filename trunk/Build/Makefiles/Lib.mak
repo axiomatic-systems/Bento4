@@ -29,7 +29,6 @@ CORE_SOURCES = 								\
 	Ap4StszAtom.cpp 						\
 	Ap4SttsAtom.cpp							\
 	Ap4TkhdAtom.cpp 						\
-	Ap4IsmaCryp.cpp                         \
 	Ap4IsfmAtom.cpp                         \
 	Ap4IsltAtom.cpp                         \
 	Ap4IkmsAtom.cpp                         \
@@ -41,6 +40,14 @@ CORE_SOURCES = 								\
 	Ap4CttsAtom.cpp							\
 	Ap4DrefAtom.cpp							\
 	Ap4EsdsAtom.cpp							\
+	Ap4OdheAtom.cpp                         \
+	Ap4OhdrAtom.cpp                         \
+	Ap4OdafAtom.cpp                         \
+	Ap4OddaAtom.cpp                         \
+	Ap4IproAtom.cpp                         \
+	Ap4IsmaCryp.cpp                         \
+    Ap4OmaDcf.cpp                           \
+	Ap4Protection.cpp                       \
 	Ap4Descriptor.cpp						\
 	Ap4DescriptorFactory.cpp 				\
 	Ap4SLConfigDescriptor.cpp		        \

@@ -60,8 +60,8 @@ class AP4_ByteStream : public AP4_Referenceable
     AP4_Result WriteUI24(AP4_UI32 value);
     AP4_Result WriteUI16(AP4_UI16 value);
     AP4_Result WriteUI08(AP4_UI08 value);
-    virtual AP4_Result Seek(AP4_Offset offset) = 0;
-    virtual AP4_Result Tell(AP4_Offset& offset) = 0;
+    virtual AP4_Result Seek(AP4_Position position) = 0;
+    virtual AP4_Result Tell(AP4_Position& position) = 0;
     virtual AP4_Result GetSize(AP4_Size& size) = 0;
     virtual AP4_Result CopyTo(AP4_ByteStream& stream, AP4_Size size);
 };
@@ -72,7 +72,7 @@ class AP4_ByteStream : public AP4_Referenceable
 class AP4_SubStream : public AP4_ByteStream
 {
  public:
-    AP4_SubStream(AP4_ByteStream& container, AP4_Offset offset, AP4_Size size);
+    AP4_SubStream(AP4_ByteStream& container, AP4_Position position, AP4_Size size);
 
     // AP4_ByteStream methods
     AP4_Result Read(void*    buffer, 
@@ -81,9 +81,9 @@ class AP4_SubStream : public AP4_ByteStream
     AP4_Result Write(const void* buffer, 
                      AP4_Size    bytes_to_write, 
                      AP4_Size*   bytes_written = 0);
-    AP4_Result Seek(AP4_Offset offset);
-    AP4_Result Tell(AP4_Offset& offset) {
-        offset = m_Position;
+    AP4_Result Seek(AP4_Position position);
+    AP4_Result Tell(AP4_Position& position) {
+        position = m_Position;
         return AP4_SUCCESS;
     }
     AP4_Result GetSize(AP4_Size& size) {
@@ -102,7 +102,7 @@ class AP4_SubStream : public AP4_ByteStream
     AP4_ByteStream& m_Container;
     AP4_Offset      m_Offset;
     AP4_Size        m_Size;
-    AP4_Offset      m_Position;
+    AP4_Position    m_Position;
     AP4_Cardinal    m_ReferenceCount;
 };
 
@@ -122,9 +122,9 @@ public:
     AP4_Result Write(const void* buffer, 
                      AP4_Size    bytes_to_write, 
                      AP4_Size*   bytes_written = 0);
-    AP4_Result Seek(AP4_Offset offset);
-    AP4_Result Tell(AP4_Offset& offset) {
-        offset = m_Position;
+    AP4_Result Seek(AP4_Position position);
+    AP4_Result Tell(AP4_Position& position) {
+        position = m_Position;
         return AP4_SUCCESS;
     }
     AP4_Result GetSize(AP4_Size& size) {
@@ -146,7 +146,7 @@ protected:
 
 private:
     AP4_DataBuffer m_Buffer;
-    AP4_Offset     m_Position;
+    AP4_Position   m_Position;
     AP4_Cardinal   m_ReferenceCount;
 };
 

@@ -90,7 +90,7 @@ main(int argc, char** argv)
     }
 
     // init the variables
-    AP4_UI32 track_id = 0;
+    AP4_UI32        track_id = 0;
     AP4_ByteStream* input = NULL;
     AP4_ByteStream* track_data = NULL;
 

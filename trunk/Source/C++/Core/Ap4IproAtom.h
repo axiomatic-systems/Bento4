@@ -1,6 +1,6 @@
 /*****************************************************************
 |
-|    AP4 - Strings
+|    AP4 - ipro Atoms 
 |
 |    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
@@ -24,53 +24,41 @@
 |    Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 |    02111-1307, USA.
 |
-****************************************************************/
+ ****************************************************************/
 
-#ifndef _AP4_STRING_H_
-#define _AP4_STRING_H_
+#ifndef _AP4_IPRO_ATOM_H_
+#define _AP4_IPRO_ATOM_H_
 
 /*----------------------------------------------------------------------
 |   includes
 +---------------------------------------------------------------------*/
-#include "Ap4Config.h"
 #include "Ap4Types.h"
+#include "Ap4Array.h"
+#include "Ap4ContainerAtom.h"
 
 /*----------------------------------------------------------------------
-|   AP4_String
+|   AP4_IproAtom
 +---------------------------------------------------------------------*/
-class AP4_String
+class AP4_IproAtom : public AP4_ContainerAtom
 {
 public:
-    // constructors
-    AP4_String();
-    AP4_String(const char* s);
-    AP4_String(const char* s, AP4_Size size);
-    AP4_String(const AP4_String& s);
-    explicit AP4_String(AP4_Size size);
-
-    // destructor
-    ~AP4_String();
-
-    // operators
-    const AP4_String& operator=(const AP4_String& s);
-    const AP4_String& operator=(const char* s);
-    char operator[](unsigned int index) const {
-        return m_Chars[index];
-    }
+    // class methods
+    static AP4_IproAtom* Create(AP4_Size         size,
+                                AP4_ByteStream&  stream,
+                                AP4_AtomFactory& atom_factory);
 
     // methods
-    AP4_Size    GetLength() const { return m_Length; }
-    const char* GetChars() const  { return m_Chars;  }
-    char*       UseChars()        { return m_Chars;  }
-    void        Assign(const char* chars, AP4_Size size);
+    virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
+    virtual AP4_Result WriteFields(AP4_ByteStream& stream);
 
 private:
-    // class members
-    static char EmptyString;
-
-    // members
-    char*    m_Chars;
-    AP4_Size m_Length;
+    // methods
+    AP4_IproAtom(AP4_Size         size,
+                 AP4_UI32         version,
+                 AP4_UI32         flags,
+                 AP4_ByteStream&  stream,
+                 AP4_AtomFactory& atom_factory);
 };
 
-#endif // _AP4_STRING_H_
+#endif // _AP4_IPRO_ATOM_H_
+

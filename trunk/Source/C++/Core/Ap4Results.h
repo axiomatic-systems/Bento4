@@ -54,6 +54,7 @@ const int AP4_ERROR_NOT_SUPPORTED_YET               = -18;
 const int AP4_ERROR_INVALID_TRACK_TYPE              = -19;
 const int AP4_ERROR_INVALID_RTP_PACKET_EXTRA_DATA   = -20;
 const int AP4_ERROR_UNSUPPORTED                     = -21;
+const int AP4_ERROR_BUFFER_TOO_SMALL                = -22;
 
 /*----------------------------------------------------------------------
 |   macros
