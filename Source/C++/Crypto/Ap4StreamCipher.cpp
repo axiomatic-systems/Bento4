@@ -244,7 +244,7 @@ AP4_CbcStreamCipher::ProcessBuffer(const AP4_UI08* in,
     if (m_Direction == ENCRYPT) {
         // compute how many blocks we will need to produce
         unsigned int padded_in_size = in_size;
-        AP4_UI08     pad_byte;
+        AP4_UI08     pad_byte = 0;
         if (is_last_buffer) {
             ++blocks_needed;
             pad_byte = AP4_AES_BLOCK_SIZE-(AP4_UI08)((m_StreamOffset+in_size)%AP4_AES_BLOCK_SIZE);
