@@ -733,7 +733,7 @@ unsigned char __1025_cbc[] = {
 };
 unsigned int __1025_cbc_len = 1040;
 
-struct {
+static struct {
     unsigned char* clear;
     unsigned int   clear_length;
     unsigned char* enc;
@@ -759,7 +759,7 @@ struct {
     {__17_bin, __17_bin_len, __17_cbc, __17_cbc_len }
 };
 
-struct {
+static struct {
     unsigned char* clear;
     unsigned int   clear_length;
     unsigned char* enc;
@@ -781,7 +781,7 @@ BuffersEqual(const unsigned char* a,
 {
     for (unsigned int i=0; i<size; i++) {
         if (a[i]!=b[i]) {
-            fprintf(stderr, "mismatch at %d of %d\n", i, size);
+            fprintf(stderr, "mismatch at %d of %d\n", i, (int)size);
             return false;
         }
     }
