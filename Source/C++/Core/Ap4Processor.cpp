@@ -155,8 +155,7 @@ AP4_Processor::Process(AP4_ByteStream&  input,
             locator.m_SampleTable = NULL;
         } else {
             // get the next sample info
-            locator.m_SampleTable->GetSample(locator.m_SampleIndex, 
-                locator.m_Sample);
+            locator.m_SampleTable->GetSample(locator.m_SampleIndex, locator.m_Sample);
             AP4_Ordinal skip, sdesc;
             locator.m_SampleTable->GetChunkForSample(locator.m_SampleIndex+1, // the internal API is 1-based
                 locator.m_Chunk,

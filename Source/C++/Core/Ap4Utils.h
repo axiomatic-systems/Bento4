@@ -117,4 +117,5 @@ private:
     AP4_Cardinal    m_Indent;
 };
 
+
 #endif // _AP4_UTILS_H_

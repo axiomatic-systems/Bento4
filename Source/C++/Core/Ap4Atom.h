@@ -230,7 +230,7 @@ public:
 private:
     // members
     AP4_ByteStream* m_SourceStream;
-    AP4_Offset      m_SourceOffset;
+    AP4_Position    m_SourcePosition;
 };
 
 /*----------------------------------------------------------------------
@@ -289,6 +289,13 @@ const AP4_Atom::Type AP4_ATOM_TYPE_ISFM = AP4_ATOM_TYPE('i','S','F','M');
 const AP4_Atom::Type AP4_ATOM_TYPE_ISLT = AP4_ATOM_TYPE('i','S','L','T');
 const AP4_Atom::Type AP4_ATOM_TYPE_HINT = AP4_ATOM_TYPE('h','i','n','t');
 const AP4_Atom::Type AP4_ATOM_TYPE_TREF = AP4_ATOM_TYPE('t','r','e','f');
+const AP4_Atom::Type AP4_ATOM_TYPE_ODRM = AP4_ATOM_TYPE('o','d','r','m');
+const AP4_Atom::Type AP4_ATOM_TYPE_ODKM = AP4_ATOM_TYPE('o','d','k','m');
+const AP4_Atom::Type AP4_ATOM_TYPE_OHDR = AP4_ATOM_TYPE('o','h','d','r');
+const AP4_Atom::Type AP4_ATOM_TYPE_ODDA = AP4_ATOM_TYPE('o','d','d','a');
+const AP4_Atom::Type AP4_ATOM_TYPE_ODHE = AP4_ATOM_TYPE('o','d','h','e');
+const AP4_Atom::Type AP4_ATOM_TYPE_ODAF = AP4_ATOM_TYPE('o','d','a','f');
+const AP4_Atom::Type AP4_ATOM_TYPE_IPRO = AP4_ATOM_TYPE('i','p','r','o');
 
 /*----------------------------------------------------------------------
 |   AP4_AtomListInspector

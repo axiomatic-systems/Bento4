@@ -58,15 +58,22 @@ struct aes_ctx;
 +---------------------------------------------------------------------*/
 class AP4_AesBlockCipher
 {
- public:
+public:
+    // types
+    typedef enum {
+        ENCRYPT,
+        DECRYPT
+    } CipherDirection;
+
     // constructor and destructor
-    AP4_AesBlockCipher(const AP4_UI08* key);
+    AP4_AesBlockCipher(const AP4_UI08* key, CipherDirection direction);
    ~AP4_AesBlockCipher();
     
     // methods
     AP4_Result EncryptBlock(const AP4_UI08* block_in, AP4_UI08* block_out);
+    AP4_Result DecryptBlock(const AP4_UI08* block_in, AP4_UI08* block_out);
 
- private:
+private:
     aes_ctx* m_Context;
 };
 

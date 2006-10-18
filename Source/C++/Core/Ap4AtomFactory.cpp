@@ -62,8 +62,13 @@
 #include "Ap4IkmsAtom.h"
 #include "Ap4IsfmAtom.h"
 #include "Ap4IsltAtom.h"
+#include "Ap4OdheAtom.h"
+#include "Ap4OhdrAtom.h"
+#include "Ap4OddaAtom.h"
 #include "Ap4TrefTypeAtom.h"
 #include "Ap4MetaData.h"
+#include "Ap4IproAtom.h"
+#include "Ap4OdafAtom.h"
 
 /*----------------------------------------------------------------------
 |   AP4_AtomFactory::~AP4_AtomFactory
@@ -331,6 +336,26 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
         atom = AP4_TrefTypeAtom::Create(type, size, stream);
         break;
 
+      case AP4_ATOM_TYPE_ODHE:
+        atom = AP4_OdheAtom::Create(size, stream, *this);
+        break;
+
+      case AP4_ATOM_TYPE_OHDR:
+        atom = AP4_OhdrAtom::Create(size, stream, *this);
+        break;
+
+      case AP4_ATOM_TYPE_ODDA:
+        atom = AP4_OddaAtom::Create(size, stream);
+        break;
+
+      case AP4_ATOM_TYPE_ODAF:
+        atom = AP4_OdafAtom::Create(size, stream);
+        break;
+
+      case AP4_ATOM_TYPE_IPRO:
+        atom = AP4_IproAtom::Create(size, stream, *this);
+        break;
+
       // container atoms
       case AP4_ATOM_TYPE_TREF:
       case AP4_ATOM_TYPE_HNTI:
@@ -348,6 +373,8 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
 
       // full container atoms
       case AP4_ATOM_TYPE_META:
+      case AP4_ATOM_TYPE_ODRM:
+      case AP4_ATOM_TYPE_ODKM:
         atom = AP4_ContainerAtom::Create(type, size, true, stream, *this);
         break;
 

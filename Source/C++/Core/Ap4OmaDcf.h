@@ -1,6 +1,6 @@
 /*****************************************************************
 |
-|    AP4 - ISMA E&A support
+|    AP4 - OMA DCF support
 |
 |    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf & Julien Boeuf
 |
@@ -26,8 +26,8 @@
 |
 ****************************************************************/
 
-#ifndef _AP4_ISMACRYP_H_
-#define _AP4_ISMACRYP_H_
+#ifndef _AP4_OMA_DCF_H_
+#define _AP4_OMA_DCF_H_
 
 /*----------------------------------------------------------------------
 |   includes
@@ -44,55 +44,48 @@
 |   class references
 +---------------------------------------------------------------------*/
 class AP4_CtrStreamCipher;
-class AP4_IsfmAtom;
+class AP4_OdafAtom;
 
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-const AP4_UI32 AP4_PROTECTION_SCHEME_TYPE_IAEC = AP4_ATOM_TYPE('i','A','E','C');
+const AP4_UI32 AP4_PROTECTION_SCHEME_TYPE_OMA = AP4_ATOM_TYPE('o','d','k','m');
+const AP4_UI32 AP4_PROTECTION_SCHEME_VERSION_OMA_20 = 0x00000200;
 
 /*----------------------------------------------------------------------
-|   AP4_IsmaCipher
+|   AP4_OmaDcfCipher
 +---------------------------------------------------------------------*/
-class AP4_IsmaCipher
+class AP4_OmaDcfCipher
 {
 public:
     // constructor and destructor
-    AP4_IsmaCipher(const AP4_UI08* key, 
-                   const AP4_UI08* salt,
-                   AP4_UI08        iv_length,
-                   AP4_UI08        key_indicator_length,
-                   bool            selective_encryption);
-   ~AP4_IsmaCipher();
+    AP4_OmaDcfCipher(const AP4_UI08* key,
+                     const AP4_UI08* salt,
+                     AP4_Size        counter_size);
+   ~AP4_OmaDcfCipher();
     AP4_Result EncryptSample(AP4_DataBuffer& data_in,
                              AP4_DataBuffer& data_out,
-                             AP4_UI32        offset);
+                             AP4_UI32        counter,
+                             bool            skip_encryption);
     AP4_Result DecryptSample(AP4_DataBuffer& data_in,
                              AP4_DataBuffer& data_out);
     AP4_CtrStreamCipher* GetCipher()   { return m_Cipher;   }
-    AP4_UI08             GetIvLength() { return m_IvLength; }
-    AP4_UI08             GetKeyIndicatorLength() { return m_KeyIndicatorLength; }
-    bool                 GetSelectiveEncryption(){ return m_SelectiveEncryption;}
 
 private:
     // members
     AP4_CtrStreamCipher* m_Cipher;
-    AP4_UI08             m_IvLength;
-    AP4_UI08             m_KeyIndicatorLength;
-    bool                 m_SelectiveEncryption;
 };
 
 /*----------------------------------------------------------------------
-|   AP4_IsmaTrackDecrypter
+|   AP4_OmaDcfTrackDecrypter
 +---------------------------------------------------------------------*/
-class AP4_IsmaTrackDecrypter : public AP4_Processor::TrackHandler {
+class AP4_OmaDcfTrackDecrypter : public AP4_Processor::TrackHandler {
 public:
-    // class methods
-    static AP4_IsmaTrackDecrypter* Create(const AP4_UI08*                 key,
-                                          AP4_ProtectedSampleDescription* sample_description,
-                                          AP4_SampleEntry*                sample_entry);
-
-    virtual ~AP4_IsmaTrackDecrypter();
+    // constructor
+    static AP4_OmaDcfTrackDecrypter* Create(const AP4_UI08*                 key,
+                                            AP4_ProtectedSampleDescription* sample_description,
+                                            AP4_SampleEntry*                sample_entry);
+    virtual ~AP4_OmaDcfTrackDecrypter();
 
     // methods
     virtual AP4_Size   GetProcessedSampleSize(AP4_Sample& sample);
@@ -102,29 +95,57 @@ public:
 
 private:
     // constructor
-    AP4_IsmaTrackDecrypter(AP4_IsfmAtom*    cipher_params,
-                           AP4_IsmaCipher*  cipher,
-                           AP4_SampleEntry* sample_entry,
-                           AP4_UI32         original_format);
+    AP4_OmaDcfTrackDecrypter(AP4_OdafAtom*     cipher_params,
+                             AP4_OmaDcfCipher* cipher,
+                             AP4_SampleEntry*  sample_entry,
+                             AP4_UI32          original_format);
 
     // members
-    AP4_IsfmAtom*    m_CipherParams;
-    AP4_IsmaCipher*  m_Cipher;
-    AP4_SampleEntry* m_SampleEntry;
-    AP4_UI32         m_OriginalFormat;
+    AP4_OdafAtom*     m_CipherParams;
+    AP4_OmaDcfCipher* m_Cipher;
+    AP4_SampleEntry*  m_SampleEntry;
+    AP4_UI32          m_OriginalFormat;
+    AP4_DataBuffer    m_PeekBuffer;
 };
 
 /*----------------------------------------------------------------------
-|   AP4_IsmaEncryptingProcessor
+|   AP4_TrackPropertyMap
 +---------------------------------------------------------------------*/
-class AP4_IsmaEncryptingProcessor : public AP4_Processor
+class AP4_TrackPropertyMap
 {
 public:
-    // constructors and destructor
-    AP4_IsmaEncryptingProcessor(const char* kms_uri);
+    // methods
+    AP4_Result  SetProperty(AP4_UI32 track_id, const char* name, const char* value);
+    AP4_Result  SetProperties(const AP4_TrackPropertyMap& properties);
+    const char* GetProperty(AP4_UI32 track_id, const char* name);
 
+    // destructor
+    virtual ~AP4_TrackPropertyMap();
+
+private:
+    // types
+    class Entry {
+    public:
+        Entry(AP4_UI32 track_id, const char* name, const char* value) :
+          m_TrackId(track_id), m_Name(name), m_Value(value) {}
+        AP4_UI32   m_TrackId;
+        AP4_String m_Name;
+        AP4_String m_Value;
+    };
+
+    // members
+    AP4_List<Entry> m_Entries;
+};
+
+/*----------------------------------------------------------------------
+|   AP4_OmaDcfEncryptingProcessor
++---------------------------------------------------------------------*/
+class AP4_OmaDcfEncryptingProcessor : public AP4_Processor
+{
+public:
     // accessors
-    AP4_ProtectionKeyMap& GetKeyMap() { return m_KeyMap; }
+    AP4_ProtectionKeyMap& GetKeyMap()      { return m_KeyMap;      }
+    AP4_TrackPropertyMap& GetPropertyMap() { return m_PropertyMap; }
 
     // methods
     virtual AP4_Processor::TrackHandler* CreateTrackHandler(AP4_TrakAtom* trak);
@@ -132,7 +153,7 @@ public:
 private:
     // members
     AP4_ProtectionKeyMap m_KeyMap;
-    AP4_String           m_KmsUri;
+    AP4_TrackPropertyMap m_PropertyMap;
 };
 
-#endif // _AP4_ISMACRYP_H_
+#endif // _AP4_OMA_DCF_H_

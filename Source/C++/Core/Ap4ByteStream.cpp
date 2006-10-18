@@ -372,13 +372,13 @@ AP4_SubStream::Write(const void* buffer,
 |   AP4_SubStream::Seek
 +---------------------------------------------------------------------*/
 AP4_Result 
-AP4_SubStream::Seek(AP4_Offset offset)
+AP4_SubStream::Seek(AP4_Position position)
 {
-    if (offset > m_Size) return AP4_FAILURE;
+    if (position > m_Size) return AP4_FAILURE;
     AP4_Result result;
-    result = m_Container.Seek(m_Offset+offset);
+    result = m_Container.Seek(m_Offset+position);
     if (AP4_SUCCEEDED(result)) {
-        m_Position = offset;
+        m_Position = position;
     }
     return result;
 }
@@ -505,10 +505,10 @@ AP4_MemoryByteStream::Write(const void* buffer,
 |   AP4_MemoryByteStream::Seek
 +---------------------------------------------------------------------*/
 AP4_Result 
-AP4_MemoryByteStream::Seek(AP4_Offset offset)
+AP4_MemoryByteStream::Seek(AP4_Position position)
 {
-    if (offset > m_Buffer.GetDataSize()) return AP4_FAILURE;
-    m_Position = offset;
+    if (position > m_Buffer.GetDataSize()) return AP4_FAILURE;
+    m_Position = position;
     return AP4_SUCCESS;
 }
 

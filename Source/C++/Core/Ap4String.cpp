@@ -108,3 +108,33 @@ AP4_String::operator=(const AP4_String& s)
 
     return *this;
 }
+
+/*----------------------------------------------------------------------
+|   AP4_String::operator=
++---------------------------------------------------------------------*/
+const AP4_String&
+AP4_String::operator=(const char* s)
+{
+    if (s == NULL) {
+        if (m_Chars != &EmptyString) delete[] m_Chars;
+        m_Chars = &EmptyString;
+        m_Length = 0;
+    } else {
+        Assign(s, AP4_StringLength(s));
+    }
+
+    return *this;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_String::Assign
++---------------------------------------------------------------------*/
+void
+AP4_String::Assign(const char* s, AP4_Size size)
+{
+    if (m_Chars != &EmptyString) delete[] m_Chars;
+    m_Length = size;
+    m_Chars = new char[m_Length+1];
+    AP4_CopyMemory(m_Chars, s, m_Length);
+    m_Chars[size] = '\0';
+}

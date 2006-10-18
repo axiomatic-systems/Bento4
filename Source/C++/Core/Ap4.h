@@ -263,5 +263,8 @@
 #include "Ap4IsfmAtom.h"
 #include "Ap4IsltAtom.h"
 #include "Ap4TrefTypeAtom.h"
+#include "Ap4OmaDcf.h"
+#include "Ap4IsmaCryp.h"
+#include "Ap4OdafAtom.h"
 
 #endif // _AP4_H_

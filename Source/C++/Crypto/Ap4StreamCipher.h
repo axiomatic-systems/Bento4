@@ -37,36 +37,70 @@
 #include "Ap4Types.h"
 
 /*----------------------------------------------------------------------
-|   AP4_StreamCipher class
+|   AP4_CtrStreamCipher class
 +---------------------------------------------------------------------*/
-class AP4_StreamCipher
+class AP4_CtrStreamCipher
 {
- public:
+public:
+   // methods
+   AP4_CtrStreamCipher(const AP4_UI08* key, 
+                       const AP4_UI08* salt,
+                       AP4_Size        counter_size);
+   ~AP4_CtrStreamCipher();
+   AP4_Result Reset(const AP4_UI08* key, const AP4_UI08* salt = NULL);
+   void       SetStreamOffset(AP4_UI32 offset);
+   void       SetBaseCounter(const AP4_UI08* counter);
+   AP4_Result ProcessBuffer(const AP4_UI08* in, 
+                            AP4_UI08*       out,
+                            AP4_Size        size);
+   const AP4_UI08* GetBaseCounter()  { return m_BaseCounter;  }
+   AP4_Offset      GetStreamOffset() { return m_StreamOffset; }
+
+private:
+   // methods
+   void SetCounterOffset(AP4_UI32 offset);
+   void UpdateKeyStream();
+
+   // members
+   AP4_UI32            m_StreamOffset;
+   AP4_Size            m_CounterSize;
+   AP4_UI08            m_BaseCounter[AP4_AES_BLOCK_SIZE];
+   AP4_UI08            m_CBlock[AP4_AES_BLOCK_SIZE];
+   AP4_UI08            m_XBlock[AP4_AES_BLOCK_SIZE];
+   AP4_AesBlockCipher* m_BlockCipher;
+};
+
+/*----------------------------------------------------------------------
+|   AP4_CbcStreamCipher class
++---------------------------------------------------------------------*/
+class AP4_CbcStreamCipher
+{
+public:
+    // types
+    typedef enum {
+        ENCRYPT,
+        DECRYPT
+    } CipherDirection;
+
     // methods
-    AP4_StreamCipher(const AP4_UI08* key = NULL, 
-                     const AP4_UI08* salt = NULL,
-                     AP4_Size        iv_size = 4);
-    ~AP4_StreamCipher();
-    AP4_Result SetStreamOffset(AP4_Offset offset);
-    AP4_Result Reset(const AP4_UI08* key, const AP4_UI08* salt);
+    AP4_CbcStreamCipher(const AP4_UI08* key, CipherDirection direction);
+    ~AP4_CbcStreamCipher();
+    AP4_Result SetIV(const AP4_UI08* iv);
     AP4_Result ProcessBuffer(const AP4_UI08* in, 
+                             AP4_Size        in_size,
                              AP4_UI08*       out,
-                             AP4_Size        size);
+                             AP4_Size*       out_size,
+                             bool            is_last_buffer = false);
     AP4_Offset GetStreamOffset() { return m_StreamOffset; }
-    const AP4_UI08* GetSalt()    { return m_Salt;         }
 
- private:
+private:
     // members
-    AP4_Offset          m_StreamOffset;
-    AP4_Size            m_IvSize;
-    AP4_UI08            m_CBlock[AP4_AES_BLOCK_SIZE];
-    AP4_UI08            m_XBlock[AP4_AES_BLOCK_SIZE];
-    AP4_UI08            m_Salt[AP4_AES_BLOCK_SIZE];
+    CipherDirection     m_Direction;
+    AP4_Position        m_StreamOffset;
+    AP4_UI08            m_InBlockCache[AP4_AES_BLOCK_SIZE];
+    AP4_UI08            m_OutBlockCache[AP4_AES_BLOCK_SIZE];
     AP4_AesBlockCipher* m_BlockCipher;
-
-    // methods
-    void SetCounter(AP4_Offset block_offset);
-    AP4_Result UpdateKeyStream(AP4_Offset block_offset);
+    bool                m_Eos;
 };
 
 #endif // _AP4_STREAM_CIPHER_H_

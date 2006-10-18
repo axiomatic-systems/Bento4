@@ -2,8 +2,10 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8.00"
-	Name="Mp4Info"
-	ProjectGUID="{52A6B013-A542-4F5C-838E-F582CC6EF903}"
+	Name="CryptoTest"
+	ProjectGUID="{B1B75DB0-46BA-4207-88BA-B62FD2AF8584}"
+	RootNamespace="CryptoTest"
+	Keyword="Win32Proj"
 	>
 	<Platforms>
 		<Platform
@@ -16,12 +18,9 @@
 		<Configuration
 			Name="Debug|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
-			IntermediateDirectory=".\Debug"
+			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
-			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
-			UseOfMFC="0"
-			ATLMinimizesCRunTimeLibraryUsage="false"
-			CharacterSet="2"
+			CharacterSet="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -37,48 +36,35 @@
 			/>
 			<Tool
 				Name="VCMIDLTool"
-				TypeLibraryName=".\Debug/Mp4Info.tlb"
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\Source\C++\Core,..\..\..\..\Source\C++\MetaData,,..\..\..\..\Source\C++\Config"
-				PreprocessorDefinitions="WIN32,_DEBUG,_CONSOLE"
+				AdditionalIncludeDirectories="&quot;..\..\..\..\Source\C++\Core&quot;;&quot;..\..\..\..\Source\C++\MetaData&quot;;&quot;..\..\..\..\Source\C++\Config&quot;;&quot;..\..\..\..\Source\C++\Crypto&quot;"
+				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
+				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
-				RuntimeTypeInfo="true"
 				UsePrecompiledHeader="0"
-				PrecompiledHeaderFile=".\Debug/Mp4Info.pch"
-				AssemblerListingLocation=".\Debug/"
-				ObjectFile=".\Debug/"
-				ProgramDataBaseFileName=".\Debug/"
 				WarningLevel="3"
-				SuppressStartupBanner="true"
 				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="4"
-				CompileAs="0"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
 			/>
 			<Tool
 				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="_DEBUG"
-				Culture="1033"
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalOptions="/MACHINE:I386"
-				AdditionalDependencies="odbc32.lib odbccp32.lib"
-				OutputFile="$(OutDir)/Mp4Info.exe"
 				LinkIncremental="2"
-				SuppressStartupBanner="true"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile=".\Debug/Mp4Info.pdb"
 				SubSystem="1"
+				TargetMachine="1"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -108,12 +94,10 @@
 		<Configuration
 			Name="Release|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
-			IntermediateDirectory=".\Release"
+			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
-			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
-			UseOfMFC="0"
-			ATLMinimizesCRunTimeLibraryUsage="false"
-			CharacterSet="2"
+			CharacterSet="1"
+			WholeProgramOptimization="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -129,45 +113,34 @@
 			/>
 			<Tool
 				Name="VCMIDLTool"
-				TypeLibraryName=".\Release/Mp4Info.tlb"
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\Source\C++\Core,..\..\..\..\Source\C++\MetaData,,..\..\..\..\Source\C++\Config"
-				PreprocessorDefinitions="WIN32,NDEBUG,_CONSOLE"
-				StringPooling="true"
+				AdditionalIncludeDirectories="&quot;..\..\..\..\Source\C++\Core&quot;;&quot;..\..\..\..\Source\C++\MetaData&quot;;&quot;..\..\..\..\Source\C++\Config&quot;;&quot;..\..\..\..\Source\C++\Crypto&quot;"
+				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="2"
-				EnableFunctionLevelLinking="true"
-				RuntimeTypeInfo="true"
 				UsePrecompiledHeader="0"
-				PrecompiledHeaderFile=".\Release/Mp4Info.pch"
-				AssemblerListingLocation=".\Release/"
-				ObjectFile=".\Release/"
-				ProgramDataBaseFileName=".\Release/"
 				WarningLevel="3"
-				SuppressStartupBanner="true"
+				Detect64BitPortabilityProblems="true"
+				DebugInformationFormat="3"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
 			/>
 			<Tool
 				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="NDEBUG"
-				Culture="1036"
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalOptions="/MACHINE:I386"
-				AdditionalDependencies="odbc32.lib odbccp32.lib"
-				OutputFile="$(OutDir)/Mp4Info.exe"
 				LinkIncremental="1"
-				SuppressStartupBanner="true"
-				ProgramDatabaseFile=".\Release/Mp4Info.pdb"
+				GenerateDebugInformation="true"
 				SubSystem="1"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"
+				TargetMachine="1"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -199,13 +172,26 @@
 	</References>
 	<Files>
 		<Filter
-			Name="Source\C++ Files"
-			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
+			Name="Source Files"
+			Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
+			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath="..\..\..\..\Source\C++\Apps\Mp4Info\Mp4Info.cpp"
+				RelativePath="..\..\..\..\Source\C++\Test\Crypto\CryptoTest.cpp"
 				>
 			</File>
+		</Filter>
+		<Filter
+			Name="Header Files"
+			Filter="h;hpp;hxx;hm;inl;inc;xsd"
+			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
+			>
+		</Filter>
+		<Filter
+			Name="Resource Files"
+			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
+			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
+			>
 		</Filter>
 	</Files>
 	<Globals>

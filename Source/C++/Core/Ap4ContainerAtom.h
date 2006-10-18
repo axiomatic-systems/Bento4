@@ -62,7 +62,8 @@ public:
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
     virtual AP4_Result InspectChildren(AP4_AtomInspector& inspector);
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
-    
+    virtual AP4_Atom*  Clone();
+
     // AP4_AtomParent methods
     void OnChildChanged(AP4_Atom* child);
     void OnChildAdded(AP4_Atom* child);

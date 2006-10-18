@@ -1,6 +1,6 @@
 /*****************************************************************
 |
-|    AP4 - iSFM Atoms 
+|    AP4 - odda Atoms 
 |
 |    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
@@ -30,93 +30,92 @@
 |   includes
 +---------------------------------------------------------------------*/
 #include "Ap4Utils.h"
-#include "Ap4IsfmAtom.h"
+#include "Ap4OddaAtom.h"
 
 /*----------------------------------------------------------------------
-|   AP4_IsfmAtom::Create
+|   AP4_OddaAtom::Create
 +---------------------------------------------------------------------*/
-AP4_IsfmAtom*
-AP4_IsfmAtom::Create(AP4_Size size, AP4_ByteStream& stream)
+AP4_OddaAtom*
+AP4_OddaAtom::Create(AP4_Size         size, 
+                     AP4_ByteStream&  stream)
 {
     AP4_UI32 version;
     AP4_UI32 flags;
     if (AP4_FAILED(AP4_Atom::ReadFullHeader(stream, version, flags))) return NULL;
     if (version != 0) return NULL;
-    return new AP4_IsfmAtom(size, version, flags, stream);
+    return new AP4_OddaAtom(size, version, flags, stream);
 }
 
 /*----------------------------------------------------------------------
-|   AP4_IsfmAtom::AP4_IsfmAtom
+|   AP4_OddaAtom::AP4_OddaAtom
 +---------------------------------------------------------------------*/
-AP4_IsfmAtom::AP4_IsfmAtom(bool     selective_encryption,
-                           AP4_UI08 key_length_indicator,
-                           AP4_UI08 iv_length) :
-    AP4_Atom(AP4_ATOM_TYPE_ISFM, AP4_FULL_ATOM_HEADER_SIZE+3, 0, 0),
-    m_SelectiveEncryption(selective_encryption),
-    m_KeyIndicatorLength(key_length_indicator),
-    m_IvLength(iv_length)
+AP4_OddaAtom::AP4_OddaAtom(AP4_Size         size, 
+                           AP4_UI32         version,
+                           AP4_UI32         flags,
+                           AP4_ByteStream&  stream) :
+    AP4_Atom(AP4_ATOM_TYPE_ODDA, size, version, flags),
+    m_SourceStream(&stream)
 {
+    // data length
+    stream.ReadUI32(m_EncryptedDataLength.hi);
+    stream.ReadUI32(m_EncryptedDataLength.lo);
+
+    // store source stream position
+    stream.Tell(m_SourcePosition);
+
+    // keep a reference to the source stream
+    m_SourceStream->AddReference();
 }
 
 /*----------------------------------------------------------------------
-|   AP4_IsfmAtom::AP4_IsfmAtom
+|   AP4_OddaAtom::~AP4_OddaAtom
 +---------------------------------------------------------------------*/
-AP4_IsfmAtom::AP4_IsfmAtom(AP4_Size        size, 
-                           AP4_UI32        version,
-                           AP4_UI32        flags,
-                           AP4_ByteStream& stream) :
-    AP4_Atom(AP4_ATOM_TYPE_ISFM, size, version, flags)
+AP4_OddaAtom::~AP4_OddaAtom()
 {
-    AP4_UI08 s;
-    stream.ReadUI08(s);
-    m_SelectiveEncryption = ((s&0x80) != 0);
-    stream.ReadUI08(m_KeyIndicatorLength);
-    stream.ReadUI08(m_IvLength);
+    // release the source stream reference
+    if (m_SourceStream) {
+        m_SourceStream->Release();
+    }
 }
 
 /*----------------------------------------------------------------------
-|   AP4_IsfmAtom::Clone
-+---------------------------------------------------------------------*/
-AP4_Atom* 
-AP4_IsfmAtom::Clone()
-{
-    return new AP4_IsfmAtom(m_SelectiveEncryption, 
-                            m_KeyIndicatorLength, 
-                            m_IvLength);
-}
-
-/*----------------------------------------------------------------------
-|   AP4_IsfmAtom::WriteFields
+|   AP4_OddaAtom::WriteFields
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_IsfmAtom::WriteFields(AP4_ByteStream& stream)
+AP4_OddaAtom::WriteFields(AP4_ByteStream& stream)
 {
-    AP4_Result result;
+    // write the content type
+    AP4_CHECK(stream.WriteUI32(m_EncryptedDataLength.hi));
+    AP4_CHECK(stream.WriteUI32(m_EncryptedDataLength.lo));
 
-    // selective encryption
-    result = stream.WriteUI08(m_SelectiveEncryption ? 0x80 : 0);
-    if (AP4_FAILED(result)) return result;
+    // check that we have a source stream
+    // and a normal size
+    if (m_SourceStream == NULL || m_Size < 8) {
+        return AP4_FAILURE;
+    }
 
-    // key indicator length
-    result = stream.WriteUI08(m_KeyIndicatorLength);
-    if (AP4_FAILED(result)) return result;
+    // remember the source position
+    AP4_Position position;
+    m_SourceStream->Tell(position);
 
-    // IV length
-    result = stream.WriteUI08(m_IvLength);
-    if (AP4_FAILED(result)) return result;
+    // seek into the source at the stored offset
+    AP4_CHECK(m_SourceStream->Seek(m_SourcePosition));
+
+    // copy the source stream to the output
+    AP4_CHECK(m_SourceStream->CopyTo(stream, m_Size-GetHeaderSize()));
+
+    // restore the original stream position
+    m_SourceStream->Seek(position);
 
     return AP4_SUCCESS;
 }
 
 /*----------------------------------------------------------------------
-|   AP4_IsfmAtom::InspectFields
+|   AP4_OddaAtom::InspectFields
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_IsfmAtom::InspectFields(AP4_AtomInspector& inspector)
+AP4_OddaAtom::InspectFields(AP4_AtomInspector& inspector)
 {
-    inspector.AddField("selective_encryption", m_SelectiveEncryption);
-    inspector.AddField("key_indicator_length", m_KeyIndicatorLength);
-    inspector.AddField("IV_length", m_IvLength);
-
+    inspector.AddField("encrypted_data_length", m_EncryptedDataLength.lo);
     return AP4_SUCCESS;
 }
