@@ -296,6 +296,7 @@ const AP4_Atom::Type AP4_ATOM_TYPE_ODDA = AP4_ATOM_TYPE('o','d','d','a');
 const AP4_Atom::Type AP4_ATOM_TYPE_ODHE = AP4_ATOM_TYPE('o','d','h','e');
 const AP4_Atom::Type AP4_ATOM_TYPE_ODAF = AP4_ATOM_TYPE('o','d','a','f');
 const AP4_Atom::Type AP4_ATOM_TYPE_IPRO = AP4_ATOM_TYPE('i','p','r','o');
+const AP4_Atom::Type AP4_ATOM_TYPE_MDRI = AP4_ATOM_TYPE('m','d','r','i');
 
 /*----------------------------------------------------------------------
 |   AP4_AtomListInspector

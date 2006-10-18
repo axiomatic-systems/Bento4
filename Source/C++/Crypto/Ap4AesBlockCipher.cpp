@@ -168,7 +168,7 @@ struct aes_ctx                     // the AES context for encryption
     unrolling.  The following options allow partial or full loop unrolling 
     to be set independently for encryption and decryption
 */
-#if 1
+#if 0
 #define ENC_UNROLL  FULL
 #elif 0
 #define ENC_UNROLL  PARTIAL
@@ -176,7 +176,7 @@ struct aes_ctx                     // the AES context for encryption
 #define ENC_UNROLL  NONE
 #endif
 
-#if 1
+#if 0
 #define DEC_UNROLL  FULL
 #elif 0
 #define DEC_UNROLL  PARTIAL
@@ -237,7 +237,7 @@ struct aes_ctx                     // the AES context for encryption
     length feature of the code.  Include this section if you place more
     emphasis on speed rather than code size.
 */
-#if 1
+#if 0
 #define FAST_VARIABLE
 #endif
 

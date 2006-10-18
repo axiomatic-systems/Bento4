@@ -121,6 +121,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
+				LinkLibraryDependencies="true"
 				OutputFile="$(OutDir)/AP4.lib"
 			/>
 			<Tool
