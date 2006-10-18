@@ -118,6 +118,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
+				WholeProgramOptimization="false"
 				AdditionalIncludeDirectories="&quot;..\..\..\..\Source\C++\Config&quot;;&quot;..\..\..\..\Source\C++\Crypto&quot;;&quot;..\..\..\..\Source\C++\MetaData&quot;"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
 				StringPooling="true"

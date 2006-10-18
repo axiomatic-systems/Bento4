@@ -218,7 +218,6 @@ main(int argc, char** argv)
         AP4_IsmaEncryptingProcessor* isma_processor = new AP4_IsmaEncryptingProcessor(kms_uri);
         isma_processor->GetKeyMap().SetKeys(key_map);
         processor = isma_processor;
-        
     } else {
         AP4_OmaDcfEncryptingProcessor* oma_processor = new AP4_OmaDcfEncryptingProcessor();
         oma_processor->GetKeyMap().SetKeys(key_map);

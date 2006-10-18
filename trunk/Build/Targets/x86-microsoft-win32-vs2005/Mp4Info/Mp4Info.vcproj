@@ -72,7 +72,6 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
-				AdditionalDependencies="odbc32.lib odbccp32.lib"
 				OutputFile="$(OutDir)/Mp4Info.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
@@ -162,7 +161,6 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
-				AdditionalDependencies="odbc32.lib odbccp32.lib"
 				OutputFile="$(OutDir)/Mp4Info.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"

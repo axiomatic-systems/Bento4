@@ -368,6 +368,7 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
       case AP4_ATOM_TYPE_UDTA:
       case AP4_ATOM_TYPE_ILST:
       case AP4_ATOM_TYPE_EDTS: 
+      case AP4_ATOM_TYPE_MDRI:
         atom = AP4_ContainerAtom::Create(type, size, false, stream, *this);
         break;
 

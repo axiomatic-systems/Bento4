@@ -115,6 +115,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
+				OmitFramePointers="true"
 				AdditionalIncludeDirectories="..\..\..\..\Source\C++\System\StdC,..\..\..\..\Source\C++\Core,..\..\..\..\Source\C++\Config"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
 				StringPooling="true"

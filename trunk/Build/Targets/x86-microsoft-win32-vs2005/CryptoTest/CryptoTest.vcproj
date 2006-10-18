@@ -116,6 +116,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				WholeProgramOptimization="false"
 				AdditionalIncludeDirectories="&quot;..\..\..\..\Source\C++\Core&quot;;&quot;..\..\..\..\Source\C++\MetaData&quot;;&quot;..\..\..\..\Source\C++\Config&quot;;&quot;..\..\..\..\Source\C++\Crypto&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="2"
@@ -140,6 +141,7 @@
 				SubSystem="1"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
+				LinkTimeCodeGeneration="0"
 				TargetMachine="1"
 			/>
 			<Tool

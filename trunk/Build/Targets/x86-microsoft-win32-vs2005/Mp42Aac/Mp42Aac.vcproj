@@ -70,7 +70,6 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
-				AdditionalDependencies="odbc32.lib odbccp32.lib"
 				OutputFile="$(OutDir)/Mp42Aac.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
@@ -159,12 +158,12 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
-				AdditionalDependencies="odbc32.lib odbccp32.lib"
 				OutputFile="$(OutDir)/Mp42Aac.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				ProgramDatabaseFile=".\Release/Ap42Aac.pdb"
 				SubSystem="1"
+				OptimizeForWindows98="1"
 			/>
 			<Tool
 				Name="VCALinkTool"

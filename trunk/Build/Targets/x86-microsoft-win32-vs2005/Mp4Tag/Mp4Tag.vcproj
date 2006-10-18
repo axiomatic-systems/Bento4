@@ -122,7 +122,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				InlineFunctionExpansion="1"
-				OmitFramePointers="true"
+				OmitFramePointers="false"
 				AdditionalIncludeDirectories="..\..\..\..\Source\C++\Core,..\..\..\..\Source\C++\MetaData,,..\..\..\..\Source\C++\Config"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				StringPooling="true"
