@@ -42,8 +42,10 @@
 * Because of that, Bento4 can be used to read and write a number of Quicktime files 
 * as well, even though  some Quicktime specific features are not supported.
 * In addition, Bento4 supports a number of extensions as defined in various
-* other specifications. This includes some support for ISMA Encrytion as defined
-* in the ISMA E&A specification (http://www.isma.tv), and iTunes compatible
+* other specifications. This includes some support for ISMA Encrytion and
+* Decryption as defined in the ISMA E&A specification (http://www.isma.tv), 
+* OMA 2.0 PDCF Encryption and Decryption as defined in the OMA 2.0 PDCF
+* specification (http://www.openmobilealliance.org) and iTunes compatible
 * metadata.
 * The SDK includes a number of command line tools, built using the class library,
 * that serve as general purpose tools as well as examples of how to use the API.
@@ -53,7 +55,8 @@
 * on any external library; all the code necessary to compile the SDK and its
 * tools is included in the standard distribution. The standard distribution 
 * contains makefiles for unix-like operating systems, including Linux, project
-* files for Microsoft Visual Studio, and an XCode project for  MacOS X.
+* files for Microsoft Visual Studio, and an XCode project for  MacOS X. There is
+* also support for building the library with the SCons build system.
 *
 * @section building Building the SDK
 * Building the SDK will produce a C++ class library and some command line tools.
@@ -62,9 +65,9 @@
 * respectively the binaries, library and header files.
 *
 * @subsection build_win32 Windows
-* Open the solution file Build/Targets/Build/Targets/x86-microsoft-win32
+* Open the solution file Build/Targets/Build/Targets/x86-microsoft-win32-vs2005
 * Building the solution will build the class library and command line tools.
-* The script Build/Targets/Build/Targets/x86-microsoft-win32/make-sdk.sh
+* The script Build/Targets/Build/Targets/x86-microsoft-win32-vs2005/make-sdk.sh
 * will create the SDK directory structure as described above.
 *
 * @subsection build_linux Linux
@@ -189,13 +192,14 @@
 * @subsection encryption Encryption and Decryption
 *
 * The SDK has support for encrypting and decrypting tracks as specified by the
-* ISMA Encryption and Authentication specification. The supporting classes 
-* found in Ap4IsmaCryp.h provide a subclass of #AP4_Processor for encrypting
-* or decrypting entire tracks. The class #AP4_IsmaCipher provides support for 
-* encrypting or decrypting individual samples. The parameters necessary to 
-* instantiate an #AP4_IsmaCipher can be retrieved from an encrypted track by
-* accessing the track's sample descriptions, which are instances of the 
-* #AP4_IsmaCrypSampleDescription class.
+* ISMA Encryption and Authentication specification as well as OMA 2.0 PDCF. 
+* The supporting classes found in Ap4IsmaCryp.h and AP4_OmaDcf.h provide a subclass
+* of #AP4_Processor for encrypting or decrypting entire files. 
+* The class #AP4_IsmaCipher and #AP4_OmaDcfSampleDecrypter implement the generic
+* #AP4_SampleDecrypter interface that provides support for decrypting individual samples.
+* The parameters necessary to instantiate an #AP4_IsmaCipher or an #AP4_OmaDcfSampleDecrypter 
+* can be retrieved from an encrypted track by accessing the track's sample descriptions, 
+* which are instances of the #AP4_ProtectedSampleDescription class.
 *
 * @subsection RTP Packets
 *
