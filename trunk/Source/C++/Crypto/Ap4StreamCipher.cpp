@@ -38,6 +38,7 @@
 AP4_CtrStreamCipher::AP4_CtrStreamCipher(const AP4_UI08* key,
                                          const AP4_UI08* salt,
                                          AP4_Size        counter_size) :
+    m_StreamOffset(0),
     m_CounterSize(counter_size),
     m_BlockCipher(NULL)
 {

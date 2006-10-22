@@ -93,6 +93,14 @@ AP4_OmaDcfCtrSampleDecrypter::AP4_OmaDcfCtrSampleDecrypter(const AP4_UI08* key) 
 }
 
 /*----------------------------------------------------------------------
+|   AP4_OmaDcfCtrSampleDecrypter::~AP4_OmaDcfCtrSampleDecrypter
++---------------------------------------------------------------------*/
+AP4_OmaDcfCtrSampleDecrypter::~AP4_OmaDcfCtrSampleDecrypter()
+{
+    delete m_Cipher;
+}
+
+/*----------------------------------------------------------------------
 |   AP4_OmaDcfCtrSampleDecrypter::DecryptSampleData
 +---------------------------------------------------------------------*/
 AP4_Result 
@@ -160,6 +168,14 @@ AP4_OmaDcfCbcSampleDecrypter::AP4_OmaDcfCbcSampleDecrypter(const AP4_UI08* key) 
     AP4_OmaDcfSampleDecrypter(AP4_AES_BLOCK_SIZE)
 {
     m_Cipher = new AP4_CbcStreamCipher(key, AP4_CbcStreamCipher::DECRYPT);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_OmaDcfCbcSampleDecrypter::~AP4_OmaDcfCbcSampleDecrypter
++---------------------------------------------------------------------*/
+AP4_OmaDcfCbcSampleDecrypter::~AP4_OmaDcfCbcSampleDecrypter()
+{
+    delete m_Cipher;
 }
 
 /*----------------------------------------------------------------------
@@ -278,6 +294,14 @@ AP4_OmaDcfCtrSampleEncrypter::AP4_OmaDcfCtrSampleEncrypter(const AP4_UI08* key,
 }
 
 /*----------------------------------------------------------------------
+|   AP4_OmaDcfCtrSampleEncrypter::~AP4_OmaDcfCtrSampleEncrypter
++---------------------------------------------------------------------*/
+AP4_OmaDcfCtrSampleEncrypter::~AP4_OmaDcfCtrSampleEncrypter()
+{
+    delete m_Cipher;
+}
+
+/*----------------------------------------------------------------------
 |   AP4_OmaDcfCtrSampleEncrypter::EncryptSampleData
 +---------------------------------------------------------------------*/
 AP4_Result 
@@ -328,6 +352,14 @@ AP4_OmaDcfCbcSampleEncrypter::AP4_OmaDcfCbcSampleEncrypter(const AP4_UI08* key,
 }
 
 /*----------------------------------------------------------------------
+|   AP4_OmaDcfCbcSampleEncrypter::~AP4_OmaDcfCbcSampleEncrypter
++---------------------------------------------------------------------*/
+AP4_OmaDcfCbcSampleEncrypter::~AP4_OmaDcfCbcSampleEncrypter()
+{
+    delete m_Cipher;
+}
+
+/*----------------------------------------------------------------------
 |   AP4_OmaDcfCbcSampleEncrypter::EncryptSampleData
 +---------------------------------------------------------------------*/
 AP4_Result 
@@ -340,7 +372,6 @@ AP4_OmaDcfCbcSampleEncrypter::EncryptSampleData(AP4_DataBuffer& data_in,
     data_out.Reserve(data_in.GetDataSize()+2*AP4_AES_BLOCK_SIZE+1);
 
     // setup the buffers
-    const unsigned char* in = data_in.GetData();
     AP4_Size out_size = data_in.GetDataSize()+AP4_AES_BLOCK_SIZE;
     data_out.Reserve(out_size);
     unsigned char* out = data_out.UseData();

@@ -80,8 +80,9 @@ protected:
 class AP4_OmaDcfCtrSampleDecrypter : public AP4_OmaDcfSampleDecrypter
 {
 public:
-    // constructor
+    // constructor and destructor
     AP4_OmaDcfCtrSampleDecrypter(const AP4_UI08* key);
+    ~AP4_OmaDcfCtrSampleDecrypter();
 
     // methods
     virtual AP4_Result DecryptSampleData(AP4_DataBuffer& data_in,
@@ -99,8 +100,9 @@ private:
 class AP4_OmaDcfCbcSampleDecrypter : public AP4_OmaDcfSampleDecrypter
 {
 public:
-    // constructor
+    // constructor and destructor
     AP4_OmaDcfCbcSampleDecrypter(const AP4_UI08* key);
+    ~AP4_OmaDcfCbcSampleDecrypter();
 
     // methods
     virtual AP4_Result DecryptSampleData(AP4_DataBuffer& data_in,
@@ -169,9 +171,10 @@ protected:
 class AP4_OmaDcfCtrSampleEncrypter : public AP4_OmaDcfSampleEncrypter
 {
 public:
-    // constructor
+    // constructor and destructor
     AP4_OmaDcfCtrSampleEncrypter(const AP4_UI08* key,
                                  const AP4_UI08* salt);
+    ~AP4_OmaDcfCtrSampleEncrypter();
 
     // methods
     virtual AP4_Result EncryptSampleData(AP4_DataBuffer& data_in,
@@ -191,9 +194,10 @@ private:
 class AP4_OmaDcfCbcSampleEncrypter : public AP4_OmaDcfSampleEncrypter
 {
 public:
-    // constructor
+    // constructor and destructor
     AP4_OmaDcfCbcSampleEncrypter(const AP4_UI08* key,
                                  const AP4_UI08* salt);
+    ~AP4_OmaDcfCbcSampleEncrypter();
 
     // methods
     virtual AP4_Result EncryptSampleData(AP4_DataBuffer& data_in,
