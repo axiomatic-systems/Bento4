@@ -42,14 +42,12 @@
 /*----------------------------------------------------------------------
 |   types
 +---------------------------------------------------------------------*/
-class AP4_SampleLocator {
-public:
+struct AP4_SampleLocator {
     AP4_SampleLocator() : 
         m_TrakIndex(0), 
         m_SampleTable(NULL), 
         m_SampleIndex(0), 
         m_Chunk(0) {}
-
     AP4_Ordinal          m_TrakIndex;
     AP4_AtomSampleTable* m_SampleTable;
     AP4_Ordinal          m_SampleIndex;
@@ -58,7 +56,9 @@ public:
 };
 
 struct AP4_SampleCursor {
+    AP4_SampleCursor() : m_EndReached(false) {}
     AP4_SampleLocator m_Locator;
+    bool              m_EndReached;
 };
 
 /*----------------------------------------------------------------------
@@ -99,11 +99,14 @@ AP4_Processor::Process(AP4_ByteStream&  input,
     AP4_Result result = Initialize(top_level);
     if (AP4_FAILED(result)) return result;
 
-    // build an array of track sample cursors
+    // build an array of track sample locators
     AP4_List<AP4_TrakAtom>& trak_atoms = moov->GetTrakAtoms();
     AP4_Cardinal track_count = trak_atoms.ItemCount();
     AP4_SampleCursor* cursors = new AP4_SampleCursor[track_count];
     TrackHandler** handlers = new TrackHandler*[track_count];
+    for (AP4_Ordinal i=0; i<track_count; i++) {
+        handlers[i] = NULL;
+    }
     AP4_List<AP4_TrakAtom>::Item* item = trak_atoms.FirstItem();
     unsigned int index = 0;
     while (item) {
@@ -128,10 +131,10 @@ AP4_Processor::Process(AP4_ByteStream&  input,
         unsigned int min_offset = 0xFFFFFFFF;
         int cursor = -1;
         for (unsigned int i=0; i<track_count; i++) {
-            if (cursors[i].m_Locator.m_SampleTable &&
+            if (!cursors[i].m_EndReached &&
                 cursors[i].m_Locator.m_Sample.GetOffset() <= min_offset) {
-                    min_offset = cursors[i].m_Locator.m_Sample.GetOffset();
-                    cursor = i;
+                min_offset = cursors[i].m_Locator.m_Sample.GetOffset();
+                cursor = i;
             }
         }
 
@@ -146,7 +149,7 @@ AP4_Processor::Process(AP4_ByteStream&  input,
         locator.m_SampleIndex++;
         if (locator.m_SampleIndex == locator.m_SampleTable->GetSampleCount()) {
             // mark this track as completed
-            locator.m_SampleTable = NULL;
+            cursors[cursor].m_EndReached = true;
         } else {
             // get the next sample info
             locator.m_SampleTable->GetSample(locator.m_SampleIndex, locator.m_Sample);
@@ -243,10 +246,11 @@ AP4_Processor::Process(AP4_ByteStream&  input,
 #endif
 
     // cleanup
-    delete[] cursors;
-    for (unsigned int i=0; i<track_count; i++) {
+    for (AP4_Ordinal i=0; i<track_count; i++) {
+        delete cursors[i].m_Locator.m_SampleTable;
         delete handlers[i];
     }
+    delete[] cursors;
     delete[] handlers;
 
     return AP4_SUCCESS;

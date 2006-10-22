@@ -131,8 +131,6 @@ DecryptAndWriteSamples(AP4_Track*             track,
 
 	    WriteAdtsHeader(output, decrypted_data.GetDataSize());
         output->Write(decrypted_data.GetData(), decrypted_data.GetDataSize());
-        AP4_Debug("  [%d] writing %ld bytes of data...\n", 
-                  index, decrypted_data.GetDataSize());
 	    index++;
     }
 }
@@ -147,11 +145,8 @@ WriteSamples(AP4_Track* track, AP4_ByteStream* output)
     AP4_DataBuffer data;
     AP4_Ordinal    index = 0;
     while (AP4_SUCCEEDED(track->ReadSample(index, sample, data))) {
-        AP4_DataBuffer* sample_data = &data;
 	    WriteAdtsHeader(output, sample.GetSize());
         output->Write(data.GetData(), data.GetDataSize());
-        AP4_Debug("  [%d] writing %ld bytes of data...\n", 
-                    index, sample.GetSize());
 	    index++;
     }
 }
@@ -166,6 +161,7 @@ main(int argc, char** argv)
         PrintUsageAndExit();
     }
     
+    // parse command line
     char** args = argv+1;
     unsigned char key[16];
     bool          key_option = false;
@@ -196,6 +192,8 @@ main(int argc, char** argv)
     AP4_File* input_file = new AP4_File(*input);   
 
     // get the movie
+    AP4_SampleDescription* sample_description;
+    AP4_Track* audio_track;
     AP4_Movie* movie = input_file->GetMovie();
     if (movie == NULL) {
         fprintf(stderr, "ERROR: no movie in file\n");
@@ -203,21 +201,19 @@ main(int argc, char** argv)
     }
 
     // get the audio track
-    AP4_List<AP4_Track>& tracks = movie->GetTracks();
-    AP4_Debug("Found %d Tracks\n", tracks.ItemCount());
-    // get audio track
-    AP4_Track* audio_track = movie->GetTrack(AP4_Track::TYPE_AUDIO);
+    audio_track = movie->GetTrack(AP4_Track::TYPE_AUDIO);
     if (audio_track == NULL) {
         fprintf(stderr, "ERROR: no audio track found\n");
         goto end;
     }
 
     // check that the track is of the right type
-    AP4_SampleDescription* sample_description = audio_track->GetSampleDescription(0);
+    sample_description = audio_track->GetSampleDescription(0);
     if (sample_description == NULL) {
         fprintf(stderr, "ERROR: unable to parse sample description\n");
         goto end;
     }
+
     // show info
     AP4_Debug("Audio Track:\n");
     AP4_Debug("  duration: %ld ms\n", audio_track->GetDurationMs());
