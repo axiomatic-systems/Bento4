@@ -45,6 +45,8 @@
 +---------------------------------------------------------------------*/
 class AP4_CtrStreamCipher;
 class AP4_OdafAtom;
+class AP4_CbcStreamCipher;
+class AP4_CtrStreamCipher;
 
 /*----------------------------------------------------------------------
 |   constants
@@ -53,27 +55,61 @@ const AP4_UI32 AP4_PROTECTION_SCHEME_TYPE_OMA = AP4_ATOM_TYPE('o','d','k','m');
 const AP4_UI32 AP4_PROTECTION_SCHEME_VERSION_OMA_20 = 0x00000200;
 
 /*----------------------------------------------------------------------
-|   AP4_OmaDcfCipher
+|   AP4_OmaDcfSampleDecrypter
 +---------------------------------------------------------------------*/
-class AP4_OmaDcfCipher
+class AP4_OmaDcfSampleDecrypter : public AP4_SampleDecrypter
 {
 public:
+    // factory
+    static AP4_OmaDcfSampleDecrypter* Create(AP4_ProtectedSampleDescription* sample_description, 
+                                             const AP4_UI08* key, AP4_Size key_size);
+
     // constructor and destructor
-    AP4_OmaDcfCipher(const AP4_UI08* key,
-                     const AP4_UI08* salt,
-                     AP4_Size        counter_size);
-   ~AP4_OmaDcfCipher();
-    AP4_Result EncryptSample(AP4_DataBuffer& data_in,
-                             AP4_DataBuffer& data_out,
-                             AP4_UI32        counter,
-                             bool            skip_encryption);
-    AP4_Result DecryptSample(AP4_DataBuffer& data_in,
-                             AP4_DataBuffer& data_out);
-    AP4_CtrStreamCipher* GetCipher()   { return m_Cipher;   }
+    AP4_OmaDcfSampleDecrypter(AP4_Size iv_length) : m_IvLength(iv_length) {}
+
+    // methods
+    virtual AP4_Size GetDecryptedSampleSize(AP4_Sample& sample) = 0;
+
+protected:
+    AP4_Size m_IvLength;
+};
+
+/*----------------------------------------------------------------------
+|   AP4_OmaDcfCtrSampleDecrypter
++---------------------------------------------------------------------*/
+class AP4_OmaDcfCtrSampleDecrypter : public AP4_OmaDcfSampleDecrypter
+{
+public:
+    // constructor
+    AP4_OmaDcfCtrSampleDecrypter(const AP4_UI08* key);
+
+    // methods
+    virtual AP4_Result DecryptSampleData(AP4_DataBuffer& data_in,
+                                         AP4_DataBuffer& data_out);
+    virtual AP4_Size   GetDecryptedSampleSize(AP4_Sample& sample);
 
 private:
     // members
     AP4_CtrStreamCipher* m_Cipher;
+};
+
+/*----------------------------------------------------------------------
+|   AP4_OmaDcfCbcSampleDecrypter
++---------------------------------------------------------------------*/
+class AP4_OmaDcfCbcSampleDecrypter : public AP4_OmaDcfSampleDecrypter
+{
+public:
+    // constructor
+    AP4_OmaDcfCbcSampleDecrypter(const AP4_UI08* key);
+
+    // methods
+    virtual AP4_Result DecryptSampleData(AP4_DataBuffer& data_in,
+                                         AP4_DataBuffer& data_out);
+    virtual AP4_Size   GetDecryptedSampleSize(AP4_Sample& sample);
+
+private:
+    // members
+    AP4_CbcStreamCipher* m_Cipher;
 };
 
 /*----------------------------------------------------------------------
@@ -95,17 +131,80 @@ public:
 
 private:
     // constructor
-    AP4_OmaDcfTrackDecrypter(AP4_OdafAtom*     cipher_params,
-                             AP4_OmaDcfCipher* cipher,
-                             AP4_SampleEntry*  sample_entry,
-                             AP4_UI32          original_format);
+    AP4_OmaDcfTrackDecrypter(AP4_OmaDcfSampleDecrypter* cipher,
+                             AP4_SampleEntry*           sample_entry,
+                             AP4_UI32                   original_format);
 
     // members
-    AP4_OdafAtom*     m_CipherParams;
-    AP4_OmaDcfCipher* m_Cipher;
-    AP4_SampleEntry*  m_SampleEntry;
-    AP4_UI32          m_OriginalFormat;
-    AP4_DataBuffer    m_PeekBuffer;
+    AP4_OmaDcfSampleDecrypter* m_Cipher;
+    AP4_SampleEntry*           m_SampleEntry;
+    AP4_UI32                   m_OriginalFormat;
+};
+
+/*----------------------------------------------------------------------
+|   AP4_OmaDcfSampleEncrypter
++---------------------------------------------------------------------*/
+class AP4_OmaDcfSampleEncrypter
+{
+public:
+    // constructor and destructor
+    AP4_OmaDcfSampleEncrypter(const AP4_UI08* salt);
+    virtual ~AP4_OmaDcfSampleEncrypter() {}
+
+    // methods
+    virtual AP4_Result EncryptSampleData(AP4_DataBuffer& data_in,
+                                         AP4_DataBuffer& data_out,
+                                         AP4_UI32        bso,
+                                         bool            skip_encryption) = 0;
+    virtual AP4_Size   GetEncryptedSampleSize(AP4_Sample& sample) = 0;
+
+protected:
+    // members
+    AP4_UI08 m_Salt[16];
+};
+
+/*----------------------------------------------------------------------
+|   AP4_OmaDcfCtrSampleEncrypter
++---------------------------------------------------------------------*/
+class AP4_OmaDcfCtrSampleEncrypter : public AP4_OmaDcfSampleEncrypter
+{
+public:
+    // constructor
+    AP4_OmaDcfCtrSampleEncrypter(const AP4_UI08* key,
+                                 const AP4_UI08* salt);
+
+    // methods
+    virtual AP4_Result EncryptSampleData(AP4_DataBuffer& data_in,
+                                         AP4_DataBuffer& data_out,
+                                         AP4_UI32        bso,
+                                         bool            skip_encryption);
+    virtual AP4_Size   GetEncryptedSampleSize(AP4_Sample& sample);
+
+private:
+    // members
+    AP4_CtrStreamCipher* m_Cipher;
+};
+
+/*----------------------------------------------------------------------
+|   AP4_OmaDcfCbcSampleEncrypter
++---------------------------------------------------------------------*/
+class AP4_OmaDcfCbcSampleEncrypter : public AP4_OmaDcfSampleEncrypter
+{
+public:
+    // constructor
+    AP4_OmaDcfCbcSampleEncrypter(const AP4_UI08* key,
+                                 const AP4_UI08* salt);
+
+    // methods
+    virtual AP4_Result EncryptSampleData(AP4_DataBuffer& data_in,
+                                         AP4_DataBuffer& data_out,
+                                         AP4_UI32        bso,
+                                         bool            skip_encryption);
+    virtual AP4_Size   GetEncryptedSampleSize(AP4_Sample& sample);
+
+private:
+    // members
+    AP4_CbcStreamCipher* m_Cipher;
 };
 
 /*----------------------------------------------------------------------

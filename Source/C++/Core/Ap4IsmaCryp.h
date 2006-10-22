@@ -54,9 +54,15 @@ const AP4_UI32 AP4_PROTECTION_SCHEME_TYPE_IAEC = AP4_ATOM_TYPE('i','A','E','C');
 /*----------------------------------------------------------------------
 |   AP4_IsmaCipher
 +---------------------------------------------------------------------*/
-class AP4_IsmaCipher
+class AP4_IsmaCipher : public AP4_SampleDecrypter
 {
 public:
+    // factory
+    static AP4_IsmaCipher* CreateSampleDecrypter(
+                               AP4_ProtectedSampleDescription* sample_description, 
+                               const AP4_UI08*                 key, 
+                               AP4_Size                        key_size);
+
     // constructor and destructor
     AP4_IsmaCipher(const AP4_UI08* key, 
                    const AP4_UI08* salt,
@@ -64,11 +70,11 @@ public:
                    AP4_UI08        key_indicator_length,
                    bool            selective_encryption);
    ~AP4_IsmaCipher();
-    AP4_Result EncryptSample(AP4_DataBuffer& data_in,
-                             AP4_DataBuffer& data_out,
-                             AP4_UI32        offset);
-    AP4_Result DecryptSample(AP4_DataBuffer& data_in,
-                             AP4_DataBuffer& data_out);
+    AP4_Result EncryptSampleData(AP4_DataBuffer& data_in,
+                                 AP4_DataBuffer& data_out,
+                                 AP4_UI32        offset);
+    AP4_Result DecryptSampleData(AP4_DataBuffer& data_in,
+                                 AP4_DataBuffer& data_out);
     AP4_CtrStreamCipher* GetCipher()   { return m_Cipher;   }
     AP4_UI08             GetIvLength() { return m_IvLength; }
     AP4_UI08             GetKeyIndicatorLength() { return m_KeyIndicatorLength; }
@@ -102,13 +108,11 @@ public:
 
 private:
     // constructor
-    AP4_IsmaTrackDecrypter(AP4_IsfmAtom*    cipher_params,
-                           AP4_IsmaCipher*  cipher,
+    AP4_IsmaTrackDecrypter(AP4_IsmaCipher*  cipher,
                            AP4_SampleEntry* sample_entry,
                            AP4_UI32         original_format);
 
     // members
-    AP4_IsfmAtom*    m_CipherParams;
     AP4_IsmaCipher*  m_Cipher;
     AP4_SampleEntry* m_SampleEntry;
     AP4_UI32         m_OriginalFormat;

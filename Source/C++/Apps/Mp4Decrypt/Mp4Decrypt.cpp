@@ -137,7 +137,10 @@ main(int argc, char** argv)
     }
 
     // process/decrypt the file
-    processor->Process(*input, *output);
+    AP4_Result result = processor->Process(*input, *output);
+    if (AP4_FAILED(result)) {
+        fprintf(stderr, "ERROR: failed to process the file (%d)\n", result);
+    }
 
     // cleanup
     delete processor;

@@ -93,7 +93,7 @@ AP4_Processor::Process(AP4_ByteStream&  input,
     }
 
     // check that we have a moov atom
-    if (moov == NULL) return AP4_FAILURE;
+    if (moov == NULL) return AP4_ERROR_INVALID_FORMAT;
 
     // initialize the processor
     AP4_Result result = Initialize(top_level);
@@ -141,12 +141,6 @@ AP4_Processor::Process(AP4_ByteStream&  input,
         // append this locator to the layout list
         AP4_SampleLocator& locator = cursors[cursor].m_Locator;
         locators.Append(locator);
-        //AP4_Debug("NEXT: track %d, sample %d:%d: offset=%d, size=%d\n",
-        //    locator.m_TrakIndex, 
-        //    locator.m_Chunk,
-        //    locator.m_SampleIndex,
-        //    locator.m_Sample.GetOffset(),
-        //    locator.m_Sample.GetSize());
 
         // move the cursor to the next sample
         locator.m_SampleIndex++;
@@ -158,8 +152,8 @@ AP4_Processor::Process(AP4_ByteStream&  input,
             locator.m_SampleTable->GetSample(locator.m_SampleIndex, locator.m_Sample);
             AP4_Ordinal skip, sdesc;
             locator.m_SampleTable->GetChunkForSample(locator.m_SampleIndex+1, // the internal API is 1-based
-                locator.m_Chunk,
-                skip, sdesc);
+                                                     locator.m_Chunk,
+                                                     skip, sdesc);
         }
     }
 

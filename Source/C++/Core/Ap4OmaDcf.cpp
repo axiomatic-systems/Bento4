@@ -45,47 +45,64 @@
 #include "Ap4OhdrAtom.h"
 
 /*----------------------------------------------------------------------
-|   AP4_OmaDcfCrypCipher::AP4_OmaDcfCipher
+|   AP4_OmaDcfSampleDecrypter::Create
 +---------------------------------------------------------------------*/
-AP4_OmaDcfCipher::AP4_OmaDcfCipher(const AP4_UI08* key,
-                                   const AP4_UI08* salt,
-                                   AP4_Size        counter_size)
+AP4_OmaDcfSampleDecrypter*
+AP4_OmaDcfSampleDecrypter::Create(AP4_ProtectedSampleDescription* sample_description, 
+                                  const AP4_UI08* key, AP4_Size key_size)
 {
-    // left-align the salt
-    unsigned char salt_128[AP4_AES_KEY_LENGTH];
-    unsigned int i=0;
-    if (salt) {
-        for (; i<8; i++) {
-            salt_128[i] = salt[i];
+    // check the key and key size
+    if (key == NULL || key_size != AP4_AES_BLOCK_SIZE) return NULL;
+
+    // get the scheme info atom
+    AP4_ContainerAtom* schi = sample_description->GetSchemeInfo()->GetSchiAtom();
+    if (schi == NULL) return NULL;
+
+    // get the cipher params
+    AP4_OdafAtom* odaf = dynamic_cast<AP4_OdafAtom*>(schi->FindChild("odkm/odaf"));
+    if (odaf == NULL                              || 
+        odaf->GetIvLength() != AP4_AES_BLOCK_SIZE ||
+        odaf->GetSelectiveEncryption() != true) return NULL;
+
+    // check the scheme details and create the cipher
+    AP4_OhdrAtom* ohdr = dynamic_cast<AP4_OhdrAtom*>(schi->FindChild("odkm/ohdr"));
+    if (ohdr == NULL) return NULL;
+    AP4_UI08 encryption_method = ohdr->GetEncryptionMethod();
+    if (encryption_method == AP4_OMA_DCF_ENCRYPTION_METHOD_AES_CBC) {
+        if (ohdr->GetPaddingScheme() != AP4_OMA_DCF_PADDING_SCHEME_RFC_2630) {
+            return NULL;
         }
+        return new AP4_OmaDcfCbcSampleDecrypter(key);
+     } else if (encryption_method == AP4_OMA_DCF_ENCRYPTION_METHOD_AES_CTR) {
+        if (ohdr->GetPaddingScheme() != AP4_OMA_DCF_PADDING_SCHEME_NONE) {
+            return NULL;
+        }
+        return new AP4_OmaDcfCtrSampleDecrypter(key);
+    } else {
+        return NULL;
     }
-    for (; i<AP4_AES_KEY_LENGTH; i++) {
-        salt_128[i] = 0;
-    }
-    
-    // create a cipher
-    m_Cipher = new AP4_CtrStreamCipher(key, salt_128, counter_size);
 }
 
 /*----------------------------------------------------------------------
-|   AP4_OmaDcfCipher::~AP4_OmaDcfCipher
+|   AP4_OmaDcfCtrSampleDecrypter::AP4_OmaDcfCtrSampleDecrypter
 +---------------------------------------------------------------------*/
-AP4_OmaDcfCipher::~AP4_OmaDcfCipher()
+AP4_OmaDcfCtrSampleDecrypter::AP4_OmaDcfCtrSampleDecrypter(const AP4_UI08* key) :
+    AP4_OmaDcfSampleDecrypter(AP4_AES_BLOCK_SIZE)
 {
-    delete m_Cipher;
+    m_Cipher = new AP4_CtrStreamCipher(key, NULL, AP4_AES_BLOCK_SIZE);
 }
 
 /*----------------------------------------------------------------------
-|   AP4_OmaDcfCipher::DecryptSample
+|   AP4_OmaDcfCtrSampleDecrypter::DecryptSampleData
 +---------------------------------------------------------------------*/
 AP4_Result 
-AP4_OmaDcfCipher::DecryptSample(AP4_DataBuffer& data_in,
-                                AP4_DataBuffer& data_out)
-{
+AP4_OmaDcfCtrSampleDecrypter::DecryptSampleData(AP4_DataBuffer& data_in,
+                                                AP4_DataBuffer& data_out)
+{   
     bool                 is_encrypted = true;
     const unsigned char* in = data_in.GetData();
     AP4_Size             in_size = data_in.GetDataSize();
-    
+
     // default to 0 output 
     data_out.SetDataSize(0);
 
@@ -100,7 +117,7 @@ AP4_OmaDcfCipher::DecryptSample(AP4_DataBuffer& data_in,
 
     // process the sample data
     unsigned int payload_size = in_size-header_size;
-    data_out.SetDataSize(payload_size);
+    data_out.Reserve(payload_size);
     unsigned char* out = data_out.UseData();
     if (is_encrypted) {
         // get the IV
@@ -108,22 +125,166 @@ AP4_OmaDcfCipher::DecryptSample(AP4_DataBuffer& data_in,
         in += AP4_AES_BLOCK_SIZE;
 
         m_Cipher->SetBaseCounter(iv);
-        m_Cipher->ProcessBuffer(in, out, payload_size);
+        AP4_CHECK(m_Cipher->ProcessBuffer(in, out, payload_size));
     } else {
         AP4_CopyMemory(out, in, payload_size);
     }
+    data_out.SetDataSize(payload_size);
 
     return AP4_SUCCESS;
 }
 
 /*----------------------------------------------------------------------
-|   AP4_OmaDcfCipher::EncryptSample
+|   AP4_OmaDcfCtrSampleDecrypter::GetDecryptedSampleSize
++---------------------------------------------------------------------*/
+AP4_Size
+AP4_OmaDcfCtrSampleDecrypter::GetDecryptedSampleSize(AP4_Sample& sample)
+{
+    if (m_Cipher == NULL) return 0;
+
+    // read the first byte to see if the sample is encrypted or not
+    AP4_Byte h;
+    AP4_DataBuffer peek_buffer;
+    peek_buffer.SetBuffer(&h, 1);
+    sample.ReadData(peek_buffer, 1);
+    bool is_encrypted = ((h&0x80)!=0);
+
+    AP4_Size crypto_header_size = 1+(is_encrypted?m_IvLength:0);
+    return sample.GetSize()-crypto_header_size;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_OmaDcfCbcSampleDecrypter::AP4_OmaDcfCbcSampleDecrypter
++---------------------------------------------------------------------*/
+AP4_OmaDcfCbcSampleDecrypter::AP4_OmaDcfCbcSampleDecrypter(const AP4_UI08* key) :
+    AP4_OmaDcfSampleDecrypter(AP4_AES_BLOCK_SIZE)
+{
+    m_Cipher = new AP4_CbcStreamCipher(key, AP4_CbcStreamCipher::DECRYPT);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_OmaDbcCbcSampleDecrypter::DecryptSampleData
 +---------------------------------------------------------------------*/
 AP4_Result 
-AP4_OmaDcfCipher::EncryptSample(AP4_DataBuffer& data_in,
-                                AP4_DataBuffer& data_out,
-                                AP4_UI32        counter,
-                                bool            /*skip_encryption*/)
+AP4_OmaDcfCbcSampleDecrypter::DecryptSampleData(AP4_DataBuffer& data_in,
+                                                AP4_DataBuffer& data_out)
+{   
+    bool                 is_encrypted = true;
+    const unsigned char* in = data_in.GetData();
+    AP4_Size             in_size = data_in.GetDataSize();
+    AP4_Size             out_size;
+
+    // default to 0 output 
+    data_out.SetDataSize(0);
+
+    // check the selective encryption flag
+    if (in_size < 1) return AP4_ERROR_INVALID_FORMAT;
+    is_encrypted = ((in[0]&0x80)!=0);
+    in++;
+
+    // check the size
+    unsigned int header_size = 1+(is_encrypted?AP4_AES_BLOCK_SIZE:0);
+    if (header_size > in_size) return AP4_ERROR_INVALID_FORMAT;
+
+    // process the sample data
+    unsigned int payload_size = in_size-header_size;
+    data_out.Reserve(payload_size);
+    unsigned char* out = data_out.UseData();
+    if (is_encrypted) {
+        // get the IV
+        const AP4_UI08* iv = (const AP4_UI08*)in;
+        in += AP4_AES_BLOCK_SIZE;
+
+        m_Cipher->SetIV(iv);
+        out_size = payload_size;
+        AP4_CHECK(m_Cipher->ProcessBuffer(in, payload_size, out, &out_size, true));
+    } else {
+        AP4_CopyMemory(out, in, payload_size);
+        out_size = payload_size;
+    }
+
+    data_out.SetDataSize(out_size);
+
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_OmaDcfCbcSampleDecrypter::GetDecryptedSampleSize
++---------------------------------------------------------------------*/
+AP4_Size
+AP4_OmaDcfCbcSampleDecrypter::GetDecryptedSampleSize(AP4_Sample& sample)
+{
+    if (m_Cipher == NULL) return 0;
+
+    // read the first byte to see if the sample is encrypted or not
+    AP4_Byte h;
+    AP4_DataBuffer peek_buffer;
+    peek_buffer.SetBuffer(&h, 1);
+    sample.ReadData(peek_buffer, 1);
+    bool is_encrypted = ((h&0x80)!=0);
+
+    if (is_encrypted) {
+        // with CBC, we need to decrypt the last block to know what the padding was
+        AP4_Size crypto_header_size = 1+m_IvLength;
+        AP4_Size encrypted_size = sample.GetSize()-crypto_header_size;
+        AP4_DataBuffer encrypted;
+        AP4_DataBuffer decrypted;
+        AP4_Size       decrypted_size = AP4_AES_BLOCK_SIZE;
+        if (sample.GetSize() < 1+2*AP4_AES_BLOCK_SIZE) {
+            return 0;
+        }
+        AP4_Size offset = sample.GetSize()-2*AP4_AES_BLOCK_SIZE;
+        if (AP4_FAILED(sample.ReadData(encrypted, 2*AP4_AES_BLOCK_SIZE, offset))) {
+            return 0;
+        }
+        decrypted.Reserve(decrypted_size);
+        m_Cipher->SetIV(encrypted.GetData());
+        if (AP4_FAILED(m_Cipher->ProcessBuffer(encrypted.GetData()+AP4_AES_BLOCK_SIZE, AP4_AES_BLOCK_SIZE,
+                                               decrypted.UseData(), &decrypted_size, true))) {
+            return 0;
+        }
+        unsigned int padding_size = AP4_AES_BLOCK_SIZE-decrypted_size;
+        return encrypted_size-padding_size;
+    } else {
+        return sample.GetSize()-1;
+    }
+}
+
+/*----------------------------------------------------------------------
+|   AP4_OmaDcfSampleEncrypter::AP4_OmaDcfSampleEncrypter
++---------------------------------------------------------------------*/
+AP4_OmaDcfSampleEncrypter::AP4_OmaDcfSampleEncrypter(const AP4_UI08* salt)
+{
+    // left-align the salt
+    unsigned int i=0;
+    if (salt) {
+        for (; i<8; i++) {
+            m_Salt[i] = salt[i];
+        }
+    }
+    for (; i<AP4_AES_KEY_LENGTH; i++) {
+        m_Salt[i] = 0;
+    }
+}
+
+/*----------------------------------------------------------------------
+|   AP4_OmaDcfCtrSampleEncrypter::AP4_OmaDcfCtrSampleEncrypter
++---------------------------------------------------------------------*/
+AP4_OmaDcfCtrSampleEncrypter::AP4_OmaDcfCtrSampleEncrypter(const AP4_UI08* key,
+                                                           const AP4_UI08* salt) :
+    AP4_OmaDcfSampleEncrypter(salt)    
+{
+    m_Cipher = new AP4_CtrStreamCipher(key, m_Salt, 8);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_OmaDcfCtrSampleEncrypter::EncryptSampleData
++---------------------------------------------------------------------*/
+AP4_Result 
+AP4_OmaDcfCtrSampleEncrypter::EncryptSampleData(AP4_DataBuffer& data_in,
+                                                AP4_DataBuffer& data_out,
+                                                AP4_UI32        counter,
+                                                bool            /*skip_encryption*/)
 {
     // setup the buffers
     const unsigned char* in = data_in.GetData();
@@ -136,7 +297,7 @@ AP4_OmaDcfCipher::EncryptSample(AP4_DataBuffer& data_in,
     // IV on 16 bytes: [SSSSSSSS0000XXXX]
     // where SSSSSSSS is the 64-bit salt and
     // XXXX is the 32-bit base counter
-    AP4_CopyMemory(out, m_Cipher->GetBaseCounter(), 8);
+    AP4_CopyMemory(out, m_Salt, 8);
     out[8] = out[9] = out[10] = out[11] = 0;
     AP4_BytesFromUInt32BE(&out[12], counter);
 
@@ -148,6 +309,75 @@ AP4_OmaDcfCipher::EncryptSample(AP4_DataBuffer& data_in,
 }
 
 /*----------------------------------------------------------------------
+|   AP4_OmaDcfCtrSampleEncrypter::GetEncryptedSampleSize
++---------------------------------------------------------------------*/
+AP4_Size 
+AP4_OmaDcfCtrSampleEncrypter::GetEncryptedSampleSize(AP4_Sample& sample)
+{
+    return sample.GetSize()+AP4_AES_BLOCK_SIZE+1;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_OmaDcfCbcSampleEncrypter::AP4_OmaDcfCbcSampleEncrypter
++---------------------------------------------------------------------*/
+AP4_OmaDcfCbcSampleEncrypter::AP4_OmaDcfCbcSampleEncrypter(const AP4_UI08* key,
+                                                           const AP4_UI08* salt) :
+    AP4_OmaDcfSampleEncrypter(salt)    
+{
+    m_Cipher = new AP4_CbcStreamCipher(key, AP4_CbcStreamCipher::ENCRYPT);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_OmaDcfCbcSampleEncrypter::EncryptSampleData
++---------------------------------------------------------------------*/
+AP4_Result 
+AP4_OmaDcfCbcSampleEncrypter::EncryptSampleData(AP4_DataBuffer& data_in,
+                                                AP4_DataBuffer& data_out,
+                                                AP4_UI32        counter,
+                                                bool            /*skip_encryption*/)
+{
+    // make sure there is enough space in the output buffer
+    data_out.Reserve(data_in.GetDataSize()+2*AP4_AES_BLOCK_SIZE+1);
+
+    // setup the buffers
+    const unsigned char* in = data_in.GetData();
+    AP4_Size out_size = data_in.GetDataSize()+AP4_AES_BLOCK_SIZE;
+    data_out.Reserve(out_size);
+    unsigned char* out = data_out.UseData();
+
+    // selective encryption flag
+    *out++ = 0x80;
+
+    // IV on 16 bytes: [SSSSSSSS0000XXXX]
+    // where SSSSSSSS is the 64-bit salt and
+    // XXXX is the 32-bit base counter
+    AP4_CopyMemory(out, m_Salt, 8);
+    out[8] = out[9] = out[10] = out[11] = 0;
+    AP4_BytesFromUInt32BE(&out[12], counter);
+
+    // encrypt the payload
+    m_Cipher->SetIV(out+8);
+    m_Cipher->ProcessBuffer(data_in.GetData(), 
+                            data_in.GetDataSize(),
+                            out+AP4_AES_BLOCK_SIZE, 
+                            &out_size);
+    data_out.SetDataSize(out_size+AP4_AES_BLOCK_SIZE+1);
+
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_OmaDcfCbcSampleEncrypter::GetEncryptedSampleSize
++---------------------------------------------------------------------*/
+AP4_Size
+AP4_OmaDcfCbcSampleEncrypter::GetEncryptedSampleSize(AP4_Sample& sample)
+{
+    AP4_Size sample_size = sample.GetSize();
+    AP4_Size padding_size = AP4_AES_BLOCK_SIZE-(sample_size%AP4_AES_BLOCK_SIZE);
+    return sample_size+padding_size+AP4_AES_BLOCK_SIZE+1;
+}
+
+/*----------------------------------------------------------------------
 |   AP4_OmaDcfTrackDecrypter::Create
 +---------------------------------------------------------------------*/
 AP4_OmaDcfTrackDecrypter*
@@ -156,35 +386,12 @@ AP4_OmaDcfTrackDecrypter::Create(
     AP4_ProtectedSampleDescription* sample_description,
     AP4_SampleEntry*                sample_entry)
 {
-    // check the scheme details
-    AP4_OhdrAtom* ohdr = (AP4_OhdrAtom*)sample_description->GetSchemeInfo()->GetSchiAtom().FindChild("odkm/ohdr");
-    if (ohdr == NULL) return NULL;
-    if (ohdr->GetEncryptionMethod() == AP4_OMA_DCF_ENCRYPTION_METHOD_AES_CBC) {
-        if (ohdr->GetPaddingScheme() != AP4_OMA_DCF_PADDING_SCHEME_RFC_2630) {
-            return NULL;
-        }
-        // FIXME: not yet supported
-        return NULL;
-     } else if (ohdr->GetEncryptionMethod() == AP4_OMA_DCF_ENCRYPTION_METHOD_AES_CTR) {
-        if (ohdr->GetPaddingScheme() != AP4_OMA_DCF_PADDING_SCHEME_NONE) {
-            return NULL;
-        }
-    } else {
-        return NULL;
-    }
-
-    // get the cipher params
-    AP4_OdafAtom* odaf = (AP4_OdafAtom*)sample_description->GetSchemeInfo()->GetSchiAtom().FindChild("odkm/odaf");
-    if (odaf == NULL                              || 
-        odaf->GetIvLength() != AP4_AES_BLOCK_SIZE ||
-        odaf->GetSelectiveEncryption() != true) return NULL;
-    
     // create the cipher
-    AP4_OmaDcfCipher* cipher = new AP4_OmaDcfCipher(key, NULL, AP4_AES_BLOCK_SIZE);
+    AP4_OmaDcfSampleDecrypter* cipher = AP4_OmaDcfSampleDecrypter::Create(sample_description, key, AP4_AES_BLOCK_SIZE);
+    if (cipher == NULL) return NULL;
 
     // instantiate the object
-    return new AP4_OmaDcfTrackDecrypter(odaf,
-                                        cipher, 
+    return new AP4_OmaDcfTrackDecrypter(cipher, 
                                         sample_entry, 
                                         sample_description->GetOriginalFormat());
 }
@@ -192,11 +399,9 @@ AP4_OmaDcfTrackDecrypter::Create(
 /*----------------------------------------------------------------------
 |   AP4_OmaDcfTrackDecrypter::AP4_OmaDcfTrackDecrypter
 +---------------------------------------------------------------------*/
-AP4_OmaDcfTrackDecrypter::AP4_OmaDcfTrackDecrypter(AP4_OdafAtom*     cipher_params,
-                                                   AP4_OmaDcfCipher* cipher,
-                                                   AP4_SampleEntry*  sample_entry,
-                                                   AP4_UI32          original_format) :
-    m_CipherParams(cipher_params),
+AP4_OmaDcfTrackDecrypter::AP4_OmaDcfTrackDecrypter(AP4_OmaDcfSampleDecrypter* cipher,
+                                                   AP4_SampleEntry*           sample_entry,
+                                                   AP4_UI32                   original_format) :
     m_Cipher(cipher),
     m_SampleEntry(sample_entry),
     m_OriginalFormat(original_format)
@@ -218,13 +423,7 @@ AP4_Size
 AP4_OmaDcfTrackDecrypter::GetProcessedSampleSize(AP4_Sample& sample)
 {
     if (m_Cipher == NULL) return 0;
-
-    // read the first byte to see if the sample is encrypted or not
-    sample.ReadData(m_PeekBuffer, 1);
-    bool is_encrypted = ((m_PeekBuffer.GetData()[0]&0x80)!=0);
-
-    AP4_Size crypto_header_size = 1+(is_encrypted?m_CipherParams->GetIvLength():0);
-    return sample.GetSize()-crypto_header_size;
+    return m_Cipher->GetDecryptedSampleSize(sample);
 }
 
 /*----------------------------------------------------------------------
@@ -245,7 +444,7 @@ AP4_Result
 AP4_OmaDcfTrackDecrypter::ProcessSample(AP4_DataBuffer& data_in,
                                         AP4_DataBuffer& data_out)
 {
-    return m_Cipher->DecryptSample(data_in, data_out);
+    return m_Cipher->DecryptSampleData(data_in, data_out);
 }
 
 /*----------------------------------------------------------------------
@@ -270,12 +469,12 @@ public:
 
 private:
     // members
-    AP4_OmaDcfCipher* m_Cipher;
-    AP4_SampleEntry*  m_SampleEntry;
-    AP4_UI32          m_Format;
-    AP4_String        m_ContentId;
-    AP4_String        m_RightsIssuerUrl;
-    AP4_UI32          m_Counter;
+    AP4_OmaDcfSampleEncrypter* m_Cipher;
+    AP4_SampleEntry*           m_SampleEntry;
+    AP4_UI32                   m_Format;
+    AP4_String                 m_ContentId;
+    AP4_String                 m_RightsIssuerUrl;
+    AP4_UI32                   m_Counter;
 };
 
 /*----------------------------------------------------------------------
@@ -295,7 +494,7 @@ AP4_OmaDcfTrackEncrypter::AP4_OmaDcfTrackEncrypter(
     m_Counter(0)
 {
     // instantiate the cipher (fixed params for now)
-    m_Cipher = new AP4_OmaDcfCipher(key, salt, 8);
+    m_Cipher = new AP4_OmaDcfCtrSampleEncrypter(key, salt);
 }
 
 /*----------------------------------------------------------------------
@@ -312,7 +511,7 @@ AP4_OmaDcfTrackEncrypter::~AP4_OmaDcfTrackEncrypter()
 AP4_Size   
 AP4_OmaDcfTrackEncrypter::GetProcessedSampleSize(AP4_Sample& sample)
 {
-    return sample.GetSize()+17; //fixed header size for now
+    return m_Cipher->GetEncryptedSampleSize(sample);
 }
 
 /*----------------------------------------------------------------------
@@ -364,10 +563,10 @@ AP4_Result
 AP4_OmaDcfTrackEncrypter::ProcessSample(AP4_DataBuffer& data_in,
                                         AP4_DataBuffer& data_out)
 {
-    AP4_Result result = m_Cipher->EncryptSample(data_in, 
-                                                data_out, 
-                                                m_Counter, 
-                                                false);
+    AP4_Result result = m_Cipher->EncryptSampleData(data_in, 
+                                                    data_out, 
+                                                    m_Counter, 
+                                                    false);
     if (AP4_FAILED(result)) return result;
 
     m_Counter += (data_in.GetDataSize()+AP4_AES_BLOCK_SIZE-1)/AP4_AES_BLOCK_SIZE;
