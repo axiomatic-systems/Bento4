@@ -200,20 +200,22 @@ AP4_DrmiSampleEntry::AP4_DrmiSampleEntry(AP4_Size         size,
 }
 
 /*----------------------------------------------------------------------
+|   AP4_ProtectionSchemeInfo::~AP4_ProtectionSchemeInfo
++---------------------------------------------------------------------*/
+AP4_ProtectionSchemeInfo::~AP4_ProtectionSchemeInfo()
+{
+    delete m_SchiAtom;
+}
+
+/*----------------------------------------------------------------------
 |   AP4_ProtectionSchemeInfo::AP4_ProtectionSchemeInfo
 +---------------------------------------------------------------------*/
-AP4_ProtectionSchemeInfo::AP4_ProtectionSchemeInfo(AP4_ContainerAtom* schi) :
-    m_SchiAtom(AP4_ATOM_TYPE_SCHI)
+AP4_ProtectionSchemeInfo::AP4_ProtectionSchemeInfo(AP4_ContainerAtom* schi)
 {
     if (schi) {
-        AP4_List<AP4_Atom>& children = schi->GetChildren();
-        AP4_List<AP4_Atom>::Item* child_item = children.FirstItem();
-        while (child_item) {
-            AP4_Atom* child_atom = child_item->GetData();
-            AP4_Atom* clone = child_atom->Clone();
-            if (clone) m_SchiAtom.AddChild(clone);
-            child_item = child_item->GetNext();
-        }
+        m_SchiAtom = (AP4_ContainerAtom*)schi->Clone();
+    } else {
+        m_SchiAtom = NULL;
     }
 }
 
@@ -379,6 +381,29 @@ AP4_ProtectedSampleDescription::ToAtom() const
 }
 
 /*----------------------------------------------------------------------
+|   AP4_SampleDecrypter:Create
++---------------------------------------------------------------------*/
+AP4_SampleDecrypter* 
+AP4_SampleDecrypter::Create(AP4_ProtectedSampleDescription* sample_description,
+                            const AP4_UI08*                 key,
+                            AP4_Size                        key_size)
+{
+    if (sample_description == NULL || key == NULL) return NULL;
+    switch(sample_description->GetSchemeType()) {
+        case AP4_PROTECTION_SCHEME_TYPE_OMA:
+            return AP4_OmaDcfSampleDecrypter::Create(sample_description, key, key_size);
+
+        case AP4_PROTECTION_SCHEME_TYPE_IAEC:
+            return AP4_IsmaCipher::CreateSampleDecrypter(sample_description, key, key_size);
+
+        default:
+            return NULL;
+    }
+
+    return NULL;
+}
+
+/*----------------------------------------------------------------------
 |   AP4_StandardDecryptingProcessor:CreateTrackHandler
 +---------------------------------------------------------------------*/
 AP4_Processor::TrackHandler* 
@@ -409,7 +434,7 @@ AP4_StandardDecryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
             if (key) {
                 return AP4_IsmaTrackDecrypter::Create(key, protected_desc, entry);
             }
-        }
+        } 
     }
 
     return NULL;

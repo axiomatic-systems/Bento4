@@ -43,6 +43,34 @@
 #include "Ap4TrakAtom.h"
 
 /*----------------------------------------------------------------------
+|   AP4_IsmaCipher::CreateSampleDecrypter
++---------------------------------------------------------------------*/
+AP4_IsmaCipher*
+AP4_IsmaCipher::CreateSampleDecrypter(AP4_ProtectedSampleDescription* sample_description, 
+                                      const AP4_UI08* key, AP4_Size key_size)
+{
+    if (key == NULL || key_size != AP4_AES_KEY_LENGTH) return NULL;
+
+    // get the scheme info atom
+    AP4_ContainerAtom* schi = sample_description->GetSchemeInfo()->GetSchiAtom();
+    if (schi == NULL) return NULL;
+
+    // get the cipher params
+    AP4_IsfmAtom* isfm = dynamic_cast<AP4_IsfmAtom*>(schi->FindChild("iSFM"));
+    if (isfm == NULL) return NULL;
+    
+    // get the salt
+    AP4_IsltAtom* salt = dynamic_cast<AP4_IsltAtom*>(schi->FindChild("iSLT"));
+
+    // instantiate the cipher
+    return new AP4_IsmaCipher(key, 
+                              salt?salt->GetSalt():NULL, 
+                              isfm->GetIvLength(),
+                              isfm->GetKeyIndicatorLength(),
+                              isfm->GetSelectiveEncryption());
+}
+
+/*----------------------------------------------------------------------
 |   AP4_IsmaCrypCipher::AP4_IsmaCipher
 +---------------------------------------------------------------------*/
 AP4_IsmaCipher::AP4_IsmaCipher(const AP4_UI08* key, 
@@ -81,11 +109,11 @@ AP4_IsmaCipher::~AP4_IsmaCipher()
 }
 
 /*----------------------------------------------------------------------
-|   AP4_IsmaCipher::DecryptSample
+|   AP4_IsmaCipher::DecryptSampleData
 +---------------------------------------------------------------------*/
 AP4_Result 
-AP4_IsmaCipher::DecryptSample(AP4_DataBuffer& data_in,
-                              AP4_DataBuffer& data_out)
+AP4_IsmaCipher::DecryptSampleData(AP4_DataBuffer& data_in,
+                                  AP4_DataBuffer& data_out)
 {
     bool                 is_encrypted = true;
     const unsigned char* in = data_in.GetData();
@@ -143,12 +171,12 @@ AP4_IsmaCipher::DecryptSample(AP4_DataBuffer& data_in,
 }
 
 /*----------------------------------------------------------------------
-|   AP4_IsmaCipher::EncryptSample
+|   AP4_IsmaCipher::EncryptSampleData
 +---------------------------------------------------------------------*/
 AP4_Result 
-AP4_IsmaCipher::EncryptSample(AP4_DataBuffer& data_in,
-                              AP4_DataBuffer& data_out,
-                              AP4_UI32        iv)
+AP4_IsmaCipher::EncryptSampleData(AP4_DataBuffer& data_in,
+                                  AP4_DataBuffer& data_out,
+                                  AP4_UI32        iv)
 {
     // setup the buffers
     const unsigned char* in = data_in.GetData();
@@ -173,23 +201,12 @@ AP4_IsmaTrackDecrypter::Create(const AP4_UI08*                 key,
                                AP4_ProtectedSampleDescription* sample_description, 
                                AP4_SampleEntry*                sample_entry)
 {
-    // get the cipher params
-    AP4_IsfmAtom* isfm = (AP4_IsfmAtom*)sample_description->GetSchemeInfo()->GetSchiAtom().FindChild("iSFM");
-    if (isfm == NULL) return NULL;
-    
-    // get the salt
-    AP4_IsltAtom* salt = (AP4_IsltAtom*)sample_description->GetSchemeInfo()->GetSchiAtom().FindChild("iSLT");
-
     // instantiate the cipher
-    AP4_IsmaCipher* cipher = new AP4_IsmaCipher(key, 
-                                                salt?salt->GetSalt():NULL, 
-                                                isfm->GetIvLength(),
-                                                isfm->GetKeyIndicatorLength(),
-                                                isfm->GetSelectiveEncryption());
+    AP4_IsmaCipher* cipher = AP4_IsmaCipher::CreateSampleDecrypter(sample_description, key, AP4_AES_KEY_LENGTH);
+    if (cipher == NULL) return NULL;
 
     // instanciate the object
-    return new AP4_IsmaTrackDecrypter(isfm, 
-                                      cipher, 
+    return new AP4_IsmaTrackDecrypter(cipher, 
                                       sample_entry, 
                                       sample_description->GetOriginalFormat());
 }
@@ -197,11 +214,9 @@ AP4_IsmaTrackDecrypter::Create(const AP4_UI08*                 key,
 /*----------------------------------------------------------------------
 |   AP4_IsmaTrackDecrypter::AP4_IsmaTrackDecrypter
 +---------------------------------------------------------------------*/
-AP4_IsmaTrackDecrypter::AP4_IsmaTrackDecrypter(AP4_IsfmAtom*     cipher_params,
-                                               AP4_IsmaCipher*   cipher,
+AP4_IsmaTrackDecrypter::AP4_IsmaTrackDecrypter(AP4_IsmaCipher*   cipher,
                                                AP4_SampleEntry*  sample_entry,
                                                AP4_UI32          original_format) :
-    m_CipherParams(cipher_params),
     m_Cipher(cipher),
     m_SampleEntry(sample_entry),
     m_OriginalFormat(original_format)
@@ -223,9 +238,9 @@ AP4_Size
 AP4_IsmaTrackDecrypter::GetProcessedSampleSize(AP4_Sample& sample)
 {
     AP4_Size isma_header_size = 
-        m_CipherParams->GetKeyIndicatorLength() +
-        m_CipherParams->GetIvLength();
-    if (m_CipherParams->GetSelectiveEncryption()) {
+        m_Cipher->GetKeyIndicatorLength() +
+        m_Cipher->GetIvLength();
+    if (m_Cipher->GetSelectiveEncryption()) {
         isma_header_size++;
     }
     return sample.GetSize()-isma_header_size;
@@ -249,7 +264,7 @@ AP4_Result
 AP4_IsmaTrackDecrypter::ProcessSample(AP4_DataBuffer& data_in,
                                       AP4_DataBuffer& data_out)
 {
-    return m_Cipher->DecryptSample(data_in, data_out);
+    return m_Cipher->DecryptSampleData(data_in, data_out);
 }
 
 /*----------------------------------------------------------------------
@@ -364,7 +379,7 @@ AP4_Result
 AP4_IsmaTrackEncrypter::ProcessSample(AP4_DataBuffer& data_in,
                                       AP4_DataBuffer& data_out)
 {
-    AP4_Result result = m_Cipher->EncryptSample(data_in, data_out, m_Counter);
+    AP4_Result result = m_Cipher->EncryptSampleData(data_in, data_out, m_Counter);
     if (AP4_FAILED(result)) return result;
 
     m_Counter += (data_in.GetDataSize()+AP4_AES_BLOCK_SIZE-1)/AP4_AES_BLOCK_SIZE;

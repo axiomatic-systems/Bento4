@@ -49,7 +49,9 @@ PrintUsageAndExit()
 {
     fprintf(stderr, 
             BANNER 
-            "\n\nusage: mp42aac [options] <input> <output>\n");
+            "\n\nusage: mp42aac [options] <input> <output>\n"
+            "  Options:\n"
+            "  --key <hex>: 128-bit decryption key (in hex: 16 chars)\n");
     exit(1);
 }
 
@@ -96,6 +98,65 @@ crc_check 16 only if protection_absent == 0
 }
 
 /*----------------------------------------------------------------------
+|   DecryptAndWriteSamples
++---------------------------------------------------------------------*/
+static void
+DecryptAndWriteSamples(AP4_Track*             track, 
+                       AP4_SampleDescription* sdesc, 
+                       AP4_Byte*              key, 
+                       AP4_ByteStream*        output)
+{
+    AP4_ProtectedSampleDescription* pdesc = dynamic_cast<AP4_ProtectedSampleDescription*>(sdesc);
+    if (pdesc == NULL) {
+        fprintf(stderr, "ERROR: unable to obtain cipher info\n");
+        return;
+    }
+    
+    // create the decrypter
+    AP4_SampleDecrypter* decrypter = AP4_SampleDecrypter::Create(pdesc, key, 16);
+    if (decrypter == NULL) {
+        fprintf(stderr, "ERROR: unable to create decrypter\n");
+        return;
+    }
+
+    AP4_Sample     sample;
+    AP4_DataBuffer encrypted_data;
+    AP4_DataBuffer decrypted_data;
+    AP4_Ordinal    index = 0;
+    while (AP4_SUCCEEDED(track->ReadSample(index, sample, encrypted_data))) {
+        if (AP4_FAILED(decrypter->DecryptSampleData(encrypted_data, decrypted_data))) {
+            fprintf(stderr, "ERROR: failed to decrypt sample\n");
+            return;
+        }
+
+	    WriteAdtsHeader(output, decrypted_data.GetDataSize());
+        output->Write(decrypted_data.GetData(), decrypted_data.GetDataSize());
+        AP4_Debug("  [%d] writing %ld bytes of data...\n", 
+                  index, decrypted_data.GetDataSize());
+	    index++;
+    }
+}
+
+/*----------------------------------------------------------------------
+|   WriteSamples
++---------------------------------------------------------------------*/
+static void
+WriteSamples(AP4_Track* track, AP4_ByteStream* output)
+{
+    AP4_Sample     sample;
+    AP4_DataBuffer data;
+    AP4_Ordinal    index = 0;
+    while (AP4_SUCCEEDED(track->ReadSample(index, sample, data))) {
+        AP4_DataBuffer* sample_data = &data;
+	    WriteAdtsHeader(output, sample.GetSize());
+        output->Write(data.GetData(), data.GetDataSize());
+        AP4_Debug("  [%d] writing %ld bytes of data...\n", 
+                    index, sample.GetSize());
+	    index++;
+    }
+}
+
+/*----------------------------------------------------------------------
 |   main
 +---------------------------------------------------------------------*/
 int
@@ -105,14 +166,30 @@ main(int argc, char** argv)
         PrintUsageAndExit();
     }
     
+    char** args = argv+1;
+    unsigned char key[16];
+    bool          key_option = false;
+    if (!strcmp(*args, "--key")) {
+        if (argc != 5) {
+            fprintf(stderr, "ERROR: invalid command line\n");
+            return 1;
+        }
+        ++args;
+        if (AP4_ParseHex(*args++, key, 16)) {
+            fprintf(stderr, "ERROR: invalid hex format for key\n");
+            return 1;
+        }
+        key_option = true;
+    }
+
 	// create the input stream
     AP4_ByteStream* input = 
-        new AP4_FileByteStream(argv[1],
+        new AP4_FileByteStream(*args++,
                                AP4_FileByteStream::STREAM_MODE_READ);
 
 	// create the output stream
     AP4_ByteStream* output =
-        new AP4_FileByteStream(argv[2],
+        new AP4_FileByteStream(*args++,
                                AP4_FileByteStream::STREAM_MODE_WRITE);
 
 	// open the file
@@ -120,34 +197,51 @@ main(int argc, char** argv)
 
     // get the movie
     AP4_Movie* movie = input_file->GetMovie();
-    if (movie != NULL) {
-        AP4_List<AP4_Track>& tracks = movie->GetTracks();
-        AP4_Debug("Found %d Tracks\n", tracks.ItemCount());
-	    // get audio track
-        AP4_Track* audio_track = movie->GetTrack(AP4_Track::TYPE_AUDIO);
-        if (audio_track != NULL) {
-		    // show info
-            AP4_Debug("Audio Track:\n");
-            AP4_Debug("  duration: %ld ms\n", audio_track->GetDurationMs());
-            AP4_Debug("  sample count: %ld\n", audio_track->GetSampleCount());
-
-		    AP4_Sample     sample;
-            AP4_DataBuffer data;
-		    AP4_Ordinal    index = 0;
-            while (AP4_SUCCEEDED(audio_track->ReadSample(index, sample, data))) {
-			    WriteAdtsHeader(output, sample.GetSize());
-                output->Write(data.GetData(), data.GetDataSize());
-                AP4_Debug("  [%d] writing %ld bytes of data...\n", 
-                            index, sample.GetSize());
-			    index++;
-            }
-        } else {
-            AP4_Debug("No Audio Track found\n");    
-        }
-    } else {
-        AP4_Debug("No Movie in file\n");
+    if (movie == NULL) {
+        fprintf(stderr, "ERROR: no movie in file\n");
+        goto end;
     }
 
+    // get the audio track
+    AP4_List<AP4_Track>& tracks = movie->GetTracks();
+    AP4_Debug("Found %d Tracks\n", tracks.ItemCount());
+    // get audio track
+    AP4_Track* audio_track = movie->GetTrack(AP4_Track::TYPE_AUDIO);
+    if (audio_track == NULL) {
+        fprintf(stderr, "ERROR: no audio track found\n");
+        goto end;
+    }
+
+    // check that the track is of the right type
+    AP4_SampleDescription* sample_description = audio_track->GetSampleDescription(0);
+    if (sample_description == NULL) {
+        fprintf(stderr, "ERROR: unable to parse sample description\n");
+        goto end;
+    }
+    // show info
+    AP4_Debug("Audio Track:\n");
+    AP4_Debug("  duration: %ld ms\n", audio_track->GetDurationMs());
+    AP4_Debug("  sample count: %ld\n", audio_track->GetSampleCount());
+
+    switch (sample_description->GetType()) {
+        case AP4_SampleDescription::TYPE_MPEG:
+            WriteSamples(audio_track, output);
+            break;
+
+        case AP4_SampleDescription::TYPE_PROTECTED: 
+            if (!key_option) {
+                fprintf(stderr, "ERROR: encrypted tracks require a key\n");
+                goto end;
+            }
+            DecryptAndWriteSamples(audio_track, sample_description, key, output);
+            break;
+
+        default:
+            fprintf(stderr, "ERROR: unsupported sample type\n");
+            break;
+    }
+
+end:
     delete input_file;
     input->Release();
     output->Release();

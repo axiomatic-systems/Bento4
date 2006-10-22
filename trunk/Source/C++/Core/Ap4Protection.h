@@ -45,6 +45,8 @@
 // this is fixed for now
 const unsigned int AP4_PROTECTION_KEY_LENGTH = 16;
 
+const AP4_UI32 AP4_PROTECTION_SCHEME_TYPE_ITUNES = AP4_ATOM_TYPE('i','t','u','n');
+
 /*----------------------------------------------------------------------
 |   AP4_EncaSampleEntry
 +---------------------------------------------------------------------*/
@@ -149,13 +151,13 @@ class AP4_ProtectionSchemeInfo
 public:
     // constructors and destructor
     AP4_ProtectionSchemeInfo(AP4_ContainerAtom* schi);
-    virtual ~AP4_ProtectionSchemeInfo(){}
+    virtual ~AP4_ProtectionSchemeInfo();
 
     // accessors
-    AP4_ContainerAtom& GetSchiAtom() { return m_SchiAtom; }
+    AP4_ContainerAtom* GetSchiAtom() { return m_SchiAtom; }
 
 protected:
-    AP4_ContainerAtom m_SchiAtom;
+    AP4_ContainerAtom* m_SchiAtom;
 };
 
 /*----------------------------------------------------------------------
@@ -197,6 +199,25 @@ private:
     AP4_UI32                  m_SchemeVersion;
     AP4_String                m_SchemeUri;
     AP4_ProtectionSchemeInfo* m_SchemeInfo;
+};
+
+/*----------------------------------------------------------------------
+|   AP4_SampleDecrypter
++---------------------------------------------------------------------*/
+class AP4_SampleDecrypter
+{
+public:
+    // factory
+    static AP4_SampleDecrypter* Create(AP4_ProtectedSampleDescription* sample_description,
+                                       const AP4_UI08*                 key,
+                                       AP4_Size                        key_size);
+
+    // destructor
+    virtual ~AP4_SampleDecrypter() {}
+
+    // methods
+    virtual AP4_Result DecryptSampleData(AP4_DataBuffer& data_in,
+                                         AP4_DataBuffer& data_out) = 0;
 };
 
 /*----------------------------------------------------------------------

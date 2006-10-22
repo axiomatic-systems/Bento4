@@ -74,19 +74,21 @@ ShowProtectedSampleDescription(AP4_ProtectedSampleDescription* desc)
     AP4_Debug("      Scheme URI:     %s\n", desc->GetSchemeUri().GetChars());
     AP4_ProtectionSchemeInfo* scheme_info = desc->GetSchemeInfo();
     if (scheme_info == NULL) return;
+    AP4_ContainerAtom* schi = scheme_info->GetSchiAtom();
+    if (schi == NULL) return;
     if (desc->GetSchemeType() == AP4_PROTECTION_SCHEME_TYPE_IAEC) {
         AP4_Debug("      iAEC Scheme Info:\n");
-        AP4_IkmsAtom* ikms = (AP4_IkmsAtom*)scheme_info->GetSchiAtom().FindChild("iKMS");
+        AP4_IkmsAtom* ikms = dynamic_cast<AP4_IkmsAtom*>(schi->FindChild("iKMS"));
         if (ikms) {
             AP4_Debug("        KMS URI:              %s\n", ikms->GetKmsUri().GetChars());
         }
-        AP4_IsfmAtom* isfm = (AP4_IsfmAtom*)scheme_info->GetSchiAtom().FindChild("iSFM");
+        AP4_IsfmAtom* isfm = dynamic_cast<AP4_IsfmAtom*>(schi->FindChild("iSFM"));
         if (isfm) {
             AP4_Debug("        Selective Encryption: %s\n", isfm->GetSelectiveEncryption()?"yes":"no");
             AP4_Debug("        Key Indicator Length: %d\n", isfm->GetKeyIndicatorLength());
             AP4_Debug("        IV Length:            %d\n", isfm->GetIvLength());
         }
-        AP4_IsltAtom* islt = (AP4_IsltAtom*)scheme_info->GetSchiAtom().FindChild("iSLT");
+        AP4_IsltAtom* islt = dynamic_cast<AP4_IsltAtom*>(schi->FindChild("iSLT"));
         if (islt) {
             AP4_Debug("        Salt:                 ");
             for (unsigned int i=0; i<8; i++) {
@@ -96,11 +98,17 @@ ShowProtectedSampleDescription(AP4_ProtectedSampleDescription* desc)
         }
     } else if (desc->GetSchemeType() == AP4_PROTECTION_SCHEME_TYPE_OMA) {
         AP4_Debug("      odkm Scheme Info:\n");
-        AP4_OdafAtom* odaf = (AP4_OdafAtom*)scheme_info->GetSchiAtom().FindChild("odaf");
+        AP4_OdafAtom* odaf = dynamic_cast<AP4_OdafAtom*>(schi->FindChild("odkm/odaf"));
         if (odaf) {
             AP4_Debug("        Selective Encryption: %s\n", odaf->GetSelectiveEncryption()?"yes":"no");
             AP4_Debug("        Key Indicator Length: %d\n", odaf->GetKeyIndicatorLength());
             AP4_Debug("        IV Length:            %d\n", odaf->GetIvLength());
+        }
+        AP4_OhdrAtom* ohdr = dynamic_cast<AP4_OhdrAtom*>(schi->FindChild("odkm/ohdr"));
+        if (ohdr) {
+            AP4_Debug("        Encryption Method: %d\n", ohdr->GetEncryptionMethod());
+            AP4_Debug("        Content ID:        %s\n", ohdr->GetContentId().GetChars());
+            AP4_Debug("        Rights Issuer URL: %s\n", ohdr->GetRightsIssuerUrl().GetChars());
         }
     }
 }
