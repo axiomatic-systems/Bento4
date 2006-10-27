@@ -21,12 +21,12 @@
 					<value>all</value>
 				</dictionary>
 				<dictionary>
-					<key>org.eclipse.cdt.make.core.buildLocation</key>
-					<value></value>
-				</dictionary>
-				<dictionary>
 					<key>org.eclipse.cdt.make.core.enableAutoBuild</key>
 					<value>false</value>
+				</dictionary>
+				<dictionary>
+					<key>org.eclipse.cdt.make.core.buildLocation</key>
+					<value></value>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.enableFullBuild</key>
@@ -53,12 +53,12 @@
 					<value>make</value>
 				</dictionary>
 				<dictionary>
-					<key>org.eclipse.cdt.make.core.stopOnError</key>
-					<value>false</value>
-				</dictionary>
-				<dictionary>
 					<key>org.eclipse.cdt.make.core.autoBuildTarget</key>
 					<value>all</value>
+				</dictionary>
+				<dictionary>
+					<key>org.eclipse.cdt.make.core.stopOnError</key>
+					<value>false</value>
 				</dictionary>
 			</arguments>
 		</buildCommand>
@@ -70,14 +70,14 @@
 	</natures>
 	<linkedResources>
 		<link>
-			<name>Makefiles</name>
-			<type>2</type>
-			<location>AP4_HOME/Build/Makefiles</location>
-		</link>
-		<link>
 			<name>Source</name>
 			<type>2</type>
-			<location>AP4_HOME/Source</location>
+			<locationURI>AP4_HOME/Source</locationURI>
+		</link>
+		<link>
+			<name>Makefiles</name>
+			<type>2</type>
+			<locationURI>AP4_HOME/Build/Makefiles</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>
