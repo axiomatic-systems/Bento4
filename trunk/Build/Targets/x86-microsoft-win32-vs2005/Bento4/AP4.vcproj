@@ -2,9 +2,10 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8.00"
-	Name="Ap4Core"
-	ProjectGUID="{20CC19A5-73A7-44B3-B3D1-D956CDC66CE2}"
-	RootNamespace="Ap4Core"
+	Name="Bento4"
+	ProjectGUID="{A714AA1C-45A9-403D-A6E1-020E520119A2}"
+	RootNamespace="Bento4"
+	Keyword="Win32Proj"
 	>
 	<Platforms>
 		<Platform
@@ -17,11 +18,9 @@
 		<Configuration
 			Name="Debug|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
-			IntermediateDirectory=".\Debug"
+			IntermediateDirectory="Debug"
 			ConfigurationType="4"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
-			UseOfMFC="0"
-			ATLMinimizesCRunTimeLibraryUsage="false"
 			CharacterSet="2"
 			>
 			<Tool
@@ -42,36 +41,27 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;..\..\..\..\Source\C++\Config&quot;;&quot;..\..\..\..\Source\C++\Crypto&quot;;&quot;..\..\..\..\Source\C++\MetaData&quot;"
-				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
+				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
+				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
-				RuntimeLibrary="3"
-				RuntimeTypeInfo="true"
+				RuntimeLibrary="1"
 				UsePrecompiledHeader="0"
-				PrecompiledHeaderFile=".\Debug/Ap4Core.pch"
-				AssemblerListingLocation=".\Debug/"
-				ObjectFile=".\Debug/"
-				ProgramDataBaseFileName=".\Debug/"
 				WarningLevel="3"
-				SuppressStartupBanner="true"
+				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="4"
-				CompileAs="0"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
 			/>
 			<Tool
 				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="_DEBUG"
-				Culture="1033"
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\Debug\Ap4Core.lib"
-				SuppressStartupBanner="true"
+				OutputFile="$(OutDir)/AP4.lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -92,13 +82,10 @@
 		<Configuration
 			Name="Release|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
-			IntermediateDirectory=".\Release"
+			IntermediateDirectory="Release"
 			ConfigurationType="4"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
-			UseOfMFC="0"
-			ATLMinimizesCRunTimeLibraryUsage="false"
 			CharacterSet="2"
-			WholeProgramOptimization="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -117,38 +104,26 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				InlineFunctionExpansion="1"
-				WholeProgramOptimization="false"
-				AdditionalIncludeDirectories="&quot;..\..\..\..\Source\C++\Config&quot;;&quot;..\..\..\..\Source\C++\Crypto&quot;;&quot;..\..\..\..\Source\C++\MetaData&quot;"
-				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
-				StringPooling="true"
+				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
 				RuntimeLibrary="2"
-				EnableFunctionLevelLinking="true"
-				RuntimeTypeInfo="true"
 				UsePrecompiledHeader="0"
-				PrecompiledHeaderFile=".\Release/Ap4Core.pch"
-				AssemblerListingLocation=".\Release/"
-				ObjectFile=".\Release/"
-				ProgramDataBaseFileName=".\Release/"
 				WarningLevel="3"
-				SuppressStartupBanner="true"
-				CompileAs="0"
+				Detect64BitPortabilityProblems="true"
+				DebugInformationFormat="3"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
 			/>
 			<Tool
 				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="NDEBUG"
-				Culture="1033"
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\Release\Ap4Core.lib"
-				SuppressStartupBanner="true"
+				LinkLibraryDependencies="true"
+				OutputFile="$(OutDir)/AP4.lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -172,8 +147,6 @@
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="4"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
-			UseOfMFC="0"
-			ATLMinimizesCRunTimeLibraryUsage="false"
 			CharacterSet="2"
 			>
 			<Tool
@@ -193,37 +166,25 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="&quot;..\..\..\..\Source\C++\Config&quot;;&quot;..\..\..\..\Source\C++\Crypto&quot;;&quot;..\..\..\..\Source\C++\MetaData&quot;"
-				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
-				StringPooling="true"
+				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
 				RuntimeLibrary="0"
-				EnableFunctionLevelLinking="true"
-				RuntimeTypeInfo="true"
 				UsePrecompiledHeader="0"
-				PrecompiledHeaderFile=".\Release/Ap4Core.pch"
-				AssemblerListingLocation=".\Release/"
-				ObjectFile=".\Release/"
-				ProgramDataBaseFileName=".\Release/"
 				WarningLevel="3"
-				SuppressStartupBanner="true"
-				CompileAs="0"
+				Detect64BitPortabilityProblems="true"
+				DebugInformationFormat="3"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
 			/>
 			<Tool
 				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="NDEBUG"
-				Culture="1033"
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\Release\Ap4Core.lib"
-				SuppressStartupBanner="true"
+				OutputFile="$(OutDir)/AP4.lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -247,8 +208,17 @@
 	<Files>
 		<Filter
 			Name="Source\C++ Files"
-			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
+			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx"
+			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
+			<File
+				RelativePath="..\..\..\..\Source\C++\Codecs\Ap4AdtsParser.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\Source\C++\Crypto\Ap4AesBlockCipher.cpp"
+				>
+			</File>
 			<File
 				RelativePath="..\..\..\..\Source\C++\Core\Ap4Atom.cpp"
 				>
@@ -259,6 +229,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\..\Source\C++\Core\Ap4AtomSampleTable.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\Source\C++\Codecs\Ap4BitStream.cpp"
 				>
 			</File>
 			<File
@@ -362,6 +336,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\..\Source\C++\MetaData\Ap4MetaData.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\Source\C++\Core\Ap4MoovAtom.cpp"
 				>
 			</File>
@@ -450,6 +428,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\..\Source\C++\System\StdC\Ap4StdCFileByteStream.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\Source\C++\Crypto\Ap4StreamCipher.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\Source\C++\Core\Ap4String.cpp"
 				>
 			</File>
@@ -516,8 +502,21 @@
 		</Filter>
 		<Filter
 			Name="Header Files"
-			Filter="h;hpp;hxx;hm;inl"
+			Filter="h;hpp;hxx;hm;inl;inc;xsd"
+			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
+			<File
+				RelativePath="..\..\..\..\Source\C++\Core\Ap4.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\Source\C++\Codecs\Ap4AdtsParser.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\Source\C++\Crypto\Ap4AesBlockCipher.h"
+				>
+			</File>
 			<File
 				RelativePath="..\..\..\..\Source\C++\Core\Ap4Array.h"
 				>
@@ -535,7 +534,15 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\..\Source\C++\Codecs\Ap4BitStream.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\Source\C++\Core\Ap4ByteStream.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\Source\C++\Config\Ap4Config.h"
 				>
 			</File>
 			<File
@@ -651,6 +658,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\..\Source\C++\MetaData\Ap4MetaData.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\Source\C++\Core\Ap4MoovAtom.h"
 				>
 			</File>
@@ -743,6 +754,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\..\Source\C++\Crypto\Ap4StreamCipher.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\Source\C++\Core\Ap4String.h"
 				>
 			</File>
@@ -807,9 +822,19 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\..\Source\C++\Config\Ap4Version.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\Source\C++\Core\Ap4VmhdAtom.h"
 				>
 			</File>
+		</Filter>
+		<Filter
+			Name="Resource Files"
+			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx"
+			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
+			>
 		</Filter>
 	</Files>
 	<Globals>
