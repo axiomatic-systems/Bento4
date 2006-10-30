@@ -52,7 +52,7 @@ AP4_String::AP4_String(const char* s) {
         m_Length = 0;
         return;
     }
-    m_Length = AP4_StringLength(s);
+    m_Length = (AP4_Size)AP4_StringLength(s);
     m_Chars = new char[m_Length+1];
     AP4_CopyMemory(m_Chars, s, m_Length+1);
 }
@@ -120,7 +120,7 @@ AP4_String::operator=(const char* s)
         m_Chars = &EmptyString;
         m_Length = 0;
     } else {
-        Assign(s, AP4_StringLength(s));
+        Assign(s, (AP4_Size)AP4_StringLength(s));
     }
 
     return *this;

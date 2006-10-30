@@ -152,7 +152,7 @@ AP4_StdcFileByteStream::Read(void*    buffer,
     nbRead = fread(buffer, 1, bytesToRead, m_File);
 
     if (nbRead > 0) {
-        if (bytesRead) *bytesRead = nbRead;
+        if (bytesRead) *bytesRead = (AP4_Size)nbRead;
         return AP4_SUCCESS;
     } else if (feof(m_File)) {
         if (bytesRead) *bytesRead = 0;
@@ -177,7 +177,7 @@ AP4_StdcFileByteStream::Write(const void* buffer,
     nbWritten = fwrite(buffer, 1, bytesToWrite, m_File);
     
     if (nbWritten > 0) {
-        if (bytesWritten) *bytesWritten = nbWritten;
+        if (bytesWritten) *bytesWritten = (AP4_Size)nbWritten;
         return AP4_SUCCESS;
     } else {
         if (bytesWritten) *bytesWritten = 0;
