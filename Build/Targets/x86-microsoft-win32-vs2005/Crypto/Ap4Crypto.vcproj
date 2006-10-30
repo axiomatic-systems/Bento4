@@ -2,8 +2,8 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8.00"
-	Name="MetaData"
-	ProjectGUID="{D2A66E1B-6C25-4D48-8908-F70AD585A7E1}"
+	Name="Ap4Crypto"
+	ProjectGUID="{1B7A8040-695A-4EFA-9C0D-BF497B93F6E2}"
 	Keyword="Win32Proj"
 	>
 	<Platforms>
@@ -41,11 +41,10 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\..\..\..\Source\C++\Config;..\..\..\..\Source\C++\Core"
-				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
+				PreprocessorDefinitions="AP4_PLATFORM_BYTE_ORDER=AP4_PLATFORM_LITTLE_ENDIAN"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
-				RuntimeTypeInfo="true"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
@@ -62,7 +61,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="$(OutDir)/MetaData.lib"
+				OutputFile="$(OutDir)/Ap4Crypto.lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -105,11 +104,13 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				Optimization="3"
+				OmitFramePointers="true"
 				AdditionalIncludeDirectories="..\..\..\..\Source\C++\Config;..\..\..\..\Source\C++\Core"
-				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
+				PreprocessorDefinitions="AP4_PLATFORM_BYTE_ORDER=AP4_PLATFORM_LITTLE_ENDIAN"
 				RuntimeLibrary="2"
+				BufferSecurityCheck="false"
 				EnableFunctionLevelLinking="true"
-				RuntimeTypeInfo="true"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
@@ -126,7 +127,69 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="$(OutDir)/MetaData.lib"
+				OutputFile="$(OutDir)/Ap4Crypto.lib"
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
+		</Configuration>
+		<Configuration
+			Name="ST|Win32"
+			OutputDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
+			ConfigurationType="4"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
+			CharacterSet="2"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				AdditionalIncludeDirectories="..\..\..\..\Source\C++\Config;..\..\..\..\Source\C++\Core"
+				PreprocessorDefinitions="AP4_PLATFORM_BYTE_ORDER=AP4_PLATFORM_LITTLE_ENDIAN"
+				RuntimeLibrary="0"
+				UsePrecompiledHeader="0"
+				WarningLevel="3"
+				Detect64BitPortabilityProblems="true"
+				DebugInformationFormat="3"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="$(OutDir)/Ap4Crypto.lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -149,24 +212,16 @@
 	</References>
 	<Files>
 		<Filter
-			Name="Source Files"
+			Name="Source\C++ Files"
 			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx"
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
-			<File
-				RelativePath="..\..\..\..\Source\C++\MetaData\Ap4MetaData.cpp"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
-			<File
-				RelativePath="..\..\..\..\Source\C++\MetaData\Ap4MetaData.h"
-				>
-			</File>
 		</Filter>
 	</Files>
 	<Globals>
