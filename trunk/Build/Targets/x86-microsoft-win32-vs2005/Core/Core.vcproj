@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8.00"
-	Name="Core"
+	Name="Ap4Core"
 	ProjectGUID="{20CC19A5-73A7-44B3-B3D1-D956CDC66CE2}"
-	RootNamespace="Core"
+	RootNamespace="Ap4Core"
 	>
 	<Platforms>
 		<Platform
@@ -48,7 +48,7 @@
 				RuntimeLibrary="3"
 				RuntimeTypeInfo="true"
 				UsePrecompiledHeader="0"
-				PrecompiledHeaderFile=".\Debug/Core.pch"
+				PrecompiledHeaderFile=".\Debug/Ap4Core.pch"
 				AssemblerListingLocation=".\Debug/"
 				ObjectFile=".\Debug/"
 				ProgramDataBaseFileName=".\Debug/"
@@ -70,7 +70,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\Debug\Core.lib"
+				OutputFile=".\Debug\Ap4Core.lib"
 				SuppressStartupBanner="true"
 			/>
 			<Tool
@@ -126,7 +126,7 @@
 				EnableFunctionLevelLinking="true"
 				RuntimeTypeInfo="true"
 				UsePrecompiledHeader="0"
-				PrecompiledHeaderFile=".\Release/Core.pch"
+				PrecompiledHeaderFile=".\Release/Ap4Core.pch"
 				AssemblerListingLocation=".\Release/"
 				ObjectFile=".\Release/"
 				ProgramDataBaseFileName=".\Release/"
@@ -147,7 +147,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\Release\Core.lib"
+				OutputFile=".\Release\Ap4Core.lib"
 				SuppressStartupBanner="true"
 			/>
 			<Tool
@@ -201,7 +201,7 @@
 				EnableFunctionLevelLinking="true"
 				RuntimeTypeInfo="true"
 				UsePrecompiledHeader="0"
-				PrecompiledHeaderFile=".\Release/Core.pch"
+				PrecompiledHeaderFile=".\Release/Ap4Core.pch"
 				AssemblerListingLocation=".\Release/"
 				ObjectFile=".\Release/"
 				ProgramDataBaseFileName=".\Release/"
@@ -222,7 +222,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\Release\Core.lib"
+				OutputFile=".\Release\Ap4Core.lib"
 				SuppressStartupBanner="true"
 			/>
 			<Tool
