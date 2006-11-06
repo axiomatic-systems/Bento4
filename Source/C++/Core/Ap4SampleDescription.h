@@ -44,6 +44,13 @@ class AP4_SampleEntry;
 class AP4_DataBuffer;
 
 /*----------------------------------------------------------------------
+|   constants
++---------------------------------------------------------------------*/
+#define AP4_SAMPLE_FORMAT_MP4A AP4_ATOM_TYPE_MP4A
+#define AP4_SAMPLE_FORMAT_MP4V AP4_ATOM_TYPE_MP4V
+#define AP4_SAMPLE_FORMAT_AVC1 AP4_ATOM_TYPE_AVC1
+
+/*----------------------------------------------------------------------
 |   AP4_SampleDescription
 +---------------------------------------------------------------------*/
 class AP4_SampleDescription
@@ -185,8 +192,8 @@ class AP4_MpegSampleDescription : public AP4_SampleDescription
     typedef AP4_UI08 OTI;
     
     // class methods
-    const char* GetStreamTypeString(StreamType type);
-    const char* GetObjectTypeString(OTI oti);
+    static const char* GetStreamTypeString(StreamType type);
+    static const char* GetObjectTypeString(OTI oti);
 
     // constructors & destructor
     AP4_MpegSampleDescription(AP4_UI32      format,
