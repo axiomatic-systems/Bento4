@@ -48,7 +48,9 @@ AP4_IkmsAtom::Create(AP4_Size size, AP4_ByteStream& stream)
 /*----------------------------------------------------------------------
 |   AP4_IkmsAtom::AP4_IkmsAtom
 +---------------------------------------------------------------------*/
-AP4_IkmsAtom::AP4_IkmsAtom(const char* kms_uri) :
+AP4_IkmsAtom::AP4_IkmsAtom(const char* kms_uri,
+                           AP4_UI32    kms_id,
+                           AP4_UI32    kms_version) :
     AP4_Atom(AP4_ATOM_TYPE_IKMS, AP4_FULL_ATOM_HEADER_SIZE, 0, 0),
     m_KmsUri(kms_uri),
     m_KmsId(0),
@@ -90,7 +92,7 @@ AP4_IkmsAtom::AP4_IkmsAtom(AP4_Size        size,
 AP4_Atom* 
 AP4_IkmsAtom::Clone()
 {
-    return new AP4_IkmsAtom(m_KmsUri.GetChars());
+    return new AP4_IkmsAtom(m_KmsUri.GetChars(), m_KmsId, m_KmsVersion);
 }
 
 /*----------------------------------------------------------------------

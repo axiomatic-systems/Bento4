@@ -87,6 +87,7 @@ const AP4_Atom::Type AP4_ATOM_TYPE_TVEN = AP4_ATOM_TYPE('t','v','e','n'); // TV 
 const AP4_Atom::Type AP4_ATOM_TYPE_TVSN = AP4_ATOM_TYPE('t','v','s','n'); // TV show season #
 const AP4_Atom::Type AP4_ATOM_TYPE_TVES = AP4_ATOM_TYPE('t','v','e','s'); // TV show episode #
 const AP4_Atom::Type AP4_ATOM_TYPE_STIK = AP4_ATOM_TYPE('s','t','i','k');
+const AP4_Atom::Type AP4_ATOM_TYPE_PGAP = AP4_ATOM_TYPE('p','g','a','p'); // Gapless Playback
 
 /*----------------------------------------------------------------------
 |   AP4_MetaData

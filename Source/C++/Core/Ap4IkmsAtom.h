@@ -46,7 +46,9 @@ public:
     static AP4_IkmsAtom* Create(AP4_Size size, AP4_ByteStream& stream);
 
     // methods
-    AP4_IkmsAtom(const char* kms_uri);
+    AP4_IkmsAtom(const char* kms_uri,
+                 AP4_UI32    kms_id = 0,
+                 AP4_UI32    kms_version = 0);
     virtual AP4_Atom*  Clone();
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
