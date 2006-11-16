@@ -120,9 +120,9 @@ static void
 ShowSampleDescription(AP4_SampleDescription* desc)
 {
     if (desc->GetType() == AP4_SampleDescription::TYPE_PROTECTED) {
-        AP4_ProtectedSampleDescription* isma_desc = dynamic_cast<AP4_ProtectedSampleDescription*>(desc);
-        ShowProtectedSampleDescription(isma_desc);
-        desc = isma_desc->GetOriginalSampleDescription();
+        AP4_ProtectedSampleDescription* prot_desc = dynamic_cast<AP4_ProtectedSampleDescription*>(desc);
+        ShowProtectedSampleDescription(prot_desc);
+        desc = prot_desc->GetOriginalSampleDescription();
     }
     char coding[5];
     AP4_FormatFourChars(coding, desc->GetFormat());

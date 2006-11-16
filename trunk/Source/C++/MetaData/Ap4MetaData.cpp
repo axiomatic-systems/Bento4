@@ -60,6 +60,7 @@ static const AP4_MetaData::KeyInfo AP4_MetaData_KeyInfos [] = {
     {"Description","Description", AP4_ATOM_TYPE_DESC, AP4_MetaData::Value::TYPE_STRING},
     {"Rating",     "Rating",      AP4_ATOM_TYPE_RTNG, AP4_MetaData::Value::TYPE_INTEGER},
     {"Compilation","Compilation", AP4_ATOM_TYPE_CPIL, AP4_MetaData::Value::TYPE_INTEGER},
+    {"Gapless",    "Gapless",     AP4_ATOM_TYPE_PGAP, AP4_MetaData::Value::TYPE_INTEGER},
 };
 AP4_Array<AP4_MetaData::KeyInfo> AP4_MetaData::KeysInfos(
     AP4_MetaData_KeyInfos, 
@@ -270,6 +271,7 @@ AP4_MetaDataAtomTypeHandler::IsMetaDataType(AP4_Atom::Type type)
         case AP4_ATOM_TYPE_TVSN:
         case AP4_ATOM_TYPE_TVES:
         case AP4_ATOM_TYPE_STIK:
+        case AP4_ATOM_TYPE_PGAP:
             return true;
 
         default:
@@ -406,6 +408,10 @@ AP4_AtomMetaDataValue::AP4_AtomMetaDataValue(AP4_DataAtom*  atom,
             break;
 
         case AP4_ATOM_TYPE_CPIL:
+            m_Meaning = MEANING_BOOLEAN;
+            break;
+
+        case AP4_ATOM_TYPE_PGAP:
             m_Meaning = MEANING_BOOLEAN;
             break;
 
