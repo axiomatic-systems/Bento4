@@ -53,8 +53,8 @@ AP4_IkmsAtom::AP4_IkmsAtom(const char* kms_uri,
                            AP4_UI32    kms_version) :
     AP4_Atom(AP4_ATOM_TYPE_IKMS, AP4_FULL_ATOM_HEADER_SIZE, 0, 0),
     m_KmsUri(kms_uri),
-    m_KmsId(0),
-    m_KmsVersion(0)
+    m_KmsId(kms_id),
+    m_KmsVersion(kms_version)
 {
     m_Size += m_KmsUri.GetLength()+1;
 }
