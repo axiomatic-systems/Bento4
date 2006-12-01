@@ -12,21 +12,34 @@
 +---------------------------------------------------------------------*/
 #include <stdio.h>
 #include <string.h>
+#if !defined(UNDER_CE)
 #include <errno.h>
 #include <sys/stat.h>
+#endif
 
 #include "Ap4FileByteStream.h"
 
 /*----------------------------------------------------------------------
 |   compatibility wrappers
 +---------------------------------------------------------------------*/
+#if !defined(ENOENT)
+#define ENOENT 2
+#endif
+#if !defined(EACCES)
+#define EACCES 13
+#endif
+
 #if !defined(AP4_CONFIG_HAVE_FOPEN_S)
 static int fopen_s(FILE**      file,
                    const char* filename,
                    const char* mode)
 {
     *file = fopen(filename, mode);
+#if defined(UNDER_CE)
+    if (*file == NULL) return ENOENT;
+#else
     if (*file == NULL) return errno;
+#endif
     return 0;
 }
 #endif // defined(AP4_CONFIG_HAVE_FOPEN_S
@@ -63,6 +76,7 @@ private:
     AP4_ByteStream* m_Delegator;
     AP4_Cardinal    m_ReferenceCount;
     FILE*           m_File;
+    AP4_Size        m_Size;
 };
 
 /*----------------------------------------------------------------------
@@ -74,7 +88,8 @@ AP4_StdcFileByteStream::AP4_StdcFileByteStream(
     AP4_FileByteStream::Mode mode) :
     m_Delegator(delegator),
     m_ReferenceCount(1),
-    m_File(NULL)
+    m_File(NULL),
+    m_Size(0)
 {
     if (!strcmp(name, "-stdin")) {
         m_File = stdin;
@@ -105,6 +120,12 @@ AP4_StdcFileByteStream::AP4_StdcFileByteStream(
             } else {
                 throw AP4_Exception(AP4_ERROR_CANNOT_OPEN_FILE);
             }
+        }
+
+        // get the size
+        if (fseek(m_File, 0, SEEK_END) >= 0) {
+            m_Size = ftell(m_File);
+            fseek(m_File, 0, SEEK_SET);
         }
     }
 }
@@ -217,16 +238,8 @@ AP4_StdcFileByteStream::Tell(AP4_Offset& offset)
 AP4_Result
 AP4_StdcFileByteStream::GetSize(AP4_Size& size)
 {
-    struct stat info;
-    int          result;
-
-    result = fstat(fileno(m_File), &info);
-    if (result == 0) {
-        size = info.st_size;
-        return AP4_SUCCESS;
-    } else {
-        return AP4_FAILURE;
-    }
+    size = m_Size;
+    return AP4_SUCCESS;
 }
 
 /*----------------------------------------------------------------------

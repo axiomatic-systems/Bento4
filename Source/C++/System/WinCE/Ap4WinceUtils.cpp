@@ -1,8 +1,8 @@
 /*****************************************************************
 |
-|    AP4 - Library Configuration
+|    AP4 - Windows CE Utils
 |
-|    Copyright 2002-2006 Gilles Boccon-Gibod
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -27,22 +27,37 @@
 ****************************************************************/
 
 /*----------------------------------------------------------------------
-|       includes
+|   includes
 +---------------------------------------------------------------------*/
-#include "Ap4Types.h"
-#include "Ap4AtomFactory.h"
-#include "Ap4MetaData.h"
+#include <windows.h>
 
 /*----------------------------------------------------------------------
-|       AP4_DefaultAtomFactory::Instance
+|   _tmain
 +---------------------------------------------------------------------*/
-AP4_DefaultAtomFactory AP4_DefaultAtomFactory::Instance;
+extern int main(int argc, char** argv);
 
-/*----------------------------------------------------------------------
-|       AP4_DefaultAtomFactory::Instance
-+---------------------------------------------------------------------*/
-AP4_DefaultAtomFactory::AP4_DefaultAtomFactory()
+int
+_tmain(int argc, wchar_t** argv, wchar_t** envp)
 {
-    // register built-in type handlers
-    AddTypeHandler(new AP4_MetaDataAtomTypeHandler(this));
+    char** argv_utf8 = new char*[argc*sizeof(char*)];
+    int i;
+    int result;
+
+    /* allocate and convert args */
+    for (i=0; i<argc; i++) {
+        unsigned int arg_length = wcslen(argv[i]);
+        argv_utf8[i] = new char[4*arg_length+1];
+        WideCharToMultiByte(CP_UTF8, 0, argv[i], -1, argv_utf8[i], 4*arg_length+1, 0, 0);
+    }
+
+    result = main(argc, argv_utf8);
+
+
+    /* cleanup */
+    for (i=0; i<argc; i++) {
+        delete [] argv_utf8[i];
+    }
+    delete[] argv_utf8;
+
+    return result;
 }

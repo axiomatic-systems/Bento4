@@ -511,7 +511,7 @@ AP4_AtomMetaDataValue::ToInteger()
 AP4_DataAtom::AP4_DataAtom(AP4_Size size, AP4_ByteStream& stream) :
     AP4_Atom(AP4_ATOM_TYPE_DATA, size),
     m_DataType(AP4_MetaData::DATA_TYPE_BINARY),
-    m_DataLang(AP4_MetaData::LANG_ENGLISH) 
+    m_DataLang(AP4_MetaData::LANGUAGE_ENGLISH) 
 {
     if (size < AP4_ATOM_HEADER_SIZE+8) return;
 
