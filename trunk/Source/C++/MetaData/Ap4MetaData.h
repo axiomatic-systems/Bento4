@@ -106,7 +106,7 @@ public:
     } DataType;
 
     typedef enum {
-        LANG_ENGLISH = 0
+        LANGUAGE_ENGLISH = 0
     } Language;
 
     class Key {

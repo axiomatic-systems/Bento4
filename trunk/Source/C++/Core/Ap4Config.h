@@ -63,7 +63,7 @@
 #if defined(_MSC_VER)
 #define AP4_CONFIG_HAVE_INT64
 #define AP4_CONFIG_INT64_TYPE __int64
-#if (_MSC_VER >= 1400)
+#if (_MSC_VER >= 1400) && !defined(UNDER_CE)
 #define AP4_CONFIG_HAVE_FOPEN_S
 #define AP4_snprintf(s,c,f,...) _snprintf_s(s,c,_TRUNCATE,f,__VA_ARGS__)
 #define AP4_vsnprintf(s,c,f,a)  _vsnprintf_s(s,c,_TRUNCATE,f,a)

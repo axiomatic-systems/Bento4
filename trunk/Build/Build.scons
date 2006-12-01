@@ -91,7 +91,7 @@ class LibraryModule(Module):
         
 def Application(name, source_dir, extra_deps=[]):
     DeclareBuildDir(source_dir)
-    sdk = ['Core', 'System'] + Split(extra_deps)
+    sdk = ['CoreLib', 'SystemLib'] + Split(extra_deps)
     libs = GetLibraries(sdk)
     cpp_path = GetIncludeDirs(sdk)
     
@@ -115,20 +115,20 @@ if os.path.exists(target_config_file):
 #######################################################
 # modules
 #######################################################
-LibraryModule(name               = 'Core', 
+LibraryModule(name               = 'CoreLib', 
               build_source_dirs  = ['Core', 'Crypto', 'MetaData'],
               included_modules   = 'Config')
            
-LibraryModule(name               = 'System', 
+LibraryModule(name               = 'SystemLib', 
               build_source_dirs  = 'System/StdC',
-              included_modules   = 'Core')
+              included_modules   = 'CoreLib')
  
-LibraryModule(name               = 'Codecs', 
+LibraryModule(name               = 'CodecsLib', 
               build_source_dirs  = ['Codecs'],
-              included_modules   = 'Core')
+              included_modules   = 'CoreLib')
 
 for name in ['Mp4Dump', 'Mp4Info', 'Mp4Edit', 'Mp4Encrypt', 'Mp4Decrypt', 'Mp4Tag', 'Mp4Extract', 'Mp4RtpHintInfo', 'Mp42Aac']:       
     Application(name, source_dir='Apps/'+name)
 
-Application('Aac2Mp4', source_dir='Apps/Aac2Mp4', extra_deps='Codecs')
+Application('Aac2Mp4', source_dir='Apps/Aac2Mp4', extra_deps='CodecsLib')
 Application('CryptoTest', source_dir='Test/Crypto')

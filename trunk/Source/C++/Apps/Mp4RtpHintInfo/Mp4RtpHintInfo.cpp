@@ -125,10 +125,7 @@ main(int argc, char** argv)
         PrintUsageAndExit();
     }
     
-
     AP4_File* file = new AP4_File(*input);
-  
-
     AP4_Movie* movie = file->GetMovie();
     if (movie != NULL) {
         // get a hint track reader
