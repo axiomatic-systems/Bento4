@@ -125,8 +125,8 @@ main(int argc, char** argv)
         PrintUsageAndExit();
     }
     
-    AP4_File* file = new AP4_File(*input);
-    AP4_Movie* movie = file->GetMovie();
+    AP4_File file(*input);
+    AP4_Movie* movie = file.GetMovie();
     if (movie != NULL) {
         // get a hint track reader
         AP4_Track* hint_track = movie->GetTrack(hint_track_id);
@@ -149,15 +149,11 @@ main(int argc, char** argv)
 
         // dump the packet
         result = DumpRtpPackets(reader, rtp_file_name);
-        if (AP4_FAILED(result)) goto bail;
-
     } else {
         AP4_Debug("No movie found in the file\n");
         return AP4_FAILURE;
     }
 
-bail:
-    delete file;
     input->Release();
 
     return result;
