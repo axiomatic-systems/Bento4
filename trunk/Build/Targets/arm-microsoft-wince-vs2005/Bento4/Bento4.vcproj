@@ -916,10 +916,6 @@
 				RelativePath="..\..\..\..\Source\C++\Core\Ap4VmhdAtom.cpp"
 				>
 			</File>
-			<File
-				RelativePath="..\..\..\..\Source\C++\System\WinCE\Ap4WinceUtils.cpp"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"

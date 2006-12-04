@@ -51,6 +51,16 @@ public:
     virtual AP4_UI32   GetSampleCount();
     virtual AP4_Result GetSampleSize(AP4_Ordinal sample, 
                                      AP4_Size&   sample_size);
+    /**
+     * Set the sample size.
+     * @param sample 1-based index of a sample.
+     * @param sample_size Size of the sample.
+     * If this table represents a global-size table (one where there are
+     * no individual entries for each sample, but all sample have the same
+     * size = m_SampleSize), then calling this method with sample=1 will update
+     * the global size, and calling with sample>1 will check that
+     * the value of sample_size is the same as the global size m_SampleSize.
+     */
     virtual AP4_Result SetSampleSize(AP4_Ordinal sample, 
                                      AP4_Size    sample_size);
     virtual AP4_Result AddEntry(AP4_UI32 size);
