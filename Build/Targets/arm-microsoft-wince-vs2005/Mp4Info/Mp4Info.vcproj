@@ -709,6 +709,10 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath="..\..\..\..\Source\C++\System\WinCE\Ap4WinceMain.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\Source\C++\Apps\Mp4Info\Mp4Info.cpp"
 				>
 			</File>
