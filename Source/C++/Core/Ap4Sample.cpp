@@ -137,7 +137,7 @@ AP4_Sample::ReadData(AP4_DataBuffer& data, AP4_Size size, AP4_Offset offset)
     // get the data from the stream
     result = m_DataStream->Seek(m_Offset+offset);
     if (AP4_FAILED(result)) return result;
-	return m_DataStream->Read(data.UseData(), size);
+    return m_DataStream->Read(data.UseData(), size);
 }
 
 /*----------------------------------------------------------------------
