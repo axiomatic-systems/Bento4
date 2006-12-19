@@ -54,7 +54,7 @@ public:
                             AP4_UI08*       out,
                             AP4_Size        size);
    const AP4_UI08* GetBaseCounter()  { return m_BaseCounter;  }
-   AP4_Offset      GetStreamOffset() { return m_StreamOffset; }
+   AP4_UI32        GetStreamOffset() { return m_StreamOffset; }
 
 private:
    // methods
@@ -91,12 +91,12 @@ public:
                              AP4_UI08*       out,
                              AP4_Size*       out_size,
                              bool            is_last_buffer = false);
-    AP4_Offset GetStreamOffset() { return m_StreamOffset; }
+    AP4_UI64  GetStreamOffset() { return m_StreamOffset; }
 
 private:
     // members
     CipherDirection     m_Direction;
-    AP4_Position        m_StreamOffset;
+    AP4_UI64            m_StreamOffset;
     AP4_UI08            m_InBlockCache[AP4_AES_BLOCK_SIZE];
     AP4_UI08            m_OutBlockCache[AP4_AES_BLOCK_SIZE];
     AP4_AesBlockCipher* m_BlockCipher;

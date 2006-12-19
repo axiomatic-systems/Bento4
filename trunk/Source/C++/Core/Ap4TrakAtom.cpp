@@ -39,6 +39,7 @@
 #include "Ap4DrefAtom.h"
 #include "Ap4UrlAtom.h"
 #include "Ap4StcoAtom.h"
+#include "Ap4Co64Atom.h"
 #include "Ap4AtomFactory.h"
 #include "Ap4SampleTable.h"
 #include "Ap4Utils.h"
@@ -141,7 +142,7 @@ AP4_TrakAtom::AP4_TrakAtom(AP4_SampleTable* sample_table,
 /*----------------------------------------------------------------------
 |   AP4_TrakAtom::AP4_TrakAtom
 +---------------------------------------------------------------------*/
-AP4_TrakAtom::AP4_TrakAtom(AP4_Size         size,
+AP4_TrakAtom::AP4_TrakAtom(AP4_UI32         size,
                            AP4_ByteStream&  stream,
                            AP4_AtomFactory& atom_factory) :
     AP4_ContainerAtom(AP4_ATOM_TYPE_TRAK, size, stream, atom_factory)
@@ -179,15 +180,19 @@ AP4_TrakAtom::SetDuration(AP4_UI32 duration)
 |   AP4_TrakAtom::AdjustChunkOffsets
 +---------------------------------------------------------------------*/
 AP4_Result    
-AP4_TrakAtom::AdjustChunkOffsets(AP4_Offset offset)
+AP4_TrakAtom::AdjustChunkOffsets(AP4_SI64 delta)
 {
-
     AP4_Atom* atom = FindChild("mdia/minf/stbl/stco");
-    if (atom != NULL) {
+    if (atom) {    
         AP4_StcoAtom* stco = dynamic_cast<AP4_StcoAtom*>(atom);
-        stco->AdjustChunkOffsets(offset);
-        return AP4_SUCCESS;
+        return stco->AdjustChunkOffsets((int)delta);
     } else {
-        return AP4_FAILURE;
+        atom = FindChild("mdia/minf/stbl/co64");
+        if (atom) {
+            AP4_Co64Atom* co64 = dynamic_cast<AP4_Co64Atom*>(atom);
+            return co64->AdjustChunkOffsets(delta);
+        } else {
+            return AP4_FAILURE;
+        }
     }
 }

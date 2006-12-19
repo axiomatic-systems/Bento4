@@ -69,14 +69,14 @@ AP4_StsdAtom::AP4_StsdAtom(AP4_SampleTable* sample_table) :
         m_Children.Add(entry);
 
         // update the size
-        m_Size += entry->GetSize();
+        m_Size32 += (AP4_UI32)entry->GetSize();
     }
 }
 
 /*----------------------------------------------------------------------
 |   AP4_StsdAtom::AP4_StsdAtom
 +---------------------------------------------------------------------*/
-AP4_StsdAtom::AP4_StsdAtom(AP4_Size         size,
+AP4_StsdAtom::AP4_StsdAtom(AP4_UI32         size,
                            AP4_UI32         version,
                            AP4_UI32         flags,
                            AP4_ByteStream&  stream,
@@ -88,7 +88,7 @@ AP4_StsdAtom::AP4_StsdAtom(AP4_Size         size,
     stream.ReadUI32(entry_count);
 
     // read all entries
-    AP4_Size bytes_available = size-AP4_FULL_ATOM_HEADER_SIZE-4;
+    AP4_LargeSize bytes_available = size-AP4_FULL_ATOM_HEADER_SIZE-4;
     for (unsigned int i=0; i<entry_count; i++) {
         AP4_Atom* atom;
         if (AP4_SUCCEEDED(atom_factory.CreateAtomFromStream(stream, 
@@ -139,8 +139,9 @@ void
 AP4_StsdAtom::OnChildChanged(AP4_Atom*)
 {
     // remcompute our size
-    m_Size = GetHeaderSize()+4;
-    m_Children.Apply(AP4_AtomSizeAdder(m_Size));
+    AP4_UI64 size = GetHeaderSize()+4;
+    m_Children.Apply(AP4_AtomSizeAdder(size));
+    m_Size32 = (AP4_UI32)size;
 
     // update our parent
     if (m_Parent) m_Parent->OnChildChanged(this);

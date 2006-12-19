@@ -35,6 +35,7 @@
 #include "Ap4StszAtom.h"
 #include "Ap4StscAtom.h"
 #include "Ap4StcoAtom.h"
+#include "Ap4Co64Atom.h"
 #include "Ap4SttsAtom.h"
 #include "Ap4Sample.h"
 
@@ -57,10 +58,10 @@ AP4_SampleTable::GenerateStblAtom(AP4_ContainerAtom*& stbl)
     AP4_StscAtom* stsc = new AP4_StscAtom();
 
     // start chunk table
-    AP4_Cardinal        samples_in_chunk = 0;
-    AP4_Offset          current_chunk_offset = 0;
-    AP4_Size            current_chunk_size = 0;
-    AP4_Array<AP4_UI32> chunk_offsets;
+    AP4_Cardinal            samples_in_chunk = 0;
+    AP4_Position            current_chunk_offset = 0;
+    AP4_Size                current_chunk_size = 0;
+    AP4_Array<AP4_Position> chunk_offsets;
 
     // process all the samples
     AP4_Cardinal sample_count = GetSampleCount();
@@ -95,10 +96,6 @@ AP4_SampleTable::GenerateStblAtom(AP4_ContainerAtom*& stbl)
         stsc->AddEntry(1, samples_in_chunk, 1);
     }
 
-    // create the stco atom
-    AP4_StcoAtom* stco = new AP4_StcoAtom(&chunk_offsets[0], 
-                                          chunk_offsets.ItemCount());
-
     // create the stts atom (for now, we assume sample of equal duration)
     AP4_SttsAtom* stts = new AP4_SttsAtom();
     stts->AddEntry(sample_count, 1000); // FIXME
@@ -107,8 +104,27 @@ AP4_SampleTable::GenerateStblAtom(AP4_ContainerAtom*& stbl)
     stbl->AddChild(stsd);
     stbl->AddChild(stsz);
     stbl->AddChild(stsc);
-    stbl->AddChild(stco);
     stbl->AddChild(stts);
+
+    // see if we need a co64 or an stco atom
+    AP4_Size  chunk_count = chunk_offsets.ItemCount();
+    if (current_chunk_offset <= 0xFFFFFFFF) {
+        // make an array of 32-bit entries
+        AP4_UI32* chunk_offsets_32 = new AP4_UI32[chunk_count];
+        for (unsigned int i=0; i<chunk_count; i++) {
+            chunk_offsets_32[i] = (AP4_UI32)chunk_offsets[i];
+        }
+        // create the stco atom
+        AP4_StcoAtom* stco = new AP4_StcoAtom(&chunk_offsets_32[0], chunk_count);
+        stbl->AddChild(stco);
+
+        delete[] chunk_offsets_32;
+    } else {
+        // create the co64 atom
+        AP4_Co64Atom* co64 = new AP4_Co64Atom(&chunk_offsets[0], chunk_count);
+        stbl->AddChild(co64);
+    }
+
 
     return AP4_SUCCESS;
 }

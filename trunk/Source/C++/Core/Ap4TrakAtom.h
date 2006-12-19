@@ -68,7 +68,7 @@ class AP4_TrakAtom : public AP4_ContainerAtom
                  const char*      language,
                  AP4_UI32         width,
                  AP4_UI32         heigh);
-    AP4_Result AdjustChunkOffsets(AP4_Offset offset);
+    AP4_Result AdjustChunkOffsets(AP4_SI64 delta);
     AP4_UI32   GetId() { 
         return m_TkhdAtom->GetTrackId(); 
     }
@@ -81,7 +81,7 @@ class AP4_TrakAtom : public AP4_ContainerAtom
 
  private:
     // methods
-    AP4_TrakAtom(AP4_Size         size,
+    AP4_TrakAtom(AP4_UI32         size,
                  AP4_ByteStream&  stream,
                  AP4_AtomFactory& atom_factory);
 

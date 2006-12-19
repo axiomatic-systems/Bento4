@@ -50,11 +50,11 @@ public:
     AP4_Sample();
     AP4_Sample(const AP4_Sample& other);
     AP4_Sample(AP4_ByteStream& data_stream,
-               AP4_Offset      offset,
+               AP4_Position    offset,
                AP4_Size        size,
                AP4_Ordinal     description_index,
                AP4_TimeStamp   dts,
-               AP4_Offset      cts_offset = 0);
+               AP4_UI32        cts_offset = 0);
     ~AP4_Sample(); // not virtual on purpose: do not derive from it
 
     // operators
@@ -63,14 +63,14 @@ public:
     // methods
     AP4_Result      ReadData(AP4_DataBuffer& data);
     AP4_Result      ReadData(AP4_DataBuffer& data, 
-                             AP4_Size size, 
-                             AP4_Offset offset = 0);
+                             AP4_Size        size, 
+                             AP4_Size        offset = 0);
 
     // sample properties accessors
     AP4_ByteStream* GetDataStream();
     void            SetDataStream(AP4_ByteStream& stream);
-    AP4_Offset      GetOffset() const { return m_Offset; }
-    void            SetOffset(AP4_Offset offset) { m_Offset = offset; }
+    AP4_Position    GetOffset() const { return m_Offset; }
+    void            SetOffset(AP4_Position offset) { m_Offset = offset; }
     AP4_Size        GetSize() { return m_Size; }
     void            SetSize(AP4_Size size) { m_Size = size; }
     AP4_Ordinal     GetDescriptionIndex() const { return m_DescriptionIndex; }
@@ -82,7 +82,7 @@ public:
 
 protected:
     AP4_ByteStream* m_DataStream;
-    AP4_Offset      m_Offset;
+    AP4_Position    m_Offset;
     AP4_Size        m_Size;
     AP4_Ordinal     m_DescriptionIndex;
     AP4_TimeStamp   m_Dts;

@@ -61,7 +61,7 @@ public:
     // constructor
     AP4_OhdrAtom(AP4_UI08     encryption_method, 
                  AP4_UI08     padding_scheme,
-                 AP4_LargeInt plaintext_length,
+                 AP4_UI64      plaintext_length,
                  const char*  content_id,
                  const char*  rights_issuer_url,
                  const char*  textual_headers);
@@ -74,14 +74,14 @@ public:
     // accessors
     AP4_UI08          GetEncryptionMethod() const { return m_EncryptionMethod; } 
     AP4_UI08          GetPaddingScheme()    const { return m_PaddingScheme;    }
-    AP4_LargeInt      GetPlaintextLength()  const { return m_PlaintextLength;  }
+    AP4_UI64          GetPlaintextLength()  const { return m_PlaintextLength;  }
     const AP4_String& GetContentId()        const { return m_ContentId;        }
     const AP4_String& GetRightsIssuerUrl()  const { return m_RightsIssuerUrl;  }
     const AP4_String& GetTextualHeaders()   const { return m_TextualHeaders;   }
 
 private:
     // methods
-    AP4_OhdrAtom(AP4_Size         size, 
+    AP4_OhdrAtom(AP4_UI32         size, 
                  AP4_UI32         version,
                  AP4_UI32         flags,
                  AP4_ByteStream&  stream,
@@ -90,7 +90,7 @@ private:
     // members
     AP4_UI08     m_EncryptionMethod; 
     AP4_UI08     m_PaddingScheme;
-    AP4_LargeInt m_PlaintextLength;
+    AP4_UI64     m_PlaintextLength;
     AP4_String   m_ContentId;
     AP4_String   m_RightsIssuerUrl;
     AP4_String   m_TextualHeaders;

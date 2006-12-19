@@ -50,7 +50,7 @@ class AP4_AtomFactory {
      public:
          virtual ~TypeHandler() {};
          virtual AP4_Result CreateAtom(AP4_Atom::Type  type,
-                                       AP4_Size        size,
+                                       AP4_UI32        size,
                                        AP4_ByteStream& stream,
                                        AP4_Atom::Type  context,
                                        AP4_Atom*&      atom) = 0;
@@ -66,7 +66,7 @@ class AP4_AtomFactory {
     AP4_Result AddTypeHandler(TypeHandler* handler);
     AP4_Result RemoveTypeHandler(TypeHandler* handler);
     AP4_Result CreateAtomFromStream(AP4_ByteStream&  stream,
-                                    AP4_Size&        bytes_available,
+                                    AP4_LargeSize&   bytes_available,
                                     AP4_Atom*&       atom);
     AP4_Result CreateAtomFromStream(AP4_ByteStream&  stream,
                                     AP4_Atom*&       atom);

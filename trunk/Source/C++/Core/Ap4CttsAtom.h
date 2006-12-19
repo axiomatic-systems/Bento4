@@ -50,12 +50,12 @@ class AP4_CttsTableEntry {
         m_SampleCount(0), 
         m_SampleOffset(0) {}
     AP4_CttsTableEntry(AP4_Cardinal sample_count,
-                       AP4_Offset sample_offset) :
+                       AP4_UI32     sample_offset) :
         m_SampleCount(sample_count),
         m_SampleOffset(sample_offset) {}
 
     AP4_Cardinal m_SampleCount;
-    AP4_Offset   m_SampleOffset;
+    AP4_UI32     m_SampleOffset;
 };
 
 /*----------------------------------------------------------------------
@@ -65,17 +65,17 @@ class AP4_CttsAtom : public AP4_Atom
 {
 public:
     // class methods
-    static AP4_CttsAtom* Create(AP4_Size size, AP4_ByteStream& stream);
+    static AP4_CttsAtom* Create(AP4_UI32 size, AP4_ByteStream& stream);
 
     // methods
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
     virtual AP4_Result GetCtsOffset(AP4_Ordinal sample, 
-                                    AP4_Offset& cts_offset);
+                                    AP4_UI32&   cts_offset);
 
 private:
     // methods
-    AP4_CttsAtom(AP4_Size        size, 
+    AP4_CttsAtom(AP4_UI32        size, 
                  AP4_UI32        version,
                  AP4_UI32        flags,
                  AP4_ByteStream& stream);

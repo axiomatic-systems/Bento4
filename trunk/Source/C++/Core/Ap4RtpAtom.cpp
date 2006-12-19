@@ -37,7 +37,7 @@
 /*----------------------------------------------------------------------
 |   AP4_RtpAtom::AP4_RtpAtom
 +---------------------------------------------------------------------*/
-AP4_RtpAtom::AP4_RtpAtom(AP4_Size size, AP4_ByteStream& stream) :
+AP4_RtpAtom::AP4_RtpAtom(AP4_UI32 size, AP4_ByteStream& stream) :
     AP4_Atom(AP4_ATOM_TYPE_RTP_, size)
 {
     // desc format
@@ -71,7 +71,7 @@ AP4_RtpAtom::WriteFields(AP4_ByteStream& stream)
     if (AP4_FAILED(result)) return result;
 
     // pad with zeros if necessary
-    AP4_Size padding = m_Size-(AP4_ATOM_HEADER_SIZE+4+m_SdpText.GetLength());
+    AP4_Size padding = m_Size32-(AP4_ATOM_HEADER_SIZE+4+m_SdpText.GetLength());
     while (padding--) stream.WriteUI08(0);
     
     return AP4_SUCCESS;

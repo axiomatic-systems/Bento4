@@ -49,7 +49,7 @@ AP4_HmhdAtom::Create(AP4_Size size, AP4_ByteStream& stream)
 /*----------------------------------------------------------------------
 |   AP4_HmhdAtom::AP4_HmhdAtom
 +---------------------------------------------------------------------*/
-AP4_HmhdAtom::AP4_HmhdAtom(AP4_Size        size, 
+AP4_HmhdAtom::AP4_HmhdAtom(AP4_UI32        size, 
                            AP4_UI32        version,
                            AP4_UI32        flags,
                            AP4_ByteStream& stream) :

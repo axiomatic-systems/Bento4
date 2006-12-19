@@ -50,13 +50,13 @@ public:
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
     AP4_Cardinal GetChunkCount() { return m_EntryCount;  }
-    AP4_Result   GetChunkOffset(AP4_Ordinal chunk, AP4_Offset& chunk_offset);
-    AP4_Result   SetChunkOffset(AP4_Ordinal chunk, AP4_Offset chunk_offset);
-    AP4_Result   AdjustChunkOffsets(AP4_Offset offset);
+    AP4_Result   GetChunkOffset(AP4_Ordinal chunk, AP4_UI32& chunk_offset);
+    AP4_Result   SetChunkOffset(AP4_Ordinal chunk, AP4_UI32  chunk_offset);
+    AP4_Result   AdjustChunkOffsets(int delta);
 
 private:
     // methods
-    AP4_StcoAtom(AP4_Size        size, 
+    AP4_StcoAtom(AP4_UI32        size, 
                  AP4_UI32        version,
                  AP4_UI32        flags,
                  AP4_ByteStream& stream);

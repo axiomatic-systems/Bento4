@@ -53,13 +53,13 @@ AP4_EsdsAtom::AP4_EsdsAtom(AP4_EsDescriptor* descriptor) :
     AP4_Atom(AP4_ATOM_TYPE_ESDS, AP4_FULL_ATOM_HEADER_SIZE, 0, 0),
     m_EsDescriptor(descriptor)
 {
-    if (m_EsDescriptor) m_Size += m_EsDescriptor->GetSize();
+    if (m_EsDescriptor) m_Size32 += m_EsDescriptor->GetSize();
 }
 
 /*----------------------------------------------------------------------
 |   AP4_EsdsAtom::AP4_EsdsAtom
 +---------------------------------------------------------------------*/
-AP4_EsdsAtom::AP4_EsdsAtom(AP4_Size        size, 
+AP4_EsdsAtom::AP4_EsdsAtom(AP4_UI32        size, 
                            AP4_UI32        version,
                            AP4_UI32        flags,
                            AP4_ByteStream& stream) :

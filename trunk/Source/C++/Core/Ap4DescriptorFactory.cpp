@@ -50,7 +50,7 @@ AP4_DescriptorFactory::CreateDescriptorFromStream(AP4_ByteStream&  stream,
     descriptor = NULL;
 
     // remember current stream offset
-    AP4_Offset offset;
+    AP4_Position offset;
     stream.Tell(offset);
 
     // read descriptor tag

@@ -69,7 +69,7 @@ public:
 
 private:
     // methods
-    AP4_MoovAtom(AP4_Size         size,
+    AP4_MoovAtom(AP4_UI32         size,
                  AP4_ByteStream&  stream,
                  AP4_AtomFactory& atom_factory);
 

@@ -200,11 +200,16 @@ static const char* const Ap4Id3Genres[] =
 };
 
 /*----------------------------------------------------------------------
+|   constants
++---------------------------------------------------------------------*/
+const AP4_Size AP4_DATA_ATOM_MAX_SIZE = 0x40000000;
+
+/*----------------------------------------------------------------------
 |   AP4_MetaDataAtomTypeHandler::CreateAtom
 +---------------------------------------------------------------------*/
 AP4_Result 
 AP4_MetaDataAtomTypeHandler::CreateAtom(AP4_Atom::Type  type,
-                                        AP4_Size        size,
+                                        AP4_UI32        size,
                                         AP4_ByteStream& stream,
                                         AP4_Atom::Type  context,
                                         AP4_Atom*&      atom)
@@ -508,7 +513,7 @@ AP4_AtomMetaDataValue::ToInteger()
 /*----------------------------------------------------------------------
 |   AP4_DataAtom::AP4_DataAtom
 +---------------------------------------------------------------------*/
-AP4_DataAtom::AP4_DataAtom(AP4_Size size, AP4_ByteStream& stream) :
+AP4_DataAtom::AP4_DataAtom(AP4_UI32 size, AP4_ByteStream& stream) :
     AP4_Atom(AP4_ATOM_TYPE_DATA, size),
     m_DataType(AP4_MetaData::DATA_TYPE_BINARY),
     m_DataLang(AP4_MetaData::LANGUAGE_ENGLISH) 
@@ -520,7 +525,7 @@ AP4_DataAtom::AP4_DataAtom(AP4_Size size, AP4_ByteStream& stream) :
     stream.ReadUI32(i); m_DataLang = (AP4_MetaData::Language)i;
 
     // the stream for the data is a substream of this source
-    AP4_Offset data_offset;
+    AP4_Position data_offset;
     stream.Tell(data_offset);
     AP4_Size data_size = size-AP4_ATOM_HEADER_SIZE-8;
     m_Source = new AP4_SubStream(stream, data_offset, data_size);
@@ -543,7 +548,7 @@ AP4_DataAtom::WriteFields(AP4_ByteStream& stream)
     stream.WriteUI32(m_DataType);
     stream.WriteUI32(m_DataLang);
     if (m_Source) {
-        AP4_Size   size = 0;
+        AP4_LargeSize size = 0;
         m_Source->GetSize(size);
         m_Source->Seek(0);
         m_Source->CopyTo(stream, size);
@@ -588,13 +593,14 @@ AP4_DataAtom::LoadString(AP4_String*& string)
         return AP4_SUCCESS;
     } else {
         // create a string with enough capactiy for the data
-        AP4_Size size = 0;
+        AP4_LargeSize size = 0;
         m_Source->GetSize(size);
-        string = new AP4_String(size);
+        if (size > AP4_DATA_ATOM_MAX_SIZE) return AP4_ERROR_OUT_OF_RANGE;
+        string = new AP4_String((AP4_Size)size);
 
         // read from the start of the stream
         m_Source->Seek(0);
-        AP4_Result result = m_Source->Read(string->UseChars(), size);
+        AP4_Result result = m_Source->Read(string->UseChars(), (AP4_Size)size);
         if (AP4_FAILED(result)) {
             delete string;
             string = NULL;
@@ -614,11 +620,12 @@ AP4_DataAtom::LoadBytes(AP4_DataBuffer& bytes)
         bytes.SetDataSize(0);
         return AP4_SUCCESS;
     }
-    AP4_Size size = 0;
+    AP4_LargeSize size = 0;
     m_Source->GetSize(size);
-    bytes.SetDataSize(size);
+    if (size > AP4_DATA_ATOM_MAX_SIZE) return AP4_ERROR_OUT_OF_RANGE;
+    bytes.SetDataSize((AP4_Size)size);
     m_Source->Seek(0);
-    AP4_Result result = m_Source->Read(bytes.UseData(), size);
+    AP4_Result result = m_Source->Read(bytes.UseData(), (AP4_Size)size);
     if (AP4_FAILED(result)) {
         bytes.SetDataSize(0);
     }
@@ -634,14 +641,14 @@ AP4_DataAtom::LoadInteger(long& value)
     AP4_Result result = AP4_FAILURE;
     value = 0;
     if (m_Source == NULL) return AP4_SUCCESS;
-    AP4_Size size = 0;
+    AP4_LargeSize size = 0;
     m_Source->GetSize(size);
     if (size > 4) {
         return AP4_ERROR_OUT_OF_RANGE;
     }
     unsigned char bytes[4];
     m_Source->Seek(0);
-    m_Source->Read(bytes, size);
+    m_Source->Read(bytes, (AP4_Size)size);
     result = AP4_SUCCESS;
     switch (size) {
         case 1: value = bytes[0]; break;
@@ -654,7 +661,7 @@ AP4_DataAtom::LoadInteger(long& value)
 /*----------------------------------------------------------------------
 |   AP4_StringAtom::AP4_StringAtom
 +---------------------------------------------------------------------*/
-AP4_StringAtom::AP4_StringAtom(Type type, AP4_Size size, AP4_ByteStream& stream) :
+AP4_StringAtom::AP4_StringAtom(Type type, AP4_UI32 size, AP4_ByteStream& stream) :
     AP4_Atom(type, size),
     m_Value((AP4_Size)(size-AP4_ATOM_HEADER_SIZE-4))
 {

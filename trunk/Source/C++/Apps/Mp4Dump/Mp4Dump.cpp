@@ -136,7 +136,7 @@ main(int argc, char** argv)
         // remember the current stream position because the Inspect method
         // may read from the stream (there may be stream references in some
         // of the atoms
-        AP4_Offset position;
+        AP4_Position position;
         input->Tell(position);
 
         // inspect the atom

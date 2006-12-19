@@ -1,6 +1,6 @@
 /*****************************************************************
 |
-|    AP4 - stco Atoms 
+|    AP4 - co64 Atoms 
 |
 |    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
@@ -29,68 +29,68 @@
 /*----------------------------------------------------------------------
 |   includes
 +---------------------------------------------------------------------*/
-#include "Ap4StcoAtom.h"
+#include "Ap4Co64Atom.h"
 #include "Ap4AtomFactory.h"
 #include "Ap4Utils.h"
 
 /*----------------------------------------------------------------------
-|   AP4_StcoAtom::Create
+|   AP4_Co64Atom::Create
 +---------------------------------------------------------------------*/
-AP4_StcoAtom*
-AP4_StcoAtom::Create(AP4_Size size, AP4_ByteStream& stream)
+AP4_Co64Atom*
+AP4_Co64Atom::Create(AP4_Size size, AP4_ByteStream& stream)
 {
     AP4_UI32 version;
     AP4_UI32 flags;
     if (AP4_FAILED(AP4_Atom::ReadFullHeader(stream, version, flags))) return NULL;
     if (version != 0) return NULL;
-    return new AP4_StcoAtom(size, version, flags, stream);
+    return new AP4_Co64Atom(size, version, flags, stream);
 }
 
 /*----------------------------------------------------------------------
-|   AP4_StcoAtom::AP4_StcoAtom
+|   AP4_Co64Atom::AP4_Co64Atom
 +---------------------------------------------------------------------*/
-AP4_StcoAtom::AP4_StcoAtom(AP4_UI32* entries, AP4_UI32 entry_count) :
+AP4_Co64Atom::AP4_Co64Atom(AP4_UI64* entries, AP4_UI32 entry_count) :
 AP4_Atom(AP4_ATOM_TYPE_STCO,  
-         AP4_FULL_ATOM_HEADER_SIZE+4+entry_count*4,
+         AP4_FULL_ATOM_HEADER_SIZE+4+entry_count*8,
          0, 0),
-         m_Entries(new AP4_UI32[entry_count]),
+         m_Entries(new AP4_UI64[entry_count]),
          m_EntryCount(entry_count)
 {
-    AP4_CopyMemory(m_Entries, entries, m_EntryCount*4);
+    AP4_CopyMemory(m_Entries, entries, m_EntryCount*8);
 }
 
 /*----------------------------------------------------------------------
-|   AP4_StcoAtom::AP4_StcoAtom
+|   AP4_Co64Atom::AP4_Co64Atom
 +---------------------------------------------------------------------*/
-AP4_StcoAtom::AP4_StcoAtom(AP4_UI32        size, 
+AP4_Co64Atom::AP4_Co64Atom(AP4_UI32        size, 
                            AP4_UI32        version,
                            AP4_UI32        flags,
                            AP4_ByteStream& stream) :
     AP4_Atom(AP4_ATOM_TYPE_STCO, size, version, flags)
 {
     stream.ReadUI32(m_EntryCount);
-    if (m_EntryCount > (size-AP4_FULL_ATOM_HEADER_SIZE-4)/4) {
-        m_EntryCount = (size-AP4_FULL_ATOM_HEADER_SIZE-4)/4;
+    if (m_EntryCount > (size-AP4_FULL_ATOM_HEADER_SIZE-4)/8) {
+        m_EntryCount = (size-AP4_FULL_ATOM_HEADER_SIZE-4)/8;
     }
-    m_Entries = new AP4_UI32[m_EntryCount];
+    m_Entries = new AP4_UI64[m_EntryCount];
     for (AP4_Ordinal i=0; i<m_EntryCount; i++) {
-        stream.ReadUI32(m_Entries[i]);
+        stream.ReadUI64(m_Entries[i]);
     }
 }
 
 /*----------------------------------------------------------------------
-|   AP4_StcoAtom::~AP4_StcoAtom
+|   AP4_Co64Atom::~AP4_Co64Atom
 +---------------------------------------------------------------------*/
-AP4_StcoAtom::~AP4_StcoAtom()
+AP4_Co64Atom::~AP4_Co64Atom()
 {
     delete[] m_Entries;
 }
 
 /*----------------------------------------------------------------------
-|   AP4_StcoAtom::GetChunkOffset
+|   AP4_Co64Atom::GetChunkOffset
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_StcoAtom::GetChunkOffset(AP4_Ordinal chunk, AP4_UI32& chunk_offset)
+AP4_Co64Atom::GetChunkOffset(AP4_Ordinal chunk, AP4_UI64& chunk_offset)
 {
     // check the bounds
     if (chunk > m_EntryCount || chunk == 0) {
@@ -104,10 +104,10 @@ AP4_StcoAtom::GetChunkOffset(AP4_Ordinal chunk, AP4_UI32& chunk_offset)
 }
 
 /*----------------------------------------------------------------------
-|   AP4_StcoAtom::SetChunkOffset
+|   AP4_Co64Atom::SetChunkOffset
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_StcoAtom::SetChunkOffset(AP4_Ordinal chunk, AP4_UI32 chunk_offset)
+AP4_Co64Atom::SetChunkOffset(AP4_Ordinal chunk, AP4_UI64 chunk_offset)
 {
     // check the bounds
     if (chunk > m_EntryCount || chunk == 0) {
@@ -121,10 +121,10 @@ AP4_StcoAtom::SetChunkOffset(AP4_Ordinal chunk, AP4_UI32 chunk_offset)
 }
 
 /*----------------------------------------------------------------------
-|   AP4_StcoAtom::AdjustChunkOffsets
+|   AP4_Co64Atom::AdjustChunkOffsets
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_StcoAtom::AdjustChunkOffsets(int delta)
+AP4_Co64Atom::AdjustChunkOffsets(AP4_SI64 delta)
 {
     for (AP4_Ordinal i=0; i<m_EntryCount; i++) {
         m_Entries[i] += delta;
@@ -134,10 +134,10 @@ AP4_StcoAtom::AdjustChunkOffsets(int delta)
 }
 
 /*----------------------------------------------------------------------
-|   AP4_StcoAtom::WriteFields
+|   AP4_Co64Atom::WriteFields
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_StcoAtom::WriteFields(AP4_ByteStream& stream)
+AP4_Co64Atom::WriteFields(AP4_ByteStream& stream)
 {
     AP4_Result result;
 
@@ -147,7 +147,7 @@ AP4_StcoAtom::WriteFields(AP4_ByteStream& stream)
 
     // entries
     for (AP4_Ordinal i=0; i<m_EntryCount; i++) {
-        result = stream.WriteUI32(m_Entries[i]);
+        result = stream.WriteUI64(m_Entries[i]);
         if (AP4_FAILED(result)) return result;
     }
 
@@ -155,10 +155,10 @@ AP4_StcoAtom::WriteFields(AP4_ByteStream& stream)
 }
 
 /*----------------------------------------------------------------------
-|   AP4_StcoAtom::InspectFields
+|   AP4_Co64Atom::InspectFields
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_StcoAtom::InspectFields(AP4_AtomInspector& inspector)
+AP4_Co64Atom::InspectFields(AP4_AtomInspector& inspector)
 {
     inspector.AddField("entry_count", m_EntryCount);
 

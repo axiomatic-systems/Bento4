@@ -50,14 +50,14 @@ class AP4_ContainerAtom : public AP4_Atom, public AP4_AtomParent
 public:
     // class methods
     static AP4_ContainerAtom* Create(Type             type, 
-                                     AP4_Size         size, 
+                                     AP4_UI32         size, 
                                      bool             is_full,
                                      AP4_ByteStream&  stream,
                                      AP4_AtomFactory& atom_factory);
 
     // methods
-    AP4_ContainerAtom(Type type, AP4_Size size = AP4_ATOM_HEADER_SIZE);
-    AP4_ContainerAtom(Type type, AP4_Size size, AP4_UI32 version, AP4_UI32 flags);
+    AP4_ContainerAtom(Type type, AP4_UI32 size = AP4_ATOM_HEADER_SIZE);
+    AP4_ContainerAtom(Type type, AP4_UI32 size, AP4_UI32 version, AP4_UI32 flags);
     AP4_List<AP4_Atom>& GetChildren() { return m_Children; }
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
     virtual AP4_Result InspectChildren(AP4_AtomInspector& inspector);
@@ -72,13 +72,13 @@ public:
 protected:
     // constructors
     AP4_ContainerAtom(Type             type, 
-                      AP4_Size         size, 
+                      AP4_UI32         size, 
                       AP4_UI32         version,
                       AP4_UI32         flags,
                       AP4_ByteStream&  stream,
                       AP4_AtomFactory& atom_factory);
     AP4_ContainerAtom(Type             type, 
-                      AP4_Size         size, 
+                      AP4_UI32         size, 
                       AP4_ByteStream&  stream,
                       AP4_AtomFactory& atom_factory);
 

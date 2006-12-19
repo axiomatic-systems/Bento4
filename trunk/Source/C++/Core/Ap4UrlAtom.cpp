@@ -57,7 +57,7 @@ AP4_UrlAtom::AP4_UrlAtom() :
 /*----------------------------------------------------------------------
 |   AP4_UrlAtom::AP4_UrlAtom
 +---------------------------------------------------------------------*/
-AP4_UrlAtom::AP4_UrlAtom(AP4_Size        size, 
+AP4_UrlAtom::AP4_UrlAtom(AP4_UI32        size, 
                          AP4_UI32        version,
                          AP4_UI32        flags,
                          AP4_ByteStream& stream) :
@@ -87,12 +87,12 @@ AP4_UrlAtom::WriteFields(AP4_ByteStream& stream)
         return AP4_SUCCESS;
     } else {
         // url (not self contained)
-        if (m_Size > AP4_FULL_ATOM_HEADER_SIZE) {
+        if (m_Size32 > AP4_FULL_ATOM_HEADER_SIZE) {
             AP4_Result result = stream.Write(m_Url.GetChars(), m_Url.GetLength()+1);
             if (AP4_FAILED(result)) return result;
 
             // pad with zeros if necessary
-            AP4_Size padding = m_Size-(AP4_FULL_ATOM_HEADER_SIZE+m_Url.GetLength()+1);
+            AP4_Size padding = m_Size32-(AP4_FULL_ATOM_HEADER_SIZE+m_Url.GetLength()+1);
             while (padding--) stream.WriteUI08(0);
         }
         return AP4_SUCCESS;

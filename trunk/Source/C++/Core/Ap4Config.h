@@ -42,6 +42,8 @@
 #define AP4_CONFIG_HAVE_SNPRINTF
 #define AP4_CONFIG_HAVE_VSNPRINTF
 
+#define AP4_CONFIG_HAVE_INT64
+
 /*----------------------------------------------------------------------
 |   byte order
 +---------------------------------------------------------------------*/
@@ -58,16 +60,19 @@
 #endif
 
 /*----------------------------------------------------------------------
-|   Win32 specifics
+|   platform specifics
 +---------------------------------------------------------------------*/
+
+/* Microsoft Platforms */
 #if defined(_MSC_VER)
-#define AP4_CONFIG_HAVE_INT64
 #define AP4_CONFIG_INT64_TYPE __int64
-#if (_MSC_VER >= 1400) && !defined(UNDER_CE)
+#if (_MSC_VER >= 1400) && !defined(_WIN32_WCE)
 #define AP4_CONFIG_HAVE_FOPEN_S
 #define AP4_snprintf(s,c,f,...) _snprintf_s(s,c,_TRUNCATE,f,__VA_ARGS__)
 #define AP4_vsnprintf(s,c,f,a)  _vsnprintf_s(s,c,_TRUNCATE,f,a)
 #define fileno _fileno
+#define AP4_fseek _fseeki64
+#define AP4_ftell _ftelli64
 #else
 #define AP4_snprintf   _snprintf
 #define AP4_vsnprintf  _vsnprintf
@@ -77,9 +82,26 @@
 #endif
 #endif
 
+/* Cygwin */
+#if defined(__CYGWIN__)
+#define AP4_fseek fseek
+#define AP4_ftell ftell
+#endif
+
 /*----------------------------------------------------------------------
 |    defaults
 +---------------------------------------------------------------------*/
+#if !defined(AP4_CONFIG_INT64_TYPE)
+#define AP4_CONFIG_INT64_TYPE long long
+#endif
+
+#if !defined(AP4_fseek)
+#define AP4_fseek fseek64
+#endif
+#if !defined(AP4_ftell)
+#define AP4_ftell ftell64
+#endif
+
 /* some compilers (ex: MSVC 8) deprecate those, so we rename them */
 #if !defined(AP4_snprintf)
 #define AP4_snprintf snprintf

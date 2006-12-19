@@ -176,8 +176,9 @@ void
 AP4_SampleEntry::OnChildChanged(AP4_Atom*)
 {
     // remcompute our size
-    m_Size = GetHeaderSize()+GetFieldsSize();
-    m_Children.Apply(AP4_AtomSizeAdder(m_Size));
+    AP4_UI64 size = GetHeaderSize()+GetFieldsSize();
+    m_Children.Apply(AP4_AtomSizeAdder(size));
+    m_Size32 = (AP4_UI32)size;
 
     // update our parent
     if (m_Parent) m_Parent->OnChildChanged(this);
@@ -270,7 +271,7 @@ AP4_AudioSampleEntry::AP4_AudioSampleEntry(AP4_Atom::Type format,
     memset(m_Reserved2, 0, sizeof(m_Reserved2));
     m_Reserved3 = 0;
 
-    m_Size += 20;
+    m_Size32 += 20;
 }
 
 /*----------------------------------------------------------------------
@@ -500,7 +501,7 @@ AP4_VisualSampleEntry::AP4_VisualSampleEntry(
     m_Predefined3(0xFFFF)
 {
     memset(m_Predefined2, 0, sizeof(m_Predefined2));
-    m_Size += 70;
+    m_Size32 += 70;
 }
 
 /*----------------------------------------------------------------------
