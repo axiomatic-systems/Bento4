@@ -57,7 +57,7 @@ AP4_SttsAtom::AP4_SttsAtom() :
 /*----------------------------------------------------------------------
 |   AP4_SttsAtom::AP4_SttsAtom
 +---------------------------------------------------------------------*/
-AP4_SttsAtom::AP4_SttsAtom(AP4_Size        size, 
+AP4_SttsAtom::AP4_SttsAtom(AP4_UI32        size, 
                            AP4_UI32        version,
                            AP4_UI32        flags,
                            AP4_ByteStream& stream) :
@@ -85,6 +85,11 @@ AP4_SttsAtom::GetDts(AP4_Ordinal sample, AP4_TimeStamp& dts)
     AP4_Ordinal sample_count_in_entry = sample;
     dts = 0;
 
+    // sample indexes start at 1
+    if (sample == 0) return AP4_ERROR_OUT_OF_RANGE;
+
+    // look until we've accumulated sample counts up to the required
+    // sample index
     for (AP4_UI32 i = 0; i < m_Entries.ItemCount(); i++) {
         AP4_SttsTableEntry& entry = m_Entries[i];
 
@@ -109,7 +114,7 @@ AP4_Result
 AP4_SttsAtom::AddEntry(AP4_UI32 sample_count, AP4_UI32 sample_duration)
 {
     m_Entries.Append(AP4_SttsTableEntry(sample_count, sample_duration));
-    m_Size += 8;
+    m_Size32 += 8;
 
     return AP4_SUCCESS;
 }

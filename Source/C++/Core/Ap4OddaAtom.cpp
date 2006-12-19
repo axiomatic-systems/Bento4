@@ -49,7 +49,7 @@ AP4_OddaAtom::Create(AP4_Size         size,
 /*----------------------------------------------------------------------
 |   AP4_OddaAtom::AP4_OddaAtom
 +---------------------------------------------------------------------*/
-AP4_OddaAtom::AP4_OddaAtom(AP4_Size         size, 
+AP4_OddaAtom::AP4_OddaAtom(AP4_UI32         size, 
                            AP4_UI32         version,
                            AP4_UI32         flags,
                            AP4_ByteStream&  stream) :
@@ -57,8 +57,7 @@ AP4_OddaAtom::AP4_OddaAtom(AP4_Size         size,
     m_SourceStream(&stream)
 {
     // data length
-    stream.ReadUI32(m_EncryptedDataLength.hi);
-    stream.ReadUI32(m_EncryptedDataLength.lo);
+    stream.ReadUI64(m_EncryptedDataLength);
 
     // store source stream position
     stream.Tell(m_SourcePosition);
@@ -85,12 +84,11 @@ AP4_Result
 AP4_OddaAtom::WriteFields(AP4_ByteStream& stream)
 {
     // write the content type
-    AP4_CHECK(stream.WriteUI32(m_EncryptedDataLength.hi));
-    AP4_CHECK(stream.WriteUI32(m_EncryptedDataLength.lo));
+    AP4_CHECK(stream.WriteUI64(m_EncryptedDataLength));
 
     // check that we have a source stream
     // and a normal size
-    if (m_SourceStream == NULL || m_Size < 8) {
+    if (m_SourceStream == NULL || m_Size32 < 8) {
         return AP4_FAILURE;
     }
 
@@ -102,7 +100,7 @@ AP4_OddaAtom::WriteFields(AP4_ByteStream& stream)
     AP4_CHECK(m_SourceStream->Seek(m_SourcePosition));
 
     // copy the source stream to the output
-    AP4_CHECK(m_SourceStream->CopyTo(stream, m_Size-GetHeaderSize()));
+    AP4_CHECK(m_SourceStream->CopyTo(stream, m_Size32-GetHeaderSize()));
 
     // restore the original stream position
     m_SourceStream->Seek(position);
@@ -116,6 +114,6 @@ AP4_OddaAtom::WriteFields(AP4_ByteStream& stream)
 AP4_Result
 AP4_OddaAtom::InspectFields(AP4_AtomInspector& inspector)
 {
-    inspector.AddField("encrypted_data_length", m_EncryptedDataLength.lo);
+    inspector.AddField("encrypted_data_length", (AP4_UI32)m_EncryptedDataLength);
     return AP4_SUCCESS;
 }

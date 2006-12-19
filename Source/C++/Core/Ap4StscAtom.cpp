@@ -58,7 +58,7 @@ AP4_StscAtom::AP4_StscAtom() :
 /*----------------------------------------------------------------------
 |   AP4_StscAtom::AP4_StscAtom
 +---------------------------------------------------------------------*/
-AP4_StscAtom::AP4_StscAtom(AP4_Size        size, 
+AP4_StscAtom::AP4_StscAtom(AP4_UI32        size, 
                            AP4_UI32        version,
                            AP4_UI32        flags,
                            AP4_ByteStream& stream) :
@@ -141,7 +141,7 @@ AP4_StscAtom::AddEntry(AP4_Cardinal chunk_count,
     m_Entries.Append(AP4_StscTableEntry(first_chunk, first_sample, chunk_count, samples_per_chunk, sample_description_index));
 
     // update the atom size
-    m_Size += 12;
+    m_Size32 += 12;
 
     return AP4_SUCCESS;
 }

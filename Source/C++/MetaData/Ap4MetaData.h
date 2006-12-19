@@ -213,7 +213,7 @@ public:
     AP4_MetaDataAtomTypeHandler(AP4_AtomFactory* atom_factory) :
       m_AtomFactory(atom_factory) {}
     virtual AP4_Result CreateAtom(AP4_Atom::Type  type,
-                                  AP4_Size        size,
+                                  AP4_UI32        size,
                                   AP4_ByteStream& stream,
                                   AP4_Atom::Type  context,
                                   AP4_Atom*&      atom);
@@ -256,7 +256,7 @@ class AP4_StringAtom : public AP4_Atom
 {
 public:
     // constructor
-    AP4_StringAtom(Type type, AP4_Size size, AP4_ByteStream& stream);
+    AP4_StringAtom(Type type, AP4_UI32 size, AP4_ByteStream& stream);
 
     // AP4_Atom methods
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
@@ -280,7 +280,7 @@ class AP4_DataAtom : public AP4_Atom
 {
 public:
     // constructor
-    AP4_DataAtom(AP4_Size size, AP4_ByteStream& stream);
+    AP4_DataAtom(AP4_UI32 size, AP4_ByteStream& stream);
 
     // destructor
     ~AP4_DataAtom();

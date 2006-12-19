@@ -67,7 +67,7 @@ AP4_DecoderConfigDescriptor::AP4_DecoderConfigDescriptor(
                    payload_size)
 {
     // record the start position
-    AP4_Offset start;
+    AP4_Position start;
     stream.Tell(start);
 
     // read descriptor fields

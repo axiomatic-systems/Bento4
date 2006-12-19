@@ -36,7 +36,7 @@
 /*----------------------------------------------------------------------
 |   AP4_FtypAtom::AP4_FtypAtom
 +---------------------------------------------------------------------*/
-AP4_FtypAtom::AP4_FtypAtom(AP4_Size size, AP4_ByteStream& stream) :
+AP4_FtypAtom::AP4_FtypAtom(AP4_UI32 size, AP4_ByteStream& stream) :
     AP4_Atom(AP4_ATOM_TYPE_FTYP, size)
 {
     stream.ReadUI32(m_MajorBrand);

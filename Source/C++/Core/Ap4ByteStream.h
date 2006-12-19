@@ -47,6 +47,7 @@ class AP4_ByteStream : public AP4_Referenceable
     virtual AP4_Result Read(void*     buffer, 
                             AP4_Size  bytes_to_read, 
                             AP4_Size* bytes_read = 0) = 0;
+    AP4_Result ReadUI64(AP4_UI64& value);
     AP4_Result ReadUI32(AP4_UI32& value);
     AP4_Result ReadUI24(AP4_UI32& value);
     AP4_Result ReadUI16(AP4_UI16& value);
@@ -56,14 +57,15 @@ class AP4_ByteStream : public AP4_Referenceable
                              AP4_Size    bytes_to_write, 
                              AP4_Size*   bytes_written = 0) = 0;
     AP4_Result WriteString(const char* stringBuffer);
+    AP4_Result WriteUI64(AP4_UI64 value);
     AP4_Result WriteUI32(AP4_UI32 value);
     AP4_Result WriteUI24(AP4_UI32 value);
     AP4_Result WriteUI16(AP4_UI16 value);
     AP4_Result WriteUI08(AP4_UI08 value);
     virtual AP4_Result Seek(AP4_Position position) = 0;
     virtual AP4_Result Tell(AP4_Position& position) = 0;
-    virtual AP4_Result GetSize(AP4_Size& size) = 0;
-    virtual AP4_Result CopyTo(AP4_ByteStream& stream, AP4_Size size);
+    virtual AP4_Result GetSize(AP4_LargeSize& size) = 0;
+    virtual AP4_Result CopyTo(AP4_ByteStream& stream, AP4_LargeSize size);
 };
 
 /*----------------------------------------------------------------------
@@ -86,7 +88,7 @@ class AP4_SubStream : public AP4_ByteStream
         position = m_Position;
         return AP4_SUCCESS;
     }
-    AP4_Result GetSize(AP4_Size& size) {
+    AP4_Result GetSize(AP4_LargeSize& size) {
         size = m_Size;
         return AP4_SUCCESS;
     }
@@ -100,8 +102,8 @@ class AP4_SubStream : public AP4_ByteStream
 
  private:
     AP4_ByteStream& m_Container;
-    AP4_Offset      m_Offset;
-    AP4_Size        m_Size;
+    AP4_Position    m_Offset;
+    AP4_LargeSize   m_Size;
     AP4_Position    m_Position;
     AP4_Cardinal    m_ReferenceCount;
 };
@@ -127,7 +129,7 @@ public:
         position = m_Position;
         return AP4_SUCCESS;
     }
-    AP4_Result GetSize(AP4_Size& size) {
+    AP4_Result GetSize(AP4_LargeSize& size) {
         size = m_Buffer.GetDataSize();
         return AP4_SUCCESS;
     }

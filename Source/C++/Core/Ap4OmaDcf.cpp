@@ -560,10 +560,9 @@ AP4_OmaDcfTrackEncrypter::ProcessTrack()
     // scheme info
     AP4_ContainerAtom* schi = new AP4_ContainerAtom(AP4_ATOM_TYPE_SCHI);
     AP4_OdafAtom*      odaf = new AP4_OdafAtom(true, 0, AP4_AES_BLOCK_SIZE);
-    AP4_LargeInt       plaintext_length = {0,0};
     AP4_OhdrAtom*      ohdr = new AP4_OhdrAtom(AP4_OMA_DCF_ENCRYPTION_METHOD_AES_CTR,
                                                AP4_OMA_DCF_PADDING_SCHEME_NONE,
-                                               plaintext_length,
+                                               0,
                                                m_ContentId.GetChars(),
                                                m_RightsIssuerUrl.GetChars(),
                                                NULL);

@@ -52,7 +52,7 @@ AP4_OhdrAtom::Create(AP4_Size         size,
 +---------------------------------------------------------------------*/
 AP4_OhdrAtom::AP4_OhdrAtom(AP4_UI08     encryption_method, 
                            AP4_UI08     padding_scheme,
-                           AP4_LargeInt plaintext_length,
+                           AP4_UI64     plaintext_length,
                            const char*  content_id,
                            const char*  rights_issuer_url,
                            const char*  textual_headers) :
@@ -64,13 +64,13 @@ AP4_OhdrAtom::AP4_OhdrAtom(AP4_UI08     encryption_method,
     m_RightsIssuerUrl(rights_issuer_url),
     m_TextualHeaders(textual_headers)
 {
-    m_Size = AP4_FULL_ATOM_HEADER_SIZE+1+1+8+2+2+2+m_ContentId.GetLength()+m_RightsIssuerUrl.GetLength()+m_TextualHeaders.GetLength();
+    m_Size32 = AP4_FULL_ATOM_HEADER_SIZE+1+1+8+2+2+2+m_ContentId.GetLength()+m_RightsIssuerUrl.GetLength()+m_TextualHeaders.GetLength();
 }
 
 /*----------------------------------------------------------------------
 |   AP4_OhdrAtom::AP4_OhdrAtom
 +---------------------------------------------------------------------*/
-AP4_OhdrAtom::AP4_OhdrAtom(AP4_Size         size, 
+AP4_OhdrAtom::AP4_OhdrAtom(AP4_UI32         size, 
                            AP4_UI32         version,
                            AP4_UI32         flags,
                            AP4_ByteStream&  stream,
@@ -84,8 +84,7 @@ AP4_OhdrAtom::AP4_OhdrAtom(AP4_Size         size,
     stream.ReadUI08(m_PaddingScheme);
 
     // plaintext length
-    stream.ReadUI32(m_PlaintextLength.hi);
-    stream.ReadUI32(m_PlaintextLength.lo);
+    stream.ReadUI64(m_PlaintextLength);
 
     // string lengths
     AP4_UI16 content_id_length;
@@ -152,8 +151,7 @@ AP4_OhdrAtom::WriteFields(AP4_ByteStream& stream)
 {
     AP4_CHECK(stream.WriteUI08(m_EncryptionMethod));
     AP4_CHECK(stream.WriteUI08(m_PaddingScheme));
-    AP4_CHECK(stream.WriteUI32(m_PlaintextLength.hi));
-    AP4_CHECK(stream.WriteUI32(m_PlaintextLength.lo));
+    AP4_CHECK(stream.WriteUI64(m_PlaintextLength));
     AP4_CHECK(stream.WriteUI16((AP4_UI16)m_ContentId.GetLength()));
     AP4_CHECK(stream.WriteUI16((AP4_UI16)m_RightsIssuerUrl.GetLength()));
     AP4_CHECK(stream.WriteUI16((AP4_UI16)m_TextualHeaders.GetLength()));
@@ -173,7 +171,7 @@ AP4_OhdrAtom::InspectFields(AP4_AtomInspector& inspector)
 {
     inspector.AddField("encryption_method", m_EncryptionMethod);
     inspector.AddField("padding_scheme",    m_PaddingScheme);
-    inspector.AddField("plaintext_length",  m_PlaintextLength.lo);
+    inspector.AddField("plaintext_length",  (AP4_UI32)m_PlaintextLength);
     inspector.AddField("content_id",        m_ContentId.GetChars());
     inspector.AddField("rights_issuer_url", m_RightsIssuerUrl.GetChars());
     inspector.AddField("textual_headers",   m_TextualHeaders.GetChars());

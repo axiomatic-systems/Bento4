@@ -49,7 +49,9 @@ PrintUsageAndExit()
 {
     fprintf(stderr, 
             BANNER 
-            "\n\nusage: mp4info [options] <input>\n");
+            "\n\nusage: mp4info [options] <input>\n"
+            "Options:\n"
+            "  --verbose : show sample details\n");
     exit(1);
 }
 
@@ -156,7 +158,7 @@ ShowSampleDescription(AP4_SampleDescription* desc)
 |   ShowTrackInfo
 +---------------------------------------------------------------------*/
 static void
-ShowTrackInfo(AP4_Track* track)
+ShowTrackInfo(AP4_Track* track, bool verbose = false)
 {
 	AP4_Debug("  id:           %ld\n", track->GetId());
     AP4_Debug("  type:         ");
@@ -193,6 +195,13 @@ ShowTrackInfo(AP4_Track* track)
             if (sample_desc != NULL) {
                 ShowSampleDescription(sample_desc);
             }
+        }
+        if (verbose) {
+            printf("[%08d] size=%6d dts=%8d, cts=%8d\n", 
+                   index+1,
+                   sample.GetSize(),
+                   sample.GetDts(), 
+                   sample.GetCts());
         }
         index++;
     }
@@ -245,10 +254,29 @@ main(int argc, char** argv)
     if (argc < 2) {
         PrintUsageAndExit();
     }
-    
+    const char* filename = NULL;
+    bool verbose = false;
+
+    while (char* arg = *++argv) {
+        if (!strcmp(arg, "--verbose")) {
+            verbose = true;
+        } else {
+            if (filename == NULL) {
+                filename = arg;
+            } else {
+                fprintf(stderr, "ERROR: unexpected argument '%s'\n", arg);
+                return 1;
+            }
+        }   
+    }
+    if (filename == NULL) {
+        fprintf(stderr, "ERROR: filename missing\n");
+        return 1;
+    }
+
     AP4_ByteStream* input;
     try {
-        input = new AP4_FileByteStream(argv[1],
+        input = new AP4_FileByteStream(filename,
                                AP4_FileByteStream::STREAM_MODE_READ);
     } catch (AP4_Exception) {
         fprintf(stderr, "ERROR: cannot open input file (%s)\n", argv[1]);
@@ -270,7 +298,7 @@ main(int argc, char** argv)
         while (track_item) {
             AP4_Debug("Track %d:\n", index); 
             index++;
-            ShowTrackInfo(track_item->GetData());
+            ShowTrackInfo(track_item->GetData(), verbose);
             track_item = track_item->GetNext();
         }
     } else {

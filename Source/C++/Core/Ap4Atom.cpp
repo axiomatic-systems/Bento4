@@ -39,9 +39,10 @@
 /*----------------------------------------------------------------------
 |   AP4_Atom::AP4_Atom
 +---------------------------------------------------------------------*/
-AP4_Atom::AP4_Atom(Type type, AP4_Size size /* = AP4_ATOM_HEADER_SIZE */) : 
+AP4_Atom::AP4_Atom(Type type, AP4_UI32 size /* = AP4_ATOM_HEADER_SIZE */) : 
     m_Type(type),
-    m_Size(size),
+    m_Size32(size),
+    m_Size64(0),
     m_IsFull(false),
     m_Version(0),
     m_Flags(0),
@@ -52,17 +53,47 @@ AP4_Atom::AP4_Atom(Type type, AP4_Size size /* = AP4_ATOM_HEADER_SIZE */) :
 /*----------------------------------------------------------------------
 |   AP4_Atom::AP4_Atom
 +---------------------------------------------------------------------*/
+AP4_Atom::AP4_Atom(Type type, AP4_UI64 size) : 
+    m_Type(type),
+    m_IsFull(false),
+    m_Version(0),
+    m_Flags(0),
+    m_Parent(NULL)
+{
+    SetSize(size);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_Atom::AP4_Atom
++---------------------------------------------------------------------*/
 AP4_Atom::AP4_Atom(Type     type, 
-                   AP4_Size size, 
+                   AP4_UI32 size, 
                    AP4_UI32 version, 
                    AP4_UI32 flags) :
     m_Type(type),
-    m_Size(size),
+    m_Size32(size),
+    m_Size64(0),
     m_IsFull(true),
     m_Version(version),
     m_Flags(flags),
     m_Parent(NULL)
 {
+}
+
+/*----------------------------------------------------------------------
+|   AP4_Atom::AP4_Atom
++---------------------------------------------------------------------*/
+AP4_Atom::AP4_Atom(Type     type, 
+                   AP4_UI64 size, 
+                   AP4_UI32 version, 
+                   AP4_UI32 flags) :
+    m_Type(type),
+    m_IsFull(true),
+    m_Version(version),
+    m_Flags(flags),
+    m_Parent(NULL)
+{
+    SetSize(size);
 }
 
 /*----------------------------------------------------------------------
@@ -79,6 +110,21 @@ AP4_Atom::ReadFullHeader(AP4_ByteStream& stream,
     flags   = (header    )&0x00FFFFFF;
 
     return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_Atom::SetSize
++---------------------------------------------------------------------*/
+void
+AP4_Atom::SetSize(AP4_UI64 size)
+{
+    if ((size >> 32) == 0) {
+        m_Size32 = (AP4_UI32)size;
+        m_Size64 = 0;
+    } else {
+        m_Size32 = 1;
+        m_Size64 = size;
+    }
 }
 
 /*----------------------------------------------------------------------
@@ -99,8 +145,14 @@ AP4_Atom::WriteHeader(AP4_ByteStream& stream)
     AP4_Result result;
 
     // write the size
-    result = stream.WriteUI32(m_Size);
+    result = stream.WriteUI32(m_Size32);
     if (AP4_FAILED(result)) return result;
+
+    // handle 64-bit sizes
+    if (m_Size32 == 1) {
+        result = stream.WriteUI64(m_Size64);
+        if (AP4_FAILED(result)) return result;
+    }
 
     // write the type
     result = stream.WriteUI32(m_Type);
@@ -141,7 +193,7 @@ AP4_Atom::Write(AP4_ByteStream& stream)
 #if defined(AP4_DEBUG)
     AP4_Position after;
     stream.Tell(after);
-    AP4_ASSERT(after-before == m_Size);
+    AP4_ASSERT(after-before == GetSize());
 #endif
 
     return AP4_SUCCESS;
@@ -173,8 +225,16 @@ AP4_Atom::InspectHeader(AP4_AtomInspector& inspector)
     name[5] = ']';
     name[6] = '\0';
     char size[64];
-    AP4_FormatString(size, sizeof(size), "size=%ld+%ld", GetHeaderSize(), 
-        m_Size-GetHeaderSize());
+    if (m_Size64 == 0) {
+        AP4_FormatString(size, sizeof(size), "size=%ld+%ld", GetHeaderSize(), 
+            m_Size32-GetHeaderSize());
+    } else {
+        AP4_UI64 payload_size = m_Size64-GetHeaderSize();
+        AP4_UI32 payload_hi = (AP4_UI32)(payload_size>>32);
+        AP4_UI32 payload_lo = (AP4_UI32)payload_size;
+        AP4_FormatString(size, sizeof(size), "size=%ld+{%x%x}", GetHeaderSize(), 
+            payload_hi, payload_lo);
+    }
     inspector.StartElement(name, size);
 
     return AP4_SUCCESS;
@@ -197,7 +257,7 @@ AP4_Atom::Detach()
 |   AP4_UnknownAtom::AP4_UnknownAtom
 +---------------------------------------------------------------------*/
 AP4_UnknownAtom::AP4_UnknownAtom(Type            type, 
-                                 AP4_Size        size,
+                                 AP4_UI64        size,
                                  AP4_ByteStream& stream) : 
     AP4_Atom(type, size),
     m_SourceStream(&stream)
@@ -230,7 +290,7 @@ AP4_UnknownAtom::WriteFields(AP4_ByteStream& stream)
 
     // check that we have a source stream
     // and a normal size
-    if (m_SourceStream == NULL || m_Size < 8) {
+    if (m_SourceStream == NULL || GetSize() < 8) {
         return AP4_FAILURE;
     }
 
@@ -243,7 +303,9 @@ AP4_UnknownAtom::WriteFields(AP4_ByteStream& stream)
     if (AP4_FAILED(result)) return result;
 
     // copy the source stream to the output
-    result = m_SourceStream->CopyTo(stream, m_Size-GetHeaderSize());
+    AP4_UI64 payload_size = GetSize()-GetHeaderSize();
+    if (GetSize32() == 1) payload_size -= 8;
+    result = m_SourceStream->CopyTo(stream, payload_size);
     if (AP4_FAILED(result)) return result;
 
     // restore the original stream position

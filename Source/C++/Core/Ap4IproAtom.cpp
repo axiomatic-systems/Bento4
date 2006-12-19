@@ -54,7 +54,7 @@ AP4_IproAtom::Create(AP4_Size         size,
 /*----------------------------------------------------------------------
 |   AP4_IproAtom::AP4_IproAtom
 +---------------------------------------------------------------------*/
-AP4_IproAtom::AP4_IproAtom(AP4_Size         size,
+AP4_IproAtom::AP4_IproAtom(AP4_UI32         size,
                            AP4_UI32         version,
                            AP4_UI32         flags,
                            AP4_ByteStream&  stream,
@@ -66,7 +66,7 @@ AP4_IproAtom::AP4_IproAtom(AP4_Size         size,
     stream.ReadUI16(entry_count);
 
     // read all entries
-    AP4_Size bytes_available = size-AP4_FULL_ATOM_HEADER_SIZE-2;
+    AP4_LargeSize bytes_available = size-AP4_FULL_ATOM_HEADER_SIZE-2;
     for (unsigned int i=0; i<entry_count; i++) {
         AP4_Atom* atom;
         if (AP4_SUCCEEDED(atom_factory.CreateAtomFromStream(stream, 

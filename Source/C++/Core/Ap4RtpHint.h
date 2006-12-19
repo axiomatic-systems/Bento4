@@ -51,7 +51,7 @@ class AP4_RtpSampleData
 {
 public:
     // constructors and destructor
-    AP4_RtpSampleData(AP4_ByteStream& stream, AP4_Size size);
+    AP4_RtpSampleData(AP4_ByteStream& stream, AP4_UI32 size);
     AP4_RtpSampleData() {}
     virtual ~AP4_RtpSampleData();
 
@@ -82,13 +82,13 @@ class AP4_RtpPacket : public AP4_Referenceable
 public:
     // constructor and destructor
     AP4_RtpPacket(AP4_ByteStream& stream);
-    AP4_RtpPacket(AP4_Integer relative_time,
+    AP4_RtpPacket(int  relative_time,
                   bool p_bit,
                   bool x_bit,
                   bool m_bit,
                   AP4_UI08 payload_type,
                   AP4_UI16 sequence_seed,
-                  AP4_Integer time_stamp_offset = 0,
+                  int  time_stamp_offset = 0,
                   bool bframe_flag = false,
                   bool repeat_flag = false);
     ~AP4_RtpPacket();
@@ -104,13 +104,13 @@ public:
     void Release();
     
     // Accessors
-    AP4_Integer GetRelativeTime() const { return m_RelativeTime; }
+    int GetRelativeTime() const { return m_RelativeTime; }
     bool GetPBit() const { return m_PBit; }
     bool GetXBit() const { return m_XBit; }
     bool GetMBit() const { return m_MBit; }
     AP4_UI08 GetPayloadType() const { return m_PayloadType; }
     AP4_UI16 GetSequenceSeed() const { return m_SequenceSeed; }
-    AP4_Integer GetTimeStampOffset() const { return m_TimeStampOffset; }
+    int  GetTimeStampOffset() const { return m_TimeStampOffset; }
     bool GetBFrameFlag() const { return m_BFrameFlag; }
     bool GetRepeatFlag() const { return m_RepeatFlag; }
     AP4_List<AP4_RtpConstructor>& GetConstructors() {
@@ -120,13 +120,13 @@ public:
 private:
     // members
     AP4_Cardinal                    m_ReferenceCount;                        
-    AP4_Integer                     m_RelativeTime;
+    int                             m_RelativeTime;
     bool                            m_PBit;
     bool                            m_XBit;
     bool                            m_MBit;
     AP4_UI08                        m_PayloadType;
     AP4_UI16                        m_SequenceSeed;
-    AP4_Integer                     m_TimeStampOffset;
+    int                             m_TimeStampOffset;
     bool                            m_BFrameFlag;
     bool                            m_RepeatFlag;
     AP4_List<AP4_RtpConstructor>    m_Constructors;

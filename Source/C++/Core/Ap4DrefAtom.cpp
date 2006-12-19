@@ -38,7 +38,7 @@
 |   AP4_DrefAtom::Create
 +---------------------------------------------------------------------*/
 AP4_DrefAtom* 
-AP4_DrefAtom::Create(AP4_Size         size,
+AP4_DrefAtom::Create(AP4_UI32         size,
                      AP4_ByteStream&  stream,
                      AP4_AtomFactory& atom_factory)
 {
@@ -57,14 +57,14 @@ AP4_DrefAtom::AP4_DrefAtom(AP4_Atom** refs, AP4_Cardinal refs_count) :
 {
     for (unsigned i=0; i<refs_count; i++) {
         m_Children.Add(refs[i]);
-        m_Size += refs[i]->GetSize();
+        m_Size32 += (AP4_UI32)refs[i]->GetSize();
     }
 }
 
 /*----------------------------------------------------------------------
 |   AP4_DrefAtom::AP4_DrefAtom
 +---------------------------------------------------------------------*/
-AP4_DrefAtom::AP4_DrefAtom(AP4_Size         size,
+AP4_DrefAtom::AP4_DrefAtom(AP4_UI32         size,
                            AP4_UI32         version,
                            AP4_UI32         flags,
                            AP4_ByteStream&  stream,
@@ -76,7 +76,7 @@ AP4_DrefAtom::AP4_DrefAtom(AP4_Size         size,
     stream.ReadUI32(entry_count);
 
     // read children
-    AP4_Size bytes_available = size-AP4_FULL_ATOM_HEADER_SIZE-4;
+    AP4_LargeSize bytes_available = size-AP4_FULL_ATOM_HEADER_SIZE-4;
     while (entry_count--) {
         AP4_Atom* atom; 
         while (AP4_SUCCEEDED(atom_factory.CreateAtomFromStream(stream, 

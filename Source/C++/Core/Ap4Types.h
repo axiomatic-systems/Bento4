@@ -44,30 +44,31 @@ typedef unsigned int   AP4_Cardinal;
 typedef unsigned int   AP4_Ordinal;
 typedef unsigned int   AP4_TimeStamp;
 typedef unsigned long  AP4_Duration;
-typedef int            AP4_Coordinate;
-typedef int            AP4_Distance;
-typedef int            AP4_Integer;
 typedef unsigned int   AP4_UI32;
+typedef signed   int   AP4_SI32;
 typedef unsigned short AP4_UI16;
+typedef signed   short AP4_SI16;
 typedef unsigned char  AP4_UI08;
 typedef float          AP4_Float;
 typedef unsigned char  AP4_Byte;
-
-struct AP4_LargeInt {
-    AP4_UI32 hi;
-    AP4_UI32 lo;
-};
+typedef unsigned long  AP4_Size;
 
 // the rest depends on whether the platform supports 64-bit integers
 #if defined(AP4_CONFIG_HAVE_INT64)
     // we have 64-bit integers (not handled yet)
-    typedef unsigned long  AP4_Size;
-    typedef unsigned long  AP4_Offset;
-    typedef unsigned long  AP4_Position;
+    typedef AP4_CONFIG_INT64_TYPE          AP4_SI64;
+    typedef unsigned AP4_CONFIG_INT64_TYPE AP4_UI64;
+    typedef AP4_UI64                       AP4_LargeSize;
+    typedef AP4_SI64                       AP4_Offset;
+    typedef AP4_UI64                       AP4_Position;
 #else
     // use only 32-bit integers
-    typedef unsigned long  AP4_Size;
-    typedef unsigned long  AP4_Offset;
+    typedef struct {
+        AP4_UI32 hi;
+        AP4_UI32 lo;
+    } AP4_UI64, AP4_SI64;
+    typedef unsigned long  AP4_LargeSize;
+    typedef long           AP4_Offset;
     typedef unsigned long  AP4_Position;
 #endif
 

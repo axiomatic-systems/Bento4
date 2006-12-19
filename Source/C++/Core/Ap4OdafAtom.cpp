@@ -61,7 +61,7 @@ AP4_OdafAtom::AP4_OdafAtom(bool     selective_encryption,
 /*----------------------------------------------------------------------
 |   AP4_OdafAtom::AP4_OdafAtom
 +---------------------------------------------------------------------*/
-AP4_OdafAtom::AP4_OdafAtom(AP4_Size        size, 
+AP4_OdafAtom::AP4_OdafAtom(AP4_UI32        size, 
                            AP4_UI32        version,
                            AP4_UI32        flags,
                            AP4_ByteStream& stream) :

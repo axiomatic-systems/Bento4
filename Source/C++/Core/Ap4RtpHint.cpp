@@ -47,10 +47,10 @@ AP4_RtpSampleData::~AP4_RtpSampleData()
 /*----------------------------------------------------------------------
 |   AP4_RtpSampleData::AP4_RtpSampleData
 +---------------------------------------------------------------------*/
-AP4_RtpSampleData::AP4_RtpSampleData(AP4_ByteStream& stream, AP4_Size size)
+AP4_RtpSampleData::AP4_RtpSampleData(AP4_ByteStream& stream, AP4_UI32 size)
 {
     // save the start position
-    AP4_Offset start, extra_data_start;
+    AP4_Position start, extra_data_start;
     stream.Tell(start);
 
     AP4_UI16 packet_count;
@@ -67,7 +67,7 @@ AP4_RtpSampleData::AP4_RtpSampleData(AP4_ByteStream& stream, AP4_Size size)
 
     // extra data
     stream.Tell(extra_data_start);
-    AP4_Size extra_data_size = size - (extra_data_start-start);
+    AP4_Size extra_data_size = size - (AP4_UI32)(extra_data_start-start);
     if (extra_data_size != 0) {
         m_ExtraData.SetDataSize(extra_data_size);
         stream.Read(m_ExtraData.UseData(), extra_data_size);
@@ -149,13 +149,13 @@ AP4_RtpSampleData::AddPacket(AP4_RtpPacket* packet)
 /*----------------------------------------------------------------------
 |   AP4_RtpPacket::AP4_RtpPacket
 +---------------------------------------------------------------------*/
-AP4_RtpPacket::AP4_RtpPacket(AP4_Integer relative_time, 
+AP4_RtpPacket::AP4_RtpPacket(int  relative_time, 
                              bool p_bit, 
                              bool x_bit, 
                              bool m_bit, 
                              AP4_UI08 payload_type, 
                              AP4_UI16 sequence_seed, 
-                             AP4_Integer time_stamp_offset /* = 0 */,
+                             int  time_stamp_offset /* = 0 */,
                              bool bframe_flag /* = false */, 
                              bool repeat_flag /* = false */) :
     m_ReferenceCount(1),
@@ -240,7 +240,7 @@ AP4_RtpPacket::AP4_RtpPacket(AP4_ByteStream& stream) :
                 m_TimeStampOffset = time_stamp_offset;
             } else {
                 // ignore it
-                AP4_Offset cur_pos;
+                AP4_Position cur_pos;
                 stream.Tell(cur_pos);
                 stream.Seek(cur_pos + entry_length - 8); // 8 = length + tag
             }
@@ -429,7 +429,7 @@ AP4_RtpConstructor::Write(AP4_ByteStream& stream)
 AP4_NoopRtpConstructor::AP4_NoopRtpConstructor(AP4_ByteStream& stream) :
     AP4_RtpConstructor(AP4_RTP_CONSTRUCTOR_TYPE_NOOP)
 {
-    AP4_Offset cur_offset;
+    AP4_Position cur_offset;
     stream.Tell(cur_offset);
     stream.Seek(cur_offset+15);
 }
@@ -459,7 +459,7 @@ AP4_ImmediateRtpConstructor::AP4_ImmediateRtpConstructor(const AP4_DataBuffer& d
 AP4_ImmediateRtpConstructor::AP4_ImmediateRtpConstructor(AP4_ByteStream& stream) :
     AP4_RtpConstructor(AP4_RTP_CONSTRUCTOR_TYPE_IMMEDIATE)
 {
-    AP4_Offset cur_offset;
+    AP4_Position cur_offset;
     stream.Tell(cur_offset);
 
     // data
@@ -514,7 +514,7 @@ AP4_SampleRtpConstructor::AP4_SampleRtpConstructor(AP4_ByteStream& stream) :
     AP4_RtpConstructor(AP4_RTP_CONSTRUCTOR_TYPE_SAMPLE)
 {
     // offset
-    AP4_Offset cur_offset;
+    AP4_Position cur_offset;
     stream.Tell(cur_offset);
 
     // data
@@ -571,7 +571,7 @@ AP4_SampleDescRtpConstructor::AP4_SampleDescRtpConstructor(AP4_ByteStream& strea
     AP4_RtpConstructor(AP4_RTP_CONSTRUCTOR_TYPE_SAMPLE_DESC)
 {
     // offset
-    AP4_Offset cur_offset;
+    AP4_Position cur_offset;
     stream.Tell(cur_offset);
 
     // data

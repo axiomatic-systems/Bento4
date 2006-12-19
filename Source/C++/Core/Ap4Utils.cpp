@@ -32,64 +32,97 @@
 #include "Ap4Utils.h"
 
 /*----------------------------------------------------------------------
+|   AP4_BytesToUInt64BE
++---------------------------------------------------------------------*/
+AP4_UI64
+AP4_BytesToUInt64BE(const unsigned char* bytes)
+{
+    return 
+        ( ((AP4_UI64)bytes[0])<<56 ) |
+        ( ((AP4_UI64)bytes[1])<<48 ) |
+        ( ((AP4_UI64)bytes[2])<<40 ) |
+        ( ((AP4_UI64)bytes[3])<<32 ) |
+        ( ((AP4_UI64)bytes[4])<<24 ) |
+        ( ((AP4_UI64)bytes[5])<<16 ) |
+        ( ((AP4_UI64)bytes[6])<<8  ) |
+        ( ((AP4_UI64)bytes[7])     );    
+}
+
+/*----------------------------------------------------------------------
 |   AP4_BytesToUInt32BE
 +---------------------------------------------------------------------*/
-unsigned long 
+AP4_UI32
 AP4_BytesToUInt32BE(const unsigned char* bytes)
 {
     return 
-        ( ((unsigned long)bytes[0])<<24 ) |
-        ( ((unsigned long)bytes[1])<<16 ) |
-        ( ((unsigned long)bytes[2])<<8  ) |
-        ( ((unsigned long)bytes[3])     );    
-}
-
-/*----------------------------------------------------------------------
-|   AP4_BytesToUInt24BE
-+---------------------------------------------------------------------*/
-unsigned long
-AP4_BytesToUInt24BE(const unsigned char* bytes)
-{
-    return 
-        ( ((unsigned long)bytes[0])<<16 ) |
-        ( ((unsigned long)bytes[1])<<8  ) |
-        ( ((unsigned long)bytes[2])     );    
-}
-
-/*----------------------------------------------------------------------
-|   AP4_BytesToUInt16BE
-+---------------------------------------------------------------------*/
-unsigned short
-AP4_BytesToUInt16BE(const unsigned char* bytes)
-{
-    return 
-        ( ((unsigned short)bytes[0])<<8  ) |
-        ( ((unsigned short)bytes[1])     );    
+        ( ((AP4_UI32)bytes[0])<<24 ) |
+        ( ((AP4_UI32)bytes[1])<<16 ) |
+        ( ((AP4_UI32)bytes[2])<<8  ) |
+        ( ((AP4_UI32)bytes[3])     );    
 }
 
 /*----------------------------------------------------------------------
 |   AP4_BytesToInt32BE
 +---------------------------------------------------------------------*/
-signed long 
+AP4_SI32
 AP4_BytesToInt32BE(const unsigned char* bytes)
 {
-    return (signed long)AP4_BytesToUInt32BE(bytes);
+    return AP4_BytesToUInt32BE(bytes);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_BytesToUInt24BE
++---------------------------------------------------------------------*/
+AP4_UI32
+AP4_BytesToUInt24BE(const unsigned char* bytes)
+{
+    return 
+        ( ((AP4_UI32)bytes[0])<<16 ) |
+        ( ((AP4_UI32)bytes[1])<<8  ) |
+        ( ((AP4_UI32)bytes[2])     );    
 }
 
 /*----------------------------------------------------------------------
 |   AP4_BytesToInt16BE
 +---------------------------------------------------------------------*/
-signed short
+AP4_UI16
+AP4_BytesToUInt16BE(const unsigned char* bytes)
+{
+    return 
+        ( ((AP4_UI16)bytes[0])<<8  ) |
+        ( ((AP4_UI16)bytes[1])     );    
+}
+
+/*----------------------------------------------------------------------
+|   AP4_BytesToInt16BE
++---------------------------------------------------------------------*/
+AP4_SI16
 AP4_BytesToInt16BE(const unsigned char* bytes)
 {
-    return (signed short)AP4_BytesToUInt16BE(bytes);
+    return (AP4_SI16)AP4_BytesToUInt16BE(bytes);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_BytesFromUInt64BE
++---------------------------------------------------------------------*/
+void
+AP4_BytesFromUInt64BE(unsigned char* bytes, AP4_UI64 value)
+{
+    bytes[0] = (unsigned char)(value >> 56);
+    bytes[1] = (unsigned char)(value >> 48);
+    bytes[2] = (unsigned char)(value >> 40);
+    bytes[3] = (unsigned char)(value >> 32);
+    bytes[4] = (unsigned char)(value >> 24);
+    bytes[5] = (unsigned char)(value >> 16);
+    bytes[6] = (unsigned char)(value >>  8);
+    bytes[7] = (unsigned char)(value      );
 }
 
 /*----------------------------------------------------------------------
 |   AP4_BytesFromUInt32BE
 +---------------------------------------------------------------------*/
 void
-AP4_BytesFromUInt32BE(unsigned char* bytes, unsigned long value)
+AP4_BytesFromUInt32BE(unsigned char* bytes, AP4_UI32 value)
 {
     bytes[0] = (unsigned char)(value >> 24);
     bytes[1] = (unsigned char)(value >> 16);
@@ -101,7 +134,7 @@ AP4_BytesFromUInt32BE(unsigned char* bytes, unsigned long value)
 |   AP4_BytesFromUInt24BE
 +---------------------------------------------------------------------*/
 void
-AP4_BytesFromUInt24BE(unsigned char* bytes, unsigned long value)
+AP4_BytesFromUInt24BE(unsigned char* bytes, AP4_UI32 value)
 {
     bytes[0] = (unsigned char)(value >> 16);
     bytes[1] = (unsigned char)(value >>  8);
@@ -112,7 +145,7 @@ AP4_BytesFromUInt24BE(unsigned char* bytes, unsigned long value)
 |   AP4_BytesFromUInt16BE
 +---------------------------------------------------------------------*/
 void
-AP4_BytesFromUInt16BE(unsigned char* bytes, unsigned short value)
+AP4_BytesFromUInt16BE(unsigned char* bytes, AP4_UI16 value)
 {
     bytes[0] = (unsigned char)(value >> 8);
     bytes[1] = (unsigned char)(value     );
@@ -122,7 +155,7 @@ AP4_BytesFromUInt16BE(unsigned char* bytes, unsigned short value)
 |   AP4_MakePrefixString
 +---------------------------------------------------------------------*/
 static void
-AP4_MakePrefixString(AP4_Offset indent, char* prefix, AP4_Size size)
+AP4_MakePrefixString(unsigned int indent, char* prefix, AP4_Size size)
 {
     if (size == 0) return;
     if (indent >= size-1) indent = size-1;

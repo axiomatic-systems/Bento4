@@ -59,7 +59,7 @@ AP4_StszAtom::AP4_StszAtom() :
 /*----------------------------------------------------------------------
 |   AP4_StszAtom::AP4_StszAtom
 +---------------------------------------------------------------------*/
-AP4_StszAtom::AP4_StszAtom(AP4_Size        size, 
+AP4_StszAtom::AP4_StszAtom(AP4_UI32        size, 
                            AP4_UI32        version,
                            AP4_UI32        flags,
                            AP4_ByteStream& stream) :
@@ -175,7 +175,7 @@ AP4_StszAtom::AddEntry(AP4_UI32 size)
 {
     m_Entries.Append(size);
     m_SampleCount++;
-    m_Size += 4;
+    m_Size32 += 4;
 
     return AP4_SUCCESS;
 }

@@ -47,14 +47,18 @@
 /*----------------------------------------------------------------------
 |   byte I/O
 +---------------------------------------------------------------------*/
-unsigned long AP4_BytesToUInt32BE(const unsigned char* bytes);
-unsigned long AP4_BytesToUInt24BE(const unsigned char* bytes);
-unsigned short AP4_BytesToUInt16BE(const unsigned char* bytes);
-signed long AP4_BytesToInt32BE(const unsigned char* bytes);
-signed short AP4_BytesToInt16BE(const unsigned char* bytes);
-void AP4_BytesFromUInt32BE(unsigned char* bytes, unsigned long value);
-void AP4_BytesFromUInt24BE(unsigned char* bytes, unsigned long value);
-void AP4_BytesFromUInt16BE(unsigned char* bytes, unsigned short value);
+AP4_UI64 AP4_BytesToUInt64BE(const unsigned char* bytes);
+AP4_UI32 AP4_BytesToUInt32BE(const unsigned char* bytes);
+AP4_UI32 AP4_BytesToUInt24BE(const unsigned char* bytes);
+AP4_UI16 AP4_BytesToUInt16BE(const unsigned char* bytes);
+
+AP4_SI32 AP4_BytesToInt32BE(const unsigned char* bytes);
+AP4_SI16 AP4_BytesToInt16BE(const unsigned char* bytes);
+
+void AP4_BytesFromUInt64BE(unsigned char* bytes, AP4_UI64 value);
+void AP4_BytesFromUInt32BE(unsigned char* bytes, AP4_UI32 value);
+void AP4_BytesFromUInt24BE(unsigned char* bytes, AP4_UI32 value);
+void AP4_BytesFromUInt16BE(unsigned char* bytes, AP4_UI16 value);
 unsigned long AP4_DurationMsFromUnits(unsigned long units, 
 									  unsigned long units_per_second);
 unsigned long AP4_ConvertTime(unsigned long time_value,

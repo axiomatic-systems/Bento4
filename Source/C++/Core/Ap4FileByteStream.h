@@ -61,9 +61,9 @@ public:
                     AP4_Size*    bytesWritten) {
         return m_Delegate->Write(buffer, bytesToWrite, bytesWritten);
     }
-    AP4_Result Seek(AP4_Offset offset)  { return m_Delegate->Seek(offset); }
-    AP4_Result Tell(AP4_Offset& offset) { return m_Delegate->Tell(offset); }
-    AP4_Result GetSize(AP4_Size& size)  { return m_Delegate->GetSize(size);}
+    AP4_Result Seek(AP4_Position position)  { return m_Delegate->Seek(position); }
+    AP4_Result Tell(AP4_Position& position) { return m_Delegate->Tell(position); }
+    AP4_Result GetSize(AP4_LargeSize& size)  { return m_Delegate->GetSize(size);}
 
     // AP4_Referenceable methods
     void AddReference() { m_Delegate->AddReference(); }

@@ -47,6 +47,7 @@ class AP4_SttsAtom;
 class AP4_CttsAtom;
 class AP4_StssAtom;
 class AP4_StsdAtom;
+class AP4_Co64Atom;
 
 /*----------------------------------------------------------------------
 |   AP4_AtomSampleTable
@@ -68,8 +69,8 @@ class AP4_AtomSampleTable : public AP4_SampleTable
                                          AP4_Ordinal&  chunk,
                                          AP4_Ordinal&  skip,
                                          AP4_Ordinal&  sample_description);
-    virtual AP4_Result GetChunkOffset(AP4_Ordinal chunk, AP4_Offset& offset);
-    virtual AP4_Result SetChunkOffset(AP4_Ordinal chunk, AP4_Offset offset);
+    virtual AP4_Result GetChunkOffset(AP4_Ordinal chunk, AP4_Position& offset);
+    virtual AP4_Result SetChunkOffset(AP4_Ordinal chunk, AP4_Position offset);
     virtual AP4_Result SetSampleSize(AP4_Ordinal sample, AP4_Size size);
     virtual AP4_Result GetSampleIndexForTimeStamp(AP4_TimeStamp ts,
                                                   AP4_Ordinal& index);
@@ -84,6 +85,7 @@ private:
     AP4_CttsAtom*   m_CttsAtom;
     AP4_StsdAtom*   m_StsdAtom;
     AP4_StssAtom*   m_StssAtom;
+    AP4_Co64Atom*   m_Co64Atom;
 };
 
 #endif // _AP4_ATOM_SAMPLE_TABLE_H_

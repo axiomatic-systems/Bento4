@@ -79,9 +79,12 @@ public:
         y = (AP4_Float)(*(int*)&m_Matrix[7]) / 65536;
     }
 
+    AP4_UI32 GetWidth()  { return m_Width; }
+    AP4_UI32 GetHeight() { return m_Height;}
+
  private:
     // methods
-    AP4_TkhdAtom(AP4_Size        size, 
+    AP4_TkhdAtom(AP4_UI32        size, 
                  AP4_UI32        version,
                  AP4_UI32        flags,
                  AP4_ByteStream& stream);

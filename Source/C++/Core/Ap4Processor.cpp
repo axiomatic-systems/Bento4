@@ -128,7 +128,7 @@ AP4_Processor::Process(AP4_ByteStream&  input,
     AP4_Array<AP4_SampleLocator> locators;
     for (;;) {
         // see which is the next sample to write
-        unsigned int min_offset = 0xFFFFFFFF;
+        AP4_UI64 min_offset = (AP4_UI64)(-1);
         int cursor = -1;
         for (unsigned int i=0; i<track_count; i++) {
             if (!cursors[i].m_EndReached &&
@@ -164,7 +164,7 @@ AP4_Processor::Process(AP4_ByteStream&  input,
     AP4_Size mdat_size = 0;
     int current_track  = -1;
     int current_chunk  = -1;
-    AP4_Offset current_chunk_offset = 0;
+    AP4_Position current_chunk_offset = 0;
     AP4_Size current_chunk_size = 0;
     for (AP4_Ordinal i=0; i<locators.ItemCount(); i++) {
         AP4_SampleLocator& locator = locators[i];
@@ -200,7 +200,7 @@ AP4_Processor::Process(AP4_ByteStream&  input,
     Finalize(top_level);
 
     // calculate the size of all atoms combined
-    AP4_Size atoms_size = 0;
+    AP4_UI64 atoms_size = 0;
     top_level.GetChildren().Apply(AP4_AtomSizeAdder(atoms_size));
 
     // adjust the chunk offsets
@@ -218,7 +218,7 @@ AP4_Processor::Process(AP4_ByteStream&  input,
     output.WriteUI32(AP4_ATOM_TYPE_MDAT);
 
 #if defined(AP4_DEBUG)
-    AP4_Offset before;
+    AP4_Position before;
     output.Tell(before);
 #endif
 
@@ -240,7 +240,7 @@ AP4_Processor::Process(AP4_ByteStream&  input,
     }
 
 #if defined(AP4_DEBUG)
-    AP4_Offset after;
+    AP4_Position after;
     output.Tell(after);
     AP4_ASSERT(after-before == mdat_size);
 #endif

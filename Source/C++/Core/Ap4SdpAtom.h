@@ -62,7 +62,7 @@ public:
 
 private:
     // methods
-    AP4_SdpAtom(AP4_Size size, AP4_ByteStream& stream);
+    AP4_SdpAtom(AP4_UI32 size, AP4_ByteStream& stream);
 
     // members
     AP4_String m_SdpText;

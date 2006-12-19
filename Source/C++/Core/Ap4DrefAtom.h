@@ -48,7 +48,7 @@ class AP4_DrefAtom : public AP4_ContainerAtom
 {
 public:
     // class methods
-    static AP4_DrefAtom* Create(AP4_Size         size,
+    static AP4_DrefAtom* Create(AP4_UI32         size,
                                 AP4_ByteStream&  stream,
                                 AP4_AtomFactory& atom_factory);
 
@@ -58,7 +58,7 @@ public:
 
 private:
     // methods
-    AP4_DrefAtom(AP4_Size         size,
+    AP4_DrefAtom(AP4_UI32         size,
                  AP4_UI32         version,
                  AP4_UI32         flags,
                  AP4_ByteStream&  stream,

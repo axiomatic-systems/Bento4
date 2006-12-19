@@ -58,7 +58,7 @@ public:
 
 private:
     // methods
-    AP4_IsltAtom(AP4_Size size, AP4_ByteStream& stream);
+    AP4_IsltAtom(AP4_UI32 size, AP4_ByteStream& stream);
 
     // members
     AP4_UI08 m_Salt[8];

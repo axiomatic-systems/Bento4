@@ -55,13 +55,13 @@ public:
 
 private:
     // methods
-    AP4_OddaAtom(AP4_Size         size, 
+    AP4_OddaAtom(AP4_UI32         size, 
                  AP4_UI32         version,
                  AP4_UI32         flags,
                  AP4_ByteStream&  stream);
 
     // members
-    AP4_LargeInt    m_EncryptedDataLength;
+    AP4_UI64        m_EncryptedDataLength;
     AP4_ByteStream* m_SourceStream;
     AP4_Position    m_SourcePosition;
 };

@@ -118,17 +118,11 @@ template <typename T>
 AP4_Result
 AP4_Array<T>::EnsureCapacity(AP4_Cardinal count)
 {
+    // check if we already have enough
     if (count <= m_AllocatedCount) return AP4_SUCCESS;
 
-    unsigned long new_count;
-    if (m_AllocatedCount) {
-        new_count = 2*m_AllocatedCount;
-    } else {
-        new_count = AP4_ARRAY_INITIAL_COUNT;
-    }
-
     // (re)allocate the items
-    T* new_items = (T*) ::operator new (new_count*sizeof(T));
+    T* new_items = (T*) ::operator new (count*sizeof(T));
     if (new_items == NULL) {
         return AP4_ERROR_OUT_OF_MEMORY;
     }
@@ -140,7 +134,7 @@ AP4_Array<T>::EnsureCapacity(AP4_Cardinal count)
         ::operator delete((void*)m_Items);
     }
     m_Items = new_items;
-    m_AllocatedCount = new_count;
+    m_AllocatedCount = count;
 
     return AP4_SUCCESS;
 }
@@ -152,9 +146,18 @@ template <typename T>
 AP4_Result
 AP4_Array<T>::Append(const T& item)
 {
-    // ensure capacity
-    AP4_Result result = EnsureCapacity(m_ItemCount+1);
-    if (result != AP4_SUCCESS) return result;
+    // ensure that we have enough space
+    if (m_AllocatedCount < m_ItemCount+1) {
+        // try double the size, with a minimum
+        unsigned long new_count = m_AllocatedCount?2*m_AllocatedCount:AP4_ARRAY_INITIAL_COUNT;
+
+        // if that's still not enough, just ask for what we need
+        if (new_count < m_ItemCount+1) new_count = m_ItemCount+1;
+    
+        // reserve the space
+        AP4_Result result = EnsureCapacity(new_count);
+        if (result != AP4_SUCCESS) return result;
+    }
     
     // store the item
     new ((void*)&m_Items[m_ItemCount++]) T(item);

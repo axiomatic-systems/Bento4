@@ -64,7 +64,7 @@ class AP4_SyntheticSampleTable : public AP4_SampleTable
     // methods
     virtual AP4_Result AddSampleDescription(AP4_SampleDescription* description);
     virtual AP4_Result AddSample(AP4_ByteStream& data_stream,
-                                 AP4_Offset      offset,
+                                 AP4_Position    offset,
                                  AP4_Size        size,
                                  AP4_Ordinal     description_index,
                                  AP4_TimeStamp   cts = 0,

@@ -1,8 +1,8 @@
 /*****************************************************************
 |
-|    AP4 - iKMS Atom
+|    AP4 - co64 Atoms 
 |
-|    Copyright 2002-2005 Gilles Boccon-Gibod & Julien Boeuf
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -24,51 +24,46 @@
 |    Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 |    02111-1307, USA.
 |
-****************************************************************/
+ ****************************************************************/
 
-#ifndef _AP4_IKMS_ATOM_H_
-#define _AP4_IKMS_ATOM_H_
+#ifndef _AP4_CO64_ATOM_H_
+#define _AP4_CO64_ATOM_H_
 
 /*----------------------------------------------------------------------
 |   includes
 +---------------------------------------------------------------------*/
 #include "Ap4Types.h"
 #include "Ap4Atom.h"
-#include "Ap4String.h"
 
 /*----------------------------------------------------------------------
-|   AP4_IkmsAtom
+|   AP4_Co64Atom
 +---------------------------------------------------------------------*/
-class AP4_IkmsAtom : public AP4_Atom
+class AP4_Co64Atom : public AP4_Atom
 {
 public:
     // class methods
-    static AP4_IkmsAtom* Create(AP4_Size size, AP4_ByteStream& stream);
+    static AP4_Co64Atom* Create(AP4_Size size, AP4_ByteStream& stream);
 
     // methods
-    AP4_IkmsAtom(const char* kms_uri,
-                 AP4_UI32    kms_id = 0,
-                 AP4_UI32    kms_version = 0);
-    virtual AP4_Atom*  Clone();
+    AP4_Co64Atom(AP4_UI64* offsets, AP4_UI32 offset_count);
+    ~AP4_Co64Atom();
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
-
-    // accessors
-    const AP4_String& GetKmsUri()     { return m_KmsUri;     }
-    AP4_UI32          GetKmsId()      { return m_KmsId;      }
-    AP4_UI32          GetKmsVersion() { return m_KmsVersion; }
+    AP4_Cardinal GetChunkCount() { return m_EntryCount;  }
+    AP4_Result   GetChunkOffset(AP4_Ordinal chunk, AP4_UI64& chunk_offset);
+    AP4_Result   SetChunkOffset(AP4_Ordinal chunk, AP4_UI64  chunk_offset);
+    AP4_Result   AdjustChunkOffsets(AP4_SI64 delta);
 
 private:
     // methods
-    AP4_IkmsAtom(AP4_UI32        size, 
+    AP4_Co64Atom(AP4_UI32        size, 
                  AP4_UI32        version,
                  AP4_UI32        flags,
                  AP4_ByteStream& stream);
 
     // members
-    AP4_String m_KmsUri;
-    AP4_UI32   m_KmsId;
-    AP4_UI32   m_KmsVersion;
+    AP4_UI64* m_Entries;
+    AP4_UI32  m_EntryCount;
 };
 
-#endif // _AP4_IKMS_ATOM_H_
+#endif // _AP4_CO64_ATOM_H_

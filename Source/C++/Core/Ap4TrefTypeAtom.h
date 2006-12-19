@@ -43,7 +43,7 @@ class AP4_TrefTypeAtom : public AP4_Atom
 public:
     // class methods
     static AP4_TrefTypeAtom* Create(AP4_Atom::Type  type, 
-                                    AP4_Size        size, 
+                                    AP4_UI32        size, 
                                     AP4_ByteStream& stream) {
         return new AP4_TrefTypeAtom(type, size, stream);
     }
@@ -57,7 +57,7 @@ public:
     
 private:
     // methods
-    AP4_TrefTypeAtom(AP4_Atom::Type type, AP4_Size size, AP4_ByteStream& stream);
+    AP4_TrefTypeAtom(AP4_Atom::Type type, AP4_UI32 size, AP4_ByteStream& stream);
 
     // members
     AP4_Array<AP4_UI32> m_TrackIds;

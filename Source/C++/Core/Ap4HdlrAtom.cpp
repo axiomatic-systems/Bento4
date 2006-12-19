@@ -54,13 +54,13 @@ AP4_HdlrAtom::AP4_HdlrAtom(AP4_Atom::Type hdlr_type, const char* hdlr_name) :
     m_HandlerType(hdlr_type),
     m_HandlerName(hdlr_name)
 {
-    m_Size += 20+1+m_HandlerName.GetLength()+1;
+    m_Size32 += 20+1+m_HandlerName.GetLength()+1;
 }
 
 /*----------------------------------------------------------------------
 |   AP4_HdlrAtom::AP4_HdlrAtom
 +---------------------------------------------------------------------*/
-AP4_HdlrAtom::AP4_HdlrAtom(AP4_Size        size, 
+AP4_HdlrAtom::AP4_HdlrAtom(AP4_UI32        size, 
                            AP4_UI32        version,
                            AP4_UI32        flags,
                            AP4_ByteStream& stream) :
@@ -108,7 +108,7 @@ AP4_HdlrAtom::WriteFields(AP4_ByteStream& stream)
     if (AP4_FAILED(result)) return result;
 
     // pad with zeros if necessary
-    AP4_Size padding = m_Size-(AP4_FULL_ATOM_HEADER_SIZE+20+1+name_size);
+    AP4_Size padding = m_Size32-(AP4_FULL_ATOM_HEADER_SIZE+20+1+name_size);
     while (padding--) stream.WriteUI08(0);
 
     return AP4_SUCCESS;

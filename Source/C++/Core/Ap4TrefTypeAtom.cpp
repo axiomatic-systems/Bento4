@@ -35,7 +35,7 @@
 |   AP4_TrefTypeAtom::AP4_TrefTypeAtom
 +---------------------------------------------------------------------*/
 AP4_TrefTypeAtom::AP4_TrefTypeAtom(AP4_Atom::Type  type, 
-                                   AP4_Size        size, 
+                                   AP4_UI32        size, 
                                    AP4_ByteStream& stream) :
     AP4_Atom(type, size)
 {

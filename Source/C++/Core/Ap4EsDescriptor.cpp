@@ -54,7 +54,7 @@ AP4_EsDescriptor::AP4_EsDescriptor(AP4_ByteStream& stream,
                                    AP4_Size        payload_size) :
     AP4_Descriptor(AP4_DESCRIPTOR_TAG_ES, header_size, payload_size)
 {
-    AP4_Offset start;
+    AP4_Position start;
     stream.Tell(start);
 
     // read descriptor fields
@@ -88,10 +88,10 @@ AP4_EsDescriptor::AP4_EsDescriptor(AP4_ByteStream& stream,
     }
 
     // read other descriptors
-    AP4_Offset offset;
+    AP4_Position offset;
     stream.Tell(offset);
     AP4_SubStream* substream = new AP4_SubStream(stream, offset, 
-                                                 payload_size-(offset-start));
+                                                 payload_size-AP4_Size(offset-start));
     AP4_Descriptor* descriptor = NULL;
     while (AP4_DescriptorFactory::CreateDescriptorFromStream(*substream, 
                                                              descriptor) 

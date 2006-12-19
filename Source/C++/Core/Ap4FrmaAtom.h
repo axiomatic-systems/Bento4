@@ -61,7 +61,7 @@ public:
 
 private:
     // methods
-    AP4_FrmaAtom(AP4_Size size, AP4_ByteStream& stream);
+    AP4_FrmaAtom(AP4_UI32 size, AP4_ByteStream& stream);
 
     // members
     AP4_UI32 m_OriginalFormat;

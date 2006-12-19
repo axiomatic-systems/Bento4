@@ -109,7 +109,7 @@ AP4_SyntheticSampleTable::AddSampleDescription(AP4_SampleDescription* descriptio
 +---------------------------------------------------------------------*/
 AP4_Result 
 AP4_SyntheticSampleTable::AddSample(AP4_ByteStream& data_stream,
-                                    AP4_Offset      offset,
+                                    AP4_Position    offset,
                                     AP4_Size        size,
                                     AP4_Ordinal     description_index,
                                     AP4_TimeStamp   cts,

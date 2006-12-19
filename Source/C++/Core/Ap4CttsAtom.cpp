@@ -37,7 +37,7 @@
 |   AP4_CttsAtom::Create
 +---------------------------------------------------------------------*/
 AP4_CttsAtom*
-AP4_CttsAtom::Create(AP4_Size size, AP4_ByteStream& stream)
+AP4_CttsAtom::Create(AP4_UI32 size, AP4_ByteStream& stream)
 {
     AP4_UI32 version;
     AP4_UI32 flags;
@@ -49,7 +49,7 @@ AP4_CttsAtom::Create(AP4_Size size, AP4_ByteStream& stream)
 /*----------------------------------------------------------------------
 |   AP4_CttsAtom::AP4_CttsAtom
 +---------------------------------------------------------------------*/
-AP4_CttsAtom::AP4_CttsAtom(AP4_Size        size, 
+AP4_CttsAtom::AP4_CttsAtom(AP4_UI32        size, 
                            AP4_UI32        version,
                            AP4_UI32        flags,
                            AP4_ByteStream& stream) :
@@ -72,7 +72,7 @@ AP4_CttsAtom::AP4_CttsAtom(AP4_Size        size,
 |   AP4_CttsAtom::GetCtsOffset
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_CttsAtom::GetCtsOffset(AP4_Ordinal sample, AP4_Offset& cts_offset)
+AP4_CttsAtom::GetCtsOffset(AP4_Ordinal sample, AP4_UI32& cts_offset)
 {
     AP4_Ordinal current_sample = 0;
 

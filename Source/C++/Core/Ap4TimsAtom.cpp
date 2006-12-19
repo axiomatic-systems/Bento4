@@ -46,7 +46,7 @@ AP4_TimsAtom::AP4_TimsAtom(AP4_UI32 timescale) :
 /*----------------------------------------------------------------------
 |   AP4_TimsAtom::AP4_TimsAtom
 +---------------------------------------------------------------------*/
-AP4_TimsAtom::AP4_TimsAtom(AP4_Size size, AP4_ByteStream& stream) :
+AP4_TimsAtom::AP4_TimsAtom(AP4_UI32 size, AP4_ByteStream& stream) :
     AP4_Atom(AP4_ATOM_TYPE_TIMS, size)
 {
     stream.ReadUI32(m_TimeScale);

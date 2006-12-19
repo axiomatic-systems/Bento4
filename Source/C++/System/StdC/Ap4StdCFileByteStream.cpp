@@ -12,7 +12,7 @@
 +---------------------------------------------------------------------*/
 #include <stdio.h>
 #include <string.h>
-#if !defined(UNDER_CE)
+#if !defined(_WIN32_WCE)
 #include <errno.h>
 #include <sys/stat.h>
 #endif
@@ -63,9 +63,9 @@ public:
     AP4_Result Write(const void* buffer, 
                     AP4_Size     bytesToWrite, 
                     AP4_Size*    bytesWritten);
-    AP4_Result Seek(AP4_Offset offset);
-    AP4_Result Tell(AP4_Offset& offset);
-    AP4_Result GetSize(AP4_Size& size);
+    AP4_Result Seek(AP4_Position position);
+    AP4_Result Tell(AP4_Position& position);
+    AP4_Result GetSize(AP4_LargeSize& size);
 
     // AP4_Referenceable methods
     void AddReference();
@@ -76,7 +76,7 @@ private:
     AP4_ByteStream* m_Delegator;
     AP4_Cardinal    m_ReferenceCount;
     FILE*           m_File;
-    AP4_Size        m_Size;
+    AP4_LargeSize   m_Size;
 };
 
 /*----------------------------------------------------------------------
@@ -123,9 +123,9 @@ AP4_StdcFileByteStream::AP4_StdcFileByteStream(
         }
 
         // get the size
-        if (fseek(m_File, 0, SEEK_END) >= 0) {
-            m_Size = ftell(m_File);
-            fseek(m_File, 0, SEEK_SET);
+        if (AP4_fseek(m_File, 0, SEEK_END) >= 0) {
+            m_Size = AP4_ftell(m_File);
+            AP4_fseek(m_File, 0, SEEK_SET);
         }
     }
 }
@@ -210,11 +210,11 @@ AP4_StdcFileByteStream::Write(const void* buffer,
 |   AP4_StdcFileByteStream::Seek
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_StdcFileByteStream::Seek(AP4_Offset offset)
+AP4_StdcFileByteStream::Seek(AP4_Position position)
 {
     size_t result;
 
-    result = fseek(m_File, offset, SEEK_SET);
+    result = AP4_fseek(m_File, position, SEEK_SET);
     if (result == 0) {
         return AP4_SUCCESS;
     } else {
@@ -226,9 +226,9 @@ AP4_StdcFileByteStream::Seek(AP4_Offset offset)
 |   AP4_StdcFileByteStream::Tell
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_StdcFileByteStream::Tell(AP4_Offset& offset)
+AP4_StdcFileByteStream::Tell(AP4_Position& position)
 {
-    offset = ftell(m_File);
+    position = AP4_ftell(m_File);
     return AP4_SUCCESS;
 }
 
@@ -236,7 +236,7 @@ AP4_StdcFileByteStream::Tell(AP4_Offset& offset)
 |   AP4_StdcFileByteStream::GetSize
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_StdcFileByteStream::GetSize(AP4_Size& size)
+AP4_StdcFileByteStream::GetSize(AP4_LargeSize& size)
 {
     size = m_Size;
     return AP4_SUCCESS;

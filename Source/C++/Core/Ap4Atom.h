@@ -123,15 +123,28 @@ class AP4_Atom {
 
     // constructors
     /**
-     * Create a simple atom with a specified type and size.
+     * Create a simple atom with a specified type and 32-bit size.
      */
-    AP4_Atom(Type type, AP4_Size = AP4_ATOM_HEADER_SIZE);
+    AP4_Atom(Type type, AP4_UI32 size = AP4_ATOM_HEADER_SIZE);
 
     /**
-     * Create a full atom with a specified type, size, version and flags.
+     * Create a simple atom with a specified type and 64-bit size.
+     */
+    AP4_Atom(Type type, AP4_UI64 size);
+
+    /**
+     * Create a full atom with a specified type, 32-bit size, version and flags.
      */
     AP4_Atom(Type     type, 
-             AP4_Size size,
+             AP4_UI32 size,
+             AP4_UI32 version, 
+             AP4_UI32 flags);
+
+    /**
+     * Create a full atom with a specified type, 64-bit size, version and flags.
+     */
+    AP4_Atom(Type     type, 
+             AP4_UI64 size,
              AP4_UI32 version, 
              AP4_UI32 flags);
 
@@ -142,7 +155,12 @@ class AP4_Atom {
     Type               GetType() const { return m_Type; }
     void               SetType(Type type) { m_Type = type; }
     AP4_Size           GetHeaderSize() const;
-    AP4_Size           GetSize() const { return m_Size; }
+    AP4_UI64           GetSize() const { return m_Size32 == 1?m_Size64:m_Size32; }
+    void               SetSize(AP4_UI64 size);
+    AP4_UI32           GetSize32() const { return m_Size32; }
+    void               SetSize32(AP4_UI32 size) { m_Size32 = size; }
+    AP4_UI64           GetSize64() const { return m_Size64; }
+    void               SetSize64(AP4_UI64 size) { m_Size64 = size; }
     virtual AP4_Result Write(AP4_ByteStream& stream);
     virtual AP4_Result WriteHeader(AP4_ByteStream& stream);
     virtual AP4_Result WriteFields(AP4_ByteStream& stream) = 0;
@@ -171,7 +189,9 @@ class AP4_Atom {
  protected:
     // members
     Type            m_Type;
-    AP4_Size        m_Size;
+    AP4_UI32        m_Size32; 
+    AP4_UI64        m_Size64; // this is 0 if m_Size is not 1 (encoded in 32-bits)
+                              // and non-zero only if m_Size is 1 (encodedin 64-bits)
     bool            m_IsFull;
     AP4_UI32        m_Version;
     AP4_UI32        m_Flags;
@@ -220,7 +240,7 @@ class AP4_UnknownAtom : public AP4_Atom {
 public:
     // constructor and destructor
     AP4_UnknownAtom(AP4_Atom::Type   type, 
-                    AP4_Size         size, 
+                    AP4_UI64         size, 
                     AP4_ByteStream&  stream);
     ~AP4_UnknownAtom();
 
@@ -325,12 +345,12 @@ class AP4_AtomListWriter : public AP4_List<AP4_Atom>::Item::Operator
         m_Stream(stream) {}
     AP4_Result Action(AP4_Atom* atom) const {
 #if defined(AP4_DEBUG)
-        AP4_Offset before;
+        AP4_Position before;
         m_Stream.Tell(before);
 #endif
         atom->Write(m_Stream);
 #if defined(AP4_DEBUG)
-        AP4_Offset after;
+        AP4_Position after;
         m_Stream.Tell(after);
         AP4_ASSERT(after-before == atom->GetSize());
 #endif
@@ -370,14 +390,14 @@ class AP4_AtomFinder : public AP4_List<AP4_Atom>::Item::Finder
 +---------------------------------------------------------------------*/
 class AP4_AtomSizeAdder : public AP4_List<AP4_Atom>::Item::Operator {
 public:
-    AP4_AtomSizeAdder(AP4_Size& size) : m_Size(size) {}
+    AP4_AtomSizeAdder(AP4_UI64& size) : m_Size(size) {}
 
 private:
     AP4_Result Action(AP4_Atom* atom) const {
         m_Size += atom->GetSize();
         return AP4_SUCCESS;
     }
-    AP4_Size& m_Size;
+    AP4_UI64& m_Size;
 };
 
 #endif // _AP4_ATOM_H_
