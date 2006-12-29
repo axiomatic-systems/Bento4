@@ -54,6 +54,11 @@ class AP4_CtrStreamCipher;
 const AP4_UI32 AP4_PROTECTION_SCHEME_TYPE_OMA = AP4_ATOM_TYPE('o','d','k','m');
 const AP4_UI32 AP4_PROTECTION_SCHEME_VERSION_OMA_20 = 0x00000200;
 
+typedef enum {
+    AP4_OMA_DCF_CIPHER_MODE_CTR,
+    AP4_OMA_DCF_CIPHER_MODE_CBC
+} AP4_OmaDcfCipherMode;
+
 /*----------------------------------------------------------------------
 |   AP4_OmaDcfSampleDecrypter
 +---------------------------------------------------------------------*/
@@ -65,13 +70,18 @@ public:
                                              const AP4_UI08* key, AP4_Size key_size);
 
     // constructor and destructor
-    AP4_OmaDcfSampleDecrypter(AP4_Size iv_length) : m_IvLength(iv_length) {}
+    AP4_OmaDcfSampleDecrypter(AP4_Size iv_length,
+                              bool     selective_encryption) :
+        m_IvLength(iv_length),
+        m_SelectiveEncryption(selective_encryption) {}
 
     // methods
     virtual AP4_Size GetDecryptedSampleSize(AP4_Sample& sample) = 0;
 
 protected:
     AP4_Size m_IvLength;
+    AP4_Size m_KeyIndicatorLength;
+    bool     m_SelectiveEncryption;
 };
 
 /*----------------------------------------------------------------------
@@ -81,7 +91,9 @@ class AP4_OmaDcfCtrSampleDecrypter : public AP4_OmaDcfSampleDecrypter
 {
 public:
     // constructor and destructor
-    AP4_OmaDcfCtrSampleDecrypter(const AP4_UI08* key);
+    AP4_OmaDcfCtrSampleDecrypter(const AP4_UI08* key,
+                                 AP4_Size        iv_length,
+                                 bool            selective_encryption);
     ~AP4_OmaDcfCtrSampleDecrypter();
 
     // methods
@@ -101,7 +113,8 @@ class AP4_OmaDcfCbcSampleDecrypter : public AP4_OmaDcfSampleDecrypter
 {
 public:
     // constructor and destructor
-    AP4_OmaDcfCbcSampleDecrypter(const AP4_UI08* key);
+    AP4_OmaDcfCbcSampleDecrypter(const AP4_UI08* key,
+                                 bool            selective_encryption);
     ~AP4_OmaDcfCbcSampleDecrypter();
 
     // methods
@@ -156,7 +169,7 @@ public:
     // methods
     virtual AP4_Result EncryptSampleData(AP4_DataBuffer& data_in,
                                          AP4_DataBuffer& data_out,
-                                         AP4_UI32        bso,
+                                         AP4_UI64        bso,
                                          bool            skip_encryption) = 0;
     virtual AP4_Size   GetEncryptedSampleSize(AP4_Sample& sample) = 0;
 
@@ -179,7 +192,7 @@ public:
     // methods
     virtual AP4_Result EncryptSampleData(AP4_DataBuffer& data_in,
                                          AP4_DataBuffer& data_out,
-                                         AP4_UI32        bso,
+                                         AP4_UI64        bso,
                                          bool            skip_encryption);
     virtual AP4_Size   GetEncryptedSampleSize(AP4_Sample& sample);
 
@@ -202,7 +215,7 @@ public:
     // methods
     virtual AP4_Result EncryptSampleData(AP4_DataBuffer& data_in,
                                          AP4_DataBuffer& data_out,
-                                         AP4_UI32        bso,
+                                         AP4_UI64        bso,
                                          bool            skip_encryption);
     virtual AP4_Size   GetEncryptedSampleSize(AP4_Sample& sample);
 
@@ -246,6 +259,9 @@ private:
 class AP4_OmaDcfEncryptingProcessor : public AP4_Processor
 {
 public:
+    // constructor
+    AP4_OmaDcfEncryptingProcessor(AP4_OmaDcfCipherMode cipher_mode);
+
     // accessors
     AP4_ProtectionKeyMap& GetKeyMap()      { return m_KeyMap;      }
     AP4_TrackPropertyMap& GetPropertyMap() { return m_PropertyMap; }
@@ -255,6 +271,7 @@ public:
 
 private:
     // members
+    AP4_OmaDcfCipherMode m_CipherMode;
     AP4_ProtectionKeyMap m_KeyMap;
     AP4_TrackPropertyMap m_PropertyMap;
 };

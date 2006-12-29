@@ -55,6 +55,9 @@ AP4_CttsAtom::AP4_CttsAtom(AP4_UI32        size,
                            AP4_ByteStream& stream) :
     AP4_Atom(AP4_ATOM_TYPE_CTTS, size, version, flags)
 {
+    m_LookupCache.upper_bound = 0;
+    m_LookupCache.entry_index = 0;
+
     AP4_UI32 entry_count;
     stream.ReadUI32(entry_count);
     while (entry_count--) {
@@ -74,21 +77,38 @@ AP4_CttsAtom::AP4_CttsAtom(AP4_UI32        size,
 AP4_Result
 AP4_CttsAtom::GetCtsOffset(AP4_Ordinal sample, AP4_UI32& cts_offset)
 {
-    AP4_Ordinal current_sample = 0;
+    // check parameters
+    if (sample < 1) return AP4_ERROR_OUT_OF_RANGE;
 
-    for (unsigned int i = 0; i < m_Entries.ItemCount(); i++) {
+    // check the lookup cache
+    AP4_Ordinal lookup_start = 0;
+    AP4_Ordinal upper_bound = 0;
+    if (sample >= m_LookupCache.upper_bound) {
+        // start from the cached entry
+        lookup_start = m_LookupCache.entry_index;
+        upper_bound  = m_LookupCache.upper_bound;
+    }
+
+    for (unsigned int i = lookup_start; i < m_Entries.ItemCount(); i++) {
         AP4_CttsTableEntry& entry = m_Entries[i];
 
-        current_sample += entry.m_SampleCount;        
-        // check if we have the right entry 
-        if (current_sample >= sample) {
+        // update the upper bound
+        upper_bound += entry.m_SampleCount;        
+
+        // check if we have reached the sample
+        if (sample <= upper_bound) {
             cts_offset = entry.m_SampleOffset;
+
+            // update the lookup cache
+            m_LookupCache.entry_index = i;
+            m_LookupCache.upper_bound = upper_bound - entry.m_SampleCount;
+
             return AP4_SUCCESS;
         }
     }
 
     // sample is greater than the number of samples
-    return AP4_FAILURE;
+    return AP4_ERROR_OUT_OF_RANGE;
 }
 
 /*----------------------------------------------------------------------

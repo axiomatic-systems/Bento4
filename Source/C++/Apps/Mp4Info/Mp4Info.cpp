@@ -108,7 +108,14 @@ ShowProtectedSampleDescription(AP4_ProtectedSampleDescription* desc)
         }
         AP4_OhdrAtom* ohdr = dynamic_cast<AP4_OhdrAtom*>(schi->FindChild("odkm/ohdr"));
         if (ohdr) {
-            AP4_Debug("        Encryption Method: %d\n", ohdr->GetEncryptionMethod());
+            const char* encryption_method = "";
+            switch (ohdr->GetEncryptionMethod()) {
+                case AP4_OMA_DCF_ENCRYPTION_METHOD_NULL:    encryption_method = "NULL";    break;
+                case AP4_OMA_DCF_ENCRYPTION_METHOD_AES_CTR: encryption_method = "AES-CTR"; break;
+                case AP4_OMA_DCF_ENCRYPTION_METHOD_AES_CBC: encryption_method = "AES-CBC"; break;
+                default:                                    encryption_method = "UNKNOWN"; break;
+            }
+            AP4_Debug("        Encryption Method: %s\n", encryption_method);
             AP4_Debug("        Content ID:        %s\n", ohdr->GetContentId().GetChars());
             AP4_Debug("        Rights Issuer URL: %s\n", ohdr->GetRightsIssuerUrl().GetChars());
         }
@@ -199,9 +206,9 @@ ShowTrackInfo(AP4_Track* track, bool verbose = false)
         if (verbose) {
             printf("[%08d] size=%6d dts=%8d, cts=%8d\n", 
                    index+1,
-                   sample.GetSize(),
-                   sample.GetDts(), 
-                   sample.GetCts());
+                   (int)sample.GetSize(),
+                   (int)sample.GetDts(), 
+                   (int)sample.GetCts());
         }
         index++;
     }

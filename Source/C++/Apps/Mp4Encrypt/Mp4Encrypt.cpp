@@ -219,7 +219,10 @@ main(int argc, char** argv)
         isma_processor->GetKeyMap().SetKeys(key_map);
         processor = isma_processor;
     } else {
-        AP4_OmaDcfEncryptingProcessor* oma_processor = new AP4_OmaDcfEncryptingProcessor();
+        AP4_OmaDcfEncryptingProcessor* oma_processor = 
+            new AP4_OmaDcfEncryptingProcessor(method == METHOD_OMA_PDCF_CTR?
+                                              AP4_OMA_DCF_CIPHER_MODE_CTR :
+                                              AP4_OMA_DCF_CIPHER_MODE_CBC);
         oma_processor->GetKeyMap().SetKeys(key_map);
         oma_processor->GetPropertyMap().SetProperties(property_map);
         processor = oma_processor;
