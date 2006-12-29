@@ -106,7 +106,7 @@ AP4_CtrStreamCipher::SetBaseCounter(const AP4_UI08* counter)
 |   AP4_CtrStreamCipher::SetStreamOffset
 +---------------------------------------------------------------------*/
 void
-AP4_CtrStreamCipher::SetStreamOffset(AP4_UI32 offset)
+AP4_CtrStreamCipher::SetStreamOffset(AP4_UI64 offset)
 {
     // do nothing if we're already at that offset
     if (offset == m_StreamOffset) return;
@@ -127,22 +127,19 @@ void
 AP4_CtrStreamCipher::UpdateKeyStream()
 {
     // setup counter offset bytes
-    unsigned int counter_offset = m_StreamOffset/AP4_AES_BLOCK_SIZE;
-    AP4_UI08 counter_offset_bytes[4];
-    counter_offset_bytes[0] = (counter_offset>>24)&0xFF;
-    counter_offset_bytes[1] = (counter_offset>>16)&0xFF;
-    counter_offset_bytes[2] = (counter_offset>> 8)&0xFF;
-    counter_offset_bytes[3] = (counter_offset    )&0xFF;
+    AP4_UI64 counter_offset = m_StreamOffset/AP4_AES_BLOCK_SIZE;
+    AP4_UI08 counter_offset_bytes[8];
+    AP4_BytesFromUInt64BE(counter_offset_bytes, counter_offset);
 
     // compute the new counter
     unsigned int carry = 0;
     for (unsigned int i=0; i<m_CounterSize; i++) {
         unsigned int o = AP4_AES_BLOCK_SIZE-1-i;
         unsigned int x = m_BaseCounter[o];
-        unsigned int y = (i<4)?counter_offset_bytes[3-i]:0;
+        unsigned int y = (i<8)?counter_offset_bytes[7-i]:0;
         unsigned int sum = x+y+carry;
         m_CBlock[o] = (AP4_UI08)(sum&0xFF);
-        carry = sum >= 0x100?1:0;
+        carry = ((sum >= 0x100)?1:0);
     }
     for (unsigned int i=m_CounterSize; i<AP4_AES_BLOCK_SIZE; i++) {
         unsigned int o = AP4_AES_BLOCK_SIZE-1-i;
@@ -165,7 +162,7 @@ AP4_CtrStreamCipher::ProcessBuffer(const AP4_UI08* in,
 
     while (size) {
         // compute the number of bytes available in this chunk
-        AP4_UI32 index = m_StreamOffset & (AP4_AES_BLOCK_SIZE-1);
+        AP4_UI32 index = (AP4_UI32)(m_StreamOffset & (AP4_AES_BLOCK_SIZE-1));
         AP4_UI32 chunk;
 
         // update the key stream if we are on a boundary
@@ -238,9 +235,9 @@ AP4_CbcStreamCipher::ProcessBuffer(const AP4_UI08* in,
     if (m_BlockCipher == NULL || m_Eos) return AP4_ERROR_INVALID_STATE;
     if (is_last_buffer) m_Eos = true;
 
-    unsigned int start_block = m_StreamOffset/AP4_AES_BLOCK_SIZE;
-    unsigned int end_block   = (m_StreamOffset+in_size)/AP4_AES_BLOCK_SIZE;
-    unsigned int blocks_needed = end_block-start_block;
+    AP4_UI64 start_block = m_StreamOffset/AP4_AES_BLOCK_SIZE;
+    AP4_UI64 end_block   = (m_StreamOffset+in_size)/AP4_AES_BLOCK_SIZE;
+    AP4_UI32 blocks_needed = (AP4_UI32)(end_block-start_block);
 
     if (m_Direction == ENCRYPT) {
         // compute how many blocks we will need to produce
@@ -257,7 +254,7 @@ AP4_CbcStreamCipher::ProcessBuffer(const AP4_UI08* in,
         }
         *out_size = blocks_needed*AP4_AES_BLOCK_SIZE;
 
-        unsigned int position = m_StreamOffset%AP4_AES_BLOCK_SIZE;
+        unsigned int position = (unsigned int)(m_StreamOffset%AP4_AES_BLOCK_SIZE);
         m_StreamOffset += in_size;
         for (unsigned int x=0; x<padded_in_size; x++) {
             if (x < in_size) {
@@ -281,7 +278,7 @@ AP4_CbcStreamCipher::ProcessBuffer(const AP4_UI08* in,
         }
         *out_size = blocks_needed*AP4_AES_BLOCK_SIZE;
 
-        unsigned int position = m_StreamOffset%AP4_AES_BLOCK_SIZE;
+        unsigned int position = (unsigned int)(m_StreamOffset%AP4_AES_BLOCK_SIZE);
         m_StreamOffset += in_size;
         for (unsigned int x=0; x<in_size; x++) {
             m_InBlockCache[position] = in[x];

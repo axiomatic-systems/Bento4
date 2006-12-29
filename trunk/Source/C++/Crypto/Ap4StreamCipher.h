@@ -48,13 +48,13 @@ public:
                        AP4_Size        counter_size);
    ~AP4_CtrStreamCipher();
    AP4_Result Reset(const AP4_UI08* key, const AP4_UI08* salt = NULL);
-   void       SetStreamOffset(AP4_UI32 offset);
+   void       SetStreamOffset(AP4_UI64 offset);
    void       SetBaseCounter(const AP4_UI08* counter);
    AP4_Result ProcessBuffer(const AP4_UI08* in, 
                             AP4_UI08*       out,
                             AP4_Size        size);
    const AP4_UI08* GetBaseCounter()  { return m_BaseCounter;  }
-   AP4_UI32        GetStreamOffset() { return m_StreamOffset; }
+   AP4_UI64        GetStreamOffset() { return m_StreamOffset; }
 
 private:
    // methods
@@ -62,7 +62,7 @@ private:
    void UpdateKeyStream();
 
    // members
-   AP4_UI32            m_StreamOffset;
+   AP4_UI64            m_StreamOffset;
    AP4_Size            m_CounterSize;
    AP4_UI08            m_BaseCounter[AP4_AES_BLOCK_SIZE];
    AP4_UI08            m_CBlock[AP4_AES_BLOCK_SIZE];

@@ -77,6 +77,10 @@
 #define AP4_snprintf   _snprintf
 #define AP4_vsnprintf  _vsnprintf
 #endif
+#if defined(_WIN32_WCE)
+#define AP4_fseek fseek
+#define AP4_ftell ftell
+#endif
 #if defined(_DEBUG)
 #define _CRTDBG_MAP_ALLOC
 #endif

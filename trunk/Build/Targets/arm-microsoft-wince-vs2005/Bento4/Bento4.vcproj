@@ -657,6 +657,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\..\Source\C++\Core\Ap4Co64Atom.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\Source\C++\Core\Ap4ContainerAtom.cpp"
 				>
 			</File>
@@ -951,6 +955,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\..\Source\C++\Core\Ap4Co64Atom.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\Source\C++\Core\Ap4Config.h"
 				>
 			</File>
@@ -1228,6 +1236,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\..\Source\C++\Core\Ap4Utils.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\Source\C++\Core\Ap4Version.h"
 				>
 			</File>
 			<File

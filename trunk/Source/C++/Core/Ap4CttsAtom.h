@@ -82,6 +82,10 @@ private:
 
     // members
     AP4_Array<AP4_CttsTableEntry> m_Entries;
+    struct {
+        AP4_Ordinal upper_bound;
+        AP4_Ordinal entry_index;
+    } m_LookupCache;
 };
 
 #endif // _AP4_CTTS_ATOM_H_
