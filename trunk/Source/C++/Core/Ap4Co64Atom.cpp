@@ -50,7 +50,7 @@ AP4_Co64Atom::Create(AP4_Size size, AP4_ByteStream& stream)
 |   AP4_Co64Atom::AP4_Co64Atom
 +---------------------------------------------------------------------*/
 AP4_Co64Atom::AP4_Co64Atom(AP4_UI64* entries, AP4_UI32 entry_count) :
-AP4_Atom(AP4_ATOM_TYPE_STCO,  
+AP4_Atom(AP4_ATOM_TYPE_CO64,  
          AP4_FULL_ATOM_HEADER_SIZE+4+entry_count*8,
          0, 0),
          m_Entries(new AP4_UI64[entry_count]),
@@ -66,7 +66,7 @@ AP4_Co64Atom::AP4_Co64Atom(AP4_UI32        size,
                            AP4_UI32        version,
                            AP4_UI32        flags,
                            AP4_ByteStream& stream) :
-    AP4_Atom(AP4_ATOM_TYPE_STCO, size, version, flags)
+    AP4_Atom(AP4_ATOM_TYPE_CO64, size, version, flags)
 {
     stream.ReadUI32(m_EntryCount);
     if (m_EntryCount > (size-AP4_FULL_ATOM_HEADER_SIZE-4)/8) {
