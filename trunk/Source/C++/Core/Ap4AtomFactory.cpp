@@ -70,6 +70,7 @@
 #include "Ap4MetaData.h"
 #include "Ap4IproAtom.h"
 #include "Ap4OdafAtom.h"
+#include "Ap4AvccAtom.h"
 
 /*----------------------------------------------------------------------
 |   AP4_AtomFactory::~AP4_AtomFactory
@@ -398,6 +399,11 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
       case AP4_ATOM_TYPE_IPRO:
         if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
         atom = AP4_IproAtom::Create(size_32, stream, *this);
+        break;
+
+      case AP4_ATOM_TYPE_AVCC:
+        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+        atom = AP4_AvccAtom::Create(size_32, stream);
         break;
 
       // container atoms
