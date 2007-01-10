@@ -409,7 +409,7 @@
 		CA93673A0B437D390067D50B /* Ap4MetaData.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4MetaData.cpp; sourceTree = "<group>"; };
 		CA93673B0B437D390067D50B /* Ap4MetaData.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = Ap4MetaData.h; sourceTree = "<group>"; };
 		CA93673F0B437D4D0067D50B /* Ap4StdCFileByteStream.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4StdCFileByteStream.cpp; sourceTree = "<group>"; };
-		CA9367450B437DCC0067D50B /* mp4dump */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mp4dump; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA9367450B437DCC0067D50B /* mp4dump */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "compiled.mach-o.executable"; path = mp4dump; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA93674C0B437E240067D50B /* Aac2Mp4.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = Aac2Mp4.cpp; sourceTree = "<group>"; };
 		CA93674E0B437E240067D50B /* Mp42Aac.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = Mp42Aac.cpp; sourceTree = "<group>"; };
 		CA9367500B437E240067D50B /* Mp4Decrypt.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = Mp4Decrypt.cpp; sourceTree = "<group>"; };
@@ -724,7 +724,7 @@
 				CA93669F0B437D040067D50B /* Ap4VmhdAtom.h */,
 			);
 			name = Core;
-			path = "../../../../Source/C++/Core";
+			path = "../../../Source/C++/Core";
 			sourceTree = SOURCE_ROOT;
 		};
 		CA9367300B437D1D0067D50B /* Crypto */ = {
@@ -736,7 +736,7 @@
 				CA9367340B437D1D0067D50B /* Ap4StreamCipher.h */,
 			);
 			name = Crypto;
-			path = "../../../../Source/C++/Crypto";
+			path = "../../../Source/C++/Crypto";
 			sourceTree = SOURCE_ROOT;
 		};
 		CA9367390B437D390067D50B /* MetaData */ = {
@@ -746,7 +746,7 @@
 				CA93673B0B437D390067D50B /* Ap4MetaData.h */,
 			);
 			name = MetaData;
-			path = "../../../../Source/C++/MetaData";
+			path = "../../../Source/C++/MetaData";
 			sourceTree = SOURCE_ROOT;
 		};
 		CA93673E0B437D4D0067D50B /* StdC */ = {
@@ -755,7 +755,7 @@
 				CA93673F0B437D4D0067D50B /* Ap4StdCFileByteStream.cpp */,
 			);
 			name = StdC;
-			path = "../../../../Source/C++/System/StdC";
+			path = "../../../Source/C++/System/StdC";
 			sourceTree = SOURCE_ROOT;
 		};
 		CA93674A0B437E240067D50B /* Apps */ = {
@@ -773,7 +773,7 @@
 				CA93675D0B437E240067D50B /* Mp4Tag */,
 			);
 			name = Apps;
-			path = "../../../../Source/C++/Apps";
+			path = "../../../Source/C++/Apps";
 			sourceTree = SOURCE_ROOT;
 		};
 		CA93674B0B437E240067D50B /* Aac2Mp4 */ = {
@@ -865,7 +865,7 @@
 				CA9367FD0B4383F00067D50B /* Ap4BitStream.h */,
 			);
 			name = Codecs;
-			path = "../../../../Source/C++/Codecs";
+			path = "../../../Source/C++/Codecs";
 			sourceTree = SOURCE_ROOT;
 		};
 /* End PBXGroup section */
