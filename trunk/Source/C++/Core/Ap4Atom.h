@@ -170,7 +170,7 @@ class AP4_Atom {
         return AP4_SUCCESS; 
     }
 
-    // parent/child realtionship methods
+    // parent/child relationship methods
     virtual AP4_Result SetParent(AP4_AtomParent* parent) {
         m_Parent = parent;
         return AP4_SUCCESS;
@@ -191,7 +191,7 @@ class AP4_Atom {
     Type            m_Type;
     AP4_UI32        m_Size32; 
     AP4_UI64        m_Size64; // this is 0 if m_Size is not 1 (encoded in 32-bits)
-                              // and non-zero only if m_Size is 1 (encodedin 64-bits)
+                              // and non-zero only if m_Size is 1 (encoded in 64-bits)
     bool            m_IsFull;
     AP4_UI32        m_Version;
     AP4_UI32        m_Flags;
