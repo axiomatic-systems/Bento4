@@ -81,10 +81,8 @@ CreateTrackDumpByteStream(const char* mp4_filename,
     } catch (AP4_Exception e) {
         fprintf(stderr, "ERROR: %d cannot open file for dumping track %d", 
                 e.m_Error, track_id);
-        goto end;
     }
     
-end:
     delete [] dump_filename;
     return output;
 }
@@ -92,7 +90,7 @@ end:
 /*----------------------------------------------------------------------
 |   DumpSamples
 +---------------------------------------------------------------------*/
-void
+static void
 DumpSamples(AP4_Track* track, AP4_ByteStream* dump)
 {
     // write the data
@@ -111,7 +109,7 @@ DumpSamples(AP4_Track* track, AP4_ByteStream* dump)
 /*----------------------------------------------------------------------
 |   DecryptAndDumpSamples
 +---------------------------------------------------------------------*/
-void
+static void
 DecryptAndDumpSamples(AP4_Track*             track, 
                       AP4_SampleDescription* sample_desc,
                       const AP4_UI08*        key,
@@ -213,10 +211,10 @@ main(int argc, char** argv)
     }
 
     // init the variables
-    AP4_ByteStream*         input = NULL;
+    AP4_ByteStream*         input       = NULL;
+    const char*             filename    = NULL;
     AP4_ProtectionKeyMap    key_map;
     AP4_Array<AP4_Ordinal>  tracks_to_dump;
-    const char*             filename;
     
 
     // parse the command line
