@@ -16,7 +16,7 @@ include $(BUILD_ROOT)/Makefiles/Lib.exp
 # variables
 ##########################################################################
 SDK_LIBRARIES := libAP4.a
-SDK_HEADERS := $(SOURCE_ROOT)/Core/*.h $(SOURCE_ROOT)/Config/*.h $(SOURCE_ROOT)/Crypto/*.h $(SOURCE_ROOT)/Codecs/*.h
+SDK_HEADERS := $(SOURCE_ROOT)/Core/*.h $(SOURCE_ROOT)/MetaData/*.h $(SOURCE_ROOT)/Crypto/*.h $(SOURCE_ROOT)/Codecs/*.h
 SDK_BINARIES = $(ALL_APPS)
 
 ##########################################################################
