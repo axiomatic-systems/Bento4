@@ -289,7 +289,7 @@ AP4_ProtectionKeyMap::GetKeyAndIv(AP4_UI32         track_id,
 |   AP4_ProtectionKeyMap::GetKey
 +---------------------------------------------------------------------*/
 const AP4_UI08* 
-AP4_ProtectionKeyMap::GetKey(AP4_UI32 track_id)
+AP4_ProtectionKeyMap::GetKey(AP4_UI32 track_id) const
 {
     KeyEntry* entry = GetEntry(track_id);
     if (entry) {
@@ -303,7 +303,7 @@ AP4_ProtectionKeyMap::GetKey(AP4_UI32 track_id)
 |   AP4_ProtectionKeyMap::GetEntry
 +---------------------------------------------------------------------*/
 AP4_ProtectionKeyMap::KeyEntry*
-AP4_ProtectionKeyMap::GetEntry(AP4_UI32 track_id)
+AP4_ProtectionKeyMap::GetEntry(AP4_UI32 track_id) const
 {
     AP4_List<KeyEntry>::Item* item = m_KeyEntries.FirstItem();
     while (item) {

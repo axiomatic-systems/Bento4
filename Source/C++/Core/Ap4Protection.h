@@ -123,7 +123,7 @@ public:
     AP4_Result      SetKey(AP4_UI32 track_id, const AP4_UI08* key, const AP4_UI08* iv = NULL);
     AP4_Result      SetKeys(const AP4_ProtectionKeyMap& key_map);
     AP4_Result      GetKeyAndIv(AP4_UI32 track_id, const AP4_UI08*& key, const AP4_UI08*& iv);
-    const AP4_UI08* GetKey(AP4_UI32 track_id);
+    const AP4_UI08* GetKey(AP4_UI32 track_id) const;
 
 private:
     // types
@@ -137,7 +137,7 @@ private:
     };
 
     // methods
-    KeyEntry* GetEntry(AP4_UI32 track_id);
+    KeyEntry* GetEntry(AP4_UI32 track_id) const;
 
     // members
     AP4_List<KeyEntry> m_KeyEntries;

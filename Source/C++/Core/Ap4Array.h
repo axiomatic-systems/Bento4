@@ -56,7 +56,7 @@ public:
              AP4_Array(): m_AllocatedCount(0), m_ItemCount(0), m_Items(0) {}
              AP4_Array(const T* items, AP4_Size count);
     virtual ~AP4_Array();
-    AP4_Cardinal ItemCount() { return m_ItemCount; }
+    AP4_Cardinal ItemCount() const { return m_ItemCount; }
     AP4_Result   Append(const T& item);
     T& operator[](unsigned long idx) { return m_Items[idx]; }
     const T& operator[](unsigned long idx) const { return m_Items[idx]; }

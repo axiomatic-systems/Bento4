@@ -93,6 +93,7 @@ main(int argc, char** argv)
             unsigned int track = strtoul(track_ascii, NULL, 10);
             if (AP4_ParseHex(key_ascii, key, 16)) {
                 fprintf(stderr, "ERROR: invalid hex format for key\n");
+                return 1;
             }
             // set the key in the map
             processor->GetKeyMap().SetKey(track, key);
