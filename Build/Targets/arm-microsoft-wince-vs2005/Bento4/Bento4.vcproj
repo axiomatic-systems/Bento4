@@ -653,6 +653,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\..\Source\C++\Core\Ap4AvccAtom.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\Source\C++\Core\Ap4ByteStream.cpp"
 				>
 			</File>
@@ -948,6 +952,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\..\Source\C++\Core\Ap4AtomSampleTable.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\Source\C++\Core\Ap4AvccAtom.h"
 				>
 			</File>
 			<File
