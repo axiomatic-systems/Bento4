@@ -54,10 +54,11 @@ PrintUsageAndExit()
         "usage: mp4encrypt --method <method> [options] <input> <output>\n"
         "  --method: <method> is OMA-PDCF-CBC, OMA-PDCF-CTR or ISMA-IAEC\n"
         "  Options:\n"
+        "  --show-progress: show progress details\n"
         "  --key <n>:<k>:<iv>\n"   
         "      Specifiy the key to use for a track.\n"
-        "      <n> is a track ID, <k> a 128-bit key in hex (16 characters)\n"
-        "      and <iv> an IV or salting key\n"
+        "      <n> is a track ID, <k> a 128-bit key in hex (32 characters)\n"
+        "      and <iv> a 64-bit IV or salting key in hex (16 characters)\n"
         "      (several --key options can be used, one for each track)\n"
         "  --property <n>:<name>:<value>\n"
         "      Specifies a named string property for a track\n"
@@ -85,6 +86,22 @@ enum Method {
 }; 
 
 /*----------------------------------------------------------------------
+|   ProgressListener
++---------------------------------------------------------------------*/
+class ProgressListener : public AP4_Processor::ProgressListener
+{
+public:
+    AP4_Result OnProgress(unsigned int step, unsigned int total);
+};
+
+AP4_Result
+ProgressListener::OnProgress(unsigned int step, unsigned int total)
+{
+    printf("\r%d/%d", step, total);
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
 |   main
 +---------------------------------------------------------------------*/
 int
@@ -99,6 +116,7 @@ main(int argc, char** argv)
     const char* output_filename = NULL;
     AP4_ProtectionKeyMap key_map;
     AP4_TrackPropertyMap property_map;
+    bool                 show_progress = false;
 
     // parse the command line arguments
     char* arg;
@@ -121,6 +139,8 @@ main(int argc, char** argv)
                 return 1;
             }
             kms_uri = *++argv;
+        } else if (!strcmp(arg, "--show-progress")) {
+            show_progress = true;
         } else if (!strcmp(arg, "--key")) {
             if (method == METHOD_NONE) {
                 fprintf(stderr, "ERROR: --method argument must appear before --key\n");
@@ -249,7 +269,11 @@ main(int argc, char** argv)
     }
 
     // process/decrypt the file
-    processor->Process(*input, *output);
+    ProgressListener listener;
+    AP4_Result result = processor->Process(*input, *output, show_progress?&listener:NULL);
+    if (AP4_FAILED(result)) {
+        fprintf(stderr, "ERROR: failed to process the file (%d)\n", result);
+    }
 
     // cleanup
     delete processor;

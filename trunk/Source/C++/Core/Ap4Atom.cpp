@@ -265,6 +265,20 @@ AP4_UnknownAtom::AP4_UnknownAtom(Type            type,
     // store source stream position
     stream.Tell(m_SourcePosition);
 
+    // clamp to the file size
+    AP4_UI64 file_size;
+    if (AP4_SUCCEEDED(stream.GetSize(file_size))) {
+        if (m_SourcePosition+size > file_size) {
+            if (m_Size32 == 1) {
+                // size is encoded as a large size
+                m_Size64 = file_size-m_SourcePosition;
+            } else {
+                AP4_ASSERT(size <= 0xFFFFFFFF);
+                m_Size32 = (AP4_UI32)(file_size-m_SourcePosition);
+            }
+        }
+    }
+
     // keep a reference to the source stream
     m_SourceStream->AddReference();
 }
@@ -485,4 +499,38 @@ AP4_AtomParent::FindChild(const char* path,
 
     // not found
     return NULL;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_AtomParent::FindChild
++---------------------------------------------------------------------*/
+const unsigned int AP4_ATOM_LIST_WRITER_MAX_PADDING=1024;
+
+AP4_Result
+AP4_AtomListWriter::Action(AP4_Atom* atom) const
+{
+    AP4_Position before;
+    m_Stream.Tell(before);
+
+    atom->Write(m_Stream);
+
+    AP4_Position after;
+    m_Stream.Tell(after);
+
+    AP4_UI64 bytes_written = after-before;
+    AP4_ASSERT(bytes_written <= atom->GetSize());
+    if (bytes_written < atom->GetSize()) {
+        AP4_Debug("WARNING: atom serialized to fewer bytes that declared size\n");
+        AP4_UI64 padding = atom->GetSize()-bytes_written;
+        if (padding > AP4_ATOM_LIST_WRITER_MAX_PADDING) {
+            AP4_Debug("WARNING: padding would be too large\n");
+            return AP4_FAILURE;
+        } else {
+            for (unsigned int i=0; i<padding; i++) {
+                m_Stream.WriteUI08(0);
+            }
+        }
+    }
+
+    return AP4_SUCCESS;
 }

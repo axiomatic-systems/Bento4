@@ -344,19 +344,7 @@ class AP4_AtomListWriter : public AP4_List<AP4_Atom>::Item::Operator
  public:
     AP4_AtomListWriter(AP4_ByteStream& stream) :
         m_Stream(stream) {}
-    AP4_Result Action(AP4_Atom* atom) const {
-#if defined(AP4_DEBUG)
-        AP4_Position before;
-        m_Stream.Tell(before);
-#endif
-        atom->Write(m_Stream);
-#if defined(AP4_DEBUG)
-        AP4_Position after;
-        m_Stream.Tell(after);
-        AP4_ASSERT(after-before == atom->GetSize());
-#endif
-        return AP4_SUCCESS;
-    }
+    AP4_Result Action(AP4_Atom* atom) const;
 
  private:
     AP4_ByteStream& m_Stream;

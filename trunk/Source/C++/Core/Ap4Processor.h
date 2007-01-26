@@ -50,6 +50,21 @@ class AP4_TrakAtom;
 class AP4_Processor {
 public:
     // types
+    class ProgressListener {
+    public:
+        virtual ~ProgressListener() {}
+
+        /**
+         * This method is called during the call to AP4_Processor::Process() to
+         * notify of the progress of the operation. If this method returns an 
+         * error result, processing is aborted.
+         */
+        virtual AP4_Result OnProgress(unsigned int /* step  */, 
+                                      unsigned int /* total */) { 
+            return AP4_SUCCESS; 
+        }
+    };
+
     class TrackHandler {
     public:
         virtual ~TrackHandler() {}
@@ -65,6 +80,7 @@ public:
     // abstract base class methods
     AP4_Result Process(AP4_ByteStream&  input, 
                        AP4_ByteStream&  output,
+                       ProgressListener* listener = NULL,
                        AP4_AtomFactory& atom_factory = 
                        AP4_DefaultAtomFactory::Instance);
 

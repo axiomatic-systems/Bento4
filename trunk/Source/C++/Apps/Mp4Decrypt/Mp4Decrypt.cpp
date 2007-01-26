@@ -52,9 +52,26 @@ PrintUsageAndExit()
             BANNER 
             "\n\n"
             "usage: mp4decrypt [--key <n>:<k>] <input> <output>\n"
+            "  --show-progress: show progress details\n"
             "  --key: <n> is a track index, <k> a 128-bit key in hex\n"
             "         (several --key options can be used, one for each track)\n");
     exit(1);
+}
+
+/*----------------------------------------------------------------------
+|   ProgressListener
++---------------------------------------------------------------------*/
+class ProgressListener : public AP4_Processor::ProgressListener
+{
+public:
+    AP4_Result OnProgress(unsigned int step, unsigned int total);
+};
+
+AP4_Result
+ProgressListener::OnProgress(unsigned int step, unsigned int total)
+{
+    printf("\r%d/%d", step, total);
+    return AP4_SUCCESS;
 }
 
 /*----------------------------------------------------------------------
@@ -73,6 +90,7 @@ main(int argc, char** argv)
     // parse options
     const char* input_filename = NULL;
     const char* output_filename = NULL;
+    bool        show_progress = false;
 
     AP4_ProtectionKeyMap key_map;
     char* arg;
@@ -97,6 +115,8 @@ main(int argc, char** argv)
             }
             // set the key in the map
             processor->GetKeyMap().SetKey(track, key);
+        } else if (!strcmp(arg, "--show-progress")) {
+            show_progress = true;
         } else if (input_filename == NULL) {
             input_filename = arg;
         } else if (output_filename == NULL) {
@@ -138,7 +158,8 @@ main(int argc, char** argv)
     }
 
     // process/decrypt the file
-    AP4_Result result = processor->Process(*input, *output);
+    ProgressListener listener;
+    AP4_Result result = processor->Process(*input, *output, show_progress?&listener:NULL);
     if (AP4_FAILED(result)) {
         fprintf(stderr, "ERROR: failed to process the file (%d)\n", result);
     }

@@ -65,13 +65,14 @@ struct AP4_SampleCursor {
 |   AP4_Processor::Process
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_Processor::Process(AP4_ByteStream&  input, 
-                       AP4_ByteStream&  output,
-                       AP4_AtomFactory& atom_factory)
+AP4_Processor::Process(AP4_ByteStream&   input, 
+                       AP4_ByteStream&   output,
+                       ProgressListener* listener,
+                       AP4_AtomFactory&  atom_factory)
 {
     // read all atoms 
     AP4_AtomParent top_level;
-    AP4_Atom* atom;
+    AP4_Atom*      atom;
     while (AP4_SUCCEEDED(atom_factory.CreateAtomFromStream(input, atom))) {
         top_level.AddChild(atom);
     }
@@ -236,6 +237,11 @@ AP4_Processor::Process(AP4_ByteStream&  input,
             output.Write(data_out.GetData(), data_out.GetDataSize());
         } else {
             output.Write(data_in.GetData(), data_in.GetDataSize());            
+        }
+
+        // notify the progress listener
+        if (listener) {
+            listener->OnProgress(i+1, locators.ItemCount());
         }
     }
 
