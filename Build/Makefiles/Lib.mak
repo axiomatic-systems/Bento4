@@ -8,6 +8,7 @@
 all: libAP4.a
 
 CORE_SOURCES = 								\
+    Ap4Atom.cpp                             \
     Ap4AtomFactory.cpp                      \
     Ap4AtomSampleTable.cpp                  \
     Ap4AvccAtom.cpp                         \

@@ -95,7 +95,7 @@ def Application(name, source_dir, extra_deps=[]):
     libs = GetLibraries(sdk)
     cpp_path = GetIncludeDirs(sdk)
     
-    prog = env.Program(name, 
+    prog = env.Program(name.lower(), 
                        GlobSources(source_dir, ['*.cpp']), 
                        LIBS=libs, CPPPATH=cpp_path)
     Alias(name, prog)
