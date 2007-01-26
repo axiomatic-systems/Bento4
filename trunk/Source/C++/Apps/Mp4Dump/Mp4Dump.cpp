@@ -148,9 +148,9 @@ DecryptAndDumpSamples(AP4_Track*             track,
 /*----------------------------------------------------------------------
 |   DumpTrackData
 +---------------------------------------------------------------------*/
-static void
+void
 DumpTrackData(const char*                   mp4_filename, 
-              AP4_File*                     mp4_file, 
+              AP4_File&                     mp4_file, 
               const AP4_Array<AP4_Ordinal>& tracks_to_dump,
               const AP4_ProtectionKeyMap&   key_map)
 {
@@ -159,7 +159,7 @@ DumpTrackData(const char*                   mp4_filename,
     for (AP4_Ordinal i=0; i<tracks_to_dump_count; i++) {
         // get the track
         AP4_Ordinal track_id = tracks_to_dump[i];
-        AP4_Track* track = mp4_file->GetMovie()->GetTrack(track_id);
+        AP4_Track* track = mp4_file.GetMovie()->GetTrack(track_id);
         if (track == NULL) {
             fprintf(stderr, "track not found (id = %d)", track_id);
             return;
@@ -288,6 +288,7 @@ main(int argc, char** argv)
         // destroy the atom
         delete atom;
     }  
+    if (output) output->Release();
 
     // inspect the track data if needed
     if (tracks_to_dump.ItemCount() != 0) {
@@ -295,13 +296,11 @@ main(int argc, char** argv)
     	input->Seek(0);
     	
     	// dump the track data
-    	AP4_File* file = new AP4_File(*input);
+    	AP4_File file(*input);
         DumpTrackData(filename, file, tracks_to_dump, key_map);
-        delete file;
     }
 
     if (input) input->Release();
-    if (output) output->Release();
 
     return 0;
 }
