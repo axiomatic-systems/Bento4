@@ -127,5 +127,5 @@ AP4_Result
 AP4_SyntheticSampleTable::GetSampleIndexForTimeStamp(AP4_TimeStamp /* ts */, 
                                                      AP4_Ordinal&  /* index */)
 {
-    return AP4_ERROR_NOT_SUPPORTED_YET;
+    return AP4_ERROR_NOT_SUPPORTED;
 }

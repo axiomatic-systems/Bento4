@@ -62,7 +62,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="$(OutDir)/Mp4RtpHintInfo.exe"
+				OutputFile="$(OutDir)/mp4rtphintinfo.exe"
 				LinkIncremental="2"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(OutDir)/Mp4RtpHintInfo.pdb"
@@ -139,7 +139,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="$(OutDir)/Mp4RtpHintInfo.exe"
+				OutputFile="$(OutDir)/mp4rtphintinfo.exe"
 				LinkIncremental="1"
 				GenerateDebugInformation="false"
 				SubSystem="1"

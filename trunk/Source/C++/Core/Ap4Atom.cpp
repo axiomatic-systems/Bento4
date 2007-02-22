@@ -329,6 +329,24 @@ AP4_UnknownAtom::WriteFields(AP4_ByteStream& stream)
 }
 
 /*----------------------------------------------------------------------
+|   AP4_UnknownAtom::Clone
++---------------------------------------------------------------------*/
+AP4_Atom*  
+AP4_UnknownAtom::Clone()
+{
+    // refuse to clone large atoms
+    if (GetSize() >= 32768) return NULL;
+    AP4_UI32 size = (AP4_UI32)GetSize();
+
+    AP4_MemoryByteStream* memory_stream = new AP4_MemoryByteStream(size);
+    m_SourceStream->Seek(m_SourcePosition);
+    m_SourceStream->CopyTo(*memory_stream, size);
+    memory_stream->Seek(0);
+    return new AP4_UnknownAtom(m_Type, GetSize(), *memory_stream);
+    memory_stream->Release();
+}
+
+/*----------------------------------------------------------------------
 |   AP4_AtomParent::~AP4_AtomParent
 +---------------------------------------------------------------------*/
 AP4_AtomParent::~AP4_AtomParent()

@@ -114,7 +114,7 @@ class AP4_SubStream : public AP4_ByteStream
 class AP4_MemoryByteStream : public AP4_ByteStream
 {
 public:
-    AP4_MemoryByteStream(AP4_Size size); // filled with zeros
+    AP4_MemoryByteStream(AP4_Size size = 0); // filled with zeros
     AP4_MemoryByteStream(AP4_UI08* buffer, AP4_Size size);
 
     // AP4_ByteStream methods

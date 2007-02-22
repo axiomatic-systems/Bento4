@@ -66,8 +66,11 @@ class AP4_OmaDcfSampleDecrypter : public AP4_SampleDecrypter
 {
 public:
     // factory
-    static AP4_OmaDcfSampleDecrypter* Create(AP4_ProtectedSampleDescription* sample_description, 
-                                             const AP4_UI08* key, AP4_Size key_size);
+    static AP4_Result Create(AP4_ProtectedSampleDescription* sample_description, 
+                             const AP4_UI08*                 key, 
+                             AP4_Size                        key_size,
+                             AP4_BlockCipherFactory*         block_cipher_factory,
+                             AP4_OmaDcfSampleDecrypter**     cipher);
 
     // constructor and destructor
     AP4_OmaDcfSampleDecrypter(AP4_Size iv_length,
@@ -91,9 +94,9 @@ class AP4_OmaDcfCtrSampleDecrypter : public AP4_OmaDcfSampleDecrypter
 {
 public:
     // constructor and destructor
-    AP4_OmaDcfCtrSampleDecrypter(const AP4_UI08* key,
-                                 AP4_Size        iv_length,
-                                 bool            selective_encryption);
+    AP4_OmaDcfCtrSampleDecrypter(AP4_BlockCipher* block_cipher,
+                                 AP4_Size         iv_length,
+                                 bool             selective_encryption);
     ~AP4_OmaDcfCtrSampleDecrypter();
 
     // methods
@@ -113,8 +116,8 @@ class AP4_OmaDcfCbcSampleDecrypter : public AP4_OmaDcfSampleDecrypter
 {
 public:
     // constructor and destructor
-    AP4_OmaDcfCbcSampleDecrypter(const AP4_UI08* key,
-                                 bool            selective_encryption);
+    AP4_OmaDcfCbcSampleDecrypter(AP4_BlockCipher* block_cipher,
+                                 bool             selective_encryption);
     ~AP4_OmaDcfCbcSampleDecrypter();
 
     // methods
@@ -133,9 +136,12 @@ private:
 class AP4_OmaDcfTrackDecrypter : public AP4_Processor::TrackHandler {
 public:
     // constructor
-    static AP4_OmaDcfTrackDecrypter* Create(const AP4_UI08*                 key,
-                                            AP4_ProtectedSampleDescription* sample_description,
-                                            AP4_SampleEntry*                sample_entry);
+    static AP4_Result Create(const AP4_UI08*                 key,
+                             AP4_Size                        key_size,
+                             AP4_ProtectedSampleDescription* sample_description,
+                             AP4_SampleEntry*                sample_entry,
+                             AP4_BlockCipherFactory*         block_cipher_factory,
+                             AP4_OmaDcfTrackDecrypter**      decrypter);
     virtual ~AP4_OmaDcfTrackDecrypter();
 
     // methods
@@ -185,8 +191,8 @@ class AP4_OmaDcfCtrSampleEncrypter : public AP4_OmaDcfSampleEncrypter
 {
 public:
     // constructor and destructor
-    AP4_OmaDcfCtrSampleEncrypter(const AP4_UI08* key,
-                                 const AP4_UI08* salt);
+    AP4_OmaDcfCtrSampleEncrypter(AP4_BlockCipher* block_cipher,
+                                 const AP4_UI08*  salt);
     ~AP4_OmaDcfCtrSampleEncrypter();
 
     // methods
@@ -208,8 +214,8 @@ class AP4_OmaDcfCbcSampleEncrypter : public AP4_OmaDcfSampleEncrypter
 {
 public:
     // constructor and destructor
-    AP4_OmaDcfCbcSampleEncrypter(const AP4_UI08* key,
-                                 const AP4_UI08* salt);
+    AP4_OmaDcfCbcSampleEncrypter(AP4_BlockCipher* block_cipher,
+                                 const AP4_UI08*  salt);
     ~AP4_OmaDcfCbcSampleEncrypter();
 
     // methods
@@ -260,7 +266,8 @@ class AP4_OmaDcfEncryptingProcessor : public AP4_Processor
 {
 public:
     // constructor
-    AP4_OmaDcfEncryptingProcessor(AP4_OmaDcfCipherMode cipher_mode);
+    AP4_OmaDcfEncryptingProcessor(AP4_OmaDcfCipherMode    cipher_mode,
+                                  AP4_BlockCipherFactory* block_cipher_factory = NULL);
 
     // accessors
     AP4_ProtectionKeyMap& GetKeyMap()      { return m_KeyMap;      }
@@ -271,9 +278,10 @@ public:
 
 private:
     // members
-    AP4_OmaDcfCipherMode m_CipherMode;
-    AP4_ProtectionKeyMap m_KeyMap;
-    AP4_TrackPropertyMap m_PropertyMap;
+    AP4_OmaDcfCipherMode    m_CipherMode;
+    AP4_BlockCipherFactory* m_BlockCipherFactory;
+    AP4_ProtectionKeyMap    m_KeyMap;
+    AP4_TrackPropertyMap    m_PropertyMap;
 };
 
 #endif // _AP4_OMA_DCF_H_

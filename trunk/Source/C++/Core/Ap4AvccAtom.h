@@ -77,6 +77,7 @@ public:
     AP4_UI08 GetLengthSize() const           { return m_LengthSize; }
     AP4_Array<AP4_DataBuffer>& GetSequenceParameters() { return m_SequenceParameters; }
     AP4_Array<AP4_DataBuffer>& GetPictureParameters()  { return m_PictureParameters; }
+    const AP4_DataBuffer& GetRawBytes() const { return m_RawBytes; }
 
 private:
     // methods
@@ -90,6 +91,7 @@ private:
     AP4_UI08 m_LengthSize;
     AP4_Array<AP4_DataBuffer> m_SequenceParameters;
     AP4_Array<AP4_DataBuffer> m_PictureParameters;
+    AP4_DataBuffer m_RawBytes;
 };
 
 #endif // _AP4_TIMS_ATOM_H_

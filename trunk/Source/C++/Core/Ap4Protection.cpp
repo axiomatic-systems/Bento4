@@ -43,6 +43,7 @@
 #include "Ap4TrakAtom.h"
 #include "Ap4IsmaCryp.h"
 #include "Ap4OmaDcf.h"
+#include "Ap4AesBlockCipher.h"
 
 /*----------------------------------------------------------------------
 |   AP4_EncaSampleEntry::AP4_EncaSampleEntry
@@ -386,21 +387,48 @@ AP4_ProtectedSampleDescription::ToAtom() const
 AP4_SampleDecrypter* 
 AP4_SampleDecrypter::Create(AP4_ProtectedSampleDescription* sample_description,
                             const AP4_UI08*                 key,
-                            AP4_Size                        key_size)
+                            AP4_Size                        key_size,
+                            AP4_BlockCipherFactory*         block_cipher_factory)
 {
     if (sample_description == NULL || key == NULL) return NULL;
-    switch(sample_description->GetSchemeType()) {
-        case AP4_PROTECTION_SCHEME_TYPE_OMA:
-            return AP4_OmaDcfSampleDecrypter::Create(sample_description, key, key_size);
 
-        case AP4_PROTECTION_SCHEME_TYPE_IAEC:
-            return AP4_IsmaCipher::CreateSampleDecrypter(sample_description, key, key_size);
+    // select the block cipher factory
+    if (block_cipher_factory == NULL) {
+        block_cipher_factory = &AP4_DefaultBlockCipherFactory::Instance;
+    }
+
+    switch(sample_description->GetSchemeType()) {
+        case AP4_PROTECTION_SCHEME_TYPE_OMA: {
+            AP4_OmaDcfSampleDecrypter* decrypter = NULL;
+            AP4_Result result = AP4_OmaDcfSampleDecrypter::Create(sample_description, key, key_size, block_cipher_factory, &decrypter);
+            if (AP4_FAILED(result)) return NULL;
+            return decrypter;
+        }
+
+        case AP4_PROTECTION_SCHEME_TYPE_IAEC: {
+            AP4_IsmaCipher* decrypter = NULL;
+            AP4_Result result = AP4_IsmaCipher::CreateSampleDecrypter(sample_description, key, key_size, block_cipher_factory, &decrypter);
+            if (AP4_FAILED(result)) return NULL;
+            return decrypter;
+       }
 
         default:
             return NULL;
     }
 
     return NULL;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_StandardDecryptingProcessor:AP4_StandardDecryptingProcessor
++---------------------------------------------------------------------*/
+AP4_StandardDecryptingProcessor::AP4_StandardDecryptingProcessor(AP4_BlockCipherFactory* block_cipher_factory)
+{
+    if (block_cipher_factory == NULL) {
+        m_BlockCipherFactory = &AP4_DefaultBlockCipherFactory::Instance;
+    } else {
+        m_BlockCipherFactory = block_cipher_factory;
+    }
 }
 
 /*----------------------------------------------------------------------
@@ -427,15 +455,57 @@ AP4_StandardDecryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
         if (protected_desc->GetSchemeType() == AP4_PROTECTION_SCHEME_TYPE_OMA) {
             const AP4_UI08* key = m_KeyMap.GetKey(trak->GetId());
             if (key) {
-                return AP4_OmaDcfTrackDecrypter::Create(key, protected_desc, entry);
+                AP4_OmaDcfTrackDecrypter* handler = NULL;
+                AP4_Result result = AP4_OmaDcfTrackDecrypter::Create(key, AP4_CIPHER_BLOCK_SIZE, protected_desc, entry, m_BlockCipherFactory, &handler);
+                if (AP4_FAILED(result)) return NULL;
+                return handler;
             }
         } else if (protected_desc->GetSchemeType() == AP4_PROTECTION_SCHEME_TYPE_IAEC) {
             const AP4_UI08* key = m_KeyMap.GetKey(trak->GetId());
             if (key) {
-                return AP4_IsmaTrackDecrypter::Create(key, protected_desc, entry);
+                AP4_IsmaTrackDecrypter* handler = NULL;
+                AP4_Result result = AP4_IsmaTrackDecrypter::Create(key, AP4_CIPHER_BLOCK_SIZE, protected_desc, entry, m_BlockCipherFactory, &handler);
+                if (AP4_FAILED(result)) return NULL;
+                return handler;
             }
         } 
     }
 
     return NULL;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_DefaultBlockCipherFactory::Instance
++---------------------------------------------------------------------*/
+AP4_DefaultBlockCipherFactory AP4_DefaultBlockCipherFactory::Instance;
+
+/*----------------------------------------------------------------------
+|   AP4_DefaultBlockCipherFactory
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_DefaultBlockCipherFactory::Create(AP4_BlockCipher::CipherType      type,
+                                      AP4_BlockCipher::CipherDirection direction,
+                                      const AP4_UI08*                  key,
+                                      AP4_Size                         key_size,
+                                      AP4_BlockCipher**                cipher)
+{
+    // check parameters and setup default return vaule
+    if (cipher == NULL) return AP4_ERROR_INVALID_PARAMETERS;
+    *cipher = NULL;
+
+    switch (type) {
+        case AP4_BlockCipher::AES_128:
+            // check cipher parameters
+            if (key == NULL || key_size != AP4_AES_BLOCK_SIZE) {
+                return AP4_ERROR_INVALID_PARAMETERS;
+            }
+
+            // create the cipher
+            *cipher = new AP4_AesBlockCipher(key, direction);
+            return AP4_SUCCESS;
+
+        default:
+            // not supported
+            return AP4_ERROR_NOT_SUPPORTED;
+    }
 }

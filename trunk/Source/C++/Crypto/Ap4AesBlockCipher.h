@@ -41,6 +41,7 @@
 +---------------------------------------------------------------------*/
 #include "Ap4Types.h"
 #include "Ap4Config.h"
+#include "Ap4Protection.h"
 
 /*----------------------------------------------------------------------
 |   class references
@@ -56,25 +57,22 @@ struct aes_ctx;
 /*----------------------------------------------------------------------
 |   AP4_AesBlockCipher class
 +---------------------------------------------------------------------*/
-class AP4_AesBlockCipher
+class AP4_AesBlockCipher : public AP4_BlockCipher
 {
 public:
-    // types
-    typedef enum {
-        ENCRYPT,
-        DECRYPT
-    } CipherDirection;
-
     // constructor and destructor
-    AP4_AesBlockCipher(const AP4_UI08* key, CipherDirection direction);
+    AP4_AesBlockCipher(const AP4_UI08*                  key, 
+                       AP4_BlockCipher::CipherDirection direction);
    ~AP4_AesBlockCipher();
     
-    // methods
-    AP4_Result EncryptBlock(const AP4_UI08* block_in, AP4_UI08* block_out);
-    AP4_Result DecryptBlock(const AP4_UI08* block_in, AP4_UI08* block_out);
+   // AP4_AesBlockCipher methods
+   virtual AP4_Result ProcessBlock(const AP4_UI08* input,
+                                   AP4_UI08*       output);
 
 private:
-    aes_ctx* m_Context;
+    // members
+    CipherDirection m_Direction;
+    aes_ctx*        m_Context;
 };
 
 #endif // _AP4_AES_BLOCK_CIPHER_H_ 

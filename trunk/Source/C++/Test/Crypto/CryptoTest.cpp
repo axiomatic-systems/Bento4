@@ -808,9 +808,13 @@ main(int /*argc*/, char** /*argv*/)
       0x90, 0x6e, 0x20, 0x7b
     };
 
-    AP4_CbcStreamCipher e_cipher(key, AP4_CbcStreamCipher::ENCRYPT);
+    AP4_BlockCipher* e_block_cipher;
+    AP4_DefaultBlockCipherFactory::Instance.Create(AP4_BlockCipher::AES_128, AP4_BlockCipher::ENCRYPT, key, 16, &e_block_cipher);
+    AP4_CbcStreamCipher e_cipher(e_block_cipher, AP4_CbcStreamCipher::ENCRYPT);
 
-    AP4_CbcStreamCipher d_cipher(key, AP4_CbcStreamCipher::DECRYPT);
+    AP4_BlockCipher* d_block_cipher;
+    AP4_DefaultBlockCipherFactory::Instance.Create(AP4_BlockCipher::AES_128, AP4_BlockCipher::DECRYPT, key, 16, &d_block_cipher);
+    AP4_CbcStreamCipher d_cipher(d_block_cipher, AP4_CbcStreamCipher::DECRYPT);
 
     unsigned char buffer[128];
     AP4_Size      size;

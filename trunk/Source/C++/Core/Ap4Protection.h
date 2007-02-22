@@ -202,6 +202,60 @@ private:
 };
 
 /*----------------------------------------------------------------------
+|   AP4_BlockCipher
++---------------------------------------------------------------------*/
+class AP4_BlockCipher
+{
+public:
+    // types
+    typedef enum {
+        ENCRYPT,
+        DECRYPT
+    } CipherDirection;
+
+    typedef enum {
+        AES_128
+    } CipherType;
+
+    // constructor and destructor
+    virtual ~AP4_BlockCipher() {}
+    
+    // methods
+    virtual AP4_Result ProcessBlock(const AP4_UI08* block_in, AP4_UI08* block_out) = 0;
+};
+
+/*----------------------------------------------------------------------
+|   AP4_BlockCipherFactory
++---------------------------------------------------------------------*/
+class AP4_BlockCipherFactory
+{
+public:
+    // methods
+    virtual AP4_Result Create(AP4_BlockCipher::CipherType      type,
+                              AP4_BlockCipher::CipherDirection direction,
+                              const AP4_UI08*                  key,
+                              AP4_Size                         key_size,
+                              AP4_BlockCipher**                cipher) = 0;
+};
+
+/*----------------------------------------------------------------------
+|   AP4_DefaultBlockCipherFactory
++---------------------------------------------------------------------*/
+class AP4_DefaultBlockCipherFactory : public AP4_BlockCipherFactory
+{
+public:
+    // class variables
+    static AP4_DefaultBlockCipherFactory Instance;
+
+    // methods
+    virtual AP4_Result Create(AP4_BlockCipher::CipherType      type,
+                              AP4_BlockCipher::CipherDirection direction,
+                              const AP4_UI08*                  key,
+                              AP4_Size                         key_size,
+                              AP4_BlockCipher**                cipher);
+};
+
+/*----------------------------------------------------------------------
 |   AP4_SampleDecrypter
 +---------------------------------------------------------------------*/
 class AP4_SampleDecrypter
@@ -210,7 +264,8 @@ public:
     // factory
     static AP4_SampleDecrypter* Create(AP4_ProtectedSampleDescription* sample_description,
                                        const AP4_UI08*                 key,
-                                       AP4_Size                        key_size);
+                                       AP4_Size                        key_size,
+                                       AP4_BlockCipherFactory*         block_cipher_factory = NULL);
 
     // destructor
     virtual ~AP4_SampleDecrypter() {}
@@ -226,6 +281,9 @@ public:
 class AP4_StandardDecryptingProcessor : public AP4_Processor
 {
 public:
+    // constructor
+    AP4_StandardDecryptingProcessor(AP4_BlockCipherFactory* block_cipher_factory = NULL);
+
     // accessors
     AP4_ProtectionKeyMap& GetKeyMap() { return m_KeyMap; }
 
@@ -234,7 +292,8 @@ public:
 
 private:
     // members
-    AP4_ProtectionKeyMap m_KeyMap;
+    AP4_BlockCipherFactory* m_BlockCipherFactory;
+    AP4_ProtectionKeyMap    m_KeyMap;
 };
 
 #endif // _AP4_PROTECTION_H_
