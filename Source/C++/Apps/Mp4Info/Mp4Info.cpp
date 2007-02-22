@@ -56,6 +56,30 @@ PrintUsageAndExit()
 }
 
 /*----------------------------------------------------------------------
+|   ShowPayload
++---------------------------------------------------------------------*/
+static void
+ShowPayload(AP4_Atom* atom, bool ascii = false)
+{
+    AP4_UI64 payload_size = atom->GetSize()-8;
+    if (payload_size <= 1024) {
+        AP4_MemoryByteStream* payload = new AP4_MemoryByteStream();
+        atom->Write(*payload);
+        if (ascii) {
+            // ascii
+            payload->WriteUI08(0); // terminate with a NULL character
+            AP4_Debug("%s", (char*)payload->GetData()+atom->GetHeaderSize());
+        } else {
+            // hex
+            for (unsigned int i=0; i<payload_size; i++) {
+                AP4_Debug("%02x", (unsigned char)payload->GetData()[atom->GetHeaderSize()+i]);
+            }
+        }
+        payload->Release();
+    }
+}
+
+/*----------------------------------------------------------------------
 |   ShowProtectedSampleDescription
 +---------------------------------------------------------------------*/
 static void
@@ -118,6 +142,32 @@ ShowProtectedSampleDescription(AP4_ProtectedSampleDescription* desc)
             AP4_Debug("        Encryption Method: %s\n", encryption_method);
             AP4_Debug("        Content ID:        %s\n", ohdr->GetContentId().GetChars());
             AP4_Debug("        Rights Issuer URL: %s\n", ohdr->GetRightsIssuerUrl().GetChars());
+        }
+    } else if (desc->GetSchemeType() == AP4_PROTECTION_SCHEME_TYPE_ITUNES) {
+        AP4_Debug("      itun Scheme Info:\n");
+        AP4_Atom* name = schi->FindChild("name");
+        if (name) {
+            AP4_Debug("        Name:    ");
+            ShowPayload(name, true);
+            AP4_Debug("\n");
+        }
+        AP4_Atom* user = schi->FindChild("user");
+        if (user) {
+            AP4_Debug("        User ID: ");
+            ShowPayload(user);
+            AP4_Debug("\n");
+        }
+        AP4_Atom* key = schi->FindChild("key ");
+        if (key) {
+            AP4_Debug("        Key ID:  ");
+            ShowPayload(key);
+            AP4_Debug("\n");
+        }
+        AP4_Atom* iviv = schi->FindChild("iviv");
+        if (iviv) {
+            AP4_Debug("        IV:      ");
+            ShowPayload(iviv);
+            AP4_Debug("\n");
         }
     }
 }

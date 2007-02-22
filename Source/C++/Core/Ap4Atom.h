@@ -176,7 +176,7 @@ class AP4_Atom {
         return AP4_SUCCESS;
     }
     virtual AP4_AtomParent* GetParent() { return m_Parent; }
-    virtual AP4_Result Detach();
+    virtual AP4_Result      Detach();
 
     /**
      * Create a clone of the object.
@@ -246,6 +246,7 @@ public:
 
     // methods
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
+    virtual AP4_Atom*  Clone();
 
 private:
     // members

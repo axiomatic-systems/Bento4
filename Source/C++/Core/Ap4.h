@@ -271,5 +271,6 @@
 #include "Ap4IsmaCryp.h"
 #include "Ap4OdafAtom.h"
 #include "Ap4OhdrAtom.h"
+#include "Ap4AvccAtom.h"
 
 #endif // _AP4_H_

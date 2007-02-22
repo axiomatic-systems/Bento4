@@ -264,7 +264,7 @@ AP4_HintTrackReader::BuildRtpPacket(AP4_RtpPacket* packet,
                 if (AP4_FAILED(result)) return result;
                 break;
             case AP4_RTP_CONSTRUCTOR_TYPE_SAMPLE_DESC:
-                return AP4_ERROR_NOT_SUPPORTED_YET;
+                return AP4_ERROR_NOT_SUPPORTED;
             default:
                 // unknown constructor type
                 return AP4_FAILURE;

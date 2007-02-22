@@ -1829,10 +1829,11 @@ static aes_rval aes_dec_blk(const unsigned char in_blk[], unsigned char out_blk[
 |   AP4_AesBlockCipher::AP4_AesBlockCipher
 +---------------------------------------------------------------------*/
 AP4_AesBlockCipher::AP4_AesBlockCipher(const AP4_UI08* key,
-                                       CipherDirection direction)
+                                       CipherDirection direction) :
+    m_Direction(direction)
 {
     m_Context = new aes_ctx;
-    if (direction == ENCRYPT) {
+    if (direction == AP4_BlockCipher::ENCRYPT) {
         aes_enc_key(key, AP4_AES_KEY_LENGTH, m_Context);
     } else {
         aes_dec_key(key, AP4_AES_KEY_LENGTH, m_Context);
@@ -1848,24 +1849,18 @@ AP4_AesBlockCipher::~AP4_AesBlockCipher()
 }
 
 /*----------------------------------------------------------------------
-|   AP4_AesCipher::EncryptBlock
+|   AP4_AesBlockCipher::EncryptBlock
 +---------------------------------------------------------------------*/
 AP4_Result 
-AP4_AesBlockCipher::EncryptBlock(const AP4_UI08* block_in, AP4_UI08* block_out)
+AP4_AesBlockCipher::ProcessBlock(const AP4_UI08* block_in,
+                                 AP4_UI08*       block_out)
 {
     aes_rval result;
-    result = aes_enc_blk(block_in, block_out, m_Context);
-    return result == aes_good ? AP4_SUCCESS : AP4_FAILURE;
-}
-
-/*----------------------------------------------------------------------
-|   AP4_AesCipher::DecryptBlock
-+---------------------------------------------------------------------*/
-AP4_Result 
-AP4_AesBlockCipher::DecryptBlock(const AP4_UI08* block_in, AP4_UI08* block_out)
-{
-    aes_rval result;
-    result = aes_dec_blk(block_in, block_out, m_Context);
+    if (m_Direction == AP4_BlockCipher::ENCRYPT) {
+        result = aes_enc_blk(block_in, block_out, m_Context);
+    } else {
+        result = aes_dec_blk(block_in, block_out, m_Context);
+    }
     return result == aes_good ? AP4_SUCCESS : AP4_FAILURE;
 }
 
