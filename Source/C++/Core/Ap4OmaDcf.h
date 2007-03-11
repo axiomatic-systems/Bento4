@@ -53,11 +53,77 @@ class AP4_CtrStreamCipher;
 +---------------------------------------------------------------------*/
 const AP4_UI32 AP4_PROTECTION_SCHEME_TYPE_OMA = AP4_ATOM_TYPE('o','d','k','m');
 const AP4_UI32 AP4_PROTECTION_SCHEME_VERSION_OMA_20 = 0x00000200;
+const AP4_UI32 AP4_OMA_DCF_BRAND_ODCF = AP4_ATOM_TYPE('o','d','c','f');
 
 typedef enum {
     AP4_OMA_DCF_CIPHER_MODE_CTR,
     AP4_OMA_DCF_CIPHER_MODE_CBC
 } AP4_OmaDcfCipherMode;
+
+/*----------------------------------------------------------------------
+|   AP4_OmaCbcDecryptingStream
++---------------------------------------------------------------------*/
+class AP4_OmaCbcDecryptingStream : public AP4_ByteStream {
+public:
+    static AP4_Result Create(
+        AP4_ByteStream*              source_stream,
+        AP4_Position                 source_position,
+        const AP4_UI08*              key,
+        AP4_Size                     key_size,
+        AP4_BlockCipherFactory*      block_cipher_factory,
+        AP4_LargeSize                cleartext_size,
+        AP4_OmaCbcDecryptingStream** stream);
+    ~AP4_OmaCbcDecryptingStream();
+
+    // AP4_ByteStream metods
+    virtual AP4_Result Read(void*     buffer, 
+                            AP4_Size  bytes_to_read, 
+                            AP4_Size* bytes_read);
+    virtual AP4_Result Write(const void* buffer, 
+                             AP4_Size    bytes_to_write, 
+                             AP4_Size*   bytes_written);
+    virtual AP4_Result Seek(AP4_Position position);
+    virtual AP4_Result Tell(AP4_Position& position);
+    virtual AP4_Result GetSize(AP4_LargeSize& size);
+
+    // AP4_Referenceable methods
+    virtual void AddReference();
+    virtual void Release();
+
+private:
+    // methods
+    AP4_OmaCbcDecryptingStream() {} // use the factory instead
+
+    // members
+    AP4_LargeSize        m_Size;
+    AP4_Position         m_Position;
+    AP4_ByteStream*      m_SourceStream;
+    AP4_Position         m_SourceStart;
+    AP4_Position         m_SourcePosition;
+    AP4_CbcStreamCipher* m_StreamCipher;
+    AP4_UI08             m_Buffer[16];
+    AP4_Size             m_BufferFullness;
+    AP4_Size             m_BufferOffset;
+    AP4_Cardinal         m_ReferenceCount;
+};
+
+/*----------------------------------------------------------------------
+|   AP4_OmaDcfAtomDecrypter
++---------------------------------------------------------------------*/
+class AP4_OmaDcfAtomDecrypter {
+public:
+    // class methods
+    static AP4_Result DecryptAtoms(AP4_AtomParent&                  atoms, 
+                                   AP4_Processor::ProgressListener* listener,
+                                   AP4_BlockCipherFactory*          block_cipher_factory,
+                                   AP4_ProtectionKeyMap&            key_map);
+
+    static AP4_Result CreateDecryptingStream(AP4_ContainerAtom&      odrm_atom,
+                                             const AP4_UI08*         key,
+                                             AP4_Size                key_size,
+                                             AP4_BlockCipherFactory* block_cipher_factory,
+                                             AP4_ByteStream**        stream);
+};
 
 /*----------------------------------------------------------------------
 |   AP4_OmaDcfSampleDecrypter

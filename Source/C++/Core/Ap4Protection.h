@@ -231,6 +231,7 @@ class AP4_BlockCipherFactory
 {
 public:
     // methods
+    virtual ~AP4_BlockCipherFactory() {}
     virtual AP4_Result Create(AP4_BlockCipher::CipherType      type,
                               AP4_BlockCipher::CipherDirection direction,
                               const AP4_UI08*                  key,
@@ -289,6 +290,8 @@ public:
 
     // methods
     virtual AP4_Processor::TrackHandler* CreateTrackHandler(AP4_TrakAtom* trak);
+    virtual AP4_Result Initialize(AP4_AtomParent&   top_level,
+                                  ProgressListener* listener);
 
 private:
     // members

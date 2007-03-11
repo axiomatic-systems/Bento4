@@ -40,7 +40,7 @@
 +---------------------------------------------------------------------*/
 AP4_ContainerAtom*
 AP4_ContainerAtom::Create(Type             type, 
-                          AP4_UI32         size,
+                          AP4_UI64         size,
                           bool             is_full,
                           AP4_ByteStream&  stream,
                           AP4_AtomFactory& atom_factory)
@@ -59,7 +59,7 @@ AP4_ContainerAtom::Create(Type             type,
 /*----------------------------------------------------------------------
 |   AP4_ContainerAtom::AP4_ContainerAtom
 +---------------------------------------------------------------------*/
-AP4_ContainerAtom::AP4_ContainerAtom(Type type, AP4_UI32 size) :
+AP4_ContainerAtom::AP4_ContainerAtom(Type type, AP4_UI64 size) :
     AP4_Atom(type, size)
 {
 }
@@ -68,7 +68,7 @@ AP4_ContainerAtom::AP4_ContainerAtom(Type type, AP4_UI32 size) :
 |   AP4_ContainerAtom::AP4_ContainerAtom
 +---------------------------------------------------------------------*/
 AP4_ContainerAtom::AP4_ContainerAtom(Type     type, 
-                                     AP4_UI32 size,
+                                     AP4_UI64 size,
                                      AP4_UI32 version, 
                                      AP4_UI32 flags) :
     AP4_Atom(type, size, version, flags)
@@ -80,7 +80,7 @@ AP4_ContainerAtom::AP4_ContainerAtom(Type     type,
 |   AP4_ContainerAtom::AP4_ContainerAtom
 +---------------------------------------------------------------------*/
 AP4_ContainerAtom::AP4_ContainerAtom(Type             type, 
-                                     AP4_UI32         size,
+                                     AP4_UI64         size,
                                      AP4_ByteStream&  stream,
                                      AP4_AtomFactory& atom_factory) :
     AP4_Atom(type, size)
@@ -92,7 +92,7 @@ AP4_ContainerAtom::AP4_ContainerAtom(Type             type,
 |   AP4_ContainerAtom::AP4_ContainerAtom
 +---------------------------------------------------------------------*/
 AP4_ContainerAtom::AP4_ContainerAtom(Type             type, 
-                                     AP4_UI32         size,
+                                     AP4_UI64         size,
                                      AP4_UI32         version,
                                      AP4_UI32         flags,
                                      AP4_ByteStream&  stream,
@@ -131,7 +131,7 @@ AP4_ContainerAtom::Clone()
 void
 AP4_ContainerAtom::ReadChildren(AP4_AtomFactory& atom_factory,
                                 AP4_ByteStream&  stream, 
-                                AP4_Size         size)
+                                AP4_UI64         size)
 {
     AP4_Atom*     atom;
     AP4_LargeSize bytes_available = size;

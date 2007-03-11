@@ -66,6 +66,7 @@ public:
     AP4_Array<AP4_UI32>& GetCompatibleBrands() { 
         return m_CompatibleBrands; 
     }
+    bool HasCompatibleBrand(AP4_UI32 brand);
 
 private:
     // methods

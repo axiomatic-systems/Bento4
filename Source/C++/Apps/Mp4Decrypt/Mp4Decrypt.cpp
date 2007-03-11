@@ -92,7 +92,6 @@ main(int argc, char** argv)
     const char* output_filename = NULL;
     bool        show_progress = false;
 
-    AP4_ProtectionKeyMap key_map;
     char* arg;
     while ((arg = *++argv)) {
         if (!strcmp(arg, "--key")) {

@@ -49,7 +49,11 @@ class AP4_TrakAtom;
 +---------------------------------------------------------------------*/
 class AP4_Processor {
 public:
-    // types
+    /**
+     * Abstract class that defines the interface implemented by progress
+     * listeners. A progress listener is called during the AP4_Processor::Process()
+     * method to notify of progres information.
+     */
     class ProgressListener {
     public:
         virtual ~ProgressListener() {}
@@ -58,35 +62,98 @@ public:
          * This method is called during the call to AP4_Processor::Process() to
          * notify of the progress of the operation. If this method returns an 
          * error result, processing is aborted.
+         * @param step Ordinal of the current progress step.
+         * @param total Total number of steps.
+         * @return A result code. If this method returns AP4_SUCCESS, the 
+         * processing continues. If an error code is returned, the processing
+         * is aborted.
          */
-        virtual AP4_Result OnProgress(unsigned int /* step  */, 
-                                      unsigned int /* total */) { 
-            return AP4_SUCCESS; 
-        }
+        virtual AP4_Result OnProgress(unsigned int step, 
+                                      unsigned int total) = 0;
     };
 
+    /**
+     * Abstract class that defines the interface implemented by concrete
+     * track handlers. A track handler is responsible for processing a 
+     * track and its media samples.
+     */
     class TrackHandler {
     public:
+        /**
+         * Default destructor.
+         */
         virtual ~TrackHandler() {}
+
+        /**
+         * Returns the size of a sample after processing.
+         * @param sample Sample of which the processed size is requested.
+         * @return Size of the sample data after processing.
+         */
         virtual AP4_Size   GetProcessedSampleSize(AP4_Sample& sample);
+
+        /**
+         * A track handler may override this method if it needs to modify
+         * the track atoms before processing the track samples.
+         */
         virtual AP4_Result ProcessTrack() { return AP4_SUCCESS; }
+
+        /**
+         * Process the data of one sample.
+         * @param data_in Data buffer with the data of the sample to process.
+         * @param data_out Data buffer in which the processed sample data is
+         * returned.
+         */
         virtual AP4_Result ProcessSample(AP4_DataBuffer& data_in,
                                          AP4_DataBuffer& data_out) = 0;
     };
 
-    // constructor and destructor
+    /**
+     *  Default constructor
+     */
     virtual ~AP4_Processor() {}
 
-    // abstract base class methods
-    AP4_Result Process(AP4_ByteStream&  input, 
-                       AP4_ByteStream&  output,
+    /*
+     * Process the input stream into an output stream.
+     * @param input Input stream to parse and process.
+     * @param output Output stream to which the processed input
+     * will be written.
+     * @param listener Pointer to a listener, or NULL. The listener
+     * will be called one or more times before this method returns, 
+     * with progress information.
+     */
+    AP4_Result Process(AP4_ByteStream&   input, 
+                       AP4_ByteStream&   output,
                        ProgressListener* listener = NULL,
-                       AP4_AtomFactory& atom_factory = 
+                       AP4_AtomFactory&  atom_factory = 
                        AP4_DefaultAtomFactory::Instance);
 
-    // overridable methods
-    virtual AP4_Result Initialize(AP4_AtomParent& top_level);
-    virtual AP4_Result Finalize(AP4_AtomParent& top_level);
+    /**
+     * This method can be overridden by concrete subclasses.
+     * It is called just after the input stream has been parsed into
+     * an atom tree, before the processing of the tracks.
+     * @param top_level Container atom containing all the atoms parsed
+     * from the input stream. Note that this atom does not actually 
+     * exist in the file; it is a synthetised container created for the
+     * purpose of holding together all the input's top-level atoms.
+     */
+    virtual AP4_Result Initialize(AP4_AtomParent&   top_level,
+                                  ProgressListener* listener = NULL);
+
+    /**
+     * This method can be overridden by concrete subclasses.
+     * It is called just after the tracks have been processed.
+     */
+    virtual AP4_Result Finalize(AP4_AtomParent&   top_level,
+                                ProgressListener* listener = NULL);
+
+    /**
+     * This method can be overridden by concrete subclasses.
+     * It is called once for each track in the input file.
+     * @param track Pointer to the track for which a handler should be
+     * created. 
+     * @return A pointer to a track handler, or NULL if not handler 
+     * needs to be created for that track.
+     */
     virtual TrackHandler* CreateTrackHandler(AP4_TrakAtom* trak);
 };
 

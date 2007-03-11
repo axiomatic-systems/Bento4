@@ -36,7 +36,7 @@
 |   AP4_OddaAtom::Create
 +---------------------------------------------------------------------*/
 AP4_OddaAtom*
-AP4_OddaAtom::Create(AP4_Size         size, 
+AP4_OddaAtom::Create(AP4_UI64         size, 
                      AP4_ByteStream&  stream)
 {
     AP4_UI32 version;
@@ -49,7 +49,7 @@ AP4_OddaAtom::Create(AP4_Size         size,
 /*----------------------------------------------------------------------
 |   AP4_OddaAtom::AP4_OddaAtom
 +---------------------------------------------------------------------*/
-AP4_OddaAtom::AP4_OddaAtom(AP4_UI32         size, 
+AP4_OddaAtom::AP4_OddaAtom(AP4_UI64         size, 
                            AP4_UI32         version,
                            AP4_UI32         flags,
                            AP4_ByteStream&  stream) :
@@ -78,6 +78,38 @@ AP4_OddaAtom::~AP4_OddaAtom()
 }
 
 /*----------------------------------------------------------------------
+|   AP4_OddaAtom::SetEncryptedDataLength
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_OddaAtom::SetEncryptedDataLength(AP4_UI64 length)
+{
+    m_EncryptedDataLength = length;
+    SetSize(AP4_FULL_ATOM_HEADER_SIZE + 8 + 8 + length, true);
+    if (m_Parent) m_Parent->OnChildChanged(this);
+
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_OddaAtom::WriteFields
++---------------------------------------------------------------------*/
+AP4_Result 
+AP4_OddaAtom::SetSourceStream(AP4_ByteStream* stream, AP4_Position position)
+{
+    // keep a reference to the new stream
+    if (stream) stream->AddReference();
+
+    // release the previous stream
+    if (m_SourceStream) m_SourceStream->Release();
+
+    // update stream and position
+    m_SourceStream = stream;
+    m_SourcePosition = position;
+
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
 |   AP4_OddaAtom::WriteFields
 +---------------------------------------------------------------------*/
 AP4_Result
@@ -88,7 +120,7 @@ AP4_OddaAtom::WriteFields(AP4_ByteStream& stream)
 
     // check that we have a source stream
     // and a normal size
-    if (m_SourceStream == NULL || m_Size32 < 8) {
+    if (m_SourceStream == NULL || GetSize() < 8) {
         return AP4_FAILURE;
     }
 
@@ -100,7 +132,7 @@ AP4_OddaAtom::WriteFields(AP4_ByteStream& stream)
     AP4_CHECK(m_SourceStream->Seek(m_SourcePosition));
 
     // copy the source stream to the output
-    AP4_CHECK(m_SourceStream->CopyTo(stream, m_Size32-GetHeaderSize()));
+    AP4_CHECK(m_SourceStream->CopyTo(stream, GetSize()-GetHeaderSize()-8));
 
     // restore the original stream position
     m_SourceStream->Seek(position);

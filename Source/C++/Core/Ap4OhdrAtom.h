@@ -73,7 +73,9 @@ public:
 
     // accessors
     AP4_UI08          GetEncryptionMethod() const { return m_EncryptionMethod; } 
+    void              SetEncryptionMethod(AP4_UI08 encryption_method) { m_EncryptionMethod = encryption_method; }
     AP4_UI08          GetPaddingScheme()    const { return m_PaddingScheme;    }
+    void              SetPaddingScheme(AP4_UI08 padding_scheme) { m_PaddingScheme = padding_scheme; }
     AP4_UI64          GetPlaintextLength()  const { return m_PlaintextLength;  }
     const AP4_String& GetContentId()        const { return m_ContentId;        }
     const AP4_String& GetRightsIssuerUrl()  const { return m_RightsIssuerUrl;  }
