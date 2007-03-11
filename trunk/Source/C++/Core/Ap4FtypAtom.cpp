@@ -65,6 +65,19 @@ AP4_FtypAtom::AP4_FtypAtom(AP4_UI32     major_brand,
 }
 
 /*----------------------------------------------------------------------
+|   AP4_FtypAtom::HasCompatibleBrand
++---------------------------------------------------------------------*/
+bool
+AP4_FtypAtom::HasCompatibleBrand(AP4_UI32 brand)
+{
+    for (unsigned int i=0; i<m_CompatibleBrands.ItemCount(); i++) {
+        if (m_CompatibleBrands[i] == brand) return true;
+    }
+
+    return false;
+}
+
+/*----------------------------------------------------------------------
 |   AP4_FtypAtom::WriteFields
 +---------------------------------------------------------------------*/
 AP4_Result

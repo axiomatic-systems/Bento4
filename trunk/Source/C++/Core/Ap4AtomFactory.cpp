@@ -387,8 +387,7 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
         break;
 
       case AP4_ATOM_TYPE_ODDA:
-        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        atom = AP4_OddaAtom::Create(size_32, stream);
+        atom = AP4_OddaAtom::Create(size, stream);
         break;
 
       case AP4_ATOM_TYPE_ODAF:
@@ -420,15 +419,14 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
       case AP4_ATOM_TYPE_EDTS: 
       case AP4_ATOM_TYPE_MDRI:
         if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        atom = AP4_ContainerAtom::Create(type, size_32, false, stream, *this);
+        atom = AP4_ContainerAtom::Create(type, size, false, stream, *this);
         break;
 
       // full container atoms
       case AP4_ATOM_TYPE_META:
       case AP4_ATOM_TYPE_ODRM:
       case AP4_ATOM_TYPE_ODKM:
-        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        atom = AP4_ContainerAtom::Create(type, size_32, true, stream, *this);
+        atom = AP4_ContainerAtom::Create(type, size, true, stream, *this);
         break;
 
       default:
@@ -451,17 +449,17 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
     // if we failed to create an atom, use a generic version
     if (atom == NULL) {
         unsigned int payload_offset = 8;
-        if (size_32 == 1) payload_offset += 8;
+        if (atom_is_large) payload_offset += 8;
         stream.Seek(start+payload_offset);
         atom = new AP4_UnknownAtom(type, size, stream);
+    }
 
-        // special case: if the atom is poorly encoded and has a 64-bit
-        // size header but an actual size that fits on 32-bit, adjust the
-        // object to reflect that
-        if (size_32 == 1 && ((size>>32) == 0)) {
-            atom->SetSize32(1);
-            atom->SetSize64(size);
-        }
+    // special case: if the atom is poorly encoded and has a 64-bit
+    // size header but an actual size that fits on 32-bit, adjust the
+    // object to reflect that.
+    if (atom_is_large && size <= 0xFFFFFFFF) {
+        atom->SetSize32(1);
+        atom->SetSize64(size);
     }
 
     // skip to the end of the atom

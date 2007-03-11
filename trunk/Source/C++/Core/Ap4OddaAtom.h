@@ -43,7 +43,7 @@ class AP4_OddaAtom : public AP4_Atom
 {
 public:
     // class methods
-    static AP4_OddaAtom* Create(AP4_Size         size, 
+    static AP4_OddaAtom* Create(AP4_UI64         size, 
                                 AP4_ByteStream&  stream);
 
     // destructor
@@ -52,10 +52,25 @@ public:
     // methods
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
+    
+    // accessors
+    AP4_ByteStream* GetSourceStream()   { return m_SourceStream;   }
+    AP4_Position    GetSourcePosition() { return m_SourcePosition; }
+
+    /**
+     * Sets the source stream (and releases any existing stream references)
+     */
+    AP4_Result SetSourceStream(AP4_ByteStream* stream, AP4_Position position = 0);
+
+    /**
+     * Sets the length of the encrypted data.
+     * This method updates the size of the atom.
+     */
+    AP4_Result SetEncryptedDataLength(AP4_UI64 length);
 
 private:
     // methods
-    AP4_OddaAtom(AP4_UI32         size, 
+    AP4_OddaAtom(AP4_UI64         size, 
                  AP4_UI32         version,
                  AP4_UI32         flags,
                  AP4_ByteStream&  stream);

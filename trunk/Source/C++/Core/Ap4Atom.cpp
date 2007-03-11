@@ -116,9 +116,16 @@ AP4_Atom::ReadFullHeader(AP4_ByteStream& stream,
 |   AP4_Atom::SetSize
 +---------------------------------------------------------------------*/
 void
-AP4_Atom::SetSize(AP4_UI64 size)
+AP4_Atom::SetSize(AP4_UI64 size, bool force_64)
 {
-    if ((size >> 32) == 0) {
+    if (!force_64) {
+        // see if we need to implicitely force 64-bit encoding
+        if (m_Size32 == 1 && m_Size64 <= 0xFFFFFFFF) {
+            // we have a forced 64-bit encoding
+            force_64 = true;
+        }
+    }
+    if ((size >> 32) == 0 && !force_64) {
         m_Size32 = (AP4_UI32)size;
         m_Size64 = 0;
     } else {
@@ -133,7 +140,7 @@ AP4_Atom::SetSize(AP4_UI64 size)
 AP4_Size
 AP4_Atom::GetHeaderSize() const
 {
-    return m_IsFull ? AP4_FULL_ATOM_HEADER_SIZE : AP4_ATOM_HEADER_SIZE;
+    return (m_IsFull ? AP4_FULL_ATOM_HEADER_SIZE : AP4_ATOM_HEADER_SIZE)+(m_Size32==1?8:0);
 }
 
 /*----------------------------------------------------------------------
@@ -148,15 +155,15 @@ AP4_Atom::WriteHeader(AP4_ByteStream& stream)
     result = stream.WriteUI32(m_Size32);
     if (AP4_FAILED(result)) return result;
 
+    // write the type
+    result = stream.WriteUI32(m_Type);
+    if (AP4_FAILED(result)) return result;
+
     // handle 64-bit sizes
     if (m_Size32 == 1) {
         result = stream.WriteUI64(m_Size64);
         if (AP4_FAILED(result)) return result;
     }
-
-    // write the type
-    result = stream.WriteUI32(m_Type);
-    if (AP4_FAILED(result)) return result;
 
     // for full atoms, write version and flags
     if (m_IsFull) {
@@ -230,10 +237,8 @@ AP4_Atom::InspectHeader(AP4_AtomInspector& inspector)
             m_Size32-GetHeaderSize());
     } else {
         AP4_UI64 payload_size = m_Size64-GetHeaderSize();
-        AP4_UI32 payload_hi = (AP4_UI32)(payload_size>>32);
-        AP4_UI32 payload_lo = (AP4_UI32)payload_size;
-        AP4_FormatString(size, sizeof(size), "size=%ld+{%x%x}", GetHeaderSize(), 
-            payload_hi, payload_lo);
+        AP4_FormatString(size, sizeof(size), "size=%ld+%d%d (L)", GetHeaderSize(), 
+            (AP4_UI32)(payload_size/1000000000), (AP4_UI32)(payload_size%1000000000));
     }
     inspector.StartElement(name, size);
 
@@ -268,7 +273,7 @@ AP4_UnknownAtom::AP4_UnknownAtom(Type            type,
     // clamp to the file size
     AP4_UI64 file_size;
     if (AP4_SUCCEEDED(stream.GetSize(file_size))) {
-        if (m_SourcePosition+size > file_size) {
+        if (m_SourcePosition-GetHeaderSize()+size > file_size) {
             if (m_Size32 == 1) {
                 // size is encoded as a large size
                 m_Size64 = file_size-m_SourcePosition;

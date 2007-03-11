@@ -156,7 +156,7 @@ class AP4_Atom {
     void               SetType(Type type) { m_Type = type; }
     AP4_Size           GetHeaderSize() const;
     AP4_UI64           GetSize() const { return m_Size32 == 1?m_Size64:m_Size32; }
-    void               SetSize(AP4_UI64 size);
+    void               SetSize(AP4_UI64 size, bool force_64 = false);
     AP4_UI32           GetSize32() const { return m_Size32; }
     void               SetSize32(AP4_UI32 size) { m_Size32 = size; }
     AP4_UI64           GetSize64() const { return m_Size64; }

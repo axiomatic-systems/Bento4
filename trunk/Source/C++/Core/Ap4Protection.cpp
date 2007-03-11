@@ -32,6 +32,7 @@
 #include "Ap4Protection.h"
 #include "Ap4SchmAtom.h"
 #include "Ap4StsdAtom.h"
+#include "Ap4FtypAtom.h"
 #include "Ap4Sample.h"
 #include "Ap4StreamCipher.h"
 #include "Ap4IsfmAtom.h"
@@ -428,6 +429,22 @@ AP4_StandardDecryptingProcessor::AP4_StandardDecryptingProcessor(AP4_BlockCipher
         m_BlockCipherFactory = &AP4_DefaultBlockCipherFactory::Instance;
     } else {
         m_BlockCipherFactory = block_cipher_factory;
+    }
+}
+
+/*----------------------------------------------------------------------
+|   AP4_StandardDecryptingProcessor:Initialize
++---------------------------------------------------------------------*/
+AP4_Result 
+AP4_StandardDecryptingProcessor::Initialize(AP4_AtomParent&   top_level, 
+                                            ProgressListener* listener)
+{
+    // see if the DCF decrypter needs to do anything here
+    AP4_FtypAtom* ftyp = dynamic_cast<AP4_FtypAtom*>(top_level.GetChild(AP4_ATOM_TYPE_FTYP));
+    if (ftyp && ftyp->HasCompatibleBrand(AP4_OMA_DCF_BRAND_ODCF)) {
+        return AP4_OmaDcfAtomDecrypter::DecryptAtoms(top_level, listener, m_BlockCipherFactory, m_KeyMap);
+    } else {
+        return AP4_SUCCESS;
     }
 }
 
