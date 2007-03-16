@@ -54,7 +54,8 @@ public:
                AP4_Size        size,
                AP4_Ordinal     description_index,
                AP4_TimeStamp   dts,
-               AP4_UI32        cts_offset = 0);
+               AP4_UI32        cts_offset = 0,
+               bool            sync_flag = true);
     ~AP4_Sample(); // not virtual on purpose: do not derive from it
 
     // operators
@@ -79,6 +80,8 @@ public:
     void            SetDts(AP4_TimeStamp dts) { m_Dts = dts; }
     AP4_TimeStamp   GetCts() const { return m_Cts; }
     void            SetCts(AP4_TimeStamp cts) { m_Cts = cts; }
+    bool            GetSyncFlag() const { return m_SyncFlag; }
+    void            SetSyncFlag(bool sync_flag) { m_SyncFlag = sync_flag; }
 
 protected:
     AP4_ByteStream* m_DataStream;
@@ -87,6 +90,7 @@ protected:
     AP4_Ordinal     m_DescriptionIndex;
     AP4_TimeStamp   m_Dts;
     AP4_TimeStamp   m_Cts;
+    bool            m_SyncFlag;
 };
 
 #endif // _AP4_SAMPLE_H_

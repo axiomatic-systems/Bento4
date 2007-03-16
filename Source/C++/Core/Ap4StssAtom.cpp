@@ -53,7 +53,9 @@ AP4_StssAtom::AP4_StssAtom(AP4_UI32        size,
                            AP4_UI32        version,
                            AP4_UI32        flags,
                            AP4_ByteStream& stream) :
-    AP4_Atom(AP4_ATOM_TYPE_STSS, size, version, flags)
+    AP4_Atom(AP4_ATOM_TYPE_STSS, size, version, flags),
+    m_LastEntryIndex(0),
+    m_LastSyncSample(1)
 {
     AP4_UI32 entry_count;
     stream.ReadUI32(entry_count);
@@ -95,12 +97,19 @@ AP4_StssAtom::IsSampleSync(AP4_Ordinal sample)
 {
     unsigned int entry_index = 0;
 
+    // see if we can optimize
+    if (m_LastSyncSample < sample) {
+        entry_index = m_LastEntryIndex;
+    }
+
     while (entry_index < m_Entries.ItemCount() &&
-           m_Entries[entry_index] >= sample) {
+           m_Entries[entry_index] <= sample) {
         if (m_Entries[entry_index] == sample) {
+            m_LastSyncSample = sample;
+            m_LastEntryIndex = entry_index;
             return true;
         }
-	entry_index++;
+	    entry_index++;
     }
 
     return false;
