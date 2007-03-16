@@ -137,11 +137,19 @@ AP4_AtomSampleTable::GetSample(AP4_Ordinal index,
     if (AP4_FAILED(result)) return result;
     sample.SetSize(sample_size);
 
+    // set the sync flag
+    if (m_StssAtom == NULL) {
+        sample.SetSyncFlag(true);
+    } else {
+        sample.SetSyncFlag(m_StssAtom->IsSampleSync(index));
+    }
+
     // set the offset
     sample.SetOffset(offset);
 
     // set the data stream
     sample.SetDataStream(m_SampleStream);
+
 
     return AP4_SUCCESS;
 }
