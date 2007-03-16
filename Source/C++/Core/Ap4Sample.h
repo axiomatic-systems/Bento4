@@ -80,8 +80,8 @@ public:
     void            SetDts(AP4_TimeStamp dts) { m_Dts = dts; }
     AP4_TimeStamp   GetCts() const { return m_Cts; }
     void            SetCts(AP4_TimeStamp cts) { m_Cts = cts; }
-    bool            GetSyncFlag() const { return m_SyncFlag; }
-    void            SetSyncFlag(bool sync_flag) { m_SyncFlag = sync_flag; }
+    bool            IsSync() const { return m_IsSync; }
+    void            SetSync(bool is_sync) { m_IsSync = is_sync; }
 
 protected:
     AP4_ByteStream* m_DataStream;
@@ -90,7 +90,7 @@ protected:
     AP4_Ordinal     m_DescriptionIndex;
     AP4_TimeStamp   m_Dts;
     AP4_TimeStamp   m_Cts;
-    bool            m_SyncFlag;
+    bool            m_IsSync;
 };
 
 #endif // _AP4_SAMPLE_H_
