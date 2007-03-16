@@ -106,7 +106,7 @@ AP4_Processor::Process(AP4_ByteStream&   input,
     AP4_SampleCursor*            cursors = NULL;
     if (moov) {
         // build an array of track sample locators
-        AP4_List<AP4_TrakAtom>* trak_atoms = &moov->GetTrakAtoms();
+        trak_atoms = &moov->GetTrakAtoms();
         track_count = trak_atoms->ItemCount();
         cursors = new AP4_SampleCursor[track_count];
         handlers = new TrackHandler*[track_count];
