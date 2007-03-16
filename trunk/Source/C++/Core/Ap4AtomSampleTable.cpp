@@ -139,9 +139,9 @@ AP4_AtomSampleTable::GetSample(AP4_Ordinal index,
 
     // set the sync flag
     if (m_StssAtom == NULL) {
-        sample.SetSyncFlag(true);
+        sample.SetSync(true);
     } else {
-        sample.SetSyncFlag(m_StssAtom->IsSampleSync(index));
+        sample.SetSync(m_StssAtom->IsSampleSync(index));
     }
 
     // set the offset

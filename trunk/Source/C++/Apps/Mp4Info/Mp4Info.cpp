@@ -254,11 +254,16 @@ ShowTrackInfo(AP4_Track* track, bool verbose = false)
             }
         }
         if (verbose) {
-            printf("[%08d] size=%6d dts=%8d, cts=%8d\n", 
+            printf("[%08d] size=%6d dts=%8d, cts=%8d", 
                    index+1,
                    (int)sample.GetSize(),
                    (int)sample.GetDts(), 
                    (int)sample.GetCts());
+            if (sample.IsSync()) {
+                printf(" [Sync]\n");
+            } else {
+                printf("\n");
+            }
         }
         index++;
     }

@@ -248,8 +248,8 @@ AP4_StdcFileByteStream::GetSize(AP4_LargeSize& size)
 /*----------------------------------------------------------------------
 |   AP4_FileByteStream::AP4_FileByteStream
 +---------------------------------------------------------------------*/
-AP4_FileByteStream::AP4_FileByteStream(const char*             name, 
-                                     AP4_FileByteStream::Mode mode)
+AP4_FileByteStream::AP4_FileByteStream(const char*              name, 
+                                       AP4_FileByteStream::Mode mode)
 {
     m_Delegate = new AP4_StdcFileByteStream(this, name, mode);
 }
