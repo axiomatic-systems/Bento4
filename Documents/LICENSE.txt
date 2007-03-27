@@ -1,11 +1,11 @@
-BlueTune Media Framework 
+         Bento4 
     --- Licensing ---
 ------------------------
 
-BlueTune is available under two different licenses.
+Bento4 is available under two different licenses.
 
 For applications that are entirely distributable under the terms of the GPL, 
-the BlueTune GPL license applies.
+the Bento4 GPL license applies.
 For applications that cannot be entirely distributable under the terms of
 the GPL (either the application, or code modules linked with the application
 are not compatible with the terms of the GPL licence), a non-GPL commercial
