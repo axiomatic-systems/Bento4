@@ -107,13 +107,18 @@
 * The class #AP4_File represents all the information about an MP4 file.
 * Internally, a tree of #AP4_Atom objects plus other helper objects holds 
 * the actual information.
-* To create an instance of the class, the caller must pass a pointer to 
+* To create an instance of the class, the caller must pass a reference to 
 * an #AP4_ByteStream object that represents the file data storage. The SDK
 * includes two subclasses of the abstract #AP4_ByteStream class: 
 * #AP4_FileByteStream for reading/writing disk-based files and
 * #AP4_MemoryByteStream for working with in-memory file images.
-* Once one create an #AP4_File object, you can get to the media data by
+* Once you have created an #AP4_File object, you can get to the media data by
 * accessing the #AP4_Track objects of its #AP4_Movie (see #AP4_File::GetMovie).
+* The #AP4_Track exposes the necessary methods for you to get the
+* #AP4_SampleDescription (typically to initialize your decoder) and to get the 
+* #AP4_Sample objects from the track.
+* These #AP4_Sample objects give you the meta information you need (such as
+* timestamps) as well as the sample data that they point to.
 * You can also explore the entire tree of atoms by calling #AP4_File::Inspect,
 * passing an instance of #AP4_AtomInspector. #AP4_AtomInspector is an abstract
 * base class for a visitor of the tree of #AP4_Atom objects. The SDK includes
