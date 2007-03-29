@@ -108,11 +108,11 @@ public:
     };
 
     /**
-     *  Default constructor
+     *  Default destructor
      */
     virtual ~AP4_Processor() {}
 
-    /*
+    /**
      * Process the input stream into an output stream.
      * @param input Input stream to parse and process.
      * @param output Output stream to which the processed input

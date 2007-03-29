@@ -64,22 +64,62 @@ const AP4_UI32 AP4_FILE_BRAND_MJP2 = AP4_ATOM_TYPE('m','j','p','2');
 /*----------------------------------------------------------------------
 |   AP4_File
 +---------------------------------------------------------------------*/
+
+/**
+ * The AP4_File object is the top level object for MP4 Files.
+ */
+
 class AP4_File {
 public:
     // constructors and destructor
+    /**
+     * Constructs an AP4_File from an AP4_Movie (used for writing)
+     * @param movie the movie
+     */
     AP4_File(AP4_Movie* movie);
+
+    /**
+     * Constructs an AP4_File from a stream
+     * @param stream the stream containing the data of the file
+     * @param factory the atom factory that will be used to parse the stream
+     */
     AP4_File(AP4_ByteStream& stream, 
              AP4_AtomFactory& atom_factory = AP4_DefaultAtomFactory::Instance);
-    virtual ~AP4_File();
 
+    /**
+     * Destroys the AP4_File instance 
+     */
+    virtual ~AP4_File();
+ 
     // methods
+    /**
+     * Gets the top level atoms of the file (except ftyp atom)
+     */
     AP4_List<AP4_Atom>& GetOtherAtoms() { return m_OtherAtoms;}
+
+    /** 
+     * Gets the AP4_Movie object of this file
+     */
     AP4_Movie*          GetMovie()      { return m_Movie;     }
+    
+
+    /**
+     * Gets the file type atom of this file
+     */
     AP4_FtypAtom*       GetFileType()   { return m_FileType;  }
+
+    /**
+     * Sets the file type. Will internally create an AP4_Ftyp atom 
+     * and attach it to the file 
+     */
     AP4_Result          SetFileType(AP4_UI32     major_brand,
                                     AP4_UI32     minor_version,
                                     AP4_UI32*    compatible_brands = NULL,
                                     AP4_Cardinal compatible_brand_count = 0);
+ 
+    /**
+     * Inspects the content of the file with an AP4_AtomInspector
+     */
     virtual AP4_Result  Inspect(AP4_AtomInspector& inspector);
 
 private:
