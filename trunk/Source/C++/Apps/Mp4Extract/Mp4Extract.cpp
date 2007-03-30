@@ -51,7 +51,7 @@ PrintUsageAndExit()
             BANNER 
             "\n\nusage: mp4extract [options] <atom_path> <input> <output>\n"
             "    options:\n"
-            "    --payload-only : ommit the atom header\n");
+            "    --payload-only : omit the atom header\n");
     exit(1);
 }
 

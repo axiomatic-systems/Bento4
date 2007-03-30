@@ -50,7 +50,7 @@ PrintUsageAndExit()
 {
     fprintf(stderr, 
             BANNER 
-            "\n\nusage: aac2mp4 [options] <input> <output>\n");
+            "\n\nusage: aac2mp4 <input> <output>\n");
     exit(1);
 }
 

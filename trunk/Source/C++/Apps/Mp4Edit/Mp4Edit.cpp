@@ -51,9 +51,9 @@ PrintUsageAndExit()
             BANNER 
             "\n\nusage: mp4edit [commands] <input> <output>\n"
             "    where commands include one or more of:\n"
-            "    --insert <atom_name>:<source_file>[:<position>]\n"
-            "    --remove <atom_name>\n"
-            "    --replace <atom_name>:<source_file>\n");
+            "    --insert <atom_path>:<atom_source_file>[:<position>]\n"
+            "    --remove <atom_path>\n"
+            "    --replace <atom_path>:<atom_source_file>\n");
     exit(1);
 }
 

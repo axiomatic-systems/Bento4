@@ -51,7 +51,7 @@ PrintUsageAndExit()
             BANNER 
             "\n\nusage: mp42aac [options] <input> <output>\n"
             "  Options:\n"
-            "  --key <hex>: 128-bit decryption key (in hex: 16 chars)\n");
+            "  --key <hex>: 128-bit decryption key (in hex: 32 chars)\n");
     exit(1);
 }
 
