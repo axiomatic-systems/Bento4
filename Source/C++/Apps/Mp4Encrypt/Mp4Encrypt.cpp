@@ -56,7 +56,7 @@ PrintUsageAndExit()
         "  Options:\n"
         "  --show-progress: show progress details\n"
         "  --key <n>:<k>:<iv>\n"   
-        "      Specifiy the key to use for a track.\n"
+        "      Specifies the key to use for a track.\n"
         "      <n> is a track ID, <k> a 128-bit key in hex (32 characters)\n"
         "      and <iv> a 64-bit IV or salting key in hex (16 characters)\n"
         "      (several --key options can be used, one for each track)\n"

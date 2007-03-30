@@ -123,11 +123,11 @@ PrintUsageAndExit()
             "\n"
             "  In all commands with a <key> argument, except for 'add', <key> can be a\n"
             "  key name or name#n where n is the index of the key when there is\n"
-            "  more than one key with the same name (ex: multiple images for cover art)\n"
+            "  more than one key with the same name (ex: multiple images for cover art).\n"
             "  The name of a key is either one of the builtin keys (see --list-keys)\n"
-            "  or namespace/key where namespace is either 'meta' for the default metadata\n"
+            "  or namespace/key, where namespace is either 'meta' for the default metadata\n"
             "  namespace or a user defined namespace. For the 'meta' namespace, the key\n"
-            "  name must be a 4 character atom name\n");
+            "  name must be a 4 character atom name.\n");
     exit(1);
 }
 

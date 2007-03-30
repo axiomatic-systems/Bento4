@@ -51,7 +51,7 @@ PrintUsageAndExit()
             BANNER 
             "\n\nusage: mp4info [options] <input>\n"
             "Options:\n"
-            "  --verbose : show sample details\n");
+            "  --verbose: show sample details\n");
     exit(1);
 }
 
