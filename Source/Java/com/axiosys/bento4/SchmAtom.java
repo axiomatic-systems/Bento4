@@ -1,10 +1,9 @@
-package com.axiosys.bento4.ismacryp;
+package com.axiosys.bento4;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
-import com.axiosys.bento4.Atom;
 
 public class SchmAtom extends Atom {
     private int    schemeType;

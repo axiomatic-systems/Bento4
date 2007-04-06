@@ -20,5 +20,6 @@ public class Mp4Info {
             System.out.println("Track " + tracks[i].getId() + ":");
             System.out.println("  Type: " + tracks[i].getType());
         }
+        System.out.println(file.getMovie().getAtom());
     }
 }
