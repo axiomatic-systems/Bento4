@@ -2,7 +2,7 @@
 |
 |    Copyright 2002-2007 Gilles Boccon-Gibod & Julien Boeuf
 |
-|    $Id: $
+|    $Id$
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
 |
