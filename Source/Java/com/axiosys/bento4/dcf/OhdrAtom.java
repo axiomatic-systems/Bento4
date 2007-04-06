@@ -84,4 +84,28 @@ public class OhdrAtom extends ContainerAtom {
         
     }
 
+    public String getContentId() {
+        return contentId;
+    }
+
+    public int getEncryptionMethod() {
+        return encryptionMethod;
+    }
+
+    public int getPaddingScheme() {
+        return paddingScheme;
+    }
+
+    public long getPlaintextLength() {
+        return plaintextLength;
+    }
+
+    public String getRightsIssuerUrl() {
+        return rightsIssuerUrl;
+    }
+
+    public String getTextualHeaders() {
+        return textualHeaders;
+    }
+
 }
