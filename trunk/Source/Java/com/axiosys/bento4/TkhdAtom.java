@@ -43,15 +43,15 @@ public class TkhdAtom extends Atom {
     
     public String toString(String indentation) {
         StringBuffer result = new StringBuffer(super.toString(indentation));
-        result.append("\n" + indentation + " track_id          = " + trackId);
-        result.append("\n" + indentation +"  duration          = " + duration);
-        result.append("\n" + indentation +"  creation_time     = " + creationTime);
-        result.append("\n" + indentation +"  modification_time = " + modificationTime);
-        result.append("\n" + indentation +"  width             = " + width);
-        result.append("\n" + indentation +"  height            = " + height);
-        result.append("\n" + indentation +"  alternate_group   = " + alternateGroup);
-        result.append("\n" + indentation +"  layer             = " + layer);
-        result.append("\n" + indentation +"  volume            = " + volume);
+        result.append("\n" + indentation + "  track_id          = " + trackId);
+        result.append("\n" + indentation + "  duration          = " + duration);
+        result.append("\n" + indentation + "  creation_time     = " + creationTime);
+        result.append("\n" + indentation + "  modification_time = " + modificationTime);
+        result.append("\n" + indentation + "  width             = " + width);
+        result.append("\n" + indentation + "  height            = " + height);
+        result.append("\n" + indentation + "  alternate_group   = " + alternateGroup);
+        result.append("\n" + indentation + "  layer             = " + layer);
+        result.append("\n" + indentation + "  volume            = " + volume);
         
         return result.toString();  
     }

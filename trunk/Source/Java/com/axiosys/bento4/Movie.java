@@ -55,4 +55,8 @@ public class Movie {
         
         return -1;
     }
+    
+    public Atom getAtom() {
+        return moov;
+    }
 }

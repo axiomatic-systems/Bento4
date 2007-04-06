@@ -28,6 +28,9 @@ public abstract class Atom {
     public final static int TYPE_TKHD = 0x746b6864;
     public final static int TYPE_SCHM = 0x7363686d;
     public final static int TYPE_HDLR = 0x68646c72;
+    public final static int TYPE_ODKM = 0x6f646b6d;
+    public final static int TYPE_ODAF = 0x6f646166;
+    public final static int TYPE_OHDR = 0x6f686472;
     public final static int HEADER_SIZE      = 8;
     public final static int FULL_HEADER_SIZE = 12;
     

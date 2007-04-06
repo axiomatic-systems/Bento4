@@ -6,10 +6,9 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import com.axiosys.bento4.ismacryp.EncaSampleEntry;
-import com.axiosys.bento4.ismacryp.EncvSampleEntry;
+import com.axiosys.bento4.dcf.OdafAtom;
+import com.axiosys.bento4.dcf.OhdrAtom;
 import com.axiosys.bento4.ismacryp.IkmsAtom;
-import com.axiosys.bento4.ismacryp.SchmAtom;
 import com.axiosys.bento4.metadata.MetaDataTypeHandler;
 
 public class AtomFactory {
@@ -96,6 +95,14 @@ public class AtomFactory {
             atom = new HdlrAtom(size, source);
             break;
             
+          case Atom.TYPE_ODAF:
+              atom = new OdafAtom(size, source);
+              break;
+              
+          case Atom.TYPE_OHDR:
+              atom = new OhdrAtom(size, source, this);
+              break;
+            
           // container atoms
           case Atom.TYPE_MOOV:
           case Atom.TYPE_HNTI:
@@ -113,6 +120,7 @@ public class AtomFactory {
 
           // full container atoms
           case Atom.TYPE_META:
+          case Atom.TYPE_ODKM:
             atom = new ContainerAtom(type, size, true, source, this);
             break;
 
@@ -132,7 +140,7 @@ public class AtomFactory {
           case Atom.TYPE_ENCV:
               atom = new EncvSampleEntry(size, source, this);
               break;
-
+              
           default:
               // try all external type handlers
               for (Iterator i=typeHandlers.iterator(); i.hasNext();) {
