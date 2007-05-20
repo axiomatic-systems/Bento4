@@ -57,147 +57,147 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = F97CF3000C0031FE0013DB60 /* Bento4.xcodeproj */;
 			proxyType = 2;
-			remoteGlobalIDString = D2AAC046055464E500DB518D /* libBento4.a */;
+			remoteGlobalIDString = D2AAC046055464E500DB518D;
 			remoteInfo = Bento4;
 		};
 		F97CF3320C00327B0013DB60 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = CA9367440B437DCC0067D50B /* Mp4Dump */;
+			remoteGlobalIDString = CA9367440B437DCC0067D50B;
 			remoteInfo = Mp4Dump;
 		};
 		F97CF3340C00327B0013DB60 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = CA9367950B43813D0067D50B /* Mp4Info */;
+			remoteGlobalIDString = CA9367950B43813D0067D50B;
 			remoteInfo = Mp4Info;
 		};
 		F97CF3360C00327B0013DB60 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = CA9367AB0B43822D0067D50B /* Mp4Encrypt */;
+			remoteGlobalIDString = CA9367AB0B43822D0067D50B;
 			remoteInfo = Mp4Encrypt;
 		};
 		F97CF3380C00327B0013DB60 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = CA9367B80B4382770067D50B /* Mp4Decrypt */;
+			remoteGlobalIDString = CA9367B80B4382770067D50B;
 			remoteInfo = Mp4Decrypt;
 		};
 		F97CF33A0C00327B0013DB60 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = CA9367C60B4382B90067D50B /* Mp4Edit */;
+			remoteGlobalIDString = CA9367C60B4382B90067D50B;
 			remoteInfo = Mp4Edit;
 		};
 		F97CF33C0C00327B0013DB60 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = CA9367D30B4382FD0067D50B /* Mp4Extract */;
+			remoteGlobalIDString = CA9367D30B4382FD0067D50B;
 			remoteInfo = Mp4Extract;
 		};
 		F97CF33E0C00327B0013DB60 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = CA9367DE0B43833E0067D50B /* Mp4Tag */;
+			remoteGlobalIDString = CA9367DE0B43833E0067D50B;
 			remoteInfo = Mp4Tag;
 		};
 		F97CF3400C00327B0013DB60 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = CA9367EE0B4383930067D50B /* Aac2Mp4 */;
+			remoteGlobalIDString = CA9367EE0B4383930067D50B;
 			remoteInfo = Aac2Mp4;
 		};
 		F97CF3420C00327B0013DB60 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = CA9368050B4384110067D50B /* Mp42Aac */;
+			remoteGlobalIDString = CA9368050B4384110067D50B;
 			remoteInfo = Mp42Aac;
 		};
 		F97CF3440C00327B0013DB60 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = CA9368120B4384860067D50B /* Mp4RtpHintInfo */;
+			remoteGlobalIDString = CA9368120B4384860067D50B;
 			remoteInfo = Mp4RtpHintInfo;
 		};
 		F97CF3460C00329B0013DB60 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = F97CF3000C0031FE0013DB60 /* Bento4.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = D2AAC045055464E500DB518D /* Bento4 */;
+			remoteGlobalIDString = D2AAC045055464E500DB518D;
 			remoteInfo = Bento4;
 		};
 		F97CF34B0C0032D80013DB60 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = F97CF3000C0031FE0013DB60 /* Bento4.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = D2AAC045055464E500DB518D /* Bento4 */;
+			remoteGlobalIDString = D2AAC045055464E500DB518D;
 			remoteInfo = Bento4;
 		};
 		F97CF34D0C0032EA0013DB60 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = F97CF3000C0031FE0013DB60 /* Bento4.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = D2AAC045055464E500DB518D /* Bento4 */;
+			remoteGlobalIDString = D2AAC045055464E500DB518D;
 			remoteInfo = Bento4;
 		};
 		F97CF34F0C0033130013DB60 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = F97CF3000C0031FE0013DB60 /* Bento4.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = D2AAC045055464E500DB518D /* Bento4 */;
+			remoteGlobalIDString = D2AAC045055464E500DB518D;
 			remoteInfo = Bento4;
 		};
 		F97CF3510C0033240013DB60 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = F97CF3000C0031FE0013DB60 /* Bento4.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = D2AAC045055464E500DB518D /* Bento4 */;
+			remoteGlobalIDString = D2AAC045055464E500DB518D;
 			remoteInfo = Bento4;
 		};
 		F97CF3530C0033360013DB60 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = F97CF3000C0031FE0013DB60 /* Bento4.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = D2AAC045055464E500DB518D /* Bento4 */;
+			remoteGlobalIDString = D2AAC045055464E500DB518D;
 			remoteInfo = Bento4;
 		};
 		F97CF3550C00334E0013DB60 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = F97CF3000C0031FE0013DB60 /* Bento4.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = D2AAC045055464E500DB518D /* Bento4 */;
+			remoteGlobalIDString = D2AAC045055464E500DB518D;
 			remoteInfo = Bento4;
 		};
 		F97CF3570C00336D0013DB60 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = F97CF3000C0031FE0013DB60 /* Bento4.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = D2AAC045055464E500DB518D /* Bento4 */;
+			remoteGlobalIDString = D2AAC045055464E500DB518D;
 			remoteInfo = Bento4;
 		};
 		F97CF3590C00337A0013DB60 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = F97CF3000C0031FE0013DB60 /* Bento4.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = D2AAC045055464E500DB518D /* Bento4 */;
+			remoteGlobalIDString = D2AAC045055464E500DB518D;
 			remoteInfo = Bento4;
 		};
 		F97CF35B0C00338B0013DB60 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = F97CF3000C0031FE0013DB60 /* Bento4.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = D2AAC045055464E500DB518D /* Bento4 */;
+			remoteGlobalIDString = D2AAC045055464E500DB518D;
 			remoteInfo = Bento4;
 		};
 /* End PBXContainerItemProxy section */
@@ -1007,6 +1007,7 @@
 				},
 			);
 			targets = (
+				F97CF3310C0032690013DB60 /* Applications */,
 				CA9367440B437DCC0067D50B /* Mp4Dump */,
 				CA9367950B43813D0067D50B /* Mp4Info */,
 				CA9367AB0B43822D0067D50B /* Mp4Encrypt */,
@@ -1017,7 +1018,6 @@
 				CA9367EE0B4383930067D50B /* Aac2Mp4 */,
 				CA9368050B4384110067D50B /* Mp42Aac */,
 				CA9368120B4384860067D50B /* Mp4RtpHintInfo */,
-				F97CF3310C0032690013DB60 /* Applications */,
 			);
 		};
 /* End PBXProject section */
