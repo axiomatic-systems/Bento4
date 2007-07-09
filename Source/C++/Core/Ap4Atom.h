@@ -45,18 +45,18 @@
 |   macros
 +---------------------------------------------------------------------*/
 #define AP4_ATOM_TYPE(a,b,c,d)  \
-   ((((unsigned long)a)<<24) |  \
-    (((unsigned long)b)<<16) |  \
-    (((unsigned long)c)<< 8) |  \
-    (((unsigned long)d)    ))
+   ((((AP4_UI32)a)<<24) |  \
+    (((AP4_UI32)b)<<16) |  \
+    (((AP4_UI32)c)<< 8) |  \
+    (((AP4_UI32)d)    ))
 
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-const unsigned int AP4_ATOM_HEADER_SIZE      = 8;
-const unsigned int AP4_FULL_ATOM_HEADER_SIZE = 12;
-const unsigned int AP4_ATOM_MAX_NAME_SIZE    = 256;
-const unsigned int AP4_ATOM_MAX_URI_SIZE     = 512;
+const AP4_UI32 AP4_ATOM_HEADER_SIZE      = 8;
+const AP4_UI32 AP4_FULL_ATOM_HEADER_SIZE = 12;
+const AP4_UI32 AP4_ATOM_MAX_NAME_SIZE    = 256;
+const AP4_UI32 AP4_ATOM_MAX_URI_SIZE     = 512;
 
 /*----------------------------------------------------------------------
 |   forward references
