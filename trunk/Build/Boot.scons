@@ -1,4 +1,6 @@
 import sys
+import sys
+import platform
 
 #######################################################
 # reusable functions and data structures
@@ -6,17 +8,29 @@ import sys
 
 # Platform to Target Map (specifies which default target to build on a platform)
 PLATFORM_TO_TARGET_MAP = { 
-    'linux-i386' : 'x86-unknown-linux',
-    'linux2'     : 'x86-unknown-linux',
-    'win32'      : 'x86-microsoft-win32',
-    'cygwin'     : 'x86-unknown-cygwin',
-    'darwin'     : 'universal-apple-macos'
+    'linux-i386'   : 'x86-unknown-linux',
+    'linux-x86_64' : 'x86_64-unknown-linux',
+    'linux2'       : 'x86-unknown-linux',
+    'win32'        : 'x86-microsoft-win32',
+    'cygwin'       : 'x86-unknown-cygwin',
+    'darwin'       : 'universal-apple-macos'
 }
     
 CROSS_PLATFORMS = ['ppu-sony-ps3', 'arm-unknown-linux', 'mips-unknown-linux', 'powerpc-unknown-linux', 'arm-gp2x-linux']
+
 def DefaultTarget():
-    if PLATFORM_TO_TARGET_MAP.has_key(sys.platform):
-        return PLATFORM_TO_TARGET_MAP[sys.platform]
+    platform_id = sys.platform
+    if platform.system() == 'Linux':
+        if (platform.machine() == 'i386' or
+            platform.machine() == 'i486' or
+            platform.machine() == 'i586' or
+            platform.machine() == 'i686'):
+            platform_id = 'linux-i386'
+        if (platform.machine() == 'x86_64'):
+            platform_id = 'linux-x86_64'
+    
+    if PLATFORM_TO_TARGET_MAP.has_key(platform_id):
+        return PLATFORM_TO_TARGET_MAP[platform_id]
     else:
         return None
         
