@@ -13,6 +13,7 @@
 			buildPhases = (
 			);
 			dependencies = (
+				F9E717D20C56A0B500C7A92C /* PBXTargetDependency */,
 				F97CF3330C00327B0013DB60 /* PBXTargetDependency */,
 				F97CF3350C00327B0013DB60 /* PBXTargetDependency */,
 				F97CF3370C00327B0013DB60 /* PBXTargetDependency */,
@@ -50,7 +51,26 @@
 		F97CF32E0C0032400013DB60 /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F97CF3120C0031FE0013DB60 /* libBento4.a */; };
 		F97CF32F0C0032470013DB60 /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F97CF3120C0031FE0013DB60 /* libBento4.a */; };
 		F97CF3300C00324C0013DB60 /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F97CF3120C0031FE0013DB60 /* libBento4.a */; };
+		F9E717D80C56A10200C7A92C /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F97CF3120C0031FE0013DB60 /* libBento4.a */; };
+		F9E717D90C56A10A00C7A92C /* CryptoTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F9E717CB0C56A08600C7A92C /* CryptoTest.cpp */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXBuildStyle section */
+		F9E868680C5715B300631F41 /* Development */ = {
+			isa = PBXBuildStyle;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+			};
+			name = Development;
+		};
+		F9E868690C5715B300631F41 /* Deployment */ = {
+			isa = PBXBuildStyle;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+			};
+			name = Deployment;
+		};
+/* End PBXBuildStyle section */
 
 /* Begin PBXContainerItemProxy section */
 		F97CF3110C0031FE0013DB60 /* PBXContainerItemProxy */ = {
@@ -194,6 +214,20 @@
 			remoteInfo = Bento4;
 		};
 		F97CF35B0C00338B0013DB60 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F97CF3000C0031FE0013DB60 /* Bento4.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = D2AAC045055464E500DB518D;
+			remoteInfo = Bento4;
+		};
+		F9E717D10C56A0B500C7A92C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = F9E717CE0C56A0A000C7A92C;
+			remoteInfo = CryptoTest;
+		};
+		F9E717D60C56A0DE00C7A92C /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = F97CF3000C0031FE0013DB60 /* Bento4.xcodeproj */;
 			proxyType = 1;
@@ -381,6 +415,8 @@
 		F97CF3000C0031FE0013DB60 /* Bento4.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = Bento4.xcodeproj; sourceTree = "<group>"; };
 		F9B1F4F90B54AD91003F147E /* Ap4AvccAtom.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4AvccAtom.cpp; sourceTree = "<group>"; };
 		F9B1F4FA0B54AD91003F147E /* Ap4AvccAtom.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = Ap4AvccAtom.h; sourceTree = "<group>"; };
+		F9E717CB0C56A08600C7A92C /* CryptoTest.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = CryptoTest.cpp; sourceTree = "<group>"; };
+		F9E717CF0C56A0A000C7A92C /* CryptoTest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = CryptoTest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -464,6 +500,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		F9E717CD0C56A0A000C7A92C /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F9E717D80C56A10200C7A92C /* libBento4.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -472,6 +516,7 @@
 			children = (
 				F97CF3000C0031FE0013DB60 /* Bento4.xcodeproj */,
 				CA93674A0B437E240067D50B /* Apps */,
+				F9E717C90C56A08600C7A92C /* Test */,
 				08FB7795FE84155DC02AAC07 /* Runtime */,
 				C6A0FF2B0290797F04C91782 /* Documentation */,
 				1AB674ADFE9D54B511CA2CBB /* Products */,
@@ -504,6 +549,7 @@
 				CA9367EF0B4383930067D50B /* aac2mp4 */,
 				CA9368060B4384110067D50B /* mp42aac */,
 				CA9368130B4384860067D50B /* mp4rtphintinfo */,
+				F9E717CF0C56A0A000C7A92C /* CryptoTest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -818,6 +864,23 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		F9E717C90C56A08600C7A92C /* Test */ = {
+			isa = PBXGroup;
+			children = (
+				F9E717CA0C56A08600C7A92C /* Crypto */,
+			);
+			name = Test;
+			path = "../../../Source/C++/Test";
+			sourceTree = SOURCE_ROOT;
+		};
+		F9E717CA0C56A08600C7A92C /* Crypto */ = {
+			isa = PBXGroup;
+			children = (
+				F9E717CB0C56A08600C7A92C /* CryptoTest.cpp */,
+			);
+			path = Crypto;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -991,12 +1054,35 @@
 			productReference = CA9368130B4384860067D50B /* mp4rtphintinfo */;
 			productType = "com.apple.product-type.tool";
 		};
+		F9E717CE0C56A0A000C7A92C /* CryptoTest */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F9E717D30C56A0D300C7A92C /* Build configuration list for PBXNativeTarget "CryptoTest" */;
+			buildPhases = (
+				F9E717CC0C56A0A000C7A92C /* Sources */,
+				F9E717CD0C56A0A000C7A92C /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				F9E717D70C56A0DE00C7A92C /* PBXTargetDependency */,
+			);
+			name = CryptoTest;
+			productName = CryptoTest;
+			productReference = F9E717CF0C56A0A000C7A92C /* CryptoTest */;
+			productType = "com.apple.product-type.tool";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
 		08FB7793FE84155DC02AAC07 /* Project object */ = {
 			isa = PBXProject;
 			buildConfigurationList = 1DEB91EF08733DB70010E9CD /* Build configuration list for PBXProject "Bento4Apps" */;
+			buildSettings = {
+			};
+			buildStyles = (
+				F9E868680C5715B300631F41 /* Development */,
+				F9E868690C5715B300631F41 /* Deployment */,
+			);
 			hasScannedForEncodings = 1;
 			mainGroup = 08FB7794FE84155DC02AAC07 /* Bento4 */;
 			projectDirPath = "";
@@ -1018,6 +1104,7 @@
 				CA9367EE0B4383930067D50B /* Aac2Mp4 */,
 				CA9368050B4384110067D50B /* Mp42Aac */,
 				CA9368120B4384860067D50B /* Mp4RtpHintInfo */,
+				F9E717CE0C56A0A000C7A92C /* CryptoTest */,
 			);
 		};
 /* End PBXProject section */
@@ -1110,6 +1197,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				CA9368170B4384A10067D50B /* Mp4RtpHintInfo.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F9E717CC0C56A0A000C7A92C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F9E717D90C56A10A00C7A92C /* CryptoTest.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1215,6 +1310,16 @@
 			isa = PBXTargetDependency;
 			name = Bento4;
 			targetProxy = F97CF35B0C00338B0013DB60 /* PBXContainerItemProxy */;
+		};
+		F9E717D20C56A0B500C7A92C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = F9E717CE0C56A0A000C7A92C /* CryptoTest */;
+			targetProxy = F9E717D10C56A0B500C7A92C /* PBXContainerItemProxy */;
+		};
+		F9E717D70C56A0DE00C7A92C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = Bento4;
+			targetProxy = F9E717D60C56A0DE00C7A92C /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -1569,6 +1674,36 @@
 			};
 			name = Release;
 		};
+		F9E717D40C56A0D300C7A92C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				INSTALL_PATH = "$(HOME)/bin";
+				PREBINDING = NO;
+				PRODUCT_NAME = CryptoTest;
+				ZERO_LINK = YES;
+			};
+			name = Debug;
+		};
+		F9E717D50C56A0D300C7A92C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_MODEL_TUNING = G5;
+				INSTALL_PATH = "$(HOME)/bin";
+				PREBINDING = NO;
+				PRODUCT_NAME = CryptoTest;
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -1676,6 +1811,15 @@
 			buildConfigurations = (
 				F97CF3490C0032BA0013DB60 /* Debug */,
 				F97CF34A0C0032BA0013DB60 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		F9E717D30C56A0D300C7A92C /* Build configuration list for PBXNativeTarget "CryptoTest" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F9E717D40C56A0D300C7A92C /* Debug */,
+				F9E717D50C56A0D300C7A92C /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
