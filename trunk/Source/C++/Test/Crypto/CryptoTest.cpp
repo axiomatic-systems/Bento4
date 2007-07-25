@@ -734,10 +734,10 @@ unsigned char __1025_cbc[] = {
 unsigned int __1025_cbc_len = 1040;
 
 static struct {
-    unsigned char* clear;
-    unsigned int   clear_length;
-    unsigned char* enc;
-    unsigned int   enc_length;
+    AP4_UI08* clear;
+    AP4_Size  clear_length;
+    AP4_UI08* enc;
+    AP4_Size  enc_length;
 } TestVectors[] = 
 {
     {__1_bin, __1_bin_len, __1_cbc, __1_cbc_len },
@@ -809,11 +809,11 @@ main(int /*argc*/, char** /*argv*/)
     };
 
     AP4_BlockCipher* e_block_cipher;
-    AP4_DefaultBlockCipherFactory::Instance.Create(AP4_BlockCipher::AES_128, AP4_BlockCipher::ENCRYPT, key, 16, &e_block_cipher);
+    AP4_DefaultBlockCipherFactory::Instance.Create(AP4_BlockCipher::AES_128, AP4_BlockCipher::ENCRYPT, key, 16, e_block_cipher);
     AP4_CbcStreamCipher e_cipher(e_block_cipher, AP4_CbcStreamCipher::ENCRYPT);
 
     AP4_BlockCipher* d_block_cipher;
-    AP4_DefaultBlockCipherFactory::Instance.Create(AP4_BlockCipher::AES_128, AP4_BlockCipher::DECRYPT, key, 16, &d_block_cipher);
+    AP4_DefaultBlockCipherFactory::Instance.Create(AP4_BlockCipher::AES_128, AP4_BlockCipher::DECRYPT, key, 16, d_block_cipher);
     AP4_CbcStreamCipher d_cipher(d_block_cipher, AP4_CbcStreamCipher::DECRYPT);
 
     unsigned char buffer[128];
@@ -829,7 +829,7 @@ main(int /*argc*/, char** /*argv*/)
         size = 32;
         result = e_cipher.ProcessBuffer(TestVectors[i].clear, 
                                         TestVectors[i].clear_length, 
-                                        buffer, &size, true);
+                                        buffer, size, true);
         CHECK(result == AP4_SUCCESS);
         CHECK(size == TestVectors[i].enc_length);
         CHECK(BuffersEqual(TestVectors[i].enc, buffer, size));
@@ -837,7 +837,7 @@ main(int /*argc*/, char** /*argv*/)
         size = 32;
         result = d_cipher.ProcessBuffer(TestVectors[i].enc, 
                                         TestVectors[i].enc_length, 
-                                        buffer, &size, true);
+                                        buffer, size, true);
         CHECK(result == AP4_SUCCESS);
         CHECK(size == TestVectors[i].clear_length);
         CHECK(BuffersEqual(TestVectors[i].clear, buffer, size));
@@ -865,7 +865,7 @@ main(int /*argc*/, char** /*argv*/)
                 result = e_cipher.ProcessBuffer(TestVectors2[i].clear+x,
                                                 chunk,
                                                 out,
-                                                &size,
+                                                size,
                                                 last);
                 CHECK(result == AP4_SUCCESS);
                 todo -= chunk;
@@ -897,7 +897,7 @@ main(int /*argc*/, char** /*argv*/)
                 result = d_cipher.ProcessBuffer(TestVectors2[i].enc+x,
                                                 chunk,
                                                 out,
-                                                &size,
+                                                size,
                                                 last);
                 CHECK(result == AP4_SUCCESS);
                 todo -= chunk;

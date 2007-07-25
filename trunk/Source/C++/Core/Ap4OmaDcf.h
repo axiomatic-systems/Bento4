@@ -65,17 +65,16 @@ typedef enum {
 +---------------------------------------------------------------------*/
 class AP4_OmaCbcDecryptingStream : public AP4_ByteStream {
 public:
-    static AP4_Result Create(
-        AP4_ByteStream*              source_stream,
-        AP4_Position                 source_position,
-        const AP4_UI08*              key,
-        AP4_Size                     key_size,
-        AP4_BlockCipherFactory*      block_cipher_factory,
-        AP4_LargeSize                cleartext_size,
-        AP4_OmaCbcDecryptingStream** stream);
+    static AP4_Result Create(AP4_ByteStream*              source_stream,
+                             AP4_Position                 source_position,
+                             const AP4_UI08*              key,
+                             AP4_Size                     key_size,
+                             AP4_BlockCipherFactory*      block_cipher_factory,
+                             AP4_LargeSize                cleartext_size,
+                             AP4_OmaCbcDecryptingStream*& stream);
     ~AP4_OmaCbcDecryptingStream();
 
-    // AP4_ByteStream metods
+    // AP4_ByteStream methods
     virtual AP4_Result Read(void*     buffer, 
                             AP4_Size  bytes_to_read, 
                             AP4_Size* bytes_read);
@@ -122,7 +121,7 @@ public:
                                              const AP4_UI08*         key,
                                              AP4_Size                key_size,
                                              AP4_BlockCipherFactory* block_cipher_factory,
-                                             AP4_ByteStream**        stream);
+                                             AP4_ByteStream*&        stream);
 };
 
 /*----------------------------------------------------------------------
@@ -136,7 +135,7 @@ public:
                              const AP4_UI08*                 key, 
                              AP4_Size                        key_size,
                              AP4_BlockCipherFactory*         block_cipher_factory,
-                             AP4_OmaDcfSampleDecrypter**     cipher);
+                             AP4_OmaDcfSampleDecrypter*&     cipher);
 
     // constructor and destructor
     AP4_OmaDcfSampleDecrypter(AP4_Size iv_length,
@@ -207,7 +206,7 @@ public:
                              AP4_ProtectedSampleDescription* sample_description,
                              AP4_SampleEntry*                sample_entry,
                              AP4_BlockCipherFactory*         block_cipher_factory,
-                             AP4_OmaDcfTrackDecrypter**      decrypter);
+                             AP4_OmaDcfTrackDecrypter*&      decrypter);
     virtual ~AP4_OmaDcfTrackDecrypter();
 
     // methods
