@@ -50,12 +50,13 @@ AP4_IsmaCipher::CreateSampleDecrypter(AP4_ProtectedSampleDescription* sample_des
                                       const AP4_UI08*                 key, 
                                       AP4_Size                        key_size,
                                       AP4_BlockCipherFactory*         block_cipher_factory,
-                                      AP4_IsmaCipher**                decrypter)
+                                      AP4_IsmaCipher*&                decrypter)
 {
     // check parameters
-    if (key == NULL || block_cipher_factory == NULL || decrypter == NULL) {
+    if (key == NULL || block_cipher_factory == NULL) {
         return AP4_ERROR_INVALID_PARAMETERS;
     }
+    decrypter = NULL;
 
     // create the cipher
     AP4_BlockCipher* block_cipher = NULL;
@@ -63,7 +64,7 @@ AP4_IsmaCipher::CreateSampleDecrypter(AP4_ProtectedSampleDescription* sample_des
                                                      AP4_BlockCipher::ENCRYPT,
                                                      key,
                                                      key_size,
-                                                     &block_cipher);
+                                                     block_cipher);
     if (AP4_FAILED(result)) return result;
 
     // get the scheme info atom
@@ -78,11 +79,11 @@ AP4_IsmaCipher::CreateSampleDecrypter(AP4_ProtectedSampleDescription* sample_des
     AP4_IsltAtom* salt = dynamic_cast<AP4_IsltAtom*>(schi->FindChild("iSLT"));
 
     // instantiate the decrypter
-    *decrypter = new AP4_IsmaCipher(block_cipher, 
-                                    salt?salt->GetSalt():NULL, 
-                                    isfm->GetIvLength(),
-                                    isfm->GetKeyIndicatorLength(),
-                                    isfm->GetSelectiveEncryption());
+    decrypter = new AP4_IsmaCipher(block_cipher, 
+                                   salt?salt->GetSalt():NULL, 
+                                   isfm->GetIvLength(),
+                                   isfm->GetKeyIndicatorLength(),
+                                   isfm->GetSelectiveEncryption());
     return AP4_SUCCESS;
 }
 
@@ -131,10 +132,10 @@ AP4_Result
 AP4_IsmaCipher::DecryptSampleData(AP4_DataBuffer& data_in,
                                   AP4_DataBuffer& data_out)
 {
-    bool                 is_encrypted = true;
-    const unsigned char* in = data_in.GetData();
-    AP4_Size             in_size = data_in.GetDataSize();
-    AP4_Size             header_size;
+    bool            is_encrypted = true;
+    const AP4_UI08* in = data_in.GetData();
+    AP4_Size        in_size = data_in.GetDataSize();
+    AP4_Size        header_size;
 
     // default to 0 output 
     data_out.SetDataSize(0);
@@ -152,9 +153,9 @@ AP4_IsmaCipher::DecryptSampleData(AP4_DataBuffer& data_in,
     if (header_size > in_size) return AP4_ERROR_INVALID_FORMAT;
 
     // process the sample data
-    unsigned int payload_size = in_size-header_size;
+    AP4_Size payload_size = in_size-header_size;
     data_out.SetDataSize(payload_size);
-    unsigned char* out = data_out.UseData();
+    AP4_UI08* out = data_out.UseData();
     if (is_encrypted) {
         // get the IV
         const AP4_UI08* iv = in;
@@ -178,7 +179,7 @@ AP4_IsmaCipher::DecryptSampleData(AP4_DataBuffer& data_in,
         }
 
         m_Cipher->SetBaseCounter(iv);
-        m_Cipher->ProcessBuffer(in, out, payload_size);
+        m_Cipher->ProcessBuffer(in, payload_size, out, payload_size);
     } else {
         AP4_CopyMemory(out, in, payload_size);
     }
@@ -204,7 +205,8 @@ AP4_IsmaCipher::EncryptSampleData(AP4_DataBuffer& data_in,
 
     // encrypt the payload
     m_Cipher->SetBaseCounter(out);
-    m_Cipher->ProcessBuffer(in, out+4, data_in.GetDataSize());
+    AP4_Size data_size = data_in.GetDataSize();
+    m_Cipher->ProcessBuffer(in, data_size, out+4, data_size);
 
     return AP4_SUCCESS;
 }
@@ -218,21 +220,22 @@ AP4_IsmaTrackDecrypter::Create(const AP4_UI08*                 key,
                                AP4_ProtectedSampleDescription* sample_description,
                                AP4_SampleEntry*                sample_entry,
                                AP4_BlockCipherFactory*         block_cipher_factory,
-                               AP4_IsmaTrackDecrypter**        decrypter)
+                               AP4_IsmaTrackDecrypter*&        decrypter)
 {
     // instantiate the cipher
     AP4_IsmaCipher* cipher = NULL;
+    decrypter              = NULL;
     AP4_Result result = AP4_IsmaCipher::CreateSampleDecrypter(sample_description,
                                                               key,
                                                               key_size,
                                                               block_cipher_factory,
-                                                              &cipher);
+                                                              cipher);
     if (AP4_FAILED(result)) return result;
 
     // instanciate the object
-    *decrypter = new AP4_IsmaTrackDecrypter(cipher, 
-                                            sample_entry, 
-                                            sample_description->GetOriginalFormat());
+    decrypter = new AP4_IsmaTrackDecrypter(cipher, 
+                                           sample_entry, 
+                                           sample_description->GetOriginalFormat());
     return AP4_SUCCESS;
 }
 
@@ -465,7 +468,7 @@ AP4_IsmaEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
                                                              AP4_BlockCipher::ENCRYPT, 
                                                              key, 
                                                              AP4_CIPHER_BLOCK_SIZE, 
-                                                             &block_cipher);
+                                                             block_cipher);
             if (AP4_FAILED(result)) return NULL;
 
             // create the encrypter

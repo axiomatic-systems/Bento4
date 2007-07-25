@@ -43,9 +43,35 @@
 const unsigned int AP4_CIPHER_BLOCK_SIZE = 16;
 
 /*----------------------------------------------------------------------
+|   AP4_StreamCipher interface
++---------------------------------------------------------------------*/
+class AP4_StreamCipher
+{
+public:
+    // types
+    typedef enum {
+        ENCRYPT,
+        DECRYPT
+    } CipherDirection;
+    
+    // methods
+    virtual            ~AP4_StreamCipher() {}
+    
+    virtual AP4_Result  SetStreamOffset(AP4_UI64 offset) = 0;
+    virtual AP4_UI64    GetStreamOffset() = 0;
+    
+    virtual AP4_Result  ProcessBuffer(const AP4_UI08* in,
+                                      AP4_Size        in_size,
+                                      AP4_UI08*       out,
+                                      AP4_Size&       out_size,
+                                      bool            is_last_buffer = false) = 0;
+};
+
+
+/*----------------------------------------------------------------------
 |   AP4_CtrStreamCipher class
 +---------------------------------------------------------------------*/
-class AP4_CtrStreamCipher
+class AP4_CtrStreamCipher : public AP4_StreamCipher
 {
 public:
    // methods
@@ -58,13 +84,20 @@ public:
                         const AP4_UI08*  salt,
                         AP4_Size         counter_size);
     ~AP4_CtrStreamCipher();
-    void       SetStreamOffset(AP4_UI64 offset);
+    
+    // AP4_StreamCipher implementation
+    virtual AP4_Result SetStreamOffset(AP4_UI64 offset);
+    virtual AP4_UI64   GetStreamOffset() { return m_StreamOffset; }
+    virtual AP4_Result ProcessBuffer(const AP4_UI08* in,
+                                    AP4_Size        in_size,
+                                    AP4_UI08*       out,
+                                    AP4_Size&       out_size,
+                                    bool            is_last_buffer = false);
+    
+
+    // implementation specific methods
     void       SetBaseCounter(const AP4_UI08* counter);
-    AP4_Result ProcessBuffer(const AP4_UI08* in, 
-                             AP4_UI08*       out,
-                             AP4_Size        size);
     const AP4_UI08* GetBaseCounter()  { return m_BaseCounter;  }
-    AP4_UI64        GetStreamOffset() { return m_StreamOffset; }
 
 private:
     // methods
@@ -83,15 +116,9 @@ private:
 /*----------------------------------------------------------------------
 |   AP4_CbcStreamCipher class
 +---------------------------------------------------------------------*/
-class AP4_CbcStreamCipher
+class AP4_CbcStreamCipher : public AP4_StreamCipher
 {
 public:
-    // types
-    typedef enum {
-        ENCRYPT,
-        DECRYPT
-    } CipherDirection;
-
     // methods
 
     /**
@@ -100,13 +127,18 @@ public:
      */
     AP4_CbcStreamCipher(AP4_BlockCipher* block_cipher, CipherDirection direction);
     ~AP4_CbcStreamCipher();
+    
+    // AP4_StreamCipher implementation
+    virtual AP4_Result SetStreamOffset(AP4_UI64 offset);
+    virtual AP4_UI64   GetStreamOffset() { return m_StreamOffset; }
+    virtual AP4_Result ProcessBuffer(const AP4_UI08* in,
+                                     AP4_Size        in_size,
+                                     AP4_UI08*       out,
+                                     AP4_Size&       out_size,
+                                     bool            is_last_buffer = false);
+    
+    // implementation specific methods
     AP4_Result SetIV(const AP4_UI08* iv);
-    AP4_Result ProcessBuffer(const AP4_UI08* in, 
-                             AP4_Size        in_size,
-                             AP4_UI08*       out,
-                             AP4_Size*       out_size,
-                             bool            is_last_buffer = false);
-    AP4_UI64  GetStreamOffset() { return m_StreamOffset; }
 
 private:
     // members

@@ -54,7 +54,8 @@ PrintUsageAndExit()
             "usage: mp4decrypt [--key <n>:<k>] <input> <output>\n"
             "  --show-progress: show progress details\n"
             "  --key: <n> is a track index, <k> a 128-bit key in hex\n"
-            "         (several --key options can be used, one for each track)\n");
+            "         (several --key options can be used, one for each track)\n"
+            "         note: for dcf files, use 1 as the track index\n");
     exit(1);
 }
 

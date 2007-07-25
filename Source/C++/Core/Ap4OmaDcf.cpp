@@ -57,42 +57,43 @@ AP4_OmaCbcDecryptingStream::Create(
     AP4_Size                     key_size,
     AP4_BlockCipherFactory*      block_cipher_factory,
     AP4_LargeSize                cleartext_size,
-    AP4_OmaCbcDecryptingStream** stream)
+    AP4_OmaCbcDecryptingStream*& stream)
 {
     // default return value
-    *stream = NULL;
+    stream = NULL;
 
     // create the stream cipher
     AP4_BlockCipher* block_cipher;
     AP4_Result result = block_cipher_factory->Create(AP4_BlockCipher::AES_128,
                                                      AP4_BlockCipher::DECRYPT,
-                                                     key, key_size, &block_cipher);
+                                                     key, key_size, block_cipher);
     if (AP4_FAILED(result)) return result;
 
     // keep a reference to the source stream
     source_stream->AddReference();
 
     // create the stream
-    *stream = new AP4_OmaCbcDecryptingStream();
-    (*stream)->m_StreamCipher   = new AP4_CbcStreamCipher(block_cipher, AP4_CbcStreamCipher::DECRYPT);
-    (*stream)->m_Size           = cleartext_size;
-    (*stream)->m_Position       = 0;
-    (*stream)->m_SourceStream   = source_stream;
-    (*stream)->m_SourceStart    = source_position+16;
-    (*stream)->m_SourcePosition = 0;
-    (*stream)->m_BufferFullness = 0;
-    (*stream)->m_BufferOffset   = 0;
-    (*stream)->m_ReferenceCount = 1;
+    stream = new AP4_OmaCbcDecryptingStream();
+    stream->m_StreamCipher   = new AP4_CbcStreamCipher(block_cipher, 
+                                                       AP4_StreamCipher::DECRYPT);
+    stream->m_Size           = cleartext_size;
+    stream->m_Position       = 0;
+    stream->m_SourceStream   = source_stream;
+    stream->m_SourceStart    = source_position+16;
+    stream->m_SourcePosition = 0;
+    stream->m_BufferFullness = 0;
+    stream->m_BufferOffset   = 0;
+    stream->m_ReferenceCount = 1;
 
     // set the IV
     AP4_UI08 iv[16];
     AP4_Size bytes_read = 0;
-    result = (*stream)->m_SourceStream->Seek(source_position);
+    result = stream->m_SourceStream->Seek(source_position);
     if (AP4_FAILED(result)) return result;
-    result = (*stream)->m_SourceStream->Read(iv, 16, &bytes_read);
+    result = stream->m_SourceStream->Read(iv, 16, &bytes_read);
     if (AP4_FAILED(result)) return result;
     if (bytes_read != 16) return AP4_ERROR_INVALID_FORMAT;
-    (*stream)->m_StreamCipher->SetIV(iv);
+    stream->m_StreamCipher->SetIV(iv);
 
     return AP4_SUCCESS;
 }
@@ -171,7 +172,11 @@ AP4_OmaCbcDecryptingStream::Read(void*     buffer,
         }
         bool is_last_buffer = (available <= 16);
         AP4_Size buffer_size = 16;
-        result = m_StreamCipher->ProcessBuffer(encrypted, 16, m_Buffer, &buffer_size, is_last_buffer);
+        result = m_StreamCipher->ProcessBuffer(encrypted, 
+                                               16, 
+                                               m_Buffer, 
+                                               buffer_size, 
+                                               is_last_buffer);
         m_BufferOffset = 0;
         m_BufferFullness = buffer_size;
 
@@ -260,7 +265,11 @@ AP4_OmaDcfAtomDecrypter::DecryptAtoms(AP4_AtomParent&                  atoms,
                     if (ohdr) {
                         // create the byte stream
                         AP4_ByteStream* cipher_stream = NULL;
-                        AP4_Result result = CreateDecryptingStream(*odrm, key, 16, block_cipher_factory, &cipher_stream);
+                        AP4_Result result = CreateDecryptingStream(*odrm, 
+                                                                   key, 
+                                                                   16, 
+                                                                   block_cipher_factory, 
+                                                                   cipher_stream);
                         if (AP4_SUCCEEDED(result)) {
                             odda->SetSourceStream(cipher_stream, 0);
                             cipher_stream->Release();
@@ -290,10 +299,10 @@ AP4_OmaDcfAtomDecrypter::CreateDecryptingStream(AP4_ContainerAtom&      odrm,
                                                 const AP4_UI08*         key,
                                                 AP4_Size                key_size,
                                                 AP4_BlockCipherFactory* block_cipher_factory,
-                                                AP4_ByteStream**        stream)
+                                                AP4_ByteStream*&        stream)
 {
     // default return value
-    *stream = NULL;
+    stream = NULL;
 
     AP4_OdheAtom* odhe = dynamic_cast<AP4_OdheAtom*>(odrm.FindChild("odhe"));
     AP4_OddaAtom* odda = dynamic_cast<AP4_OddaAtom*>(odrm.FindChild("odda"));;
@@ -307,9 +316,9 @@ AP4_OmaDcfAtomDecrypter::CreateDecryptingStream(AP4_ContainerAtom&      odrm,
                                                                key, key_size, 
                                                                block_cipher_factory,
                                                                ohdr->GetPlaintextLength(),
-                                                               &dec_stream);
+                                                               dec_stream);
         if (AP4_FAILED(result)) return result;
-        *stream = dec_stream;
+        stream = dec_stream;
         return AP4_SUCCESS;
     } else {
         return AP4_ERROR_NOT_SUPPORTED;
@@ -324,15 +333,15 @@ AP4_OmaDcfSampleDecrypter::Create(AP4_ProtectedSampleDescription* sample_descrip
                                   const AP4_UI08*                 key, 
                                   AP4_Size                        key_size,
                                   AP4_BlockCipherFactory*         block_cipher_factory,
-                                  AP4_OmaDcfSampleDecrypter**     cipher)
+                                  AP4_OmaDcfSampleDecrypter*&     cipher)
 {
     // check the parameters
-    if (key == NULL || block_cipher_factory == NULL || cipher == NULL) {
+    if (key == NULL || block_cipher_factory == NULL) {
         return AP4_ERROR_INVALID_PARAMETERS;
     }
     
     // default return value
-    *cipher = NULL;
+    cipher = NULL;
 
     // get the scheme info atom
     AP4_ContainerAtom* schi = sample_description->GetSchemeInfo()->GetSchiAtom();
@@ -366,11 +375,12 @@ AP4_OmaDcfSampleDecrypter::Create(AP4_ProtectedSampleDescription* sample_descrip
                                                          AP4_BlockCipher::DECRYPT, 
                                                          key, 
                                                          key_size, 
-                                                         &block_cipher);
+                                                         block_cipher);
         if (AP4_FAILED(result)) return result;
 
         // create the cipher
-        *cipher = new AP4_OmaDcfCbcSampleDecrypter(block_cipher, odaf->GetSelectiveEncryption());
+        cipher = new AP4_OmaDcfCbcSampleDecrypter(block_cipher, 
+                                                  odaf->GetSelectiveEncryption());
         return AP4_SUCCESS;
     } else if (encryption_method == AP4_OMA_DCF_ENCRYPTION_METHOD_AES_CTR) {
         // require NONE padding
@@ -384,11 +394,13 @@ AP4_OmaDcfSampleDecrypter::Create(AP4_ProtectedSampleDescription* sample_descrip
                                                          AP4_BlockCipher::ENCRYPT, 
                                                          key, 
                                                          key_size, 
-                                                         &block_cipher);
+                                                         block_cipher);
         if (AP4_FAILED(result)) return result;
 
         // create the cipher
-        *cipher = new AP4_OmaDcfCtrSampleDecrypter(block_cipher, odaf->GetIvLength(), odaf->GetSelectiveEncryption());
+        cipher = new AP4_OmaDcfCtrSampleDecrypter(block_cipher, 
+                                                  odaf->GetIvLength(), 
+                                                  odaf->GetSelectiveEncryption());
         return AP4_SUCCESS;
     } else {
         return AP4_ERROR_NOT_SUPPORTED;
@@ -441,13 +453,16 @@ AP4_OmaDcfCtrSampleDecrypter::DecryptSampleData(AP4_DataBuffer& data_in,
     if (header_size > in_size) return AP4_ERROR_INVALID_FORMAT;
 
     // process the sample data
-    unsigned int payload_size = in_size-header_size;
+    AP4_Size payload_size = in_size-header_size;
     data_out.Reserve(payload_size);
     unsigned char* out = data_out.UseData();
     if (is_encrypted) {
         // set the IV
         m_Cipher->SetBaseCounter(in);
-        AP4_CHECK(m_Cipher->ProcessBuffer(in+m_IvLength, out, payload_size));
+        AP4_CHECK(m_Cipher->ProcessBuffer(in+m_IvLength, 
+                                          payload_size, 
+                                          out, 
+                                          payload_size));
     } else {
         AP4_CopyMemory(out, in, payload_size);
     }
@@ -537,7 +552,7 @@ AP4_OmaDcfCbcSampleDecrypter::DecryptSampleData(AP4_DataBuffer& data_in,
 
         m_Cipher->SetIV(iv);
         out_size = payload_size;
-        AP4_CHECK(m_Cipher->ProcessBuffer(in, payload_size, out, &out_size, true));
+        AP4_CHECK(m_Cipher->ProcessBuffer(in, payload_size, out, out_size, true));
     } else {
         AP4_CopyMemory(out, in, payload_size);
         out_size = payload_size;
@@ -586,7 +601,7 @@ AP4_OmaDcfCbcSampleDecrypter::GetDecryptedSampleSize(AP4_Sample& sample)
         decrypted.Reserve(decrypted_size);
         m_Cipher->SetIV(encrypted.GetData());
         if (AP4_FAILED(m_Cipher->ProcessBuffer(encrypted.GetData()+AP4_CIPHER_BLOCK_SIZE, AP4_CIPHER_BLOCK_SIZE,
-                                               decrypted.UseData(), &decrypted_size, true))) {
+                                               decrypted.UseData(), decrypted_size, true))) {
             return 0;
         }
         unsigned int padding_size = AP4_CIPHER_BLOCK_SIZE-decrypted_size;
@@ -655,8 +670,9 @@ AP4_OmaDcfCtrSampleEncrypter::EncryptSampleData(AP4_DataBuffer& data_in,
     AP4_BytesFromUInt64BE(&out[8], counter);
 
     // encrypt the payload
+    AP4_Size data_size = data_in.GetDataSize();
     m_Cipher->SetBaseCounter(out+8);
-    m_Cipher->ProcessBuffer(in, out+AP4_CIPHER_BLOCK_SIZE, data_in.GetDataSize());
+    m_Cipher->ProcessBuffer(in, data_size, out+AP4_CIPHER_BLOCK_SIZE, data_size);
 
     return AP4_SUCCESS;
 }
@@ -718,7 +734,7 @@ AP4_OmaDcfCbcSampleEncrypter::EncryptSampleData(AP4_DataBuffer& data_in,
     m_Cipher->ProcessBuffer(data_in.GetData(), 
                             data_in.GetDataSize(),
                             out+AP4_CIPHER_BLOCK_SIZE, 
-                            &out_size,
+                            out_size,
                             true);
     data_out.SetDataSize(out_size+AP4_CIPHER_BLOCK_SIZE+1);
 
@@ -746,16 +762,16 @@ AP4_OmaDcfTrackDecrypter::Create(
     AP4_ProtectedSampleDescription* sample_description,
     AP4_SampleEntry*                sample_entry,
     AP4_BlockCipherFactory*         block_cipher_factory,
-    AP4_OmaDcfTrackDecrypter**      decrypter)
+    AP4_OmaDcfTrackDecrypter*&      decrypter)
 {
     // check and set defaults
-    if (key == NULL || decrypter == NULL) {
+    if (key == NULL) {
         return AP4_ERROR_INVALID_PARAMETERS;
     }
     if (block_cipher_factory == NULL) {
         block_cipher_factory = &AP4_DefaultBlockCipherFactory::Instance;
     }
-    *decrypter = NULL;
+    decrypter = NULL;
 
     // create the cipher
     AP4_OmaDcfSampleDecrypter* cipher = NULL;
@@ -763,13 +779,13 @@ AP4_OmaDcfTrackDecrypter::Create(
                                                           key, 
                                                           key_size, 
                                                           block_cipher_factory,
-                                                          &cipher);
+                                                          cipher);
     if (AP4_FAILED(result)) return result;
 
     // instantiate the object
-    *decrypter = new AP4_OmaDcfTrackDecrypter(cipher, 
-                                              sample_entry, 
-                                              sample_description->GetOriginalFormat());
+    decrypter = new AP4_OmaDcfTrackDecrypter(cipher, 
+                                            sample_entry, 
+                                            sample_description->GetOriginalFormat());
     return AP4_SUCCESS;
 }
 
@@ -1077,7 +1093,7 @@ AP4_OmaDcfEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
                                                              AP4_BlockCipher::ENCRYPT, 
                                                              key, 
                                                              AP4_CIPHER_BLOCK_SIZE, 
-                                                             &block_cipher);
+                                                             block_cipher);
             if (AP4_FAILED(result)) return NULL;
             return new AP4_OmaDcfTrackEncrypter(m_CipherMode, block_cipher, iv, entry, format, content_id, rights_issuer_url);
         }

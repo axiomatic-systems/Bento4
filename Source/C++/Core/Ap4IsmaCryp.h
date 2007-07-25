@@ -62,7 +62,7 @@ public:
                                             const AP4_UI08*                 key, 
                                             AP4_Size                        key_size,
                                             AP4_BlockCipherFactory*         block_cipher_factory,
-                                            AP4_IsmaCipher**                decrypter);
+                                            AP4_IsmaCipher*&                decrypter);
 
     // constructor and destructor
     AP4_IsmaCipher(AP4_BlockCipher* block_cipher, 
@@ -100,7 +100,7 @@ public:
                              AP4_ProtectedSampleDescription* sample_description,
                              AP4_SampleEntry*                sample_entry,
                              AP4_BlockCipherFactory*         block_cipher_factory,
-                             AP4_IsmaTrackDecrypter**        decrypter);
+                             AP4_IsmaTrackDecrypter*&        decrypter);
 
     virtual ~AP4_IsmaTrackDecrypter();
 

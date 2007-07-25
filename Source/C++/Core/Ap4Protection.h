@@ -236,7 +236,7 @@ public:
                               AP4_BlockCipher::CipherDirection direction,
                               const AP4_UI08*                  key,
                               AP4_Size                         key_size,
-                              AP4_BlockCipher**                cipher) = 0;
+                              AP4_BlockCipher*&                cipher) = 0;
 };
 
 /*----------------------------------------------------------------------
@@ -253,7 +253,7 @@ public:
                               AP4_BlockCipher::CipherDirection direction,
                               const AP4_UI08*                  key,
                               AP4_Size                         key_size,
-                              AP4_BlockCipher**                cipher);
+                              AP4_BlockCipher*&                cipher);
 };
 
 /*----------------------------------------------------------------------
