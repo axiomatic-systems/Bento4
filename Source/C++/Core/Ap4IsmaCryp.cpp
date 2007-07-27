@@ -179,7 +179,7 @@ AP4_IsmaCipher::DecryptSampleData(AP4_DataBuffer& data_in,
         }
 
         m_Cipher->SetBaseCounter(iv);
-        m_Cipher->ProcessBuffer(in, payload_size, out, payload_size);
+        m_Cipher->ProcessBuffer(in, payload_size, out);
     } else {
         AP4_CopyMemory(out, in, payload_size);
     }
@@ -206,7 +206,7 @@ AP4_IsmaCipher::EncryptSampleData(AP4_DataBuffer& data_in,
     // encrypt the payload
     m_Cipher->SetBaseCounter(out);
     AP4_Size data_size = data_in.GetDataSize();
-    m_Cipher->ProcessBuffer(in, data_size, out+4, data_size);
+    m_Cipher->ProcessBuffer(in, data_size, out+4);
 
     return AP4_SUCCESS;
 }

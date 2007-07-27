@@ -63,8 +63,9 @@ public:
     virtual AP4_Result  ProcessBuffer(const AP4_UI08* in,
                                       AP4_Size        in_size,
                                       AP4_UI08*       out,
-                                      AP4_Size&       out_size,
-                                      bool            is_last_buffer = false) = 0;
+                                      AP4_Size*       out_size,
+                                      bool            is_last_buffer,
+                                      AP4_Offset*     out_offset) = 0;
 };
 
 
@@ -91,8 +92,9 @@ public:
     virtual AP4_Result ProcessBuffer(const AP4_UI08* in,
                                     AP4_Size        in_size,
                                     AP4_UI08*       out,
-                                    AP4_Size&       out_size,
-                                    bool            is_last_buffer = false);
+                                    AP4_Size*       out_size       = NULL,
+                                    bool            is_last_buffer = false,
+                                    AP4_Offset*     out_offset     = NULL);
     
 
     // implementation specific methods
@@ -134,8 +136,9 @@ public:
     virtual AP4_Result ProcessBuffer(const AP4_UI08* in,
                                      AP4_Size        in_size,
                                      AP4_UI08*       out,
-                                     AP4_Size&       out_size,
-                                     bool            is_last_buffer = false);
+                                     AP4_Size*       out_size,
+                                     bool            is_last_buffer = false,
+                                     AP4_Offset*     out_offset     = NULL);
     
     // implementation specific methods
     AP4_Result SetIV(const AP4_UI08* iv);

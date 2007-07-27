@@ -829,7 +829,7 @@ main(int /*argc*/, char** /*argv*/)
         size = 32;
         result = e_cipher.ProcessBuffer(TestVectors[i].clear, 
                                         TestVectors[i].clear_length, 
-                                        buffer, size, true);
+                                        buffer, &size, true);
         CHECK(result == AP4_SUCCESS);
         CHECK(size == TestVectors[i].enc_length);
         CHECK(BuffersEqual(TestVectors[i].enc, buffer, size));
@@ -837,7 +837,7 @@ main(int /*argc*/, char** /*argv*/)
         size = 32;
         result = d_cipher.ProcessBuffer(TestVectors[i].enc, 
                                         TestVectors[i].enc_length, 
-                                        buffer, size, true);
+                                        buffer, &size, true);
         CHECK(result == AP4_SUCCESS);
         CHECK(size == TestVectors[i].clear_length);
         CHECK(BuffersEqual(TestVectors[i].clear, buffer, size));
@@ -865,7 +865,7 @@ main(int /*argc*/, char** /*argv*/)
                 result = e_cipher.ProcessBuffer(TestVectors2[i].clear+x,
                                                 chunk,
                                                 out,
-                                                size,
+                                                &size,
                                                 last);
                 CHECK(result == AP4_SUCCESS);
                 todo -= chunk;
@@ -897,7 +897,7 @@ main(int /*argc*/, char** /*argv*/)
                 result = d_cipher.ProcessBuffer(TestVectors2[i].enc+x,
                                                 chunk,
                                                 out,
-                                                size,
+                                                &size,
                                                 last);
                 CHECK(result == AP4_SUCCESS);
                 todo -= chunk;

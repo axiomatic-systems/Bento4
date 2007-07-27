@@ -175,7 +175,7 @@ AP4_OmaCbcDecryptingStream::Read(void*     buffer,
         result = m_StreamCipher->ProcessBuffer(encrypted, 
                                                16, 
                                                m_Buffer, 
-                                               buffer_size, 
+                                               &buffer_size,
                                                is_last_buffer);
         m_BufferOffset = 0;
         m_BufferFullness = buffer_size;
@@ -461,8 +461,7 @@ AP4_OmaDcfCtrSampleDecrypter::DecryptSampleData(AP4_DataBuffer& data_in,
         m_Cipher->SetBaseCounter(in);
         AP4_CHECK(m_Cipher->ProcessBuffer(in+m_IvLength, 
                                           payload_size, 
-                                          out, 
-                                          payload_size));
+                                          out));
     } else {
         AP4_CopyMemory(out, in, payload_size);
     }
@@ -552,7 +551,7 @@ AP4_OmaDcfCbcSampleDecrypter::DecryptSampleData(AP4_DataBuffer& data_in,
 
         m_Cipher->SetIV(iv);
         out_size = payload_size;
-        AP4_CHECK(m_Cipher->ProcessBuffer(in, payload_size, out, out_size, true));
+        AP4_CHECK(m_Cipher->ProcessBuffer(in, payload_size, out, &out_size, true));
     } else {
         AP4_CopyMemory(out, in, payload_size);
         out_size = payload_size;
@@ -600,8 +599,11 @@ AP4_OmaDcfCbcSampleDecrypter::GetDecryptedSampleSize(AP4_Sample& sample)
         }
         decrypted.Reserve(decrypted_size);
         m_Cipher->SetIV(encrypted.GetData());
-        if (AP4_FAILED(m_Cipher->ProcessBuffer(encrypted.GetData()+AP4_CIPHER_BLOCK_SIZE, AP4_CIPHER_BLOCK_SIZE,
-                                               decrypted.UseData(), decrypted_size, true))) {
+        if (AP4_FAILED(m_Cipher->ProcessBuffer(encrypted.GetData()+AP4_CIPHER_BLOCK_SIZE, 
+                                               AP4_CIPHER_BLOCK_SIZE,
+                                               decrypted.UseData(), 
+                                               &decrypted_size, 
+                                               true))) {
             return 0;
         }
         unsigned int padding_size = AP4_CIPHER_BLOCK_SIZE-decrypted_size;
@@ -672,7 +674,7 @@ AP4_OmaDcfCtrSampleEncrypter::EncryptSampleData(AP4_DataBuffer& data_in,
     // encrypt the payload
     AP4_Size data_size = data_in.GetDataSize();
     m_Cipher->SetBaseCounter(out+8);
-    m_Cipher->ProcessBuffer(in, data_size, out+AP4_CIPHER_BLOCK_SIZE, data_size);
+    m_Cipher->ProcessBuffer(in, data_size, out+AP4_CIPHER_BLOCK_SIZE);
 
     return AP4_SUCCESS;
 }
@@ -734,7 +736,7 @@ AP4_OmaDcfCbcSampleEncrypter::EncryptSampleData(AP4_DataBuffer& data_in,
     m_Cipher->ProcessBuffer(data_in.GetData(), 
                             data_in.GetDataSize(),
                             out+AP4_CIPHER_BLOCK_SIZE, 
-                            out_size,
+                            &out_size,
                             true);
     data_out.SetDataSize(out_size+AP4_CIPHER_BLOCK_SIZE+1);
 
