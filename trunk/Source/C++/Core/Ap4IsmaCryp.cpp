@@ -178,7 +178,7 @@ AP4_IsmaCipher::DecryptSampleData(AP4_DataBuffer& data_in,
             return AP4_ERROR_NOT_SUPPORTED;
         }
 
-        m_Cipher->SetBaseCounter(iv);
+        m_Cipher->SetIV(iv);
         m_Cipher->ProcessBuffer(in, payload_size, out);
     } else {
         AP4_CopyMemory(out, in, payload_size);
@@ -204,7 +204,7 @@ AP4_IsmaCipher::EncryptSampleData(AP4_DataBuffer& data_in,
     AP4_BytesFromUInt32BE(out, iv);
 
     // encrypt the payload
-    m_Cipher->SetBaseCounter(out);
+    m_Cipher->SetIV(out);
     AP4_Size data_size = data_in.GetDataSize();
     m_Cipher->ProcessBuffer(in, data_size, out+4);
 
@@ -379,7 +379,7 @@ AP4_IsmaTrackEncrypter::ProcessTrack()
     AP4_IsfmAtom*      isfm = new AP4_IsfmAtom(m_Cipher->GetSelectiveEncryption(), 
                                                m_Cipher->GetKeyIndicatorLength(), 
                                                m_Cipher->GetIvLength());
-    AP4_IsltAtom*      islt = new AP4_IsltAtom(m_Cipher->GetCipher()->GetBaseCounter());
+    AP4_IsltAtom*      islt = new AP4_IsltAtom(m_Cipher->GetCipher()->GetIV());
 
     // populate the schi container
     schi->AddChild(ikms);

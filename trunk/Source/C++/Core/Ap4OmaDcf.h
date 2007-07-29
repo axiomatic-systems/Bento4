@@ -45,6 +45,7 @@
 +---------------------------------------------------------------------*/
 class AP4_CtrStreamCipher;
 class AP4_OdafAtom;
+class AP4_StreamCipher;
 class AP4_CbcStreamCipher;
 class AP4_CtrStreamCipher;
 
@@ -61,18 +62,19 @@ typedef enum {
 } AP4_OmaDcfCipherMode;
 
 /*----------------------------------------------------------------------
-|   AP4_OmaCbcDecryptingStream
+|   AP4_OmaDecryptingStream
 +---------------------------------------------------------------------*/
-class AP4_OmaCbcDecryptingStream : public AP4_ByteStream {
+class AP4_OmaDecryptingStream : public AP4_ByteStream {
 public:
-    static AP4_Result Create(AP4_ByteStream*              source_stream,
+    static AP4_Result Create(AP4_OmaDcfCipherMode         mode,
+                             AP4_ByteStream*              source_stream,
                              AP4_Position                 source_position,
                              const AP4_UI08*              key,
                              AP4_Size                     key_size,
                              AP4_BlockCipherFactory*      block_cipher_factory,
                              AP4_LargeSize                cleartext_size,
-                             AP4_OmaCbcDecryptingStream*& stream);
-    ~AP4_OmaCbcDecryptingStream();
+                             AP4_OmaDecryptingStream*&    stream);
+    ~AP4_OmaDecryptingStream();
 
     // AP4_ByteStream methods
     virtual AP4_Result Read(void*     buffer, 
@@ -91,7 +93,7 @@ public:
 
 private:
     // methods
-    AP4_OmaCbcDecryptingStream() {} // use the factory instead
+    AP4_OmaDecryptingStream() {} // use the factory instead
 
     // members
     AP4_LargeSize        m_Size;
@@ -99,7 +101,7 @@ private:
     AP4_ByteStream*      m_SourceStream;
     AP4_Position         m_SourceStart;
     AP4_Position         m_SourcePosition;
-    AP4_CbcStreamCipher* m_StreamCipher;
+    AP4_StreamCipher*    m_StreamCipher;
     AP4_UI08             m_Buffer[16];
     AP4_Size             m_BufferFullness;
     AP4_Size             m_BufferOffset;

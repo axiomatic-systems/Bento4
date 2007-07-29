@@ -40,6 +40,52 @@ const int AP4_BYTE_STREAM_COPY_BUFFER_SIZE = 4096;
 const int AP4_MEMORY_BYTE_STREAM_MAX_SIZE  = 0x4000000; // 64 megs
 
 /*----------------------------------------------------------------------
+|   AP4_ByteStream::ReadFully
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_ByteStream::ReadFully(void* buffer, AP4_Size bytes_to_read)
+{
+    // shortcut
+    if (bytes_to_read == 0) return AP4_SUCCESS;
+    
+    // read until failure
+    AP4_Size bytes_read;
+    while (bytes_to_read) {
+        AP4_Result result = Read(buffer, bytes_to_read, &bytes_read);
+        if (AP4_FAILED(result)) return result;
+        if (bytes_read == 0) return AP4_ERROR_INTERNAL;
+        AP4_ASSERT(bytes_read <= bytes_to_read);
+        bytes_to_read -= bytes_read;
+        buffer = (void*)(((AP4_Byte*)buffer)+bytes_read);
+    }
+    
+    return AP4_SUCCESS;
+}  
+
+/*----------------------------------------------------------------------
+|   AP4_Stream::WriteFully
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_ByteStream::WriteFully(const void* buffer, AP4_Size bytes_to_write)
+{
+    // shortcut
+    if (bytes_to_write == 0) return AP4_SUCCESS;
+    
+    // write until failure
+    AP4_Size bytes_written;
+    while (bytes_to_write) {
+        AP4_Result result = Write(buffer, bytes_to_write, &bytes_written);
+        if (AP4_FAILED(result)) return result;
+        if (bytes_written == 0) return AP4_ERROR_INTERNAL;
+        AP4_ASSERT(bytes_written <= bytes_to_write);
+        bytes_to_write -= bytes_written;
+        buffer = (const void*)(((const AP4_Byte*)buffer)+bytes_written);
+    }
+    
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
 |   AP4_ByteStream::WriteString
 +---------------------------------------------------------------------*/
 AP4_Result

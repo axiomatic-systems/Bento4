@@ -21,18 +21,17 @@
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-#define AP4_ERROR_BASE_BITSTREAM -10000
+const int AP4_ERROR_BASE_BITSTREAM   = -10000;
 
-/* the max frame size we can handle */
-#define AP4_BITSTREAM_BUFFER_SIZE  8192
+// the max frame size we can handle 
+const unsigned int AP4_BITSTREAM_BUFFER_SIZE  = 8192;
 
-/* flags */
+// flags
 #define AP4_BITSTREAM_FLAG_EOS 0x01
 
-/* error codes */
-#define AP4_ERROR_NOT_ENOUGH_DATA        (AP4_ERROR_BASE_BITSTREAM - 0)
-#define AP4_ERROR_CORRUPTED_BITSTREAM    (AP4_ERROR_BASE_BITSTREAM - 1)
-#define AP4_ERROR_NOT_ENOUGH_FREE_BUFFER (AP4_ERROR_BASE_BITSTREAM - 2)
+// error codes
+const int AP4_ERROR_CORRUPTED_BITSTREAM    = (AP4_ERROR_BASE_BITSTREAM - 0);
+const int AP4_ERROR_NOT_ENOUGH_FREE_BUFFER = (AP4_ERROR_BASE_BITSTREAM - 1);
 
 /*----------------------------------------------------------------------
 |   types helpers
