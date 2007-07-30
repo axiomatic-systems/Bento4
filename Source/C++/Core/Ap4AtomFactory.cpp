@@ -55,6 +55,7 @@
 #include "Ap4SmhdAtom.h"
 #include "Ap4NmhdAtom.h"
 #include "Ap4HmhdAtom.h"
+#include "Ap4ElstAtom.h"
 #include "Ap4SchmAtom.h"
 #include "Ap4FrmaAtom.h"
 #include "Ap4TimsAtom.h"
@@ -215,6 +216,11 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
       case AP4_ATOM_TYPE_MDHD:
         if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
         atom = AP4_MdhdAtom::Create(size_32, stream);
+        break;
+
+      case AP4_ATOM_TYPE_ELST:
+        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+        atom = AP4_ElstAtom::Create(size_32, stream);
         break;
 
       case AP4_ATOM_TYPE_STSD:

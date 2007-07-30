@@ -225,6 +225,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\..\Source\C++\Core\Ap4ElstAtom.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\Source\C++\Core\Ap4EsDescriptor.cpp"
 				>
 			</File>
@@ -540,6 +544,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\..\Source\C++\Core\Ap4DrefAtom.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\Source\C++\Core\Ap4ElstAtom.h"
 				>
 			</File>
 			<File
