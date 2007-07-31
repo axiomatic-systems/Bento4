@@ -84,8 +84,7 @@ AP4_AvccAtom::AP4_AvccAtom(AP4_UI32 size, AP4_ByteStream& stream) :
     AP4_Position start_pos;
     stream.Tell(start_pos);
     m_RawBytes.SetDataSize(size);
-    AP4_Size bytes_read;
-    stream.Read(m_RawBytes.UseData(), size, &bytes_read);
+    stream.Read(m_RawBytes.UseData(), size);
     stream.Seek(start_pos);
 
     stream.ReadUI08(m_ConfigurationVersion);

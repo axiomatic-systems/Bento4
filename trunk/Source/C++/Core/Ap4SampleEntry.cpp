@@ -92,7 +92,7 @@ AP4_SampleEntry::GetFieldsSize()
 AP4_Result
 AP4_SampleEntry::ReadFields(AP4_ByteStream& stream)
 {
-    stream.Read(m_Reserved1, sizeof(m_Reserved1), NULL);
+    stream.Read(m_Reserved1, sizeof(m_Reserved1));
     stream.ReadUI16(m_DataReferenceIndex);
 
     return AP4_SUCCESS;
@@ -311,7 +311,7 @@ AP4_AudioSampleEntry::ReadFields(AP4_ByteStream& stream)
     if (result < 0) return result;
 
     // read the fields of this class
-    stream.Read(m_Reserved2, sizeof(m_Reserved2), NULL);
+    stream.Read(m_Reserved2, sizeof(m_Reserved2));
     stream.ReadUI16(m_ChannelCount);
     stream.ReadUI16(m_SampleSize);
     stream.ReadUI16(m_Predefined1);
@@ -543,7 +543,7 @@ AP4_VisualSampleEntry::ReadFields(AP4_ByteStream& stream)
     // read fields from this class
     stream.ReadUI16(m_Predefined1);
     stream.ReadUI16(m_Reserved2);
-    stream.Read(m_Predefined2, sizeof(m_Predefined2), NULL);
+    stream.Read(m_Predefined2, sizeof(m_Predefined2));
     stream.ReadUI16(m_Width);
     stream.ReadUI16(m_Height);
     stream.ReadUI32(m_HorizResolution);

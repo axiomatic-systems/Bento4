@@ -115,7 +115,7 @@ AP4_TkhdAtom::AP4_TkhdAtom(AP4_UI32        size,
         stream.ReadUI32(m_Duration);
     }
 
-    stream.Read((void*)m_Reserved2, 8, NULL);
+    stream.Read((void*)m_Reserved2, 8);
     stream.ReadUI16(m_Layer);
     stream.ReadUI16(m_AlternateGroup);
     stream.ReadUI16(m_Volume);

@@ -46,8 +46,8 @@ class AP4_ByteStream : public AP4_Referenceable
     // methods
     virtual AP4_Result Read(void*     buffer, 
                             AP4_Size  bytes_to_read, 
-                            AP4_Size* bytes_read = 0) = 0;
-    AP4_Result ReadFully(void* buffer, AP4_Size bytes_to_read);
+                            AP4_Size& bytes_read) = 0;
+    AP4_Result Read(void* buffer, AP4_Size bytes_to_read);
     AP4_Result ReadUI64(AP4_UI64& value);
     AP4_Result ReadUI32(AP4_UI32& value);
     AP4_Result ReadUI24(AP4_UI32& value);
@@ -56,9 +56,9 @@ class AP4_ByteStream : public AP4_Referenceable
     AP4_Result ReadString(char* buffer, AP4_Size size);
     virtual AP4_Result Write(const void* buffer, 
                              AP4_Size    bytes_to_write, 
-                             AP4_Size*   bytes_written = 0) = 0;
-    AP4_Result WriteFully(const void* buffer, AP4_Size bytes_to_write);
-    AP4_Result WriteString(const char* stringBuffer);
+                             AP4_Size&   bytes_written) = 0;
+    AP4_Result Write(const void* buffer, AP4_Size bytes_to_write);
+    AP4_Result WriteString(const char* string_buffer);
     AP4_Result WriteUI64(AP4_UI64 value);
     AP4_Result WriteUI32(AP4_UI32 value);
     AP4_Result WriteUI24(AP4_UI32 value);
@@ -79,12 +79,12 @@ class AP4_SubStream : public AP4_ByteStream
     AP4_SubStream(AP4_ByteStream& container, AP4_Position position, AP4_Size size);
 
     // AP4_ByteStream methods
-    AP4_Result Read(void*    buffer, 
+    AP4_Result Read(void*     buffer, 
                     AP4_Size  bytes_to_read, 
-                    AP4_Size* bytes_read = 0);
+                    AP4_Size& bytes_read);
     AP4_Result Write(const void* buffer, 
                      AP4_Size    bytes_to_write, 
-                     AP4_Size*   bytes_written = 0);
+                     AP4_Size&   bytes_written);
     AP4_Result Seek(AP4_Position position);
     AP4_Result Tell(AP4_Position& position) {
         position = m_Position;
@@ -122,10 +122,10 @@ public:
     // AP4_ByteStream methods
     AP4_Result Read(void*     buffer, 
                     AP4_Size  bytes_to_read, 
-                    AP4_Size* bytes_read = 0);
+                    AP4_Size& bytes_read);
     AP4_Result Write(const void* buffer, 
                      AP4_Size    bytes_to_write, 
-                     AP4_Size*   bytes_written = 0);
+                     AP4_Size&   bytes_written);
     AP4_Result Seek(AP4_Position position);
     AP4_Result Tell(AP4_Position& position) {
         position = m_Position;

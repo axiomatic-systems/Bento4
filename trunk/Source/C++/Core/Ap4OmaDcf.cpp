@@ -50,13 +50,13 @@
 |   AP4_OmaDecryptingStream::AP4_OmaDecryptingStream
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_OmaDecryptingStream::Create(AP4_OmaDcfCipherMode         mode,
-                                AP4_ByteStream*              source_stream,
-                                AP4_Position                 source_position,
-                                const AP4_UI08*              key,
-                                AP4_Size                     key_size,
-                                AP4_BlockCipherFactory*      block_cipher_factory,
-                                AP4_LargeSize                cleartext_size,
+AP4_OmaDecryptingStream::Create(AP4_OmaDcfCipherMode      mode,
+                                AP4_ByteStream*           source_stream,
+                                AP4_Position              source_position,
+                                const AP4_UI08*           key,
+                                AP4_Size                  key_size,
+                                AP4_BlockCipherFactory*   block_cipher_factory,
+                                AP4_LargeSize             cleartext_size,
                                 AP4_OmaDecryptingStream*& stream)
 {
     // default return value
@@ -101,12 +101,10 @@ AP4_OmaDecryptingStream::Create(AP4_OmaDcfCipherMode         mode,
     
     // set the IV
     AP4_UI08 iv[16];
-    AP4_Size bytes_read = 0;
     result = stream->m_SourceStream->Seek(source_position);
     if (AP4_FAILED(result)) return result;
-    result = stream->m_SourceStream->Read(iv, 16, &bytes_read);
+    result = stream->m_SourceStream->Read(iv, 16);
     if (AP4_FAILED(result)) return result;
-    if (bytes_read != 16) return AP4_ERROR_INVALID_FORMAT;
     stream->m_StreamCipher->SetIV(iv);
 
     return AP4_SUCCESS;
@@ -122,7 +120,7 @@ AP4_OmaDecryptingStream::~AP4_OmaDecryptingStream()
 }
 
 /*----------------------------------------------------------------------
-|   AP4_OmaDecryptingStream::Read
+|   AP4_OmaDecryptingStream::AddReference
 +---------------------------------------------------------------------*/
 void 
 AP4_OmaDecryptingStream::AddReference()
@@ -131,7 +129,7 @@ AP4_OmaDecryptingStream::AddReference()
 }
 
 /*----------------------------------------------------------------------
-|   AP4_OmaDecryptingStream::Read
+|   AP4_OmaDecryptingStream::Release
 +---------------------------------------------------------------------*/
 void 
 AP4_OmaDecryptingStream::Release()
@@ -145,10 +143,10 @@ AP4_OmaDecryptingStream::Release()
 AP4_Result 
 AP4_OmaDecryptingStream::Read(void*     buffer, 
                               AP4_Size  bytes_to_read, 
-                              AP4_Size* bytes_read)
+                              AP4_Size& bytes_read)
 {
     AP4_Size total_read = 0;
-    if (bytes_read) *bytes_read = 0;
+    bytes_read = 0;
 
     // never read more than what's available
     AP4_LargeSize available = m_Size-m_Position;
@@ -166,7 +164,7 @@ AP4_OmaDecryptingStream::Read(void*     buffer,
         m_BufferFullness -= chunk;
         m_BufferOffset += chunk;
         total_read += chunk;
-        if (bytes_read) *bytes_read = total_read;
+        bytes_read = total_read;
     }
 
     while (bytes_to_read) {
@@ -176,7 +174,7 @@ AP4_OmaDecryptingStream::Read(void*     buffer,
         // read from the source
         AP4_UI08 encrypted[16];
         AP4_Size encrypted_read = 0;
-        AP4_Result result = m_SourceStream->Read(encrypted, 16, &encrypted_read);
+        AP4_Result result = m_SourceStream->Read(encrypted, 16, encrypted_read);
         if (result == AP4_ERROR_EOS) {
             if (total_read == 0) return AP4_ERROR_EOS;
         } else if (result != AP4_SUCCESS) {
@@ -205,7 +203,7 @@ AP4_OmaDecryptingStream::Read(void*     buffer,
         m_BufferFullness -= chunk;
         m_BufferOffset += chunk;
         total_read += chunk;
-        if (bytes_read) *bytes_read = total_read;
+        bytes_read = total_read;
     }
 
     return AP4_SUCCESS;
@@ -216,8 +214,8 @@ AP4_OmaDecryptingStream::Read(void*     buffer,
 +---------------------------------------------------------------------*/
 AP4_Result 
 AP4_OmaDecryptingStream::Write(const void* /* buffer */, 
-                                  AP4_Size    /* bytes_to_write */, 
-                                  AP4_Size*   /* bytes_written */)
+                               AP4_Size    /* bytes_to_write */, 
+                               AP4_Size&   /* bytes_written */)
 {
     return AP4_ERROR_NOT_SUPPORTED;
 }
@@ -240,7 +238,7 @@ AP4_OmaDecryptingStream::Seek(AP4_Position position)
     if (preroll > 0) {
         AP4_Size out_size = 0;
         AP4_UI08 buffer[2*AP4_CIPHER_BLOCK_SIZE]; // bigger than preroll
-        AP4_CHECK(m_SourceStream->ReadFully(buffer, preroll));
+        AP4_CHECK(m_SourceStream->Read(buffer, preroll));
         AP4_CHECK(m_StreamCipher->ProcessBuffer(buffer, preroll, buffer, &out_size));
         AP4_ASSERT(out_size == 0); // we're just feeding prerolled bytes, 
                                    // there can be no output
