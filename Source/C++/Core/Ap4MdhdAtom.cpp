@@ -97,7 +97,7 @@ AP4_MdhdAtom::AP4_MdhdAtom(AP4_UI32        size,
     }
     
     unsigned char lang[2];
-    stream.Read(lang, 2, NULL);
+    stream.Read(lang, 2);
     char l0 = ((lang[0]>>2)&0x1F);
     char l1 = (((lang[0]&0x3)<<3) | ((lang[1]>>5)&0x7));
     char l2 = ((lang[1]&0x1F));

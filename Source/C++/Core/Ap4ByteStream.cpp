@@ -40,10 +40,10 @@ const int AP4_BYTE_STREAM_COPY_BUFFER_SIZE = 4096;
 const int AP4_MEMORY_BYTE_STREAM_MAX_SIZE  = 0x4000000; // 64 megs
 
 /*----------------------------------------------------------------------
-|   AP4_ByteStream::ReadFully
+|   AP4_ByteStream::Read
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_ByteStream::ReadFully(void* buffer, AP4_Size bytes_to_read)
+AP4_ByteStream::Read(void* buffer, AP4_Size bytes_to_read)
 {
     // shortcut
     if (bytes_to_read == 0) return AP4_SUCCESS;
@@ -51,7 +51,7 @@ AP4_ByteStream::ReadFully(void* buffer, AP4_Size bytes_to_read)
     // read until failure
     AP4_Size bytes_read;
     while (bytes_to_read) {
-        AP4_Result result = Read(buffer, bytes_to_read, &bytes_read);
+        AP4_Result result = Read(buffer, bytes_to_read, bytes_read);
         if (AP4_FAILED(result)) return result;
         if (bytes_read == 0) return AP4_ERROR_INTERNAL;
         AP4_ASSERT(bytes_read <= bytes_to_read);
@@ -63,10 +63,10 @@ AP4_ByteStream::ReadFully(void* buffer, AP4_Size bytes_to_read)
 }  
 
 /*----------------------------------------------------------------------
-|   AP4_Stream::WriteFully
+|   AP4_Stream::Write
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_ByteStream::WriteFully(const void* buffer, AP4_Size bytes_to_write)
+AP4_ByteStream::Write(const void* buffer, AP4_Size bytes_to_write)
 {
     // shortcut
     if (bytes_to_write == 0) return AP4_SUCCESS;
@@ -74,7 +74,7 @@ AP4_ByteStream::WriteFully(const void* buffer, AP4_Size bytes_to_write)
     // write until failure
     AP4_Size bytes_written;
     while (bytes_to_write) {
-        AP4_Result result = Write(buffer, bytes_to_write, &bytes_written);
+        AP4_Result result = Write(buffer, bytes_to_write, bytes_written);
         if (AP4_FAILED(result)) return result;
         if (bytes_written == 0) return AP4_ERROR_INTERNAL;
         AP4_ASSERT(bytes_written <= bytes_to_write);
@@ -292,7 +292,7 @@ AP4_ByteStream::ReadString(char* buffer, AP4_Size size)
     AP4_Size bytes_read = 0;
     while (bytes_read < size-1) {      
         AP4_Result result;
-        result = Read(&buffer[bytes_read], 1, NULL);
+        result = Read(&buffer[bytes_read], 1);
         if (AP4_FAILED(result)) {
             buffer[bytes_read] = '\0';
             return result;
@@ -329,7 +329,7 @@ AP4_ByteStream::CopyTo(AP4_ByteStream& stream, AP4_LargeSize size)
         }
 
         // read up to one buffer full
-        result = Read(buffer, bytes_to_read, &bytes_read);
+        result = Read(buffer, bytes_to_read, bytes_read);
         if (AP4_FAILED(result)) return result;
 
         // copy to destination
@@ -374,10 +374,10 @@ AP4_SubStream::~AP4_SubStream()
 AP4_Result 
 AP4_SubStream::Read(void*     buffer, 
                     AP4_Size  bytes_to_read, 
-                    AP4_Size* bytes_read)
+                    AP4_Size& bytes_read)
 {
     // default values
-    if (bytes_read) *bytes_read = 0;
+    bytes_read = 0;
 
     // shortcut
     if (bytes_to_read == 0) {
@@ -402,11 +402,9 @@ AP4_SubStream::Read(void*     buffer,
     //}
 
     // read from the container
-    AP4_Size local_bytes_read;
-    AP4_Result result = m_Container.Read(buffer, bytes_to_read, &local_bytes_read);
-    if (bytes_read) *bytes_read = local_bytes_read;
+    AP4_Result result = m_Container.Read(buffer, bytes_to_read, bytes_read);
     if (AP4_SUCCEEDED(result)) {
-        m_Position += local_bytes_read;
+        m_Position += bytes_read;
     }
     return result;
 }
@@ -417,10 +415,10 @@ AP4_SubStream::Read(void*     buffer,
 AP4_Result 
 AP4_SubStream::Write(const void* buffer, 
                      AP4_Size    bytes_to_write, 
-                     AP4_Size*   bytes_written)
+                     AP4_Size&   bytes_written)
 {
     // default values
-    if (bytes_written) *bytes_written = 0;
+    bytes_written = 0;
 
     // shortcut
     if (bytes_to_write == 0) {
@@ -443,11 +441,9 @@ AP4_SubStream::Write(const void* buffer,
     //if (AP4_FAILED(result)) return result;
 
     // write to container
-    AP4_Size local_bytes_written;
-    AP4_Result result = m_Container.Write(buffer, bytes_to_write, &local_bytes_written);
-    if (bytes_written) *bytes_written = local_bytes_written;
+    AP4_Result result = m_Container.Write(buffer, bytes_to_write, bytes_written);
     if (AP4_SUCCEEDED(result)) {
-        m_Position += local_bytes_written;
+        m_Position += bytes_written;
     }
     return result;
 }
@@ -514,10 +510,10 @@ AP4_MemoryByteStream::AP4_MemoryByteStream(AP4_UI08* buffer, AP4_Size size) :
 AP4_Result 
 AP4_MemoryByteStream::Read(void*     buffer, 
                            AP4_Size  bytes_to_read, 
-                           AP4_Size* bytes_read)
+                           AP4_Size& bytes_read)
 {
     // default values
-    if (bytes_read) *bytes_read = 0;
+    bytes_read = 0;
 
     // shortcut
     if (bytes_to_read == 0) {
@@ -538,7 +534,7 @@ AP4_MemoryByteStream::Read(void*     buffer,
     AP4_CopyMemory(buffer, m_Buffer.GetData()+m_Position, bytes_to_read);
     m_Position += bytes_to_read;
 
-    if (bytes_read) *bytes_read = bytes_to_read;
+    bytes_read = bytes_to_read;
 
     return AP4_SUCCESS;
 }
@@ -549,10 +545,10 @@ AP4_MemoryByteStream::Read(void*     buffer,
 AP4_Result 
 AP4_MemoryByteStream::Write(const void* buffer, 
                             AP4_Size    bytes_to_write, 
-                            AP4_Size*   bytes_written)
+                            AP4_Size&   bytes_written)
 {
     // default values
-    if (bytes_written) *bytes_written = 0;
+    bytes_written = 0;
 
     // shortcut
     if (bytes_to_write == 0) {
@@ -585,7 +581,7 @@ AP4_MemoryByteStream::Write(const void* buffer,
     AP4_CopyMemory((void*)(m_Buffer.UseData()+m_Position), buffer, bytes_to_write);
     m_Position += bytes_to_write;
 
-    if (bytes_written) *bytes_written = bytes_to_write;
+    bytes_written = bytes_to_write;
 
     return AP4_SUCCESS;
 }

@@ -67,9 +67,9 @@ AP4_HdlrAtom::AP4_HdlrAtom(AP4_UI32        size,
     AP4_Atom(AP4_ATOM_TYPE_HDLR, size, version, flags)
 {
     unsigned char reserved[12];
-    stream.Read(reserved, 4, NULL);
+    stream.Read(reserved, 4);
     stream.ReadUI32(m_HandlerType);
-    stream.Read(reserved, 12, NULL);
+    stream.Read(reserved, 12);
     
     // read the name unless it is empty
     int max_name_size = size-(AP4_FULL_ATOM_HEADER_SIZE+20+1);

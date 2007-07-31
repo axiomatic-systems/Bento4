@@ -79,12 +79,12 @@ public:
     ~AP4_StdcFileByteStream();
 
     // AP4_ByteStream methods
-    AP4_Result Read(void*    buffer, 
-                   AP4_Size  bytesToRead, 
-                   AP4_Size* bytesRead);
+    AP4_Result Read(void*     buffer, 
+                    AP4_Size  bytesToRead, 
+                    AP4_Size& bytesRead);
     AP4_Result Write(const void* buffer, 
-                    AP4_Size     bytesToWrite, 
-                    AP4_Size*    bytesWritten);
+                     AP4_Size    bytesToWrite, 
+                     AP4_Size&   bytesWritten);
     AP4_Result Seek(AP4_Position position);
     AP4_Result Tell(AP4_Position& position);
     AP4_Result GetSize(AP4_LargeSize& size);
@@ -186,22 +186,22 @@ AP4_StdcFileByteStream::Release()
 |   AP4_StdcFileByteStream::Read
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_StdcFileByteStream::Read(void*    buffer, 
-                            AP4_Size  bytesToRead, 
-                            AP4_Size* bytesRead)
+AP4_StdcFileByteStream::Read(void*     buffer, 
+                             AP4_Size  bytesToRead, 
+                             AP4_Size& bytesRead)
 {
     size_t nbRead;
 
     nbRead = fread(buffer, 1, bytesToRead, m_File);
 
     if (nbRead > 0) {
-        if (bytesRead) *bytesRead = (AP4_Size)nbRead;
+        bytesRead = (AP4_Size)nbRead;
         return AP4_SUCCESS;
     } else if (feof(m_File)) {
-        if (bytesRead) *bytesRead = 0;
+        bytesRead = 0;
         return AP4_ERROR_EOS;
     } else {
-        if (bytesRead) *bytesRead = 0;
+        bytesRead = 0;
         return AP4_ERROR_READ_FAILED;
     }
 }
@@ -211,8 +211,8 @@ AP4_StdcFileByteStream::Read(void*    buffer,
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_StdcFileByteStream::Write(const void* buffer, 
-                             AP4_Size     bytesToWrite, 
-                             AP4_Size*    bytesWritten)
+                              AP4_Size    bytesToWrite, 
+                              AP4_Size&   bytesWritten)
 {
     size_t nbWritten;
 
@@ -220,10 +220,10 @@ AP4_StdcFileByteStream::Write(const void* buffer,
     nbWritten = fwrite(buffer, 1, bytesToWrite, m_File);
     
     if (nbWritten > 0) {
-        if (bytesWritten) *bytesWritten = (AP4_Size)nbWritten;
+        bytesWritten = (AP4_Size)nbWritten;
         return AP4_SUCCESS;
     } else {
-        if (bytesWritten) *bytesWritten = 0;
+        bytesWritten = 0;
         return AP4_ERROR_WRITE_FAILED;
     }
 }

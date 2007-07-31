@@ -74,7 +74,7 @@ AP4_EsDescriptor::AP4_EsDescriptor(AP4_ByteStream& stream,
         if (url_length) {
             char* url = new char[url_length+1];
             if (url) {
-                stream.Read(url, url_length, NULL);
+                stream.Read(url, url_length);
                 url[url_length] = '\0';
                 m_Url = url;
                 delete[] url;

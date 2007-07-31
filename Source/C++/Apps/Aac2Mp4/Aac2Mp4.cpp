@@ -138,7 +138,7 @@ main(int argc, char** argv)
         AP4_Size to_read = parser.GetBytesFree();
         if (to_read) {
             if (to_read > sizeof(input_buffer)) to_read = sizeof(input_buffer);
-            result = input->Read(input_buffer, to_read, &bytes_read);
+            result = input->Read(input_buffer, to_read, bytes_read);
             if (AP4_SUCCEEDED(result)) {
                 AP4_Size to_feed = bytes_read;
                 result = parser.Feed(input_buffer, &to_feed);
