@@ -79,12 +79,12 @@ public:
     ~AP4_StdcFileByteStream();
 
     // AP4_ByteStream methods
-    AP4_Result Read(void*     buffer, 
-                    AP4_Size  bytesToRead, 
-                    AP4_Size& bytesRead);
-    AP4_Result Write(const void* buffer, 
-                     AP4_Size    bytesToWrite, 
-                     AP4_Size&   bytesWritten);
+    AP4_Result ReadPartial(void*     buffer, 
+                           AP4_Size  bytesToRead, 
+                           AP4_Size& bytesRead);
+    AP4_Result WritePartial(const void* buffer, 
+                            AP4_Size    bytesToWrite, 
+                            AP4_Size&   bytesWritten);
     AP4_Result Seek(AP4_Position position);
     AP4_Result Tell(AP4_Position& position);
     AP4_Result GetSize(AP4_LargeSize& size);
@@ -183,12 +183,12 @@ AP4_StdcFileByteStream::Release()
 }
 
 /*----------------------------------------------------------------------
-|   AP4_StdcFileByteStream::Read
+|   AP4_StdcFileByteStream::ReadPartial
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_StdcFileByteStream::Read(void*     buffer, 
-                             AP4_Size  bytesToRead, 
-                             AP4_Size& bytesRead)
+AP4_StdcFileByteStream::ReadPartial(void*     buffer, 
+                                    AP4_Size  bytesToRead, 
+                                    AP4_Size& bytesRead)
 {
     size_t nbRead;
 
@@ -207,12 +207,12 @@ AP4_StdcFileByteStream::Read(void*     buffer,
 }
 
 /*----------------------------------------------------------------------
-|   AP4_StdcFileByteStream::Write
+|   AP4_StdcFileByteStream::WritePartial
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_StdcFileByteStream::Write(const void* buffer, 
-                              AP4_Size    bytesToWrite, 
-                              AP4_Size&   bytesWritten)
+AP4_StdcFileByteStream::WritePartial(const void* buffer, 
+                                     AP4_Size    bytesToWrite, 
+                                     AP4_Size&   bytesWritten)
 {
     size_t nbWritten;
 
