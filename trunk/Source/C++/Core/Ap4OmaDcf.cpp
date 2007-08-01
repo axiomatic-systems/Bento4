@@ -120,7 +120,7 @@ AP4_OmaDecryptingStream::~AP4_OmaDecryptingStream()
 }
 
 /*----------------------------------------------------------------------
-|   AP4_OmaDecryptingStream::AddReference
+|   AP4_OmaDecryptingStream::Read
 +---------------------------------------------------------------------*/
 void 
 AP4_OmaDecryptingStream::AddReference()
@@ -129,7 +129,7 @@ AP4_OmaDecryptingStream::AddReference()
 }
 
 /*----------------------------------------------------------------------
-|   AP4_OmaDecryptingStream::Release
+|   AP4_OmaDecryptingStream::Read
 +---------------------------------------------------------------------*/
 void 
 AP4_OmaDecryptingStream::Release()
@@ -138,12 +138,12 @@ AP4_OmaDecryptingStream::Release()
 }
 
 /*----------------------------------------------------------------------
-|   AP4_OmaDecryptingStream::Read
+|   AP4_OmaDecryptingStream::ReadPartial
 +---------------------------------------------------------------------*/
 AP4_Result 
-AP4_OmaDecryptingStream::Read(void*     buffer, 
-                              AP4_Size  bytes_to_read, 
-                              AP4_Size& bytes_read)
+AP4_OmaDecryptingStream::ReadPartial(void*     buffer, 
+                                     AP4_Size  bytes_to_read, 
+                                     AP4_Size& bytes_read)
 {
     AP4_Size total_read = 0;
     bytes_read = 0;
@@ -174,7 +174,7 @@ AP4_OmaDecryptingStream::Read(void*     buffer,
         // read from the source
         AP4_UI08 encrypted[16];
         AP4_Size encrypted_read = 0;
-        AP4_Result result = m_SourceStream->Read(encrypted, 16, encrypted_read);
+        AP4_Result result = m_SourceStream->ReadPartial(encrypted, 16, encrypted_read);
         if (result == AP4_ERROR_EOS) {
             if (total_read == 0) return AP4_ERROR_EOS;
         } else if (result != AP4_SUCCESS) {
@@ -213,9 +213,9 @@ AP4_OmaDecryptingStream::Read(void*     buffer,
 |   AP4_OmaDecryptingStream::Write
 +---------------------------------------------------------------------*/
 AP4_Result 
-AP4_OmaDecryptingStream::Write(const void* /* buffer */, 
-                               AP4_Size    /* bytes_to_write */, 
-                               AP4_Size&   /* bytes_written */)
+AP4_OmaDecryptingStream::WritePartial(const void* /* buffer */, 
+                                      AP4_Size    /* bytes_to_write */, 
+                                      AP4_Size&   /* bytes_written */)
 {
     return AP4_ERROR_NOT_SUPPORTED;
 }

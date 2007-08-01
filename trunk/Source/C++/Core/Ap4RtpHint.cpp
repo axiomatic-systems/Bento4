@@ -106,7 +106,7 @@ AP4_RtpSampleData::ToByteStream()
     AP4_Size size = GetSize();
 
     // create a memory stream
-    AP4_ByteStream* stream = new AP4_MemoryByteStream(size);
+    AP4_MemoryByteStream* stream = new AP4_MemoryByteStream(size);
 
     // write in it
     AP4_Result result = stream->WriteUI16(static_cast<AP4_UI16>(m_Packets.ItemCount()));

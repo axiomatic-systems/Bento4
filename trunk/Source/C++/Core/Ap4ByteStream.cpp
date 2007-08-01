@@ -51,7 +51,7 @@ AP4_ByteStream::Read(void* buffer, AP4_Size bytes_to_read)
     // read until failure
     AP4_Size bytes_read;
     while (bytes_to_read) {
-        AP4_Result result = Read(buffer, bytes_to_read, bytes_read);
+        AP4_Result result = ReadPartial(buffer, bytes_to_read, bytes_read);
         if (AP4_FAILED(result)) return result;
         if (bytes_read == 0) return AP4_ERROR_INTERNAL;
         AP4_ASSERT(bytes_read <= bytes_to_read);
@@ -74,7 +74,7 @@ AP4_ByteStream::Write(const void* buffer, AP4_Size bytes_to_write)
     // write until failure
     AP4_Size bytes_written;
     while (bytes_to_write) {
-        AP4_Result result = Write(buffer, bytes_to_write, bytes_written);
+        AP4_Result result = WritePartial(buffer, bytes_to_write, bytes_written);
         if (AP4_FAILED(result)) return result;
         if (bytes_written == 0) return AP4_ERROR_INTERNAL;
         AP4_ASSERT(bytes_written <= bytes_to_write);
@@ -329,7 +329,7 @@ AP4_ByteStream::CopyTo(AP4_ByteStream& stream, AP4_LargeSize size)
         }
 
         // read up to one buffer full
-        result = Read(buffer, bytes_to_read, bytes_read);
+        result = ReadPartial(buffer, bytes_to_read, bytes_read);
         if (AP4_FAILED(result)) return result;
 
         // copy to destination
@@ -369,12 +369,12 @@ AP4_SubStream::~AP4_SubStream()
 }
 
 /*----------------------------------------------------------------------
-|   AP4_SubStream::Read
+|   AP4_SubStream::ReadPartial
 +---------------------------------------------------------------------*/
 AP4_Result 
-AP4_SubStream::Read(void*     buffer, 
-                    AP4_Size  bytes_to_read, 
-                    AP4_Size& bytes_read)
+AP4_SubStream::ReadPartial(void*     buffer, 
+                           AP4_Size  bytes_to_read, 
+                           AP4_Size& bytes_read)
 {
     // default values
     bytes_read = 0;
@@ -402,7 +402,7 @@ AP4_SubStream::Read(void*     buffer,
     //}
 
     // read from the container
-    AP4_Result result = m_Container.Read(buffer, bytes_to_read, bytes_read);
+    AP4_Result result = m_Container.ReadPartial(buffer, bytes_to_read, bytes_read);
     if (AP4_SUCCEEDED(result)) {
         m_Position += bytes_read;
     }
@@ -410,12 +410,12 @@ AP4_SubStream::Read(void*     buffer,
 }
 
 /*----------------------------------------------------------------------
-|   AP4_SubStream::Write
+|   AP4_SubStream::WritePartial
 +---------------------------------------------------------------------*/
 AP4_Result 
-AP4_SubStream::Write(const void* buffer, 
-                     AP4_Size    bytes_to_write, 
-                     AP4_Size&   bytes_written)
+AP4_SubStream::WritePartial(const void* buffer, 
+                            AP4_Size    bytes_to_write, 
+                            AP4_Size&   bytes_written)
 {
     // default values
     bytes_written = 0;
@@ -441,7 +441,7 @@ AP4_SubStream::Write(const void* buffer,
     //if (AP4_FAILED(result)) return result;
 
     // write to container
-    AP4_Result result = m_Container.Write(buffer, bytes_to_write, bytes_written);
+    AP4_Result result = m_Container.WritePartial(buffer, bytes_to_write, bytes_written);
     if (AP4_SUCCEEDED(result)) {
         m_Position += bytes_written;
     }
@@ -505,12 +505,12 @@ AP4_MemoryByteStream::AP4_MemoryByteStream(AP4_UI08* buffer, AP4_Size size) :
 {}
 
 /*----------------------------------------------------------------------
-|   AP4_MemoryByteStream::Read
+|   AP4_MemoryByteStream::ReadPartial
 +---------------------------------------------------------------------*/
 AP4_Result 
-AP4_MemoryByteStream::Read(void*     buffer, 
-                           AP4_Size  bytes_to_read, 
-                           AP4_Size& bytes_read)
+AP4_MemoryByteStream::ReadPartial(void*     buffer, 
+                                  AP4_Size  bytes_to_read, 
+                                  AP4_Size& bytes_read)
 {
     // default values
     bytes_read = 0;
@@ -540,12 +540,12 @@ AP4_MemoryByteStream::Read(void*     buffer,
 }
 
 /*----------------------------------------------------------------------
-|   AP4_MemoryByteStream::Write
+|   AP4_MemoryByteStream::WritePartial
 +---------------------------------------------------------------------*/
 AP4_Result 
-AP4_MemoryByteStream::Write(const void* buffer, 
-                            AP4_Size    bytes_to_write, 
-                            AP4_Size&   bytes_written)
+AP4_MemoryByteStream::WritePartial(const void* buffer, 
+                                   AP4_Size    bytes_to_write, 
+                                   AP4_Size&   bytes_written)
 {
     // default values
     bytes_written = 0;
