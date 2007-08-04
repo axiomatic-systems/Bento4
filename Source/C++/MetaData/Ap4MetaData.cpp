@@ -29,6 +29,8 @@
 /*----------------------------------------------------------------------
 |   includes
 +---------------------------------------------------------------------*/
+#include "Ap4File.h"
+#include "Ap4Movie.h"
 #include "Ap4MetaData.h"
 #include "Ap4ContainerAtom.h"
 #include "Ap4MoovAtom.h"
@@ -41,26 +43,28 @@
 |   metadata keys
 +---------------------------------------------------------------------*/
 static const AP4_MetaData::KeyInfo AP4_MetaData_KeyInfos [] = {
-    {"Name",       "Name",        AP4_ATOM_TYPE_cNAM, AP4_MetaData::Value::TYPE_STRING},
-    {"Artist",     "Artist",      AP4_ATOM_TYPE_cART, AP4_MetaData::Value::TYPE_STRING},
-    {"Composer",   "Composer",    AP4_ATOM_TYPE_cCOM, AP4_MetaData::Value::TYPE_STRING},
-    {"Writer",     "Writer",      AP4_ATOM_TYPE_cWRT, AP4_MetaData::Value::TYPE_STRING},
-    {"Album",      "Album",       AP4_ATOM_TYPE_cALB, AP4_MetaData::Value::TYPE_STRING},
-    {"Genre",      "Genre",       AP4_ATOM_TYPE_GNRE, AP4_MetaData::Value::TYPE_INTEGER},
-    {"Genre2",     "Genre",       AP4_ATOM_TYPE_cGEN, AP4_MetaData::Value::TYPE_INTEGER},
-    {"Grouping",   "Grouping",    AP4_ATOM_TYPE_cGRP, AP4_MetaData::Value::TYPE_STRING},
-    {"Date",       "Date",        AP4_ATOM_TYPE_cDAY, AP4_MetaData::Value::TYPE_STRING},
-    {"Tool",       "Tool",        AP4_ATOM_TYPE_cTOO, AP4_MetaData::Value::TYPE_STRING},
-    {"Comment",    "Comment",     AP4_ATOM_TYPE_cCMT, AP4_MetaData::Value::TYPE_STRING},
-    {"Lyrics",     "Lyrics",      AP4_ATOM_TYPE_cCMT, AP4_MetaData::Value::TYPE_STRING},
-    {"Copyright",  "Copyright",   AP4_ATOM_TYPE_CPRT, AP4_MetaData::Value::TYPE_STRING},
-    {"Track",      "Track Number",AP4_ATOM_TYPE_TRKN, AP4_MetaData::Value::TYPE_INTEGER},
-    {"Disc",       "Disc Number", AP4_ATOM_TYPE_DISK, AP4_MetaData::Value::TYPE_INTEGER},
-    {"Cover",      "Cover Art",   AP4_ATOM_TYPE_COVR, AP4_MetaData::Value::TYPE_BINARY},
-    {"Description","Description", AP4_ATOM_TYPE_DESC, AP4_MetaData::Value::TYPE_STRING},
-    {"Rating",     "Rating",      AP4_ATOM_TYPE_RTNG, AP4_MetaData::Value::TYPE_INTEGER},
-    {"Compilation","Compilation", AP4_ATOM_TYPE_CPIL, AP4_MetaData::Value::TYPE_INTEGER},
-    {"Gapless",    "Gapless",     AP4_ATOM_TYPE_PGAP, AP4_MetaData::Value::TYPE_INTEGER},
+    {"Name",        "Name",        AP4_ATOM_TYPE_cNAM, AP4_MetaData::Value::TYPE_STRING},
+    {"Artist",      "Artist",      AP4_ATOM_TYPE_cART, AP4_MetaData::Value::TYPE_STRING},
+    {"Composer",    "Composer",    AP4_ATOM_TYPE_cCOM, AP4_MetaData::Value::TYPE_STRING},
+    {"Writer",      "Writer",      AP4_ATOM_TYPE_cWRT, AP4_MetaData::Value::TYPE_STRING},
+    {"Album",       "Album",       AP4_ATOM_TYPE_cALB, AP4_MetaData::Value::TYPE_STRING},
+    {"Genre",       "Genre",       AP4_ATOM_TYPE_GNRE, AP4_MetaData::Value::TYPE_INTEGER},
+    {"Genre2",      "Genre",       AP4_ATOM_TYPE_cGEN, AP4_MetaData::Value::TYPE_INTEGER},
+    {"Grouping",    "Grouping",    AP4_ATOM_TYPE_cGRP, AP4_MetaData::Value::TYPE_STRING},
+    {"Date",        "Date",        AP4_ATOM_TYPE_cDAY, AP4_MetaData::Value::TYPE_STRING},
+    {"Tool",        "Tool",        AP4_ATOM_TYPE_cTOO, AP4_MetaData::Value::TYPE_STRING},
+    {"Comment",     "Comment",     AP4_ATOM_TYPE_cCMT, AP4_MetaData::Value::TYPE_STRING},
+    {"Lyrics",      "Lyrics",      AP4_ATOM_TYPE_cCMT, AP4_MetaData::Value::TYPE_STRING},
+    {"Copyright",   "Copyright",   AP4_ATOM_TYPE_CPRT, AP4_MetaData::Value::TYPE_STRING},
+    {"Track",       "Track Number",AP4_ATOM_TYPE_TRKN, AP4_MetaData::Value::TYPE_INTEGER},
+    {"Disc",        "Disc Number", AP4_ATOM_TYPE_DISK, AP4_MetaData::Value::TYPE_INTEGER},
+    {"Cover",       "Cover Art",   AP4_ATOM_TYPE_COVR, AP4_MetaData::Value::TYPE_BINARY},
+    {"Description", "Description", AP4_ATOM_TYPE_DESC, AP4_MetaData::Value::TYPE_STRING},
+    {"Rating",      "Rating",      AP4_ATOM_TYPE_RTNG, AP4_MetaData::Value::TYPE_INTEGER},
+    {"Compilation", "Compilation", AP4_ATOM_TYPE_CPIL, AP4_MetaData::Value::TYPE_INTEGER},
+    {"Gapless",     "Gapless",     AP4_ATOM_TYPE_PGAP, AP4_MetaData::Value::TYPE_INTEGER},
+    {"Title",       "Title",       AP4_ATOM_TYPE_TITL, AP4_MetaData::Value::TYPE_STRING},
+    {"Description", "Description", AP4_ATOM_TYPE_DSCP, AP4_MetaData::Value::TYPE_STRING}
 };
 AP4_Array<AP4_MetaData::KeyInfo> AP4_MetaData::KeysInfos(
     AP4_MetaData_KeyInfos, 
@@ -205,6 +209,75 @@ static const char* const Ap4Id3Genres[] =
 const AP4_Size AP4_DATA_ATOM_MAX_SIZE = 0x40000000;
 
 /*----------------------------------------------------------------------
+|   AP4_MetaDataAtomTypeHandler::IsInTypeList
++---------------------------------------------------------------------*/
+const AP4_Atom::Type AP4_MetaDataAtomTypeHandler::_3gppTypes[] = {
+    AP4_ATOM_TYPE_TITL,
+    AP4_ATOM_TYPE_DSCP,
+    AP4_ATOM_TYPE_CPRT,
+    AP4_ATOM_TYPE_PERF,
+    AP4_ATOM_TYPE_AUTH,
+    AP4_ATOM_TYPE_GNRE,
+    AP4_ATOM_TYPE_RTNG,
+    AP4_ATOM_TYPE_CLSF,
+    AP4_ATOM_TYPE_KYWD,
+    AP4_ATOM_TYPE_LOCI,
+    AP4_ATOM_TYPE_ALBM,
+    AP4_ATOM_TYPE_YRRC,
+    AP4_ATOM_TYPE_TSEL
+};
+const AP4_MetaDataAtomTypeHandler::TypeList AP4_MetaDataAtomTypeHandler::_3gppTypeList = {
+    _3gppTypes,
+    sizeof(_3gppTypes)/sizeof(_3gppTypes[0])
+};
+
+/*----------------------------------------------------------------------
+|   atom type lists
++---------------------------------------------------------------------*/
+const AP4_Atom::Type AP4_MetaDataAtomTypeHandler::IlstTypes[] = 
+{
+    AP4_ATOM_TYPE_dddd,
+    AP4_ATOM_TYPE_cNAM,
+    AP4_ATOM_TYPE_cART,
+    AP4_ATOM_TYPE_cCOM,
+    AP4_ATOM_TYPE_cWRT,
+    AP4_ATOM_TYPE_cALB,
+    AP4_ATOM_TYPE_cGEN,
+    AP4_ATOM_TYPE_cGRP,
+    AP4_ATOM_TYPE_cDAY,
+    AP4_ATOM_TYPE_cTOO,
+    AP4_ATOM_TYPE_cCMT,
+    AP4_ATOM_TYPE_CPRT,
+    AP4_ATOM_TYPE_TRKN,
+    AP4_ATOM_TYPE_DISK,
+    AP4_ATOM_TYPE_COVR,
+    AP4_ATOM_TYPE_DESC,
+    AP4_ATOM_TYPE_GNRE,
+    AP4_ATOM_TYPE_CPIL,
+    AP4_ATOM_TYPE_TMPO,
+    AP4_ATOM_TYPE_RTNG,
+    AP4_ATOM_TYPE_apID,
+    AP4_ATOM_TYPE_cnID,
+    AP4_ATOM_TYPE_atID,
+    AP4_ATOM_TYPE_plID,
+    AP4_ATOM_TYPE_geID,
+    AP4_ATOM_TYPE_sfID,
+    AP4_ATOM_TYPE_akID,
+    AP4_ATOM_TYPE_aART,
+    AP4_ATOM_TYPE_TVNN,
+    AP4_ATOM_TYPE_TVSH,
+    AP4_ATOM_TYPE_TVEN,
+    AP4_ATOM_TYPE_TVSN,
+    AP4_ATOM_TYPE_TVES,
+    AP4_ATOM_TYPE_STIK,
+    AP4_ATOM_TYPE_PGAP
+};
+const AP4_MetaDataAtomTypeHandler::TypeList AP4_MetaDataAtomTypeHandler::IlstTypeList = {
+    IlstTypes,
+    sizeof(IlstTypes)/sizeof(IlstTypes[0])
+};
+
+/*----------------------------------------------------------------------
 |   AP4_MetaDataAtomTypeHandler::CreateAtom
 +---------------------------------------------------------------------*/
 AP4_Result 
@@ -217,18 +290,22 @@ AP4_MetaDataAtomTypeHandler::CreateAtom(AP4_Atom::Type  type,
     atom = NULL;
 
     if (context == AP4_ATOM_TYPE_ILST) {
-        if (IsMetaDataType(type)) {
+        if (IsTypeInList(type, IlstTypeList)) {
             m_AtomFactory->SetContext(type);
             atom = AP4_ContainerAtom::Create(type, size, false, stream, *m_AtomFactory);
             m_AtomFactory->SetContext(context);
         }
     } else if (type == AP4_ATOM_TYPE_DATA) {
-        if (IsMetaDataType(context)) {
+        if (IsTypeInList(context, IlstTypeList)) {
             atom = new AP4_DataAtom(size, stream);
         }
     } else if (context == AP4_ATOM_TYPE_dddd) {
         if (type == AP4_ATOM_TYPE_MEAN || type == AP4_ATOM_TYPE_NAME) {
             atom = new AP4_StringAtom(type, size, stream);
+        }
+    } else if (context == AP4_ATOM_TYPE_UDTA) {
+        if (IsTypeInList(type, _3gppTypeList)) {
+            atom = AP4_3GppAtom::Create(type, size, stream);
         }
     }
 
@@ -236,75 +313,99 @@ AP4_MetaDataAtomTypeHandler::CreateAtom(AP4_Atom::Type  type,
 }
 
 /*----------------------------------------------------------------------
-|   AP4_MetaDataAtomTypeHandler::IsMetaDataType
+|   AP4_MetaDataAtomTypeHandler::IsInTypeList
 +---------------------------------------------------------------------*/
 bool
-AP4_MetaDataAtomTypeHandler::IsMetaDataType(AP4_Atom::Type type)
+AP4_MetaDataAtomTypeHandler::IsTypeInList(AP4_Atom::Type type, const AP4_MetaDataAtomTypeHandler::TypeList& list)
 {
-    switch (type) {
-        case AP4_ATOM_TYPE_dddd:
-        case AP4_ATOM_TYPE_cNAM:
-        case AP4_ATOM_TYPE_cART:
-        case AP4_ATOM_TYPE_cCOM:
-        case AP4_ATOM_TYPE_cWRT:
-        case AP4_ATOM_TYPE_cALB:
-        case AP4_ATOM_TYPE_cGEN:
-        case AP4_ATOM_TYPE_cGRP:
-        case AP4_ATOM_TYPE_cDAY:
-        case AP4_ATOM_TYPE_cTOO:
-        case AP4_ATOM_TYPE_cCMT:
-        case AP4_ATOM_TYPE_CPRT:
-        case AP4_ATOM_TYPE_TRKN:
-        case AP4_ATOM_TYPE_DISK:
-        case AP4_ATOM_TYPE_COVR:
-        case AP4_ATOM_TYPE_DESC:
-        case AP4_ATOM_TYPE_GNRE:
-        case AP4_ATOM_TYPE_CPIL:
-        case AP4_ATOM_TYPE_TMPO:
-        case AP4_ATOM_TYPE_RTNG:
-        case AP4_ATOM_TYPE_apID:
-        case AP4_ATOM_TYPE_cnID:
-        case AP4_ATOM_TYPE_atID:
-        case AP4_ATOM_TYPE_plID:
-        case AP4_ATOM_TYPE_geID:
-        case AP4_ATOM_TYPE_sfID:
-        case AP4_ATOM_TYPE_akID:
-        case AP4_ATOM_TYPE_aART:
-        case AP4_ATOM_TYPE_TVNN:
-        case AP4_ATOM_TYPE_TVSH:
-        case AP4_ATOM_TYPE_TVEN:
-        case AP4_ATOM_TYPE_TVSN:
-        case AP4_ATOM_TYPE_TVES:
-        case AP4_ATOM_TYPE_STIK:
-        case AP4_ATOM_TYPE_PGAP:
-            return true;
-
-        default:
-            return false;
+    for (unsigned int i=0; i<list.m_Size; i++) {
+        if (type == list.m_Types[i]) return true;
     }
+    return false;
 }
 
 /*----------------------------------------------------------------------
 |   AP4_MetaData::AP4_MetaData
 +---------------------------------------------------------------------*/
-AP4_MetaData::AP4_MetaData(AP4_MoovAtom* moov)
+AP4_MetaData::AP4_MetaData(AP4_File* file)
+{
+    // get the file's movie
+    AP4_Movie* movie = file->GetMovie();
+
+    // handle the movie's metadata if there is a movie in the file
+    if (movie) {
+        AP4_MoovAtom* moov = movie->GetMoovAtom();
+        if (moov == NULL) return;
+        ParseMoov(moov);
+    } else {
+        // if we don't have a movie, try to show metadata from a udta atom
+        AP4_List<AP4_Atom>& top_level_atoms = file->GetOtherAtoms();
+        
+        AP4_List<AP4_Atom>::Item* atom_item = top_level_atoms.FirstItem();
+        while (atom_item) {
+            AP4_ContainerAtom* container = dynamic_cast<AP4_ContainerAtom*>(atom_item->GetData());
+            if (container) {
+                // look for a udta in a DCF layout
+                AP4_Atom* udta = container->FindChild("odhe/udta");
+                if (udta) {
+                    AP4_ContainerAtom* udta_container = dynamic_cast<AP4_ContainerAtom*>(udta);
+                    if (udta_container) {
+                        ParseUdta(udta_container);
+                    }
+                }
+            }
+            atom_item = atom_item->GetNext();
+        }
+    } 
+}
+
+/*----------------------------------------------------------------------
+|   AP4_MetaData::ParseMoov
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_MetaData::ParseMoov(AP4_MoovAtom* moov)
 {
     // look for a 'meta' atom with 'hdlr' type 'mdir'
     AP4_HdlrAtom* hdlr = dynamic_cast<AP4_HdlrAtom*>(moov->FindChild("udta/meta/hdlr"));
-    if (hdlr == NULL || hdlr->GetHandlerType() != AP4_HANDLER_TYPE_MDIR) return;
+    if (hdlr == NULL || hdlr->GetHandlerType() != AP4_HANDLER_TYPE_MDIR) return AP4_ERROR_NO_SUCH_ITEM;
 
     // get the list of entries
     AP4_ContainerAtom* ilst = dynamic_cast<AP4_ContainerAtom*>(moov->FindChild("udta/meta/ilst"));
-    if (ilst == NULL) return;
+    if (ilst == NULL) return AP4_ERROR_NO_SUCH_ITEM;
     
     AP4_List<AP4_Atom>::Item* ilst_item = ilst->GetChildren().FirstItem();
     while (ilst_item) {
         AP4_ContainerAtom* entry_atom = dynamic_cast<AP4_ContainerAtom*>(ilst_item->GetData()); 
         if (entry_atom) {
-            AddEntries(entry_atom);
+            AddIlstEntries(entry_atom);
         }
         ilst_item = ilst_item->GetNext();
     }
+    
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_MetaData::ParseUdta
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_MetaData::ParseUdta(AP4_ContainerAtom* udta)
+{
+    // check that the atom is indeed a 'udta' atom
+    if (udta->GetType() != AP4_ATOM_TYPE_UDTA) {
+        return AP4_ERROR_INVALID_PARAMETERS;
+    }
+    
+    AP4_List<AP4_Atom>::Item* udta_item = udta->GetChildren().FirstItem();
+    while (udta_item) {
+        AP4_3GppAtom* entry_atom = dynamic_cast<AP4_3GppAtom*>(udta_item->GetData()); 
+        if (entry_atom) {
+            Add3GppEntry(entry_atom);
+        }
+        udta_item = udta_item->GetNext();
+    }
+    
+    return AP4_SUCCESS;
 }
 
 /*----------------------------------------------------------------------
@@ -316,10 +417,10 @@ AP4_MetaData::~AP4_MetaData()
 }
 
 /*----------------------------------------------------------------------
-|   AP4_MetaData::AddEntries
+|   AP4_MetaData::AddIlstEntries
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_MetaData::AddEntries(AP4_ContainerAtom* atom)
+AP4_MetaData::AddIlstEntries(AP4_ContainerAtom* atom)
 {
     AP4_MetaData::Value* value = NULL;
 
@@ -377,6 +478,79 @@ AP4_MetaData::AddEntries(AP4_ContainerAtom* atom)
 
         return AP4_SUCCESS;
     }
+}
+
+/*----------------------------------------------------------------------
+|   AP4_MetaData::Add3GppEntry
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_MetaData::Add3GppEntry(AP4_3GppAtom* atom)
+{
+    const char* key_name = NULL;
+    const char* key_namespace = NULL;
+    char        four_cc[5];
+
+    switch (atom->GetType()) {
+        case AP4_ATOM_TYPE_TITL:
+        case AP4_ATOM_TYPE_DSCP:
+        case AP4_ATOM_TYPE_CPRT:
+        case AP4_ATOM_TYPE_PERF:
+        case AP4_ATOM_TYPE_AUTH:
+        case AP4_ATOM_TYPE_GNRE:
+        case AP4_ATOM_TYPE_RTNG:
+        case AP4_ATOM_TYPE_ALBM: {
+            // look for a match in the key infos
+            for (unsigned int i=0; 
+                 i<sizeof(AP4_MetaData_KeyInfos)/sizeof(AP4_MetaData_KeyInfos[0]); 
+                 i++) {
+                if (AP4_MetaData_KeyInfos[i].four_cc == atom->GetType()) {
+                    key_name = AP4_MetaData_KeyInfos[i].name;
+                    break;
+                }
+            }
+            if (key_name == NULL) {
+                // this key was not found in the key infos, create a name for it
+                AP4_FormatFourChars(four_cc, (AP4_UI32)atom->GetType());
+                key_name = four_cc;
+
+                // put this name in the 'udta' namespace
+                key_namespace = "udta";
+            }
+
+            AP4_MetaData::Value* value = new AP4_MetaData::StringValue((const char*)atom->GetPayload().GetData());
+            m_Entries.Add(new Entry(key_name, key_namespace, value));
+            break;
+        }
+    }
+    
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_MetaData::StringValue::ToString
++---------------------------------------------------------------------*/
+AP4_String
+AP4_MetaData::StringValue::ToString()
+{
+    return m_Value;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_MetaData::StringValue::ToBytes
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_MetaData::StringValue::ToBytes(AP4_DataBuffer& /* bytes */)
+{
+    return AP4_ERROR_NOT_SUPPORTED;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_MetaData::StringValue::ToInteger
++---------------------------------------------------------------------*/
+long
+AP4_MetaData::StringValue::ToInteger()
+{
+    return 0;
 }
 
 /*----------------------------------------------------------------------
@@ -686,5 +860,69 @@ AP4_Result
 AP4_StringAtom::InspectFields(AP4_AtomInspector& inspector)
 {
     inspector.AddField("value", m_Value.GetChars());
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_3GppAtom::Create
++---------------------------------------------------------------------*/
+AP4_3GppAtom*
+AP4_3GppAtom::Create(Type type, AP4_UI32 size, AP4_ByteStream& stream) 
+{
+    AP4_UI32 version;
+    AP4_UI32 flags;
+    if (AP4_FAILED(AP4_Atom::ReadFullHeader(stream, version, flags))) return NULL;
+    if (version != 0) return NULL;
+    return new AP4_3GppAtom(type, size, version, flags, stream);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_3GppAtom::AP4_3GppAtom
++---------------------------------------------------------------------*/
+AP4_3GppAtom::AP4_3GppAtom(Type            type, 
+                           AP4_UI32        size, 
+                           AP4_UI32        version,
+                           AP4_UI32        flags,
+                           AP4_ByteStream& stream) :
+    AP4_Atom(type, size, version, flags)
+{
+    // read the language code
+    AP4_UI16 packed_language;
+    stream.ReadUI16(packed_language);
+    m_Language[0] = 0x60+((packed_language>>10)&0x1F);
+    m_Language[1] = 0x60+((packed_language>> 5)&0x1F);
+    m_Language[2] = 0x60+((packed_language    )&0x1F);
+    m_Language[3] = '\0';
+    
+    // read the payload
+    if (size > AP4_FULL_ATOM_HEADER_SIZE+2) {
+        AP4_UI32 payload_size = size-(AP4_FULL_ATOM_HEADER_SIZE+2);
+        m_Payload.SetBufferSize(payload_size);
+        stream.Read(m_Payload.UseData(), payload_size);
+        m_Payload.SetDataSize(payload_size);
+    }
+}
+
+/*----------------------------------------------------------------------
+|   AP4_3GppAtom::WriteFields
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_3GppAtom::WriteFields(AP4_ByteStream& stream)
+{
+    AP4_UI16 packed_language = ((m_Language[0]-0x60)<<10) |
+                               ((m_Language[1]-0x60)<< 5) |
+                               ((m_Language[2]-0x60));
+    stream.WriteUI16(packed_language);
+    return stream.Write(m_Payload.GetData(), m_Payload.GetDataSize());
+}
+
+/*----------------------------------------------------------------------
+|   AP4_3GppAtom::InspectFields
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_3GppAtom::InspectFields(AP4_AtomInspector& inspector)
+{
+    inspector.AddField("language", GetLanguage());
+    inspector.AddField("payload size", m_Payload.GetDataSize());
     return AP4_SUCCESS;
 }

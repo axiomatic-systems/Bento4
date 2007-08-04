@@ -51,7 +51,9 @@ public:
     // methods
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
-
+    
+    const AP4_String& GetContentType() { return m_ContentType; }
+    
 private:
     // methods
     AP4_OdheAtom(AP4_UI32         size, 

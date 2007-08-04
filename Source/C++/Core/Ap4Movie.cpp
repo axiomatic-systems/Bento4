@@ -75,7 +75,7 @@ private:
 /*----------------------------------------------------------------------
 |   AP4_Movie::AP4_Movie
 +---------------------------------------------------------------------*/
-AP4_Movie::AP4_Movie(AP4_UI32 time_scale) : m_MetaData(NULL)
+AP4_Movie::AP4_Movie(AP4_UI32 time_scale)
 {
     m_MoovAtom = new AP4_MoovAtom();
     m_MvhdAtom = new AP4_MvhdAtom(0, 0, 
@@ -90,7 +90,7 @@ AP4_Movie::AP4_Movie(AP4_UI32 time_scale) : m_MetaData(NULL)
 |   AP4_Movie::AP4_Moovie
 +---------------------------------------------------------------------*/
 AP4_Movie::AP4_Movie(AP4_MoovAtom* moov, AP4_ByteStream& mdat) :
-    m_MoovAtom(moov), m_MetaData(NULL)
+    m_MoovAtom(moov)
 {
     // ignore null atoms
     if (moov == NULL) return;
@@ -124,7 +124,6 @@ AP4_Movie::~AP4_Movie()
 {
     m_Tracks.DeleteReferences();
     delete m_MoovAtom;
-    delete m_MetaData;
 }
 
 /*----------------------------------------------------------------------
@@ -233,17 +232,4 @@ AP4_Movie::GetDurationMs()
     } else {
         return 0;
     }
-}
-
-/*----------------------------------------------------------------------
-|   AP4_Movie::GetMetaData
-+---------------------------------------------------------------------*/
-const AP4_MetaData*
-AP4_Movie::GetMetaData()
-{
-    if (m_MetaData == NULL) {
-        m_MetaData = new AP4_MetaData(m_MoovAtom);
-    }
-
-    return m_MetaData;
 }

@@ -72,7 +72,6 @@ private:
     AP4_MoovAtom*       m_MoovAtom;
     AP4_MvhdAtom*       m_MvhdAtom;
     AP4_List<AP4_Track> m_Tracks;
-    AP4_MetaData*       m_MetaData;
 };
 
 #endif // _AP4_MOVIE_H_
