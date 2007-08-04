@@ -42,6 +42,7 @@
 class AP4_ByteStream;
 class AP4_Movie;
 class AP4_FtypAtom;
+class AP4_MetaData;
 
 /*----------------------------------------------------------------------
 |   file type/brands
@@ -117,6 +118,11 @@ public:
                                     AP4_UI32*    compatible_brands = NULL,
                                     AP4_Cardinal compatible_brand_count = 0);
  
+    /** 
+     * Gets the file's metadata description
+     */
+    const AP4_MetaData* GetMetaData();
+    
     /**
      * Inspects the content of the file with an AP4_AtomInspector
      */
@@ -127,6 +133,7 @@ private:
     AP4_Movie*         m_Movie;
     AP4_FtypAtom*      m_FileType;
     AP4_List<AP4_Atom> m_OtherAtoms;
+    AP4_MetaData*      m_MetaData;
 };
 
 #endif // _AP4_FILE_H_

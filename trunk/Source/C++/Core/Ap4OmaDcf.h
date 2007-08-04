@@ -66,14 +66,13 @@ typedef enum {
 +---------------------------------------------------------------------*/
 class AP4_OmaDecryptingStream : public AP4_ByteStream {
 public:
-    static AP4_Result Create(AP4_OmaDcfCipherMode         mode,
-                             AP4_ByteStream*              source_stream,
-                             AP4_Position                 source_position,
-                             const AP4_UI08*              key,
-                             AP4_Size                     key_size,
-                             AP4_BlockCipherFactory*      block_cipher_factory,
-                             AP4_LargeSize                cleartext_size,
-                             AP4_OmaDecryptingStream*&    stream);
+    static AP4_Result Create(AP4_OmaDcfCipherMode      mode,
+                             AP4_ByteStream&           encrypted_stream,
+                             AP4_LargeSize             cleartext_size,
+                             const AP4_UI08*           key,
+                             AP4_Size                  key_size,
+                             AP4_BlockCipherFactory*   block_cipher_factory,
+                             AP4_OmaDecryptingStream*& stream);
     ~AP4_OmaDecryptingStream();
 
     // AP4_ByteStream methods
@@ -96,11 +95,13 @@ private:
     AP4_OmaDecryptingStream() {} // use the factory instead
 
     // members
-    AP4_LargeSize        m_Size;
-    AP4_Position         m_Position;
-    AP4_ByteStream*      m_SourceStream;
-    AP4_Position         m_SourceStart;
-    AP4_Position         m_SourcePosition;
+    AP4_OmaDcfCipherMode m_Mode;
+    AP4_LargeSize        m_CleartextSize;
+    AP4_Position         m_CleartextPosition;
+    AP4_ByteStream*      m_EncryptedStream;
+    AP4_Position         m_EncryptedStart;
+    AP4_LargeSize        m_EncryptedSize;
+    AP4_Position         m_EncryptedPosition;
     AP4_StreamCipher*    m_StreamCipher;
     AP4_UI08             m_Buffer[16];
     AP4_Size             m_BufferFullness;

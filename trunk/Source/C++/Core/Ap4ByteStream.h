@@ -76,7 +76,9 @@ class AP4_ByteStream : public AP4_Referenceable
 class AP4_SubStream : public AP4_ByteStream
 {
  public:
-    AP4_SubStream(AP4_ByteStream& container, AP4_Position position, AP4_Size size);
+    AP4_SubStream(AP4_ByteStream& container, 
+                  AP4_Position    position, 
+                  AP4_LargeSize   size);
 
     // AP4_ByteStream methods
     AP4_Result ReadPartial(void*     buffer, 

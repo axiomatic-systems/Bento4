@@ -759,12 +759,15 @@ static struct {
     {__17_bin, __17_bin_len, __17_cbc, __17_cbc_len }
 };
 
-static struct {
+typedef struct {
     unsigned char* clear;
     unsigned int   clear_length;
     unsigned char* enc;
     unsigned int   enc_length;
-} TestVectors2[] = 
+} TestVector;
+
+static TestVector
+TestVectors2[] = 
 {
     {__1023_bin, __1023_bin_len, __1023_cbc, __1023_cbc_len },
     {__1024_bin, __1024_bin_len, __1024_cbc, __1024_cbc_len },
@@ -791,7 +794,17 @@ BuffersEqual(const unsigned char* a,
 /*----------------------------------------------------------------------
 |   CHECK
 +---------------------------------------------------------------------*/
-#define CHECK(x) if (!(x)) { fprintf(stderr, "ERROR line %d\n", __LINE__); goto fail; }
+#define CHECK(x) if (!(x)) { fprintf(stderr, "ERROR line %d\n", __LINE__); DebugHook(); goto fail; }
+
+/*----------------------------------------------------------------------
+|   DebugHook
++---------------------------------------------------------------------*/
+static void
+DebugHook()
+{
+    // put a breakpoint here
+    fprintf(stderr, "Debug Hook\n");
+}
 
 /*----------------------------------------------------------------------
 |   main
@@ -845,7 +858,7 @@ main(int /*argc*/, char** /*argv*/)
 
     for (int run=0; run<1000; run++) {
         for (unsigned int i=0; i<sizeof(TestVectors2)/sizeof(TestVectors2[0]); i++) {
-            printf("Test Vector2 %d\n", i);
+            printf("Encrypt Test Vector2 %d\n", i);
 
             e_cipher.SetIV(iv);
 
@@ -877,7 +890,7 @@ main(int /*argc*/, char** /*argv*/)
         }
 
         for (unsigned int i=0; i<sizeof(TestVectors2)/sizeof(TestVectors2[0]); i++) {
-            printf("Test Vector2 %d\n", i);
+            printf("Decrypt Test Vector2 %d\n", i);
 
             d_cipher.SetIV(iv);
 
@@ -906,6 +919,55 @@ main(int /*argc*/, char** /*argv*/)
             }
             CHECK((unsigned int)(out-out_buffer) == TestVectors2[i].clear_length);
             CHECK(BuffersEqual(TestVectors2[i].clear, out_buffer, TestVectors2[i].clear_length));
+        }
+
+        for (unsigned int i=0; i<sizeof(TestVectors2)/sizeof(TestVectors2[0]); i++) {
+            AP4_UI08 out_buffer[128+16];
+            AP4_Size out_size;
+            
+            printf("Decrypt Test Vector2 + Seek %d\n", i);
+
+            d_cipher.SetIV(iv);
+            AP4_Cardinal preroll = 0;
+            CHECK(d_cipher.SetStreamOffset(0, &preroll) == AP4_SUCCESS);
+            CHECK(preroll == 0);
+            CHECK(d_cipher.SetStreamOffset(TestVectors2[i].enc_length+1, &preroll) == AP4_SUCCESS);
+            CHECK(d_cipher.SetStreamOffset(TestVectors2[i].enc_length, &preroll) == AP4_SUCCESS);
+            
+            TestVector& vector = TestVectors2[i];
+            for (unsigned int j=0; j<10000; j++) {
+                unsigned int position = rand()%vector.clear_length;
+                const AP4_UI08* in = vector.enc+position;
+                result = d_cipher.SetStreamOffset(position, &preroll);
+                CHECK(result == AP4_SUCCESS);
+                CHECK(preroll <= position);
+                unsigned int chunk = rand()%(sizeof(out_buffer)-16);
+                if (position+chunk > vector.enc_length) {
+                    chunk = vector.enc_length-position;
+                }
+                bool is_last = (position+chunk == vector.enc_length);
+                out_size = sizeof(out_buffer);
+                result = d_cipher.ProcessBuffer(in-preroll, chunk+preroll, out_buffer, &out_size, is_last);
+                CHECK(result == AP4_SUCCESS);
+                CHECK(BuffersEqual(vector.clear+position, out_buffer, out_size));
+            }            
+
+            for (unsigned int j=0; j<10000; j++) {
+                unsigned int position = rand()%vector.clear_length;
+                const AP4_UI08* in = vector.enc+position;
+                result = d_cipher.SetStreamOffset(position, &preroll);
+                CHECK(result == AP4_SUCCESS);
+                CHECK(preroll <= position);
+                unsigned int chunk = rand()%(sizeof(out_buffer)-16);
+                if (position+chunk > vector.enc_length) {
+                    chunk = vector.enc_length-position;
+                }
+                bool is_last = (position+chunk == vector.enc_length);
+                out_size = sizeof(out_buffer);
+                result = d_cipher.ProcessBuffer(in-preroll, chunk+preroll, out_buffer, &out_size, is_last);
+                CHECK(result == AP4_SUCCESS);
+                CHECK(BuffersEqual(vector.clear+position, out_buffer, out_size));
+            }            
         }
     }
 

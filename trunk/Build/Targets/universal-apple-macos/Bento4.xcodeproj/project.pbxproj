@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		CA504D5D0C5E8A8A0060E6FE /* Ap4ElstAtom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA504D5B0C5E8A8A0060E6FE /* Ap4ElstAtom.cpp */; };
+		CA504D5E0C5E8A8A0060E6FE /* Ap4ElstAtom.h in Headers */ = {isa = PBXBuildFile; fileRef = CA504D5C0C5E8A8A0060E6FE /* Ap4ElstAtom.h */; };
 		CA9366A00B437D040067D50B /* Ap4.h in Headers */ = {isa = PBXBuildFile; fileRef = CA9366100B437D030067D50B /* Ap4.h */; };
 		CA9366A10B437D040067D50B /* Ap4Array.h in Headers */ = {isa = PBXBuildFile; fileRef = CA9366110B437D030067D50B /* Ap4Array.h */; };
 		CA9366A20B437D040067D50B /* Ap4Atom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA9366120B437D030067D50B /* Ap4Atom.cpp */; };
@@ -166,24 +168,9 @@
 		F9B1F4FC0B54AD91003F147E /* Ap4AvccAtom.h in Headers */ = {isa = PBXBuildFile; fileRef = F9B1F4FA0B54AD91003F147E /* Ap4AvccAtom.h */; };
 /* End PBXBuildFile section */
 
-/* Begin PBXBuildStyle section */
-		F9E05F120C5A4B1300AE58A6 /* Development */ = {
-			isa = PBXBuildStyle;
-			buildSettings = {
-				COPY_PHASE_STRIP = NO;
-			};
-			name = Development;
-		};
-		F9E05F130C5A4B1300AE58A6 /* Deployment */ = {
-			isa = PBXBuildStyle;
-			buildSettings = {
-				COPY_PHASE_STRIP = YES;
-			};
-			name = Deployment;
-		};
-/* End PBXBuildStyle section */
-
 /* Begin PBXFileReference section */
+		CA504D5B0C5E8A8A0060E6FE /* Ap4ElstAtom.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4ElstAtom.cpp; sourceTree = "<group>"; };
+		CA504D5C0C5E8A8A0060E6FE /* Ap4ElstAtom.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = Ap4ElstAtom.h; sourceTree = "<group>"; };
 		CA9366100B437D030067D50B /* Ap4.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = Ap4.h; sourceTree = "<group>"; };
 		CA9366110B437D030067D50B /* Ap4Array.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = Ap4Array.h; sourceTree = "<group>"; };
 		CA9366120B437D030067D50B /* Ap4Atom.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4Atom.cpp; sourceTree = "<group>"; };
@@ -395,6 +382,8 @@
 		CA93660F0B437D030067D50B /* Core */ = {
 			isa = PBXGroup;
 			children = (
+				CA504D5B0C5E8A8A0060E6FE /* Ap4ElstAtom.cpp */,
+				CA504D5C0C5E8A8A0060E6FE /* Ap4ElstAtom.h */,
 				F9B1F4F90B54AD91003F147E /* Ap4AvccAtom.cpp */,
 				F9B1F4FA0B54AD91003F147E /* Ap4AvccAtom.h */,
 				CA9366100B437D030067D50B /* Ap4.h */,
@@ -679,6 +668,7 @@
 				CA9367FF0B4383F00067D50B /* Ap4AdtsParser.h in Headers */,
 				CA9368010B4383F00067D50B /* Ap4BitStream.h in Headers */,
 				F9B1F4FC0B54AD91003F147E /* Ap4AvccAtom.h in Headers */,
+				CA504D5E0C5E8A8A0060E6FE /* Ap4ElstAtom.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -708,12 +698,6 @@
 		08FB7793FE84155DC02AAC07 /* Project object */ = {
 			isa = PBXProject;
 			buildConfigurationList = 1DEB91EF08733DB70010E9CD /* Build configuration list for PBXProject "Bento4" */;
-			buildSettings = {
-			};
-			buildStyles = (
-				F9E05F120C5A4B1300AE58A6 /* Development */,
-				F9E05F130C5A4B1300AE58A6 /* Deployment */,
-			);
 			hasScannedForEncodings = 1;
 			mainGroup = 08FB7794FE84155DC02AAC07 /* Bento4 */;
 			projectDirPath = "";
@@ -802,6 +786,7 @@
 				CA9367FE0B4383F00067D50B /* Ap4AdtsParser.cpp in Sources */,
 				CA9368000B4383F00067D50B /* Ap4BitStream.cpp in Sources */,
 				F9B1F4FB0B54AD91003F147E /* Ap4AvccAtom.cpp in Sources */,
+				CA504D5D0C5E8A8A0060E6FE /* Ap4ElstAtom.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

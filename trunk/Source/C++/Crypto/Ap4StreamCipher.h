@@ -57,15 +57,13 @@ public:
     // methods
     virtual            ~AP4_StreamCipher() {}
     
-    
     virtual AP4_UI64    GetStreamOffset() = 0;
     
     virtual AP4_Result  ProcessBuffer(const AP4_UI08* in,
                                       AP4_Size        in_size,
                                       AP4_UI08*       out,
                                       AP4_Size*       out_size,
-                                      bool            is_last_buffer = false,
-                                      AP4_UI64*       out_offset     = NULL) = 0;
+                                      bool            is_last_buffer = false) = 0;
     
     // preroll gives the number of bytes you have to preroll your input and feed
     // it through ProcessBuffer (in one shot) in order to be able to spit out 
@@ -103,8 +101,7 @@ public:
                                           AP4_Size        in_size,
                                           AP4_UI08*       out,
                                           AP4_Size*       out_size       = NULL,
-                                          bool            is_last_buffer = false,
-                                          AP4_UI64*       out_offset     = NULL);
+                                          bool            is_last_buffer = false);
     
     virtual AP4_Result      SetIV(const AP4_UI08* iv);
     virtual const AP4_UI08* GetIV()  { return m_BaseCounter;  }
@@ -146,8 +143,7 @@ public:
                                           AP4_Size        in_size,
                                           AP4_UI08*       out,
                                           AP4_Size*       out_size,
-                                          bool            is_last_buffer = false,
-                                          AP4_UI64*       out_offset     = NULL);
+                                          bool            is_last_buffer = false);
     virtual AP4_Result      SetIV(const AP4_UI08* iv);
     virtual const AP4_UI08* GetIV() { return m_Iv; };
 
@@ -155,6 +151,7 @@ private:
     // members
     CipherDirection  m_Direction;
     AP4_UI64         m_StreamOffset;
+    AP4_Size         m_OutputSkip;
     AP4_UI08         m_InBlockCache[AP4_CIPHER_BLOCK_SIZE];
     AP4_UI08         m_OutBlockCache[AP4_CIPHER_BLOCK_SIZE];
     AP4_UI08         m_Iv[AP4_CIPHER_BLOCK_SIZE];

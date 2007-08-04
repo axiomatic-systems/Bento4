@@ -37,13 +37,15 @@
 #include "Ap4AtomFactory.h"
 #include "Ap4Movie.h"
 #include "Ap4FtypAtom.h"
+#include "Ap4MetaData.h"
 
 /*----------------------------------------------------------------------
 |   AP4_File::AP4_File
 +---------------------------------------------------------------------*/
 AP4_File::AP4_File(AP4_Movie* movie) :
     m_Movie(movie),
-    m_FileType(NULL)
+    m_FileType(NULL),
+    m_MetaData(NULL)
 {
 }
 
@@ -52,7 +54,8 @@ AP4_File::AP4_File(AP4_Movie* movie) :
 +---------------------------------------------------------------------*/
 AP4_File::AP4_File(AP4_ByteStream& stream, AP4_AtomFactory& atom_factory) :
     m_Movie(NULL),
-    m_FileType(NULL)
+    m_FileType(NULL),
+    m_MetaData(NULL)
 {
     // get all atoms
     AP4_Atom* atom;
@@ -80,6 +83,7 @@ AP4_File::~AP4_File()
 {
     delete m_Movie;
     delete m_FileType;
+    delete m_MetaData;
     m_OtherAtoms.DeleteReferences();
 }
 
@@ -114,3 +118,17 @@ AP4_File::SetFileType(AP4_UI32     major_brand,
                                   compatible_brand_count);
     return AP4_SUCCESS;
 }
+
+/*----------------------------------------------------------------------
+|   AP4_File::GetMetaData
++---------------------------------------------------------------------*/
+const AP4_MetaData*
+AP4_File::GetMetaData()
+{
+    if (m_MetaData == NULL) {
+        m_MetaData = new AP4_MetaData(this);
+    }
+
+    return m_MetaData;
+}
+

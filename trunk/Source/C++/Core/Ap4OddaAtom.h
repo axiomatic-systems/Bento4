@@ -54,20 +54,18 @@ public:
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
     
     // accessors
-    AP4_ByteStream* GetSourceStream()   { return m_SourceStream;   }
-    AP4_Position    GetSourcePosition() { return m_SourcePosition; }
+    AP4_UI64 GetEncryptedDataLength()   { return m_EncryptedDataLength; }
 
     /**
-     * Sets the source stream (and releases any existing stream references)
+     * Sets the encrypted payload stream (and releases any existing stream references)
      */
-    AP4_Result SetSourceStream(AP4_ByteStream* stream, AP4_Position position = 0);
+    AP4_Result SetEncryptedPayload(AP4_ByteStream& stream);
 
     /**
-     * Sets the length of the encrypted data.
-     * This method updates the size of the atom.
+     * Returns a reference to the encrypted payload stream (does not increment the reference counter)
      */
-    AP4_Result SetEncryptedDataLength(AP4_UI64 length);
-
+    AP4_ByteStream& GetEncryptedPayload() { return *m_EncryptedPayload; }
+    
 private:
     // methods
     AP4_OddaAtom(AP4_UI64         size, 
@@ -77,8 +75,7 @@ private:
 
     // members
     AP4_UI64        m_EncryptedDataLength;
-    AP4_ByteStream* m_SourceStream;
-    AP4_Position    m_SourcePosition;
+    AP4_ByteStream* m_EncryptedPayload;
 };
 
 #endif // _AP4_ODDA_ATOM_H_

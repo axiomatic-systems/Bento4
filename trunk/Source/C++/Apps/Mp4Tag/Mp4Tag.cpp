@@ -303,14 +303,8 @@ ShowTag(AP4_MetaData::Entry* entry)
 static void
 ShowTags(AP4_File* file) 
 {
-    // get the file's movie
-    AP4_Movie* movie = file->GetMovie();
-    if (movie == NULL) return;
-
-    // get the movie's metadata
-    const AP4_MetaData* metadata = movie->GetMetaData();
-    if (metadata == NULL) return;
-
+    const AP4_MetaData* metadata = file->GetMetaData();
+    
     // iterator over the entries
     AP4_List<AP4_MetaData::Entry>::Item* item = metadata->GetEntries().FirstItem();
     while (item) {

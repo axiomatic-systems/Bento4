@@ -55,23 +55,6 @@
 		F9E717D90C56A10A00C7A92C /* CryptoTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F9E717CB0C56A08600C7A92C /* CryptoTest.cpp */; };
 /* End PBXBuildFile section */
 
-/* Begin PBXBuildStyle section */
-		F9E868680C5715B300631F41 /* Development */ = {
-			isa = PBXBuildStyle;
-			buildSettings = {
-				COPY_PHASE_STRIP = NO;
-			};
-			name = Development;
-		};
-		F9E868690C5715B300631F41 /* Deployment */ = {
-			isa = PBXBuildStyle;
-			buildSettings = {
-				COPY_PHASE_STRIP = YES;
-			};
-			name = Deployment;
-		};
-/* End PBXBuildStyle section */
-
 /* Begin PBXContainerItemProxy section */
 		F97CF3110C0031FE0013DB60 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -1077,12 +1060,6 @@
 		08FB7793FE84155DC02AAC07 /* Project object */ = {
 			isa = PBXProject;
 			buildConfigurationList = 1DEB91EF08733DB70010E9CD /* Build configuration list for PBXProject "Bento4Apps" */;
-			buildSettings = {
-			};
-			buildStyles = (
-				F9E868680C5715B300631F41 /* Development */,
-				F9E868690C5715B300631F41 /* Deployment */,
-			);
 			hasScannedForEncodings = 1;
 			mainGroup = 08FB7794FE84155DC02AAC07 /* Bento4 */;
 			projectDirPath = "";

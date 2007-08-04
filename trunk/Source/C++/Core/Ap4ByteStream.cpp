@@ -350,7 +350,7 @@ AP4_ByteStream::CopyTo(AP4_ByteStream& stream, AP4_LargeSize size)
 +---------------------------------------------------------------------*/
 AP4_SubStream::AP4_SubStream(AP4_ByteStream& container, 
                              AP4_Position    offset, 
-                             AP4_Size        size) :
+                             AP4_LargeSize   size) :
     m_Container(container),
     m_Offset(offset),
     m_Size(size),
@@ -395,14 +395,14 @@ AP4_SubStream::ReadPartial(void*     buffer,
     }
 
     // seek inside container
-    //AP4_Result result;
-    //result = m_Container.Seek(m_Offset+m_Position);
-    //if (AP4_FAILED(result)) {
-    //    return result;
-    //}
+    AP4_Result result;
+    result = m_Container.Seek(m_Offset+m_Position);
+    if (AP4_FAILED(result)) {
+        return result;
+    }
 
     // read from the container
-    AP4_Result result = m_Container.ReadPartial(buffer, bytes_to_read, bytes_read);
+    result = m_Container.ReadPartial(buffer, bytes_to_read, bytes_read);
     if (AP4_SUCCEEDED(result)) {
         m_Position += bytes_read;
     }
@@ -436,12 +436,12 @@ AP4_SubStream::WritePartial(const void* buffer,
     }
 
     // seek inside container
-    //AP4_Result result;
-    //result = m_Container.Seek(m_Offset+m_Position);
-    //if (AP4_FAILED(result)) return result;
+    AP4_Result result;
+    result = m_Container.Seek(m_Offset+m_Position);
+    if (AP4_FAILED(result)) return result;
 
     // write to container
-    AP4_Result result = m_Container.WritePartial(buffer, bytes_to_write, bytes_written);
+    result = m_Container.WritePartial(buffer, bytes_to_write, bytes_written);
     if (AP4_SUCCEEDED(result)) {
         m_Position += bytes_written;
     }

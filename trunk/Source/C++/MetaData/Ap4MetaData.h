@@ -41,10 +41,12 @@
 /*----------------------------------------------------------------------
 |   class references
 +---------------------------------------------------------------------*/
+class AP4_File;
 class AP4_MoovAtom;
 class AP4_DataBuffer;
 class AP4_ContainerAtom;
 class AP4_DataAtom;
+class AP4_3GppAtom;
 
 /*----------------------------------------------------------------------
 |   metadata keys
@@ -64,15 +66,12 @@ const AP4_Atom::Type AP4_ATOM_TYPE_cDAY = AP4_ATOM_TYPE('©','d','a','y'); // dat
 const AP4_Atom::Type AP4_ATOM_TYPE_cTOO = AP4_ATOM_TYPE('©','t','o','o'); // tool
 const AP4_Atom::Type AP4_ATOM_TYPE_cCMT = AP4_ATOM_TYPE('©','c','m','t'); // comment
 const AP4_Atom::Type AP4_ATOM_TYPE_cLYR = AP4_ATOM_TYPE('©','l','y','r'); // lyrics
-const AP4_Atom::Type AP4_ATOM_TYPE_CPRT = AP4_ATOM_TYPE('c','p','r','t'); // copyright
 const AP4_Atom::Type AP4_ATOM_TYPE_TRKN = AP4_ATOM_TYPE('t','r','k','n'); // track#
 const AP4_Atom::Type AP4_ATOM_TYPE_DISK = AP4_ATOM_TYPE('d','i','s','k'); // disk#
 const AP4_Atom::Type AP4_ATOM_TYPE_COVR = AP4_ATOM_TYPE('c','o','v','r'); // cover art
 const AP4_Atom::Type AP4_ATOM_TYPE_DESC = AP4_ATOM_TYPE('d','e','s','c'); // description
-const AP4_Atom::Type AP4_ATOM_TYPE_GNRE = AP4_ATOM_TYPE('g','n','r','e'); // genre (ID3v1 index + 1)
 const AP4_Atom::Type AP4_ATOM_TYPE_CPIL = AP4_ATOM_TYPE('c','p','i','l'); // compilation?
 const AP4_Atom::Type AP4_ATOM_TYPE_TMPO = AP4_ATOM_TYPE('t','m','p','o'); // tempo
-const AP4_Atom::Type AP4_ATOM_TYPE_RTNG = AP4_ATOM_TYPE('r','t','n','g'); // rating
 const AP4_Atom::Type AP4_ATOM_TYPE_apID = AP4_ATOM_TYPE('a','p','I','D');
 const AP4_Atom::Type AP4_ATOM_TYPE_cnID = AP4_ATOM_TYPE('c','n','I','D');
 const AP4_Atom::Type AP4_ATOM_TYPE_atID = AP4_ATOM_TYPE('a','t','I','D');
@@ -88,6 +87,19 @@ const AP4_Atom::Type AP4_ATOM_TYPE_TVSN = AP4_ATOM_TYPE('t','v','s','n'); // TV 
 const AP4_Atom::Type AP4_ATOM_TYPE_TVES = AP4_ATOM_TYPE('t','v','e','s'); // TV show episode #
 const AP4_Atom::Type AP4_ATOM_TYPE_STIK = AP4_ATOM_TYPE('s','t','i','k');
 const AP4_Atom::Type AP4_ATOM_TYPE_PGAP = AP4_ATOM_TYPE('p','g','a','p'); // Gapless Playback
+const AP4_Atom::Type AP4_ATOM_TYPE_TITL = AP4_ATOM_TYPE('t','i','t','l'); // 3GPP: title
+const AP4_Atom::Type AP4_ATOM_TYPE_DSCP = AP4_ATOM_TYPE('d','s','c','p'); // 3GPP: description
+const AP4_Atom::Type AP4_ATOM_TYPE_CPRT = AP4_ATOM_TYPE('c','p','r','t'); // ISO or ILST: copyright
+const AP4_Atom::Type AP4_ATOM_TYPE_PERF = AP4_ATOM_TYPE('p','e','r','f'); // 3GPP: performer
+const AP4_Atom::Type AP4_ATOM_TYPE_AUTH = AP4_ATOM_TYPE('a','u','t','h'); // 3GPP: author
+const AP4_Atom::Type AP4_ATOM_TYPE_GNRE = AP4_ATOM_TYPE('g','n','r','e'); // 3GPP or ILST: genre (in 3GPP -> string, in ILST -> ID3v1 index + 1)
+const AP4_Atom::Type AP4_ATOM_TYPE_RTNG = AP4_ATOM_TYPE('r','t','n','g'); // 3GPP or ILST: rating
+const AP4_Atom::Type AP4_ATOM_TYPE_CLSF = AP4_ATOM_TYPE('c','l','s','f'); // 3GPP: classification
+const AP4_Atom::Type AP4_ATOM_TYPE_KYWD = AP4_ATOM_TYPE('k','y','w','d'); // 3GPP: keywords
+const AP4_Atom::Type AP4_ATOM_TYPE_LOCI = AP4_ATOM_TYPE('l','o','c','i'); // 3GPP: location information
+const AP4_Atom::Type AP4_ATOM_TYPE_ALBM = AP4_ATOM_TYPE('a','l','b','m'); // 3GPP: album title and track number
+const AP4_Atom::Type AP4_ATOM_TYPE_YRRC = AP4_ATOM_TYPE('y','r','r','c'); // 3GPP: recording year
+const AP4_Atom::Type AP4_ATOM_TYPE_TSEL = AP4_ATOM_TYPE('t','s','e','l'); // 3GPP: track selection
 
 /*----------------------------------------------------------------------
 |   AP4_MetaData
@@ -156,10 +168,21 @@ public:
              m_Type(type), m_Meaning(meaning) {}
 
         // members
-        Type     m_Type;
+        Type    m_Type;
         Meaning m_Meaning;
     };
 
+    class StringValue : public Value {
+    public:
+        StringValue(const char* value) : Value(TYPE_STRING), m_Value(value) {}
+        virtual AP4_String ToString();
+        virtual AP4_Result ToBytes(AP4_DataBuffer& bytes);
+        virtual long       ToInteger();
+        
+    private:
+        AP4_String m_Value;
+    };
+    
     class KeyInfo {
     public:
         // members
@@ -187,8 +210,12 @@ public:
     static AP4_Array<KeyInfo> KeysInfos;
 
     // constructor
-    AP4_MetaData(AP4_MoovAtom* moov);
-
+    AP4_MetaData(AP4_File* file);
+    
+    // methods
+    AP4_Result ParseMoov(AP4_MoovAtom* moov);
+    AP4_Result ParseUdta(AP4_ContainerAtom* udta);
+    
     // destructor
     ~AP4_MetaData();
 
@@ -196,7 +223,8 @@ public:
     const AP4_List<Entry>& GetEntries() const { return m_Entries; }
 
     // methods
-    AP4_Result AddEntries(AP4_ContainerAtom* atom);
+    AP4_Result AddIlstEntries(AP4_ContainerAtom* atom);
+    AP4_Result Add3GppEntry(AP4_3GppAtom* atom);
 
 private:
     // members
@@ -219,8 +247,20 @@ public:
                                   AP4_Atom*&      atom);
 
 private:
-    // methods
-    bool IsMetaDataType(AP4_Atom::Type type);
+    // types
+    struct TypeList {
+        const AP4_Atom::Type* m_Types;
+        AP4_Size              m_Size;
+    };
+    
+    // class constants
+    static const AP4_Atom::Type IlstTypes[];
+    static const TypeList       IlstTypeList;
+    static const AP4_Atom::Type _3gppTypes[];
+    static const TypeList       _3gppTypeList;
+    
+    // class methods
+    static bool IsTypeInList(AP4_Atom::Type type, const TypeList& list);
 
     // members
     AP4_AtomFactory* m_AtomFactory;
@@ -250,6 +290,36 @@ protected:
 };
 
 /*----------------------------------------------------------------------
+|   AP4_3GppAtom
++---------------------------------------------------------------------*/
+class AP4_3GppAtom : public AP4_Atom
+{
+public:
+    // factory method
+    static AP4_3GppAtom* Create(Type type, AP4_UI32 size, AP4_ByteStream& stream);
+     
+    // constructor
+    AP4_3GppAtom(Type            type, 
+                 AP4_UI32        size, 
+                 AP4_UI32        version,
+                 AP4_UI32        flags,
+                 AP4_ByteStream& stream);
+    
+    // AP4_Atom methods
+    virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
+    virtual AP4_Result WriteFields(AP4_ByteStream& stream);
+    
+    // methods
+    const char*           GetLanguage() const { return m_Language; }
+    const AP4_DataBuffer& GetPayload() const  { return m_Payload;  }
+    
+private:
+    // members
+    char           m_Language[4];
+    AP4_DataBuffer m_Payload;
+};
+
+/*----------------------------------------------------------------------
 |   AP4_StringAtom
 +---------------------------------------------------------------------*/
 class AP4_StringAtom : public AP4_Atom
@@ -266,8 +336,6 @@ public:
     const AP4_String& GetValue() { return m_Value; }
 
 private:
-    // methods
-
     // members
     AP4_UI32   m_Reserved;
     AP4_String m_Value;
