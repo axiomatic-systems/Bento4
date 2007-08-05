@@ -94,3 +94,19 @@ AP4_OdheAtom::InspectFields(AP4_AtomInspector& inspector)
     inspector.AddField("content_type", m_ContentType.GetChars());
     return InspectChildren(inspector);
 }
+
+/*----------------------------------------------------------------------
+|   AP4_OdheAtom::OnChildChanged
++---------------------------------------------------------------------*/
+void
+AP4_OdheAtom::OnChildChanged(AP4_Atom*)
+{
+    // remcompute our size
+    AP4_UI64 size = GetHeaderSize()+1+m_ContentType.GetLength();
+    m_Children.Apply(AP4_AtomSizeAdder(size));
+    SetSize(size);
+
+    // update our parent
+    if (m_Parent) m_Parent->OnChildChanged(this);
+}
+
