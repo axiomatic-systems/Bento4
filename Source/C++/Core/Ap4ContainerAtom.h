@@ -65,9 +65,9 @@ public:
     virtual AP4_Atom*  Clone();
 
     // AP4_AtomParent methods
-    void OnChildChanged(AP4_Atom* child);
-    void OnChildAdded(AP4_Atom* child);
-    void OnChildRemoved(AP4_Atom* child);
+    virtual void OnChildChanged(AP4_Atom* child);
+    virtual void OnChildAdded(AP4_Atom* child);
+    virtual void OnChildRemoved(AP4_Atom* child);
 
 protected:
     // constructors

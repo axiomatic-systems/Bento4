@@ -48,10 +48,14 @@ public:
                                 AP4_ByteStream&  stream, 
                                 AP4_AtomFactory& atom_factory);
 
-    // methods
+    // AP4_Atom methods
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
     
+    // AP4_AtomParent methods
+    virtual void OnChildChanged(AP4_Atom* child);
+    
+    // methods
     const AP4_String& GetContentType() { return m_ContentType; }
     
 private:
