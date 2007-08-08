@@ -76,7 +76,8 @@ CORE_SOURCES = 								\
     Ap4UrlAtom.cpp                          \
     Ap4Utils.cpp                            \
     Ap4VmhdAtom.cpp                         \
-	
+    Ap4ElstAtom.cpp               
+
 CORE_OBJECTS=$(CORE_SOURCES:.cpp=.o)
 
 CRYPTO_SOURCES = Ap4StreamCipher.cpp Ap4AesBlockCipher.cpp
