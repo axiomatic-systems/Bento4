@@ -2,7 +2,7 @@
 |
 |    AP4 - Protected Streams support
 |
-|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf & Julien Boeuf
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -38,6 +38,11 @@
 #include "Ap4AtomFactory.h"
 #include "Ap4SampleDescription.h"
 #include "Ap4Processor.h"
+
+/*----------------------------------------------------------------------
+|   classes
++---------------------------------------------------------------------*/
+class AP4_StreamCipher;
 
 /*----------------------------------------------------------------------
 |   constants
@@ -298,5 +303,60 @@ private:
     AP4_BlockCipherFactory* m_BlockCipherFactory;
     AP4_ProtectionKeyMap    m_KeyMap;
 };
+
+/*----------------------------------------------------------------------
+|   AP4_DecryptingStream
++---------------------------------------------------------------------*/
+class AP4_DecryptingStream : private AP4_ByteStream {
+public:
+    typedef enum {
+        CIPHER_MODE_CTR,
+        CIPHER_MODE_CBC
+    } CipherMode;
+
+    static AP4_Result Create(CipherMode              mode,
+                             AP4_ByteStream&         encrypted_stream,
+                             AP4_LargeSize           cleartext_size,
+                             const AP4_UI08*         iv,
+                             AP4_Size                iv_size,
+                             const AP4_UI08*         key,
+                             AP4_Size                key_size,
+                             AP4_BlockCipherFactory* block_cipher_factory,
+                             AP4_ByteStream*&        stream);
+
+    // AP4_ByteStream methods
+    virtual AP4_Result ReadPartial(void*     buffer, 
+                                   AP4_Size  bytes_to_read, 
+                                   AP4_Size& bytes_read);
+    virtual AP4_Result WritePartial(const void* buffer, 
+                                    AP4_Size    bytes_to_write, 
+                                    AP4_Size&   bytes_written);
+    virtual AP4_Result Seek(AP4_Position position);
+    virtual AP4_Result Tell(AP4_Position& position);
+    virtual AP4_Result GetSize(AP4_LargeSize& size);
+
+    // AP4_Referenceable methods
+    virtual void AddReference();
+    virtual void Release();
+
+private:
+    // methods
+    AP4_DecryptingStream() {} // use the factory instead
+    ~AP4_DecryptingStream();
+
+    // members
+    CipherMode        m_Mode;
+    AP4_LargeSize     m_CleartextSize;
+    AP4_Position      m_CleartextPosition;
+    AP4_ByteStream*   m_EncryptedStream;
+    AP4_LargeSize     m_EncryptedSize;
+    AP4_Position      m_EncryptedPosition;
+    AP4_StreamCipher* m_StreamCipher;
+    AP4_UI08          m_Buffer[16];
+    AP4_Size          m_BufferFullness;
+    AP4_Size          m_BufferOffset;
+    AP4_Cardinal      m_ReferenceCount;
+};
+
 
 #endif // _AP4_PROTECTION_H_
