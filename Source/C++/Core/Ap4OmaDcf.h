@@ -2,7 +2,7 @@
 |
 |    AP4 - OMA DCF support
 |
-|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf & Julien Boeuf
+|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -62,54 +62,6 @@ typedef enum {
 } AP4_OmaDcfCipherMode;
 
 /*----------------------------------------------------------------------
-|   AP4_OmaDecryptingStream
-+---------------------------------------------------------------------*/
-class AP4_OmaDecryptingStream : public AP4_ByteStream {
-public:
-    static AP4_Result Create(AP4_OmaDcfCipherMode      mode,
-                             AP4_ByteStream&           encrypted_stream,
-                             AP4_LargeSize             cleartext_size,
-                             const AP4_UI08*           key,
-                             AP4_Size                  key_size,
-                             AP4_BlockCipherFactory*   block_cipher_factory,
-                             AP4_OmaDecryptingStream*& stream);
-    ~AP4_OmaDecryptingStream();
-
-    // AP4_ByteStream methods
-    virtual AP4_Result ReadPartial(void*     buffer, 
-                                   AP4_Size  bytes_to_read, 
-                                   AP4_Size& bytes_read);
-    virtual AP4_Result WritePartial(const void* buffer, 
-                                    AP4_Size    bytes_to_write, 
-                                    AP4_Size&   bytes_written);
-    virtual AP4_Result Seek(AP4_Position position);
-    virtual AP4_Result Tell(AP4_Position& position);
-    virtual AP4_Result GetSize(AP4_LargeSize& size);
-
-    // AP4_Referenceable methods
-    virtual void AddReference();
-    virtual void Release();
-
-private:
-    // methods
-    AP4_OmaDecryptingStream() {} // use the factory instead
-
-    // members
-    AP4_OmaDcfCipherMode m_Mode;
-    AP4_LargeSize        m_CleartextSize;
-    AP4_Position         m_CleartextPosition;
-    AP4_ByteStream*      m_EncryptedStream;
-    AP4_Position         m_EncryptedStart;
-    AP4_LargeSize        m_EncryptedSize;
-    AP4_Position         m_EncryptedPosition;
-    AP4_StreamCipher*    m_StreamCipher;
-    AP4_UI08             m_Buffer[16];
-    AP4_Size             m_BufferFullness;
-    AP4_Size             m_BufferOffset;
-    AP4_Cardinal         m_ReferenceCount;
-};
-
-/*----------------------------------------------------------------------
 |   AP4_OmaDcfAtomDecrypter
 +---------------------------------------------------------------------*/
 class AP4_OmaDcfAtomDecrypter {
@@ -120,7 +72,21 @@ public:
                                    AP4_BlockCipherFactory*          block_cipher_factory,
                                    AP4_ProtectionKeyMap&            key_map);
 
+    // Returns a byte stream that will produce the decrypted data found
+    // in the 'odd'a child atom of an 'odrm' atom
     static AP4_Result CreateDecryptingStream(AP4_ContainerAtom&      odrm_atom,
+                                             const AP4_UI08*         key,
+                                             AP4_Size                key_size,
+                                             AP4_BlockCipherFactory* block_cipher_factory,
+                                             AP4_ByteStream*&        stream);
+
+    // Returns a byte stream that will produce the decrypted data from
+    // an encrypted stream where the IV follows the encrypted bytes.
+    // This method is normally not called directly: most callers will call 
+    // the stream factory that takes an 'odrm' atom as an input parameter
+    static AP4_Result CreateDecryptingStream(AP4_OmaDcfCipherMode    mode,
+                                             AP4_ByteStream&         encrypted_stream,
+                                             AP4_LargeSize           cleartext_size,
                                              const AP4_UI08*         key,
                                              AP4_Size                key_size,
                                              AP4_BlockCipherFactory* block_cipher_factory,
@@ -297,7 +263,7 @@ private:
     // members
     AP4_CbcStreamCipher* m_Cipher;
 };
-
+                                                        
 /*----------------------------------------------------------------------
 |   AP4_TrackPropertyMap
 +---------------------------------------------------------------------*/
