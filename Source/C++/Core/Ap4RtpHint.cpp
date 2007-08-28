@@ -116,13 +116,13 @@ AP4_RtpSampleData::ToByteStream()
     if (AP4_FAILED(result)) goto bail;
 
     {
-		AP4_List<AP4_RtpPacket>::Item* it = m_Packets.FirstItem();
-		while (it != NULL) {
-			result = it->GetData()->Write(*stream);
-			if (AP4_FAILED(result)) goto bail;
-			it = it->GetNext();
-		}
-	}
+        AP4_List<AP4_RtpPacket>::Item* it = m_Packets.FirstItem();
+        while (it != NULL) {
+            result = it->GetData()->Write(*stream);
+            if (AP4_FAILED(result)) goto bail;
+            it = it->GetNext();
+        }
+    }
 
     result = stream->Write(m_ExtraData.GetData(), m_ExtraData.GetDataSize());
     if (AP4_FAILED(result)) goto bail;
@@ -149,15 +149,15 @@ AP4_RtpSampleData::AddPacket(AP4_RtpPacket* packet)
 /*----------------------------------------------------------------------
 |   AP4_RtpPacket::AP4_RtpPacket
 +---------------------------------------------------------------------*/
-AP4_RtpPacket::AP4_RtpPacket(int  relative_time, 
-                             bool p_bit, 
-                             bool x_bit, 
-                             bool m_bit, 
+AP4_RtpPacket::AP4_RtpPacket(int      relative_time, 
+                             bool     p_bit, 
+                             bool     x_bit, 
+                             bool     m_bit, 
                              AP4_UI08 payload_type, 
                              AP4_UI16 sequence_seed, 
-                             int  time_stamp_offset /* = 0 */,
-                             bool bframe_flag /* = false */, 
-                             bool repeat_flag /* = false */) :
+                             int      time_stamp_offset /* = 0 */,
+                             bool     bframe_flag /* = false */, 
+                             bool     repeat_flag /* = false */) :
     m_ReferenceCount(1),
     m_RelativeTime(relative_time),
     m_PBit(p_bit),
@@ -617,6 +617,7 @@ AP4_RtpConstructorFactory::CreateConstructorFromStream(AP4_ByteStream& stream,
     AP4_Result result = stream.ReadUI08(type);
     if (AP4_FAILED(result)) return result;
 
+    // now create the right constructor
     switch(type) {
         case AP4_RTP_CONSTRUCTOR_TYPE_NOOP:
             constructor = new AP4_NoopRtpConstructor(stream);

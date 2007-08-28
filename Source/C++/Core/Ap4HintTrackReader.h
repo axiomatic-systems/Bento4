@@ -56,13 +56,13 @@ public:
     // constructor and destructor
     AP4_HintTrackReader(AP4_Track& hint_track, 
                         AP4_Movie& movie, 
-                        AP4_UI32 ssrc = 0); // if 0, random value is chosen
+                        AP4_UI32   ssrc = 0); // if 0, random value is chosen
     ~AP4_HintTrackReader();
 
     // methods
     AP4_Result      GetNextPacket(AP4_DataBuffer& packet, 
-                                  AP4_TimeStamp& ts_ms);
-    AP4_Result      SeekToTimeStampMs(AP4_TimeStamp desired_ts,
+                                  AP4_TimeStamp&  ts_ms);
+    AP4_Result      SeekToTimeStampMs(AP4_TimeStamp  desired_ts,
                                       AP4_TimeStamp& actual_ts);
     AP4_TimeStamp   GetCurrentTimeStampMs();
     AP4_Result      Rewind();
@@ -72,12 +72,12 @@ public:
 private:
     // methods
     AP4_Result GetRtpSample(AP4_Ordinal index);
-    AP4_Result BuildRtpPacket(AP4_RtpPacket* packet, 
+    AP4_Result BuildRtpPacket(AP4_RtpPacket*  packet, 
                               AP4_DataBuffer& packet_data);
     AP4_Result WriteImmediateRtpData(AP4_ImmediateRtpConstructor* constructor,
-                                     AP4_ByteStream* data_stream);
+                                     AP4_ByteStream*              data_stream);
     AP4_Result WriteSampleRtpData(AP4_SampleRtpConstructor* constructor,
-                                  AP4_ByteStream* data_stream);
+                                  AP4_ByteStream*           data_stream);
 
     // members
     AP4_Track&          m_HintTrack;
