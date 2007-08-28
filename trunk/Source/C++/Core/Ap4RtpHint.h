@@ -82,15 +82,15 @@ class AP4_RtpPacket : public AP4_Referenceable
 public:
     // constructor and destructor
     AP4_RtpPacket(AP4_ByteStream& stream);
-    AP4_RtpPacket(int  relative_time,
-                  bool p_bit,
-                  bool x_bit,
-                  bool m_bit,
+    AP4_RtpPacket(int      relative_time,
+                  bool     p_bit,
+                  bool     x_bit,
+                  bool     m_bit,
                   AP4_UI08 payload_type,
                   AP4_UI16 sequence_seed,
-                  int  time_stamp_offset = 0,
-                  bool bframe_flag = false,
-                  bool repeat_flag = false);
+                  int      time_stamp_offset = 0,
+                  bool     bframe_flag = false,
+                  bool     repeat_flag = false);
     ~AP4_RtpPacket();
 
     // methods
@@ -290,7 +290,7 @@ protected:
 class AP4_RtpConstructorFactory 
 {
 public:
-    static AP4_Result CreateConstructorFromStream(AP4_ByteStream& stream,
+    static AP4_Result CreateConstructorFromStream(AP4_ByteStream&      stream,
                                                   AP4_RtpConstructor*& constructor);
 };
 
