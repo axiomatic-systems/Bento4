@@ -247,7 +247,7 @@ AP4_CbcStreamCipher::SetStreamOffset(AP4_UI64       offset,
     }
     if (offset == m_StreamOffset) {
         *preroll = m_PrerollByteCount;
-        m_OutputSkip = offset%AP4_CIPHER_BLOCK_SIZE;
+        m_OutputSkip = (AP4_Size)(offset%AP4_CIPHER_BLOCK_SIZE);
         return AP4_SUCCESS;
     }
 
@@ -263,7 +263,7 @@ AP4_CbcStreamCipher::SetStreamOffset(AP4_UI64       offset,
     
     *preroll = m_PrerollByteCount;
     m_StreamOffset = offset;
-    m_OutputSkip = offset%AP4_CIPHER_BLOCK_SIZE;
+    m_OutputSkip = (AP4_Size)(offset%AP4_CIPHER_BLOCK_SIZE);
     return AP4_SUCCESS;
 }
 
