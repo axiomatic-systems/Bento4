@@ -706,10 +706,14 @@ AP4_MetaData::Entry::AddToFile(AP4_File& file, AP4_Ordinal index)
     AP4_MoovAtom* moov = movie->GetMoovAtom();
     if (moov == NULL) return AP4_ERROR_INVALID_FORMAT;
     
-    // look for 'udta/meta', and create if it does not exist
-    AP4_ContainerAtom* meta = dynamic_cast<AP4_ContainerAtom*>(moov->FindChild("udta/meta", true, true));
-    if (meta == NULL) return AP4_ERROR_INTERNAL;
+    // look for 'udta', and create if it does not exist 
+    AP4_ContainerAtom* udta = dynamic_cast<AP4_ContainerAtom*>(moov->FindChild("udta", true));
+    if (udta == NULL) return AP4_ERROR_INTERNAL;
     
+    // look for 'meta', and create if it does not exist ('meta' is a FULL atom)
+    AP4_ContainerAtom* meta = dynamic_cast<AP4_ContainerAtom*>(udta->FindChild("meta", true, true));
+    if (meta == NULL) return AP4_ERROR_INTERNAL;
+
     // look for a 'hdlr' atom type 'mdir'
     AP4_HdlrAtom* hdlr = dynamic_cast<AP4_HdlrAtom*>(meta->FindChild("hdlr"));
     if (hdlr == NULL) {
