@@ -174,7 +174,7 @@ int
 AP4_String::Find(char c, unsigned int start) const
 {
     const char* chars = GetChars();
-    for (int i=start; i<m_Length; i++) {
+    for (unsigned int i=start; i<m_Length; i++) {
         if (chars[i] == c) return i;
     }
     return -1;

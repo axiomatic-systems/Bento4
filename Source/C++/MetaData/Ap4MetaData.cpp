@@ -659,7 +659,7 @@ AP4_MetaData::Entry::ToAtom() const
 |   AP4_MetaData::Entry::FindInIlst
 +---------------------------------------------------------------------*/
 AP4_ContainerAtom*
-AP4_MetaData::AP4_MetaData::Entry::FindInIlst(AP4_ContainerAtom* ilst) const
+AP4_MetaData::Entry::FindInIlst(AP4_ContainerAtom* ilst) const
 {
     if (m_Key.GetNamespace() == "meta") {
         AP4_Atom::Type atom_type = AP4_Atom::TypeFromString(m_Key.GetName().GetChars());
