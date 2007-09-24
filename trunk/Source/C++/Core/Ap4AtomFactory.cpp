@@ -198,16 +198,6 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
         atom = AP4_HdlrAtom::Create(size_32, stream);
         break;
 
-      case AP4_ATOM_TYPE_DREF:
-        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        atom = AP4_DrefAtom::Create(size_32, stream, *this);
-        break;
-
-      case AP4_ATOM_TYPE_URL:
-        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        atom = AP4_UrlAtom::Create(size_32, stream);
-        break;
-
       case AP4_ATOM_TYPE_TKHD:
         if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
         atom = AP4_TkhdAtom::Create(size_32, stream);
@@ -216,11 +206,6 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
       case AP4_ATOM_TYPE_MDHD:
         if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
         atom = AP4_MdhdAtom::Create(size_32, stream);
-        break;
-
-      case AP4_ATOM_TYPE_ELST:
-        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        atom = AP4_ElstAtom::Create(size_32, stream);
         break;
 
       case AP4_ATOM_TYPE_STSD:
@@ -263,9 +248,9 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
         atom = AP4_StssAtom::Create(size_32, stream);
         break;
 
-      case AP4_ATOM_TYPE_MP4S:
+      case AP4_ATOM_TYPE_ESDS:
         if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        atom = new AP4_Mp4sSampleEntry(size_32, stream, *this);
+        atom = AP4_EsdsAtom::Create(size_32, stream);
         break;
 
       case AP4_ATOM_TYPE_MP4A:
@@ -281,6 +266,32 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
       case AP4_ATOM_TYPE_AVC1:
         if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
         atom = new AP4_Avc1SampleEntry(size_32, stream, *this);
+        break;
+
+      case AP4_ATOM_TYPE_AVCC:
+        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+        atom = AP4_AvccAtom::Create(size_32, stream);
+        break;
+
+#if !defined(AP4_CONFIG_MINI_BUILD)
+      case AP4_ATOM_TYPE_DREF:
+        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+        atom = AP4_DrefAtom::Create(size_32, stream, *this);
+        break;
+
+      case AP4_ATOM_TYPE_URL:
+        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+        atom = AP4_UrlAtom::Create(size_32, stream);
+        break;
+
+      case AP4_ATOM_TYPE_ELST:
+        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+        atom = AP4_ElstAtom::Create(size_32, stream);
+        break;
+
+      case AP4_ATOM_TYPE_MP4S:
+        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+        atom = new AP4_Mp4sSampleEntry(size_32, stream, *this);
         break;
 
       case AP4_ATOM_TYPE_ENCA:
@@ -301,11 +312,6 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
       case AP4_ATOM_TYPE_DRMI:
         if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
         atom = new AP4_DrmiSampleEntry(size_32, stream, *this);
-        break;
-
-      case AP4_ATOM_TYPE_ESDS:
-        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        atom = AP4_EsdsAtom::Create(size_32, stream);
         break;
 
       case AP4_ATOM_TYPE_VMHD:
@@ -406,10 +412,7 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
         atom = AP4_IproAtom::Create(size_32, stream, *this);
         break;
 
-      case AP4_ATOM_TYPE_AVCC:
-        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        atom = AP4_AvccAtom::Create(size_32, stream);
-        break;
+#endif // AP4_CONFIG_MINI_BUILD
 
       // container atoms
       case AP4_ATOM_TYPE_TREF:

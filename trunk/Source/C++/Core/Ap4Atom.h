@@ -117,6 +117,7 @@ class AP4_Atom {
     typedef AP4_UI32 Type;
 
     // class methods
+    static Type TypeFromString(const char* four_cc);
     static AP4_Result ReadFullHeader(AP4_ByteStream& stream, 
                                      AP4_UI32&       version, 
                                      AP4_UI32&       flags);
@@ -212,10 +213,11 @@ public:
     AP4_List<AP4_Atom>& GetChildren() { return m_Children; }
     virtual AP4_Result  AddChild(AP4_Atom* child, int position = -1);
     virtual AP4_Result  RemoveChild(AP4_Atom* child);
-    virtual AP4_Result  DeleteChild(AP4_Atom::Type type);
+    virtual AP4_Result  DeleteChild(AP4_Atom::Type type, AP4_Ordinal index = 0);
     virtual AP4_Atom*   GetChild(AP4_Atom::Type type, AP4_Ordinal index = 0) const;
     virtual AP4_Atom*   FindChild(const char* path, 
-                                  bool        auto_create = false);
+                                  bool        auto_create = false,
+                                  bool        auto_create_full = false);
 
     // methods designed to be overridden
     virtual void OnChildChanged(AP4_Atom* /* child */) {}

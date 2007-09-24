@@ -59,6 +59,22 @@ AP4_ContainerAtom::Create(Type             type,
 /*----------------------------------------------------------------------
 |   AP4_ContainerAtom::AP4_ContainerAtom
 +---------------------------------------------------------------------*/
+AP4_ContainerAtom::AP4_ContainerAtom(Type type) :
+    AP4_Atom(type, AP4_ATOM_HEADER_SIZE)
+{
+}
+
+/*----------------------------------------------------------------------
+|   AP4_ContainerAtom::AP4_ContainerAtom
++---------------------------------------------------------------------*/
+AP4_ContainerAtom::AP4_ContainerAtom(Type type, AP4_UI32 version, AP4_UI32 flags) :
+    AP4_Atom(type, AP4_FULL_ATOM_HEADER_SIZE, version, flags)
+{
+}
+
+/*----------------------------------------------------------------------
+|   AP4_ContainerAtom::AP4_ContainerAtom
++---------------------------------------------------------------------*/
 AP4_ContainerAtom::AP4_ContainerAtom(Type type, AP4_UI64 size) :
     AP4_Atom(type, size)
 {

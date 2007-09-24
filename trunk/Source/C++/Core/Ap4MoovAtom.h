@@ -62,6 +62,7 @@ public:
     AP4_UI32 GetTimeScale() {
         return m_TimeScale;
     }
+    AP4_Result AdjustChunkOffsets(AP4_SI64 offset);
     
     // AP4_AtomParent methods
     void OnChildAdded(AP4_Atom* atom);

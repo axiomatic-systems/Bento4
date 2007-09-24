@@ -79,6 +79,22 @@ AP4_MoovAtom::AP4_MoovAtom(AP4_UI32         size,
 }
 
 /*----------------------------------------------------------------------
+|   AP4_MoovAtom::AdjustChunkOffsets
++---------------------------------------------------------------------*/
+AP4_Result 
+AP4_MoovAtom::AdjustChunkOffsets(AP4_SI64 offset)
+{
+    for (AP4_List<AP4_TrakAtom>::Item* item = m_TrakAtoms.FirstItem();
+         item;
+         item = item->GetNext()) {
+        AP4_TrakAtom* trak = item->GetData();
+        trak->AdjustChunkOffsets(offset);
+    }
+
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
 |   AP4_MoovAtom::OnChildAdded
 +---------------------------------------------------------------------*/
 void

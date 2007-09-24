@@ -45,7 +45,9 @@
 AP4_File::AP4_File(AP4_Movie* movie) :
     m_Movie(movie),
     m_FileType(NULL),
-    m_MetaData(NULL)
+    m_MetaData(NULL),
+    m_MoovAtomPosition(0),
+    m_MdatAtomPosition(0)
 {
 }
 
@@ -55,23 +57,34 @@ AP4_File::AP4_File(AP4_Movie* movie) :
 AP4_File::AP4_File(AP4_ByteStream& stream, AP4_AtomFactory& atom_factory) :
     m_Movie(NULL),
     m_FileType(NULL),
-    m_MetaData(NULL)
+    m_MetaData(NULL),
+    m_MoovAtomPosition(0),
+    m_MdatAtomPosition(0)
 {
     // get all atoms
     AP4_Atom* atom;
-    while (AP4_SUCCEEDED(atom_factory.CreateAtomFromStream(stream, atom))) {
+    AP4_Position position = 0;
+    while (stream.Tell(position), 
+           AP4_SUCCEEDED(atom_factory.CreateAtomFromStream(stream, atom))) {
         switch (atom->GetType()) {
             case AP4_ATOM_TYPE_MOOV:
                 m_Movie = new AP4_Movie(dynamic_cast<AP4_MoovAtom*>(atom),
                                         stream);
+                m_MoovAtomPosition = position;
                 break;
 
             case AP4_ATOM_TYPE_FTYP:
                 m_FileType = dynamic_cast<AP4_FtypAtom*>(atom);
                 break;
 
+            case AP4_ATOM_TYPE_MDAT:
+                // remember the offset of the media data
+                m_MdatAtomPosition = position;
+                // FALLTHROUGH
+                
             default:
                 m_OtherAtoms.Add(atom);
+                break;
         }
     }
 }
@@ -131,4 +144,3 @@ AP4_File::GetMetaData()
 
     return m_MetaData;
 }
-

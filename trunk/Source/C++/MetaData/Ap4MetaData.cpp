@@ -43,30 +43,45 @@
 |   metadata keys
 +---------------------------------------------------------------------*/
 static const AP4_MetaData::KeyInfo AP4_MetaData_KeyInfos [] = {
-    {"Name",        "Name",        AP4_ATOM_TYPE_cNAM, AP4_MetaData::Value::TYPE_STRING},
-    {"Artist",      "Artist",      AP4_ATOM_TYPE_cART, AP4_MetaData::Value::TYPE_STRING},
-    {"Composer",    "Composer",    AP4_ATOM_TYPE_cCOM, AP4_MetaData::Value::TYPE_STRING},
-    {"Writer",      "Writer",      AP4_ATOM_TYPE_cWRT, AP4_MetaData::Value::TYPE_STRING},
-    {"Album",       "Album",       AP4_ATOM_TYPE_cALB, AP4_MetaData::Value::TYPE_STRING},
-    {"Genre",       "Genre",       AP4_ATOM_TYPE_GNRE, AP4_MetaData::Value::TYPE_INTEGER},
-    {"Genre2",      "Genre",       AP4_ATOM_TYPE_cGEN, AP4_MetaData::Value::TYPE_INTEGER},
-    {"Grouping",    "Grouping",    AP4_ATOM_TYPE_cGRP, AP4_MetaData::Value::TYPE_STRING},
-    {"Date",        "Date",        AP4_ATOM_TYPE_cDAY, AP4_MetaData::Value::TYPE_STRING},
-    {"Tool",        "Tool",        AP4_ATOM_TYPE_cTOO, AP4_MetaData::Value::TYPE_STRING},
-    {"Comment",     "Comment",     AP4_ATOM_TYPE_cCMT, AP4_MetaData::Value::TYPE_STRING},
-    {"Lyrics",      "Lyrics",      AP4_ATOM_TYPE_cCMT, AP4_MetaData::Value::TYPE_STRING},
-    {"Copyright",   "Copyright",   AP4_ATOM_TYPE_CPRT, AP4_MetaData::Value::TYPE_STRING},
-    {"Track",       "Track Number",AP4_ATOM_TYPE_TRKN, AP4_MetaData::Value::TYPE_INTEGER},
-    {"Disc",        "Disc Number", AP4_ATOM_TYPE_DISK, AP4_MetaData::Value::TYPE_INTEGER},
-    {"Cover",       "Cover Art",   AP4_ATOM_TYPE_COVR, AP4_MetaData::Value::TYPE_BINARY},
-    {"Description", "Description", AP4_ATOM_TYPE_DESC, AP4_MetaData::Value::TYPE_STRING},
-    {"Rating",      "Rating",      AP4_ATOM_TYPE_RTNG, AP4_MetaData::Value::TYPE_INTEGER},
-    {"Compilation", "Compilation", AP4_ATOM_TYPE_CPIL, AP4_MetaData::Value::TYPE_INTEGER},
-    {"Gapless",     "Gapless",     AP4_ATOM_TYPE_PGAP, AP4_MetaData::Value::TYPE_INTEGER},
-    {"Title",       "Title",       AP4_ATOM_TYPE_TITL, AP4_MetaData::Value::TYPE_STRING},
-    {"Description", "Description", AP4_ATOM_TYPE_DSCP, AP4_MetaData::Value::TYPE_STRING}
+    {"Name",                "Name",                 AP4_ATOM_TYPE_cNAM, AP4_MetaData::Value::TYPE_STRING_UTF_8},
+    {"Artist",              "Artist",               AP4_ATOM_TYPE_cART, AP4_MetaData::Value::TYPE_STRING_UTF_8},
+    {"AlbumArtist",         "Album Artist",         AP4_ATOM_TYPE_aART, AP4_MetaData::Value::TYPE_STRING_UTF_8},
+    {"Composer",            "Composer",             AP4_ATOM_TYPE_cCOM, AP4_MetaData::Value::TYPE_STRING_UTF_8},
+    {"Writer",              "Writer",               AP4_ATOM_TYPE_cWRT, AP4_MetaData::Value::TYPE_STRING_UTF_8},
+    {"Album",               "Album",                AP4_ATOM_TYPE_cALB, AP4_MetaData::Value::TYPE_STRING_UTF_8},
+    {"GenreCode",           "Genre",                AP4_ATOM_TYPE_GNRE, AP4_MetaData::Value::TYPE_BINARY},
+    {"GenreName",           "Genre",                AP4_ATOM_TYPE_cGEN, AP4_MetaData::Value::TYPE_STRING_UTF_8},
+    {"Grouping",            "Grouping",             AP4_ATOM_TYPE_cGRP, AP4_MetaData::Value::TYPE_STRING_UTF_8},
+    {"Date",                "Date",                 AP4_ATOM_TYPE_cDAY, AP4_MetaData::Value::TYPE_STRING_UTF_8},
+    {"Tool",                "Encoding Tool",        AP4_ATOM_TYPE_cTOO, AP4_MetaData::Value::TYPE_STRING_UTF_8},
+    {"Comment",             "Comment",              AP4_ATOM_TYPE_cCMT, AP4_MetaData::Value::TYPE_STRING_UTF_8},
+    {"Lyrics",              "Lyrics",               AP4_ATOM_TYPE_cLYR, AP4_MetaData::Value::TYPE_STRING_UTF_8},
+    {"Copyright",           "Copyright",            AP4_ATOM_TYPE_CPRT, AP4_MetaData::Value::TYPE_STRING_UTF_8},
+    {"Track",               "Track Number",         AP4_ATOM_TYPE_TRKN, AP4_MetaData::Value::TYPE_BINARY},
+    {"Disc",                "Disc Number",          AP4_ATOM_TYPE_DISK, AP4_MetaData::Value::TYPE_BINARY},
+    {"Cover",               "Cover Art",            AP4_ATOM_TYPE_COVR, AP4_MetaData::Value::TYPE_BINARY},
+    {"Description",         "Description",          AP4_ATOM_TYPE_DESC, AP4_MetaData::Value::TYPE_STRING_UTF_8},
+    {"Rating",              "Rating",               AP4_ATOM_TYPE_RTNG, AP4_MetaData::Value::TYPE_INT_08_BE},
+    {"Tempo",               "Tempo",                AP4_ATOM_TYPE_TMPO, AP4_MetaData::Value::TYPE_INT_16_BE},
+    {"Compilation",         "Compilation",          AP4_ATOM_TYPE_CPIL, AP4_MetaData::Value::TYPE_INT_08_BE},
+    {"IsGapless",           "Is Gapless",           AP4_ATOM_TYPE_PGAP, AP4_MetaData::Value::TYPE_INT_08_BE},
+    {"Title",               "Title",                AP4_ATOM_TYPE_TITL, AP4_MetaData::Value::TYPE_STRING_UTF_8},
+    {"Description",         "Description",          AP4_ATOM_TYPE_DSCP, AP4_MetaData::Value::TYPE_STRING_UTF_8},
+    {"StoreFrontID",        "Store Front ID",       AP4_ATOM_TYPE_sfID, AP4_MetaData::Value::TYPE_INT_32_BE},
+    {"FileKind",            "File Kind",            AP4_ATOM_TYPE_STIK, AP4_MetaData::Value::TYPE_INT_08_BE},
+    {"ShowName",            "Show Name",            AP4_ATOM_TYPE_TVSH, AP4_MetaData::Value::TYPE_STRING_UTF_8},
+    {"ShowSeason",          "Show Season Number",   AP4_ATOM_TYPE_TVSN, AP4_MetaData::Value::TYPE_INT_32_BE},
+    {"ShowEpisodeNumber",   "Show Episode Number",  AP4_ATOM_TYPE_TVES, AP4_MetaData::Value::TYPE_INT_32_BE},
+    {"ShowEpisodeName",     "Show Episode Name",    AP4_ATOM_TYPE_TVEN, AP4_MetaData::Value::TYPE_STRING_UTF_8},
+    {"TVNetworkName",       "TV Network Name",      AP4_ATOM_TYPE_TVNN, AP4_MetaData::Value::TYPE_STRING_UTF_8},
+    {"IsPodcast",           "Is a Podcast",         AP4_ATOM_TYPE_PCST, AP4_MetaData::Value::TYPE_INT_08_BE},
+    {"PodcastUrl",          "Podcast URL",          AP4_ATOM_TYPE_PURL, AP4_MetaData::Value::TYPE_BINARY},
+    {"PodcastGuid",         "Podcast GUID",         AP4_ATOM_TYPE_EGID, AP4_MetaData::Value::TYPE_BINARY},
+    {"PodcastCategory",     "Podcast Category",     AP4_ATOM_TYPE_CATG, AP4_MetaData::Value::TYPE_STRING_UTF_8},
+    {"Keywords",            "Keywords",             AP4_ATOM_TYPE_KEYW, AP4_MetaData::Value::TYPE_STRING_UTF_8},
+    {"PurchaseDate",        "Purchase Date",        AP4_ATOM_TYPE_PURD, AP4_MetaData::Value::TYPE_STRING_UTF_8}
 };
-AP4_Array<AP4_MetaData::KeyInfo> AP4_MetaData::KeysInfos(
+AP4_Array<AP4_MetaData::KeyInfo> AP4_MetaData::KeyInfos(
     AP4_MetaData_KeyInfos, 
     sizeof(AP4_MetaData_KeyInfos)/sizeof(KeyInfo));
 
@@ -203,6 +218,49 @@ static const char* const Ap4Id3Genres[] =
     "Dance Hall"
 };
 
+static const char*
+Ap4StikNames[] = {
+    "Movie",            // 0
+    "Normal",           // 1
+    "Audiobook",        // 2
+    "?",                // 3
+    "?",                // 4
+    "Whacked Bookmark", // 5
+    "Music Video",      // 6
+    "?",                // 7
+    "?",                // 8
+    "Short Film",       // 9 
+    "TV Show",          // 10
+    "Booklet",          // 11
+    "?",                // 12
+    "?",                // 13
+    "Ring Tone"         // 14
+};
+
+/* sfID Store Front country
+    Australia   => 143460,
+    Austria     => 143445,
+    Belgium     => 143446,
+    Canada      => 143455,
+    Denmark     => 143458,
+    Finland     => 143447,
+    France      => 143442,
+    Germany     => 143443,
+    Greece      => 143448,
+    Ireland     => 143449,
+    Italy       => 143450,
+    Japan       => 143462,
+    Luxembourg  => 143451,
+    Netherlands => 143452,
+    Norway      => 143457,
+    Portugal    => 143453,
+    Spain       => 143454,
+    Sweden      => 143456,
+    Switzerland => 143459,
+    UK          => 143444,
+    USA         => 143441,
+*/
+
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
@@ -258,6 +316,7 @@ const AP4_Atom::Type AP4_MetaDataAtomTypeHandler::IlstTypes[] =
     AP4_ATOM_TYPE_RTNG,
     AP4_ATOM_TYPE_apID,
     AP4_ATOM_TYPE_cnID,
+    AP4_ATOM_TYPE_cmID,
     AP4_ATOM_TYPE_atID,
     AP4_ATOM_TYPE_plID,
     AP4_ATOM_TYPE_geID,
@@ -270,7 +329,17 @@ const AP4_Atom::Type AP4_MetaDataAtomTypeHandler::IlstTypes[] =
     AP4_ATOM_TYPE_TVSN,
     AP4_ATOM_TYPE_TVES,
     AP4_ATOM_TYPE_STIK,
-    AP4_ATOM_TYPE_PGAP
+    AP4_ATOM_TYPE_PGAP,
+    AP4_ATOM_TYPE_PCST,
+    AP4_ATOM_TYPE_PURD,
+    AP4_ATOM_TYPE_PURL,
+    AP4_ATOM_TYPE_EGID,
+    AP4_ATOM_TYPE_SONM,
+    AP4_ATOM_TYPE_SOAL,
+    AP4_ATOM_TYPE_SOAR,
+    AP4_ATOM_TYPE_SOAA,
+    AP4_ATOM_TYPE_SOCO,
+    AP4_ATOM_TYPE_SOSN
 };
 const AP4_MetaDataAtomTypeHandler::TypeList AP4_MetaDataAtomTypeHandler::IlstTypeList = {
     IlstTypes,
@@ -446,23 +515,12 @@ AP4_MetaData::AddIlstEntries(AP4_ContainerAtom* atom)
         const char* key_namespace = NULL;
         char        four_cc[5];
 
-        // look for a match in the key infos
-        for (unsigned int i=0; 
-             i<sizeof(AP4_MetaData_KeyInfos)/sizeof(AP4_MetaData_KeyInfos[0]); 
-             i++) {
-            if (AP4_MetaData_KeyInfos[i].four_cc == atom->GetType()) {
-                key_name = AP4_MetaData_KeyInfos[i].name;
-                break;
-            }
-        }
-        if (key_name == NULL) {
-            // this key was not found in the key infos, create a name for it
-            AP4_FormatFourChars(four_cc, (AP4_UI32)atom->GetType());
-            key_name = four_cc;
+        // convert the atom type to a name
+        AP4_FormatFourChars(four_cc, (AP4_UI32)atom->GetType());
+        key_name = four_cc;
 
-            // put this name in the 'meta' namespace
-            key_namespace = "meta";
-        }
+        // put this name in the 'meta' namespace
+        key_namespace = "meta";
 
         // add one entry for each data atom
         AP4_List<AP4_Atom>::Item* data_item = atom->GetChildren().FirstItem();
@@ -517,7 +575,7 @@ AP4_MetaData::Add3GppEntry(AP4_3GppAtom* atom)
                 key_namespace = "udta";
             }
 
-            AP4_MetaData::Value* value = new AP4_MetaData::StringValue((const char*)atom->GetPayload().GetData());
+            AP4_MetaData::Value* value = new AP4_StringMetaDataValue((const char*)atom->GetPayload().GetData());
             m_Entries.Add(new Entry(key_name, key_namespace, value));
             break;
         }
@@ -527,50 +585,277 @@ AP4_MetaData::Add3GppEntry(AP4_3GppAtom* atom)
 }
 
 /*----------------------------------------------------------------------
-|   AP4_MetaData::StringValue::ToString
+|   AP4_MetaData::Value::MapDataTypeToCategory
++---------------------------------------------------------------------*/
+AP4_MetaData::Value::TypeCategory 
+AP4_MetaData::Value::MapTypeToCategory(Type type)
+{
+    switch (type) {
+        case AP4_MetaData::Value::TYPE_INT_08_BE:
+        case AP4_MetaData::Value::TYPE_INT_16_BE:
+        case AP4_MetaData::Value::TYPE_INT_32_BE:
+            return AP4_MetaData::Value::TYPE_CATEGORY_INTEGER;
+
+        case AP4_MetaData::Value::TYPE_STRING_UTF_8:
+        case AP4_MetaData::Value::TYPE_STRING_UTF_16:
+        case AP4_MetaData::Value::TYPE_STRING_PASCAL:
+            return AP4_MetaData::Value::TYPE_CATEGORY_STRING;
+
+        case AP4_MetaData::Value::TYPE_FLOAT_32_BE:
+        case AP4_MetaData::Value::TYPE_FLOAT_64_BE:
+            return AP4_MetaData::Value::TYPE_CATEGORY_FLOAT;
+            
+        default:
+            return AP4_MetaData::Value::TYPE_CATEGORY_BINARY;
+    }
+}
+
+/*----------------------------------------------------------------------
+|   AP4_MetaData::Value::GetTypeCategory
++---------------------------------------------------------------------*/
+AP4_MetaData::Value::TypeCategory 
+AP4_MetaData::Value::GetTypeCategory() const
+{
+    return MapTypeToCategory(m_Type);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_MetaData::Entry::ToAtom
++---------------------------------------------------------------------*/
+AP4_Atom*
+AP4_MetaData::Entry::ToAtom() const
+{
+    AP4_DataAtom*      data = new AP4_DataAtom(*m_Value);
+    AP4_ContainerAtom* atom;
+    
+    if (m_Key.GetNamespace() == "meta") {
+        // convert the name into an atom type
+        if (m_Key.GetName().GetLength() != 4) {
+            // the name is not in the right format
+            return NULL;
+        }
+        AP4_Atom::Type atom_type = AP4_Atom::TypeFromString(m_Key.GetName().GetChars()); 
+                                   
+        // create a container atom for the data
+        atom = new AP4_ContainerAtom(atom_type);
+    } else {
+        // create a '----' atom
+        atom = new AP4_ContainerAtom(AP4_ATOM_TYPE_dddd);
+        
+        // add a 'mean' string
+        atom->AddChild(new AP4_StringAtom(AP4_ATOM_TYPE_MEAN, m_Key.GetNamespace().GetChars()));
+        
+        // add a 'name' string
+        atom->AddChild(new AP4_StringAtom(AP4_ATOM_TYPE_NAME, m_Key.GetName().GetChars()));
+    }
+        
+    // add the data atom
+    atom->AddChild(data);
+
+    return atom;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_MetaData::Entry::FindInIlst
++---------------------------------------------------------------------*/
+AP4_ContainerAtom*
+AP4_MetaData::AP4_MetaData::Entry::FindInIlst(AP4_ContainerAtom* ilst) const
+{
+    if (m_Key.GetNamespace() == "meta") {
+        AP4_Atom::Type atom_type = AP4_Atom::TypeFromString(m_Key.GetName().GetChars());
+        return dynamic_cast<AP4_ContainerAtom*>(ilst->GetChild(atom_type));
+    } else {
+        AP4_List<AP4_Atom>::Item* ilst_item = ilst->GetChildren().FirstItem();
+        while (ilst_item) {
+            AP4_ContainerAtom* entry_atom = dynamic_cast<AP4_ContainerAtom*>(ilst_item->GetData()); 
+            if (entry_atom) {
+                AP4_StringAtom* mean = static_cast<AP4_StringAtom*>(entry_atom->GetChild(AP4_ATOM_TYPE_MEAN));
+                AP4_StringAtom* name = static_cast<AP4_StringAtom*>(entry_atom->GetChild(AP4_ATOM_TYPE_NAME));
+                if (mean && name &&
+                    mean->GetValue() == m_Key.GetNamespace() &&
+                    name->GetValue() == m_Key.GetName()) {
+                    return entry_atom;
+                }
+            }
+            ilst_item = ilst_item->GetNext();
+        }
+    }
+    
+    // not found
+    return NULL;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_MetaData::Entry::AddToFile
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_MetaData::Entry::AddToFile(AP4_File& file, AP4_Ordinal index)
+{
+    // check that we have a correct entry
+    if (m_Value == NULL) return AP4_ERROR_INVALID_STATE;
+    
+    // convert the entry into an atom
+    AP4_ContainerAtom* entry_atom = dynamic_cast<AP4_ContainerAtom*>(ToAtom());
+    if (entry_atom == NULL) {
+        return AP4_ERROR_INVALID_FORMAT;
+    }
+
+    // look for the 'moov'
+    AP4_Movie* movie = file.GetMovie();
+    if (movie == NULL) return AP4_ERROR_INVALID_FORMAT;
+    AP4_MoovAtom* moov = movie->GetMoovAtom();
+    if (moov == NULL) return AP4_ERROR_INVALID_FORMAT;
+    
+    // look for 'udta/meta', and create if it does not exist
+    AP4_ContainerAtom* meta = dynamic_cast<AP4_ContainerAtom*>(moov->FindChild("udta/meta", true, true));
+    if (meta == NULL) return AP4_ERROR_INTERNAL;
+    
+    // look for a 'hdlr' atom type 'mdir'
+    AP4_HdlrAtom* hdlr = dynamic_cast<AP4_HdlrAtom*>(meta->FindChild("hdlr"));
+    if (hdlr == NULL) {
+        hdlr = new AP4_HdlrAtom(AP4_HANDLER_TYPE_MDIR, "");
+        meta->AddChild(hdlr);
+    } else {
+        if (hdlr->GetHandlerType() != AP4_HANDLER_TYPE_MDIR) {
+            return AP4_ERROR_INVALID_FORMAT;
+        }
+    }
+
+    // get/create the list of entries
+    AP4_ContainerAtom* ilst = dynamic_cast<AP4_ContainerAtom*>(meta->FindChild("ilst", true));
+    if (ilst == NULL) return AP4_ERROR_INTERNAL;
+    
+    // look if there is already a container for this entry
+    AP4_ContainerAtom* existing = FindInIlst(ilst);
+    if (existing == NULL) {
+        // just add the one we have
+        ilst->AddChild(entry_atom);
+    } else {
+        // add the entry's data to the existing entry
+        AP4_DataAtom* data_atom = dynamic_cast<AP4_DataAtom*>(entry_atom->GetChild(AP4_ATOM_TYPE_DATA));
+        if (data_atom == NULL) return AP4_ERROR_INTERNAL;
+        entry_atom->RemoveChild(data_atom);
+        existing->AddChild(data_atom, index);
+        delete entry_atom;
+    }
+    
+    return AP4_SUCCESS;    
+}
+
+/*----------------------------------------------------------------------
+|   AP4_MetaData::Entry::RemoveFromFile
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_MetaData::Entry::RemoveFromFile(AP4_File& file, AP4_Ordinal index)
+{
+    // look for the 'moov'
+    AP4_Movie* movie = file.GetMovie();
+    if (movie == NULL) return AP4_ERROR_INVALID_FORMAT;
+    AP4_MoovAtom* moov = movie->GetMoovAtom();
+    if (moov == NULL) return AP4_ERROR_INVALID_FORMAT;
+    
+    // look for 'udta/meta/ilst'
+    AP4_ContainerAtom* ilst = dynamic_cast<AP4_ContainerAtom*>(moov->FindChild("udta/meta/ilst"));
+    if (ilst == NULL) return AP4_ERROR_NO_SUCH_ITEM;
+    
+    // look if there is already a container for this entry
+    AP4_ContainerAtom* existing = FindInIlst(ilst);
+    if (existing == NULL) return AP4_ERROR_NO_SUCH_ITEM;
+            
+    // remove the data atom in the entry
+    AP4_Result result = existing->DeleteChild(AP4_ATOM_TYPE_DATA, index);
+    if (AP4_FAILED(result)) return result;
+    
+    // if the entry is empty, remove it
+    if (existing->GetChildren().ItemCount() == 0) {
+        ilst->RemoveChild(existing);
+        delete existing;
+    }
+    
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_StringMetaDataValue::ToString
 +---------------------------------------------------------------------*/
 AP4_String
-AP4_MetaData::StringValue::ToString()
+AP4_StringMetaDataValue::ToString() const
 {
     return m_Value;
 }
 
 /*----------------------------------------------------------------------
-|   AP4_MetaData::StringValue::ToBytes
+|   AP4_StringMetaDataValue::ToBytes
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_MetaData::StringValue::ToBytes(AP4_DataBuffer& /* bytes */)
+AP4_StringMetaDataValue::ToBytes(AP4_DataBuffer& /* bytes */) const
 {
     return AP4_ERROR_NOT_SUPPORTED;
 }
 
 /*----------------------------------------------------------------------
-|   AP4_MetaData::StringValue::ToInteger
+|   AP4_StringMetaDataValue::ToInteger
 +---------------------------------------------------------------------*/
 long
-AP4_MetaData::StringValue::ToInteger()
+AP4_StringMetaDataValue::ToInteger() const
 {
     return 0;
 }
 
 /*----------------------------------------------------------------------
-|   AP4_AtomMetaDataValue::MapDataType
+|   AP4_IntegerMetaDataValue::ToString
 +---------------------------------------------------------------------*/
-AP4_MetaData::Value::Type
-AP4_AtomMetaDataValue::MapDataType(AP4_MetaData::DataType data_type)
+AP4_String
+AP4_IntegerMetaDataValue::ToString() const
 {
-    switch (data_type) {
-        case AP4_MetaData::DATA_TYPE_SIGNED_INT_BE:
-            return AP4_MetaData::Value::TYPE_INTEGER;
+    return AP4_String(); // not supported
+}
 
-        case AP4_MetaData::DATA_TYPE_STRING_UTF8:
-        case AP4_MetaData::DATA_TYPE_STRING_UTF16:
-        case AP4_MetaData::DATA_TYPE_STRING_MAC_ENCODED:
-            return AP4_MetaData::Value::TYPE_STRING;
+/*----------------------------------------------------------------------
+|   AP4_IntegerMetaDataValue::ToBytes
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_IntegerMetaDataValue::ToBytes(AP4_DataBuffer& /* bytes */) const
+{
+    return AP4_ERROR_NOT_SUPPORTED;
+}
 
-        default:
-            return AP4_MetaData::Value::TYPE_BINARY;
-    }
+/*----------------------------------------------------------------------
+|   AP4_IntegerMetaDataValue::ToInteger
++---------------------------------------------------------------------*/
+long
+AP4_IntegerMetaDataValue::ToInteger() const
+{
+    return m_Value;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_BinaryMetaDataValue::ToString
++---------------------------------------------------------------------*/
+AP4_String
+AP4_BinaryMetaDataValue::ToString() const
+{
+    return AP4_String(); // not supported
+}
+
+/*----------------------------------------------------------------------
+|   AP4_BinaryMetaDataValue::ToBytes
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_BinaryMetaDataValue::ToBytes(AP4_DataBuffer& bytes) const
+{
+    bytes.SetDataSize(m_Value.GetDataSize());
+    AP4_CopyMemory(bytes.UseData(), m_Value.GetData(), m_Value.GetDataSize());
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_BinaryMetaDataValue::ToInteger
++---------------------------------------------------------------------*/
+long
+AP4_BinaryMetaDataValue::ToInteger() const
+{
+    return 0; // NOT SUPPORTED
 }
 
 /*----------------------------------------------------------------------
@@ -578,7 +863,7 @@ AP4_AtomMetaDataValue::MapDataType(AP4_MetaData::DataType data_type)
 +---------------------------------------------------------------------*/
 AP4_AtomMetaDataValue::AP4_AtomMetaDataValue(AP4_DataAtom*  atom,
                                              AP4_UI32       parent_type) :
-    Value(MapDataType(atom->GetDataType())),
+    Value(atom->GetValueType()),
     m_DataAtom(atom)
 {
     switch (parent_type) {
@@ -591,9 +876,19 @@ AP4_AtomMetaDataValue::AP4_AtomMetaDataValue(AP4_DataAtom*  atom,
             break;
 
         case AP4_ATOM_TYPE_PGAP:
+        case AP4_ATOM_TYPE_PCST:
             m_Meaning = MEANING_BOOLEAN;
             break;
 
+        case AP4_ATOM_TYPE_STIK:
+            m_Meaning = MEANING_FILE_KIND;
+            break;
+
+        case AP4_ATOM_TYPE_PURL:
+        case AP4_ATOM_TYPE_EGID:
+            m_Meaning = MEANING_BINARY_ENCODED_CHARS;
+            break;
+            
         default:
             break;
     }
@@ -603,13 +898,15 @@ AP4_AtomMetaDataValue::AP4_AtomMetaDataValue(AP4_DataAtom*  atom,
 |   AP4_AtomMetaDataValue::ToString
 +---------------------------------------------------------------------*/
 AP4_String 
-AP4_AtomMetaDataValue::ToString() 
+AP4_AtomMetaDataValue::ToString() const
 {
-    switch (m_Type) {
-        case AP4_MetaData::Value::TYPE_INTEGER: 
+    char string[256] = "";
+
+    AP4_MetaData::Value::Type value_type = m_DataAtom->GetValueType();
+    switch (AP4_MetaData::Value::MapTypeToCategory(value_type)) {
+        case AP4_MetaData::Value::TYPE_CATEGORY_INTEGER: 
             {
                 long value;
-                char string[32];
                 if (AP4_SUCCEEDED(m_DataAtom->LoadInteger(value))) {
                     if (m_Meaning == MEANING_BOOLEAN) {
                         if (value) {
@@ -617,15 +914,21 @@ AP4_AtomMetaDataValue::ToString()
                         } else {
                             return "False";
                         }
+                    } else if (m_Meaning == MEANING_FILE_KIND) {
+                        if (value >= 0 && value <= sizeof(Ap4StikNames)/sizeof(Ap4StikNames[0])) {
+                            AP4_FormatString(string, sizeof(string), "(%ld) %s", value, Ap4StikNames[value]);
+                        } else {
+                            return "Unknown";
+                        }
                     } else {
                         AP4_FormatString(string, sizeof(string), "%ld", value);
-                        return AP4_String((const char*)string);
                     }
                 }
+                return AP4_String((const char*)string);
                 break;
             }
 
-        case AP4_MetaData::Value::TYPE_STRING:
+        case AP4_MetaData::Value::TYPE_CATEGORY_STRING:
             {
                 AP4_String* string;
                 if (AP4_SUCCEEDED(m_DataAtom->LoadString(string))) {
@@ -636,20 +939,38 @@ AP4_AtomMetaDataValue::ToString()
                 break;
             }
 
-        case AP4_MetaData::Value::TYPE_BINARY:
+        case AP4_MetaData::Value::TYPE_CATEGORY_BINARY:
             {
-                char string[32] = "";
                 AP4_DataBuffer data;
                 if (AP4_SUCCEEDED(m_DataAtom->LoadBytes(data))) {
                     if (m_Meaning == MEANING_ID3_GENRE && data.GetDataSize() == 2) {
                         unsigned int genre = (data.GetData()[0])*256+data.GetData()[1];
                         if (genre >= 1 && genre <= sizeof(Ap4Id3Genres)/sizeof(Ap4Id3Genres[0])) {
-                            return Ap4Id3Genres[genre-1];
+                            AP4_FormatString(string, sizeof(string), "(%d) %s", genre, Ap4Id3Genres[genre-1]);
+                            return AP4_String((const char*)string);
                         } else {
                             return "Unknown";
                         }
+                    } else if (m_Meaning == MEANING_BINARY_ENCODED_CHARS) {
+                        AP4_String result;
+                        result.Assign((const char*)data.GetData(), data.GetDataSize());
+                        return result;
                     } else {
-                        AP4_FormatString(string, sizeof(string), "[%ld bytes]", data.GetDataSize());
+                        unsigned int dump_length = data.GetDataSize();
+                        bool truncate = false;
+                        if (dump_length > 16) {
+                            dump_length = 16;
+                            truncate = true;
+                        }
+                        char* out = string;
+                        for (unsigned int i=0; i<dump_length; i++) {
+                            AP4_FormatString(out, sizeof(string)-(out-string), "%02x ", data.GetData()[i]);
+                            out += 3;
+                        }
+                        if (truncate) {
+                            *out++='.'; *out++='.'; *out++='.'; *out++=' ';
+                        }
+                        AP4_FormatString(out, sizeof(string)-(out-string), "[%ld bytes]", data.GetDataSize());
                     }
                 }
                 return AP4_String(string);
@@ -665,7 +986,7 @@ AP4_AtomMetaDataValue::ToString()
 |   AP4_AtomMetaDataValue::ToBytes
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_AtomMetaDataValue::ToBytes(AP4_DataBuffer& bytes)
+AP4_AtomMetaDataValue::ToBytes(AP4_DataBuffer& bytes) const
 {
     return m_DataAtom->LoadBytes(bytes);
 }
@@ -674,7 +995,7 @@ AP4_AtomMetaDataValue::ToBytes(AP4_DataBuffer& bytes)
 |   AP4_AtomMetaDataValue::ToInteger
 +---------------------------------------------------------------------*/
 long       
-AP4_AtomMetaDataValue::ToInteger()
+AP4_AtomMetaDataValue::ToInteger() const
 {
     long value;
     if (AP4_SUCCEEDED(m_DataAtom->LoadInteger(value))) {
@@ -687,16 +1008,91 @@ AP4_AtomMetaDataValue::ToInteger()
 /*----------------------------------------------------------------------
 |   AP4_DataAtom::AP4_DataAtom
 +---------------------------------------------------------------------*/
+AP4_DataAtom::AP4_DataAtom(const AP4_MetaData::Value& value) :
+    AP4_Atom(AP4_ATOM_TYPE_DATA, AP4_ATOM_HEADER_SIZE),
+    m_DataType(DATA_TYPE_BINARY)
+{
+    AP4_MemoryByteStream* memory = new AP4_MemoryByteStream(256);
+    AP4_Size payload_size = 8;
+    m_Source = memory;
+    
+    switch (value.GetType()) {
+        case AP4_MetaData::Value::TYPE_STRING_UTF_8: {
+            m_DataType = DATA_TYPE_STRING_UTF_8;
+            AP4_String string_value = value.ToString();
+            if (string_value.GetLength()) {
+                memory->Write(string_value.GetChars(), string_value.GetLength());
+            }
+            payload_size += string_value.GetLength();
+            break;
+        }
+         
+        case AP4_MetaData::Value::TYPE_INT_08_BE: {
+            m_DataType = DATA_TYPE_SIGNED_INT_BE;
+            AP4_UI08 int_value = (AP4_UI08)value.ToInteger();
+            memory->Write(&int_value, 1);
+            payload_size += 1;
+            break;
+        }
+            
+        case AP4_MetaData::Value::TYPE_INT_16_BE: {
+            m_DataType = DATA_TYPE_SIGNED_INT_BE;
+            AP4_UI16 int_value = (AP4_UI16)value.ToInteger();
+            memory->Write(&int_value, 2);
+            payload_size += 2;
+            break;
+        }
+
+        case AP4_MetaData::Value::TYPE_INT_32_BE: {
+            m_DataType = DATA_TYPE_SIGNED_INT_BE;
+            AP4_UI32 int_value = (AP4_UI32)value.ToInteger();
+            memory->Write(&int_value, 4);
+            payload_size += 4;
+            break;
+        }
+
+        case AP4_MetaData::Value::TYPE_JPEG:
+            m_DataType = DATA_TYPE_JPEG;
+            // FALLTHROUGH
+        case AP4_MetaData::Value::TYPE_GIF: 
+            if (m_DataType == DATA_TYPE_BINARY) m_DataType = DATA_TYPE_GIF;
+            // FALLTHROUGH
+        case AP4_MetaData::Value::TYPE_BINARY: {
+            AP4_DataBuffer buffer;
+            value.ToBytes(buffer);
+            if (buffer.GetDataSize()) {
+                memory->Write(buffer.GetData(), buffer.GetDataSize());
+            }
+            payload_size += buffer.GetDataSize();
+            break;
+        }
+
+        default:
+            break;
+    }
+    
+    const AP4_String& language = value.GetLanguage();
+    if (language == "en") {
+        m_DataLang = LANGUAGE_ENGLISH;
+    } else {
+        // default
+        m_DataLang = LANGUAGE_ENGLISH;
+    }
+    
+    m_Size32 += payload_size;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_DataAtom::AP4_DataAtom
++---------------------------------------------------------------------*/
 AP4_DataAtom::AP4_DataAtom(AP4_UI32 size, AP4_ByteStream& stream) :
-    AP4_Atom(AP4_ATOM_TYPE_DATA, size),
-    m_DataType(AP4_MetaData::DATA_TYPE_BINARY),
-    m_DataLang(AP4_MetaData::LANGUAGE_ENGLISH) 
+    AP4_Atom(AP4_ATOM_TYPE_DATA, size)
 {
     if (size < AP4_ATOM_HEADER_SIZE+8) return;
 
     AP4_UI32 i;
-    stream.ReadUI32(i); m_DataType = (AP4_MetaData::DataType)i;
-    stream.ReadUI32(i); m_DataLang = (AP4_MetaData::Language)i;
+    stream.ReadUI32(i); m_DataType = (DataType)i;
+    stream.ReadUI32(i); m_DataLang = (DataLang)i;
 
     // the stream for the data is a substream of this source
     AP4_Position data_offset;
@@ -711,6 +1107,47 @@ AP4_DataAtom::AP4_DataAtom(AP4_UI32 size, AP4_ByteStream& stream) :
 AP4_DataAtom::~AP4_DataAtom()
 {
     delete(m_Source);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_DataAtom::GetValueType
++---------------------------------------------------------------------*/
+AP4_MetaData::Value::Type
+AP4_DataAtom::GetValueType()
+{
+    switch (m_DataType) {
+        case DATA_TYPE_BINARY:
+            return AP4_MetaData::Value::TYPE_BINARY;
+
+        case DATA_TYPE_SIGNED_INT_BE:
+            switch (m_Size32-16) {
+                case 1: return AP4_MetaData::Value::TYPE_INT_08_BE;
+                case 2: return AP4_MetaData::Value::TYPE_INT_16_BE;
+                case 4: return AP4_MetaData::Value::TYPE_INT_32_BE;
+                default: return AP4_MetaData::Value::TYPE_BINARY;
+            }
+            break;
+            
+        case DATA_TYPE_STRING_UTF_8:
+            return AP4_MetaData::Value::TYPE_STRING_UTF_8;
+            
+        case DATA_TYPE_STRING_UTF_16:
+            return AP4_MetaData::Value::TYPE_STRING_UTF_16;
+            
+        case DATA_TYPE_STRING_PASCAL:
+            return AP4_MetaData::Value::TYPE_STRING_PASCAL;
+
+        case DATA_TYPE_GIF:
+            return AP4_MetaData::Value::TYPE_GIF;
+
+        case DATA_TYPE_JPEG:
+            return AP4_MetaData::Value::TYPE_JPEG;
+
+        default:
+            return AP4_MetaData::Value::TYPE_BINARY;
+    }
+    
+    return AP4_MetaData::Value::TYPE_BINARY;
 }
 
 /*----------------------------------------------------------------------
@@ -740,13 +1177,13 @@ AP4_DataAtom::InspectFields(AP4_AtomInspector& inspector)
     inspector.AddField("type", m_DataType);
     inspector.AddField("lang", m_DataLang);
 
-    if (m_DataType == AP4_MetaData::DATA_TYPE_STRING_UTF8) {
+    if (m_DataType == DATA_TYPE_STRING_UTF_8) {
         AP4_String* str;
         if (AP4_SUCCEEDED(LoadString(str))) {
             inspector.AddField("value", str->GetChars());
             delete str;
         }
-    } else if (m_DataType == AP4_MetaData::DATA_TYPE_SIGNED_INT_BE) {
+    } else if (m_DataType == DATA_TYPE_SIGNED_INT_BE) {
         long value;
         if (AP4_SUCCEEDED(LoadInteger(value))) {
             inspector.AddField("value", value);
@@ -828,8 +1265,19 @@ AP4_DataAtom::LoadInteger(long& value)
         case 1: value = bytes[0]; break;
         case 2: value = AP4_BytesToInt16BE(bytes); break;
         case 4: value = AP4_BytesToInt32BE(bytes); break;
+        default: value = 0; result = AP4_ERROR_INVALID_FORMAT; break;
     }
     return result;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_StringAtom::AP4_StringAtom
++---------------------------------------------------------------------*/
+AP4_StringAtom::AP4_StringAtom(Type type, const char* value) :
+    AP4_Atom(type, AP4_ATOM_HEADER_SIZE),
+    m_Value(value)
+{
+    m_Size32 += 4+m_Value.GetLength();
 }
 
 /*----------------------------------------------------------------------

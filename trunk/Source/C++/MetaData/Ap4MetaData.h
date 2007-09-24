@@ -74,6 +74,7 @@ const AP4_Atom::Type AP4_ATOM_TYPE_CPIL = AP4_ATOM_TYPE('c','p','i','l'); // com
 const AP4_Atom::Type AP4_ATOM_TYPE_TMPO = AP4_ATOM_TYPE('t','m','p','o'); // tempo
 const AP4_Atom::Type AP4_ATOM_TYPE_apID = AP4_ATOM_TYPE('a','p','I','D');
 const AP4_Atom::Type AP4_ATOM_TYPE_cnID = AP4_ATOM_TYPE('c','n','I','D');
+const AP4_Atom::Type AP4_ATOM_TYPE_cmID = AP4_ATOM_TYPE('c','m','I','D');
 const AP4_Atom::Type AP4_ATOM_TYPE_atID = AP4_ATOM_TYPE('a','t','I','D');
 const AP4_Atom::Type AP4_ATOM_TYPE_plID = AP4_ATOM_TYPE('p','l','I','D');
 const AP4_Atom::Type AP4_ATOM_TYPE_geID = AP4_ATOM_TYPE('g','e','I','D');
@@ -86,7 +87,20 @@ const AP4_Atom::Type AP4_ATOM_TYPE_TVEN = AP4_ATOM_TYPE('t','v','e','n'); // TV 
 const AP4_Atom::Type AP4_ATOM_TYPE_TVSN = AP4_ATOM_TYPE('t','v','s','n'); // TV show season #
 const AP4_Atom::Type AP4_ATOM_TYPE_TVES = AP4_ATOM_TYPE('t','v','e','s'); // TV show episode #
 const AP4_Atom::Type AP4_ATOM_TYPE_STIK = AP4_ATOM_TYPE('s','t','i','k');
+const AP4_Atom::Type AP4_ATOM_TYPE_PCST = AP4_ATOM_TYPE('p','c','s','t'); // Podcast?
+const AP4_Atom::Type AP4_ATOM_TYPE_PURD = AP4_ATOM_TYPE('p','u','r','d'); // 
+const AP4_Atom::Type AP4_ATOM_TYPE_PURL = AP4_ATOM_TYPE('p','u','r','l'); // Podcast URL (binary)
+const AP4_Atom::Type AP4_ATOM_TYPE_EGID = AP4_ATOM_TYPE('e','g','i','d'); // 
 const AP4_Atom::Type AP4_ATOM_TYPE_PGAP = AP4_ATOM_TYPE('p','g','a','p'); // Gapless Playback
+const AP4_Atom::Type AP4_ATOM_TYPE_CATG = AP4_ATOM_TYPE('c','a','t','g'); // Category
+const AP4_Atom::Type AP4_ATOM_TYPE_KEYW = AP4_ATOM_TYPE('k','e','y','w'); // Keywords
+const AP4_Atom::Type AP4_ATOM_TYPE_SONM = AP4_ATOM_TYPE('s','o','n','m'); // Sort-Order: Name
+const AP4_Atom::Type AP4_ATOM_TYPE_SOAL = AP4_ATOM_TYPE('s','o','a','l'); // Sort-Order: Album
+const AP4_Atom::Type AP4_ATOM_TYPE_SOAR = AP4_ATOM_TYPE('s','o','a','r'); // Sort-Order: Artist
+const AP4_Atom::Type AP4_ATOM_TYPE_SOAA = AP4_ATOM_TYPE('s','o','a','a'); // Sort-Order: Album Artist
+const AP4_Atom::Type AP4_ATOM_TYPE_SOCO = AP4_ATOM_TYPE('s','o','c','o'); // Sort-Order: Composer
+const AP4_Atom::Type AP4_ATOM_TYPE_SOSN = AP4_ATOM_TYPE('s','o','s','n'); // Sort-Order: Show
+
 const AP4_Atom::Type AP4_ATOM_TYPE_TITL = AP4_ATOM_TYPE('t','i','t','l'); // 3GPP: title
 const AP4_Atom::Type AP4_ATOM_TYPE_DSCP = AP4_ATOM_TYPE('d','s','c','p'); // 3GPP: description
 const AP4_Atom::Type AP4_ATOM_TYPE_CPRT = AP4_ATOM_TYPE('c','p','r','t'); // ISO or ILST: copyright
@@ -106,21 +120,6 @@ const AP4_Atom::Type AP4_ATOM_TYPE_TSEL = AP4_ATOM_TYPE('t','s','e','l'); // 3GP
 +---------------------------------------------------------------------*/
 class AP4_MetaData {
 public:
-    typedef enum {
-        DATA_TYPE_BINARY             = 0,
-        DATA_TYPE_STRING_UTF8        = 1,
-        DATA_TYPE_STRING_UTF16       = 2,
-        DATA_TYPE_STRING_MAC_ENCODED = 3,
-        DATA_TYPE_JPEG               = 14,
-        DATA_TYPE_SIGNED_INT_BE      = 21, /* the size of the integer is derived from the container size */
-        DATA_TYPE_FLOAT32_BE         = 22,
-        DATA_TYPE_FLOAT64_BE         = 23
-    } DataType;
-
-    typedef enum {
-        LANGUAGE_ENGLISH = 0
-    } Language;
-
     class Key {
     public:
         // constructors
@@ -128,8 +127,8 @@ public:
           m_Name(name), m_Namespace(ns) {}
 
         // methods
-        const char* GetNamespace() { return m_Namespace.GetChars(); }
-        const char* GetName()      { return m_Name.GetChars();      }
+        const AP4_String& GetNamespace() const { return m_Namespace; }
+        const AP4_String& GetName()      const { return m_Name;      }
 
     private:
         // members
@@ -141,46 +140,60 @@ public:
     public:
         // types 
         typedef enum {
-            TYPE_STRING,
             TYPE_BINARY,
-            TYPE_INTEGER
+            TYPE_STRING_UTF_8,
+            TYPE_STRING_UTF_16,
+            TYPE_STRING_PASCAL,
+            TYPE_GIF,
+            TYPE_JPEG,
+            TYPE_INT_08_BE,
+            TYPE_INT_16_BE,
+            TYPE_INT_32_BE,
+            TYPE_FLOAT_32_BE,
+            TYPE_FLOAT_64_BE
         } Type;
+
+        typedef enum {
+            TYPE_CATEGORY_STRING,
+            TYPE_CATEGORY_BINARY,
+            TYPE_CATEGORY_INTEGER,
+            TYPE_CATEGORY_FLOAT
+        } TypeCategory;
 
         typedef enum {
             MEANING_UNKNOWN,
             MEANING_ID3_GENRE,
-            MEANING_BOOLEAN
+            MEANING_BOOLEAN,
+            MEANING_FILE_KIND,
+            MEANING_BINARY_ENCODED_CHARS
         } Meaning;
-
+        
         // destructor
         virtual ~Value() {}
 
         // methods
-        Type               GetType()    { return m_Type;    }
-        Meaning            GetMeaning() { return m_Meaning; }
-        virtual AP4_String ToString() = 0;
-        virtual AP4_Result ToBytes(AP4_DataBuffer& bytes) = 0;
-        virtual long       ToInteger() = 0;
-
+        Type               GetType() const         { return m_Type;         }
+        TypeCategory       GetTypeCategory() const;
+        Meaning            GetMeaning() const      { return m_Meaning;      }
+        const AP4_String&  GetLanguage() const     { return m_Language;     }
+        virtual AP4_String ToString() const = 0;
+        virtual AP4_Result ToBytes(AP4_DataBuffer& bytes) const = 0;
+        virtual long       ToInteger() const = 0;
+        
     protected:
+        // class methods
+        static TypeCategory MapTypeToCategory(Type type);
+        
         // constructor
-        Value(Type type, Meaning meaning = MEANING_UNKNOWN) : 
-             m_Type(type), m_Meaning(meaning) {}
+        Value(Type        type, 
+              Meaning     meaning  = MEANING_UNKNOWN, 
+              const char* language = NULL) :
+            m_Type(type), m_Meaning(meaning), m_Language(language) {}
 
         // members
-        Type    m_Type;
-        Meaning m_Meaning;
-    };
-
-    class StringValue : public Value {
-    public:
-        StringValue(const char* value) : Value(TYPE_STRING), m_Value(value) {}
-        virtual AP4_String ToString();
-        virtual AP4_Result ToBytes(AP4_DataBuffer& bytes);
-        virtual long       ToInteger();
-        
-    private:
-        AP4_String m_Value;
+        Type       m_Type;
+        Meaning    m_Meaning;
+        AP4_String m_Language;
     };
     
     class KeyInfo {
@@ -201,13 +214,19 @@ public:
         // destructor
         ~Entry() { delete m_Value; }
 
+        // methods
+        AP4_Result         AddToFile(AP4_File& file, AP4_Ordinal index = 0);
+        AP4_Result         RemoveFromFile(AP4_File& file, AP4_Ordinal index);
+        AP4_ContainerAtom* FindInIlst(AP4_ContainerAtom* ilst) const;
+        AP4_Atom*          ToAtom() const;
+
         // members
         Key    m_Key;
         Value* m_Value;    
     };
 
     // class members
-    static AP4_Array<KeyInfo> KeysInfos;
+    static AP4_Array<KeyInfo> KeyInfos;
 
     // constructor
     AP4_MetaData(AP4_File* file);
@@ -325,7 +344,8 @@ private:
 class AP4_StringAtom : public AP4_Atom
 {
 public:
-    // constructor
+    // constructors
+    AP4_StringAtom(Type type, const char* value);
     AP4_StringAtom(Type type, AP4_UI32 size, AP4_ByteStream& stream);
 
     // AP4_Atom methods
@@ -347,7 +367,24 @@ private:
 class AP4_DataAtom : public AP4_Atom
 {
 public:
-    // constructor
+    typedef enum {
+        DATA_TYPE_BINARY             = 0,
+        DATA_TYPE_STRING_UTF_8       = 1,
+        DATA_TYPE_STRING_UTF_16      = 2,
+        DATA_TYPE_STRING_PASCAL      = 3,
+        DATA_TYPE_GIF                = 13,
+        DATA_TYPE_JPEG               = 14,
+        DATA_TYPE_SIGNED_INT_BE      = 21, /* the size of the integer is derived from the container size */
+        DATA_TYPE_FLOAT_32_BE        = 22,
+        DATA_TYPE_FLOAT_64_BE        = 23
+    } DataType;
+
+    typedef enum {
+        LANGUAGE_ENGLISH = 0
+    } DataLang;
+
+    // constructors
+    AP4_DataAtom(const AP4_MetaData::Value& value);
     AP4_DataAtom(AP4_UI32 size, AP4_ByteStream& stream);
 
     // destructor
@@ -358,9 +395,10 @@ public:
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
 
     // accessors
-    AP4_MetaData::DataType GetDataType() { return m_DataType; }
-    AP4_MetaData::Language GetDataLang() { return m_DataLang; }
-
+    DataType GetDataType() { return m_DataType; }
+    DataLang GetDataLang() { return m_DataLang; }
+    AP4_MetaData::Value::Type GetValueType();
+    
     // methods
     AP4_Result LoadString(AP4_String*& string);
     AP4_Result LoadBytes(AP4_DataBuffer& bytes);
@@ -368,9 +406,66 @@ public:
 
 private:
     // members
-    AP4_MetaData::DataType m_DataType;
-    AP4_MetaData::Language m_DataLang;
-    AP4_ByteStream*        m_Source;
+    DataType        m_DataType;
+    DataLang        m_DataLang;
+    AP4_ByteStream* m_Source;
+};
+
+/*----------------------------------------------------------------------
+|   AP4_StringMetaDataValue
++---------------------------------------------------------------------*/
+class AP4_StringMetaDataValue : public AP4_MetaData::Value {
+public:
+    // constructor
+    AP4_StringMetaDataValue(const char* value) : 
+        Value(TYPE_STRING_UTF_8), m_Value(value) {}
+
+    // AP4_MetaData::Value methods
+    virtual AP4_String ToString() const;
+    virtual AP4_Result ToBytes(AP4_DataBuffer& bytes) const;
+    virtual long       ToInteger() const;
+    
+private:
+    // members
+    AP4_String m_Value;
+};
+
+/*----------------------------------------------------------------------
+|   AP4_IntegerMetaDataValue
++---------------------------------------------------------------------*/
+class AP4_IntegerMetaDataValue : public AP4_MetaData::Value {
+public:
+    // constructor
+    AP4_IntegerMetaDataValue(Type type, long value) :
+        Value(type), m_Value(value) {}
+
+    // AP4_MetaData::Value methods
+    virtual AP4_String ToString() const;
+    virtual AP4_Result ToBytes(AP4_DataBuffer& bytes) const;
+    virtual long       ToInteger() const;
+    
+private:
+    // members
+    long m_Value;
+};
+
+/*----------------------------------------------------------------------
+|   AP4_BinaryMetaDataValue
++---------------------------------------------------------------------*/
+class AP4_BinaryMetaDataValue : public AP4_MetaData::Value {
+public:
+    // constructor
+    AP4_BinaryMetaDataValue(Type type, const AP4_UI08* data, AP4_Size size) :
+        Value(type), m_Value(data, size) {}
+
+    // AP4_MetaData::Value methods
+    virtual AP4_String ToString() const;
+    virtual AP4_Result ToBytes(AP4_DataBuffer& bytes) const;
+    virtual long       ToInteger() const;
+    
+private:
+    // members
+    AP4_DataBuffer m_Value;
 };
 
 /*----------------------------------------------------------------------
@@ -383,14 +478,11 @@ public:
     AP4_AtomMetaDataValue(AP4_DataAtom* data_atom, AP4_UI32 parent_type);
 
     // AP4_MetaData::Value methods
-    virtual AP4_String ToString();
-    virtual AP4_Result ToBytes(AP4_DataBuffer& bytes);
-    virtual long       ToInteger();
+    virtual AP4_String ToString() const;
+    virtual AP4_Result ToBytes(AP4_DataBuffer& bytes) const;
+    virtual long       ToInteger() const;
 
 private:
-    // class methods
-    static AP4_MetaData::Value::Type MapDataType(AP4_MetaData::DataType data_type);
-
     // members
     AP4_DataAtom* m_DataAtom;
 };

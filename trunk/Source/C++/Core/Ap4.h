@@ -232,6 +232,7 @@
 #include "Ap4Track.h"
 #include "Ap4File.h"
 #include "Ap4FileWriter.h"
+#include "Ap4FileCopier.h"
 #include "Ap4HintTrackReader.h"
 #include "Ap4Processor.h"
 #include "Ap4MetaData.h"
