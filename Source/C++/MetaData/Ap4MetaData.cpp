@@ -919,7 +919,7 @@ AP4_AtomMetaDataValue::ToString() const
                             return "False";
                         }
                     } else if (m_Meaning == MEANING_FILE_KIND) {
-                        if (value >= 0 && value <= sizeof(Ap4StikNames)/sizeof(Ap4StikNames[0])) {
+                        if (value >= 0 && ((unsigned int)value) <= sizeof(Ap4StikNames)/sizeof(Ap4StikNames[0])) {
                             AP4_FormatString(string, sizeof(string), "(%ld) %s", value, Ap4StikNames[value]);
                         } else {
                             return "Unknown";
@@ -934,10 +934,10 @@ AP4_AtomMetaDataValue::ToString() const
 
         case AP4_MetaData::Value::TYPE_CATEGORY_STRING:
             {
-                AP4_String* string;
-                if (AP4_SUCCEEDED(m_DataAtom->LoadString(string))) {
-                    AP4_String result(*string);
-                    delete string;
+                AP4_String* category_string;
+                if (AP4_SUCCEEDED(m_DataAtom->LoadString(category_string))) {
+                    AP4_String result(*category_string);
+                    delete category_string;
                     return result;
                 }
                 break;

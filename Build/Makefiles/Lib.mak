@@ -27,6 +27,7 @@ CORE_SOURCES = 								\
     Ap4EsdsAtom.cpp                         \
     Ap4File.cpp                             \
     Ap4FileWriter.cpp                       \
+    Ap4FileCopier.cpp                       \
     Ap4FrmaAtom.cpp                         \
     Ap4FtypAtom.cpp                         \
     Ap4HdlrAtom.cpp                         \
