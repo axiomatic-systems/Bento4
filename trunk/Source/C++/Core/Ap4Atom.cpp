@@ -336,7 +336,6 @@ AP4_UnknownAtom::WriteFields(AP4_ByteStream& stream)
 
     // copy the source stream to the output
     AP4_UI64 payload_size = GetSize()-GetHeaderSize();
-    if (GetSize32() == 1) payload_size -= 8;
     result = m_SourceStream->CopyTo(stream, payload_size);
     if (AP4_FAILED(result)) return result;
 

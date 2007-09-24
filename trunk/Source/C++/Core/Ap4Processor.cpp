@@ -100,7 +100,7 @@ AP4_Processor::Process(AP4_ByteStream&   input,
     AP4_Array<AP4_SampleLocator> locators;
     AP4_Cardinal                 track_count = 0;
     AP4_List<AP4_TrakAtom>*      trak_atoms = NULL;
-    AP4_Size                     mdat_size = 0;
+    AP4_LargeSize                mdat_payload_size = 0;
     TrackHandler**               handlers = NULL;
     AP4_SampleCursor*            cursors = NULL;
     if (moov) {
@@ -190,7 +190,7 @@ AP4_Processor::Process(AP4_ByteStream&   input,
                 sample_size = locator.m_Sample.GetSize();
             }
             current_chunk_size += sample_size;
-            mdat_size += sample_size;
+            mdat_payload_size  += sample_size;
         }
 
         // process the tracks (ex: sample descriptions processing)
@@ -207,20 +207,33 @@ AP4_Processor::Process(AP4_ByteStream&   input,
     AP4_UI64 atoms_size = 0;
     top_level.GetChildren().Apply(AP4_AtomSizeAdder(atoms_size));
 
+    // see if we need a 64-bit or 32-bit mdat
+    AP4_Size mdat_header_size = AP4_ATOM_HEADER_SIZE;
+    if (mdat_payload_size+mdat_header_size > 0xFFFFFFFF) {
+        // we need a 64-bit size
+        mdat_header_size += 8;
+    }
+    
     // adjust the chunk offsets
     for (AP4_Ordinal i=0; i<track_count; i++) {
         AP4_TrakAtom* trak;
         trak_atoms->Get(i, trak);
-        trak->AdjustChunkOffsets(atoms_size+AP4_ATOM_HEADER_SIZE);
+        trak->AdjustChunkOffsets(atoms_size+mdat_header_size);
     }
 
     // write all atoms
     top_level.GetChildren().Apply(AP4_AtomListWriter(output));
 
     // write mdat header
-    if (mdat_size) {
-        output.WriteUI32(mdat_size+AP4_ATOM_HEADER_SIZE);
+    if (mdat_header_size == AP4_ATOM_HEADER_SIZE) {
+        // 32-bit size
+        output.WriteUI32((AP4_UI32)(mdat_header_size+mdat_payload_size));
         output.WriteUI32(AP4_ATOM_TYPE_MDAT);
+    } else {
+        // 64-bit size
+        output.WriteUI32(1);
+        output.WriteUI32(AP4_ATOM_TYPE_MDAT);
+        output.WriteUI64(mdat_header_size+mdat_payload_size);
     }
 
 #if defined(AP4_DEBUG)
@@ -263,7 +276,7 @@ AP4_Processor::Process(AP4_ByteStream&   input,
 #if defined(AP4_DEBUG)
     AP4_Position after;
     output.Tell(after);
-    AP4_ASSERT(after-before == mdat_size);
+    AP4_ASSERT(after-before == mdat_payload_size);
 #endif
 
     return AP4_SUCCESS;

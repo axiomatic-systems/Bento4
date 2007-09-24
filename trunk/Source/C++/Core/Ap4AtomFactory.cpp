@@ -440,7 +440,6 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
 
       default:
         // try all the external type handlers
-        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
         {
             AP4_List<TypeHandler>::Item* handler_item = m_TypeHandlers.FirstItem();
             while (handler_item) {
