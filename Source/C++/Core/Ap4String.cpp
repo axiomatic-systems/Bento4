@@ -127,6 +127,34 @@ AP4_String::operator=(const char* s)
 }
 
 /*----------------------------------------------------------------------
+|   AP4_String::operator==
++---------------------------------------------------------------------*/
+const bool
+AP4_String::operator==(const AP4_String& s) const
+{
+    if (m_Length != s.m_Length) return false;
+    for (unsigned int i=0; i<m_Length; i++) {
+        if (m_Chars[i] != s.m_Chars[i]) return false;
+    }
+    return true;
+}
+
+
+/*----------------------------------------------------------------------
+|   AP4_String::operator==
++---------------------------------------------------------------------*/
+const bool
+AP4_String::operator==(const char* s) const
+{
+    AP4_Size s_length = (AP4_Size)AP4_StringLength(s);
+    if (m_Length != s_length) return false;
+    for (unsigned int i=0; i<s_length; i++) {
+        if (m_Chars[i] != s[i]) return false;
+    }
+    return true;
+}
+
+/*----------------------------------------------------------------------
 |   AP4_String::Assign
 +---------------------------------------------------------------------*/
 void
@@ -137,4 +165,17 @@ AP4_String::Assign(const char* s, AP4_Size size)
     m_Chars = new char[m_Length+1];
     AP4_CopyMemory(m_Chars, s, m_Length);
     m_Chars[size] = '\0';
+}
+
+/*----------------------------------------------------------------------
+|   AP4_String::Find
++---------------------------------------------------------------------*/
+int
+AP4_String::Find(char c, unsigned int start) const
+{
+    const char* chars = GetChars();
+    for (int i=start; i<m_Length; i++) {
+        if (chars[i] == c) return i;
+    }
+    return -1;
 }

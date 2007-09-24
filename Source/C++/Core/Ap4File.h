@@ -35,6 +35,7 @@
 #include "Ap4Types.h"
 #include "Ap4List.h"
 #include "Ap4AtomFactory.h"
+#include "Ap4MetaData.h"
 
 /*----------------------------------------------------------------------
 |   class references
@@ -42,7 +43,6 @@
 class AP4_ByteStream;
 class AP4_Movie;
 class AP4_FtypAtom;
-class AP4_MetaData;
 
 /*----------------------------------------------------------------------
 |   file type/brands
@@ -94,37 +94,47 @@ public:
  
     // methods
     /**
-     * Gets the top level atoms of the file (except ftyp atom)
+     * Get the top level atoms of the file (except ftyp atom)
      */
     AP4_List<AP4_Atom>& GetOtherAtoms() { return m_OtherAtoms;}
 
     /** 
-     * Gets the AP4_Movie object of this file
+     * Get the AP4_Movie object of this file
      */
-    AP4_Movie*          GetMovie()      { return m_Movie;     }
+    AP4_Movie* GetMovie() { return m_Movie; }
     
 
     /**
-     * Gets the file type atom of this file
+     * Get the file type atom of this file
      */
-    AP4_FtypAtom*       GetFileType()   { return m_FileType;  }
+    AP4_FtypAtom* GetFileType() { return m_FileType; }
 
     /**
-     * Sets the file type. Will internally create an AP4_Ftyp atom 
+     * Set the file type. Will internally create an AP4_Ftyp atom 
      * and attach it to the file 
      */
-    AP4_Result          SetFileType(AP4_UI32     major_brand,
-                                    AP4_UI32     minor_version,
-                                    AP4_UI32*    compatible_brands = NULL,
-                                    AP4_Cardinal compatible_brand_count = 0);
- 
+    AP4_Result SetFileType(AP4_UI32     major_brand,
+                           AP4_UI32     minor_version,
+                           AP4_UI32*    compatible_brands = NULL,
+                           AP4_Cardinal compatible_brand_count = 0);
+
     /** 
-     * Gets the file's metadata description
+     * Get the position of the moov atom
+     */
+    AP4_Position GetMoovAtomPosition() const { return m_MoovAtomPosition; }
+    
+    /** 
+     * Get the position of the mdat (media data) atom
+     */
+    AP4_Position GetMdatAtomPosition() const { return m_MdatAtomPosition; }
+
+    /** 
+     * Get the file's metadata description
      */
     const AP4_MetaData* GetMetaData();
     
     /**
-     * Inspects the content of the file with an AP4_AtomInspector
+     * Inspect the content of the file with an AP4_AtomInspector
      */
     virtual AP4_Result  Inspect(AP4_AtomInspector& inspector);
 
@@ -134,6 +144,8 @@ private:
     AP4_FtypAtom*      m_FileType;
     AP4_List<AP4_Atom> m_OtherAtoms;
     AP4_MetaData*      m_MetaData;
+    AP4_Position       m_MoovAtomPosition;
+    AP4_Position       m_MdatAtomPosition;
 };
 
 #endif // _AP4_FILE_H_

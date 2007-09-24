@@ -77,14 +77,13 @@ AP4_Processor::Process(AP4_ByteStream&   input,
         top_level.AddChild(atom);
     }
 
-    // remove the [mdat] and [free] atoms, keep a ref to [moov]
+    // remove the [mdat] atom, keep a ref to [moov]
     AP4_MoovAtom* moov = NULL;
     AP4_List<AP4_Atom>::Item* atom_item = top_level.GetChildren().FirstItem();
     while (atom_item) {
         atom = atom_item->GetData();
         AP4_List<AP4_Atom>::Item* next = atom_item->GetNext();
-        if (//atom->GetType() == AP4_ATOM_TYPE_FREE ||
-            atom->GetType() == AP4_ATOM_TYPE_MDAT) {
+        if (atom->GetType() == AP4_ATOM_TYPE_MDAT) {
             atom->Detach();
             delete atom;
         } else if (atom->GetType() == AP4_ATOM_TYPE_MOOV) {

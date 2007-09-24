@@ -56,7 +56,9 @@ public:
                                      AP4_AtomFactory& atom_factory);
 
     // methods
-    AP4_ContainerAtom(Type type, AP4_UI64 size = AP4_ATOM_HEADER_SIZE);
+    explicit AP4_ContainerAtom(Type type);
+    explicit AP4_ContainerAtom(Type type, AP4_UI32 version, AP4_UI32 flags); 
+    explicit AP4_ContainerAtom(Type type, AP4_UI64 size);
     AP4_ContainerAtom(Type type, AP4_UI64 size, AP4_UI32 version, AP4_UI32 flags);
     AP4_List<AP4_Atom>& GetChildren() { return m_Children; }
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);

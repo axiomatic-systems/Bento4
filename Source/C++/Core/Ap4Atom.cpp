@@ -37,6 +37,19 @@
 #include "Ap4Debug.h"
 
 /*----------------------------------------------------------------------
+|   AP4_Atom::TypeFromString
++---------------------------------------------------------------------*/
+AP4_Atom::Type
+AP4_Atom::TypeFromString(const char* s)
+{
+    // convert the name into an atom type
+    return ((AP4_UI32)s[0])<<24 | 
+           ((AP4_UI32)s[1])<<16 |
+           ((AP4_UI32)s[2])<< 8 |
+           ((AP4_UI32)s[3]);
+}
+
+/*----------------------------------------------------------------------
 |   AP4_Atom::AP4_Atom
 +---------------------------------------------------------------------*/
 AP4_Atom::AP4_Atom(Type type, AP4_UI32 size /* = AP4_ATOM_HEADER_SIZE */) : 
@@ -426,10 +439,10 @@ AP4_AtomParent::RemoveChild(AP4_Atom* child)
 |   AP4_AtomParent::DeleteChild
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_AtomParent::DeleteChild(AP4_Atom::Type type)
+AP4_AtomParent::DeleteChild(AP4_Atom::Type type, AP4_Ordinal index /* = 0 */)
 {
     // find the child
-    AP4_Atom* child = GetChild(type);
+    AP4_Atom* child = GetChild(type, index);
     if (child == NULL) return AP4_FAILURE;
 
     // remove the child
@@ -462,7 +475,8 @@ AP4_AtomParent::GetChild(AP4_Atom::Type type, AP4_Ordinal index /* = 0 */) const
 +---------------------------------------------------------------------*/
 AP4_Atom*
 AP4_AtomParent::FindChild(const char* path, 
-                          bool        auto_create)
+                          bool        auto_create,
+                          bool        auto_create_full)
 {
     // start from here
     AP4_AtomParent* parent = this;
@@ -503,7 +517,11 @@ AP4_AtomParent::FindChild(const char* path,
         if (atom == NULL) {
             // not found
             if (auto_create && (index == 0)) {
-                atom = new AP4_ContainerAtom(type, false);
+                if (auto_create_full) {
+                    atom = new AP4_ContainerAtom(type, 0, 0);
+                } else {
+                    atom = new AP4_ContainerAtom(type);
+                }
                 parent->AddChild(atom);
             } else {
                 return NULL;
@@ -525,7 +543,7 @@ AP4_AtomParent::FindChild(const char* path,
 }
 
 /*----------------------------------------------------------------------
-|   AP4_AtomParent::FindChild
+|   AP4_AtomListWriter::Action
 +---------------------------------------------------------------------*/
 const unsigned int AP4_ATOM_LIST_WRITER_MAX_PADDING=1024;
 
