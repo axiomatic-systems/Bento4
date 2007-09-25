@@ -97,7 +97,7 @@ AP4_StssAtom::IsSampleSync(AP4_Ordinal sample)
     unsigned int entry_index = 0;
 
     // check bounds
-    if (sample == 0) return false;
+    if (sample == 0 || m_Entries.ItemCount() == 0) return false;
 
     // see if we can start from the cached index
     if (m_Entries[m_LookupCache] <= sample) {
