@@ -96,9 +96,9 @@ public:
                          AP4_AtomFactory& atom_factory);
 
     // accessors
-    AP4_UI32 GetSampleRate()   { return m_SampleRate>>16; }
-    AP4_UI16 GetSampleSize()   { return m_SampleSize;     }
-    AP4_UI16 GetChannelCount() { return m_ChannelCount;   }
+    AP4_UI32 GetSampleRate();
+    AP4_UI16 GetSampleSize() { return m_SampleSize;     }
+    AP4_UI16 GetChannelCount();
 
     // methods
     AP4_SampleDescription* ToSampleDescription();
@@ -117,12 +117,29 @@ protected:
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
 
     // members
-    AP4_UI08 m_Reserved2[8]; // = 0
-    AP4_UI32 m_SampleRate;           
-    AP4_UI16 m_ChannelCount; // = 2
-    AP4_UI16 m_SampleSize;   // = 16
-    AP4_UI16 m_Predefined1;  // = 0
-    AP4_UI16 m_Reserved3;    // = 0
+    AP4_UI16 m_QtVersion;       // 0, 1 or 2
+    AP4_UI16 m_QtRevision;      // 0
+    AP4_UI32 m_QtVendor;        // 0
+    AP4_UI16 m_ChannelCount; 
+    AP4_UI16 m_SampleSize; 
+    AP4_UI16 m_QtCompressionId; // 0 or -2
+    AP4_UI16 m_QtPacketSize;    // always 0
+    AP4_UI32 m_SampleRate;      // 16.16 fixed point   
+    
+    AP4_UI32 m_QtV1SamplesPerPacket;
+    AP4_UI32 m_QtV1BytesPerPacket;
+    AP4_UI32 m_QtV1BytesPerFrame;
+    AP4_UI32 m_QtV1BytesPerSample;
+ 
+    AP4_UI32 m_QtV2StructSize;
+    AP4_UI64 m_QtV2SampleRate64;
+    AP4_UI32 m_QtV2ChannelCount;
+    AP4_UI32 m_QtV2Reserved;
+    AP4_UI32 m_QtV2BitsPerChannel;
+    AP4_UI32 m_QtV2FormatSpecificFlags;
+    AP4_UI32 m_QtV2BytesPerAudioPacket;
+    AP4_UI32 m_QtV2LPCMFramesPerAudioPacket;
+    AP4_DataBuffer m_QtV2Extension;
 };
 
 /*----------------------------------------------------------------------

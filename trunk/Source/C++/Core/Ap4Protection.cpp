@@ -353,7 +353,7 @@ AP4_ProtectedSampleDescription::AP4_ProtectedSampleDescription(
     AP4_UI32               scheme_version,
     const char*            scheme_uri,
     AP4_ContainerAtom*     schi) :
-    AP4_SampleDescription(TYPE_PROTECTED, format),
+    AP4_SampleDescription(TYPE_PROTECTED, format, NULL),
     m_OriginalSampleDescription(original_sample_description),
     m_OriginalFormat(original_format),
     m_SchemeType(scheme_type),

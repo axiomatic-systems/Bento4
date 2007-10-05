@@ -50,7 +50,7 @@ class AP4_FileCopier {
     virtual ~AP4_FileCopier();
 
     // methods
-    AP4_Result Write(AP4_ByteStream& stream);
+    AP4_Result Write(AP4_ByteStream& stream, bool moov_before_mdat);
 
  private:
     AP4_File& m_File;

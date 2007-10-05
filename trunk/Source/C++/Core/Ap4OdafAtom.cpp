@@ -75,17 +75,6 @@ AP4_OdafAtom::AP4_OdafAtom(AP4_UI32        size,
 }
 
 /*----------------------------------------------------------------------
-|   AP4_OdafAtom::Clone
-+---------------------------------------------------------------------*/
-AP4_Atom* 
-AP4_OdafAtom::Clone()
-{
-    return new AP4_OdafAtom(m_SelectiveEncryption, 
-                            m_KeyIndicatorLength, 
-                            m_IvLength);
-}
-
-/*----------------------------------------------------------------------
 |   AP4_OdafAtom::WriteFields
 +---------------------------------------------------------------------*/
 AP4_Result
