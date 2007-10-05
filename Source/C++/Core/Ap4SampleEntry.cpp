@@ -190,7 +190,7 @@ AP4_SampleEntry::OnChildChanged(AP4_Atom*)
 AP4_SampleDescription*
 AP4_SampleEntry::ToSampleDescription()
 {
-    return new AP4_UnknownSampleDescription(m_Type);
+    return new AP4_SampleDescription(AP4_SampleDescription::TYPE_UNKNOWN, m_Type, this);
 }
 
 /*----------------------------------------------------------------------
@@ -263,14 +263,27 @@ AP4_AudioSampleEntry::AP4_AudioSampleEntry(AP4_Atom::Type format,
                                            AP4_UI16       sample_size,
                                            AP4_UI16       channel_count) :
     AP4_SampleEntry(format),
-    m_SampleRate(sample_rate),
+    m_QtVersion(0),
+    m_QtRevision(0),
+    m_QtVendor(0),
     m_ChannelCount(channel_count),
-    m_SampleSize(sample_size)
+    m_SampleSize(sample_size),
+    m_QtCompressionId(0),
+    m_QtPacketSize(0),
+    m_SampleRate(sample_rate),
+    m_QtV1SamplesPerPacket(0),
+    m_QtV1BytesPerPacket(0),
+    m_QtV1BytesPerFrame(0),
+    m_QtV1BytesPerSample(0),
+    m_QtV2StructSize(0),
+    m_QtV2SampleRate64(0),
+    m_QtV2ChannelCount(0),
+    m_QtV2Reserved(0),
+    m_QtV2BitsPerChannel(0),
+    m_QtV2FormatSpecificFlags(0),
+    m_QtV2BytesPerAudioPacket(0),
+    m_QtV2LPCMFramesPerAudioPacket(0)    
 {
-    m_Predefined1 = 0;
-    memset(m_Reserved2, 0, sizeof(m_Reserved2));
-    m_Reserved3 = 0;
-
     m_Size32 += 20;
 }
 
@@ -284,8 +297,8 @@ AP4_AudioSampleEntry::AP4_AudioSampleEntry(AP4_Atom::Type   format,
     AP4_SampleEntry(format, size)
 {
     // read fields
-    AP4_Size fields_size = GetFieldsSize();
     ReadFields(stream);
+    AP4_Size fields_size = GetFieldsSize();
 
     // read children atoms (ex: esds and maybe others)
     ReadChildren(atom_factory, stream, size-AP4_ATOM_HEADER_SIZE-fields_size);
@@ -297,7 +310,41 @@ AP4_AudioSampleEntry::AP4_AudioSampleEntry(AP4_Atom::Type   format,
 AP4_Size
 AP4_AudioSampleEntry::GetFieldsSize()
 {
-    return AP4_SampleEntry::GetFieldsSize()+20;
+    AP4_Size size = AP4_SampleEntry::GetFieldsSize()+20;
+    if (m_QtVersion == 1) {
+        size += 16;
+    } else if (m_QtVersion == 2) {
+        size += 36+m_QtV2Extension.GetDataSize();
+    }
+    
+    return size;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_AudioSampleEntry::GetSampleRate
++---------------------------------------------------------------------*/
+AP4_UI32
+AP4_AudioSampleEntry::GetSampleRate()
+{
+    if (m_QtVersion == 2) {
+        double* sample_rate = reinterpret_cast<double*>(&m_QtV2SampleRate64);
+        return (AP4_UI32)(*sample_rate);
+    } else {
+        return m_SampleRate>>16;
+    }
+}
+
+/*----------------------------------------------------------------------
+|   AP4_AudioSampleEntry::GetChannelCount
++---------------------------------------------------------------------*/
+AP4_UI16
+AP4_AudioSampleEntry::GetChannelCount()
+{
+    if (m_QtVersion == 2) {
+        return m_QtV2ChannelCount;
+    } else {
+        return m_ChannelCount;
+    }
 }
 
 /*----------------------------------------------------------------------
@@ -311,13 +358,54 @@ AP4_AudioSampleEntry::ReadFields(AP4_ByteStream& stream)
     if (result < 0) return result;
 
     // read the fields of this class
-    stream.Read(m_Reserved2, sizeof(m_Reserved2));
+    stream.ReadUI16(m_QtVersion);
+    stream.ReadUI16(m_QtRevision);
+    stream.ReadUI32(m_QtVendor);
     stream.ReadUI16(m_ChannelCount);
     stream.ReadUI16(m_SampleSize);
-    stream.ReadUI16(m_Predefined1);
-    stream.ReadUI16(m_Reserved3);
+    stream.ReadUI16(m_QtCompressionId);
+    stream.ReadUI16(m_QtPacketSize);
     stream.ReadUI32(m_SampleRate);
 
+    // if this is a QT V1 entry, read the extension
+    if (m_QtVersion == 1) {
+        stream.ReadUI32(m_QtV1SamplesPerPacket);
+        stream.ReadUI32(m_QtV1BytesPerPacket);
+        stream.ReadUI32(m_QtV1BytesPerFrame);
+        stream.ReadUI32(m_QtV1BytesPerSample);
+    } else if (m_QtVersion == 2) {
+        stream.ReadUI32(m_QtV2StructSize);
+        stream.ReadUI64(m_QtV2SampleRate64);
+        stream.ReadUI32(m_QtV2ChannelCount);
+        stream.ReadUI32(m_QtV2Reserved);
+        stream.ReadUI32(m_QtV2BitsPerChannel);
+        stream.ReadUI32(m_QtV2FormatSpecificFlags);
+        stream.ReadUI32(m_QtV2BytesPerAudioPacket);
+        stream.ReadUI32(m_QtV2LPCMFramesPerAudioPacket);
+        if (m_QtV2StructSize > 72) {
+            unsigned int ext_size = m_QtV2StructSize-72;
+            m_QtV2Extension.SetDataSize(ext_size);
+            stream.Read(m_QtV2Extension.UseData(), ext_size);
+        }
+        m_QtV1SamplesPerPacket =
+        m_QtV1BytesPerPacket   =
+        m_QtV1BytesPerFrame    =
+        m_QtV1BytesPerSample   = 0;
+    } else {
+        m_QtV1SamplesPerPacket         = 0;
+        m_QtV1BytesPerPacket           = 0;
+        m_QtV1BytesPerFrame            = 0;
+        m_QtV1BytesPerSample           = 0;
+        m_QtV2StructSize               = 0;
+        m_QtV2SampleRate64             = 0;
+        m_QtV2ChannelCount             = 0;
+        m_QtV2Reserved                 = 0;
+        m_QtV2BitsPerChannel           = 0;
+        m_QtV2FormatSpecificFlags      = 0;
+        m_QtV2BytesPerAudioPacket      = 0;
+        m_QtV2LPCMFramesPerAudioPacket = 0;
+    }
+    
     return AP4_SUCCESS;
 }
 
@@ -332,8 +420,16 @@ AP4_AudioSampleEntry::WriteFields(AP4_ByteStream& stream)
     // write the fields of the base class
     result = AP4_SampleEntry::WriteFields(stream);
 
-    // reserved2
-    result = stream.Write(m_Reserved2, sizeof(m_Reserved2));
+    // QT version
+    result = stream.WriteUI16(m_QtVersion);
+    if (AP4_FAILED(result)) return result;
+
+    // QT revision
+    result = stream.WriteUI16(m_QtRevision);
+    if (AP4_FAILED(result)) return result;
+
+    // QT vendor
+    result = stream.WriteUI32(m_QtVendor);
     if (AP4_FAILED(result)) return result;
 
     // channel count
@@ -344,18 +440,42 @@ AP4_AudioSampleEntry::WriteFields(AP4_ByteStream& stream)
     result = stream.WriteUI16(m_SampleSize);
     if (AP4_FAILED(result)) return result;
 
-    // predefined1
-    result = stream.WriteUI16(m_Predefined1);
+    // QT compression ID
+    result = stream.WriteUI16(m_QtCompressionId);
     if (AP4_FAILED(result)) return result;
 
-    // reserved3
-    result = stream.WriteUI16(m_Reserved3);
+    // QT packet size
+    result = stream.WriteUI16(m_QtPacketSize);
     if (AP4_FAILED(result)) return result;
 
     // sample rate
     result = stream.WriteUI32(m_SampleRate);
     if (AP4_FAILED(result)) return result;
 
+    if (m_QtVersion == 1) {
+        result = stream.WriteUI32(m_QtV1SamplesPerPacket);
+        if (AP4_FAILED(result)) return result;
+        result = stream.WriteUI32(m_QtV1BytesPerPacket);
+        if (AP4_FAILED(result)) return result;
+        result = stream.WriteUI32(m_QtV1BytesPerFrame);
+        if (AP4_FAILED(result)) return result;
+        result = stream.WriteUI32(m_QtV1BytesPerSample);
+        if (AP4_FAILED(result)) return result;
+    } else if (m_QtVersion == 2) {
+        stream.WriteUI32(m_QtV2StructSize);
+        stream.WriteUI64(m_QtV2SampleRate64);
+        stream.WriteUI32(m_QtV2ChannelCount);
+        stream.WriteUI32(m_QtV2Reserved);
+        stream.WriteUI32(m_QtV2BitsPerChannel);
+        stream.WriteUI32(m_QtV2FormatSpecificFlags);
+        stream.WriteUI32(m_QtV2BytesPerAudioPacket);
+        stream.WriteUI32(m_QtV2LPCMFramesPerAudioPacket);
+        if (m_QtV2Extension.GetDataSize()) {
+            stream.Write(m_QtV2Extension.GetData(),
+                         m_QtV2Extension.GetDataSize());
+        }
+    }
+    
     return result;
 }
 
@@ -369,10 +489,13 @@ AP4_AudioSampleEntry::InspectFields(AP4_AtomInspector& inspector)
     AP4_SampleEntry::InspectFields(inspector);
 
     // fields
-    inspector.AddField("channel_count", m_ChannelCount);
-    inspector.AddField("sample_size", m_SampleSize);
-    inspector.AddField("sample_rate", m_SampleRate>>16);
-
+    inspector.AddField("channel_count", GetChannelCount());
+    inspector.AddField("sample_size", GetSampleSize());
+    inspector.AddField("sample_rate", GetSampleRate());
+    if (m_QtVersion) {
+        inspector.AddField("qt_version", m_QtVersion);
+    }
+    
     return AP4_SUCCESS;
 }
 
@@ -385,9 +508,10 @@ AP4_AudioSampleEntry::ToSampleDescription()
     // create a sample description
     return new AP4_GenericAudioSampleDescription(
         m_Type,
-        m_SampleRate>>16,
-        m_SampleSize,
-        m_ChannelCount);
+        GetSampleRate(),
+        GetSampleSize(),
+        GetChannelCount(),
+        this);
 }
 
 /*----------------------------------------------------------------------
@@ -400,16 +524,17 @@ AP4_AudioSampleEntry::ToTargetSampleDescription(AP4_UI32 format)
         case AP4_ATOM_TYPE_MP4A:
             return new AP4_MpegAudioSampleDescription(
                 dynamic_cast<AP4_EsdsAtom*>(GetChild(AP4_ATOM_TYPE_ESDS)),
-                m_SampleRate>>16,
-                m_SampleSize,
-                m_ChannelCount);
+                GetSampleRate(),
+                GetSampleSize(),
+                GetChannelCount());
 
         default:
             return new AP4_GenericAudioSampleDescription(
                 format,
-                m_SampleRate>>16,
-                m_SampleSize,
-                m_ChannelCount);
+                GetSampleRate(),
+                GetSampleSize(),
+                GetChannelCount(),
+                this);
     }
 }
 
@@ -448,9 +573,9 @@ AP4_MpegAudioSampleEntry::ToSampleDescription()
     // create a sample description
     return new AP4_MpegAudioSampleDescription(
         dynamic_cast<AP4_EsdsAtom*>(GetChild(AP4_ATOM_TYPE_ESDS)),
-        m_SampleRate>>16,
-        m_SampleSize,
-        m_ChannelCount);
+        GetSampleRate(),
+        GetSampleSize(),
+        GetChannelCount());
 }
 
 /*----------------------------------------------------------------------
@@ -667,7 +792,8 @@ AP4_VisualSampleEntry::ToSampleDescription()
         m_Width,
         m_Height,
         m_Depth,
-        m_CompressorName.GetChars());
+        m_CompressorName.GetChars(),
+        this);
 }
 
 /*----------------------------------------------------------------------
@@ -691,7 +817,8 @@ AP4_VisualSampleEntry::ToTargetSampleDescription(AP4_UI32 format)
                 m_Width,
                 m_Height,
                 m_Depth,
-                m_CompressorName.GetChars());
+                m_CompressorName.GetChars(),
+                this);
     }
 }
 

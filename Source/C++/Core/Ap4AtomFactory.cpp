@@ -273,6 +273,20 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
         atom = AP4_AvccAtom::Create(size_32, stream);
         break;
 
+      case AP4_ATOM_TYPE_ALAC:
+        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+        // this is goofy, but Apple really messed this one up:
+        // the 'alac' atom is used with different contents
+        // depending on whether it is a sample entry or an
+        // actual ALAC descriptor...
+        if (m_Context == AP4_ATOM_TYPE_STSD) {
+            atom = new AP4_AudioSampleEntry(AP4_ATOM_TYPE_ALAC, 
+                                            size_32, 
+                                            stream, 
+                                            *this);
+        }
+        break;
+
 #if !defined(AP4_CONFIG_MINI_BUILD)
       case AP4_ATOM_TYPE_DREF:
         if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
@@ -351,10 +365,10 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
           
       case AP4_ATOM_TYPE_RTP_:
         if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        if (m_Context == AP4_ATOM_TYPE_HNTI) {
-            atom = AP4_RtpAtom::Create(size_32, stream);
-        } else {
+        if (m_Context == AP4_ATOM_TYPE_STSD) {
             atom = new AP4_RtpHintSampleEntry(size_32, stream, *this);
+        } else {
+            atom = AP4_RtpAtom::Create(size_32, stream);
         }
         break;
       
@@ -427,6 +441,7 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
       case AP4_ATOM_TYPE_ILST:
       case AP4_ATOM_TYPE_EDTS: 
       case AP4_ATOM_TYPE_MDRI:
+      case AP4_ATOM_TYPE_WAVE:
         if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
         atom = AP4_ContainerAtom::Create(type, size, false, stream, *this);
         break;

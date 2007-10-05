@@ -34,26 +34,31 @@
 #include "Ap4SampleEntry.h"
 
 /*----------------------------------------------------------------------
-|   AP4_UnknownSampleDescription::AP4_UnknownSampleDescription
+|   AP4_SampleDescription::AP4_SampleDescription
 +---------------------------------------------------------------------*/
-AP4_UnknownSampleDescription::AP4_UnknownSampleDescription(
-    AP4_UI32 format) :
-    AP4_SampleDescription(AP4_SampleDescription::TYPE_UNKNOWN, format)
+AP4_SampleDescription::AP4_SampleDescription(Type            type,
+                                             AP4_UI32        format,
+                                             AP4_AtomParent* details) :
+    m_Type(type), m_Format(format)
 {
+    if (details) {
+        for (AP4_List<AP4_Atom>::Item* item = details->GetChildren().FirstItem();
+             item;
+             item = item->GetNext()) {
+            AP4_Atom* atom = item->GetData();
+            if (atom) {
+                AP4_Atom* clone = atom->Clone();
+                if (clone) m_Details.AddChild(clone);
+            }
+        }
+    }
 }
 
 /*----------------------------------------------------------------------
-|   AP4_UnknownSampleDescription::~AP4_UnknownSampleDescription
-+---------------------------------------------------------------------*/
-AP4_UnknownSampleDescription::~AP4_UnknownSampleDescription()
-{
-}
-
-/*----------------------------------------------------------------------
-|   AP4_UnknownSampleDescription::ToAtom
+|   AP4_SampleDescription::ToAtom
 +---------------------------------------------------------------------*/
 AP4_Atom*
-AP4_UnknownSampleDescription::ToAtom() const
+AP4_SampleDescription::ToAtom() const
 {
     return new AP4_SampleEntry(m_Format);
 }
@@ -63,10 +68,9 @@ AP4_UnknownSampleDescription::ToAtom() const
 +---------------------------------------------------------------------*/
 AP4_MpegSampleDescription::AP4_MpegSampleDescription(AP4_UI32      format,
                                                      AP4_EsdsAtom* esds) :
-    AP4_SampleDescription(TYPE_MPEG, format),
+    AP4_SampleDescription(TYPE_MPEG, format, NULL),
     m_StreamType(0),
     m_ObjectTypeId(0),
-    m_DecoderInfo(NULL),
     m_BufferSize(0),
     m_MaxBitrate(0),
     m_AvgBitrate(0)
@@ -88,7 +92,8 @@ AP4_MpegSampleDescription::AP4_MpegSampleDescription(AP4_UI32      format,
             const AP4_DecoderSpecificInfoDescriptor* dsi_desc =
                 dc_desc->GetDecoderSpecificInfoDescriptor();
             if (dsi_desc != NULL) {
-                m_DecoderInfo = new AP4_DataBuffer(dsi_desc->GetDecoderSpecificInfo());
+                m_DecoderInfo.SetData(dsi_desc->GetDecoderSpecificInfo().GetData(),
+                                      dsi_desc->GetDecoderSpecificInfo().GetDataSize());
             }
         }
     }
@@ -105,25 +110,16 @@ AP4_MpegSampleDescription::AP4_MpegSampleDescription(
     AP4_UI32              buffer_size,
     AP4_UI32              max_bitrate,
     AP4_UI32              avg_bitrate) :
-    AP4_SampleDescription(TYPE_MPEG, format),
+    AP4_SampleDescription(TYPE_MPEG, format, NULL),
     m_StreamType(stream_type),
     m_ObjectTypeId(oti),
-    m_DecoderInfo(NULL),
     m_BufferSize(buffer_size),
     m_MaxBitrate(max_bitrate),
     m_AvgBitrate(avg_bitrate)
 {
     if (decoder_info != NULL) {
-        m_DecoderInfo = new AP4_DataBuffer(*decoder_info);
+        m_DecoderInfo.SetData(decoder_info->GetData(), decoder_info->GetDataSize());
     }
-}
-
-/*----------------------------------------------------------------------
-|   AP4_MpegSampleDescription::~AP4_MpegSampleDescription
-+---------------------------------------------------------------------*/
-AP4_MpegSampleDescription::~AP4_MpegSampleDescription()
-{
-    delete m_DecoderInfo;
 }
 
 /*----------------------------------------------------------------------
@@ -134,8 +130,8 @@ AP4_MpegSampleDescription::CreateEsDescriptor() const
 {
     AP4_EsDescriptor* desc = new AP4_EsDescriptor(0);
     AP4_DecoderSpecificInfoDescriptor* dsi_desc;
-    if (m_DecoderInfo) {
-        dsi_desc = new AP4_DecoderSpecificInfoDescriptor(*m_DecoderInfo);
+    if (m_DecoderInfo.GetDataSize() != 0) {
+        dsi_desc = new AP4_DecoderSpecificInfoDescriptor(m_DecoderInfo);
     } else {
         dsi_desc = NULL;
     }

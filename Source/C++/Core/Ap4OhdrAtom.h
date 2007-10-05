@@ -69,7 +69,6 @@ public:
     // methods
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
-    virtual AP4_Atom*  Clone();
 
     // accessors
     AP4_UI08          GetEncryptionMethod() const { return m_EncryptionMethod; } 

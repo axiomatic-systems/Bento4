@@ -183,9 +183,10 @@ class AP4_Atom {
      * Create a clone of the object.
      * This method returns a clone of the atom, or NULL if
      * the atom cannot be cloned.
-     * Override this if your want to make an atom cloneable.
+     * Override this if your want to make an atom cloneable in a more
+     * efficient way than the default implementation.
      */ 
-    virtual AP4_Atom*  Clone() { return NULL; }
+    virtual AP4_Atom* Clone();
 
  protected:
     // members
@@ -279,6 +280,7 @@ const AP4_Atom::Type AP4_ATOM_TYPE_MP4S = AP4_ATOM_TYPE('m','p','4','s');
 const AP4_Atom::Type AP4_ATOM_TYPE_MP4A = AP4_ATOM_TYPE('m','p','4','a');
 const AP4_Atom::Type AP4_ATOM_TYPE_MP4V = AP4_ATOM_TYPE('m','p','4','v');
 const AP4_Atom::Type AP4_ATOM_TYPE_AVC1 = AP4_ATOM_TYPE('a','v','c','1');
+const AP4_Atom::Type AP4_ATOM_TYPE_ALAC = AP4_ATOM_TYPE('a','l','a','c');
 const AP4_Atom::Type AP4_ATOM_TYPE_ENCA = AP4_ATOM_TYPE('e','n','c','a');
 const AP4_Atom::Type AP4_ATOM_TYPE_ENCV = AP4_ATOM_TYPE('e','n','c','v');
 const AP4_Atom::Type AP4_ATOM_TYPE_MOOV = AP4_ATOM_TYPE('m','o','o','v');
@@ -322,6 +324,7 @@ const AP4_Atom::Type AP4_ATOM_TYPE_ODAF = AP4_ATOM_TYPE('o','d','a','f');
 const AP4_Atom::Type AP4_ATOM_TYPE_IPRO = AP4_ATOM_TYPE('i','p','r','o');
 const AP4_Atom::Type AP4_ATOM_TYPE_MDRI = AP4_ATOM_TYPE('m','d','r','i');
 const AP4_Atom::Type AP4_ATOM_TYPE_AVCC = AP4_ATOM_TYPE('a','v','c','C');
+const AP4_Atom::Type AP4_ATOM_TYPE_WAVE = AP4_ATOM_TYPE('w','a','v','e');
 
 /*----------------------------------------------------------------------
 |   AP4_AtomListInspector

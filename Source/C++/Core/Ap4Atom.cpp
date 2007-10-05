@@ -33,7 +33,7 @@
 #include "Ap4Atom.h"
 #include "Ap4Utils.h"
 #include "Ap4ContainerAtom.h"
-#include "Ap4StsdAtom.h"
+#include "Ap4AtomFactory.h"
 #include "Ap4Debug.h"
 
 /*----------------------------------------------------------------------
@@ -269,6 +269,31 @@ AP4_Atom::Detach()
     } else {
         return AP4_SUCCESS;
     }
+}
+
+/*----------------------------------------------------------------------
+|   AP4_Atom::Clone
++---------------------------------------------------------------------*/
+AP4_Atom*
+AP4_Atom::Clone()
+{
+    AP4_Atom* clone = NULL;
+
+    // create a memory byte stream to which we can serialize
+    AP4_MemoryByteStream* mbs = new AP4_MemoryByteStream(GetSize());
+    
+    // serialize to memory
+    if (AP4_FAILED(Write(*mbs))) goto end;
+    
+    // create the clone for the serialized form
+    mbs->Seek(0);
+    AP4_DefaultAtomFactory::Instance.CreateAtomFromStream(*mbs, clone);
+    
+end:
+    // release the memory stream
+    mbs->Release();
+
+    return clone;
 }
 
 /*----------------------------------------------------------------------

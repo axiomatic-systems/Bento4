@@ -49,7 +49,6 @@ public:
 
     // methods
     AP4_IsltAtom(const AP4_UI08* salt);
-    virtual AP4_Atom*  Clone();
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
 
