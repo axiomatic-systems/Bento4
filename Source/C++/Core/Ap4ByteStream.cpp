@@ -101,6 +101,21 @@ AP4_ByteStream::WriteString(const char* buffer)
 }
 
 /*----------------------------------------------------------------------
+|   AP4_ByteStream::WriteDouble
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_ByteStream::WriteDouble(double value)
+{
+    unsigned char buffer[8];
+
+    // convert value to bytes
+    AP4_BytesFromDoubleBE(buffer, value);
+
+    // write bytes to the stream
+    return Write((void*)buffer, 8);
+}
+
+/*----------------------------------------------------------------------
 |   AP4_ByteStream::WriteUI64
 +---------------------------------------------------------------------*/
 AP4_Result
@@ -187,6 +202,28 @@ AP4_ByteStream::ReadUI64(AP4_UI64& value)
 
     // convert bytes to value
     value = AP4_BytesToUInt64BE(buffer);
+    
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_ByteStream::ReadDouble
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_ByteStream::ReadDouble(double& value)
+{
+    unsigned char buffer[8];
+
+    // read bytes from the stream
+    AP4_Result result;
+    result = Read((void*)buffer, 8);
+    if (AP4_FAILED(result)) {
+        value = 0;
+        return result;
+    }
+
+    // convert bytes to value
+    value = AP4_BytesToDoubleBE(buffer);
     
     return AP4_SUCCESS;
 }

@@ -276,7 +276,7 @@ AP4_AudioSampleEntry::AP4_AudioSampleEntry(AP4_Atom::Type format,
     m_QtV1BytesPerFrame(0),
     m_QtV1BytesPerSample(0),
     m_QtV2StructSize(0),
-    m_QtV2SampleRate64(0),
+    m_QtV2SampleRate64(0.0),
     m_QtV2ChannelCount(0),
     m_QtV2Reserved(0),
     m_QtV2BitsPerChannel(0),
@@ -327,8 +327,7 @@ AP4_UI32
 AP4_AudioSampleEntry::GetSampleRate()
 {
     if (m_QtVersion == 2) {
-        double* sample_rate = reinterpret_cast<double*>((void*)&m_QtV2SampleRate64);
-        return (AP4_UI32)(*sample_rate);
+        return (AP4_UI32)(m_QtV2SampleRate64);
     } else {
         return m_SampleRate>>16;
     }
@@ -375,7 +374,7 @@ AP4_AudioSampleEntry::ReadFields(AP4_ByteStream& stream)
         stream.ReadUI32(m_QtV1BytesPerSample);
     } else if (m_QtVersion == 2) {
         stream.ReadUI32(m_QtV2StructSize);
-        stream.ReadUI64(m_QtV2SampleRate64);
+        stream.ReadDouble(m_QtV2SampleRate64);
         stream.ReadUI32(m_QtV2ChannelCount);
         stream.ReadUI32(m_QtV2Reserved);
         stream.ReadUI32(m_QtV2BitsPerChannel);
@@ -397,7 +396,7 @@ AP4_AudioSampleEntry::ReadFields(AP4_ByteStream& stream)
         m_QtV1BytesPerFrame            = 0;
         m_QtV1BytesPerSample           = 0;
         m_QtV2StructSize               = 0;
-        m_QtV2SampleRate64             = 0;
+        m_QtV2SampleRate64             = 0.0;
         m_QtV2ChannelCount             = 0;
         m_QtV2Reserved                 = 0;
         m_QtV2BitsPerChannel           = 0;
@@ -463,7 +462,7 @@ AP4_AudioSampleEntry::WriteFields(AP4_ByteStream& stream)
         if (AP4_FAILED(result)) return result;
     } else if (m_QtVersion == 2) {
         stream.WriteUI32(m_QtV2StructSize);
-        stream.WriteUI64(m_QtV2SampleRate64);
+        stream.WriteDouble(m_QtV2SampleRate64);
         stream.WriteUI32(m_QtV2ChannelCount);
         stream.WriteUI32(m_QtV2Reserved);
         stream.WriteUI32(m_QtV2BitsPerChannel);
