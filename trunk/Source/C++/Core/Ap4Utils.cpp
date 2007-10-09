@@ -32,6 +32,19 @@
 #include "Ap4Utils.h"
 
 /*----------------------------------------------------------------------
+|   AP4_BytesToDoubleBE
++---------------------------------------------------------------------*/
+double
+AP4_BytesToDoubleBE(const unsigned char* bytes)
+{
+    AP4_UI64 i_value = AP4_BytesToUInt64BE(bytes);
+    void*    v_value = reinterpret_cast<void*>(&i_value);
+    double*  d_value = reinterpret_cast<double*>(v_value);
+    
+    return *d_value;
+}
+
+/*----------------------------------------------------------------------
 |   AP4_BytesToUInt64BE
 +---------------------------------------------------------------------*/
 AP4_UI64
@@ -100,6 +113,18 @@ AP4_SI16
 AP4_BytesToInt16BE(const unsigned char* bytes)
 {
     return (AP4_SI16)AP4_BytesToUInt16BE(bytes);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_BytesFromDoubleBE
++---------------------------------------------------------------------*/
+void
+AP4_BytesFromDoubleBE(unsigned char* bytes, double value)
+{
+    void*     v_value = reinterpret_cast<void*>(&value);
+    AP4_UI64* i_value = reinterpret_cast<AP4_UI64*>(v_value);
+    
+    AP4_BytesFromUInt64BE(bytes, *i_value);
 }
 
 /*----------------------------------------------------------------------

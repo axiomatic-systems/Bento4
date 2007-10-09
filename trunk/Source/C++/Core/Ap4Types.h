@@ -49,7 +49,6 @@ typedef signed   int   AP4_SI32;
 typedef unsigned short AP4_UI16;
 typedef signed   short AP4_SI16;
 typedef unsigned char  AP4_UI08;
-typedef float          AP4_Float;
 typedef unsigned char  AP4_Byte;
 typedef unsigned long  AP4_Size;
 

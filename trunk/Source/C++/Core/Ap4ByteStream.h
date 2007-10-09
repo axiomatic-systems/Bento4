@@ -48,6 +48,7 @@ class AP4_ByteStream : public AP4_Referenceable
                                    AP4_Size  bytes_to_read, 
                                    AP4_Size& bytes_read) = 0;
     AP4_Result Read(void* buffer, AP4_Size bytes_to_read);
+    AP4_Result ReadDouble(double& value);
     AP4_Result ReadUI64(AP4_UI64& value);
     AP4_Result ReadUI32(AP4_UI32& value);
     AP4_Result ReadUI24(AP4_UI32& value);
@@ -59,6 +60,7 @@ class AP4_ByteStream : public AP4_Referenceable
                                     AP4_Size&   bytes_written) = 0;
     AP4_Result Write(const void* buffer, AP4_Size bytes_to_write);
     AP4_Result WriteString(const char* string_buffer);
+    AP4_Result WriteDouble(double value);
     AP4_Result WriteUI64(AP4_UI64 value);
     AP4_Result WriteUI32(AP4_UI32 value);
     AP4_Result WriteUI24(AP4_UI32 value);

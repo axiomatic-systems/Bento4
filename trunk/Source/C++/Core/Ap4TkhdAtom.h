@@ -74,9 +74,9 @@ public:
         return AP4_SUCCESS;  
     }
 
-    void GetTranslation(AP4_Float& x, AP4_Float& y) {
-        x = (AP4_Float)(*(int*)&m_Matrix[6]) / 65536;
-        y = (AP4_Float)(*(int*)&m_Matrix[7]) / 65536;
+    void GetTranslation(float& x, float& y) {
+        x = (float)(*(int*)&m_Matrix[6]) / 65536;
+        y = (float)(*(int*)&m_Matrix[7]) / 65536;
     }
 
     AP4_UI32 GetWidth()  { return m_Width; }

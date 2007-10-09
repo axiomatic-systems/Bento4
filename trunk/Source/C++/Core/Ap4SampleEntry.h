@@ -132,7 +132,7 @@ protected:
     AP4_UI32 m_QtV1BytesPerSample;
  
     AP4_UI32 m_QtV2StructSize;
-    AP4_UI64 m_QtV2SampleRate64;
+    double   m_QtV2SampleRate64;
     AP4_UI32 m_QtV2ChannelCount;
     AP4_UI32 m_QtV2Reserved;
     AP4_UI32 m_QtV2BitsPerChannel;
