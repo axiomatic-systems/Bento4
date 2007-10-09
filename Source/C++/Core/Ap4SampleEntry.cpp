@@ -327,7 +327,7 @@ AP4_UI32
 AP4_AudioSampleEntry::GetSampleRate()
 {
     if (m_QtVersion == 2) {
-        double* sample_rate = reinterpret_cast<double*>(&m_QtV2SampleRate64);
+        double* sample_rate = reinterpret_cast<double*>((void*)&m_QtV2SampleRate64);
         return (AP4_UI32)(*sample_rate);
     } else {
         return m_SampleRate>>16;
