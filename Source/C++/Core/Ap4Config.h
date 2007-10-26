@@ -60,6 +60,11 @@
 #endif
 
 /*----------------------------------------------------------------------
+|   standard C++ runtime
++---------------------------------------------------------------------*/
+#define APT_CONFIG_HAVE_NEW_H
+
+/*----------------------------------------------------------------------
 |   platform specifics
 +---------------------------------------------------------------------*/
 
@@ -90,6 +95,20 @@
 #if defined(__CYGWIN__)
 #define AP4_fseek fseek
 #define AP4_ftell ftell
+#endif
+
+/* Symbian */
+#if defined(__SYMBIAN32__)
+#undef APT_CONFIG_HAVE_NEW_H
+#include "e32std.h"
+/**
+ * Define the Platform byte order here
+ * for Symbian.
+ */
+#define AP4_PLATFORM_BYTE_ORDER AP4_PLATFORM_BYTE_ORDER_LITTLE_ENDIAN
+#define AP4_fseek fseek
+#define AP4_ftell ftell
+#define explicit
 #endif
 
 /*----------------------------------------------------------------------

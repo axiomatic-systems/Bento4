@@ -60,8 +60,8 @@ void AP4_BytesFromUInt64BE(unsigned char* bytes, AP4_UI64 value);
 void AP4_BytesFromUInt32BE(unsigned char* bytes, AP4_UI32 value);
 void AP4_BytesFromUInt24BE(unsigned char* bytes, AP4_UI32 value);
 void AP4_BytesFromUInt16BE(unsigned char* bytes, AP4_UI16 value);
-unsigned long AP4_DurationMsFromUnits(unsigned long units, 
-									  unsigned long units_per_second);
+unsigned long AP4_DurationMsFromUnits(unsigned long units,
+                                      unsigned long units_per_second);
 unsigned long AP4_ConvertTime(unsigned long time_value,
                               unsigned long from_time_scale,
                               unsigned long to_time_scale);

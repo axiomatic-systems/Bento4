@@ -72,7 +72,7 @@ AP4_FileWriter::Write(AP4_ByteStream& stream)
     data_offset += movie->GetMoovAtom()->GetSize();
     data_offset += AP4_ATOM_HEADER_SIZE; // mdat header
 
-    // adjust the tracks (assuming all chunk offsets were 0-based
+    // adjust the tracks (assuming all chunk offsets were 0-based)
     AP4_List<AP4_Track>::Item* track_item = movie->GetTracks().FirstItem();
     while (track_item) {
         AP4_Track* track = track_item->GetData();

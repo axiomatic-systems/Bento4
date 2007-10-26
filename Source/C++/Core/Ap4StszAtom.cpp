@@ -43,7 +43,7 @@ AP4_StszAtom::Create(AP4_Size size, AP4_ByteStream& stream)
     AP4_UI32 flags;
     if (AP4_FAILED(AP4_Atom::ReadFullHeader(stream, version, flags))) return NULL;
     if (version != 0) return NULL;
-    return new AP4_StszAtom(size, version, size, stream);
+    return new AP4_StszAtom(size, version, flags, stream);
 }
 
 /*----------------------------------------------------------------------
@@ -67,8 +67,8 @@ AP4_StszAtom::AP4_StszAtom(AP4_UI32        size,
 {
     stream.ReadUI32(m_SampleSize);
     stream.ReadUI32(m_SampleCount);
-    unsigned long sample_count = m_SampleCount;
     if (m_SampleSize == 0) { // means that the samples have different sizes
+        unsigned long sample_count = m_SampleCount;
         while (sample_count--) {
             AP4_UI32 entry_size;
             if (stream.ReadUI32(entry_size) == AP4_SUCCESS) {

@@ -36,7 +36,10 @@
 /*----------------------------------------------------------------------
 |   includes
 +---------------------------------------------------------------------*/
+#include "Ap4Config.h"
+#if defined(APT_CONFIG_HAVE_NEW_H)
 #include <new>
+#endif
 #include "Ap4Types.h"
 #include "Ap4Results.h"
 

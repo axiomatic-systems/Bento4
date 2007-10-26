@@ -70,6 +70,7 @@ class AP4_ByteStream : public AP4_Referenceable
     virtual AP4_Result Tell(AP4_Position& position) = 0;
     virtual AP4_Result GetSize(AP4_LargeSize& size) = 0;
     virtual AP4_Result CopyTo(AP4_ByteStream& stream, AP4_LargeSize size);
+    virtual AP4_Result Flush() { return AP4_SUCCESS; }
 };
 
 /*----------------------------------------------------------------------

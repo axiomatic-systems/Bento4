@@ -48,6 +48,7 @@ public:
     AP4_IsfmAtom(bool     m_SelectiveEncryption,
                  AP4_UI08 m_KeyIndicatorLength,
                  AP4_UI08 m_IvLength);
+    virtual AP4_Atom*  Clone();
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
 

@@ -88,6 +88,7 @@ public:
     AP4_Result Seek(AP4_Position position);
     AP4_Result Tell(AP4_Position& position);
     AP4_Result GetSize(AP4_LargeSize& size);
+    AP4_Result Flush();
 
     // AP4_Referenceable methods
     void AddReference();
@@ -129,6 +130,10 @@ AP4_StdcFileByteStream::AP4_StdcFileByteStream(
           case AP4_FileByteStream::STREAM_MODE_WRITE:
             open_result = fopen_s(&m_File, name, "wb+");
             break;
+
+          case AP4_FileByteStream::STREAM_MODE_READ_WRITE:
+              open_result = fopen_s(&m_File, name, "r+b");
+              break;                                  
 
           default:
             throw AP4_Exception(AP4_ERROR_INVALID_PARAMETERS);
@@ -263,6 +268,17 @@ AP4_StdcFileByteStream::GetSize(AP4_LargeSize& size)
     size = m_Size;
     return AP4_SUCCESS;
 }
+
+/*----------------------------------------------------------------------
+|   AP4_StdcFileByteStream::Flush
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_StdcFileByteStream::Flush()
+{
+    int ret_val = fflush(m_File);
+    return (ret_val > 0) ? AP4_FAILURE: AP4_SUCCESS;
+}
+
 
 /*----------------------------------------------------------------------
 |   AP4_FileByteStream::AP4_FileByteStream

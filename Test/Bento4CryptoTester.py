@@ -55,7 +55,7 @@ def DoCompare(file1,  file2):
     if (d1 == d2):
         print "OK"
     else:
-        raise("Files do not match")
+        raise("Files " + file + " and " + file2 + " do not match")
     
 def DoCleanup(files):
     for file in files:

@@ -253,38 +253,75 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
         atom = AP4_EsdsAtom::Create(size_32, stream);
         break;
 
+      case AP4_ATOM_TYPE_MP4S:
+        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+        if (m_Context == AP4_ATOM_TYPE_STSD) {
+            atom = new AP4_Mp4sSampleEntry(size_32, stream, *this);
+        }
+        break;
+
+      case AP4_ATOM_TYPE_ENCA:
+        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+        if (m_Context == AP4_ATOM_TYPE_STSD) {
+            atom = new AP4_EncaSampleEntry(size_32, stream, *this);
+        }
+        break;
+
+      case AP4_ATOM_TYPE_ENCV:
+        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+        if (m_Context == AP4_ATOM_TYPE_STSD) {
+            atom = new AP4_EncvSampleEntry(size_32, stream, *this);
+        }
+        break;
+
+      case AP4_ATOM_TYPE_DRMS:
+        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+        if (m_Context == AP4_ATOM_TYPE_STSD) {
+            atom = new AP4_DrmsSampleEntry(size_32, stream, *this);
+        }
+        break;
+
+      case AP4_ATOM_TYPE_DRMI:
+        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+        if (m_Context == AP4_ATOM_TYPE_STSD) {
+            atom = new AP4_DrmiSampleEntry(size_32, stream, *this);
+        }
+        break;
+
       case AP4_ATOM_TYPE_MP4A:
         if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        atom = new AP4_Mp4aSampleEntry(size_32, stream, *this);
+        if (m_Context == AP4_ATOM_TYPE_STSD) {
+            atom = new AP4_Mp4aSampleEntry(size_32, stream, *this);
+        }
         break;
 
       case AP4_ATOM_TYPE_MP4V:
         if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        atom = new AP4_Mp4vSampleEntry(size_32, stream, *this);
+        if (m_Context == AP4_ATOM_TYPE_STSD) {
+            atom = new AP4_Mp4vSampleEntry(size_32, stream, *this);
+        }
         break;
 
       case AP4_ATOM_TYPE_AVC1:
         if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        atom = new AP4_Avc1SampleEntry(size_32, stream, *this);
-        break;
-
-      case AP4_ATOM_TYPE_AVCC:
-        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        atom = AP4_AvccAtom::Create(size_32, stream);
+        if (m_Context == AP4_ATOM_TYPE_STSD) {
+            atom = new AP4_Avc1SampleEntry(size_32, stream, *this);
+        }
         break;
 
       case AP4_ATOM_TYPE_ALAC:
         if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        // this is goofy, but Apple really messed this one up:
-        // the 'alac' atom is used with different contents
-        // depending on whether it is a sample entry or an
-        // actual ALAC descriptor...
         if (m_Context == AP4_ATOM_TYPE_STSD) {
             atom = new AP4_AudioSampleEntry(AP4_ATOM_TYPE_ALAC, 
                                             size_32, 
                                             stream, 
                                             *this);
         }
+        break;
+
+      case AP4_ATOM_TYPE_AVCC:
+        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+        atom = AP4_AvccAtom::Create(size_32, stream);
         break;
 
 #if !defined(AP4_CONFIG_MINI_BUILD)
@@ -301,31 +338,6 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
       case AP4_ATOM_TYPE_ELST:
         if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
         atom = AP4_ElstAtom::Create(size_32, stream);
-        break;
-
-      case AP4_ATOM_TYPE_MP4S:
-        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        atom = new AP4_Mp4sSampleEntry(size_32, stream, *this);
-        break;
-
-      case AP4_ATOM_TYPE_ENCA:
-        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        atom = new AP4_EncaSampleEntry(size_32, stream, *this);
-        break;
-
-      case AP4_ATOM_TYPE_ENCV:
-        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        atom = new AP4_EncvSampleEntry(size_32, stream, *this);
-        break;
-
-      case AP4_ATOM_TYPE_DRMS:
-        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        atom = new AP4_DrmsSampleEntry(size_32, stream, *this);
-        break;
-
-      case AP4_ATOM_TYPE_DRMI:
-        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        atom = new AP4_DrmiSampleEntry(size_32, stream, *this);
         break;
 
       case AP4_ATOM_TYPE_VMHD:

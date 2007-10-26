@@ -75,6 +75,17 @@ AP4_IsfmAtom::AP4_IsfmAtom(AP4_UI32        size,
 }
 
 /*----------------------------------------------------------------------
+|   AP4_IsfmAtom::Clone
++---------------------------------------------------------------------*/
+AP4_Atom* 
+AP4_IsfmAtom::Clone()
+{
+    return new AP4_IsfmAtom(m_SelectiveEncryption, 
+                            m_KeyIndicatorLength, 
+                            m_IvLength);
+}
+
+/*----------------------------------------------------------------------
 |   AP4_IsfmAtom::WriteFields
 +---------------------------------------------------------------------*/
 AP4_Result
