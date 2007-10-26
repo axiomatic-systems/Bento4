@@ -154,3 +154,27 @@ AP4_OhdrAtom::InspectFields(AP4_AtomInspector& inspector)
 
     return InspectChildren(inspector);
 }
+
+/*----------------------------------------------------------------------
+|   AP4_OhdrAtom::Clone
++---------------------------------------------------------------------*/
+AP4_Atom* 
+AP4_OhdrAtom::Clone()
+{
+    AP4_OhdrAtom* clone;
+    clone = new AP4_OhdrAtom(m_EncryptionMethod,
+                             m_PaddingScheme,
+                             m_PlaintextLength,
+                             m_ContentId.GetChars(),
+                             m_RightsIssuerUrl.GetChars(),
+                             m_TextualHeaders.GetChars());
+
+    AP4_List<AP4_Atom>::Item* child_item = m_Children.FirstItem();
+    while (child_item) {
+        AP4_Atom* child_clone = child_item->GetData()->Clone();
+        if (child_clone) clone->AddChild(child_clone);
+        child_item = child_item->GetNext();
+    }
+
+    return clone;
+}

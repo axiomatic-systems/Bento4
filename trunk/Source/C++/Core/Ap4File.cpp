@@ -144,3 +144,4 @@ AP4_File::GetMetaData()
 
     return m_MetaData;
 }
+

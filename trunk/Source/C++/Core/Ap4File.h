@@ -35,7 +35,6 @@
 #include "Ap4Types.h"
 #include "Ap4List.h"
 #include "Ap4AtomFactory.h"
-#include "Ap4MetaData.h"
 
 /*----------------------------------------------------------------------
 |   class references
@@ -43,6 +42,7 @@
 class AP4_ByteStream;
 class AP4_Movie;
 class AP4_FtypAtom;
+class AP4_MetaData;
 
 /*----------------------------------------------------------------------
 |   file type/brands

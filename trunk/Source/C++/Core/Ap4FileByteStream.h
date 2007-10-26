@@ -44,7 +44,8 @@ public:
     // types
     typedef enum {
         STREAM_MODE_READ,
-        STREAM_MODE_WRITE
+        STREAM_MODE_WRITE,
+        STREAM_MODE_READ_WRITE
     } Mode;
 
     // methods
@@ -64,6 +65,7 @@ public:
     AP4_Result Seek(AP4_Position position)  { return m_Delegate->Seek(position); }
     AP4_Result Tell(AP4_Position& position) { return m_Delegate->Tell(position); }
     AP4_Result GetSize(AP4_LargeSize& size) { return m_Delegate->GetSize(size);  }
+    AP4_Result Flush() { return m_Delegate->Flush(); }
 
     // AP4_Referenceable methods
     void AddReference() { m_Delegate->AddReference(); }

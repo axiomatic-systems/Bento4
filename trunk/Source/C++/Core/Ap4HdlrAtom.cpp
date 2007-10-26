@@ -54,7 +54,7 @@ AP4_HdlrAtom::AP4_HdlrAtom(AP4_Atom::Type hdlr_type, const char* hdlr_name) :
     m_HandlerType(hdlr_type),
     m_HandlerName(hdlr_name)
 {
-    m_Size32 += 20+1+m_HandlerName.GetLength()+1;
+    m_Size32 += 20+m_HandlerName.GetLength()+1;
 }
 
 /*----------------------------------------------------------------------
@@ -72,14 +72,11 @@ AP4_HdlrAtom::AP4_HdlrAtom(AP4_UI32        size,
     stream.Read(reserved, 12);
     
     // read the name unless it is empty
-    int max_name_size = size-(AP4_FULL_ATOM_HEADER_SIZE+20+1);
-    if (max_name_size == 0) return;
-    AP4_UI08 name_size = 0;
-    stream.ReadUI08(name_size);
-    if (name_size > max_name_size) return;
-    char* name = new char[name_size+1];
-    if (name_size) stream.Read(name, name_size);
-    name[name_size] = '\0'; // force a null termination
+    int name_size = size-(AP4_FULL_ATOM_HEADER_SIZE+20);
+    if (name_size == 0) return;
+    char* name = new char[name_size];
+    stream.Read(name, name_size);
+    name[name_size-1] = '\0'; // force a null termination
     m_HandlerName = name;
     delete[] name;
 }
@@ -102,13 +99,16 @@ AP4_HdlrAtom::WriteFields(AP4_ByteStream& stream)
     result = stream.Write(reserved, 12);
     if (AP4_FAILED(result)) return result;
     AP4_UI08 name_size = (AP4_UI08)m_HandlerName.GetLength();
-    result = stream.WriteUI08(name_size);
-    if (AP4_FAILED(result)) return result;
-    result = stream.Write(m_HandlerName.GetChars(), name_size);
-    if (AP4_FAILED(result)) return result;
+    if (AP4_FULL_ATOM_HEADER_SIZE+20+name_size > m_Size32) {
+        name_size = m_Size32-AP4_FULL_ATOM_HEADER_SIZE+20;
+    }
+    if (name_size) {
+        result = stream.Write(m_HandlerName.GetChars(), name_size);
+        if (AP4_FAILED(result)) return result;
+    }
 
     // pad with zeros if necessary
-    AP4_Size padding = m_Size32-(AP4_FULL_ATOM_HEADER_SIZE+20+1+name_size);
+    AP4_Size padding = m_Size32-(AP4_FULL_ATOM_HEADER_SIZE+20+name_size);
     while (padding--) stream.WriteUI08(0);
 
     return AP4_SUCCESS;
