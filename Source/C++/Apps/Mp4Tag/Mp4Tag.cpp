@@ -635,8 +635,10 @@ ExtractTag(AP4_File* file, AP4_String& arg)
     const AP4_MetaData* metadata = file->GetMetaData();
     
     // iterator over the entries and look for a match
-    AP4_List<AP4_MetaData::Entry>::Item* item = metadata->GetEntries().FirstItem();
-    while (item) {
+    AP4_List<AP4_MetaData::Entry>::Item* item = NULL; // we init the  var here to work around a gcc/mingw bug
+    for (item = metadata->GetEntries().FirstItem();
+         item;
+         item = item->GetNext()) {
         AP4_MetaData::Entry* entry = item->GetData();
         if (entry->m_Key.GetNamespace() == *key_namespace &&
             entry->m_Key.GetName()      == *key_name      &&
@@ -654,7 +656,6 @@ ExtractTag(AP4_File* file, AP4_String& arg)
                 fprintf(stderr, "ERROR: cannot open output/extract file\n");
             }
         }
-        item = item->GetNext();
     }
 
     delete key;

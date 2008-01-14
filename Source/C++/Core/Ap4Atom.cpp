@@ -286,7 +286,7 @@ AP4_Atom::Clone()
     if (size > AP4_ATOM_MAX_CLONE_SIZE) return NULL;
 
     // create a memory byte stream to which we can serialize
-    AP4_MemoryByteStream* mbs = new AP4_MemoryByteStream((unsigned int)size);
+    AP4_MemoryByteStream* mbs = new AP4_MemoryByteStream((AP4_Size)GetSize());
     
     // serialize to memory
     if (AP4_FAILED(Write(*mbs))) goto end;
