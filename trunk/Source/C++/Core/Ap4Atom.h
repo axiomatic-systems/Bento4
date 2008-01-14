@@ -325,6 +325,7 @@ const AP4_Atom::Type AP4_ATOM_TYPE_IPRO = AP4_ATOM_TYPE('i','p','r','o');
 const AP4_Atom::Type AP4_ATOM_TYPE_MDRI = AP4_ATOM_TYPE('m','d','r','i');
 const AP4_Atom::Type AP4_ATOM_TYPE_AVCC = AP4_ATOM_TYPE('a','v','c','C');
 const AP4_Atom::Type AP4_ATOM_TYPE_WAVE = AP4_ATOM_TYPE('w','a','v','e');
+const AP4_Atom::Type AP4_ATOM_TYPE_WIDE = AP4_ATOM_TYPE('w','i','d','e');
 
 /*----------------------------------------------------------------------
 |   AP4_AtomListInspector

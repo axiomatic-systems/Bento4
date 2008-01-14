@@ -46,31 +46,33 @@ AP4_File::AP4_File(AP4_Movie* movie) :
     m_Movie(movie),
     m_FileType(NULL),
     m_MetaData(NULL),
-    m_MoovAtomPosition(0),
-    m_MdatAtomPosition(0)
+    m_MoovIsBeforeMdat(true)
 {
 }
 
 /*----------------------------------------------------------------------
 |   AP4_File::AP4_File
 +---------------------------------------------------------------------*/
-AP4_File::AP4_File(AP4_ByteStream& stream, AP4_AtomFactory& atom_factory) :
+AP4_File::AP4_File(AP4_ByteStream&  stream, 
+                   AP4_AtomFactory& atom_factory,
+                   bool             moov_only) :
     m_Movie(NULL),
     m_FileType(NULL),
     m_MetaData(NULL),
-    m_MoovAtomPosition(0),
-    m_MdatAtomPosition(0)
+    m_MoovIsBeforeMdat(true)
 {
-    // get all atoms
-    AP4_Atom* atom;
-    AP4_Position position = 0;
-    while (stream.Tell(position), 
+    // parse top-level atoms
+    AP4_Atom*    atom;
+    AP4_Position stream_position;
+    bool         keep_parsing = true;
+    while (keep_parsing &&
+           AP4_SUCCEEDED(stream.Tell(stream_position)) && 
            AP4_SUCCEEDED(atom_factory.CreateAtomFromStream(stream, atom))) {
         switch (atom->GetType()) {
             case AP4_ATOM_TYPE_MOOV:
                 m_Movie = new AP4_Movie(dynamic_cast<AP4_MoovAtom*>(atom),
                                         stream);
-                m_MoovAtomPosition = position;
+                if (moov_only) keep_parsing = false;
                 break;
 
             case AP4_ATOM_TYPE_FTYP:
@@ -78,8 +80,8 @@ AP4_File::AP4_File(AP4_ByteStream& stream, AP4_AtomFactory& atom_factory) :
                 break;
 
             case AP4_ATOM_TYPE_MDAT:
-                // remember the offset of the media data
-                m_MdatAtomPosition = position;
+                // see if we are before the moov atom
+                if (m_Movie == NULL) m_MoovIsBeforeMdat = false;
                 // FALLTHROUGH
                 
             default:
