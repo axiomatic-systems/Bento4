@@ -16,7 +16,12 @@ PLATFORM_TO_TARGET_MAP = {
     'darwin'       : 'universal-apple-macos'
 }
     
-CROSS_PLATFORMS = ['ppu-sony-ps3', 'arm-unknown-linux', 'mips-unknown-linux', 'powerpc-unknown-linux', 'arm-gp2x-linux']
+CROSS_PLATFORMS = ['ppu-sony-ps3', 
+                   'arm-unknown-linux', 
+                   'mips-unknown-linux', 
+                   'powerpc-unknown-linux', 
+                   'arm-gp2x-linux',
+                   'x86-unknown-mingw']
 
 def DefaultTarget():
     platform_id = sys.platform
