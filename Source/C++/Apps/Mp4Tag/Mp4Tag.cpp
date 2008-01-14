@@ -781,8 +781,7 @@ main(int argc, char** argv)
 
     if (output) {
         // adjust the chunk offsets if the moov is before the mdat
-        bool moov_is_before_mdat = file->GetMoovAtomPosition() < file->GetMdatAtomPosition();
-        if (moov_is_before_mdat) {
+        if (file->IsMoovBeforeMdat()) {
             AP4_LargeSize new_moov_size = moov->GetSize();
             AP4_SI64 size_diff = new_moov_size-moov_size;
             if (size_diff) {
@@ -792,7 +791,7 @@ main(int argc, char** argv)
         
         // write the modified file
         AP4_FileCopier copier(*file);
-        copier.Write(*output, moov_is_before_mdat);
+        copier.Write(*output, file->IsMoovBeforeMdat());
     }
     
     delete file;

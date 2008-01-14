@@ -106,10 +106,14 @@ AP4_Result
 AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream, 
                                       AP4_Atom*&      atom)
 {
-    AP4_LargeSize bytes_available = 0;
-    if (AP4_FAILED(stream.GetSize(bytes_available)) ||
-        bytes_available == 0) {
-        bytes_available = (AP4_LargeSize)(-1);
+    AP4_LargeSize stream_size     = 0;
+    AP4_Position  stream_position = 0;
+    AP4_LargeSize bytes_available = (AP4_LargeSize)(-1);
+    if (AP4_SUCCEEDED(stream.GetSize(stream_size)) && 
+        stream_size != 0 &&
+        AP4_SUCCEEDED(stream.Tell(stream_position)) &&
+        stream_position <= stream_size) {
+        bytes_available = stream_size-stream_position;
     }
     return CreateAtomFromStream(stream, bytes_available, atom);
 }
@@ -465,6 +469,12 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
         atom = AP4_ContainerAtom::Create(type, size, true, stream, *this);
         break;
 
+      case AP4_ATOM_TYPE_FREE:
+      case AP4_ATOM_TYPE_WIDE:
+      case AP4_ATOM_TYPE_MDAT:
+        // generic atoms
+        break;
+        
       default:
         // try all the external type handlers
         {
@@ -497,15 +507,18 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
         atom->SetSize64(size);
     }
 
-    // skip to the end of the atom
+    // adjust the available size
     bytes_available -= size;
+
+    // skip to the end of the atom
     result = stream.Seek(start+size);
     if (AP4_FAILED(result)) {
         delete atom;
         atom = NULL;
+        return result;
     }
-
-    return result;
+    
+    return AP4_SUCCESS;
 }
 
 /*----------------------------------------------------------------------

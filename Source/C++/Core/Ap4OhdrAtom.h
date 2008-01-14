@@ -59,12 +59,13 @@ public:
                                 AP4_AtomFactory& atom_factory);
 
     // constructor
-    AP4_OhdrAtom(AP4_UI08     encryption_method, 
-                 AP4_UI08     padding_scheme,
-                 AP4_UI64      plaintext_length,
-                 const char*  content_id,
-                 const char*  rights_issuer_url,
-                 const char*  textual_headers);
+    AP4_OhdrAtom(AP4_UI08        encryption_method, 
+                 AP4_UI08        padding_scheme,
+                 AP4_UI64        plaintext_length,
+                 const char*     content_id,
+                 const char*     rights_issuer_url,
+                 const AP4_Byte* textual_headers,
+                 AP4_Size        textual_headers_size);
 
     // methods
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
@@ -72,14 +73,14 @@ public:
     virtual AP4_Atom*  Clone();
 
     // accessors
-    AP4_UI08          GetEncryptionMethod() const { return m_EncryptionMethod; } 
+    AP4_UI08          GetEncryptionMethod()   const { return m_EncryptionMethod; } 
     void              SetEncryptionMethod(AP4_UI08 encryption_method) { m_EncryptionMethod = encryption_method; }
-    AP4_UI08          GetPaddingScheme()    const { return m_PaddingScheme;    }
+    AP4_UI08          GetPaddingScheme()      const { return m_PaddingScheme;    }
     void              SetPaddingScheme(AP4_UI08 padding_scheme) { m_PaddingScheme = padding_scheme; }
-    AP4_UI64          GetPlaintextLength()  const { return m_PlaintextLength;  }
-    const AP4_String& GetContentId()        const { return m_ContentId;        }
-    const AP4_String& GetRightsIssuerUrl()  const { return m_RightsIssuerUrl;  }
-    const AP4_String& GetTextualHeaders()   const { return m_TextualHeaders;   }
+    AP4_UI64          GetPlaintextLength()    const { return m_PlaintextLength;  }
+    const AP4_String& GetContentId()          const { return m_ContentId;        }
+    const AP4_String& GetRightsIssuerUrl()    const { return m_RightsIssuerUrl;  }
+    const AP4_DataBuffer& GetTextualHeaders() const { return m_TextualHeaders;   }
 
 private:
     // methods
@@ -90,12 +91,12 @@ private:
                  AP4_AtomFactory& atom_factory);
 
     // members
-    AP4_UI08     m_EncryptionMethod; 
-    AP4_UI08     m_PaddingScheme;
-    AP4_UI64     m_PlaintextLength;
-    AP4_String   m_ContentId;
-    AP4_String   m_RightsIssuerUrl;
-    AP4_String   m_TextualHeaders;
+    AP4_UI08       m_EncryptionMethod; 
+    AP4_UI08       m_PaddingScheme;
+    AP4_UI64       m_PlaintextLength;
+    AP4_String     m_ContentId;
+    AP4_String     m_RightsIssuerUrl;
+    AP4_DataBuffer m_TextualHeaders;
 };
 
 #endif // _AP4_OHDR_ATOM_H_

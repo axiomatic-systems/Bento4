@@ -83,9 +83,13 @@ public:
      * Constructs an AP4_File from a stream
      * @param stream the stream containing the data of the file
      * @param factory the atom factory that will be used to parse the stream
+     * @param moov_only indicates whether parsing of the atoms should stop
+     * when the moov atom is found or if all atoms should be parsed until the
+     * end of the file. 
      */
-    AP4_File(AP4_ByteStream& stream, 
-             AP4_AtomFactory& atom_factory = AP4_DefaultAtomFactory::Instance);
+    AP4_File(AP4_ByteStream&  stream, 
+             AP4_AtomFactory& atom_factory = AP4_DefaultAtomFactory::Instance,
+             bool             moov_only = false);
 
     /**
      * Destroys the AP4_File instance 
@@ -119,15 +123,10 @@ public:
                            AP4_Cardinal compatible_brand_count = 0);
 
     /** 
-     * Get the position of the moov atom
+     * Ask whether the moov atom appears before the first mdat atom
      */
-    AP4_Position GetMoovAtomPosition() const { return m_MoovAtomPosition; }
+    bool IsMoovBeforeMdat() const { return m_MoovIsBeforeMdat; }
     
-    /** 
-     * Get the position of the mdat (media data) atom
-     */
-    AP4_Position GetMdatAtomPosition() const { return m_MdatAtomPosition; }
-
     /** 
      * Get the file's metadata description
      */
@@ -144,8 +143,7 @@ private:
     AP4_FtypAtom*      m_FileType;
     AP4_List<AP4_Atom> m_OtherAtoms;
     AP4_MetaData*      m_MetaData;
-    AP4_Position       m_MoovAtomPosition;
-    AP4_Position       m_MdatAtomPosition;
+    bool               m_MoovIsBeforeMdat;
 };
 
 #endif // _AP4_FILE_H_

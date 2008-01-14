@@ -733,7 +733,9 @@ public:
                              AP4_SampleEntry*     sample_entry,
                              AP4_UI32             format,
                              const char*          content_id,
-                             const char*          rights_issuer_url);
+                             const char*          rights_issuer_url,
+                             const AP4_Byte*      textual_headers, 
+                             AP4_Size             textual_headers_size);
     virtual ~AP4_OmaDcfTrackEncrypter();
 
     // methods
@@ -751,6 +753,7 @@ private:
     AP4_UI32                   m_Format;
     AP4_String                 m_ContentId;
     AP4_String                 m_RightsIssuerUrl;
+    AP4_DataBuffer             m_TextualHeaders;
     AP4_UI64                   m_Counter;
 };
 
@@ -764,11 +767,14 @@ AP4_OmaDcfTrackEncrypter::AP4_OmaDcfTrackEncrypter(
     AP4_SampleEntry*     sample_entry,
     AP4_UI32             format,
     const char*          content_id,
-    const char*          rights_issuer_url) :
+    const char*          rights_issuer_url,
+    const AP4_Byte*      textual_headers, 
+    AP4_Size             textual_headers_size) :
     m_SampleEntry(sample_entry),
     m_Format(format),
     m_ContentId(content_id),
     m_RightsIssuerUrl(rights_issuer_url),
+    m_TextualHeaders(textual_headers, textual_headers_size),
     m_Counter(0)
 {
     // instantiate the cipher (fixed params for now)
@@ -820,7 +826,8 @@ AP4_OmaDcfTrackEncrypter::ProcessTrack()
                                                0,
                                                m_ContentId.GetChars(),
                                                m_RightsIssuerUrl.GetChars(),
-                                               NULL);
+                                               m_TextualHeaders.GetData(),
+                                               m_TextualHeaders.GetDataSize());
     AP4_ContainerAtom* odkm = new AP4_ContainerAtom(AP4_ATOM_TYPE_ODKM, AP4_FULL_ATOM_HEADER_SIZE, 0, 0);
     AP4_SchmAtom*      schm = new AP4_SchmAtom(AP4_PROTECTION_SCHEME_TYPE_OMA, 
                                                AP4_PROTECTION_SCHEME_VERSION_OMA_20);
@@ -918,6 +925,72 @@ AP4_TrackPropertyMap::GetProperty(AP4_UI32 track_id, const char* name)
 }
 
 /*----------------------------------------------------------------------
+|   AP4_TrackPropertyMap::GetTextualHeaders
++---------------------------------------------------------------------*/
+AP4_Result 
+AP4_TrackPropertyMap::GetTextualHeaders(AP4_UI32 track_id, AP4_DataBuffer& textual_headers)
+{
+    AP4_Size    buffer_size = 0;
+    AP4_Result  result      = AP4_SUCCESS;
+    AP4_Byte*   data_buffer;
+    
+    // get the size needed for the textual headers
+    AP4_List<Entry>::Item* item = m_Entries.FirstItem();
+    while (item) {
+        Entry* entry = item->GetData();
+        if (entry->m_TrackId == track_id) {
+            const char* name = entry->m_Name.GetChars();
+            if (AP4_CompareStrings(name, "ContentId")       != 0 &&
+                AP4_CompareStrings(name, "RightsIssuerUrl") != 0) {   
+                buffer_size += (entry->m_Name.GetLength()  + 
+                                entry->m_Value.GetLength() +
+                                2); // colon + nul 
+                             
+            }                           
+        }
+        item = item->GetNext(); 
+    }
+    
+    result = textual_headers.SetDataSize(buffer_size);
+    AP4_CHECK(result);
+    
+    data_buffer = textual_headers.UseData();
+    
+    // set the textual headers
+    item = m_Entries.FirstItem();
+    while (item) {
+        Entry* entry = item->GetData();
+        if (entry->m_TrackId == track_id) {
+            const char* name       = entry->m_Name.GetChars();
+            const char* value      = NULL;
+            AP4_Size    name_len   = 0;
+            AP4_Size    value_len  = 0;
+            
+            if (AP4_CompareStrings(name, "ContentId")       != 0 &&
+                AP4_CompareStrings(name, "RightsIssuerUrl") != 0) {   
+                name_len  = entry->m_Name.GetLength();
+                value     = entry->m_Value.GetChars();
+                value_len = entry->m_Value.GetLength();                
+        
+                // format is name:value\0
+                if (name && value) {
+                    AP4_CopyMemory(data_buffer, name, name_len);
+                    data_buffer[name_len] = ':';
+                    data_buffer += (1+name_len);
+                    AP4_CopyMemory(data_buffer, value, value_len);
+                    data_buffer[value_len] = '\0';
+                    data_buffer += (1+value_len);                
+                } 
+            }                                                                                     
+        }           
+        item = item->GetNext();   
+    }
+    
+    // success path
+    return AP4_SUCCESS;        
+}
+
+/*----------------------------------------------------------------------
 |   AP4_OmaDcfEncryptingProcessor:AP4_OmaDcfEncryptingProcessor
 +---------------------------------------------------------------------*/
 AP4_OmaDcfEncryptingProcessor::AP4_OmaDcfEncryptingProcessor(AP4_OmaDcfCipherMode    cipher_mode,
@@ -965,18 +1038,29 @@ AP4_OmaDcfEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
                 break;
         }
         if (format) {
-            const char* content_id = m_PropertyMap.GetProperty(trak->GetId(), "ContentId");
-            const char* rights_issuer_url = m_PropertyMap.GetProperty(trak->GetId(), "RightsIssuerUrl");
-
+            const char*    content_id = m_PropertyMap.GetProperty(trak->GetId(), "ContentId");
+            const char*    rights_issuer_url = m_PropertyMap.GetProperty(trak->GetId(), "RightsIssuerUrl");
+            AP4_DataBuffer textual_headers;
+            AP4_Result     result = m_PropertyMap.GetTextualHeaders(trak->GetId(), textual_headers);
+            if (AP4_FAILED(result)) textual_headers.SetDataSize(0);
+            
             // create the block cipher
             AP4_BlockCipher* block_cipher = NULL;
-            AP4_Result result = m_BlockCipherFactory->Create(AP4_BlockCipher::AES_128, 
-                                                             AP4_BlockCipher::ENCRYPT, 
-                                                             key, 
-                                                             AP4_CIPHER_BLOCK_SIZE, 
-                                                             block_cipher);
+            result = m_BlockCipherFactory->Create(AP4_BlockCipher::AES_128, 
+                                                  AP4_BlockCipher::ENCRYPT, 
+                                                  key, 
+                                                  AP4_CIPHER_BLOCK_SIZE, 
+                                                  block_cipher);
             if (AP4_FAILED(result)) return NULL;
-            return new AP4_OmaDcfTrackEncrypter(m_CipherMode, block_cipher, iv, entry, format, content_id, rights_issuer_url);
+            return new AP4_OmaDcfTrackEncrypter(m_CipherMode, 
+                                                block_cipher, 
+                                                iv, 
+                                                entry, 
+                                                format, 
+                                                content_id, 
+                                                rights_issuer_url,
+                                                textual_headers.GetData(),
+                                                textual_headers.GetDataSize());
         }
     }
 

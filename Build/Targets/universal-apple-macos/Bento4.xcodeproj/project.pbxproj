@@ -6,11 +6,79 @@
 	objectVersion = 42;
 	objects = {
 
+/* Begin PBXAggregateTarget section */
+		CA646AC50CE97C47009699D7 /* Apps */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = CA646ACC0CE97C6D009699D7 /* Build configuration list for PBXAggregateTarget "Apps" */;
+			buildPhases = (
+			);
+			dependencies = (
+				CA646AC90CE97C4E009699D7 /* PBXTargetDependency */,
+				CA646B710CE97EE1009699D7 /* PBXTargetDependency */,
+				CA646B730CE97EE1009699D7 /* PBXTargetDependency */,
+				CA646B750CE97EE1009699D7 /* PBXTargetDependency */,
+				CA646B770CE97EE1009699D7 /* PBXTargetDependency */,
+				CA646B790CE97EE1009699D7 /* PBXTargetDependency */,
+				CA646B7B0CE97EE1009699D7 /* PBXTargetDependency */,
+				CA646B7D0CE97EE1009699D7 /* PBXTargetDependency */,
+				CA646B7F0CE97EE1009699D7 /* PBXTargetDependency */,
+				CA646B810CE97EE1009699D7 /* PBXTargetDependency */,
+			);
+			name = Apps;
+			productName = Apps;
+		};
+		CA646B820CE97EF7009699D7 /* Tests */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = CA646B8A0CE97F20009699D7 /* Build configuration list for PBXAggregateTarget "Tests" */;
+			buildPhases = (
+			);
+			dependencies = (
+				CA646B860CE97EFC009699D7 /* PBXTargetDependency */,
+			);
+			name = Tests;
+			productName = Tests;
+		};
+		CAA97B380CF4D54E00C01909 /* All */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = CAA97B470CF4D58C00C01909 /* Build configuration list for PBXAggregateTarget "All" */;
+			buildPhases = (
+			);
+			dependencies = (
+				CAA97B3C0CF4D55500C01909 /* PBXTargetDependency */,
+				CAA97B3E0CF4D55500C01909 /* PBXTargetDependency */,
+			);
+			name = All;
+			productName = All;
+		};
+/* End PBXAggregateTarget section */
+
 /* Begin PBXBuildFile section */
 		CA1221CF0CA7192B000BEEF6 /* Ap4FileCopier.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA1221CD0CA7192B000BEEF6 /* Ap4FileCopier.cpp */; };
 		CA1221D00CA7192B000BEEF6 /* Ap4FileCopier.h in Headers */ = {isa = PBXBuildFile; fileRef = CA1221CE0CA7192B000BEEF6 /* Ap4FileCopier.h */; };
 		CA504D5D0C5E8A8A0060E6FE /* Ap4ElstAtom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA504D5B0C5E8A8A0060E6FE /* Ap4ElstAtom.cpp */; };
 		CA504D5E0C5E8A8A0060E6FE /* Ap4ElstAtom.h in Headers */ = {isa = PBXBuildFile; fileRef = CA504D5C0C5E8A8A0060E6FE /* Ap4ElstAtom.h */; };
+		CA646ABF0CE97C0C009699D7 /* Mp4Dump.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA646A8E0CE97B2D009699D7 /* Mp4Dump.cpp */; };
+		CA646AC00CE97C17009699D7 /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
+		CA646AD10CE97C80009699D7 /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
+		CA646AD70CE97C97009699D7 /* Mp4Info.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA646A960CE97B2D009699D7 /* Mp4Info.cpp */; };
+		CA646AE60CE97CD2009699D7 /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
+		CA646AEC0CE97CE4009699D7 /* Mp4Encrypt.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA646A920CE97B2D009699D7 /* Mp4Encrypt.cpp */; };
+		CA646AF30CE97CEE009699D7 /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
+		CA646AF90CE97D08009699D7 /* Mp4Decrypt.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA646A8C0CE97B2D009699D7 /* Mp4Decrypt.cpp */; };
+		CA646B060CE97D6E009699D7 /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
+		CA646B0C0CE97D7F009699D7 /* Mp4Edit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA646A900CE97B2D009699D7 /* Mp4Edit.cpp */; };
+		CA646B160CE97D9C009699D7 /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
+		CA646B1C0CE97DB0009699D7 /* Mp4Extract.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA646A940CE97B2D009699D7 /* Mp4Extract.cpp */; };
+		CA646B260CE97DD1009699D7 /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
+		CA646B2C0CE97DE5009699D7 /* Mp4Tag.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA646A9A0CE97B2D009699D7 /* Mp4Tag.cpp */; };
+		CA646B360CE97DFD009699D7 /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
+		CA646B3F0CE97E1F009699D7 /* Aac2Mp4.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA646A880CE97B2D009699D7 /* Aac2Mp4.cpp */; };
+		CA646B460CE97E27009699D7 /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
+		CA646B4F0CE97E49009699D7 /* Mp42Aac.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA646A8A0CE97B2D009699D7 /* Mp42Aac.cpp */; };
+		CA646B560CE97E52009699D7 /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
+		CA646B5F0CE97E75009699D7 /* Mp4RtpHintInfo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA646A980CE97B2D009699D7 /* Mp4RtpHintInfo.cpp */; };
+		CA646B660CE97E82009699D7 /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
+		CA646B6F0CE97EC9009699D7 /* CryptoTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA646A9D0CE97B51009699D7 /* CryptoTest.cpp */; };
 		CA9366A00B437D040067D50B /* Ap4.h in Headers */ = {isa = PBXBuildFile; fileRef = CA9366100B437D030067D50B /* Ap4.h */; };
 		CA9366A10B437D040067D50B /* Ap4Array.h in Headers */ = {isa = PBXBuildFile; fileRef = CA9366110B437D030067D50B /* Ap4Array.h */; };
 		CA9366A20B437D040067D50B /* Ap4Atom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA9366120B437D030067D50B /* Ap4Atom.cpp */; };
@@ -170,11 +238,204 @@
 		F9B1F4FC0B54AD91003F147E /* Ap4AvccAtom.h in Headers */ = {isa = PBXBuildFile; fileRef = F9B1F4FA0B54AD91003F147E /* Ap4AvccAtom.h */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		CA646AC80CE97C4E009699D7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CA646ABA0CE97BFD009699D7;
+			remoteInfo = Mp4Dump;
+		};
+		CA646ADB0CE97CA6009699D7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D2AAC045055464E500DB518D;
+			remoteInfo = Bento4;
+		};
+		CA646ADD0CE97CB2009699D7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D2AAC045055464E500DB518D;
+			remoteInfo = Bento4;
+		};
+		CA646AE20CE97CD2009699D7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D2AAC045055464E500DB518D;
+			remoteInfo = Bento4;
+		};
+		CA646AEF0CE97CEE009699D7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D2AAC045055464E500DB518D;
+			remoteInfo = Bento4;
+		};
+		CA646B020CE97D6E009699D7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D2AAC045055464E500DB518D;
+			remoteInfo = Bento4;
+		};
+		CA646B120CE97D9C009699D7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D2AAC045055464E500DB518D;
+			remoteInfo = Bento4;
+		};
+		CA646B220CE97DD1009699D7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D2AAC045055464E500DB518D;
+			remoteInfo = Bento4;
+		};
+		CA646B320CE97DFD009699D7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D2AAC045055464E500DB518D;
+			remoteInfo = Bento4;
+		};
+		CA646B420CE97E27009699D7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D2AAC045055464E500DB518D;
+			remoteInfo = Bento4;
+		};
+		CA646B520CE97E52009699D7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D2AAC045055464E500DB518D;
+			remoteInfo = Bento4;
+		};
+		CA646B620CE97E82009699D7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D2AAC045055464E500DB518D;
+			remoteInfo = Bento4;
+		};
+		CA646B700CE97EE1009699D7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CA646ACD0CE97C80009699D7;
+			remoteInfo = Mp4Info;
+		};
+		CA646B720CE97EE1009699D7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CA646AE00CE97CD2009699D7;
+			remoteInfo = Mp4Encrypt;
+		};
+		CA646B740CE97EE1009699D7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CA646AED0CE97CEE009699D7;
+			remoteInfo = Mp4Decrypt;
+		};
+		CA646B760CE97EE1009699D7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CA646B000CE97D6E009699D7;
+			remoteInfo = Mp4Edit;
+		};
+		CA646B780CE97EE1009699D7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CA646B100CE97D9C009699D7;
+			remoteInfo = Mp4Extract;
+		};
+		CA646B7A0CE97EE1009699D7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CA646B200CE97DD1009699D7;
+			remoteInfo = Mp4Tag;
+		};
+		CA646B7C0CE97EE1009699D7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CA646B300CE97DFD009699D7;
+			remoteInfo = Aac2Mp4;
+		};
+		CA646B7E0CE97EE1009699D7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CA646B400CE97E27009699D7;
+			remoteInfo = Mp42Aac;
+		};
+		CA646B800CE97EE1009699D7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CA646B500CE97E52009699D7;
+			remoteInfo = Mp4RtpHintInfo;
+		};
+		CA646B850CE97EFC009699D7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CA646B600CE97E82009699D7;
+			remoteInfo = CryptoTest;
+		};
+		CAA97B3B0CF4D55500C01909 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CA646B820CE97EF7009699D7;
+			remoteInfo = Tests;
+		};
+		CAA97B3D0CF4D55500C01909 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CA646AC50CE97C47009699D7;
+			remoteInfo = Apps;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		CA1221CD0CA7192B000BEEF6 /* Ap4FileCopier.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4FileCopier.cpp; sourceTree = "<group>"; };
 		CA1221CE0CA7192B000BEEF6 /* Ap4FileCopier.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = Ap4FileCopier.h; sourceTree = "<group>"; };
 		CA504D5B0C5E8A8A0060E6FE /* Ap4ElstAtom.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4ElstAtom.cpp; sourceTree = "<group>"; };
 		CA504D5C0C5E8A8A0060E6FE /* Ap4ElstAtom.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = Ap4ElstAtom.h; sourceTree = "<group>"; };
+		CA646A880CE97B2D009699D7 /* Aac2Mp4.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Aac2Mp4.cpp; sourceTree = "<group>"; };
+		CA646A8A0CE97B2D009699D7 /* Mp42Aac.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Mp42Aac.cpp; sourceTree = "<group>"; };
+		CA646A8C0CE97B2D009699D7 /* Mp4Decrypt.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Mp4Decrypt.cpp; sourceTree = "<group>"; };
+		CA646A8E0CE97B2D009699D7 /* Mp4Dump.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Mp4Dump.cpp; sourceTree = "<group>"; };
+		CA646A900CE97B2D009699D7 /* Mp4Edit.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Mp4Edit.cpp; sourceTree = "<group>"; };
+		CA646A920CE97B2D009699D7 /* Mp4Encrypt.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Mp4Encrypt.cpp; sourceTree = "<group>"; };
+		CA646A940CE97B2D009699D7 /* Mp4Extract.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Mp4Extract.cpp; sourceTree = "<group>"; };
+		CA646A960CE97B2D009699D7 /* Mp4Info.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Mp4Info.cpp; sourceTree = "<group>"; };
+		CA646A980CE97B2D009699D7 /* Mp4RtpHintInfo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Mp4RtpHintInfo.cpp; sourceTree = "<group>"; };
+		CA646A9A0CE97B2D009699D7 /* Mp4Tag.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Mp4Tag.cpp; sourceTree = "<group>"; };
+		CA646A9D0CE97B51009699D7 /* CryptoTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CryptoTest.cpp; sourceTree = "<group>"; };
+		CA646ABB0CE97BFD009699D7 /* mp4dump */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mp4dump; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA646AD50CE97C80009699D7 /* mp4info */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mp4info; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA646AEA0CE97CD2009699D7 /* mp4encrypt */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mp4encrypt; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA646AF70CE97CEE009699D7 /* mp4decrypt */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mp4decrypt; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA646B0A0CE97D6E009699D7 /* mp4edit */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mp4edit; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA646B1A0CE97D9C009699D7 /* mp4extract */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mp4extract; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA646B2A0CE97DD1009699D7 /* mp4tag */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mp4tag; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA646B3A0CE97DFD009699D7 /* aac2mp4 */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = aac2mp4; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA646B4A0CE97E27009699D7 /* mp42aac */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mp42aac; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA646B5A0CE97E52009699D7 /* mp4rtphintinfo */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mp4rtphintinfo; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA646B6A0CE97E82009699D7 /* cryptotest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = cryptotest; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA9366100B437D030067D50B /* Ap4.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = Ap4.h; sourceTree = "<group>"; };
 		CA9366110B437D030067D50B /* Ap4Array.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = Ap4Array.h; sourceTree = "<group>"; };
 		CA9366120B437D030067D50B /* Ap4Atom.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4Atom.cpp; sourceTree = "<group>"; };
@@ -336,6 +597,94 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		CA646AB90CE97BFD009699D7 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CA646AC00CE97C17009699D7 /* libBento4.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CA646AD00CE97C80009699D7 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CA646AD10CE97C80009699D7 /* libBento4.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CA646AE50CE97CD2009699D7 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CA646AE60CE97CD2009699D7 /* libBento4.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CA646AF20CE97CEE009699D7 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CA646AF30CE97CEE009699D7 /* libBento4.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CA646B050CE97D6E009699D7 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CA646B060CE97D6E009699D7 /* libBento4.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CA646B150CE97D9C009699D7 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CA646B160CE97D9C009699D7 /* libBento4.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CA646B250CE97DD1009699D7 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CA646B260CE97DD1009699D7 /* libBento4.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CA646B350CE97DFD009699D7 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CA646B360CE97DFD009699D7 /* libBento4.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CA646B450CE97E27009699D7 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CA646B460CE97E27009699D7 /* libBento4.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CA646B550CE97E52009699D7 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CA646B560CE97E52009699D7 /* libBento4.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CA646B650CE97E82009699D7 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CA646B660CE97E82009699D7 /* libBento4.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		D289987405E68DCB004EDB86 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -350,6 +699,8 @@
 			isa = PBXGroup;
 			children = (
 				08FB7795FE84155DC02AAC07 /* Runtime */,
+				CA646A860CE97B2D009699D7 /* Apps */,
+				CA646A9B0CE97B51009699D7 /* Test */,
 				C6A0FF2B0290797F04C91782 /* Documentation */,
 				1AB674ADFE9D54B511CA2CBB /* Products */,
 			);
@@ -372,6 +723,17 @@
 			isa = PBXGroup;
 			children = (
 				D2AAC046055464E500DB518D /* libBento4.a */,
+				CA646ABB0CE97BFD009699D7 /* mp4dump */,
+				CA646AD50CE97C80009699D7 /* mp4info */,
+				CA646AEA0CE97CD2009699D7 /* mp4encrypt */,
+				CA646AF70CE97CEE009699D7 /* mp4decrypt */,
+				CA646B0A0CE97D6E009699D7 /* mp4edit */,
+				CA646B1A0CE97D9C009699D7 /* mp4extract */,
+				CA646B2A0CE97DD1009699D7 /* mp4tag */,
+				CA646B3A0CE97DFD009699D7 /* aac2mp4 */,
+				CA646B4A0CE97E27009699D7 /* mp42aac */,
+				CA646B5A0CE97E52009699D7 /* mp4rtphintinfo */,
+				CA646B6A0CE97E82009699D7 /* cryptotest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -381,6 +743,121 @@
 			children = (
 			);
 			name = Documentation;
+			sourceTree = "<group>";
+		};
+		CA646A860CE97B2D009699D7 /* Apps */ = {
+			isa = PBXGroup;
+			children = (
+				CA646A870CE97B2D009699D7 /* Aac2Mp4 */,
+				CA646A890CE97B2D009699D7 /* Mp42Aac */,
+				CA646A8B0CE97B2D009699D7 /* Mp4Decrypt */,
+				CA646A8D0CE97B2D009699D7 /* Mp4Dump */,
+				CA646A8F0CE97B2D009699D7 /* Mp4Edit */,
+				CA646A910CE97B2D009699D7 /* Mp4Encrypt */,
+				CA646A930CE97B2D009699D7 /* Mp4Extract */,
+				CA646A950CE97B2D009699D7 /* Mp4Info */,
+				CA646A970CE97B2D009699D7 /* Mp4RtpHintInfo */,
+				CA646A990CE97B2D009699D7 /* Mp4Tag */,
+			);
+			name = Apps;
+			path = "../../../Source/C++/Apps";
+			sourceTree = SOURCE_ROOT;
+		};
+		CA646A870CE97B2D009699D7 /* Aac2Mp4 */ = {
+			isa = PBXGroup;
+			children = (
+				CA646A880CE97B2D009699D7 /* Aac2Mp4.cpp */,
+			);
+			path = Aac2Mp4;
+			sourceTree = "<group>";
+		};
+		CA646A890CE97B2D009699D7 /* Mp42Aac */ = {
+			isa = PBXGroup;
+			children = (
+				CA646A8A0CE97B2D009699D7 /* Mp42Aac.cpp */,
+			);
+			path = Mp42Aac;
+			sourceTree = "<group>";
+		};
+		CA646A8B0CE97B2D009699D7 /* Mp4Decrypt */ = {
+			isa = PBXGroup;
+			children = (
+				CA646A8C0CE97B2D009699D7 /* Mp4Decrypt.cpp */,
+			);
+			path = Mp4Decrypt;
+			sourceTree = "<group>";
+		};
+		CA646A8D0CE97B2D009699D7 /* Mp4Dump */ = {
+			isa = PBXGroup;
+			children = (
+				CA646A8E0CE97B2D009699D7 /* Mp4Dump.cpp */,
+			);
+			path = Mp4Dump;
+			sourceTree = "<group>";
+		};
+		CA646A8F0CE97B2D009699D7 /* Mp4Edit */ = {
+			isa = PBXGroup;
+			children = (
+				CA646A900CE97B2D009699D7 /* Mp4Edit.cpp */,
+			);
+			path = Mp4Edit;
+			sourceTree = "<group>";
+		};
+		CA646A910CE97B2D009699D7 /* Mp4Encrypt */ = {
+			isa = PBXGroup;
+			children = (
+				CA646A920CE97B2D009699D7 /* Mp4Encrypt.cpp */,
+			);
+			path = Mp4Encrypt;
+			sourceTree = "<group>";
+		};
+		CA646A930CE97B2D009699D7 /* Mp4Extract */ = {
+			isa = PBXGroup;
+			children = (
+				CA646A940CE97B2D009699D7 /* Mp4Extract.cpp */,
+			);
+			path = Mp4Extract;
+			sourceTree = "<group>";
+		};
+		CA646A950CE97B2D009699D7 /* Mp4Info */ = {
+			isa = PBXGroup;
+			children = (
+				CA646A960CE97B2D009699D7 /* Mp4Info.cpp */,
+			);
+			path = Mp4Info;
+			sourceTree = "<group>";
+		};
+		CA646A970CE97B2D009699D7 /* Mp4RtpHintInfo */ = {
+			isa = PBXGroup;
+			children = (
+				CA646A980CE97B2D009699D7 /* Mp4RtpHintInfo.cpp */,
+			);
+			path = Mp4RtpHintInfo;
+			sourceTree = "<group>";
+		};
+		CA646A990CE97B2D009699D7 /* Mp4Tag */ = {
+			isa = PBXGroup;
+			children = (
+				CA646A9A0CE97B2D009699D7 /* Mp4Tag.cpp */,
+			);
+			path = Mp4Tag;
+			sourceTree = "<group>";
+		};
+		CA646A9B0CE97B51009699D7 /* Test */ = {
+			isa = PBXGroup;
+			children = (
+				CA646A9C0CE97B51009699D7 /* Crypto */,
+			);
+			name = Test;
+			path = "../../../Source/C++/Test";
+			sourceTree = SOURCE_ROOT;
+		};
+		CA646A9C0CE97B51009699D7 /* Crypto */ = {
+			isa = PBXGroup;
+			children = (
+				CA646A9D0CE97B51009699D7 /* CryptoTest.cpp */,
+			);
+			path = Crypto;
 			sourceTree = "<group>";
 		};
 		CA93660F0B437D030067D50B /* Core */ = {
@@ -682,6 +1159,193 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
+		CA646ABA0CE97BFD009699D7 /* Mp4Dump */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CA646AC40CE97C35009699D7 /* Build configuration list for PBXNativeTarget "Mp4Dump" */;
+			buildPhases = (
+				CA646AB80CE97BFD009699D7 /* Sources */,
+				CA646AB90CE97BFD009699D7 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CA646ADE0CE97CB2009699D7 /* PBXTargetDependency */,
+			);
+			name = Mp4Dump;
+			productName = Mp4Dump;
+			productReference = CA646ABB0CE97BFD009699D7 /* mp4dump */;
+			productType = "com.apple.product-type.tool";
+		};
+		CA646ACD0CE97C80009699D7 /* Mp4Info */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CA646AD20CE97C80009699D7 /* Build configuration list for PBXNativeTarget "Mp4Info" */;
+			buildPhases = (
+				CA646ACE0CE97C80009699D7 /* Sources */,
+				CA646AD00CE97C80009699D7 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CA646ADC0CE97CA6009699D7 /* PBXTargetDependency */,
+			);
+			name = Mp4Info;
+			productName = Mp4Dump;
+			productReference = CA646AD50CE97C80009699D7 /* mp4info */;
+			productType = "com.apple.product-type.tool";
+		};
+		CA646AE00CE97CD2009699D7 /* Mp4Encrypt */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CA646AE70CE97CD2009699D7 /* Build configuration list for PBXNativeTarget "Mp4Encrypt" */;
+			buildPhases = (
+				CA646AE30CE97CD2009699D7 /* Sources */,
+				CA646AE50CE97CD2009699D7 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CA646AE10CE97CD2009699D7 /* PBXTargetDependency */,
+			);
+			name = Mp4Encrypt;
+			productName = Mp4Dump;
+			productReference = CA646AEA0CE97CD2009699D7 /* mp4encrypt */;
+			productType = "com.apple.product-type.tool";
+		};
+		CA646AED0CE97CEE009699D7 /* Mp4Decrypt */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CA646AF40CE97CEE009699D7 /* Build configuration list for PBXNativeTarget "Mp4Decrypt" */;
+			buildPhases = (
+				CA646AF00CE97CEE009699D7 /* Sources */,
+				CA646AF20CE97CEE009699D7 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CA646AEE0CE97CEE009699D7 /* PBXTargetDependency */,
+			);
+			name = Mp4Decrypt;
+			productName = Mp4Dump;
+			productReference = CA646AF70CE97CEE009699D7 /* mp4decrypt */;
+			productType = "com.apple.product-type.tool";
+		};
+		CA646B000CE97D6E009699D7 /* Mp4Edit */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CA646B070CE97D6E009699D7 /* Build configuration list for PBXNativeTarget "Mp4Edit" */;
+			buildPhases = (
+				CA646B030CE97D6E009699D7 /* Sources */,
+				CA646B050CE97D6E009699D7 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CA646B010CE97D6E009699D7 /* PBXTargetDependency */,
+			);
+			name = Mp4Edit;
+			productName = Mp4Dump;
+			productReference = CA646B0A0CE97D6E009699D7 /* mp4edit */;
+			productType = "com.apple.product-type.tool";
+		};
+		CA646B100CE97D9C009699D7 /* Mp4Extract */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CA646B170CE97D9C009699D7 /* Build configuration list for PBXNativeTarget "Mp4Extract" */;
+			buildPhases = (
+				CA646B130CE97D9C009699D7 /* Sources */,
+				CA646B150CE97D9C009699D7 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CA646B110CE97D9C009699D7 /* PBXTargetDependency */,
+			);
+			name = Mp4Extract;
+			productName = Mp4Dump;
+			productReference = CA646B1A0CE97D9C009699D7 /* mp4extract */;
+			productType = "com.apple.product-type.tool";
+		};
+		CA646B200CE97DD1009699D7 /* Mp4Tag */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CA646B270CE97DD1009699D7 /* Build configuration list for PBXNativeTarget "Mp4Tag" */;
+			buildPhases = (
+				CA646B230CE97DD1009699D7 /* Sources */,
+				CA646B250CE97DD1009699D7 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CA646B210CE97DD1009699D7 /* PBXTargetDependency */,
+			);
+			name = Mp4Tag;
+			productName = Mp4Dump;
+			productReference = CA646B2A0CE97DD1009699D7 /* mp4tag */;
+			productType = "com.apple.product-type.tool";
+		};
+		CA646B300CE97DFD009699D7 /* Aac2Mp4 */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CA646B370CE97DFD009699D7 /* Build configuration list for PBXNativeTarget "Aac2Mp4" */;
+			buildPhases = (
+				CA646B330CE97DFD009699D7 /* Sources */,
+				CA646B350CE97DFD009699D7 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CA646B310CE97DFD009699D7 /* PBXTargetDependency */,
+			);
+			name = Aac2Mp4;
+			productName = Mp4Dump;
+			productReference = CA646B3A0CE97DFD009699D7 /* aac2mp4 */;
+			productType = "com.apple.product-type.tool";
+		};
+		CA646B400CE97E27009699D7 /* Mp42Aac */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CA646B470CE97E27009699D7 /* Build configuration list for PBXNativeTarget "Mp42Aac" */;
+			buildPhases = (
+				CA646B430CE97E27009699D7 /* Sources */,
+				CA646B450CE97E27009699D7 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CA646B410CE97E27009699D7 /* PBXTargetDependency */,
+			);
+			name = Mp42Aac;
+			productName = Mp4Dump;
+			productReference = CA646B4A0CE97E27009699D7 /* mp42aac */;
+			productType = "com.apple.product-type.tool";
+		};
+		CA646B500CE97E52009699D7 /* Mp4RtpHintInfo */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CA646B570CE97E52009699D7 /* Build configuration list for PBXNativeTarget "Mp4RtpHintInfo" */;
+			buildPhases = (
+				CA646B530CE97E52009699D7 /* Sources */,
+				CA646B550CE97E52009699D7 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CA646B510CE97E52009699D7 /* PBXTargetDependency */,
+			);
+			name = Mp4RtpHintInfo;
+			productName = Mp4Dump;
+			productReference = CA646B5A0CE97E52009699D7 /* mp4rtphintinfo */;
+			productType = "com.apple.product-type.tool";
+		};
+		CA646B600CE97E82009699D7 /* CryptoTest */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CA646B670CE97E82009699D7 /* Build configuration list for PBXNativeTarget "CryptoTest" */;
+			buildPhases = (
+				CA646B630CE97E82009699D7 /* Sources */,
+				CA646B650CE97E82009699D7 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CA646B610CE97E82009699D7 /* PBXTargetDependency */,
+			);
+			name = CryptoTest;
+			productName = Mp4Dump;
+			productReference = CA646B6A0CE97E82009699D7 /* cryptotest */;
+			productType = "com.apple.product-type.tool";
+		};
 		D2AAC045055464E500DB518D /* Bento4 */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 1DEB91EB08733DB70010E9CD /* Build configuration list for PBXNativeTarget "Bento4" */;
@@ -705,16 +1369,120 @@
 		08FB7793FE84155DC02AAC07 /* Project object */ = {
 			isa = PBXProject;
 			buildConfigurationList = 1DEB91EF08733DB70010E9CD /* Build configuration list for PBXProject "Bento4" */;
+			compatibilityVersion = "Xcode 2.4";
 			hasScannedForEncodings = 1;
 			mainGroup = 08FB7794FE84155DC02AAC07 /* Bento4 */;
 			projectDirPath = "";
+			projectRoot = ../../..;
 			targets = (
+				CAA97B380CF4D54E00C01909 /* All */,
+				CA646AC50CE97C47009699D7 /* Apps */,
+				CA646B820CE97EF7009699D7 /* Tests */,
 				D2AAC045055464E500DB518D /* Bento4 */,
+				CA646ABA0CE97BFD009699D7 /* Mp4Dump */,
+				CA646ACD0CE97C80009699D7 /* Mp4Info */,
+				CA646AE00CE97CD2009699D7 /* Mp4Encrypt */,
+				CA646AED0CE97CEE009699D7 /* Mp4Decrypt */,
+				CA646B000CE97D6E009699D7 /* Mp4Edit */,
+				CA646B100CE97D9C009699D7 /* Mp4Extract */,
+				CA646B200CE97DD1009699D7 /* Mp4Tag */,
+				CA646B300CE97DFD009699D7 /* Aac2Mp4 */,
+				CA646B400CE97E27009699D7 /* Mp42Aac */,
+				CA646B500CE97E52009699D7 /* Mp4RtpHintInfo */,
+				CA646B600CE97E82009699D7 /* CryptoTest */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXSourcesBuildPhase section */
+		CA646AB80CE97BFD009699D7 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CA646ABF0CE97C0C009699D7 /* Mp4Dump.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CA646ACE0CE97C80009699D7 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CA646AD70CE97C97009699D7 /* Mp4Info.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CA646AE30CE97CD2009699D7 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CA646AEC0CE97CE4009699D7 /* Mp4Encrypt.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CA646AF00CE97CEE009699D7 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CA646AF90CE97D08009699D7 /* Mp4Decrypt.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CA646B030CE97D6E009699D7 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CA646B0C0CE97D7F009699D7 /* Mp4Edit.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CA646B130CE97D9C009699D7 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CA646B1C0CE97DB0009699D7 /* Mp4Extract.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CA646B230CE97DD1009699D7 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CA646B2C0CE97DE5009699D7 /* Mp4Tag.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CA646B330CE97DFD009699D7 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CA646B3F0CE97E1F009699D7 /* Aac2Mp4.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CA646B430CE97E27009699D7 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CA646B4F0CE97E49009699D7 /* Mp42Aac.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CA646B530CE97E52009699D7 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CA646B5F0CE97E75009699D7 /* Mp4RtpHintInfo.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CA646B630CE97E82009699D7 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CA646B6F0CE97EC9009699D7 /* CryptoTest.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		D2AAC044055464E500DB518D /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -800,6 +1568,129 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		CA646AC90CE97C4E009699D7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CA646ABA0CE97BFD009699D7 /* Mp4Dump */;
+			targetProxy = CA646AC80CE97C4E009699D7 /* PBXContainerItemProxy */;
+		};
+		CA646ADC0CE97CA6009699D7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D2AAC045055464E500DB518D /* Bento4 */;
+			targetProxy = CA646ADB0CE97CA6009699D7 /* PBXContainerItemProxy */;
+		};
+		CA646ADE0CE97CB2009699D7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D2AAC045055464E500DB518D /* Bento4 */;
+			targetProxy = CA646ADD0CE97CB2009699D7 /* PBXContainerItemProxy */;
+		};
+		CA646AE10CE97CD2009699D7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D2AAC045055464E500DB518D /* Bento4 */;
+			targetProxy = CA646AE20CE97CD2009699D7 /* PBXContainerItemProxy */;
+		};
+		CA646AEE0CE97CEE009699D7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D2AAC045055464E500DB518D /* Bento4 */;
+			targetProxy = CA646AEF0CE97CEE009699D7 /* PBXContainerItemProxy */;
+		};
+		CA646B010CE97D6E009699D7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D2AAC045055464E500DB518D /* Bento4 */;
+			targetProxy = CA646B020CE97D6E009699D7 /* PBXContainerItemProxy */;
+		};
+		CA646B110CE97D9C009699D7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D2AAC045055464E500DB518D /* Bento4 */;
+			targetProxy = CA646B120CE97D9C009699D7 /* PBXContainerItemProxy */;
+		};
+		CA646B210CE97DD1009699D7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D2AAC045055464E500DB518D /* Bento4 */;
+			targetProxy = CA646B220CE97DD1009699D7 /* PBXContainerItemProxy */;
+		};
+		CA646B310CE97DFD009699D7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D2AAC045055464E500DB518D /* Bento4 */;
+			targetProxy = CA646B320CE97DFD009699D7 /* PBXContainerItemProxy */;
+		};
+		CA646B410CE97E27009699D7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D2AAC045055464E500DB518D /* Bento4 */;
+			targetProxy = CA646B420CE97E27009699D7 /* PBXContainerItemProxy */;
+		};
+		CA646B510CE97E52009699D7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D2AAC045055464E500DB518D /* Bento4 */;
+			targetProxy = CA646B520CE97E52009699D7 /* PBXContainerItemProxy */;
+		};
+		CA646B610CE97E82009699D7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D2AAC045055464E500DB518D /* Bento4 */;
+			targetProxy = CA646B620CE97E82009699D7 /* PBXContainerItemProxy */;
+		};
+		CA646B710CE97EE1009699D7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CA646ACD0CE97C80009699D7 /* Mp4Info */;
+			targetProxy = CA646B700CE97EE1009699D7 /* PBXContainerItemProxy */;
+		};
+		CA646B730CE97EE1009699D7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CA646AE00CE97CD2009699D7 /* Mp4Encrypt */;
+			targetProxy = CA646B720CE97EE1009699D7 /* PBXContainerItemProxy */;
+		};
+		CA646B750CE97EE1009699D7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CA646AED0CE97CEE009699D7 /* Mp4Decrypt */;
+			targetProxy = CA646B740CE97EE1009699D7 /* PBXContainerItemProxy */;
+		};
+		CA646B770CE97EE1009699D7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CA646B000CE97D6E009699D7 /* Mp4Edit */;
+			targetProxy = CA646B760CE97EE1009699D7 /* PBXContainerItemProxy */;
+		};
+		CA646B790CE97EE1009699D7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CA646B100CE97D9C009699D7 /* Mp4Extract */;
+			targetProxy = CA646B780CE97EE1009699D7 /* PBXContainerItemProxy */;
+		};
+		CA646B7B0CE97EE1009699D7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CA646B200CE97DD1009699D7 /* Mp4Tag */;
+			targetProxy = CA646B7A0CE97EE1009699D7 /* PBXContainerItemProxy */;
+		};
+		CA646B7D0CE97EE1009699D7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CA646B300CE97DFD009699D7 /* Aac2Mp4 */;
+			targetProxy = CA646B7C0CE97EE1009699D7 /* PBXContainerItemProxy */;
+		};
+		CA646B7F0CE97EE1009699D7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CA646B400CE97E27009699D7 /* Mp42Aac */;
+			targetProxy = CA646B7E0CE97EE1009699D7 /* PBXContainerItemProxy */;
+		};
+		CA646B810CE97EE1009699D7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CA646B500CE97E52009699D7 /* Mp4RtpHintInfo */;
+			targetProxy = CA646B800CE97EE1009699D7 /* PBXContainerItemProxy */;
+		};
+		CA646B860CE97EFC009699D7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CA646B600CE97E82009699D7 /* CryptoTest */;
+			targetProxy = CA646B850CE97EFC009699D7 /* PBXContainerItemProxy */;
+		};
+		CAA97B3C0CF4D55500C01909 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CA646B820CE97EF7009699D7 /* Tests */;
+			targetProxy = CAA97B3B0CF4D55500C01909 /* PBXContainerItemProxy */;
+		};
+		CAA97B3E0CF4D55500C01909 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CA646AC50CE97C47009699D7 /* Apps */;
+			targetProxy = CAA97B3D0CF4D55500C01909 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
 		1DEB91EC08733DB70010E9CD /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -807,8 +1698,10 @@
 				COPY_PHASE_STRIP = NO;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = YES;
 				GCC_MODEL_TUNING = G5;
 				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
 				INSTALL_PATH = /usr/local/lib;
 				PRODUCT_NAME = Bento4;
 				ZERO_LINK = YES;
@@ -823,7 +1716,9 @@
 					i386,
 				);
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = YES;
 				GCC_MODEL_TUNING = G5;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
 				INSTALL_PATH = /usr/local/lib;
 				PRODUCT_NAME = Bento4;
 			};
@@ -858,6 +1753,390 @@
 			};
 			name = Release;
 		};
+		CA646ABD0CE97BFE009699D7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				INSTALL_PATH = /usr/local/bin;
+				PREBINDING = NO;
+				PRODUCT_NAME = mp4dump;
+				ZERO_LINK = YES;
+			};
+			name = Debug;
+		};
+		CA646ABE0CE97BFE009699D7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_MODEL_TUNING = G5;
+				INSTALL_PATH = /usr/local/bin;
+				PREBINDING = NO;
+				PRODUCT_NAME = mp4dump;
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
+		CA646AC60CE97C47009699D7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				PRODUCT_NAME = Apps;
+			};
+			name = Debug;
+		};
+		CA646AC70CE97C47009699D7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				PRODUCT_NAME = Apps;
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
+		CA646AD30CE97C80009699D7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				INSTALL_PATH = /usr/local/bin;
+				PREBINDING = NO;
+				PRODUCT_NAME = mp4info;
+				ZERO_LINK = YES;
+			};
+			name = Debug;
+		};
+		CA646AD40CE97C80009699D7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_MODEL_TUNING = G5;
+				INSTALL_PATH = /usr/local/bin;
+				PREBINDING = NO;
+				PRODUCT_NAME = mp4info;
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
+		CA646AE80CE97CD2009699D7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				INSTALL_PATH = /usr/local/bin;
+				PREBINDING = NO;
+				PRODUCT_NAME = mp4encrypt;
+				ZERO_LINK = YES;
+			};
+			name = Debug;
+		};
+		CA646AE90CE97CD2009699D7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_MODEL_TUNING = G5;
+				INSTALL_PATH = /usr/local/bin;
+				PREBINDING = NO;
+				PRODUCT_NAME = mp4encrypt;
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
+		CA646AF50CE97CEE009699D7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				INSTALL_PATH = /usr/local/bin;
+				PREBINDING = NO;
+				PRODUCT_NAME = mp4decrypt;
+				ZERO_LINK = YES;
+			};
+			name = Debug;
+		};
+		CA646AF60CE97CEE009699D7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_MODEL_TUNING = G5;
+				INSTALL_PATH = /usr/local/bin;
+				PREBINDING = NO;
+				PRODUCT_NAME = mp4decrypt;
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
+		CA646B080CE97D6E009699D7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				INSTALL_PATH = /usr/local/bin;
+				PREBINDING = NO;
+				PRODUCT_NAME = mp4edit;
+				ZERO_LINK = YES;
+			};
+			name = Debug;
+		};
+		CA646B090CE97D6E009699D7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_MODEL_TUNING = G5;
+				INSTALL_PATH = /usr/local/bin;
+				PREBINDING = NO;
+				PRODUCT_NAME = mp4edit;
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
+		CA646B180CE97D9C009699D7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				INSTALL_PATH = /usr/local/bin;
+				PREBINDING = NO;
+				PRODUCT_NAME = mp4extract;
+				ZERO_LINK = YES;
+			};
+			name = Debug;
+		};
+		CA646B190CE97D9C009699D7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_MODEL_TUNING = G5;
+				INSTALL_PATH = /usr/local/bin;
+				PREBINDING = NO;
+				PRODUCT_NAME = mp4extract;
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
+		CA646B280CE97DD1009699D7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				INSTALL_PATH = /usr/local/bin;
+				PREBINDING = NO;
+				PRODUCT_NAME = mp4tag;
+				ZERO_LINK = YES;
+			};
+			name = Debug;
+		};
+		CA646B290CE97DD1009699D7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_MODEL_TUNING = G5;
+				INSTALL_PATH = /usr/local/bin;
+				PREBINDING = NO;
+				PRODUCT_NAME = mp4tag;
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
+		CA646B380CE97DFD009699D7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				INSTALL_PATH = /usr/local/bin;
+				PREBINDING = NO;
+				PRODUCT_NAME = aac2mp4;
+				ZERO_LINK = YES;
+			};
+			name = Debug;
+		};
+		CA646B390CE97DFD009699D7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_MODEL_TUNING = G5;
+				INSTALL_PATH = /usr/local/bin;
+				PREBINDING = NO;
+				PRODUCT_NAME = aac2mp4;
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
+		CA646B480CE97E27009699D7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				INSTALL_PATH = /usr/local/bin;
+				PREBINDING = NO;
+				PRODUCT_NAME = mp42aac;
+				ZERO_LINK = YES;
+			};
+			name = Debug;
+		};
+		CA646B490CE97E27009699D7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_MODEL_TUNING = G5;
+				INSTALL_PATH = /usr/local/bin;
+				PREBINDING = NO;
+				PRODUCT_NAME = mp42aac;
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
+		CA646B580CE97E52009699D7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				INSTALL_PATH = /usr/local/bin;
+				PREBINDING = NO;
+				PRODUCT_NAME = mp4rtphintinfo;
+				ZERO_LINK = YES;
+			};
+			name = Debug;
+		};
+		CA646B590CE97E52009699D7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_MODEL_TUNING = G5;
+				INSTALL_PATH = /usr/local/bin;
+				PREBINDING = NO;
+				PRODUCT_NAME = mp4rtphintinfo;
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
+		CA646B680CE97E82009699D7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				INSTALL_PATH = /usr/local/bin;
+				PREBINDING = NO;
+				PRODUCT_NAME = cryptotest;
+				SKIP_INSTALL = YES;
+				ZERO_LINK = YES;
+			};
+			name = Debug;
+		};
+		CA646B690CE97E82009699D7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_MODEL_TUNING = G5;
+				INSTALL_PATH = /usr/local/bin;
+				PREBINDING = NO;
+				PRODUCT_NAME = cryptotest;
+				SKIP_INSTALL = YES;
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
+		CA646B830CE97EF7009699D7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				PRODUCT_NAME = Tests;
+			};
+			name = Debug;
+		};
+		CA646B840CE97EF7009699D7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				PRODUCT_NAME = Tests;
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
+		CAA97B390CF4D54E00C01909 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				PRODUCT_NAME = All;
+			};
+			name = Debug;
+		};
+		CAA97B3A0CF4D54E00C01909 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				PRODUCT_NAME = All;
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -875,6 +2154,132 @@
 			buildConfigurations = (
 				1DEB91F008733DB70010E9CD /* Debug */,
 				1DEB91F108733DB70010E9CD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CA646AC40CE97C35009699D7 /* Build configuration list for PBXNativeTarget "Mp4Dump" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CA646ABD0CE97BFE009699D7 /* Debug */,
+				CA646ABE0CE97BFE009699D7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CA646ACC0CE97C6D009699D7 /* Build configuration list for PBXAggregateTarget "Apps" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CA646AC60CE97C47009699D7 /* Debug */,
+				CA646AC70CE97C47009699D7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CA646AD20CE97C80009699D7 /* Build configuration list for PBXNativeTarget "Mp4Info" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CA646AD30CE97C80009699D7 /* Debug */,
+				CA646AD40CE97C80009699D7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CA646AE70CE97CD2009699D7 /* Build configuration list for PBXNativeTarget "Mp4Encrypt" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CA646AE80CE97CD2009699D7 /* Debug */,
+				CA646AE90CE97CD2009699D7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CA646AF40CE97CEE009699D7 /* Build configuration list for PBXNativeTarget "Mp4Decrypt" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CA646AF50CE97CEE009699D7 /* Debug */,
+				CA646AF60CE97CEE009699D7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CA646B070CE97D6E009699D7 /* Build configuration list for PBXNativeTarget "Mp4Edit" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CA646B080CE97D6E009699D7 /* Debug */,
+				CA646B090CE97D6E009699D7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CA646B170CE97D9C009699D7 /* Build configuration list for PBXNativeTarget "Mp4Extract" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CA646B180CE97D9C009699D7 /* Debug */,
+				CA646B190CE97D9C009699D7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CA646B270CE97DD1009699D7 /* Build configuration list for PBXNativeTarget "Mp4Tag" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CA646B280CE97DD1009699D7 /* Debug */,
+				CA646B290CE97DD1009699D7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CA646B370CE97DFD009699D7 /* Build configuration list for PBXNativeTarget "Aac2Mp4" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CA646B380CE97DFD009699D7 /* Debug */,
+				CA646B390CE97DFD009699D7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CA646B470CE97E27009699D7 /* Build configuration list for PBXNativeTarget "Mp42Aac" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CA646B480CE97E27009699D7 /* Debug */,
+				CA646B490CE97E27009699D7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CA646B570CE97E52009699D7 /* Build configuration list for PBXNativeTarget "Mp4RtpHintInfo" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CA646B580CE97E52009699D7 /* Debug */,
+				CA646B590CE97E52009699D7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CA646B670CE97E82009699D7 /* Build configuration list for PBXNativeTarget "CryptoTest" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CA646B680CE97E82009699D7 /* Debug */,
+				CA646B690CE97E82009699D7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CA646B8A0CE97F20009699D7 /* Build configuration list for PBXAggregateTarget "Tests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CA646B830CE97EF7009699D7 /* Debug */,
+				CA646B840CE97EF7009699D7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CAA97B470CF4D58C00C01909 /* Build configuration list for PBXAggregateTarget "All" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CAA97B390CF4D54E00C01909 /* Debug */,
+				CAA97B3A0CF4D54E00C01909 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

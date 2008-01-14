@@ -274,6 +274,8 @@ public:
     AP4_Result  SetProperty(AP4_UI32 track_id, const char* name, const char* value);
     AP4_Result  SetProperties(const AP4_TrackPropertyMap& properties);
     const char* GetProperty(AP4_UI32 track_id, const char* name);
+    AP4_Result  GetTextualHeaders(AP4_UI32 track_id, AP4_DataBuffer& buffer);
+    
 
     // destructor
     virtual ~AP4_TrackPropertyMap();

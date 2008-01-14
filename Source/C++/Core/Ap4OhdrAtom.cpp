@@ -50,21 +50,22 @@ AP4_OhdrAtom::Create(AP4_Size         size,
 /*----------------------------------------------------------------------
 |   AP4_OhdrAtom::AP4_OhdrAtom
 +---------------------------------------------------------------------*/
-AP4_OhdrAtom::AP4_OhdrAtom(AP4_UI08     encryption_method, 
-                           AP4_UI08     padding_scheme,
-                           AP4_UI64     plaintext_length,
-                           const char*  content_id,
-                           const char*  rights_issuer_url,
-                           const char*  textual_headers) :
+AP4_OhdrAtom::AP4_OhdrAtom(AP4_UI08        encryption_method, 
+                           AP4_UI08        padding_scheme,
+                           AP4_UI64        plaintext_length,
+                           const char*     content_id,
+                           const char*     rights_issuer_url,
+                           const AP4_Byte* textual_headers,
+                           AP4_Size        textual_headers_size) :
     AP4_ContainerAtom(AP4_ATOM_TYPE_OHDR, 0, 0, 0),
     m_EncryptionMethod(encryption_method),
     m_PaddingScheme(padding_scheme),
     m_PlaintextLength(plaintext_length),
     m_ContentId(content_id),
     m_RightsIssuerUrl(rights_issuer_url),
-    m_TextualHeaders(textual_headers)
+    m_TextualHeaders(textual_headers, textual_headers_size)
 {
-    m_Size32 = AP4_FULL_ATOM_HEADER_SIZE+1+1+8+2+2+2+m_ContentId.GetLength()+m_RightsIssuerUrl.GetLength()+m_TextualHeaders.GetLength();
+    m_Size32 = AP4_FULL_ATOM_HEADER_SIZE+1+1+8+2+2+2+m_ContentId.GetLength()+m_RightsIssuerUrl.GetLength()+textual_headers_size;
 }
 
 /*----------------------------------------------------------------------
@@ -109,7 +110,7 @@ AP4_OhdrAtom::AP4_OhdrAtom(AP4_UI32         size,
     // textual headers
     buffer = new char[textual_headers_length];
     stream.Read(buffer, textual_headers_length);
-    m_TextualHeaders.Assign(buffer, textual_headers_length);
+    m_TextualHeaders.SetData((AP4_Byte*)buffer, textual_headers_length);
     delete[] buffer;
 
     // read the children
@@ -130,10 +131,10 @@ AP4_OhdrAtom::WriteFields(AP4_ByteStream& stream)
     AP4_CHECK(stream.WriteUI64(m_PlaintextLength));
     AP4_CHECK(stream.WriteUI16((AP4_UI16)m_ContentId.GetLength()));
     AP4_CHECK(stream.WriteUI16((AP4_UI16)m_RightsIssuerUrl.GetLength()));
-    AP4_CHECK(stream.WriteUI16((AP4_UI16)m_TextualHeaders.GetLength()));
+    AP4_CHECK(stream.WriteUI16((AP4_UI16)m_TextualHeaders.GetDataSize()));
     AP4_CHECK(stream.Write(m_ContentId.GetChars(), m_ContentId.GetLength()));
     AP4_CHECK(stream.Write(m_RightsIssuerUrl.GetChars(), m_RightsIssuerUrl.GetLength()));
-    AP4_CHECK(stream.Write(m_TextualHeaders.GetChars(), m_TextualHeaders.GetLength()));
+    AP4_CHECK(stream.Write(m_TextualHeaders.GetData(), m_TextualHeaders.GetDataSize()));
 
     // write the children
     return m_Children.Apply(AP4_AtomListWriter(stream));
@@ -150,7 +151,34 @@ AP4_OhdrAtom::InspectFields(AP4_AtomInspector& inspector)
     inspector.AddField("plaintext_length",  (AP4_UI32)m_PlaintextLength);
     inspector.AddField("content_id",        m_ContentId.GetChars());
     inspector.AddField("rights_issuer_url", m_RightsIssuerUrl.GetChars());
-    inspector.AddField("textual_headers",   m_TextualHeaders.GetChars());
+
+    {
+        AP4_DataBuffer output_buffer;               
+        AP4_Result     result;
+
+        result = output_buffer.Reserve(1+m_TextualHeaders.GetDataSize());
+        if (AP4_FAILED(result)) {
+            inspector.AddField("textual_headers",   
+                m_TextualHeaders.UseData(), 
+                m_TextualHeaders.GetDataSize(),
+                AP4_AtomInspector::HINT_HEX);                
+        } else {
+            AP4_Size       data_len    = m_TextualHeaders.GetDataSize();
+            AP4_Byte*      textual_headers_string;
+            AP4_Byte*      curr;
+
+            output_buffer.SetData((AP4_Byte*)m_TextualHeaders.GetData(), m_TextualHeaders.GetDataSize());
+            curr = textual_headers_string = output_buffer.UseData();
+            textual_headers_string[m_TextualHeaders.GetDataSize()] = '\0';
+            while(curr < textual_headers_string+data_len) {
+                if ('\0' == *curr) {
+                    *curr = '\n';
+                }
+                curr++;
+            }
+            inspector.AddField("textual_headers", (const char*) textual_headers_string);
+        }                                          
+    }
 
     return InspectChildren(inspector);
 }
@@ -167,7 +195,8 @@ AP4_OhdrAtom::Clone()
                              m_PlaintextLength,
                              m_ContentId.GetChars(),
                              m_RightsIssuerUrl.GetChars(),
-                             m_TextualHeaders.GetChars());
+                             m_TextualHeaders.GetData(),
+                             m_TextualHeaders.GetDataSize());
 
     AP4_List<AP4_Atom>::Item* child_item = m_Children.FirstItem();
     while (child_item) {
