@@ -36,6 +36,8 @@
 #include "Ap4AtomFactory.h"
 #include "Ap4Debug.h"
 
+static const unsigned int AP4_ATOM_MAX_CLONE_SIZE = 1048576; // 1 meg
+
 /*----------------------------------------------------------------------
 |   AP4_Atom::TypeFromString
 +---------------------------------------------------------------------*/
@@ -278,9 +280,13 @@ AP4_Atom*
 AP4_Atom::Clone()
 {
     AP4_Atom* clone = NULL;
+    
+    // check the size (refuse to clone atoms that are too large)
+    AP4_LargeSize size = GetSize();
+    if (size > AP4_ATOM_MAX_CLONE_SIZE) return NULL;
 
     // create a memory byte stream to which we can serialize
-    AP4_MemoryByteStream* mbs = new AP4_MemoryByteStream(GetSize());
+    AP4_MemoryByteStream* mbs = new AP4_MemoryByteStream((unsigned int)size);
     
     // serialize to memory
     if (AP4_FAILED(Write(*mbs))) goto end;
