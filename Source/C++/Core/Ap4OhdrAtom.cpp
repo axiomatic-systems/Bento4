@@ -167,7 +167,7 @@ AP4_OhdrAtom::InspectFields(AP4_AtomInspector& inspector)
             AP4_Byte*      textual_headers_string;
             AP4_Byte*      curr;
 
-            output_buffer.SetData((AP4_Byte*)m_TextualHeaders.GetData(), m_TextualHeaders.GetDataSize());
+            output_buffer.SetData((const AP4_Byte*)m_TextualHeaders.GetData(), m_TextualHeaders.GetDataSize());
             curr = textual_headers_string = output_buffer.UseData();
             textual_headers_string[m_TextualHeaders.GetDataSize()] = '\0';
             while(curr < textual_headers_string+data_len) {
