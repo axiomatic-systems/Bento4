@@ -67,6 +67,20 @@ AP4_OddaAtom::AP4_OddaAtom(AP4_UI64         size,
 }
 
 /*----------------------------------------------------------------------
+|   AP4_OddaAtom::AP4_OddaAtom
++---------------------------------------------------------------------*/
+AP4_OddaAtom::AP4_OddaAtom(AP4_ByteStream& encrypted_payload) :
+    AP4_Atom(AP4_ATOM_TYPE_ODDA, (AP4_UI64)0, 0, 0)
+{
+    // encrypted data length
+    encrypted_payload.GetSize(m_EncryptedDataLength);
+
+    // keep a reference to the encrypted payload
+    m_EncryptedPayload = &encrypted_payload;
+    m_EncryptedPayload->AddReference();
+}
+
+/*----------------------------------------------------------------------
 |   AP4_OddaAtom::~AP4_OddaAtom
 +---------------------------------------------------------------------*/
 AP4_OddaAtom::~AP4_OddaAtom()

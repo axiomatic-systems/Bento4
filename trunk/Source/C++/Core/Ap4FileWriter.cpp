@@ -62,13 +62,25 @@ AP4_FileWriter::Write(AP4_ByteStream& stream)
     // get the file type
     AP4_FtypAtom* file_type = m_File.GetFileType();
 
+    // write the ftyp atom (always first)
+    if (file_type) file_type->Write(stream);
+
+    // write the top-level atoms
+    AP4_List<AP4_Atom>::Item* atom_item = m_File.GetOtherAtoms().FirstItem();
+    while (atom_item) {
+        AP4_Atom* atom = atom_item->GetData();
+        atom->Write(stream);
+        atom_item = atom_item->GetNext();
+    }
+             
     // get the movie object
     AP4_Movie* movie = m_File.GetMovie();
     if (movie == NULL) return AP4_SUCCESS;
-
+    
     // compute the final offset of the sample data in mdat
-    AP4_Position data_offset = 0;
+    AP4_UI64 data_offset = 0;
     if (file_type) data_offset += file_type->GetSize();
+    m_File.GetOtherAtoms().Apply(AP4_AtomSizeAdder(data_offset));
     data_offset += movie->GetMoovAtom()->GetSize();
     data_offset += AP4_ATOM_HEADER_SIZE; // mdat header
 
@@ -80,13 +92,10 @@ AP4_FileWriter::Write(AP4_ByteStream& stream)
         track_item = track_item->GetNext();
     }
 
-    // write the ftyp atom
-    if (file_type) file_type->Write(stream);
-
     // write the moov atom
     movie->GetMoovAtom()->Write(stream);
-
-    // create an mdat
+    
+    // create and write the media data (mdat)
     stream.WriteUI32(0);
     stream.Write("mdat", 4);
     AP4_Track* track = movie->GetTracks().FirstItem()->GetData();

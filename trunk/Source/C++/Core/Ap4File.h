@@ -77,7 +77,7 @@ public:
      * Constructs an AP4_File from an AP4_Movie (used for writing)
      * @param movie the movie
      */
-    AP4_File(AP4_Movie* movie);
+    AP4_File(AP4_Movie* movie = NULL);
 
     /**
      * Constructs an AP4_File from a stream

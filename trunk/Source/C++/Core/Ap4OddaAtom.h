@@ -46,6 +46,9 @@ public:
     static AP4_OddaAtom* Create(AP4_UI64         size, 
                                 AP4_ByteStream&  stream);
 
+    // constructor
+    AP4_OddaAtom(AP4_ByteStream& encrypted_payload);
+     
     // destructor
     ~AP4_OddaAtom();
 

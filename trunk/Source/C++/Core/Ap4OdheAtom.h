@@ -38,6 +38,11 @@
 #include "Ap4String.h"
 
 /*----------------------------------------------------------------------
+|   class references
++---------------------------------------------------------------------*/
+class AP4_OhdrAtom;
+
+/*----------------------------------------------------------------------
 |   AP4_OdheAtom
 +---------------------------------------------------------------------*/
 class AP4_OdheAtom : public AP4_ContainerAtom
@@ -48,6 +53,12 @@ public:
                                 AP4_ByteStream&  stream, 
                                 AP4_AtomFactory& atom_factory);
 
+    // constructor
+    /**
+     * @param: ohdr ohdr atom passed with transfer of ownership semantics
+     */
+    AP4_OdheAtom(const char* content_type, AP4_OhdrAtom* ohdr);
+                 
     // AP4_Atom methods
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
