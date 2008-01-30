@@ -55,6 +55,8 @@
 /* Begin PBXBuildFile section */
 		CA1221CF0CA7192B000BEEF6 /* Ap4FileCopier.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA1221CD0CA7192B000BEEF6 /* Ap4FileCopier.cpp */; };
 		CA1221D00CA7192B000BEEF6 /* Ap4FileCopier.h in Headers */ = {isa = PBXBuildFile; fileRef = CA1221CE0CA7192B000BEEF6 /* Ap4FileCopier.h */; };
+		CA44C5310D46379100173F5F /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
+		CA44C5340D46383A00173F5F /* Mp4DcfPackager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA44C5250D46370B00173F5F /* Mp4DcfPackager.cpp */; };
 		CA504D5D0C5E8A8A0060E6FE /* Ap4ElstAtom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA504D5B0C5E8A8A0060E6FE /* Ap4ElstAtom.cpp */; };
 		CA504D5E0C5E8A8A0060E6FE /* Ap4ElstAtom.h in Headers */ = {isa = PBXBuildFile; fileRef = CA504D5C0C5E8A8A0060E6FE /* Ap4ElstAtom.h */; };
 		CA646ABF0CE97C0C009699D7 /* Mp4Dump.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA646A8E0CE97B2D009699D7 /* Mp4Dump.cpp */; };
@@ -239,6 +241,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		CA44C52E0D46376500173F5F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D2AAC045055464E500DB518D;
+			remoteInfo = Bento4;
+		};
 		CA646AC80CE97C4E009699D7 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
@@ -412,6 +421,8 @@
 /* Begin PBXFileReference section */
 		CA1221CD0CA7192B000BEEF6 /* Ap4FileCopier.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4FileCopier.cpp; sourceTree = "<group>"; };
 		CA1221CE0CA7192B000BEEF6 /* Ap4FileCopier.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = Ap4FileCopier.h; sourceTree = "<group>"; };
+		CA44C5250D46370B00173F5F /* Mp4DcfPackager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Mp4DcfPackager.cpp; path = Mp4DcfPackager/Mp4DcfPackager.cpp; sourceTree = "<group>"; };
+		CA44C52A0D46375F00173F5F /* mp4dcfpackager */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mp4dcfpackager; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA504D5B0C5E8A8A0060E6FE /* Ap4ElstAtom.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4ElstAtom.cpp; sourceTree = "<group>"; };
 		CA504D5C0C5E8A8A0060E6FE /* Ap4ElstAtom.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = Ap4ElstAtom.h; sourceTree = "<group>"; };
 		CA646A880CE97B2D009699D7 /* Aac2Mp4.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Aac2Mp4.cpp; sourceTree = "<group>"; };
@@ -597,6 +608,14 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		CA44C5280D46375F00173F5F /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CA44C5310D46379100173F5F /* libBento4.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		CA646AB90CE97BFD009699D7 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -726,6 +745,7 @@
 				CA646ABB0CE97BFD009699D7 /* mp4dump */,
 				CA646AD50CE97C80009699D7 /* mp4info */,
 				CA646AEA0CE97CD2009699D7 /* mp4encrypt */,
+				CA44C52A0D46375F00173F5F /* mp4dcfpackager */,
 				CA646AF70CE97CEE009699D7 /* mp4decrypt */,
 				CA646B0A0CE97D6E009699D7 /* mp4edit */,
 				CA646B1A0CE97D9C009699D7 /* mp4extract */,
@@ -745,11 +765,20 @@
 			name = Documentation;
 			sourceTree = "<group>";
 		};
+		CA44C5260D46371C00173F5F /* Mp4DcfPackager */ = {
+			isa = PBXGroup;
+			children = (
+				CA44C5250D46370B00173F5F /* Mp4DcfPackager.cpp */,
+			);
+			name = Mp4DcfPackager;
+			sourceTree = "<group>";
+		};
 		CA646A860CE97B2D009699D7 /* Apps */ = {
 			isa = PBXGroup;
 			children = (
 				CA646A870CE97B2D009699D7 /* Aac2Mp4 */,
 				CA646A890CE97B2D009699D7 /* Mp42Aac */,
+				CA44C5260D46371C00173F5F /* Mp4DcfPackager */,
 				CA646A8B0CE97B2D009699D7 /* Mp4Decrypt */,
 				CA646A8D0CE97B2D009699D7 /* Mp4Dump */,
 				CA646A8F0CE97B2D009699D7 /* Mp4Edit */,
@@ -1159,6 +1188,23 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
+		CA44C5290D46375F00173F5F /* Mp4DcfPackager */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CA44C5300D46378400173F5F /* Build configuration list for PBXNativeTarget "Mp4DcfPackager" */;
+			buildPhases = (
+				CA44C5270D46375F00173F5F /* Sources */,
+				CA44C5280D46375F00173F5F /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CA44C52F0D46376500173F5F /* PBXTargetDependency */,
+			);
+			name = Mp4DcfPackager;
+			productName = Mp4DcfPackager;
+			productReference = CA44C52A0D46375F00173F5F /* mp4dcfpackager */;
+			productType = "com.apple.product-type.tool";
+		};
 		CA646ABA0CE97BFD009699D7 /* Mp4Dump */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = CA646AC40CE97C35009699D7 /* Build configuration list for PBXNativeTarget "Mp4Dump" */;
@@ -1382,6 +1428,7 @@
 				CA646ABA0CE97BFD009699D7 /* Mp4Dump */,
 				CA646ACD0CE97C80009699D7 /* Mp4Info */,
 				CA646AE00CE97CD2009699D7 /* Mp4Encrypt */,
+				CA44C5290D46375F00173F5F /* Mp4DcfPackager */,
 				CA646AED0CE97CEE009699D7 /* Mp4Decrypt */,
 				CA646B000CE97D6E009699D7 /* Mp4Edit */,
 				CA646B100CE97D9C009699D7 /* Mp4Extract */,
@@ -1395,6 +1442,14 @@
 /* End PBXProject section */
 
 /* Begin PBXSourcesBuildPhase section */
+		CA44C5270D46375F00173F5F /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CA44C5340D46383A00173F5F /* Mp4DcfPackager.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		CA646AB80CE97BFD009699D7 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1569,6 +1624,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		CA44C52F0D46376500173F5F /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D2AAC045055464E500DB518D /* Bento4 */;
+			targetProxy = CA44C52E0D46376500173F5F /* PBXContainerItemProxy */;
+		};
 		CA646AC90CE97C4E009699D7 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = CA646ABA0CE97BFD009699D7 /* Mp4Dump */;
@@ -1750,6 +1810,35 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				PREBINDING = NO;
 				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
+			};
+			name = Release;
+		};
+		CA44C52C0D46375F00173F5F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				INSTALL_PATH = /usr/local/bin;
+				PREBINDING = NO;
+				PRODUCT_NAME = mp4dcfpackager;
+				ZERO_LINK = YES;
+			};
+			name = Debug;
+		};
+		CA44C52D0D46375F00173F5F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_MODEL_TUNING = G5;
+				INSTALL_PATH = /usr/local/bin;
+				PREBINDING = NO;
+				PRODUCT_NAME = mp4dcfpackager;
+				ZERO_LINK = NO;
 			};
 			name = Release;
 		};
@@ -2154,6 +2243,15 @@
 			buildConfigurations = (
 				1DEB91F008733DB70010E9CD /* Debug */,
 				1DEB91F108733DB70010E9CD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CA44C5300D46378400173F5F /* Build configuration list for PBXNativeTarget "Mp4DcfPackager" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CA44C52C0D46375F00173F5F /* Debug */,
+				CA44C52D0D46375F00173F5F /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

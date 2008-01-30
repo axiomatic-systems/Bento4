@@ -31,6 +31,7 @@
 +---------------------------------------------------------------------*/
 #include "Ap4Utils.h"
 #include "Ap4OdheAtom.h"
+#include "Ap4OhdrAtom.h"
 
 /*----------------------------------------------------------------------
 |   AP4_OdheAtom::Create
@@ -67,6 +68,18 @@ AP4_OdheAtom::AP4_OdheAtom(AP4_UI32         size,
     // read the children
     AP4_Size bytes_available = size-(AP4_FULL_ATOM_HEADER_SIZE+1+content_type_length);
     ReadChildren(atom_factory, stream, bytes_available);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_OdheAtom::AP4_OdheAtom
++---------------------------------------------------------------------*/
+AP4_OdheAtom::AP4_OdheAtom(const char*   content_type,
+                           AP4_OhdrAtom* ohdr) :
+    AP4_ContainerAtom(AP4_ATOM_TYPE_ODHE, AP4_FULL_ATOM_HEADER_SIZE, 0, 0),
+    m_ContentType(content_type)
+{
+    m_Size32 += 1+m_ContentType.GetLength();
+    AddChild(ohdr);
 }
 
 /*----------------------------------------------------------------------
