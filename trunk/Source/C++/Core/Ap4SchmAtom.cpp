@@ -50,9 +50,9 @@ AP4_SchmAtom::Create(AP4_Size size, AP4_ByteStream& stream)
 |   AP4_SchmAtom::AP4_SchmAtom
 +---------------------------------------------------------------------*/
 AP4_SchmAtom::AP4_SchmAtom(AP4_UI32    scheme_type,
-                           AP4_UI32    scheme_version,
+                           AP4_UI16    scheme_version,
                            const char* scheme_uri) :
-    AP4_Atom(AP4_ATOM_TYPE_SCHM, AP4_FULL_ATOM_HEADER_SIZE+8, 0, 0),
+    AP4_Atom(AP4_ATOM_TYPE_SCHM, AP4_FULL_ATOM_HEADER_SIZE+6, 0, 0),
     m_SchemeType(scheme_type),
     m_SchemeVersion(scheme_version)
 {
@@ -67,15 +67,15 @@ AP4_SchmAtom::AP4_SchmAtom(AP4_UI32    scheme_type,
 |   AP4_SchmAtom::AP4_SchmAtom
 +---------------------------------------------------------------------*/
 AP4_SchmAtom::AP4_SchmAtom(AP4_UI32        size, 
-                           AP4_UI32        version,
+                           AP4_UI16        version,
                            AP4_UI32        flags,
                            AP4_ByteStream& stream) :
     AP4_Atom(AP4_ATOM_TYPE_SCHM, size, version, flags)
 {
     stream.ReadUI32(m_SchemeType);
-    stream.ReadUI32(m_SchemeVersion);
+    stream.ReadUI16(m_SchemeVersion);
     if (m_Flags & 1) {
-        int str_size = size-(AP4_FULL_ATOM_HEADER_SIZE+8);
+        int str_size = size-(AP4_FULL_ATOM_HEADER_SIZE+6);
         if (str_size > 0) {
             char* str = new char[str_size];
             stream.Read(str, str_size);
@@ -99,7 +99,7 @@ AP4_SchmAtom::WriteFields(AP4_ByteStream& stream)
     if (AP4_FAILED(result)) return result;
 
     // scheme version
-    result = stream.WriteUI32(m_SchemeVersion);
+    result = stream.WriteUI16(m_SchemeVersion);
     if (AP4_FAILED(result)) return result;
 
     // uri if needed
@@ -108,7 +108,7 @@ AP4_SchmAtom::WriteFields(AP4_ByteStream& stream)
         if (AP4_FAILED(result)) return result;
 
         // pad with zeros if necessary
-        AP4_Size padding = m_Size32-(AP4_FULL_ATOM_HEADER_SIZE+8+m_SchemeUri.GetLength()+1);
+        AP4_Size padding = m_Size32-(AP4_FULL_ATOM_HEADER_SIZE+6+m_SchemeUri.GetLength()+1);
         while (padding--) stream.WriteUI08(0);
     }
 

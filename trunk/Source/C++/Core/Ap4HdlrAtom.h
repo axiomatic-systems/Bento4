@@ -79,6 +79,7 @@ private:
 
     // members
     AP4_UI32   m_HandlerType;
+    AP4_UI32   m_Reserved[3];
     AP4_String m_HandlerName;
 };
 
