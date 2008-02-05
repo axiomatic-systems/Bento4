@@ -52,7 +52,7 @@ public:
 
     // constructors
     AP4_SchmAtom(AP4_UI32    scheme_type,
-                 AP4_UI32    scheme_version,
+                 AP4_UI16    scheme_version,
                  const char* scheme_uri = NULL);
 
     // methods
@@ -67,13 +67,13 @@ public:
 private:
     // methods
     AP4_SchmAtom(AP4_UI32        size, 
-                 AP4_UI32        version,
+                 AP4_UI16        version,
                  AP4_UI32        flags,
                  AP4_ByteStream& stream);
 
     // members
     AP4_UI32   m_SchemeType;
-    AP4_UI32   m_SchemeVersion;
+    AP4_UI16   m_SchemeVersion;
     AP4_String m_SchemeUri;
 };
 

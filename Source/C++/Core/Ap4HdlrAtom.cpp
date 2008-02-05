@@ -55,6 +55,7 @@ AP4_HdlrAtom::AP4_HdlrAtom(AP4_Atom::Type hdlr_type, const char* hdlr_name) :
     m_HandlerName(hdlr_name)
 {
     m_Size32 += 20+m_HandlerName.GetLength()+1;
+    m_Reserved[0] = m_Reserved[1] = m_Reserved[2] = 0;
 }
 
 /*----------------------------------------------------------------------
@@ -66,10 +67,12 @@ AP4_HdlrAtom::AP4_HdlrAtom(AP4_UI32        size,
                            AP4_ByteStream& stream) :
     AP4_Atom(AP4_ATOM_TYPE_HDLR, size, version, flags)
 {
-    unsigned char reserved[12];
-    stream.Read(reserved, 4);
+    AP4_UI32 predefined;
+    stream.ReadUI32(predefined);
     stream.ReadUI32(m_HandlerType);
-    stream.Read(reserved, 12);
+    stream.ReadUI32(m_Reserved[0]);
+    stream.ReadUI32(m_Reserved[1]);
+    stream.ReadUI32(m_Reserved[2]);
     
     // read the name unless it is empty
     int name_size = size-(AP4_FULL_ATOM_HEADER_SIZE+20);
@@ -90,13 +93,15 @@ AP4_HdlrAtom::WriteFields(AP4_ByteStream& stream)
     AP4_Result result;
 
     // write the data
-    unsigned char reserved[12];
-    memset(reserved, 0, sizeof(reserved));    
-    result = stream.Write(reserved, 4);
+    result = stream.WriteUI32(0); // predefined
     if (AP4_FAILED(result)) return result;
     result = stream.WriteUI32(m_HandlerType);
     if (AP4_FAILED(result)) return result;
-    result = stream.Write(reserved, 12);
+    result = stream.WriteUI32(m_Reserved[0]);
+    if (AP4_FAILED(result)) return result;
+    result = stream.WriteUI32(m_Reserved[1]);
+    if (AP4_FAILED(result)) return result;
+    result = stream.WriteUI32(m_Reserved[2]);
     if (AP4_FAILED(result)) return result;
     AP4_UI08 name_size = (AP4_UI08)m_HandlerName.GetLength();
     if (AP4_FULL_ATOM_HEADER_SIZE+20+name_size > m_Size32) {
