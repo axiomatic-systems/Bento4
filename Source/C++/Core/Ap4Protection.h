@@ -307,7 +307,7 @@ private:
 /*----------------------------------------------------------------------
 |   AP4_DecryptingStream
 +---------------------------------------------------------------------*/
-class AP4_DecryptingStream : private AP4_ByteStream {
+class AP4_DecryptingStream : public AP4_ByteStream {
 public:
     typedef enum {
         CIPHER_MODE_CTR,

@@ -122,7 +122,8 @@ class AP4_MemoryByteStream : public AP4_ByteStream
 {
 public:
     AP4_MemoryByteStream(AP4_Size size = 0); // filled with zeros
-    AP4_MemoryByteStream(AP4_UI08* buffer, AP4_Size size);
+    AP4_MemoryByteStream(const AP4_UI08* buffer, AP4_Size size);
+    AP4_MemoryByteStream(AP4_DataBuffer& data_buffer); // data is read/written from/to supplied buffer
 
     // AP4_ByteStream methods
     AP4_Result ReadPartial(void*     buffer, 
@@ -137,7 +138,7 @@ public:
         return AP4_SUCCESS;
     }
     AP4_Result GetSize(AP4_LargeSize& size) {
-        size = m_Buffer.GetDataSize();
+        size = m_Buffer->GetDataSize();
         return AP4_SUCCESS;
     }
 
@@ -146,17 +147,18 @@ public:
     void Release();
 
     // methods
-    const AP4_UI08* GetData() { return m_Buffer.GetData(); }
-    AP4_UI08*       UseData() { return m_Buffer.UseData(); }
-    AP4_Size        GetSize() { return m_Buffer.GetDataSize(); }
+    const AP4_UI08* GetData()     { return m_Buffer->GetData(); }
+    AP4_UI08*       UseData()     { return m_Buffer->UseData(); }
+    AP4_Size        GetDataSize() { return m_Buffer->GetDataSize(); }
 
 protected:
-    virtual ~AP4_MemoryByteStream() {};
+    virtual ~AP4_MemoryByteStream();
 
 private:
-    AP4_DataBuffer m_Buffer;
-    AP4_Position   m_Position;
-    AP4_Cardinal   m_ReferenceCount;
+    AP4_DataBuffer* m_Buffer;
+    bool            m_BufferIsLocal;
+    AP4_Position    m_Position;
+    AP4_Cardinal    m_ReferenceCount;
 };
 
 #endif // _AP4_BYTE_STREAM_H_

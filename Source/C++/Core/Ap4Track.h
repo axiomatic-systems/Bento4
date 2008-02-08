@@ -88,8 +88,8 @@ class AP4_Track {
     AP4_UI32     GetDuration();
     AP4_Duration GetDurationMs();
     AP4_Cardinal GetSampleCount();
-	AP4_Result   GetSample(AP4_Ordinal index, AP4_Sample& sample);
-	AP4_Result   ReadSample(AP4_Ordinal     index, 
+    AP4_Result   GetSample(AP4_Ordinal index, AP4_Sample& sample);
+    AP4_Result   ReadSample(AP4_Ordinal     index, 
                             AP4_Sample&     sample,
                             AP4_DataBuffer& data);
     AP4_Result   GetSampleIndexForTimeStampMs(AP4_TimeStamp ts, 
