@@ -1,6 +1,7 @@
 import sys
-import sys
+import os
 import platform
+import distutils.sysconfig
 
 #######################################################
 # reusable functions and data structures
@@ -13,7 +14,7 @@ PLATFORM_TO_TARGET_MAP = {
     'linux2'       : 'x86-unknown-linux',
     'win32'        : 'x86-microsoft-win32',
     'cygwin'       : 'x86-unknown-cygwin',
-    'darwin'       : 'universal-apple-macos'
+    'darwin'       : 'universal-apple-macosx'
 }
     
 CROSS_PLATFORMS = ['ppu-sony-ps3', 
@@ -38,7 +39,16 @@ def DefaultTarget():
         return PLATFORM_TO_TARGET_MAP[platform_id]
     else:
         return None
-        
+    
+def IsCommandInPath(env, cmd):
+    for dir in env['ENV']['PATH'].split(':'):
+        try:
+            if cmd in os.listdir(dir):
+                return True
+        except:
+            pass # ignore: go to the next dir
+    return False   
+
 #######################################################
 # Main Build
 #######################################################
@@ -47,11 +57,29 @@ options = Options()
 options.AddOptions(
     EnumOption('target', 'Build Target', DefaultTarget(), allowed_values=PLATFORM_TO_TARGET_MAP.values()+CROSS_PLATFORMS),
     BoolOption('enable_profiling', 'Enable Profiling', False),
-    ListOption('build_config', 'Build Configuration(s)', 'Debug', names=['Debug', 'Release'])
+    ListOption('build_config', 'Build Configuration(s)', 'Debug', names=['Debug', 'Release']),
+    BoolOption('python_bindings', 'Generate Python Bindings', False)
 )
 
-env = Environment(options=options)
+### create the environment
+env = Environment(options=options, ENV={'PATH':os.environ['PATH']})
 Help(options.GenerateHelpText(env))
+
+### test the environment
+if env['python_bindings']:
+    ### make sure swig is in the path
+    def CheckSwig(context):
+        context.Message("Checking that swig is available on the system: ")
+        res = IsCommandInPath(env, 'swig')
+        context.Result(res)
+        return res
+        
+    conf = env.Configure(custom_tests={'CheckSwig':CheckSwig})
+    if not conf.CheckSwig():
+        print 'swig not installed or not in the PATH... aborting...'
+        Exit(1)
+    conf.Finish()
+
 
 ### call the actual build script for each build config
 for build_config in env['build_config']:
