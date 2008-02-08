@@ -524,22 +524,46 @@ AP4_SubStream::Release()
 |   AP4_MemoryByteStream::AP4_MemoryByteStream
 +---------------------------------------------------------------------*/
 AP4_MemoryByteStream::AP4_MemoryByteStream(AP4_Size size) :
-    m_Buffer(size),
+    m_BufferIsLocal(true),
     m_Position(0),
     m_ReferenceCount(1)
 {
-    AP4_SetMemory(m_Buffer.UseData(), 0, size);
-    m_Buffer.SetDataSize(size);
+    m_Buffer = new AP4_DataBuffer(size);
+    AP4_SetMemory(m_Buffer->UseData(), 0, size);
+    m_Buffer->SetDataSize(size);
 }
 
 /*----------------------------------------------------------------------
 |   AP4_MemoryByteStream::AP4_MemoryByteStream
 +---------------------------------------------------------------------*/
-AP4_MemoryByteStream::AP4_MemoryByteStream(AP4_UI08* buffer, AP4_Size size) :
-    m_Buffer(buffer, size),
+AP4_MemoryByteStream::AP4_MemoryByteStream(const AP4_UI08* buffer, AP4_Size size) :
+    m_BufferIsLocal(true),
     m_Position(0),
     m_ReferenceCount(1)
-{}
+{
+    m_Buffer = new AP4_DataBuffer(buffer, size);
+}
+
+/*----------------------------------------------------------------------
+ |   AP4_MemoryByteStream::AP4_MemoryByteStream
+ +---------------------------------------------------------------------*/
+AP4_MemoryByteStream::AP4_MemoryByteStream(AP4_DataBuffer& data_buffer) :
+    m_BufferIsLocal(false),
+    m_Position(0),
+    m_ReferenceCount(1)
+{
+    m_Buffer = &data_buffer;
+}
+
+/*----------------------------------------------------------------------
+ |   AP4_MemoryByteStream::~AP4_MemoryByteStream
+ +---------------------------------------------------------------------*/
+AP4_MemoryByteStream::~AP4_MemoryByteStream()
+{
+    if (m_BufferIsLocal) {
+        delete m_Buffer;
+    }
+}
 
 /*----------------------------------------------------------------------
 |   AP4_MemoryByteStream::ReadPartial
@@ -558,8 +582,8 @@ AP4_MemoryByteStream::ReadPartial(void*     buffer,
     }
 
     // clamp to range
-    if (m_Position+bytes_to_read > m_Buffer.GetDataSize()) {
-        bytes_to_read = (AP4_Size)(m_Buffer.GetDataSize() - m_Position);
+    if (m_Position+bytes_to_read > m_Buffer->GetDataSize()) {
+        bytes_to_read = (AP4_Size)(m_Buffer->GetDataSize() - m_Position);
     }
 
     // check for end of stream
@@ -568,7 +592,7 @@ AP4_MemoryByteStream::ReadPartial(void*     buffer,
     }
 
     // read from the memory
-    AP4_CopyMemory(buffer, m_Buffer.GetData()+m_Position, bytes_to_read);
+    AP4_CopyMemory(buffer, m_Buffer->GetData()+m_Position, bytes_to_read);
     m_Position += bytes_to_read;
 
     bytes_read = bytes_to_read;
@@ -598,14 +622,14 @@ AP4_MemoryByteStream::WritePartial(const void* buffer,
     }
 
     // reserve space in the buffer
-    AP4_Result result = m_Buffer.Reserve((AP4_Size)(m_Position+bytes_to_write));
+    AP4_Result result = m_Buffer->Reserve((AP4_Size)(m_Position+bytes_to_write));
     if (AP4_SUCCEEDED(result)) {
-        m_Buffer.SetDataSize((AP4_Size)(m_Position+bytes_to_write));
+        m_Buffer->SetDataSize((AP4_Size)(m_Position+bytes_to_write));
     } else {
         // failed to reserve, most likely caused by a buffer that has
         // external storage
-        if (m_Position+bytes_to_write > m_Buffer.GetDataSize()) {
-            bytes_to_write = (AP4_Size)(m_Buffer.GetDataSize() - m_Position);
+        if (m_Position+bytes_to_write > m_Buffer->GetDataSize()) {
+            bytes_to_write = (AP4_Size)(m_Buffer->GetDataSize() - m_Position);
         }
     } 
 
@@ -615,7 +639,7 @@ AP4_MemoryByteStream::WritePartial(const void* buffer,
     }
 
     // write to memory
-    AP4_CopyMemory((void*)(m_Buffer.UseData()+m_Position), buffer, bytes_to_write);
+    AP4_CopyMemory((void*)(m_Buffer->UseData()+m_Position), buffer, bytes_to_write);
     m_Position += bytes_to_write;
 
     bytes_written = bytes_to_write;
@@ -629,7 +653,7 @@ AP4_MemoryByteStream::WritePartial(const void* buffer,
 AP4_Result 
 AP4_MemoryByteStream::Seek(AP4_Position position)
 {
-    if (position > m_Buffer.GetDataSize()) return AP4_FAILURE;
+    if (position > m_Buffer->GetDataSize()) return AP4_FAILURE;
     m_Position = position;
     return AP4_SUCCESS;
 }

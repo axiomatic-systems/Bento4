@@ -57,9 +57,9 @@ typedef unsigned long  AP4_Size;
     // we have 64-bit integers (not handled yet)
     typedef AP4_CONFIG_INT64_TYPE          AP4_SI64;
     typedef unsigned AP4_CONFIG_INT64_TYPE AP4_UI64;
-    typedef AP4_UI64                       AP4_LargeSize;
-    typedef AP4_SI64                       AP4_Offset;
-    typedef AP4_UI64                       AP4_Position;
+    typedef unsigned AP4_CONFIG_INT64_TYPE AP4_LargeSize;
+    typedef AP4_CONFIG_INT64_TYPE          AP4_Offset;
+    typedef unsigned AP4_CONFIG_INT64_TYPE AP4_Position;
 #else
     // use only 32-bit integers
     typedef struct {

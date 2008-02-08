@@ -233,8 +233,7 @@ AP4_HintTrackReader::BuildRtpPacket(AP4_RtpPacket*  packet,
     if (AP4_FAILED(result)) return result;
 
     // now write
-    AP4_ByteStream* stream = 
-        new AP4_MemoryByteStream(packet_data.UseData(), packet_data.GetDataSize()); 
+    AP4_ByteStream* stream = new AP4_MemoryByteStream(packet_data); 
 
     // header + ssrc
     stream->WriteUI08(0x80 | (packet->GetPBit() << 5) | (packet->GetXBit() << 4));
