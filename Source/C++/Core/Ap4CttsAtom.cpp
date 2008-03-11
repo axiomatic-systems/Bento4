@@ -55,7 +55,7 @@ AP4_CttsAtom::AP4_CttsAtom(AP4_UI32        size,
                            AP4_ByteStream& stream) :
     AP4_Atom(AP4_ATOM_TYPE_CTTS, size, version, flags)
 {
-    m_LookupCache.upper_bound = 0;
+    m_LookupCache.sample      = 0;
     m_LookupCache.entry_index = 0;
 
     AP4_UI32 entry_count;
@@ -65,7 +65,7 @@ AP4_CttsAtom::AP4_CttsAtom(AP4_UI32        size,
         AP4_UI32 sample_offset;
         if (stream.ReadUI32(sample_count)  == AP4_SUCCESS &&
             stream.ReadUI32(sample_offset) == AP4_SUCCESS) {
-            m_Entries.Append(AP4_CttsTableEntry(sample_count,
+            m_Entries.Append(AP4_CttsTableEntry(sample_count, 
                                                 sample_offset));
         }
     }
@@ -77,34 +77,38 @@ AP4_CttsAtom::AP4_CttsAtom(AP4_UI32        size,
 AP4_Result
 AP4_CttsAtom::GetCtsOffset(AP4_Ordinal sample, AP4_UI32& cts_offset)
 {
-    // check parameters
-    if (sample < 1) return AP4_ERROR_OUT_OF_RANGE;
-
+    // default value
+    cts_offset = 0;
+    
+    // sample indexes start at 1
+    if (sample == 0) return AP4_ERROR_OUT_OF_RANGE;
+    
     // check the lookup cache
     AP4_Ordinal lookup_start = 0;
-    AP4_Ordinal upper_bound = 0;
-    if (sample >= m_LookupCache.upper_bound) {
+    AP4_Ordinal sample_start = 0;
+    if (sample >= m_LookupCache.sample) {
         // start from the cached entry
         lookup_start = m_LookupCache.entry_index;
-        upper_bound  = m_LookupCache.upper_bound;
+        sample_start = m_LookupCache.sample;
     }
 
-    for (unsigned int i = lookup_start; i < m_Entries.ItemCount(); i++) {
+    for (AP4_Ordinal i = lookup_start; i < m_Entries.ItemCount(); i++) {
         AP4_CttsTableEntry& entry = m_Entries[i];
 
-        // update the upper bound
-        upper_bound += entry.m_SampleCount;        
-
         // check if we have reached the sample
-        if (sample <= upper_bound) {
+        if (sample <= sample_start+entry.m_SampleCount) {
+            // we are within the sample range for the current entry
             cts_offset = entry.m_SampleOffset;
 
             // update the lookup cache
             m_LookupCache.entry_index = i;
-            m_LookupCache.upper_bound = upper_bound - entry.m_SampleCount;
+            m_LookupCache.sample      = sample_start;
 
             return AP4_SUCCESS;
         }
+
+        // update the upper bound
+        sample_start += entry.m_SampleCount;        
     }
 
     // sample is greater than the number of samples

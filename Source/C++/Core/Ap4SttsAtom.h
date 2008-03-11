@@ -79,6 +79,11 @@ private:
 
     // members
     AP4_Array<AP4_SttsTableEntry> m_Entries;
+    struct {
+        AP4_Ordinal  entry_index;
+        AP4_Ordinal   sample;
+        AP4_TimeStamp dts;
+    } m_LookupCache;
 };
 
 #endif // _AP4_STTS_ATOM_H_

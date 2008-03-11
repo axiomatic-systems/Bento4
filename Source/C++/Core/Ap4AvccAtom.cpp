@@ -68,7 +68,7 @@ AP4_AvccAtom::AP4_AvccAtom(AP4_UI08 config_version,
     m_Profile(profile),
     m_Level(level),
     m_ProfileCompatibility(profile_compatibility),
-    m_LengthSize(length_size),
+    m_NaluLengthSize(length_size),
     m_SequenceParameters(sequence_parameters),
     m_PictureParameters(picture_parameters)
 {
@@ -93,7 +93,7 @@ AP4_AvccAtom::AP4_AvccAtom(AP4_UI32 size, AP4_ByteStream& stream) :
     stream.ReadUI08(m_Level);
     AP4_UI08 length_size_minus_one;
     stream.ReadUI08(length_size_minus_one);
-    m_LengthSize = 1+(length_size_minus_one&3);
+    m_NaluLengthSize = 1+(length_size_minus_one&3);
     AP4_UI08 num_seq_params;
     stream.ReadUI08(num_seq_params);
     num_seq_params &= 31;
@@ -127,11 +127,11 @@ AP4_AvccAtom::WriteFields(AP4_ByteStream& stream)
     stream.WriteUI08(m_ProfileCompatibility);
     stream.WriteUI08(m_Level);
     AP4_UI08 length_size_minus_one = 0xFC;
-    if (m_LengthSize >= 1 && m_LengthSize <= 4) {
-        length_size_minus_one |= m_LengthSize-1;
+    if (m_NaluLengthSize >= 1 && m_NaluLengthSize <= 4) {
+        length_size_minus_one |= m_NaluLengthSize-1;
     }
     stream.WriteUI08(length_size_minus_one);
-    m_LengthSize = 1+(length_size_minus_one&3);
+    m_NaluLengthSize = 1+(length_size_minus_one&3);
     AP4_UI08 num_seq_params = (AP4_UI08)(m_SequenceParameters.ItemCount()&0x31);
     stream.WriteUI08(0xE0 | num_seq_params);
     for (unsigned int i=0; i<num_seq_params; i++) {
@@ -165,7 +165,7 @@ AP4_AvccAtom::InspectFields(AP4_AtomInspector& inspector)
     }
     inspector.AddField("Profile Compatibility", m_ProfileCompatibility, AP4_AtomInspector::HINT_HEX);
     inspector.AddField("Level", m_Level);
-    inspector.AddField("Length Size", m_LengthSize);
+    inspector.AddField("NALU Length Size", m_NaluLengthSize);
     for (unsigned int i=0; i<m_SequenceParameters.ItemCount(); i++) {
         inspector.AddField("Sequence Parameter", m_SequenceParameters[i].GetData(), m_SequenceParameters[i].GetDataSize());
     }

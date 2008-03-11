@@ -173,6 +173,18 @@ ShowProtectedSampleDescription(AP4_ProtectedSampleDescription* desc)
 }
 
 /*----------------------------------------------------------------------
+|   ShowMpegAudioSampleDescription
++---------------------------------------------------------------------*/
+static void
+ShowMpegAudioSampleDescription(AP4_MpegAudioSampleDescription* mpeg_audio_desc)
+{
+    AP4_MpegAudioSampleDescription::Mpeg4AudioObjectType object_type = 
+        mpeg_audio_desc->GetMpeg4AudioObjectType();
+    const char* object_type_string = AP4_MpegAudioSampleDescription::GetMpeg4AudioObjectTypeString(object_type);
+    AP4_Debug("    MPEG-4 Audio Object Type: %s\n", object_type_string);
+}
+
+/*----------------------------------------------------------------------
 |   ShowSampleDescription
 +---------------------------------------------------------------------*/
 static void
@@ -187,6 +199,7 @@ ShowSampleDescription(AP4_SampleDescription* desc)
     AP4_FormatFourChars(coding, desc->GetFormat());
     AP4_Debug(    "    Coding:      %s\n", coding);
     if (desc->GetType() == AP4_SampleDescription::TYPE_MPEG) {
+        // MPEG sample description
         AP4_MpegSampleDescription* mpeg_desc = dynamic_cast<AP4_MpegSampleDescription*>(desc);
 
         AP4_Debug("    Stream Type: %s\n", mpeg_desc->GetStreamTypeString(mpeg_desc->GetStreamType()));
@@ -194,10 +207,16 @@ ShowSampleDescription(AP4_SampleDescription* desc)
         AP4_Debug("    Max Bitrate: %d\n", mpeg_desc->GetMaxBitrate());
         AP4_Debug("    Avg Bitrate: %d\n", mpeg_desc->GetAvgBitrate());
         AP4_Debug("    Buffer Size: %d\n", mpeg_desc->GetBufferSize());
+        
+        if (mpeg_desc->GetObjectTypeId() == AP4_OTI_MPEG4_AUDIO) {
+            AP4_MpegAudioSampleDescription* mpeg_audio_desc = dynamic_cast<AP4_MpegAudioSampleDescription*>(mpeg_desc);
+            if (mpeg_audio_desc) ShowMpegAudioSampleDescription(mpeg_audio_desc);
+        }
     }
     AP4_AudioSampleDescription* audio_desc = 
         dynamic_cast<AP4_AudioSampleDescription*>(desc);
     if (audio_desc) {
+        // Audio sample description
         AP4_Debug("    Sample Rate: %d\n", audio_desc->GetSampleRate());
         AP4_Debug("    Sample Size: %d\n", audio_desc->GetSampleSize());
         AP4_Debug("    Channels:    %d\n", audio_desc->GetChannelCount());
@@ -205,9 +224,25 @@ ShowSampleDescription(AP4_SampleDescription* desc)
     AP4_VideoSampleDescription* video_desc = 
         dynamic_cast<AP4_VideoSampleDescription*>(desc);
     if (video_desc) {
+        // Video sample description
         AP4_Debug("    Width:       %d\n", video_desc->GetWidth());
         AP4_Debug("    Height:      %d\n", video_desc->GetHeight());
         AP4_Debug("    Depth:       %d\n", video_desc->GetDepth());
+    }
+    if (desc->GetFormat() == AP4_ATOM_TYPE_AVC1) {
+        // AVC sample description
+        AP4_AvccAtom* avcc = (AP4_AvccAtom*)desc->GetDetails().GetChild(AP4_ATOM_TYPE_AVCC);
+        if (avcc) {
+            const char* profile_name = AP4_AvccAtom::GetProfileName(avcc->GetProfile());
+            if (profile_name) {
+                AP4_Debug("    AVC Profile:          %s\n", profile_name);
+            } else {
+                AP4_Debug("    AVC Profile:          %d\n", avcc->GetProfile());
+            }
+            AP4_Debug("    AVC Profile Compat:   %x\n", avcc->GetProfileCompatibility());
+            AP4_Debug("    AVC Level:            %d\n", avcc->GetLevel());
+            AP4_Debug("    AVC NALU Length Size: %d\n", avcc->GetNaluLengthSize());
+        }
     }
 }
 
