@@ -111,7 +111,7 @@ main(int argc, char** argv)
                 dsi.SetData(aac_dsi, 2);
                 AP4_MpegAudioSampleDescription* sample_description = 
                     new AP4_MpegAudioSampleDescription(
-                    AP4_MPEG4_AUDIO_OTI,   // object type
+                    AP4_OTI_MPEG4_AUDIO,   // object type
                     frame.m_Info.m_SamplingFrequency,
                     16,                    // sample size
                     frame.m_Info.m_ChannelConfiguration,

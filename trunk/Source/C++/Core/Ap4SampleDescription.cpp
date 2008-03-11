@@ -209,7 +209,7 @@ AP4_MpegAudioSampleDescription::AP4_MpegAudioSampleDescription(
     AP4_UI32              max_bitrate,
     AP4_UI32              avg_bitrate) :
     AP4_MpegSampleDescription(AP4_ATOM_TYPE_MP4A,
-                              AP4_AUDIO_STREAM_TYPE,
+                              AP4_STREAM_TYPE_AUDIO,
                               oti, 
                               decoder_info, buffer_size, 
                               max_bitrate, avg_bitrate),
@@ -227,6 +227,26 @@ AP4_MpegAudioSampleDescription::ToAtom() const
                                    m_SampleSize,
                                    m_ChannelCount,
                                    CreateEsDescriptor());
+}
+
+/*----------------------------------------------------------------------
+|   AP4_MpegAudioSampleDescription::GetMpeg4AudioObjectType
++---------------------------------------------------------------------*/
+AP4_MpegAudioSampleDescription::Mpeg4AudioObjectType
+AP4_MpegAudioSampleDescription::GetMpeg4AudioObjectType() const
+{
+    if (m_ObjectTypeId == AP4_OTI_MPEG4_AUDIO &&
+        m_DecoderInfo.GetDataSize() >= 1) {
+        AP4_UI08 type = m_DecoderInfo.GetData()[0]>>3;
+        if (type == 31) {
+            if (m_DecoderInfo.GetDataSize() < 2) return 0;
+            type = 32+(((m_DecoderInfo.GetData()[0]&0x07)<<3) |
+                       ((m_DecoderInfo.GetData()[1]&0xE0)>>5));
+        }
+        return type;
+    } else {
+        return 0;
+    }
 }
 
 /*----------------------------------------------------------------------
@@ -257,7 +277,7 @@ AP4_MpegVideoSampleDescription::AP4_MpegVideoSampleDescription(
     AP4_UI32              max_bitrate,
     AP4_UI32              avg_bitrate) :
     AP4_MpegSampleDescription(AP4_ATOM_TYPE_MP4V, 
-                              AP4_VISUAL_STREAM_TYPE,
+                              AP4_STREAM_TYPE_VISUAL,
                               oti,
                               decoder_info,
                               buffer_size,
@@ -287,16 +307,16 @@ const char*
 AP4_MpegSampleDescription::GetStreamTypeString(StreamType type)
 {
     switch (type) {
-        case AP4_FORBIDDEN_STREAM_TYPE: return "INVALID"; 
-        case AP4_OD_STREAM_TYPE:        return "Object Descriptor";
-        case AP4_CR_STREAM_TYPE:        return "CR";	
-        case AP4_BIFS_STREAM_TYPE:      return "BIFS";
-        case AP4_VISUAL_STREAM_TYPE:    return "Visual";
-        case AP4_AUDIO_STREAM_TYPE:     return "Audio";
-        case AP4_MPEG7_STREAM_TYPE:     return "MPEG-7";
-        case AP4_IPMP_STREAM_TYPE:      return "IPMP";
-        case AP4_OCI_STREAM_TYPE:       return "OCI";
-        case AP4_MPEGJ_STREAM_TYPE:     return "MPEG-J";
+        case AP4_STREAM_TYPE_FORBIDDEN: return "INVALID"; 
+        case AP4_STREAM_TYPE_OD:        return "Object Descriptor";
+        case AP4_STREAM_TYPE_CR:        return "CR";	
+        case AP4_STREAM_TYPE_BIFS:      return "BIFS";
+        case AP4_STREAM_TYPE_VISUAL:    return "Visual";
+        case AP4_STREAM_TYPE_AUDIO:     return "Audio";
+        case AP4_STREAM_TYPE_MPEG7:     return "MPEG-7";
+        case AP4_STREAM_TYPE_IPMP:      return "IPMP";
+        case AP4_STREAM_TYPE_OCI:       return "OCI";
+        case AP4_STREAM_TYPE_MPEGJ:     return "MPEG-J";
         default:                        return "UNKNOWN";
     }
 }
@@ -308,24 +328,50 @@ const char*
 AP4_MpegSampleDescription::GetObjectTypeString(OTI oti)
 {
     switch (oti) {
-        case AP4_MPEG4_SYSTEM_OTI:         return "MPEG-4 System";
-        case AP4_MPEG4_SYSTEM_COR_OTI:     return "MPEG-4 System COR";
-        case AP4_MPEG4_VISUAL_OTI:         return "MPEG-4 Video";
-        case AP4_MPEG4_AUDIO_OTI:          return "MPEG-4 Audio";
-        case AP4_MPEG2_VISUAL_SIMPLE_OTI:  return "MPEG-2 Video Simple Profile";
-        case AP4_MPEG2_VISUAL_MAIN_OTI:    return "MPEG-2 Video Main Profile";
-        case AP4_MPEG2_VISUAL_SNR_OTI:     return "MPEG-2 Video SNR";
-        case AP4_MPEG2_VISUAL_SPATIAL_OTI: return "MPEG-2 Video Spatial";
-        case AP4_MPEG2_VISUAL_HIGH_OTI:    return "MPEG-2 Video High";
-        case AP4_MPEG2_VISUAL_422_OTI:     return "MPEG-2 Video 4:2:2";
-        case AP4_MPEG2_AAC_AUDIO_MAIN_OTI: return "MPEG-2 Audio AAC Main Profile";
-        case AP4_MPEG2_AAC_AUDIO_LC_OTI:   return "MPEG-2 Audio AAC Low Complexity";
-        case AP4_MPEG2_AAC_AUDIO_SSRP_OTI: return "MPEG-2 Audio AAC SSRP";
-        case AP4_MPEG2_PART3_AUDIO_OTI:    return "MPEG-2 Audio Part-3";
-        case AP4_MPEG1_VISUAL_OTI:         return "MPEG-1 Video";
-        case AP4_MPEG1_AUDIO_OTI:          return "MPEG-1 Audio";
-        case AP4_JPEG_OTI:                 return "JPEG";
+        case AP4_OTI_MPEG4_SYSTEM:         return "MPEG-4 System";
+        case AP4_OTI_MPEG4_SYSTEM_COR:     return "MPEG-4 System COR";
+        case AP4_OTI_MPEG4_VISUAL:         return "MPEG-4 Video";
+        case AP4_OTI_MPEG4_AUDIO:          return "MPEG-4 Audio";
+        case AP4_OTI_MPEG2_VISUAL_SIMPLE:  return "MPEG-2 Video Simple Profile";
+        case AP4_OTI_MPEG2_VISUAL_MAIN:    return "MPEG-2 Video Main Profile";
+        case AP4_OTI_MPEG2_VISUAL_SNR:     return "MPEG-2 Video SNR";
+        case AP4_OTI_MPEG2_VISUAL_SPATIAL: return "MPEG-2 Video Spatial";
+        case AP4_OTI_MPEG2_VISUAL_HIGH:    return "MPEG-2 Video High";
+        case AP4_OTI_MPEG2_VISUAL_422:     return "MPEG-2 Video 4:2:2";
+        case AP4_OTI_MPEG2_AAC_AUDIO_MAIN: return "MPEG-2 Audio AAC Main Profile";
+        case AP4_OTI_MPEG2_AAC_AUDIO_LC:   return "MPEG-2 Audio AAC Low Complexity";
+        case AP4_OTI_MPEG2_AAC_AUDIO_SSRP: return "MPEG-2 Audio AAC SSRP";
+        case AP4_OTI_MPEG2_PART3_AUDIO:    return "MPEG-2 Audio Part-3";
+        case AP4_OTI_MPEG1_VISUAL:         return "MPEG-1 Video";
+        case AP4_OTI_MPEG1_AUDIO:          return "MPEG-1 Audio";
+        case AP4_OTI_JPEG:                 return "JPEG";
         default:                           return "UNKNOWN";
     }
 }
 
+/*----------------------------------------------------------------------
+|   AP4_MpegAudioSampleDescription::GetMpeg4AudioObjectTypeString
++---------------------------------------------------------------------*/
+const char* 
+AP4_MpegAudioSampleDescription::GetMpeg4AudioObjectTypeString(Mpeg4AudioObjectType type)
+{
+    switch (type) {
+        case AP4_MPEG4_AUDIO_OBJECT_TYPE_AAC_MAIN:        return "AAC Main Profile";
+        case AP4_MPEG4_AUDIO_OBJECT_TYPE_AAC_LC:          return "AAC Low Complexity";
+        case AP4_MPEG4_AUDIO_OBJECT_TYPE_AAC_SSR:         return "AAC Scalable Sample Rate";
+        case AP4_MPEG4_AUDIO_OBJECT_TYPE_AAC_LTP:         return "AAC Long Term Predictor";
+        case AP4_MPEG4_AUDIO_OBJECT_TYPE_SBR:             return "Spectral Band Replication";
+        case AP4_MPEG4_AUDIO_OBJECT_TYPE_AAC_SCALABLE:    return "AAC Scalable";
+        case AP4_MPEG4_AUDIO_OBJECT_TYPE_TWINVQ:          return "Twin VQ";
+        case AP4_MPEG4_AUDIO_OBJECT_TYPE_ER_AAC_LC:       return "Error Resilient AAC Low Complexity";
+        case AP4_MPEG4_AUDIO_OBJECT_TYPE_ER_AAC_LTP:      return "Error Resilient AAC Long Term Prediction";
+        case AP4_MPEG4_AUDIO_OBJECT_TYPE_ER_AAC_SCALABLE: return "Error Resilient AAC Scalable";
+        case AP4_MPEG4_AUDIO_OBJECT_TYPE_ER_TWINVQ:       return "Error Resilient Twin VQ";
+        case AP4_MPEG4_AUDIO_OBJECT_TYPE_ER_BSAC:         return "Error Resilient Bit Sliced Arithmetic Coding";
+        case AP4_MPEG4_AUDIO_OBJECT_TYPE_ER_AAC_LD:       return "Error Resilient AAC Low Delay";
+        case AP4_MPEG4_AUDIO_OBJECT_TYPE_LAYER_1:         return "MPEG Layer 1";
+        case AP4_MPEG4_AUDIO_OBJECT_TYPE_LAYER_2:         return "MPEG Layer 2";
+        case AP4_MPEG4_AUDIO_OBJECT_TYPE_LAYER_3:         return "MPEG Layer 3";
+        default:                                          return "UNKNOWN";
+    }
+}

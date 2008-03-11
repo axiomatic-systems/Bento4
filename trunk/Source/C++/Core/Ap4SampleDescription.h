@@ -249,6 +249,12 @@ class AP4_MpegAudioSampleDescription : public AP4_MpegSampleDescription,
                                        public AP4_AudioSampleDescription
 {
 public:
+    // types
+    typedef AP4_UI08 Mpeg4AudioObjectType;
+    
+    // class methods
+    static const char* GetMpeg4AudioObjectTypeString(Mpeg4AudioObjectType type);
+    
     // constructor
     AP4_MpegAudioSampleDescription(AP4_EsdsAtom* esds,
                                    unsigned int  sample_rate,
@@ -265,6 +271,13 @@ public:
 
     // methods
     AP4_Atom* ToAtom() const;
+
+    /**
+     * For sample descriptions of MPEG-4 audio tracks (i.e GetObjectTypeId() 
+     * returns AP4_OTI_MPEG4_AUDIO), this method returns the MPEG4 Audio Object 
+     * Type. For other sample descriptions, this method returns 0.
+     */
+    Mpeg4AudioObjectType GetMpeg4AudioObjectType() const;
 };
 
 /*----------------------------------------------------------------------
@@ -297,34 +310,51 @@ public:
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-const AP4_MpegSampleDescription::StreamType AP4_FORBIDDEN_STREAM_TYPE = 0x00;
-const AP4_MpegSampleDescription::StreamType AP4_OD_STREAM_TYPE        = 0x01;
-const AP4_MpegSampleDescription::StreamType AP4_CR_STREAM_TYPE        = 0x02;	
-const AP4_MpegSampleDescription::StreamType AP4_BIFS_STREAM_TYPE      = 0x03;
-const AP4_MpegSampleDescription::StreamType AP4_VISUAL_STREAM_TYPE    = 0x04;
-const AP4_MpegSampleDescription::StreamType AP4_AUDIO_STREAM_TYPE     = 0x05;
-const AP4_MpegSampleDescription::StreamType AP4_MPEG7_STREAM_TYPE     = 0x06;
-const AP4_MpegSampleDescription::StreamType AP4_IPMP_STREAM_TYPE      = 0x07;
-const AP4_MpegSampleDescription::StreamType AP4_OCI_STREAM_TYPE       = 0x08;
-const AP4_MpegSampleDescription::StreamType AP4_MPEGJ_STREAM_TYPE     = 0x09;
+const AP4_MpegSampleDescription::StreamType AP4_STREAM_TYPE_FORBIDDEN = 0x00;
+const AP4_MpegSampleDescription::StreamType AP4_STREAM_TYPE_OD        = 0x01;
+const AP4_MpegSampleDescription::StreamType AP4_STREAM_TYPE_CR        = 0x02;	
+const AP4_MpegSampleDescription::StreamType AP4_STREAM_TYPE_BIFS      = 0x03;
+const AP4_MpegSampleDescription::StreamType AP4_STREAM_TYPE_VISUAL    = 0x04;
+const AP4_MpegSampleDescription::StreamType AP4_STREAM_TYPE_AUDIO     = 0x05;
+const AP4_MpegSampleDescription::StreamType AP4_STREAM_TYPE_MPEG7     = 0x06;
+const AP4_MpegSampleDescription::StreamType AP4_STREAM_TYPE_IPMP      = 0x07;
+const AP4_MpegSampleDescription::StreamType AP4_STREAM_TYPE_OCI       = 0x08;
+const AP4_MpegSampleDescription::StreamType AP4_STREAM_TYPE_MPEGJ     = 0x09;
 
-const AP4_MpegSampleDescription::OTI AP4_MPEG4_SYSTEM_OTI         = 0x01;
-const AP4_MpegSampleDescription::OTI AP4_MPEG4_SYSTEM_COR_OTI     = 0x02;
-const AP4_MpegSampleDescription::OTI AP4_MPEG4_VISUAL_OTI         = 0x20;
-const AP4_MpegSampleDescription::OTI AP4_MPEG4_AUDIO_OTI          = 0x40;
-const AP4_MpegSampleDescription::OTI AP4_MPEG2_VISUAL_SIMPLE_OTI  = 0x60;
-const AP4_MpegSampleDescription::OTI AP4_MPEG2_VISUAL_MAIN_OTI    = 0x61;
-const AP4_MpegSampleDescription::OTI AP4_MPEG2_VISUAL_SNR_OTI     = 0x62;
-const AP4_MpegSampleDescription::OTI AP4_MPEG2_VISUAL_SPATIAL_OTI = 0x63;
-const AP4_MpegSampleDescription::OTI AP4_MPEG2_VISUAL_HIGH_OTI    = 0x64;
-const AP4_MpegSampleDescription::OTI AP4_MPEG2_VISUAL_422_OTI     = 0x65;
-const AP4_MpegSampleDescription::OTI AP4_MPEG2_AAC_AUDIO_MAIN_OTI = 0x66;
-const AP4_MpegSampleDescription::OTI AP4_MPEG2_AAC_AUDIO_LC_OTI   = 0x67;
-const AP4_MpegSampleDescription::OTI AP4_MPEG2_AAC_AUDIO_SSRP_OTI = 0x68;
-const AP4_MpegSampleDescription::OTI AP4_MPEG2_PART3_AUDIO_OTI    = 0x69;
-const AP4_MpegSampleDescription::OTI AP4_MPEG1_VISUAL_OTI         = 0x6A;
-const AP4_MpegSampleDescription::OTI AP4_MPEG1_AUDIO_OTI          = 0x6B;
-const AP4_MpegSampleDescription::OTI AP4_JPEG_OTI                 = 0x6C;
+const AP4_MpegSampleDescription::OTI AP4_OTI_MPEG4_SYSTEM         = 0x01;
+const AP4_MpegSampleDescription::OTI AP4_OTI_MPEG4_SYSTEM_COR     = 0x02;
+const AP4_MpegSampleDescription::OTI AP4_OTI_MPEG4_VISUAL         = 0x20;
+const AP4_MpegSampleDescription::OTI AP4_OTI_MPEG4_AUDIO          = 0x40;
+const AP4_MpegSampleDescription::OTI AP4_OTI_MPEG2_VISUAL_SIMPLE  = 0x60;
+const AP4_MpegSampleDescription::OTI AP4_OTI_MPEG2_VISUAL_MAIN    = 0x61;
+const AP4_MpegSampleDescription::OTI AP4_OTI_MPEG2_VISUAL_SNR     = 0x62;
+const AP4_MpegSampleDescription::OTI AP4_OTI_MPEG2_VISUAL_SPATIAL = 0x63;
+const AP4_MpegSampleDescription::OTI AP4_OTI_MPEG2_VISUAL_HIGH    = 0x64;
+const AP4_MpegSampleDescription::OTI AP4_OTI_MPEG2_VISUAL_422     = 0x65;
+const AP4_MpegSampleDescription::OTI AP4_OTI_MPEG2_AAC_AUDIO_MAIN = 0x66;
+const AP4_MpegSampleDescription::OTI AP4_OTI_MPEG2_AAC_AUDIO_LC   = 0x67;
+const AP4_MpegSampleDescription::OTI AP4_OTI_MPEG2_AAC_AUDIO_SSRP = 0x68;
+const AP4_MpegSampleDescription::OTI AP4_OTI_MPEG2_PART3_AUDIO    = 0x69;
+const AP4_MpegSampleDescription::OTI AP4_OTI_MPEG1_VISUAL         = 0x6A;
+const AP4_MpegSampleDescription::OTI AP4_OTI_MPEG1_AUDIO          = 0x6B;
+const AP4_MpegSampleDescription::OTI AP4_OTI_JPEG                 = 0x6C;
+
+const AP4_MpegAudioSampleDescription::Mpeg4AudioObjectType AP4_MPEG4_AUDIO_OBJECT_TYPE_AAC_MAIN        = 1;  /**< AAC Main Profile              */
+const AP4_MpegAudioSampleDescription::Mpeg4AudioObjectType AP4_MPEG4_AUDIO_OBJECT_TYPE_AAC_LC          = 2;  /**< AAC Low Complexity            */
+const AP4_MpegAudioSampleDescription::Mpeg4AudioObjectType AP4_MPEG4_AUDIO_OBJECT_TYPE_AAC_SSR         = 3;  /**< AAC Scalable Sample Rate      */
+const AP4_MpegAudioSampleDescription::Mpeg4AudioObjectType AP4_MPEG4_AUDIO_OBJECT_TYPE_AAC_LTP         = 4;  /**< AAC Long Term Predictor       */
+const AP4_MpegAudioSampleDescription::Mpeg4AudioObjectType AP4_MPEG4_AUDIO_OBJECT_TYPE_SBR             = 5;  /**< Spectral Band Replication          */
+const AP4_MpegAudioSampleDescription::Mpeg4AudioObjectType AP4_MPEG4_AUDIO_OBJECT_TYPE_AAC_SCALABLE    = 6;  /**< AAC Scalable                       */
+const AP4_MpegAudioSampleDescription::Mpeg4AudioObjectType AP4_MPEG4_AUDIO_OBJECT_TYPE_TWINVQ          = 7;  /**< Twin VQ                            */
+const AP4_MpegAudioSampleDescription::Mpeg4AudioObjectType AP4_MPEG4_AUDIO_OBJECT_TYPE_ER_AAC_LC       = 17; /**< Error Resilient AAC Low Complexity */
+const AP4_MpegAudioSampleDescription::Mpeg4AudioObjectType AP4_MPEG4_AUDIO_OBJECT_TYPE_ER_AAC_LTP      = 19; /**< Error Resilient AAC Long Term Prediction */
+const AP4_MpegAudioSampleDescription::Mpeg4AudioObjectType AP4_MPEG4_AUDIO_OBJECT_TYPE_ER_AAC_SCALABLE = 20; /**< Error Resilient AAC Scalable */
+const AP4_MpegAudioSampleDescription::Mpeg4AudioObjectType AP4_MPEG4_AUDIO_OBJECT_TYPE_ER_TWINVQ       = 21; /**< Error Resilient Twin VQ */
+const AP4_MpegAudioSampleDescription::Mpeg4AudioObjectType AP4_MPEG4_AUDIO_OBJECT_TYPE_ER_BSAC         = 22; /**< Error Resilient Bit Sliced Arithmetic Coding */
+const AP4_MpegAudioSampleDescription::Mpeg4AudioObjectType AP4_MPEG4_AUDIO_OBJECT_TYPE_ER_AAC_LD       = 23; /**< Error Resilient AAC Low Delay */
+const AP4_MpegAudioSampleDescription::Mpeg4AudioObjectType AP4_MPEG4_AUDIO_OBJECT_TYPE_LAYER_1         = 32; /**< MPEG Layer 1 */
+const AP4_MpegAudioSampleDescription::Mpeg4AudioObjectType AP4_MPEG4_AUDIO_OBJECT_TYPE_LAYER_2         = 33; /**< MPEG Layer 2 */
+const AP4_MpegAudioSampleDescription::Mpeg4AudioObjectType AP4_MPEG4_AUDIO_OBJECT_TYPE_LAYER_3         = 34; /**< MPEG Layer 3 */
 
 #endif // _AP4_SAMPLE_DESCRIPTION_H_
 

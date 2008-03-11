@@ -74,7 +74,7 @@ public:
     AP4_UI08 GetProfile() const              { return m_Profile; }
     AP4_UI08 GetLevel() const                { return m_Level; }
     AP4_UI08 GetProfileCompatibility() const { return m_ProfileCompatibility; }
-    AP4_UI08 GetLengthSize() const           { return m_LengthSize; }
+    AP4_UI08 GetNaluLengthSize() const       { return m_NaluLengthSize; }
     AP4_Array<AP4_DataBuffer>& GetSequenceParameters() { return m_SequenceParameters; }
     AP4_Array<AP4_DataBuffer>& GetPictureParameters()  { return m_PictureParameters; }
     const AP4_DataBuffer& GetRawBytes() const { return m_RawBytes; }
@@ -84,14 +84,14 @@ private:
     AP4_AvccAtom(AP4_UI32 size, AP4_ByteStream& stream);
 
     // members
-    AP4_UI08 m_ConfigurationVersion;
-    AP4_UI08 m_Profile;
-    AP4_UI08 m_Level;
-    AP4_UI08 m_ProfileCompatibility;
-    AP4_UI08 m_LengthSize;
+    AP4_UI08                  m_ConfigurationVersion;
+    AP4_UI08                  m_Profile;
+    AP4_UI08                  m_Level;
+    AP4_UI08                  m_ProfileCompatibility;
+    AP4_UI08                  m_NaluLengthSize;
     AP4_Array<AP4_DataBuffer> m_SequenceParameters;
     AP4_Array<AP4_DataBuffer> m_PictureParameters;
-    AP4_DataBuffer m_RawBytes;
+    AP4_DataBuffer            m_RawBytes;
 };
 
 #endif // _AP4_TIMS_ATOM_H_
