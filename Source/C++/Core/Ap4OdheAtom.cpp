@@ -56,7 +56,7 @@ AP4_OdheAtom::AP4_OdheAtom(AP4_UI32         size,
                            AP4_UI32         flags,
                            AP4_ByteStream&  stream,
                            AP4_AtomFactory& atom_factory) :
-    AP4_ContainerAtom(AP4_ATOM_TYPE_ODHE, size, version, flags)
+    AP4_ContainerAtom(AP4_ATOM_TYPE_ODHE, size, false, version, flags)
 {
     // read the content type
     AP4_UI08 content_type_length;
@@ -75,7 +75,7 @@ AP4_OdheAtom::AP4_OdheAtom(AP4_UI32         size,
 +---------------------------------------------------------------------*/
 AP4_OdheAtom::AP4_OdheAtom(const char*   content_type,
                            AP4_OhdrAtom* ohdr) :
-    AP4_ContainerAtom(AP4_ATOM_TYPE_ODHE, AP4_FULL_ATOM_HEADER_SIZE, 0, 0),
+    AP4_ContainerAtom(AP4_ATOM_TYPE_ODHE, (AP4_UI32)0, (AP4_UI32)0),
     m_ContentType(content_type)
 {
     m_Size32 += 1+m_ContentType.GetLength();

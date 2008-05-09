@@ -73,7 +73,7 @@ public:
                                    AP4_ProtectionKeyMap&            key_map);
 
     // Returns a byte stream that will produce the decrypted data found
-    // in the 'odd'a child atom of an 'odrm' atom
+    // in the 'odda' child atom of an 'odrm' atom
     static AP4_Result CreateDecryptingStream(AP4_ContainerAtom&      odrm_atom,
                                              const AP4_UI08*         key,
                                              AP4_Size                key_size,

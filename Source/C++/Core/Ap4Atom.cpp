@@ -68,14 +68,14 @@ AP4_Atom::AP4_Atom(Type type, AP4_UI32 size /* = AP4_ATOM_HEADER_SIZE */) :
 /*----------------------------------------------------------------------
 |   AP4_Atom::AP4_Atom
 +---------------------------------------------------------------------*/
-AP4_Atom::AP4_Atom(Type type, AP4_UI64 size) : 
+AP4_Atom::AP4_Atom(Type type, AP4_UI64 size, bool force_64) : 
     m_Type(type),
     m_IsFull(false),
     m_Version(0),
     m_Flags(0),
     m_Parent(NULL)
 {
-    SetSize(size);
+    SetSize(size, force_64);
 }
 
 /*----------------------------------------------------------------------
@@ -99,7 +99,8 @@ AP4_Atom::AP4_Atom(Type     type,
 |   AP4_Atom::AP4_Atom
 +---------------------------------------------------------------------*/
 AP4_Atom::AP4_Atom(Type     type, 
-                   AP4_UI64 size, 
+                   AP4_UI64 size,
+                   bool     force_64,
                    AP4_UI32 version, 
                    AP4_UI32 flags) :
     m_Type(type),
@@ -108,7 +109,7 @@ AP4_Atom::AP4_Atom(Type     type,
     m_Flags(flags),
     m_Parent(NULL)
 {
-    SetSize(size);
+    SetSize(size, force_64);
 }
 
 /*----------------------------------------------------------------------
@@ -548,7 +549,7 @@ AP4_AtomParent::FindChild(const char* path,
             // not found
             if (auto_create && (index == 0)) {
                 if (auto_create_full) {
-                    atom = new AP4_ContainerAtom(type, 0, 0);
+                    atom = new AP4_ContainerAtom(type, (AP4_UI32)0, (AP4_UI32)0);
                 } else {
                     atom = new AP4_ContainerAtom(type);
                 }

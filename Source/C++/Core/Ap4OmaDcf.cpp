@@ -828,7 +828,7 @@ AP4_OmaDcfTrackEncrypter::ProcessTrack()
                                                m_RightsIssuerUrl.GetChars(),
                                                m_TextualHeaders.GetData(),
                                                m_TextualHeaders.GetDataSize());
-    AP4_ContainerAtom* odkm = new AP4_ContainerAtom(AP4_ATOM_TYPE_ODKM, AP4_FULL_ATOM_HEADER_SIZE, 0, 0);
+    AP4_ContainerAtom* odkm = new AP4_ContainerAtom(AP4_ATOM_TYPE_ODKM, (AP4_UI32)0, (AP4_UI32)0);
     AP4_SchmAtom*      schm = new AP4_SchmAtom(AP4_PROTECTION_SCHEME_TYPE_OMA, 
                                                AP4_PROTECTION_SCHEME_VERSION_OMA_20);
     odkm->AddChild(odaf);

@@ -55,8 +55,9 @@ AP4_StsdAtom::Create(AP4_Size         size,
 |   AP4_StsdAtom::AP4_StsdAtom
 +---------------------------------------------------------------------*/
 AP4_StsdAtom::AP4_StsdAtom(AP4_SampleTable* sample_table) :
-    AP4_ContainerAtom(AP4_ATOM_TYPE_STSD, AP4_FULL_ATOM_HEADER_SIZE+4, 0, 0)
+    AP4_ContainerAtom(AP4_ATOM_TYPE_STSD, (AP4_UI32)0, (AP4_UI32)0)
 {
+    m_Size32 += 4;
     AP4_Cardinal sample_description_count = sample_table->GetSampleDescriptionCount();
     m_SampleDescriptions.EnsureCapacity(sample_description_count);
     for (AP4_Ordinal i=0; i<sample_description_count; i++) {
@@ -81,7 +82,7 @@ AP4_StsdAtom::AP4_StsdAtom(AP4_UI32         size,
                            AP4_UI32         flags,
                            AP4_ByteStream&  stream,
                            AP4_AtomFactory& atom_factory) :
-    AP4_ContainerAtom(AP4_ATOM_TYPE_STSD, size, version, flags)
+    AP4_ContainerAtom(AP4_ATOM_TYPE_STSD, size, false, version, flags)
 {
     // read the number of entries
     AP4_UI32 entry_count;

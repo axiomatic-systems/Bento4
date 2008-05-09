@@ -74,7 +74,10 @@ AP4_OddaAtom::AP4_OddaAtom(AP4_ByteStream& encrypted_payload) :
 {
     // encrypted data length
     encrypted_payload.GetSize(m_EncryptedDataLength);
-
+    
+    // update our size 
+    SetSize(AP4_FULL_ATOM_HEADER_SIZE_64+8+m_EncryptedDataLength, true);
+    
     // keep a reference to the encrypted payload
     m_EncryptedPayload = &encrypted_payload;
     m_EncryptedPayload->AddReference();
@@ -108,7 +111,7 @@ AP4_OddaAtom::SetEncryptedPayload(AP4_ByteStream& stream)
     
     // update the size
     m_EncryptedDataLength = new_encrypted_data_length;
-    SetSize(AP4_FULL_ATOM_HEADER_SIZE+8 + 8 + new_encrypted_data_length, true);
+    SetSize(AP4_FULL_ATOM_HEADER_SIZE_64 + 8 + new_encrypted_data_length, true);
     if (m_Parent) m_Parent->OnChildChanged(this);
     
     return AP4_SUCCESS;

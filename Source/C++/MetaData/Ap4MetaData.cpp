@@ -361,7 +361,7 @@ AP4_MetaDataAtomTypeHandler::CreateAtom(AP4_Atom::Type  type,
     if (context == AP4_ATOM_TYPE_ILST) {
         if (IsTypeInList(type, IlstTypeList)) {
             m_AtomFactory->SetContext(type);
-            atom = AP4_ContainerAtom::Create(type, size, false, stream, *m_AtomFactory);
+            atom = AP4_ContainerAtom::Create(type, size, false, false, stream, *m_AtomFactory);
             m_AtomFactory->SetContext(context);
         }
     } else if (type == AP4_ATOM_TYPE_DATA) {

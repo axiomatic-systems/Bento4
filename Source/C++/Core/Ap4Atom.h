@@ -2,7 +2,7 @@
 |
 |    AP4 - Atoms 
 |
-|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
+|    Copyright 2002-2008 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -53,10 +53,12 @@
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-const AP4_UI32 AP4_ATOM_HEADER_SIZE      = 8;
-const AP4_UI32 AP4_FULL_ATOM_HEADER_SIZE = 12;
-const AP4_UI32 AP4_ATOM_MAX_NAME_SIZE    = 256;
-const AP4_UI32 AP4_ATOM_MAX_URI_SIZE     = 512;
+const AP4_UI32 AP4_ATOM_HEADER_SIZE         = 8;
+const AP4_UI32 AP4_ATOM_HEADER_SIZE_64      = 16;
+const AP4_UI32 AP4_FULL_ATOM_HEADER_SIZE    = 12;
+const AP4_UI32 AP4_FULL_ATOM_HEADER_SIZE_64 = 20;
+const AP4_UI32 AP4_ATOM_MAX_NAME_SIZE       = 256;
+const AP4_UI32 AP4_ATOM_MAX_URI_SIZE        = 512;
 
 /*----------------------------------------------------------------------
 |   forward references
@@ -131,7 +133,7 @@ class AP4_Atom {
     /**
      * Create a simple atom with a specified type and 64-bit size.
      */
-    AP4_Atom(Type type, AP4_UI64 size);
+    AP4_Atom(Type type, AP4_UI64 size, bool force_64=false);
 
     /**
      * Create a full atom with a specified type, 32-bit size, version and flags.
@@ -146,6 +148,7 @@ class AP4_Atom {
      */
     AP4_Atom(Type     type, 
              AP4_UI64 size,
+             bool     force_64,
              AP4_UI32 version, 
              AP4_UI32 flags);
 
@@ -290,6 +293,7 @@ const AP4_Atom::Type AP4_ATOM_TYPE_MDHD = AP4_ATOM_TYPE('m','d','h','d');
 const AP4_Atom::Type AP4_ATOM_TYPE_ILST = AP4_ATOM_TYPE('i','l','s','t');
 const AP4_Atom::Type AP4_ATOM_TYPE_HDLR = AP4_ATOM_TYPE('h','d','l','r');
 const AP4_Atom::Type AP4_ATOM_TYPE_FTYP = AP4_ATOM_TYPE('f','t','y','p');
+const AP4_Atom::Type AP4_ATOM_TYPE_IODS = AP4_ATOM_TYPE('i','o','d','s');
 const AP4_Atom::Type AP4_ATOM_TYPE_ESDS = AP4_ATOM_TYPE('e','s','d','s');
 const AP4_Atom::Type AP4_ATOM_TYPE_EDTS = AP4_ATOM_TYPE('e','d','t','s');
 const AP4_Atom::Type AP4_ATOM_TYPE_DRMS = AP4_ATOM_TYPE('d','r','m','s');
@@ -313,8 +317,13 @@ const AP4_Atom::Type AP4_ATOM_TYPE_SDP_ = AP4_ATOM_TYPE('s','d','p',' ');
 const AP4_Atom::Type AP4_ATOM_TYPE_IKMS = AP4_ATOM_TYPE('i','K','M','S');
 const AP4_Atom::Type AP4_ATOM_TYPE_ISFM = AP4_ATOM_TYPE('i','S','F','M');
 const AP4_Atom::Type AP4_ATOM_TYPE_ISLT = AP4_ATOM_TYPE('i','S','L','T');
-const AP4_Atom::Type AP4_ATOM_TYPE_HINT = AP4_ATOM_TYPE('h','i','n','t');
 const AP4_Atom::Type AP4_ATOM_TYPE_TREF = AP4_ATOM_TYPE('t','r','e','f');
+const AP4_Atom::Type AP4_ATOM_TYPE_HINT = AP4_ATOM_TYPE('h','i','n','t');
+const AP4_Atom::Type AP4_ATOM_TYPE_CDSC = AP4_ATOM_TYPE('c','d','s','c');
+const AP4_Atom::Type AP4_ATOM_TYPE_MPOD = AP4_ATOM_TYPE('m','p','o','d');
+const AP4_Atom::Type AP4_ATOM_TYPE_IPIR = AP4_ATOM_TYPE('i','p','i','r');
+const AP4_Atom::Type AP4_ATOM_TYPE_SYNC = AP4_ATOM_TYPE('s','y','n','c');
+const AP4_Atom::Type AP4_ATOM_TYPE_DPND = AP4_ATOM_TYPE('d','p','n','d');
 const AP4_Atom::Type AP4_ATOM_TYPE_ODRM = AP4_ATOM_TYPE('o','d','r','m');
 const AP4_Atom::Type AP4_ATOM_TYPE_ODKM = AP4_ATOM_TYPE('o','d','k','m');
 const AP4_Atom::Type AP4_ATOM_TYPE_OHDR = AP4_ATOM_TYPE('o','h','d','r');
@@ -326,6 +335,7 @@ const AP4_Atom::Type AP4_ATOM_TYPE_MDRI = AP4_ATOM_TYPE('m','d','r','i');
 const AP4_Atom::Type AP4_ATOM_TYPE_AVCC = AP4_ATOM_TYPE('a','v','c','C');
 const AP4_Atom::Type AP4_ATOM_TYPE_WAVE = AP4_ATOM_TYPE('w','a','v','e');
 const AP4_Atom::Type AP4_ATOM_TYPE_WIDE = AP4_ATOM_TYPE('w','i','d','e');
+const AP4_Atom::Type AP4_ATOM_TYPE_UUID = AP4_ATOM_TYPE('u','u','i','d');
 
 /*----------------------------------------------------------------------
 |   AP4_AtomListInspector

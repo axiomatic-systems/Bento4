@@ -387,15 +387,16 @@ AP4_CbcStreamCipher::ProcessBuffer(const AP4_UI08* in,
                 m_OutputSkip = 0;
             }
         }
-        if (is_last_buffer) {
+        if (is_last_buffer && m_Direction == DECRYPT) {
             // check that we have fed an integral number of blocks
             if (m_StreamOffset%AP4_CIPHER_BLOCK_SIZE != 0) {
                 *out_size = 0;
                 return AP4_ERROR_INVALID_PARAMETERS;
             }
 
+            // remove the padding
             AP4_UI08 pad_byte = out[-1];
-            if (pad_byte > AP4_CIPHER_BLOCK_SIZE) {
+            if (pad_byte == 0 || pad_byte > AP4_CIPHER_BLOCK_SIZE) {
                 *out_size = 0;
                 return AP4_ERROR_INVALID_FORMAT;
             }

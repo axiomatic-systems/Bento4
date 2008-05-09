@@ -42,7 +42,7 @@ AP4_TrefTypeAtom::AP4_TrefTypeAtom(AP4_Atom::Type  type,
     AP4_Size data_size = size - 8; // size and atom type
     
     // read the track ids
-    while (data_size != 0) {
+    while (data_size >= 4) {
         AP4_UI32 track_id;
         stream.ReadUI32(track_id);
         m_TrackIds.Append(track_id);

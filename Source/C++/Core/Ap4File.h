@@ -34,6 +34,7 @@
 +---------------------------------------------------------------------*/
 #include "Ap4Types.h"
 #include "Ap4List.h"
+#include "Ap4Atom.h"
 #include "Ap4AtomFactory.h"
 
 /*----------------------------------------------------------------------
@@ -70,7 +71,7 @@ const AP4_UI32 AP4_FILE_BRAND_MJP2 = AP4_ATOM_TYPE('m','j','p','2');
  * The AP4_File object is the top level object for MP4 Files.
  */
 
-class AP4_File {
+class AP4_File : public AP4_AtomParent {
 public:
     // constructors and destructor
     /**
@@ -96,11 +97,10 @@ public:
      */
     virtual ~AP4_File();
  
-    // methods
     /**
-     * Get the top level atoms of the file (except ftyp atom)
+     * Get the top level atoms of the file (except ftyp and mdat atoms)
      */
-    AP4_List<AP4_Atom>& GetOtherAtoms() { return m_OtherAtoms;}
+    AP4_List<AP4_Atom>& GetOtherAtoms() { return m_Children; }
 
     /** 
      * Get the AP4_Movie object of this file
@@ -139,11 +139,10 @@ public:
 
 private:
     // members
-    AP4_Movie*         m_Movie;
-    AP4_FtypAtom*      m_FileType;
-    AP4_List<AP4_Atom> m_OtherAtoms;
-    AP4_MetaData*      m_MetaData;
-    bool               m_MoovIsBeforeMdat;
+    AP4_Movie*    m_Movie;
+    AP4_FtypAtom* m_FileType;
+    AP4_MetaData* m_MetaData;
+    bool          m_MoovIsBeforeMdat;
 };
 
 #endif // _AP4_FILE_H_

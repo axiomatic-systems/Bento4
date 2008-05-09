@@ -1491,6 +1491,43 @@ main(int /*argc*/, char** /*argv*/)
         }
         
         for (unsigned int i=0; i<sizeof(TestVectors2)/sizeof(TestVectors2[0]); i++) {
+            printf("Encrypt Test Vector2 + Stream %d\n", i);
+
+            AP4_Result result;
+            TestVector& vector = TestVectors2[i];
+            AP4_ByteStream* cleartext_stream = new AP4_MemoryByteStream(vector.clear, vector.clear_length);
+            
+            AP4_ByteStream* encrypting_stream = NULL;
+            result = AP4_EncryptingStream::Create(AP4_EncryptingStream::CIPHER_MODE_CBC,
+                                                  *cleartext_stream,
+                                                  iv,
+                                                  16,
+                                                  key,
+                                                  16,
+                                                  false,
+                                                  &AP4_DefaultBlockCipherFactory::Instance,
+                                                  encrypting_stream);
+            CHECK(result == AP4_SUCCESS);
+            
+            // read the whole stream by chunks
+            AP4_UI08 out_buffer[128+16];
+            AP4_Size out_size;
+            AP4_Size total_read = 0;
+            do {
+                unsigned int chunk = rand()%128;
+                AP4_Size bytes_read = 0;
+                result = encrypting_stream->ReadPartial(out_buffer, chunk, out_size);
+                if (bytes_read) CHECK(BuffersEqual(vector.enc+total_read, out_buffer, out_size));
+                total_read += out_size;
+            } while (result == AP4_SUCCESS);
+            CHECK(result == AP4_ERROR_EOS);
+            CHECK(total_read == vector.enc_length);
+            
+            encrypting_stream->Release();
+            cleartext_stream->Release();
+        }
+
+        for (unsigned int i=0; i<sizeof(TestVectors2)/sizeof(TestVectors2[0]); i++) {
             printf("Decrypt Test Vector2 + Stream %d\n", i);
 
             AP4_Result result;

@@ -43,8 +43,8 @@ class AP4_OddaAtom : public AP4_Atom
 {
 public:
     // class methods
-    static AP4_OddaAtom* Create(AP4_UI64         size, 
-                                AP4_ByteStream&  stream);
+    static AP4_OddaAtom* Create(AP4_UI64        size, 
+                                AP4_ByteStream& stream);
 
     // constructor
     AP4_OddaAtom(AP4_ByteStream& encrypted_payload);
@@ -57,7 +57,7 @@ public:
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
     
     // accessors
-    AP4_UI64 GetEncryptedDataLength()   { return m_EncryptedDataLength; }
+    AP4_UI64 GetEncryptedDataLength() { return m_EncryptedDataLength; }
 
     /**
      * Sets the encrypted payload stream (and releases any existing stream references)
@@ -68,7 +68,7 @@ public:
      * Returns a reference to the encrypted payload stream (does not increment the reference counter)
      */
     AP4_ByteStream& GetEncryptedPayload() { return *m_EncryptedPayload; }
-    
+
 private:
     // methods
     AP4_OddaAtom(AP4_UI64         size, 

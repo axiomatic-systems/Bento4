@@ -40,7 +40,7 @@
 +---------------------------------------------------------------------*/
 AP4_SampleEntry::AP4_SampleEntry(AP4_Atom::Type format,
                                  AP4_UI16       data_reference_index) :
-    AP4_ContainerAtom(format, AP4_ATOM_HEADER_SIZE+8),
+    AP4_ContainerAtom(format),
     m_DataReferenceIndex(data_reference_index)
 {
     m_Reserved1[0] = 0;
@@ -49,6 +49,7 @@ AP4_SampleEntry::AP4_SampleEntry(AP4_Atom::Type format,
     m_Reserved1[3] = 0;
     m_Reserved1[4] = 0;
     m_Reserved1[5] = 0;
+    m_Size32 += 8;
 }
 
 /*----------------------------------------------------------------------
@@ -56,7 +57,7 @@ AP4_SampleEntry::AP4_SampleEntry(AP4_Atom::Type format,
 +---------------------------------------------------------------------*/
 AP4_SampleEntry::AP4_SampleEntry(AP4_Atom::Type format,
                                  AP4_Size       size) :
-    AP4_ContainerAtom(format, size)
+    AP4_ContainerAtom(format, size, false)
 {
 }
 
@@ -67,7 +68,7 @@ AP4_SampleEntry::AP4_SampleEntry(AP4_Atom::Type   format,
                                  AP4_Size         size,
                                  AP4_ByteStream&  stream,
                                  AP4_AtomFactory& atom_factory) :
-    AP4_ContainerAtom(format, size)
+    AP4_ContainerAtom(format, size, false)
 {
     // read the fields before the children atoms
     AP4_Size fields_size = GetFieldsSize();
