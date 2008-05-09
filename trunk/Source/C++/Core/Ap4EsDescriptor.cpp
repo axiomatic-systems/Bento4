@@ -202,3 +202,50 @@ AP4_EsDescriptor::GetDecoderConfigDescriptor() const
         return NULL;
     }
 }
+
+/*----------------------------------------------------------------------
+|   AP4_EsIdIncDescriptor::AP4_EsIdIncDescriptor
++---------------------------------------------------------------------*/
+AP4_EsIdIncDescriptor::AP4_EsIdIncDescriptor(AP4_UI32 track_id) :
+    AP4_Descriptor(AP4_DESCRIPTOR_TAG_ES_ID_INC, 2, 4),
+    m_TrackId(track_id)
+{
+}
+
+/*----------------------------------------------------------------------
+|   AP4_EsIdIncDescriptor::AP4_EsIdIncDescriptor
++---------------------------------------------------------------------*/
+AP4_EsIdIncDescriptor::AP4_EsIdIncDescriptor(AP4_ByteStream& stream, 
+                                             AP4_Size        header_size,
+                                             AP4_Size        payload_size) :
+    AP4_Descriptor(AP4_DESCRIPTOR_TAG_ES_ID_INC, header_size, payload_size)
+{
+    // read the track id
+    stream.ReadUI32(m_TrackId);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_EsIdIncescriptor::WriteFields
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_EsIdIncDescriptor::WriteFields(AP4_ByteStream& stream)
+{
+    // track id
+    return stream.WriteUI32(m_TrackId);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_EsIdIncDescriptor::Inspect
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_EsIdIncDescriptor::Inspect(AP4_AtomInspector& inspector)
+{
+    char info[64];
+    AP4_FormatString(info, sizeof(info), "size=%ld+%ld", 
+                     GetHeaderSize(),m_PayloadSize);
+    inspector.StartElement("#[ES_ID_Inc]", info);
+    inspector.AddField("track_id", m_TrackId);
+    inspector.EndElement();
+    
+    return AP4_SUCCESS;
+}

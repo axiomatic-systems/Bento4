@@ -39,7 +39,7 @@
 +---------------------------------------------------------------------*/
 #define BANNER "MP4 File Dumper - Version 1.0\n"\
                "(Bento4 Version " AP4_VERSION_STRING ")\n"\
-               "(c) 2002-2006 Gilles Boccon-Gibod & Julien Boeuf"
+               "(c) 2002-2008 Gilles Boccon-Gibod & Julien Boeuf"
 
 /*----------------------------------------------------------------------
 |   PrintUsageAndExit

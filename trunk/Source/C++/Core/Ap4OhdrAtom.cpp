@@ -57,7 +57,7 @@ AP4_OhdrAtom::AP4_OhdrAtom(AP4_UI08        encryption_method,
                            const char*     rights_issuer_url,
                            const AP4_Byte* textual_headers,
                            AP4_Size        textual_headers_size) :
-    AP4_ContainerAtom(AP4_ATOM_TYPE_OHDR, 0, 0, 0),
+    AP4_ContainerAtom(AP4_ATOM_TYPE_OHDR, (AP4_UI32)0, (AP4_UI32)0),
     m_EncryptionMethod(encryption_method),
     m_PaddingScheme(padding_scheme),
     m_PlaintextLength(plaintext_length),
@@ -65,7 +65,7 @@ AP4_OhdrAtom::AP4_OhdrAtom(AP4_UI08        encryption_method,
     m_RightsIssuerUrl(rights_issuer_url),
     m_TextualHeaders(textual_headers, textual_headers_size)
 {
-    m_Size32 = AP4_FULL_ATOM_HEADER_SIZE+1+1+8+2+2+2+m_ContentId.GetLength()+m_RightsIssuerUrl.GetLength()+textual_headers_size;
+    m_Size32 += 1+1+8+2+2+2+m_ContentId.GetLength()+m_RightsIssuerUrl.GetLength()+textual_headers_size;
 }
 
 /*----------------------------------------------------------------------
@@ -76,7 +76,7 @@ AP4_OhdrAtom::AP4_OhdrAtom(AP4_UI32         size,
                            AP4_UI32         flags,
                            AP4_ByteStream&  stream,
                            AP4_AtomFactory& atom_factory) :
-    AP4_ContainerAtom(AP4_ATOM_TYPE_OHDR, size, version, flags)
+    AP4_ContainerAtom(AP4_ATOM_TYPE_OHDR, size, false, version, flags)
 {
     // encryption method
     stream.ReadUI08(m_EncryptionMethod);

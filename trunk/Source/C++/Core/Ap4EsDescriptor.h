@@ -45,7 +45,8 @@ class AP4_ByteStream;
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-const AP4_Descriptor::Tag AP4_DESCRIPTOR_TAG_ES = 0x03;
+const AP4_Descriptor::Tag AP4_DESCRIPTOR_TAG_ES        = 0x03;
+const AP4_Descriptor::Tag AP4_DESCRIPTOR_TAG_ES_ID_INC = 0x0E;
 
 const int AP4_ES_DESCRIPTOR_FLAG_STREAM_DEPENDENCY = 1;
 const int AP4_ES_DESCRIPTOR_FLAG_URL               = 2;
@@ -77,6 +78,25 @@ class AP4_EsDescriptor : public AP4_Descriptor
     unsigned short                   m_DependsOn;
     AP4_String                       m_Url;
     mutable AP4_List<AP4_Descriptor> m_SubDescriptors;
+};
+
+/*----------------------------------------------------------------------
+|   AP4_EsIdIncDescriptor
++---------------------------------------------------------------------*/
+class AP4_EsIdIncDescriptor : public AP4_Descriptor
+{
+ public:
+    // methods
+    AP4_EsIdIncDescriptor(AP4_UI32 track_id);
+    AP4_EsIdIncDescriptor(AP4_ByteStream& stream, 
+                          AP4_Size        header_size, 
+                          AP4_Size        payload_size);
+    virtual AP4_Result WriteFields(AP4_ByteStream& stream);
+    virtual AP4_Result Inspect(AP4_AtomInspector& inspector);
+
+ private:
+    // members
+    AP4_UI32 m_TrackId;
 };
 
 #endif // _AP4_ES_DESCRIPTOR_H_

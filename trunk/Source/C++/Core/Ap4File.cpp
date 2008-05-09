@@ -70,8 +70,7 @@ AP4_File::AP4_File(AP4_ByteStream&  stream,
            AP4_SUCCEEDED(atom_factory.CreateAtomFromStream(stream, atom))) {
         switch (atom->GetType()) {
             case AP4_ATOM_TYPE_MOOV:
-                m_Movie = new AP4_Movie(dynamic_cast<AP4_MoovAtom*>(atom),
-                                        stream);
+                m_Movie = new AP4_Movie(dynamic_cast<AP4_MoovAtom*>(atom), stream);
                 if (moov_only) keep_parsing = false;
                 break;
 
@@ -85,7 +84,7 @@ AP4_File::AP4_File(AP4_ByteStream&  stream,
                 // FALLTHROUGH
                 
             default:
-                m_OtherAtoms.Add(atom);
+                AddChild(atom);
                 break;
         }
     }
@@ -99,7 +98,6 @@ AP4_File::~AP4_File()
     delete m_Movie;
     delete m_FileType;
     delete m_MetaData;
-    m_OtherAtoms.DeleteReferences();
 }
 
 /*----------------------------------------------------------------------
@@ -112,7 +110,7 @@ AP4_File::Inspect(AP4_AtomInspector& inspector)
     if (m_Movie) m_Movie->Inspect(inspector);
 
     // dump the other atoms
-    m_OtherAtoms.Apply(AP4_AtomListInspector(inspector));
+    m_Children.Apply(AP4_AtomListInspector(inspector));
 
     return AP4_SUCCESS;
 }
@@ -131,6 +129,7 @@ AP4_File::SetFileType(AP4_UI32     major_brand,
                                   minor_version,
                                   compatible_brands,
                                   compatible_brand_count);
+    
     return AP4_SUCCESS;
 }
 

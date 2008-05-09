@@ -66,7 +66,7 @@ AP4_FileWriter::Write(AP4_ByteStream& stream)
     if (file_type) file_type->Write(stream);
 
     // write the top-level atoms
-    AP4_List<AP4_Atom>::Item* atom_item = m_File.GetOtherAtoms().FirstItem();
+    AP4_List<AP4_Atom>::Item* atom_item = m_File.GetChildren().FirstItem();
     while (atom_item) {
         AP4_Atom* atom = atom_item->GetData();
         atom->Write(stream);
@@ -80,7 +80,7 @@ AP4_FileWriter::Write(AP4_ByteStream& stream)
     // compute the final offset of the sample data in mdat
     AP4_UI64 data_offset = 0;
     if (file_type) data_offset += file_type->GetSize();
-    m_File.GetOtherAtoms().Apply(AP4_AtomSizeAdder(data_offset));
+    m_File.GetChildren().Apply(AP4_AtomSizeAdder(data_offset));
     data_offset += movie->GetMoovAtom()->GetSize();
     data_offset += AP4_ATOM_HEADER_SIZE; // mdat header
 

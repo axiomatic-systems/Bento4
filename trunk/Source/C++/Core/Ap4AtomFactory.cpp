@@ -32,6 +32,7 @@
 #include "Ap4Types.h"
 #include "Ap4AtomFactory.h"
 #include "Ap4SampleEntry.h"
+#include "Ap4UuidAtom.h"
 #include "Ap4IsmaCryp.h"
 #include "Ap4UrlAtom.h"
 #include "Ap4MoovAtom.h"
@@ -46,6 +47,7 @@
 #include "Ap4StcoAtom.h"
 #include "Ap4Co64Atom.h"
 #include "Ap4StszAtom.h"
+#include "Ap4IodsAtom.h"
 #include "Ap4EsdsAtom.h"
 #include "Ap4SttsAtom.h"
 #include "Ap4CttsAtom.h"
@@ -157,6 +159,7 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
 
     // handle special size values
     bool atom_is_large = false;
+    bool force_64      = false;
     if (size == 0) {
         // atom extends to end of file
         AP4_LargeSize stream_size = 0;
@@ -172,6 +175,9 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
             return AP4_ERROR_INVALID_FORMAT;
         }
         stream.ReadUI64(size);
+        if (size <= 0xFFFFFFFF) {
+            force_64 = true;
+        }
     }
 
     // check the size
@@ -252,6 +258,11 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
         atom = AP4_StssAtom::Create(size_32, stream);
         break;
 
+      case AP4_ATOM_TYPE_IODS:
+        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+        atom = AP4_IodsAtom::Create(size_32, stream);
+        break;
+
       case AP4_ATOM_TYPE_ESDS:
         if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
         atom = AP4_EsdsAtom::Create(size_32, stream);
@@ -329,6 +340,10 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
         break;
 
 #if !defined(AP4_CONFIG_MINI_BUILD)
+      case AP4_ATOM_TYPE_UUID:
+        atom = new AP4_UuidAtom(size, stream);
+        break;
+        
       case AP4_ATOM_TYPE_DREF:
         if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
         atom = AP4_DrefAtom::Create(size_32, stream, *this);
@@ -413,11 +428,6 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
         atom = AP4_IsltAtom::Create(size_32, stream);
         break;
 
-      case AP4_ATOM_TYPE_HINT:
-        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        atom = AP4_TrefTypeAtom::Create(type, size_32, stream);
-        break;
-
       case AP4_ATOM_TYPE_ODHE:
         if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
         atom = AP4_OdheAtom::Create(size_32, stream, *this);
@@ -442,6 +452,19 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
         atom = AP4_IproAtom::Create(size_32, stream, *this);
         break;
 
+      // track ref types
+      case AP4_ATOM_TYPE_HINT:
+      case AP4_ATOM_TYPE_CDSC:
+      case AP4_ATOM_TYPE_SYNC:
+      case AP4_ATOM_TYPE_MPOD:
+      case AP4_ATOM_TYPE_DPND:
+      case AP4_ATOM_TYPE_IPIR:
+        if (m_Context == AP4_ATOM_TYPE_TREF) {
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_TrefTypeAtom::Create(type, size_32, stream);
+        }
+        break;
+
 #endif // AP4_CONFIG_MINI_BUILD
 
       // container atoms
@@ -459,14 +482,14 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
       case AP4_ATOM_TYPE_MDRI:
       case AP4_ATOM_TYPE_WAVE:
         if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        atom = AP4_ContainerAtom::Create(type, size, false, stream, *this);
+        atom = AP4_ContainerAtom::Create(type, size, false, force_64, stream, *this);
         break;
 
       // full container atoms
       case AP4_ATOM_TYPE_META:
       case AP4_ATOM_TYPE_ODRM:
       case AP4_ATOM_TYPE_ODKM:
-        atom = AP4_ContainerAtom::Create(type, size, true, stream, *this);
+        atom = AP4_ContainerAtom::Create(type, size, true, force_64, stream, *this);
         break;
 
       case AP4_ATOM_TYPE_FREE:
@@ -502,7 +525,7 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
     // special case: if the atom is poorly encoded and has a 64-bit
     // size header but an actual size that fits on 32-bit, adjust the
     // object to reflect that.
-    if (atom_is_large && size <= 0xFFFFFFFF) {
+    if (force_64) {
         atom->SetSize32(1);
         atom->SetSize64(size);
     }

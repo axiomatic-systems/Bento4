@@ -2,7 +2,7 @@
 |
 |    AP4 - MP4 Decrypter
 |
-|    Copyright 2005 Gilles Boccon-Gibod
+|    Copyright 2005-2008 Gilles Boccon-Gibod
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -33,14 +33,13 @@
 #include <stdlib.h>
 
 #include "Ap4.h"
-#include "Ap4IsmaCryp.h"
 
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-#define BANNER "MP4 Decrypter - Version 1.0\n"\
+#define BANNER "MP4 Decrypter - Version 1.1\n"\
                "(Bento4 Version " AP4_VERSION_STRING ")\n"\
-               "(c) 2002-2006 Gilles Boccon-Gibod & Julien Boeuf"
+               "(c) 2002-2008 Gilles Boccon-Gibod & Julien Boeuf"
  
 /*----------------------------------------------------------------------
 |   PrintUsageAndExit

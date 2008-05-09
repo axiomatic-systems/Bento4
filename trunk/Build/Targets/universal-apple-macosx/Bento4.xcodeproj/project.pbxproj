@@ -55,6 +55,12 @@
 /* Begin PBXBuildFile section */
 		CA1221CF0CA7192B000BEEF6 /* Ap4FileCopier.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA1221CD0CA7192B000BEEF6 /* Ap4FileCopier.cpp */; };
 		CA1221D00CA7192B000BEEF6 /* Ap4FileCopier.h in Headers */ = {isa = PBXBuildFile; fileRef = CA1221CE0CA7192B000BEEF6 /* Ap4FileCopier.h */; };
+		CA28981A0D87DA81006A758B /* Ap4UuidAtom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA2898180D87DA81006A758B /* Ap4UuidAtom.cpp */; };
+		CA28981B0D87DA81006A758B /* Ap4UuidAtom.h in Headers */ = {isa = PBXBuildFile; fileRef = CA2898190D87DA81006A758B /* Ap4UuidAtom.h */; };
+		CA2898860D8979B0006A758B /* Ap4ObjectDescriptor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA2898840D8979B0006A758B /* Ap4ObjectDescriptor.cpp */; };
+		CA2898870D8979B0006A758B /* Ap4ObjectDescriptor.h in Headers */ = {isa = PBXBuildFile; fileRef = CA2898850D8979B0006A758B /* Ap4ObjectDescriptor.h */; };
+		CA2898B10D897F20006A758B /* Ap4IodsAtom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA2898AF0D897F20006A758B /* Ap4IodsAtom.cpp */; };
+		CA2898B20D897F20006A758B /* Ap4IodsAtom.h in Headers */ = {isa = PBXBuildFile; fileRef = CA2898B00D897F20006A758B /* Ap4IodsAtom.h */; };
 		CA3EDA850D7E0BA0007AE943 /* AvcInfo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA3EDA790D7E0B6B007AE943 /* AvcInfo.cpp */; };
 		CA3EDA8D0D7E0C92007AE943 /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
 		CA3EDA970D7E14D3007AE943 /* Ap4AvcParser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA3EDA960D7E14D3007AE943 /* Ap4AvcParser.cpp */; };
@@ -424,6 +430,12 @@
 /* Begin PBXFileReference section */
 		CA1221CD0CA7192B000BEEF6 /* Ap4FileCopier.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4FileCopier.cpp; sourceTree = "<group>"; };
 		CA1221CE0CA7192B000BEEF6 /* Ap4FileCopier.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = Ap4FileCopier.h; sourceTree = "<group>"; };
+		CA2898180D87DA81006A758B /* Ap4UuidAtom.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4UuidAtom.cpp; sourceTree = "<group>"; };
+		CA2898190D87DA81006A758B /* Ap4UuidAtom.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4UuidAtom.h; sourceTree = "<group>"; };
+		CA2898840D8979B0006A758B /* Ap4ObjectDescriptor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4ObjectDescriptor.cpp; sourceTree = "<group>"; };
+		CA2898850D8979B0006A758B /* Ap4ObjectDescriptor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4ObjectDescriptor.h; sourceTree = "<group>"; };
+		CA2898AF0D897F20006A758B /* Ap4IodsAtom.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4IodsAtom.cpp; sourceTree = "<group>"; };
+		CA2898B00D897F20006A758B /* Ap4IodsAtom.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4IodsAtom.h; sourceTree = "<group>"; };
 		CA3EDA790D7E0B6B007AE943 /* AvcInfo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AvcInfo.cpp; sourceTree = "<group>"; };
 		CA3EDA7E0D7E0B81007AE943 /* avcinfo */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = avcinfo; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA3EDA950D7E0D18007AE943 /* Ap4AvcParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4AvcParser.h; sourceTree = "<group>"; };
@@ -917,6 +929,12 @@
 		CA93660F0B437D030067D50B /* Core */ = {
 			isa = PBXGroup;
 			children = (
+				CA2898AF0D897F20006A758B /* Ap4IodsAtom.cpp */,
+				CA2898B00D897F20006A758B /* Ap4IodsAtom.h */,
+				CA2898840D8979B0006A758B /* Ap4ObjectDescriptor.cpp */,
+				CA2898850D8979B0006A758B /* Ap4ObjectDescriptor.h */,
+				CA2898180D87DA81006A758B /* Ap4UuidAtom.cpp */,
+				CA2898190D87DA81006A758B /* Ap4UuidAtom.h */,
 				CA1221CD0CA7192B000BEEF6 /* Ap4FileCopier.cpp */,
 				CA1221CE0CA7192B000BEEF6 /* Ap4FileCopier.h */,
 				CA504D5B0C5E8A8A0060E6FE /* Ap4ElstAtom.cpp */,
@@ -1209,6 +1227,9 @@
 				F9B1F4FC0B54AD91003F147E /* Ap4AvccAtom.h in Headers */,
 				CA504D5E0C5E8A8A0060E6FE /* Ap4ElstAtom.h in Headers */,
 				CA1221D00CA7192B000BEEF6 /* Ap4FileCopier.h in Headers */,
+				CA28981B0D87DA81006A758B /* Ap4UuidAtom.h in Headers */,
+				CA2898870D8979B0006A758B /* Ap4ObjectDescriptor.h in Headers */,
+				CA2898B20D897F20006A758B /* Ap4IodsAtom.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1671,6 +1692,9 @@
 				F9B1F4FB0B54AD91003F147E /* Ap4AvccAtom.cpp in Sources */,
 				CA504D5D0C5E8A8A0060E6FE /* Ap4ElstAtom.cpp in Sources */,
 				CA1221CF0CA7192B000BEEF6 /* Ap4FileCopier.cpp in Sources */,
+				CA28981A0D87DA81006A758B /* Ap4UuidAtom.cpp in Sources */,
+				CA2898860D8979B0006A758B /* Ap4ObjectDescriptor.cpp in Sources */,
+				CA2898B10D897F20006A758B /* Ap4IodsAtom.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

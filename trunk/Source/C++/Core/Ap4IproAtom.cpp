@@ -59,7 +59,7 @@ AP4_IproAtom::AP4_IproAtom(AP4_UI32         size,
                            AP4_UI32         flags,
                            AP4_ByteStream&  stream,
                            AP4_AtomFactory& atom_factory) :
-    AP4_ContainerAtom(AP4_ATOM_TYPE_IPRO, size, version, flags)
+    AP4_ContainerAtom(AP4_ATOM_TYPE_IPRO, size, false, version, flags)
 {
     // read the number of entries
     AP4_UI16 entry_count;
