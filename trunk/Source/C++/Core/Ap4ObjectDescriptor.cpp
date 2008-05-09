@@ -107,7 +107,7 @@ AP4_ObjectDescriptor::WriteFields(AP4_ByteStream& stream)
 
     // optional url
     if (m_UrlFlag) {
-        stream.WriteUI08(m_Url.GetLength());
+        stream.WriteUI08((AP4_UI08)m_Url.GetLength());
         stream.Write(m_Url.GetChars(), m_Url.GetLength());
     }
     
@@ -218,7 +218,7 @@ AP4_InitialObjectDescriptor::WriteFields(AP4_ByteStream& stream)
 
     // optional url
     if (m_UrlFlag) {
-        stream.WriteUI08(m_Url.GetLength());
+        stream.WriteUI08((AP4_UI08)m_Url.GetLength());
         stream.Write(m_Url.GetChars(), m_Url.GetLength());
     }
 
