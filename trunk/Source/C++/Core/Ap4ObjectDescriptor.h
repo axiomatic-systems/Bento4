@@ -1,0 +1,116 @@
+/*****************************************************************
+|
+|    AP4 - Object Descriptor 
+|
+|    Copyright 2002-2008 Gilles Boccon-Gibod & Julien Boeuf
+|
+|
+|    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
+|
+|    Unless you have obtained Bento4 under a difference license,
+|    this version of Bento4 is Bento4|GPL.
+|    Bento4|GPL is free software; you can redistribute it and/or modify
+|    it under the terms of the GNU General Public License as published by
+|    the Free Software Foundation; either version 2, or (at your option)
+|    any later version.
+|
+|    Bento4|GPL is distributed in the hope that it will be useful,
+|    but WITHOUT ANY WARRANTY; without even the implied warranty of
+|    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+|    GNU General Public License for more details.
+|
+|    You should have received a copy of the GNU General Public License
+|    along with Bento4|GPL; see the file COPYING.  If not, write to the
+|    Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
+|    02111-1307, USA.
+|
+ ****************************************************************/
+
+#ifndef _AP4_OBJECT_DESCRIPTOR_H_
+#define _AP4_OBJECT_DESCRIPTOR_H_
+
+/*----------------------------------------------------------------------
+|   includes
++---------------------------------------------------------------------*/
+#include "Ap4List.h"
+#include "Ap4String.h"
+#include "Ap4Descriptor.h"
+
+/*----------------------------------------------------------------------
+|   class references
++---------------------------------------------------------------------*/
+class AP4_ByteStream;
+
+/*----------------------------------------------------------------------
+|   constants
++---------------------------------------------------------------------*/
+const AP4_Descriptor::Tag AP4_DESCRIPTOR_TAG_OD      = 0x01;
+const AP4_Descriptor::Tag AP4_DESCRIPTOR_TAG_IOD     = 0x02;
+const AP4_Descriptor::Tag AP4_DESCRIPTOR_TAG_MP4_OD  = 0x11;
+const AP4_Descriptor::Tag AP4_DESCRIPTOR_TAG_MP4_IOD = 0x10;
+
+/*----------------------------------------------------------------------
+|   AP4_ObjectDescriptor
++---------------------------------------------------------------------*/
+class AP4_ObjectDescriptor : public AP4_Descriptor
+{
+ public:
+    // methods
+    AP4_ObjectDescriptor(AP4_ByteStream&     stream, 
+                         AP4_Descriptor::Tag tag,
+                         AP4_Size            header_size, 
+                         AP4_Size            payload_size);
+    virtual ~AP4_ObjectDescriptor();
+    virtual AP4_Result AddSubDescriptor(AP4_Descriptor* descriptor);
+    virtual AP4_Result WriteFields(AP4_ByteStream& stream);
+    virtual AP4_Result Inspect(AP4_AtomInspector& inspector);
+
+    // accessors
+    AP4_UI16 GetObjectDescriptorId() const { return m_ObjectDescriptorId; }
+    bool     GetUrlFlag()            const { return m_UrlFlag; }
+    const AP4_String& GetUrl()       const { return m_Url;}
+
+ protected:
+    // constructor
+    AP4_ObjectDescriptor(AP4_Descriptor::Tag tag, AP4_Size header_size, AP4_Size payload_size);
+    
+    // members
+    AP4_UI16                         m_ObjectDescriptorId;
+    bool                             m_UrlFlag;
+    AP4_String                       m_Url;
+    mutable AP4_List<AP4_Descriptor> m_SubDescriptors;
+};
+
+/*----------------------------------------------------------------------
+|   AP4_InitialObjectDescriptor
++---------------------------------------------------------------------*/
+class AP4_InitialObjectDescriptor : public AP4_ObjectDescriptor
+{
+ public:
+    // methods
+    AP4_InitialObjectDescriptor(AP4_ByteStream&     stream, 
+                                AP4_Descriptor::Tag tag,
+                                AP4_Size            header_size, 
+                                AP4_Size            payload_size);
+    virtual AP4_Result WriteFields(AP4_ByteStream& stream);
+    virtual AP4_Result Inspect(AP4_AtomInspector& inspector);
+    
+    // accessors
+    bool     GetIncludeProfileLevelFlag()        const { return m_IncludeInlineProfileLevelFlag; }
+    AP4_UI08 GetOdProfileLevelIndication()       const { return m_OdProfileLevelIndication; }
+    AP4_UI08 GetSceneProfileLevelIndication()    const { return m_SceneProfileLevelIndication; }
+    AP4_UI08 GetAudioProfileLevelIndication()    const { return m_AudioProfileLevelIndication; }
+    AP4_UI08 GetVisualProfileLevelIndication()   const { return m_VisualProfileLevelIndication; }
+    AP4_UI08 GetGraphicsProfileLevelIndication() const { return m_GraphicsProfileLevelIndication; }
+
+ private:
+    // members
+    bool     m_IncludeInlineProfileLevelFlag;
+    AP4_UI08 m_OdProfileLevelIndication; 
+    AP4_UI08 m_SceneProfileLevelIndication; 
+    AP4_UI08 m_AudioProfileLevelIndication; 
+    AP4_UI08 m_VisualProfileLevelIndication; 
+    AP4_UI08 m_GraphicsProfileLevelIndication; 
+};
+
+#endif // _AP4_OBJECT_DESCRIPTOR_H_
