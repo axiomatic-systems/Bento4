@@ -76,7 +76,7 @@ AP4_ContainerAtom::AP4_ContainerAtom(Type type, AP4_UI32 version, AP4_UI32 flags
 |   AP4_ContainerAtom::AP4_ContainerAtom
 +---------------------------------------------------------------------*/
 AP4_ContainerAtom::AP4_ContainerAtom(Type type, AP4_UI64 size, bool force_64) :
-    AP4_Atom(type, size)
+    AP4_Atom(type, size, force_64)
 {
 }
 
