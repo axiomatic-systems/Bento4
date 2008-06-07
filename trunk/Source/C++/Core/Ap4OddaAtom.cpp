@@ -53,7 +53,7 @@ AP4_OddaAtom::AP4_OddaAtom(AP4_UI64         size,
                            AP4_UI32         version,
                            AP4_UI32         flags,
                            AP4_ByteStream&  stream) :
-    AP4_Atom(AP4_ATOM_TYPE_ODDA, size, version, flags)
+    AP4_Atom(AP4_ATOM_TYPE_ODDA, size, true, version, flags)
 {
     // data length
     stream.ReadUI64(m_EncryptedDataLength);
@@ -70,7 +70,7 @@ AP4_OddaAtom::AP4_OddaAtom(AP4_UI64         size,
 |   AP4_OddaAtom::AP4_OddaAtom
 +---------------------------------------------------------------------*/
 AP4_OddaAtom::AP4_OddaAtom(AP4_ByteStream& encrypted_payload) :
-    AP4_Atom(AP4_ATOM_TYPE_ODDA, (AP4_UI64)0, 0, 0)
+    AP4_Atom(AP4_ATOM_TYPE_ODDA, 0, true, 0, 0)
 {
     // encrypted data length
     encrypted_payload.GetSize(m_EncryptedDataLength);
