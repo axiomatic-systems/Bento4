@@ -119,10 +119,10 @@
 #endif
 
 #if !defined(AP4_fseek)
-#define AP4_fseek fseeko
+#define AP4_fseek fseeko64
 #endif
 #if !defined(AP4_ftell)
-#define AP4_ftell ftello
+#define AP4_ftell ftello64
 #endif
 
 /* some compilers (ex: MSVC 8) deprecate those, so we rename them */

@@ -819,11 +819,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\..\Source\C++\Config\Ap4Version.h"
+				RelativePath="..\..\..\..\Source\C++\Core\Ap4Version.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\..\Source\C++\Core\Ap4Version.h"
+				RelativePath="..\..\..\..\Source\C++\Config\Ap4Version.h"
 				>
 			</File>
 			<File
