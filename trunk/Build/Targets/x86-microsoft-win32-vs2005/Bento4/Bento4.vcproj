@@ -189,6 +189,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\..\Source\C++\Core\Ap4Command.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\Source\C++\Core\Ap4CommandFactory.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\Source\C++\Core\Ap4ContainerAtom.cpp"
 				>
 			</File>
@@ -237,6 +245,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\..\Source\C++\Core\Ap4Expandable.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\Source\C++\Core\Ap4File.cpp"
 				>
 			</File>
@@ -254,6 +266,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\..\Source\C++\Core\Ap4FtypAtom.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\Source\C++\Core\Ap4GrpiAtom.cpp"
 				>
 			</File>
 			<File
@@ -277,6 +293,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\..\Source\C++\Core\Ap4Ipmp.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\Source\C++\Core\Ap4IproAtom.cpp"
 				>
 			</File>
@@ -290,6 +310,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\..\Source\C++\Core\Ap4IsmaCryp.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\Source\C++\Core\Ap4Marlin.cpp"
 				>
 			</File>
 			<File
@@ -449,10 +473,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\..\Source\C++\Core\Ap4UnknownDescriptor.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\..\..\Source\C++\Core\Ap4UrlAtom.cpp"
 				>
 			</File>
@@ -519,6 +539,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\..\Source\C++\Core\Ap4Command.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\Source\C++\Core\Ap4CommandFactory.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\Source\C++\Core\Ap4Config.h"
 				>
 			</File>
@@ -575,6 +603,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\..\Source\C++\Core\Ap4Expandable.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\Source\C++\Core\Ap4File.h"
 				>
 			</File>
@@ -596,6 +628,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\..\Source\C++\Core\Ap4FtypAtom.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\Source\C++\Core\Ap4GrpiAtom.h"
 				>
 			</File>
 			<File
@@ -623,6 +659,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\..\Source\C++\Core\Ap4Ipmp.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\Source\C++\Core\Ap4IproAtom.h"
 				>
 			</File>
@@ -640,6 +680,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\..\Source\C++\Core\Ap4List.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\Source\C++\Core\Ap4Marlin.h"
 				>
 			</File>
 			<File
@@ -803,10 +847,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\..\Source\C++\Core\Ap4UnknownDescriptor.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\..\..\Source\C++\Core\Ap4UrlAtom.h"
 				>
 			</File>
@@ -819,11 +859,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\..\Source\C++\Core\Ap4Version.h"
+				RelativePath="..\..\..\..\Source\C++\Config\Ap4Version.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\..\Source\C++\Config\Ap4Version.h"
+				RelativePath="..\..\..\..\Source\C++\Core\Ap4Version.h"
 				>
 			</File>
 			<File
