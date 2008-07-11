@@ -97,7 +97,7 @@ AP4_GrpiAtom::AP4_GrpiAtom(AP4_UI32        size,
 AP4_Result
 AP4_GrpiAtom::WriteFields(AP4_ByteStream& stream)
 {
-    AP4_CHECK(stream.WriteUI16(m_GroupId.GetLength()));
+    AP4_CHECK(stream.WriteUI16((AP4_UI16)m_GroupId.GetLength()));
     AP4_CHECK(stream.WriteUI08(m_KeyEncryptionMethod));
     AP4_CHECK(stream.WriteUI16((AP4_UI16)m_GroupKey.GetDataSize()));
     AP4_CHECK(stream.Write(m_GroupId.GetChars(), m_GroupId.GetLength()));
