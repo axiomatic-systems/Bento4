@@ -32,7 +32,7 @@
 /*----------------------------------------------------------------------
 |   includes
 +---------------------------------------------------------------------*/
-#include "Ap4Types.h"
+#include "Ap4Expandable.h"
 #include "Ap4List.h"
 
 /*----------------------------------------------------------------------
@@ -44,30 +44,38 @@ class AP4_AtomInspector;
 /*----------------------------------------------------------------------
 |   AP4_Descriptor
 +---------------------------------------------------------------------*/
-class AP4_Descriptor 
+class AP4_Descriptor : public AP4_Expandable
 {
  public:
-    // types
-    typedef unsigned char Tag;
+    // constructor
+    AP4_Descriptor(AP4_UI08 tag, AP4_Size header_size, AP4_Size payload_size) :
+        AP4_Expandable(tag, CLASS_ID_SIZE_08, header_size, payload_size) {}
 
-    // class methods
-    static AP4_Size MinHeaderSize(AP4_Size payload_size);
-
-    // methods
-    AP4_Descriptor(Tag tag, AP4_Size header_size, AP4_Size payload_size);
-    virtual ~AP4_Descriptor() {}
-    Tag                GetTag()  { return m_Tag; }
-    AP4_Size           GetSize() { return m_PayloadSize+m_HeaderSize; }
-    AP4_Size           GetHeaderSize() { return m_HeaderSize; }
-    virtual AP4_Result Write(AP4_ByteStream& stream);
-    virtual AP4_Result WriteFields(AP4_ByteStream& stream) = 0;
+    // AP4_Exandable methods
     virtual AP4_Result Inspect(AP4_AtomInspector& inspector);
 
- protected:
+    // methods
+    AP4_UI08 GetTag() { return (AP4_UI08)m_ClassId; }
+};
+
+/*----------------------------------------------------------------------
+|   AP4_UnknownDescriptor
++---------------------------------------------------------------------*/
+class AP4_UnknownDescriptor : public AP4_Descriptor
+{
+public:
+    // contrusctor
+    AP4_UnknownDescriptor(AP4_ByteStream& stream, 
+                          AP4_UI08        tag,
+                          AP4_Size        header_size,
+                          AP4_Size        payload_size);
+                          
+    // AP4_Expandable methods
+    virtual AP4_Result WriteFields(AP4_ByteStream& stream);
+    
+private:
     // members
-    Tag      m_Tag;
-    AP4_Size m_HeaderSize;
-    AP4_Size m_PayloadSize;
+    AP4_DataBuffer m_Data;
 };
 
 /*----------------------------------------------------------------------
@@ -76,12 +84,12 @@ class AP4_Descriptor
 class AP4_DescriptorFinder : public AP4_List<AP4_Descriptor>::Item::Finder
 {
  public:
-    AP4_DescriptorFinder(AP4_Descriptor::Tag tag) : m_Tag(tag) {}
+    AP4_DescriptorFinder(AP4_UI08 tag) : m_Tag(tag) {}
     AP4_Result Test(AP4_Descriptor* descriptor) const {
         return descriptor->GetTag() == m_Tag ? AP4_SUCCESS : AP4_FAILURE;
     }
  private:
-    AP4_Descriptor::Tag m_Tag;
+    AP4_UI08 m_Tag;
 };
 
 /*----------------------------------------------------------------------

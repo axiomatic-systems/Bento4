@@ -34,6 +34,8 @@
 +---------------------------------------------------------------------*/
 #include "Ap4Types.h"
 #include "Ap4AtomFactory.h"
+#include "Ap4File.h"
+#include "Ap4Track.h"
 
 /*----------------------------------------------------------------------
 |   class references
@@ -114,7 +116,7 @@ public:
 
     /**
      * Process the input stream into an output stream.
-     * @param input Input stream to parse and process.
+     * @param input Reference to the file to process.
      * @param output Output stream to which the processed input
      * will be written.
      * @param listener Pointer to a listener, or NULL. The listener
@@ -125,7 +127,7 @@ public:
                        AP4_ByteStream&   output,
                        ProgressListener* listener = NULL,
                        AP4_AtomFactory&  atom_factory = 
-                       AP4_DefaultAtomFactory::Instance);
+                           AP4_DefaultAtomFactory::Instance);
 
     /**
      * This method can be overridden by concrete subclasses.
@@ -137,6 +139,7 @@ public:
      * purpose of holding together all the input's top-level atoms.
      */
     virtual AP4_Result Initialize(AP4_AtomParent&   top_level,
+                                  AP4_ByteStream&   stream,
                                   ProgressListener* listener = NULL);
 
     /**

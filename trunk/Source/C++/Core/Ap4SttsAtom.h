@@ -67,7 +67,7 @@ public:
     virtual AP4_Result GetDts(AP4_Ordinal sample, AP4_TimeStamp& dts);
     virtual AP4_Result AddEntry(AP4_UI32 sample_count, AP4_UI32 sample_duration);
     virtual AP4_Result GetSampleIndexForTimeStamp(AP4_TimeStamp ts, 
-                                                  AP4_Ordinal& sample);
+                                                  AP4_Ordinal&  sample_index);
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
 
 private:
@@ -80,7 +80,7 @@ private:
     // members
     AP4_Array<AP4_SttsTableEntry> m_Entries;
     struct {
-        AP4_Ordinal  entry_index;
+        AP4_Ordinal   entry_index;
         AP4_Ordinal   sample;
         AP4_TimeStamp dts;
     } m_LookupCache;

@@ -37,7 +37,7 @@
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-#define BANNER "MP4 Decrypter - Version 1.1\n"\
+#define BANNER "MP4 Decrypter - Version 1.2\n"\
                "(Bento4 Version " AP4_VERSION_STRING ")\n"\
                "(c) 2002-2008 Gilles Boccon-Gibod & Julien Boeuf"
  
@@ -84,9 +84,9 @@ main(int argc, char** argv)
         PrintUsageAndExit();
     }
 
-    // create the decrypting processor
-    AP4_StandardDecryptingProcessor* processor = new AP4_StandardDecryptingProcessor();
-
+    // create a key map object to hold keys
+    AP4_ProtectionKeyMap key_map;
+    
     // parse options
     const char* input_filename = NULL;
     const char* output_filename = NULL;
@@ -113,7 +113,7 @@ main(int argc, char** argv)
                 return 1;
             }
             // set the key in the map
-            processor->GetKeyMap().SetKey(track, key);
+            key_map.SetKey(track, key);
         } else if (!strcmp(arg, "--show-progress")) {
             show_progress = true;
         } else if (input_filename == NULL) {
@@ -156,6 +156,26 @@ main(int argc, char** argv)
         return 1;
     }
 
+    // create the decrypting processor
+    AP4_Processor* processor = NULL;
+    AP4_File* input_file = new AP4_File(*input);
+    AP4_FtypAtom* ftyp = input_file->GetFileType();
+    if (ftyp) {
+        if (ftyp->GetMajorBrand() == AP4_OMA_DCF_BRAND_ODCF || ftyp->HasCompatibleBrand(AP4_OMA_DCF_BRAND_ODCF) ||
+            ftyp->GetMajorBrand() == AP4_OMA_DCF_BRAND_OPF2 || ftyp->HasCompatibleBrand(AP4_OMA_DCF_BRAND_OPF2)) {
+            processor = new AP4_OmaDcfDecryptingProcessor(&key_map);
+        } else if (ftyp->GetMajorBrand() == AP4_MARLIN_BRAND_MLN2 || ftyp->HasCompatibleBrand(AP4_MARLIN_BRAND_MLN2)) {
+            processor = new AP4_MarlinDecryptingProcessor(&key_map);
+        }
+    }
+    if (processor == NULL) {
+        // by default, try a standard decrypting processor
+        processor = new AP4_StandardDecryptingProcessor(&key_map);
+    }
+    delete input_file;
+    input_file = NULL;
+    input->Seek(0);
+    
     // process/decrypt the file
     ProgressListener listener;
     AP4_Result result = processor->Process(*input, *output, show_progress?&listener:NULL);

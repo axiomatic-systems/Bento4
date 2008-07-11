@@ -49,10 +49,10 @@ AP4_OddaAtom::Create(AP4_UI64         size,
 /*----------------------------------------------------------------------
 |   AP4_OddaAtom::AP4_OddaAtom
 +---------------------------------------------------------------------*/
-AP4_OddaAtom::AP4_OddaAtom(AP4_UI64         size, 
-                           AP4_UI32         version,
-                           AP4_UI32         flags,
-                           AP4_ByteStream&  stream) :
+AP4_OddaAtom::AP4_OddaAtom(AP4_UI64        size, 
+                           AP4_UI32        version,
+                           AP4_UI32        flags,
+                           AP4_ByteStream& stream) :
     AP4_Atom(AP4_ATOM_TYPE_ODDA, size, true, version, flags)
 {
     // data length
@@ -64,6 +64,9 @@ AP4_OddaAtom::AP4_OddaAtom(AP4_UI64         size,
 
     // create a substream to represent the payload
     m_EncryptedPayload = new AP4_SubStream(stream, position, m_EncryptedDataLength);
+    
+    // seek to the end
+    stream.Seek(position+m_EncryptedDataLength);
 }
 
 /*----------------------------------------------------------------------
@@ -91,17 +94,13 @@ AP4_OddaAtom::~AP4_OddaAtom()
     if (m_EncryptedPayload) m_EncryptedPayload->Release();
 }
 
+
 /*----------------------------------------------------------------------
-|   AP4_OddaAtom::SetEncryptedDataLength
+|   AP4_OddaAtom::SetEncryptedPayload
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_OddaAtom::SetEncryptedPayload(AP4_ByteStream& stream)
+AP4_OddaAtom::SetEncryptedPayload(AP4_ByteStream& stream, AP4_LargeSize length)
 {
-    // the new encrypted data length is the size of the stream
-    AP4_LargeSize new_encrypted_data_length;
-    AP4_Result result = stream.GetSize(new_encrypted_data_length);
-    if (AP4_FAILED(result)) return result;
-     
     // keep a reference to the stream
     if (m_EncryptedPayload) {
         m_EncryptedPayload->Release();
@@ -110,11 +109,25 @@ AP4_OddaAtom::SetEncryptedPayload(AP4_ByteStream& stream)
     m_EncryptedPayload->AddReference();
     
     // update the size
-    m_EncryptedDataLength = new_encrypted_data_length;
-    SetSize(AP4_FULL_ATOM_HEADER_SIZE_64 + 8 + new_encrypted_data_length, true);
+    m_EncryptedDataLength = length;
+    SetSize(AP4_FULL_ATOM_HEADER_SIZE_64 + 8 + length, true);
     if (m_Parent) m_Parent->OnChildChanged(this);
     
     return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_OddaAtom::SetEncryptedPayload
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_OddaAtom::SetEncryptedPayload(AP4_ByteStream& stream)
+{
+    // the new encrypted data length is the size of the stream
+    AP4_LargeSize length;
+    AP4_Result result = stream.GetSize(length);
+    if (AP4_FAILED(result)) return result;
+    
+    return SetEncryptedPayload(stream, length);
 }
 
 /*----------------------------------------------------------------------

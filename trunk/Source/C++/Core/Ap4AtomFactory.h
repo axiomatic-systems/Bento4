@@ -34,6 +34,7 @@
 +---------------------------------------------------------------------*/
 #include "Ap4Types.h"
 #include "Ap4Atom.h"
+#include "Ap4Array.h"
 
 /*----------------------------------------------------------------------
 |   class references
@@ -57,7 +58,7 @@ class AP4_AtomFactory {
     };
 
     // constructor
-    AP4_AtomFactory() : m_Context(0) {}
+    AP4_AtomFactory() {}
 
     // destructor
     ~AP4_AtomFactory();
@@ -70,15 +71,21 @@ class AP4_AtomFactory {
                                     AP4_Atom*&       atom);
     AP4_Result CreateAtomFromStream(AP4_ByteStream&  stream,
                                     AP4_Atom*&       atom);
+    AP4_Result CreateAtomsFromStream(AP4_ByteStream& stream,
+                                     AP4_AtomParent& atoms);
+    AP4_Result CreateAtomsFromStream(AP4_ByteStream& stream,
+                                     AP4_LargeSize   bytes_available,
+                                     AP4_AtomParent& atoms);
 
     // context
-    void SetContext(AP4_Atom::Type context) { m_Context = context; }
-    AP4_Atom::Type GetContext() const { return m_Context; }
+    void PushContext(AP4_Atom::Type context);
+    void PopContext();
+    AP4_Atom::Type GetContext(AP4_Ordinal depth=0);
 
 private:
     // members
-    AP4_Atom::Type        m_Context;
-    AP4_List<TypeHandler> m_TypeHandlers;
+    AP4_Array<AP4_Atom::Type> m_ContextStack;
+    AP4_List<TypeHandler>     m_TypeHandlers;
 };
 
 /*----------------------------------------------------------------------

@@ -89,7 +89,7 @@ AP4_DecoderSpecificInfoDescriptor::Inspect(AP4_AtomInspector& inspector)
 		AP4_FormatString(&info[i*3], 4, "%02x ", m_Info.UseData()[i]);
 	}
     info[m_Info.GetDataSize()*3] = '\0';
-    inspector.AddField("#[DecoderSpecificInfo]", info);
+    inspector.AddField("[DecoderSpecificInfo]", info);
     delete[] info;
 
     return AP4_SUCCESS;

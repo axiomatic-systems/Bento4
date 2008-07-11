@@ -45,6 +45,7 @@
 #include "Ap4IsmaCryp.h"
 #include "Ap4AesBlockCipher.h"
 #include "Ap4OmaDcf.h"
+#include "Ap4Marlin.h"
 
 /*----------------------------------------------------------------------
 |   AP4_EncaSampleEntry::AP4_EncaSampleEntry
@@ -431,28 +432,19 @@ AP4_SampleDecrypter::Create(AP4_ProtectedSampleDescription* sample_description,
 /*----------------------------------------------------------------------
 |   AP4_StandardDecryptingProcessor:AP4_StandardDecryptingProcessor
 +---------------------------------------------------------------------*/
-AP4_StandardDecryptingProcessor::AP4_StandardDecryptingProcessor(AP4_BlockCipherFactory* block_cipher_factory)
+AP4_StandardDecryptingProcessor::AP4_StandardDecryptingProcessor(
+    const AP4_ProtectionKeyMap* key_map              /* = NULL */,
+    AP4_BlockCipherFactory*     block_cipher_factory /* = NULL */)
 {
+    if (key_map) {
+        // copy the keys
+        m_KeyMap.SetKeys(*key_map);
+    }
+    
     if (block_cipher_factory == NULL) {
         m_BlockCipherFactory = &AP4_DefaultBlockCipherFactory::Instance;
     } else {
         m_BlockCipherFactory = block_cipher_factory;
-    }
-}
-
-/*----------------------------------------------------------------------
-|   AP4_StandardDecryptingProcessor:Initialize
-+---------------------------------------------------------------------*/
-AP4_Result 
-AP4_StandardDecryptingProcessor::Initialize(AP4_AtomParent&   top_level, 
-                                            ProgressListener* listener)
-{
-    // see if the DCF decrypter needs to do anything here
-    AP4_FtypAtom* ftyp = dynamic_cast<AP4_FtypAtom*>(top_level.GetChild(AP4_ATOM_TYPE_FTYP));
-    if (ftyp && ftyp->HasCompatibleBrand(AP4_OMA_DCF_BRAND_ODCF)) {
-        return AP4_OmaDcfAtomDecrypter::DecryptAtoms(top_level, listener, m_BlockCipherFactory, m_KeyMap);
-    } else {
-        return AP4_SUCCESS;
     }
 }
 

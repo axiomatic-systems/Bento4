@@ -156,8 +156,7 @@ AP4_ContainerAtom::ReadChildren(AP4_AtomFactory& atom_factory,
     AP4_LargeSize bytes_available = size;
 
     // save and switch the factory's context
-    AP4_Atom::Type saved_context = atom_factory.GetContext();
-    atom_factory.SetContext(m_Type);
+    atom_factory.PushContext(m_Type);
 
     while (AP4_SUCCEEDED(
         atom_factory.CreateAtomFromStream(stream, bytes_available, atom))) {
@@ -166,7 +165,7 @@ AP4_ContainerAtom::ReadChildren(AP4_AtomFactory& atom_factory,
     }
 
     // restore the saved context
-    atom_factory.SetContext(saved_context);
+    atom_factory.PopContext();
 }
 
 /*----------------------------------------------------------------------

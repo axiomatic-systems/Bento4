@@ -320,9 +320,11 @@ const AP4_MpegSampleDescription::StreamType AP4_STREAM_TYPE_MPEG7     = 0x06;
 const AP4_MpegSampleDescription::StreamType AP4_STREAM_TYPE_IPMP      = 0x07;
 const AP4_MpegSampleDescription::StreamType AP4_STREAM_TYPE_OCI       = 0x08;
 const AP4_MpegSampleDescription::StreamType AP4_STREAM_TYPE_MPEGJ     = 0x09;
+const AP4_MpegSampleDescription::StreamType AP4_STREAM_TYPE_TEXT      = 0x0D;
 
 const AP4_MpegSampleDescription::OTI AP4_OTI_MPEG4_SYSTEM         = 0x01;
 const AP4_MpegSampleDescription::OTI AP4_OTI_MPEG4_SYSTEM_COR     = 0x02;
+const AP4_MpegSampleDescription::OTI AP4_OTI_MPEG4_TEXT           = 0x08;
 const AP4_MpegSampleDescription::OTI AP4_OTI_MPEG4_VISUAL         = 0x20;
 const AP4_MpegSampleDescription::OTI AP4_OTI_MPEG4_AUDIO          = 0x40;
 const AP4_MpegSampleDescription::OTI AP4_OTI_MPEG2_VISUAL_SIMPLE  = 0x60;

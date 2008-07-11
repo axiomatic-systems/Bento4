@@ -54,7 +54,9 @@ PrintUsageAndExit()
             "  --track <track_id>[:<key>] writes the track data into a file\n"
             "                             (<mp4filename>.<track_id>) and optionally\n"
             "                             tries to decrypt it with the key (128-bit in hex)\n"
-            "           (several --track options can be used, one for each track)\n");
+            "           (several --track options can be used, one for each track)\n"
+            "           Each sample is written preceded by its size encoded as a 32-bit\n"
+            "           value in big-endian byte order\n");
     exit(1);
 }
 
@@ -99,8 +101,14 @@ DumpSamples(AP4_Track* track, AP4_ByteStream* dump)
     AP4_Ordinal index = 0;
 
     while (AP4_SUCCEEDED(track->ReadSample(index, sample, sample_data))) {
+        // write the sample size
+        dump->WriteUI32(sample_data.GetDataSize());
+        
+        // write the sample
         dump->Write(sample_data.GetData(), sample_data.GetDataSize());
         index++;
+        
+        // print progress info
         if (index%10 == 0) printf(".");
     }
     printf("\n");
@@ -138,6 +146,11 @@ DecryptAndDumpSamples(AP4_Track*             track,
             fprintf(stderr, "ERROR: failed to decrypt sample\n");
             return;
         }
+
+        // write the sample size
+        dump->WriteUI32(decrypted_data.GetDataSize());
+
+        // write the sample
         dump->Write(decrypted_data.GetData(), decrypted_data.GetDataSize());
         index++;
         if (index%10 == 0) printf(".");
@@ -168,8 +181,7 @@ DumpTrackData(const char*                   mp4_filename,
         // get the sample description
         AP4_SampleDescription* sample_description = track->GetSampleDescription(0);
         if (sample_description == NULL) {
-            fprintf(stderr, "ERROR: unable to parse sample description\n");
-            return;
+            fprintf(stderr, "WARNING: unable to parse sample description\n");
         }
 
         // get the dump data byte stream
@@ -177,7 +189,9 @@ DumpTrackData(const char*                   mp4_filename,
         if (dump == NULL) return;
 
         printf("\nDumping data for track %d:\n", track_id);
-        switch(sample_description->GetType()) {
+        switch(sample_description ?
+               sample_description->GetType() :
+               AP4_SampleDescription::TYPE_UNKNOWN) {
             case AP4_SampleDescription::TYPE_PROTECTED:
                 {
                     const AP4_UI08* key = key_map.GetKey(track_id);

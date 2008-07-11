@@ -63,6 +63,7 @@ public:
      * Sets the encrypted payload stream (and releases any existing stream references)
      */
     AP4_Result SetEncryptedPayload(AP4_ByteStream& stream);
+    AP4_Result SetEncryptedPayload(AP4_ByteStream& stream, AP4_LargeSize length);
 
     /**
      * Returns a reference to the encrypted payload stream (does not increment the reference counter)

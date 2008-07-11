@@ -592,7 +592,7 @@ AP4_AtomListWriter::Action(AP4_Atom* atom) const
     AP4_UI64 bytes_written = after-before;
     AP4_ASSERT(bytes_written <= atom->GetSize());
     if (bytes_written < atom->GetSize()) {
-        AP4_Debug("WARNING: atom serialized to fewer bytes that declared size\n");
+        AP4_Debug("WARNING: atom serialized to fewer bytes than declared size\n");
         AP4_UI64 padding = atom->GetSize()-bytes_written;
         if (padding > AP4_ATOM_LIST_WRITER_MAX_PADDING) {
             AP4_Debug("WARNING: padding would be too large\n");

@@ -45,7 +45,7 @@ class AP4_ByteStream;
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-const AP4_Descriptor::Tag AP4_DESCRIPTOR_TAG_DECODER_SPECIFIC_INFO = 0x05;
+const AP4_UI08 AP4_DESCRIPTOR_TAG_DECODER_SPECIFIC_INFO = 0x05;
 
 /*----------------------------------------------------------------------
 |   AP4_DecoderSpecificInfoDescriptor

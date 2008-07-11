@@ -267,26 +267,35 @@ Ap4StikNames[] = {
 const AP4_Size AP4_DATA_ATOM_MAX_SIZE = 0x40000000;
 
 /*----------------------------------------------------------------------
-|   AP4_MetaDataAtomTypeHandler::IsInTypeList
+|   3GPP localized string atoms
 +---------------------------------------------------------------------*/
-const AP4_Atom::Type AP4_MetaDataAtomTypeHandler::_3gppTypes[] = {
+const AP4_Atom::Type AP4_MetaDataAtomTypeHandler::_3gppLocalizedStringTypes[] = {
     AP4_ATOM_TYPE_TITL,
     AP4_ATOM_TYPE_DSCP,
     AP4_ATOM_TYPE_CPRT,
     AP4_ATOM_TYPE_PERF,
     AP4_ATOM_TYPE_AUTH,
-    AP4_ATOM_TYPE_GNRE,
+    AP4_ATOM_TYPE_GNRE
+};
+const AP4_MetaDataAtomTypeHandler::TypeList AP4_MetaDataAtomTypeHandler::_3gppLocalizedStringTypeList = {
+    _3gppLocalizedStringTypes,
+    sizeof(_3gppLocalizedStringTypes)/sizeof(_3gppLocalizedStringTypes[0])
+};
+
+/*----------------------------------------------------------------------
+|   other 3GPP atoms
++---------------------------------------------------------------------*/
+const AP4_Atom::Type AP4_MetaDataAtomTypeHandler::_3gppOtherTypes[] = {
     AP4_ATOM_TYPE_RTNG,
     AP4_ATOM_TYPE_CLSF,
     AP4_ATOM_TYPE_KYWD,
     AP4_ATOM_TYPE_LOCI,
     AP4_ATOM_TYPE_ALBM,
     AP4_ATOM_TYPE_YRRC,
-    AP4_ATOM_TYPE_TSEL
 };
-const AP4_MetaDataAtomTypeHandler::TypeList AP4_MetaDataAtomTypeHandler::_3gppTypeList = {
-    _3gppTypes,
-    sizeof(_3gppTypes)/sizeof(_3gppTypes[0])
+const AP4_MetaDataAtomTypeHandler::TypeList AP4_MetaDataAtomTypeHandler::_3gppOtherTypeList = {
+    _3gppOtherTypes,
+    sizeof(_3gppOtherTypes)/sizeof(_3gppOtherTypes[0])
 };
 
 /*----------------------------------------------------------------------
@@ -360,9 +369,9 @@ AP4_MetaDataAtomTypeHandler::CreateAtom(AP4_Atom::Type  type,
 
     if (context == AP4_ATOM_TYPE_ILST) {
         if (IsTypeInList(type, IlstTypeList)) {
-            m_AtomFactory->SetContext(type);
+            m_AtomFactory->PushContext(type);
             atom = AP4_ContainerAtom::Create(type, size, false, false, stream, *m_AtomFactory);
-            m_AtomFactory->SetContext(context);
+            m_AtomFactory->PopContext();
         }
     } else if (type == AP4_ATOM_TYPE_DATA) {
         if (IsTypeInList(context, IlstTypeList)) {
@@ -370,11 +379,11 @@ AP4_MetaDataAtomTypeHandler::CreateAtom(AP4_Atom::Type  type,
         }
     } else if (context == AP4_ATOM_TYPE_dddd) {
         if (type == AP4_ATOM_TYPE_MEAN || type == AP4_ATOM_TYPE_NAME) {
-            atom = new AP4_StringAtom(type, size, stream);
+            atom = new AP4_MetaDataStringAtom(type, size, stream);
         }
     } else if (context == AP4_ATOM_TYPE_UDTA) {
-        if (IsTypeInList(type, _3gppTypeList)) {
-            atom = AP4_3GppAtom::Create(type, size, stream);
+        if (IsTypeInList(type, _3gppLocalizedStringTypeList)) {
+            atom = AP4_3GppLocalizedStringAtom::Create(type, size, stream);
         }
     }
 
@@ -419,7 +428,7 @@ AP4_MetaData::AP4_MetaData(AP4_File* file)
                 if (udta) {
                     AP4_ContainerAtom* udta_container = dynamic_cast<AP4_ContainerAtom*>(udta);
                     if (udta_container) {
-                        ParseUdta(udta_container);
+                        ParseUdta(udta_container, "dcf");
                     }
                 }
             }
@@ -446,7 +455,7 @@ AP4_MetaData::ParseMoov(AP4_MoovAtom* moov)
     while (ilst_item) {
         AP4_ContainerAtom* entry_atom = dynamic_cast<AP4_ContainerAtom*>(ilst_item->GetData()); 
         if (entry_atom) {
-            AddIlstEntries(entry_atom);
+            AddIlstEntries(entry_atom, "meta");
         }
         ilst_item = ilst_item->GetNext();
     }
@@ -458,7 +467,7 @@ AP4_MetaData::ParseMoov(AP4_MoovAtom* moov)
 |   AP4_MetaData::ParseUdta
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_MetaData::ParseUdta(AP4_ContainerAtom* udta)
+AP4_MetaData::ParseUdta(AP4_ContainerAtom* udta, const char* namespc)
 {
     // check that the atom is indeed a 'udta' atom
     if (udta->GetType() != AP4_ATOM_TYPE_UDTA) {
@@ -467,9 +476,9 @@ AP4_MetaData::ParseUdta(AP4_ContainerAtom* udta)
     
     AP4_List<AP4_Atom>::Item* udta_item = udta->GetChildren().FirstItem();
     while (udta_item) {
-        AP4_3GppAtom* entry_atom = dynamic_cast<AP4_3GppAtom*>(udta_item->GetData()); 
+        AP4_3GppLocalizedStringAtom* entry_atom = dynamic_cast<AP4_3GppLocalizedStringAtom*>(udta_item->GetData()); 
         if (entry_atom) {
-            Add3GppEntry(entry_atom);
+            Add3GppEntry(entry_atom, namespc);
         }
         udta_item = udta_item->GetNext();
     }
@@ -489,17 +498,17 @@ AP4_MetaData::~AP4_MetaData()
 |   AP4_MetaData::AddIlstEntries
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_MetaData::AddIlstEntries(AP4_ContainerAtom* atom)
+AP4_MetaData::AddIlstEntries(AP4_ContainerAtom* atom, const char* namespc)
 {
     AP4_MetaData::Value* value = NULL;
 
     if (atom->GetType() == AP4_ATOM_TYPE_dddd) {
         // look for the namespace
-        AP4_StringAtom* mean = static_cast<AP4_StringAtom*>(atom->GetChild(AP4_ATOM_TYPE_MEAN));
+        AP4_MetaDataStringAtom* mean = static_cast<AP4_MetaDataStringAtom*>(atom->GetChild(AP4_ATOM_TYPE_MEAN));
         if (mean == NULL) return AP4_ERROR_INVALID_FORMAT;
 
         // look for the name
-        AP4_StringAtom* name = static_cast<AP4_StringAtom*>(atom->GetChild(AP4_ATOM_TYPE_NAME));
+        AP4_MetaDataStringAtom* name = static_cast<AP4_MetaDataStringAtom*>(atom->GetChild(AP4_ATOM_TYPE_NAME));
         if (name == NULL) return AP4_ERROR_INVALID_FORMAT;
 
         // get the value
@@ -512,15 +521,11 @@ AP4_MetaData::AddIlstEntries(AP4_ContainerAtom* atom)
                                        value));
     } else {
         const char* key_name = NULL;
-        const char* key_namespace = NULL;
         char        four_cc[5];
 
         // convert the atom type to a name
         AP4_FormatFourChars(four_cc, (AP4_UI32)atom->GetType());
         key_name = four_cc;
-
-        // put this name in the 'meta' namespace
-        key_namespace = "meta";
 
         // add one entry for each data atom
         AP4_List<AP4_Atom>::Item* data_item = atom->GetChildren().FirstItem();
@@ -529,7 +534,7 @@ AP4_MetaData::AddIlstEntries(AP4_ContainerAtom* atom)
             if (item_atom->GetType() == AP4_ATOM_TYPE_DATA) {
                 AP4_DataAtom* data_atom = static_cast<AP4_DataAtom*>(item_atom);
                 value = new AP4_AtomMetaDataValue(data_atom, atom->GetType());
-                m_Entries.Add(new Entry(key_name, key_namespace, value));
+                m_Entries.Add(new Entry(key_name, namespc, value));
             }
             data_item = data_item->GetNext();
         }
@@ -542,44 +547,33 @@ AP4_MetaData::AddIlstEntries(AP4_ContainerAtom* atom)
 |   AP4_MetaData::Add3GppEntry
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_MetaData::Add3GppEntry(AP4_3GppAtom* atom)
+AP4_MetaData::Add3GppEntry(AP4_3GppLocalizedStringAtom* atom, const char* namespc)
 {
     const char* key_name = NULL;
-    const char* key_namespace = NULL;
     char        four_cc[5];
 
-    switch (atom->GetType()) {
-        case AP4_ATOM_TYPE_TITL:
-        case AP4_ATOM_TYPE_DSCP:
-        case AP4_ATOM_TYPE_CPRT:
-        case AP4_ATOM_TYPE_PERF:
-        case AP4_ATOM_TYPE_AUTH:
-        case AP4_ATOM_TYPE_GNRE:
-        case AP4_ATOM_TYPE_RTNG:
-        case AP4_ATOM_TYPE_ALBM: {
-            // look for a match in the key infos
-            for (unsigned int i=0; 
-                 i<sizeof(AP4_MetaData_KeyInfos)/sizeof(AP4_MetaData_KeyInfos[0]); 
-                 i++) {
-                if (AP4_MetaData_KeyInfos[i].four_cc == atom->GetType()) {
-                    key_name = AP4_MetaData_KeyInfos[i].name;
-                    break;
-                }
-            }
-            if (key_name == NULL) {
-                // this key was not found in the key infos, create a name for it
-                AP4_FormatFourChars(four_cc, (AP4_UI32)atom->GetType());
-                key_name = four_cc;
-
-                // put this name in the 'udta' namespace
-                key_namespace = "udta";
-            }
-
-            AP4_MetaData::Value* value = new AP4_StringMetaDataValue((const char*)atom->GetPayload().GetData());
-            m_Entries.Add(new Entry(key_name, key_namespace, value));
+    // look for a match in the key infos
+    for (unsigned int i=0; 
+         i<sizeof(AP4_MetaData_KeyInfos)/sizeof(AP4_MetaData_KeyInfos[0]); 
+         i++) {
+        if (AP4_MetaData_KeyInfos[i].four_cc == atom->GetType()) {
+            key_name = AP4_MetaData_KeyInfos[i].name;
             break;
         }
     }
+    if (key_name == NULL) {
+        // this key was not found in the key infos, create a name for it
+        AP4_FormatFourChars(four_cc, (AP4_UI32)atom->GetType());
+        key_name = four_cc;
+    }
+    
+    const char* language = NULL;
+    if (atom->GetLanguage()[0]) {
+        language = atom->GetLanguage();
+    }
+    AP4_MetaData::Value* value = new AP4_StringMetaDataValue((const char*)atom->GetPayload().GetData(),
+                                                             language);
+    m_Entries.Add(new Entry(key_name, namespc, value));
     
     return AP4_SUCCESS;
 }
@@ -643,10 +637,10 @@ AP4_MetaData::Entry::ToAtom() const
         atom = new AP4_ContainerAtom(AP4_ATOM_TYPE_dddd);
         
         // add a 'mean' string
-        atom->AddChild(new AP4_StringAtom(AP4_ATOM_TYPE_MEAN, m_Key.GetNamespace().GetChars()));
+        atom->AddChild(new AP4_MetaDataStringAtom(AP4_ATOM_TYPE_MEAN, m_Key.GetNamespace().GetChars()));
         
         // add a 'name' string
-        atom->AddChild(new AP4_StringAtom(AP4_ATOM_TYPE_NAME, m_Key.GetName().GetChars()));
+        atom->AddChild(new AP4_MetaDataStringAtom(AP4_ATOM_TYPE_NAME, m_Key.GetName().GetChars()));
     }
         
     // add the data atom
@@ -669,8 +663,8 @@ AP4_MetaData::Entry::FindInIlst(AP4_ContainerAtom* ilst) const
         while (ilst_item) {
             AP4_ContainerAtom* entry_atom = dynamic_cast<AP4_ContainerAtom*>(ilst_item->GetData()); 
             if (entry_atom) {
-                AP4_StringAtom* mean = static_cast<AP4_StringAtom*>(entry_atom->GetChild(AP4_ATOM_TYPE_MEAN));
-                AP4_StringAtom* name = static_cast<AP4_StringAtom*>(entry_atom->GetChild(AP4_ATOM_TYPE_NAME));
+                AP4_MetaDataStringAtom* mean = static_cast<AP4_MetaDataStringAtom*>(entry_atom->GetChild(AP4_ATOM_TYPE_MEAN));
+                AP4_MetaDataStringAtom* name = static_cast<AP4_MetaDataStringAtom*>(entry_atom->GetChild(AP4_ATOM_TYPE_NAME));
                 if (mean && name &&
                     mean->GetValue() == m_Key.GetNamespace() &&
                     name->GetValue() == m_Key.GetName()) {
@@ -1275,9 +1269,9 @@ AP4_DataAtom::LoadInteger(long& value)
 }
 
 /*----------------------------------------------------------------------
-|   AP4_StringAtom::AP4_StringAtom
+|   AP4_MetaDataStringAtom::AP4_MetaDataStringAtom
 +---------------------------------------------------------------------*/
-AP4_StringAtom::AP4_StringAtom(Type type, const char* value) :
+AP4_MetaDataStringAtom::AP4_MetaDataStringAtom(Type type, const char* value) :
     AP4_Atom(type, AP4_ATOM_HEADER_SIZE),
     m_Value(value)
 {
@@ -1285,9 +1279,9 @@ AP4_StringAtom::AP4_StringAtom(Type type, const char* value) :
 }
 
 /*----------------------------------------------------------------------
-|   AP4_StringAtom::AP4_StringAtom
+|   AP4_MetaDataStringAtom::AP4_MetaDataStringAtom
 +---------------------------------------------------------------------*/
-AP4_StringAtom::AP4_StringAtom(Type type, AP4_UI32 size, AP4_ByteStream& stream) :
+AP4_MetaDataStringAtom::AP4_MetaDataStringAtom(Type type, AP4_UI32 size, AP4_ByteStream& stream) :
     AP4_Atom(type, size),
     m_Value((AP4_Size)(size-AP4_ATOM_HEADER_SIZE-4))
 {
@@ -1296,46 +1290,46 @@ AP4_StringAtom::AP4_StringAtom(Type type, AP4_UI32 size, AP4_ByteStream& stream)
 }
 
 /*----------------------------------------------------------------------
-|   AP4_StringAtom::WriteFields
+|   AP4_MetaDataStringAtom::WriteFields
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_StringAtom::WriteFields(AP4_ByteStream& stream)
+AP4_MetaDataStringAtom::WriteFields(AP4_ByteStream& stream)
 {
     stream.WriteUI32(m_Reserved);
     return stream.Write(m_Value.GetChars(), m_Value.GetLength());
 }
 
 /*----------------------------------------------------------------------
-|   AP4_StringAtom::InspectFields
+|   AP4_MetaDataStringAtom::InspectFields
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_StringAtom::InspectFields(AP4_AtomInspector& inspector)
+AP4_MetaDataStringAtom::InspectFields(AP4_AtomInspector& inspector)
 {
     inspector.AddField("value", m_Value.GetChars());
     return AP4_SUCCESS;
 }
 
 /*----------------------------------------------------------------------
-|   AP4_3GppAtom::Create
+|   AP4_3GppLocalizedStringAtom::Create
 +---------------------------------------------------------------------*/
-AP4_3GppAtom*
-AP4_3GppAtom::Create(Type type, AP4_UI32 size, AP4_ByteStream& stream) 
+AP4_3GppLocalizedStringAtom*
+AP4_3GppLocalizedStringAtom::Create(Type type, AP4_UI32 size, AP4_ByteStream& stream) 
 {
     AP4_UI32 version;
     AP4_UI32 flags;
     if (AP4_FAILED(AP4_Atom::ReadFullHeader(stream, version, flags))) return NULL;
     if (version != 0) return NULL;
-    return new AP4_3GppAtom(type, size, version, flags, stream);
+    return new AP4_3GppLocalizedStringAtom(type, size, version, flags, stream);
 }
 
 /*----------------------------------------------------------------------
-|   AP4_3GppAtom::AP4_3GppAtom
+|   AP4_3GppLocalizedStringAtom::AP4_3GppLocalizedStringAtom
 +---------------------------------------------------------------------*/
-AP4_3GppAtom::AP4_3GppAtom(Type            type, 
-                           AP4_UI32        size, 
-                           AP4_UI32        version,
-                           AP4_UI32        flags,
-                           AP4_ByteStream& stream) :
+AP4_3GppLocalizedStringAtom::AP4_3GppLocalizedStringAtom(Type            type, 
+                                                         AP4_UI32        size, 
+                                                         AP4_UI32        version,
+                                                         AP4_UI32        flags,
+                                                         AP4_ByteStream& stream) :
     AP4_Atom(type, size, version, flags)
 {
     // read the language code
@@ -1346,35 +1340,37 @@ AP4_3GppAtom::AP4_3GppAtom(Type            type,
     m_Language[2] = 0x60+((packed_language    )&0x1F);
     m_Language[3] = '\0';
     
-    // read the payload
-    if (size > AP4_FULL_ATOM_HEADER_SIZE+2) {
-        AP4_UI32 payload_size = size-(AP4_FULL_ATOM_HEADER_SIZE+2);
-        m_Payload.SetBufferSize(payload_size);
-        stream.Read(m_Payload.UseData(), payload_size);
+    // read the payload (NULL-terminated string)
+    if (size > AP4_FULL_ATOM_HEADER_SIZE+2+1) {
+        AP4_UI32 payload_size = size-(AP4_FULL_ATOM_HEADER_SIZE+2+1);
         m_Payload.SetDataSize(payload_size);
+        stream.Read(m_Payload.UseData(), payload_size);
+        m_Payload.UseData()[payload_size-1] = '\0'; // force null termination
     }
 }
 
 /*----------------------------------------------------------------------
-|   AP4_3GppAtom::WriteFields
+|   AP4_3GppLocalizedStringAtom::WriteFields
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_3GppAtom::WriteFields(AP4_ByteStream& stream)
+AP4_3GppLocalizedStringAtom::WriteFields(AP4_ByteStream& stream)
 {
     AP4_UI16 packed_language = ((m_Language[0]-0x60)<<10) |
                                ((m_Language[1]-0x60)<< 5) |
                                ((m_Language[2]-0x60));
     stream.WriteUI16(packed_language);
-    return stream.Write(m_Payload.GetData(), m_Payload.GetDataSize());
+    stream.Write(m_Payload.GetData(), m_Payload.GetDataSize());
+    stream.WriteUI08(0);
+    return AP4_SUCCESS;
 }
 
 /*----------------------------------------------------------------------
-|   AP4_3GppAtom::InspectFields
+|   AP4_3GppLocalizedStringAtom::InspectFields
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_3GppAtom::InspectFields(AP4_AtomInspector& inspector)
+AP4_3GppLocalizedStringAtom::InspectFields(AP4_AtomInspector& inspector)
 {
     inspector.AddField("language", GetLanguage());
-    inspector.AddField("payload size", m_Payload.GetDataSize());
+    inspector.AddField("value", (const char*)m_Payload.GetData());
     return AP4_SUCCESS;
 }

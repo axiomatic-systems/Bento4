@@ -36,7 +36,7 @@
 /*----------------------------------------------------------------------
 |   AP4_ObjectDescriptor::AP4_ObjectDescriptor
 +---------------------------------------------------------------------*/
-AP4_ObjectDescriptor::AP4_ObjectDescriptor(Tag      tag,
+AP4_ObjectDescriptor::AP4_ObjectDescriptor(AP4_UI08 tag,
                                            AP4_Size header_size,
                                            AP4_Size payload_size) :
     AP4_Descriptor(tag, header_size, payload_size)
@@ -47,7 +47,7 @@ AP4_ObjectDescriptor::AP4_ObjectDescriptor(Tag      tag,
 |   AP4_ObjectDescriptor::AP4_ObjectDescriptor
 +---------------------------------------------------------------------*/
 AP4_ObjectDescriptor::AP4_ObjectDescriptor(AP4_ByteStream& stream, 
-                                           Tag             tag,
+                                           AP4_UI08        tag,
                                            AP4_Size        header_size,
                                            AP4_Size        payload_size) :
     AP4_Descriptor(tag, header_size, payload_size)
@@ -93,6 +93,19 @@ AP4_ObjectDescriptor::~AP4_ObjectDescriptor()
 }
 
 /*----------------------------------------------------------------------
+|   AP4_ObjectDescriptor::FindSubDescriptor
++---------------------------------------------------------------------*/
+const AP4_Descriptor* 
+AP4_ObjectDescriptor::FindSubDescriptor(AP4_UI08 tag) const
+{
+    AP4_Descriptor* descriptor = NULL;
+    AP4_Result result = m_SubDescriptors.Find(AP4_DescriptorFinder(tag), descriptor);
+    if (AP4_FAILED(result)) return NULL;
+    
+    return descriptor;
+}
+
+/*----------------------------------------------------------------------
 |   AP4_ObjectDescriptor::WriteFields
 +---------------------------------------------------------------------*/
 AP4_Result
@@ -126,7 +139,7 @@ AP4_ObjectDescriptor::Inspect(AP4_AtomInspector& inspector)
     char info[64];
     AP4_FormatString(info, sizeof(info), "size=%ld+%ld", 
                      GetHeaderSize(),m_PayloadSize);
-    inspector.StartElement("#[OD]", info);
+    inspector.StartElement("[ObjectDescriptor]", info);
     inspector.AddField("id", m_ObjectDescriptorId);
     if (m_UrlFlag) {
         inspector.AddField("url", m_Url.GetChars());
@@ -156,7 +169,7 @@ AP4_ObjectDescriptor::AddSubDescriptor(AP4_Descriptor* descriptor)
 |   AP4_InitialObjectDescriptor::AP4_InitialObjectDescriptor
 +---------------------------------------------------------------------*/
 AP4_InitialObjectDescriptor::AP4_InitialObjectDescriptor(AP4_ByteStream& stream, 
-                                                         Tag             tag,
+                                                         AP4_UI08        tag,
                                                          AP4_Size        header_size,
                                                          AP4_Size        payload_size) :
     AP4_ObjectDescriptor(tag, header_size, payload_size)
@@ -243,7 +256,7 @@ AP4_InitialObjectDescriptor::Inspect(AP4_AtomInspector& inspector)
     char info[64];
     AP4_FormatString(info, sizeof(info), "size=%ld+%ld", 
                      GetHeaderSize(),m_PayloadSize);
-    inspector.StartElement("#[IOD]", info);
+    inspector.StartElement("[InitialObjectDescriptor]", info);
     inspector.AddField("id", m_ObjectDescriptorId);
     if (m_UrlFlag) {
         inspector.AddField("url", m_Url.GetChars());
@@ -261,6 +274,91 @@ AP4_InitialObjectDescriptor::Inspect(AP4_AtomInspector& inspector)
     m_SubDescriptors.Apply(AP4_DescriptorListInspector(inspector));
 
     inspector.EndElement();
+
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_DescriptorUpdateCommand::AP4_DescriptorUpdateCommand
++---------------------------------------------------------------------*/
+AP4_DescriptorUpdateCommand::AP4_DescriptorUpdateCommand(
+    AP4_ByteStream& stream, 
+    AP4_UI08        tag,
+    AP4_Size        header_size,
+    AP4_Size        payload_size) :
+    AP4_Command(tag, header_size, payload_size)
+{
+    // read the descriptors
+    AP4_Position offset;
+    stream.Tell(offset);
+    AP4_SubStream* substream = new AP4_SubStream(stream, offset, 
+                                                 payload_size);
+    AP4_Descriptor* descriptor = NULL;
+    while (AP4_DescriptorFactory::CreateDescriptorFromStream(*substream, descriptor) == AP4_SUCCESS) {
+        m_Descriptors.Add(descriptor);
+    }
+    substream->Release();
+}
+
+/*----------------------------------------------------------------------
+|   AP4_DescriptorUpdateCommand::~AP4_DescriptorUpdateCommand
++---------------------------------------------------------------------*/
+AP4_DescriptorUpdateCommand::~AP4_DescriptorUpdateCommand()
+{
+    m_Descriptors.DeleteReferences();
+}
+
+/*----------------------------------------------------------------------
+|   AP4_DescriptorUpdateCommand::WriteFields
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_DescriptorUpdateCommand::WriteFields(AP4_ByteStream& stream)
+{
+    // write the descriptors
+    m_Descriptors.Apply(AP4_DescriptorListWriter(stream));
+
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_DescriptorUpdateCommand::Inspect
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_DescriptorUpdateCommand::Inspect(AP4_AtomInspector& inspector)
+{
+    char info[64];
+    AP4_FormatString(info, sizeof(info), "size=%ld+%ld", 
+                     GetHeaderSize(),m_PayloadSize);
+    switch (GetTag()) {
+        case AP4_COMMAND_TAG_OBJECT_DESCRIPTOR_UPDATE:
+            inspector.StartElement("[ObjectDescriptorUpdate]", info);
+            break;
+
+        case AP4_COMMAND_TAG_IPMP_DESCRIPTOR_UPDATE:
+            inspector.StartElement("[IPMP_DescriptorUpdate]", info);
+            break;
+
+        default:
+            inspector.StartElement("[DescriptorUpdate]", info);
+            break;
+    }
+    
+    // inspect children
+    m_Descriptors.Apply(AP4_DescriptorListInspector(inspector));
+
+    inspector.EndElement();
+
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_DescriptorUpdateCommand::AddDescriptor
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_DescriptorUpdateCommand::AddDescriptor(AP4_Descriptor* descriptor)
+{
+    m_Descriptors.Add(descriptor);
+    m_PayloadSize += descriptor->GetSize();
 
     return AP4_SUCCESS;
 }

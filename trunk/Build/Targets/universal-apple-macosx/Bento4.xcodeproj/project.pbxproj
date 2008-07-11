@@ -13,9 +13,11 @@
 			buildPhases = (
 			);
 			dependencies = (
+				CA0D91AE0E258349005667F1 /* PBXTargetDependency */,
 				CA646AC90CE97C4E009699D7 /* PBXTargetDependency */,
 				CA646B710CE97EE1009699D7 /* PBXTargetDependency */,
 				CA646B730CE97EE1009699D7 /* PBXTargetDependency */,
+				CA0D91A50E25830F005667F1 /* PBXTargetDependency */,
 				CA646B750CE97EE1009699D7 /* PBXTargetDependency */,
 				CA646B770CE97EE1009699D7 /* PBXTargetDependency */,
 				CA646B790CE97EE1009699D7 /* PBXTargetDependency */,
@@ -53,6 +55,8 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
+		CA09F27F0DF62FC600C2B2DA /* Ap4Marlin.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA09F27D0DF62FC600C2B2DA /* Ap4Marlin.cpp */; };
+		CA09F2800DF62FC600C2B2DA /* Ap4Marlin.h in Headers */ = {isa = PBXBuildFile; fileRef = CA09F27E0DF62FC600C2B2DA /* Ap4Marlin.h */; };
 		CA1221CF0CA7192B000BEEF6 /* Ap4FileCopier.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA1221CD0CA7192B000BEEF6 /* Ap4FileCopier.cpp */; };
 		CA1221D00CA7192B000BEEF6 /* Ap4FileCopier.h in Headers */ = {isa = PBXBuildFile; fileRef = CA1221CE0CA7192B000BEEF6 /* Ap4FileCopier.h */; };
 		CA28981A0D87DA81006A758B /* Ap4UuidAtom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA2898180D87DA81006A758B /* Ap4UuidAtom.cpp */; };
@@ -225,8 +229,6 @@
 		CA9367240B437D040067D50B /* Ap4TrefTypeAtom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA9366940B437D040067D50B /* Ap4TrefTypeAtom.cpp */; };
 		CA9367250B437D040067D50B /* Ap4TrefTypeAtom.h in Headers */ = {isa = PBXBuildFile; fileRef = CA9366950B437D040067D50B /* Ap4TrefTypeAtom.h */; };
 		CA9367260B437D040067D50B /* Ap4Types.h in Headers */ = {isa = PBXBuildFile; fileRef = CA9366960B437D040067D50B /* Ap4Types.h */; };
-		CA9367270B437D040067D50B /* Ap4UnknownDescriptor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA9366970B437D040067D50B /* Ap4UnknownDescriptor.cpp */; };
-		CA9367280B437D040067D50B /* Ap4UnknownDescriptor.h in Headers */ = {isa = PBXBuildFile; fileRef = CA9366980B437D040067D50B /* Ap4UnknownDescriptor.h */; };
 		CA9367290B437D040067D50B /* Ap4UrlAtom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA9366990B437D040067D50B /* Ap4UrlAtom.cpp */; };
 		CA93672A0B437D040067D50B /* Ap4UrlAtom.h in Headers */ = {isa = PBXBuildFile; fileRef = CA93669A0B437D040067D50B /* Ap4UrlAtom.h */; };
 		CA93672B0B437D040067D50B /* Ap4Utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA93669B0B437D040067D50B /* Ap4Utils.cpp */; };
@@ -245,11 +247,37 @@
 		CA9367FF0B4383F00067D50B /* Ap4AdtsParser.h in Headers */ = {isa = PBXBuildFile; fileRef = CA9367FB0B4383F00067D50B /* Ap4AdtsParser.h */; };
 		CA9368000B4383F00067D50B /* Ap4BitStream.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA9367FC0B4383F00067D50B /* Ap4BitStream.cpp */; };
 		CA9368010B4383F00067D50B /* Ap4BitStream.h in Headers */ = {isa = PBXBuildFile; fileRef = CA9367FD0B4383F00067D50B /* Ap4BitStream.h */; };
+		CAA0332D0DF7D3390086EC1C /* Ap4CommandFactory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAA0332B0DF7D3390086EC1C /* Ap4CommandFactory.cpp */; };
+		CAA0332E0DF7D3390086EC1C /* Ap4CommandFactory.h in Headers */ = {isa = PBXBuildFile; fileRef = CAA0332C0DF7D3390086EC1C /* Ap4CommandFactory.h */; };
+		CAA033320DF7D4CC0086EC1C /* Ap4Command.h in Headers */ = {isa = PBXBuildFile; fileRef = CAA033310DF7D4CC0086EC1C /* Ap4Command.h */; };
+		CAA033680DF7E2FA0086EC1C /* Ap4Ipmp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAA033660DF7E2FA0086EC1C /* Ap4Ipmp.cpp */; };
+		CAA033690DF7E2FA0086EC1C /* Ap4Ipmp.h in Headers */ = {isa = PBXBuildFile; fileRef = CAA033670DF7E2FA0086EC1C /* Ap4Ipmp.h */; };
+		CAEA9CE70E144676008C396D /* Ap4AtomixAdapters.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAEA9CDE0E14460F008C396D /* Ap4AtomixAdapters.cpp */; };
+		CAEA9CE80E144677008C396D /* Ap4AtomixAdapters.h in Headers */ = {isa = PBXBuildFile; fileRef = CAEA9CDF0E14460F008C396D /* Ap4AtomixAdapters.h */; };
+		CAEA9E990E17006D008C396D /* Ap4GrpiAtom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAEA9E970E17006D008C396D /* Ap4GrpiAtom.cpp */; };
+		CAEA9E9A0E17006D008C396D /* Ap4GrpiAtom.h in Headers */ = {isa = PBXBuildFile; fileRef = CAEA9E980E17006D008C396D /* Ap4GrpiAtom.h */; };
+		CAEDC8E80DFF5B1100F070A8 /* Ap4Expandable.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAEDC8E60DFF5B1100F070A8 /* Ap4Expandable.cpp */; };
+		CAEDC8E90DFF5B1100F070A8 /* Ap4Expandable.h in Headers */ = {isa = PBXBuildFile; fileRef = CAEDC8E70DFF5B1100F070A8 /* Ap4Expandable.h */; };
+		CAEDC8FB0DFF61AE00F070A8 /* Ap4Command.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAEDC8FA0DFF61AE00F070A8 /* Ap4Command.cpp */; };
 		F9B1F4FB0B54AD91003F147E /* Ap4AvccAtom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F9B1F4F90B54AD91003F147E /* Ap4AvccAtom.cpp */; };
 		F9B1F4FC0B54AD91003F147E /* Ap4AvccAtom.h in Headers */ = {isa = PBXBuildFile; fileRef = F9B1F4FA0B54AD91003F147E /* Ap4AvccAtom.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		CA0D91A40E25830F005667F1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CA44C5290D46375F00173F5F /* Mp4DcfPackager */;
+			remoteInfo = Mp4DcfPackager;
+		};
+		CA0D91AD0E258349005667F1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CA3EDA7D0D7E0B81007AE943 /* AvcInfo */;
+			remoteInfo = AvcInfo;
+		};
 		CA44C52E0D46376500173F5F /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
@@ -425,9 +453,18 @@
 			remoteGlobalIDString = CA646AC50CE97C47009699D7;
 			remoteInfo = Apps;
 		};
+		CAEA9CFD0E144993008C396D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D2AAC045055464E500DB518D;
+			remoteInfo = Bento4;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		CA09F27D0DF62FC600C2B2DA /* Ap4Marlin.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4Marlin.cpp; sourceTree = "<group>"; };
+		CA09F27E0DF62FC600C2B2DA /* Ap4Marlin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4Marlin.h; sourceTree = "<group>"; };
 		CA1221CD0CA7192B000BEEF6 /* Ap4FileCopier.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4FileCopier.cpp; sourceTree = "<group>"; };
 		CA1221CE0CA7192B000BEEF6 /* Ap4FileCopier.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = Ap4FileCopier.h; sourceTree = "<group>"; };
 		CA2898180D87DA81006A758B /* Ap4UuidAtom.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4UuidAtom.cpp; sourceTree = "<group>"; };
@@ -601,8 +638,6 @@
 		CA9366940B437D040067D50B /* Ap4TrefTypeAtom.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4TrefTypeAtom.cpp; sourceTree = "<group>"; };
 		CA9366950B437D040067D50B /* Ap4TrefTypeAtom.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = Ap4TrefTypeAtom.h; sourceTree = "<group>"; };
 		CA9366960B437D040067D50B /* Ap4Types.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = Ap4Types.h; sourceTree = "<group>"; };
-		CA9366970B437D040067D50B /* Ap4UnknownDescriptor.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4UnknownDescriptor.cpp; sourceTree = "<group>"; };
-		CA9366980B437D040067D50B /* Ap4UnknownDescriptor.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = Ap4UnknownDescriptor.h; sourceTree = "<group>"; };
 		CA9366990B437D040067D50B /* Ap4UrlAtom.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4UrlAtom.cpp; sourceTree = "<group>"; };
 		CA93669A0B437D040067D50B /* Ap4UrlAtom.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = Ap4UrlAtom.h; sourceTree = "<group>"; };
 		CA93669B0B437D040067D50B /* Ap4Utils.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4Utils.cpp; sourceTree = "<group>"; };
@@ -621,6 +656,19 @@
 		CA9367FB0B4383F00067D50B /* Ap4AdtsParser.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = Ap4AdtsParser.h; sourceTree = "<group>"; };
 		CA9367FC0B4383F00067D50B /* Ap4BitStream.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4BitStream.cpp; sourceTree = "<group>"; };
 		CA9367FD0B4383F00067D50B /* Ap4BitStream.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = Ap4BitStream.h; sourceTree = "<group>"; };
+		CAA0332B0DF7D3390086EC1C /* Ap4CommandFactory.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4CommandFactory.cpp; sourceTree = "<group>"; };
+		CAA0332C0DF7D3390086EC1C /* Ap4CommandFactory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4CommandFactory.h; sourceTree = "<group>"; };
+		CAA033310DF7D4CC0086EC1C /* Ap4Command.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4Command.h; sourceTree = "<group>"; };
+		CAA033660DF7E2FA0086EC1C /* Ap4Ipmp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4Ipmp.cpp; sourceTree = "<group>"; };
+		CAA033670DF7E2FA0086EC1C /* Ap4Ipmp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4Ipmp.h; sourceTree = "<group>"; };
+		CAEA9CDE0E14460F008C396D /* Ap4AtomixAdapters.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4AtomixAdapters.cpp; sourceTree = "<group>"; };
+		CAEA9CDF0E14460F008C396D /* Ap4AtomixAdapters.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4AtomixAdapters.h; sourceTree = "<group>"; };
+		CAEA9CE40E144664008C396D /* libBento4Atomix.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libBento4Atomix.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		CAEA9E970E17006D008C396D /* Ap4GrpiAtom.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4GrpiAtom.cpp; sourceTree = "<group>"; };
+		CAEA9E980E17006D008C396D /* Ap4GrpiAtom.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4GrpiAtom.h; sourceTree = "<group>"; };
+		CAEDC8E60DFF5B1100F070A8 /* Ap4Expandable.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4Expandable.cpp; sourceTree = "<group>"; };
+		CAEDC8E70DFF5B1100F070A8 /* Ap4Expandable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4Expandable.h; sourceTree = "<group>"; };
+		CAEDC8FA0DFF61AE00F070A8 /* Ap4Command.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4Command.cpp; sourceTree = "<group>"; };
 		D2AAC046055464E500DB518D /* libBento4.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libBento4.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		F9B1F4F90B54AD91003F147E /* Ap4AvccAtom.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4AvccAtom.cpp; sourceTree = "<group>"; };
 		F9B1F4FA0B54AD91003F147E /* Ap4AvccAtom.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = Ap4AvccAtom.h; sourceTree = "<group>"; };
@@ -731,6 +779,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		CAEA9CE20E144664008C396D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		D289987405E68DCB004EDB86 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -756,11 +811,12 @@
 		08FB7795FE84155DC02AAC07 /* Runtime */ = {
 			isa = PBXGroup;
 			children = (
-				CA9367F90B4383F00067D50B /* Codecs */,
-				CA93673E0B437D4D0067D50B /* StdC */,
-				CA9367390B437D390067D50B /* MetaData */,
-				CA9367300B437D1D0067D50B /* Crypto */,
 				CA93660F0B437D030067D50B /* Core */,
+				CA9367300B437D1D0067D50B /* Crypto */,
+				CA9367F90B4383F00067D50B /* Codecs */,
+				CA9367390B437D390067D50B /* MetaData */,
+				CA93673E0B437D4D0067D50B /* StdC */,
+				CAEA9CDD0E14460F008C396D /* Adapters */,
 			);
 			name = Runtime;
 			sourceTree = "<group>";
@@ -782,6 +838,7 @@
 				CA646B5A0CE97E52009699D7 /* mp4rtphintinfo */,
 				CA646B6A0CE97E82009699D7 /* cryptotest */,
 				CA3EDA7E0D7E0B81007AE943 /* avcinfo */,
+				CAEA9CE40E144664008C396D /* libBento4Atomix.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -929,6 +986,18 @@
 		CA93660F0B437D030067D50B /* Core */ = {
 			isa = PBXGroup;
 			children = (
+				CAEA9E970E17006D008C396D /* Ap4GrpiAtom.cpp */,
+				CAEA9E980E17006D008C396D /* Ap4GrpiAtom.h */,
+				CAEDC8FA0DFF61AE00F070A8 /* Ap4Command.cpp */,
+				CAEDC8E60DFF5B1100F070A8 /* Ap4Expandable.cpp */,
+				CAEDC8E70DFF5B1100F070A8 /* Ap4Expandable.h */,
+				CAA033660DF7E2FA0086EC1C /* Ap4Ipmp.cpp */,
+				CAA033670DF7E2FA0086EC1C /* Ap4Ipmp.h */,
+				CAA033310DF7D4CC0086EC1C /* Ap4Command.h */,
+				CAA0332B0DF7D3390086EC1C /* Ap4CommandFactory.cpp */,
+				CAA0332C0DF7D3390086EC1C /* Ap4CommandFactory.h */,
+				CA09F27D0DF62FC600C2B2DA /* Ap4Marlin.cpp */,
+				CA09F27E0DF62FC600C2B2DA /* Ap4Marlin.h */,
 				CA2898AF0D897F20006A758B /* Ap4IodsAtom.cpp */,
 				CA2898B00D897F20006A758B /* Ap4IodsAtom.h */,
 				CA2898840D8979B0006A758B /* Ap4ObjectDescriptor.cpp */,
@@ -1076,8 +1145,6 @@
 				CA9366940B437D040067D50B /* Ap4TrefTypeAtom.cpp */,
 				CA9366950B437D040067D50B /* Ap4TrefTypeAtom.h */,
 				CA9366960B437D040067D50B /* Ap4Types.h */,
-				CA9366970B437D040067D50B /* Ap4UnknownDescriptor.cpp */,
-				CA9366980B437D040067D50B /* Ap4UnknownDescriptor.h */,
 				CA9366990B437D040067D50B /* Ap4UrlAtom.cpp */,
 				CA93669A0B437D040067D50B /* Ap4UrlAtom.h */,
 				CA93669B0B437D040067D50B /* Ap4Utils.cpp */,
@@ -1135,9 +1202,27 @@
 			path = "../../../Source/C++/Codecs";
 			sourceTree = SOURCE_ROOT;
 		};
+		CAEA9CDD0E14460F008C396D /* Adapters */ = {
+			isa = PBXGroup;
+			children = (
+				CAEA9CDE0E14460F008C396D /* Ap4AtomixAdapters.cpp */,
+				CAEA9CDF0E14460F008C396D /* Ap4AtomixAdapters.h */,
+			);
+			name = Adapters;
+			path = "../../../Source/C++/Adapters";
+			sourceTree = SOURCE_ROOT;
+		};
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
+		CAEA9CE00E144664008C396D /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CAEA9CE80E144677008C396D /* Ap4AtomixAdapters.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		D2AAC043055464E500DB518D /* Headers */ = {
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
@@ -1214,7 +1299,6 @@
 				CA9367230B437D040067D50B /* Ap4TrakAtom.h in Headers */,
 				CA9367250B437D040067D50B /* Ap4TrefTypeAtom.h in Headers */,
 				CA9367260B437D040067D50B /* Ap4Types.h in Headers */,
-				CA9367280B437D040067D50B /* Ap4UnknownDescriptor.h in Headers */,
 				CA93672A0B437D040067D50B /* Ap4UrlAtom.h in Headers */,
 				CA93672C0B437D040067D50B /* Ap4Utils.h in Headers */,
 				CA93672D0B437D040067D50B /* Ap4Version.h in Headers */,
@@ -1230,6 +1314,12 @@
 				CA28981B0D87DA81006A758B /* Ap4UuidAtom.h in Headers */,
 				CA2898870D8979B0006A758B /* Ap4ObjectDescriptor.h in Headers */,
 				CA2898B20D897F20006A758B /* Ap4IodsAtom.h in Headers */,
+				CA09F2800DF62FC600C2B2DA /* Ap4Marlin.h in Headers */,
+				CAA0332E0DF7D3390086EC1C /* Ap4CommandFactory.h in Headers */,
+				CAA033320DF7D4CC0086EC1C /* Ap4Command.h in Headers */,
+				CAA033690DF7E2FA0086EC1C /* Ap4Ipmp.h in Headers */,
+				CAEDC8E90DFF5B1100F070A8 /* Ap4Expandable.h in Headers */,
+				CAEA9E9A0E17006D008C396D /* Ap4GrpiAtom.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1456,6 +1546,24 @@
 			productReference = CA646B6A0CE97E82009699D7 /* cryptotest */;
 			productType = "com.apple.product-type.tool";
 		};
+		CAEA9CE30E144664008C396D /* Bento4Atomix */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CAEA9CF10E144695008C396D /* Build configuration list for PBXNativeTarget "Bento4Atomix" */;
+			buildPhases = (
+				CAEA9CE00E144664008C396D /* Headers */,
+				CAEA9CE10E144664008C396D /* Sources */,
+				CAEA9CE20E144664008C396D /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CAEA9CFE0E144993008C396D /* PBXTargetDependency */,
+			);
+			name = Bento4Atomix;
+			productName = Bento4Atomix;
+			productReference = CAEA9CE40E144664008C396D /* libBento4Atomix.a */;
+			productType = "com.apple.product-type.library.static";
+		};
 		D2AAC045055464E500DB518D /* Bento4 */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 1DEB91EB08733DB70010E9CD /* Build configuration list for PBXNativeTarget "Bento4" */;
@@ -1489,6 +1597,7 @@
 				CA646AC50CE97C47009699D7 /* Apps */,
 				CA646B820CE97EF7009699D7 /* Tests */,
 				D2AAC045055464E500DB518D /* Bento4 */,
+				CAEA9CE30E144664008C396D /* Bento4Atomix */,
 				CA646ABA0CE97BFD009699D7 /* Mp4Dump */,
 				CA646ACD0CE97C80009699D7 /* Mp4Info */,
 				CA646AE00CE97CD2009699D7 /* Mp4Encrypt */,
@@ -1612,6 +1721,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		CAEA9CE10E144664008C396D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CAEA9CE70E144676008C396D /* Ap4AtomixAdapters.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		D2AAC044055464E500DB518D /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1679,7 +1796,6 @@
 				CA9367200B437D040067D50B /* Ap4Track.cpp in Sources */,
 				CA9367220B437D040067D50B /* Ap4TrakAtom.cpp in Sources */,
 				CA9367240B437D040067D50B /* Ap4TrefTypeAtom.cpp in Sources */,
-				CA9367270B437D040067D50B /* Ap4UnknownDescriptor.cpp in Sources */,
 				CA9367290B437D040067D50B /* Ap4UrlAtom.cpp in Sources */,
 				CA93672B0B437D040067D50B /* Ap4Utils.cpp in Sources */,
 				CA93672E0B437D040067D50B /* Ap4VmhdAtom.cpp in Sources */,
@@ -1695,12 +1811,28 @@
 				CA28981A0D87DA81006A758B /* Ap4UuidAtom.cpp in Sources */,
 				CA2898860D8979B0006A758B /* Ap4ObjectDescriptor.cpp in Sources */,
 				CA2898B10D897F20006A758B /* Ap4IodsAtom.cpp in Sources */,
+				CA09F27F0DF62FC600C2B2DA /* Ap4Marlin.cpp in Sources */,
+				CAA0332D0DF7D3390086EC1C /* Ap4CommandFactory.cpp in Sources */,
+				CAA033680DF7E2FA0086EC1C /* Ap4Ipmp.cpp in Sources */,
+				CAEDC8E80DFF5B1100F070A8 /* Ap4Expandable.cpp in Sources */,
+				CAEDC8FB0DFF61AE00F070A8 /* Ap4Command.cpp in Sources */,
+				CAEA9E990E17006D008C396D /* Ap4GrpiAtom.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		CA0D91A50E25830F005667F1 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CA44C5290D46375F00173F5F /* Mp4DcfPackager */;
+			targetProxy = CA0D91A40E25830F005667F1 /* PBXContainerItemProxy */;
+		};
+		CA0D91AE0E258349005667F1 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CA3EDA7D0D7E0B81007AE943 /* AvcInfo */;
+			targetProxy = CA0D91AD0E258349005667F1 /* PBXContainerItemProxy */;
+		};
 		CA44C52F0D46376500173F5F /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = D2AAC045055464E500DB518D /* Bento4 */;
@@ -1826,6 +1958,11 @@
 			target = CA646AC50CE97C47009699D7 /* Apps */;
 			targetProxy = CAA97B3D0CF4D55500C01909 /* PBXContainerItemProxy */;
 		};
+		CAEA9CFE0E144993008C396D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D2AAC045055464E500DB518D /* Bento4 */;
+			targetProxy = CAEA9CFD0E144993008C396D /* PBXContainerItemProxy */;
+		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
@@ -1871,6 +2008,7 @@
 				GCC_PREPROCESSOR_DEFINITIONS = AP4_DEBUG;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				ONLY_ACTIVE_ARCH = YES;
 				PREBINDING = NO;
 				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
 			};
@@ -2332,6 +2470,40 @@
 			};
 			name = Release;
 		};
+		CAEA9CE50E144665008C396D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ATOMIX_HOME = "$(SRCROOT)/../../../../Atomix";
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				INSTALL_PATH = /usr/local/lib;
+				PREBINDING = NO;
+				PRODUCT_NAME = Bento4Atomix;
+				USER_HEADER_SEARCH_PATHS = "$(ATOMIX_HOME)/**";
+			};
+			name = Debug;
+		};
+		CAEA9CE60E144665008C396D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ATOMIX_HOME = "$(SRCROOT)/../../../../Atomix";
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_MODEL_TUNING = G5;
+				INSTALL_PATH = /usr/local/lib;
+				PREBINDING = NO;
+				PRODUCT_NAME = Bento4Atomix;
+				USER_HEADER_SEARCH_PATHS = "$(ATOMIX_HOME)/**";
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -2493,6 +2665,15 @@
 			buildConfigurations = (
 				CAA97B390CF4D54E00C01909 /* Debug */,
 				CAA97B3A0CF4D54E00C01909 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CAEA9CF10E144695008C396D /* Build configuration list for PBXNativeTarget "Bento4Atomix" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CAEA9CE50E144665008C396D /* Debug */,
+				CAEA9CE60E144665008C396D /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

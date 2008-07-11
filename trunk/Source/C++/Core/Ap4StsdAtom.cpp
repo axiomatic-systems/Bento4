@@ -89,8 +89,7 @@ AP4_StsdAtom::AP4_StsdAtom(AP4_UI32         size,
     stream.ReadUI32(entry_count);
 
     // save and switch the factory's context
-    AP4_Atom::Type saved_context = atom_factory.GetContext();
-    atom_factory.SetContext(m_Type);
+    atom_factory.PushContext(m_Type);
 
     // read all entries
     AP4_LargeSize bytes_available = size-AP4_FULL_ATOM_HEADER_SIZE-4;
@@ -105,7 +104,7 @@ AP4_StsdAtom::AP4_StsdAtom(AP4_UI32         size,
     }
 
     // restore the saved context
-    atom_factory.SetContext(saved_context);
+    atom_factory.PopContext();
 
     // initialize the sample description cache
     m_SampleDescriptions.EnsureCapacity(m_Children.ItemCount());

@@ -35,7 +35,7 @@
 #include "Ap4DecoderConfigDescriptor.h"
 #include "Ap4DecoderSpecificInfoDescriptor.h"
 #include "Ap4SLConfigDescriptor.h"
-#include "Ap4UnknownDescriptor.h"
+#include "Ap4Ipmp.h"
 #include "Ap4ByteStream.h"
 
 /*----------------------------------------------------------------------
@@ -92,6 +92,10 @@ AP4_DescriptorFactory::CreateDescriptorFromStream(AP4_ByteStream&  stream,
       case AP4_DESCRIPTOR_TAG_ES_ID_INC:
         descriptor = new AP4_EsIdIncDescriptor(stream, header_size, payload_size);
         break;
+
+      case AP4_DESCRIPTOR_TAG_ES_ID_REF:
+        descriptor = new AP4_EsIdRefDescriptor(stream, header_size, payload_size);
+        break;
         
       case AP4_DESCRIPTOR_TAG_ES:
         descriptor = new AP4_EsDescriptor(stream, header_size, payload_size);
@@ -108,6 +112,14 @@ AP4_DescriptorFactory::CreateDescriptorFromStream(AP4_ByteStream&  stream,
       case AP4_DESCRIPTOR_TAG_SL_CONFIG:
         if (payload_size != 1) return AP4_ERROR_INVALID_FORMAT;
         descriptor = new AP4_SLConfigDescriptor(header_size);
+        break;
+
+      case AP4_DESCRIPTOR_TAG_IPMP_DESCRIPTOR_POINTER:
+        descriptor = new AP4_IpmpDescriptorPointer(stream, header_size, payload_size);
+        break;
+        
+      case AP4_DESCRIPTOR_TAG_IPMP_DESCRIPTOR:
+        descriptor = new AP4_IpmpDescriptor(stream, header_size, payload_size);
         break;
 
       default:

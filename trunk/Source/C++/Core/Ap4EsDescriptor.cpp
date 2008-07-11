@@ -159,7 +159,7 @@ AP4_EsDescriptor::Inspect(AP4_AtomInspector& inspector)
     char info[64];
     AP4_FormatString(info, sizeof(info), "size=%ld+%ld", 
                      GetHeaderSize(),m_PayloadSize);
-    inspector.StartElement("#[ES]", info);
+    inspector.StartElement("[ESDescriptor]", info);
     inspector.AddField("es_id", m_EsId);
     inspector.AddField("stream_priority", m_StreamPriority);
 
@@ -243,8 +243,55 @@ AP4_EsIdIncDescriptor::Inspect(AP4_AtomInspector& inspector)
     char info[64];
     AP4_FormatString(info, sizeof(info), "size=%ld+%ld", 
                      GetHeaderSize(),m_PayloadSize);
-    inspector.StartElement("#[ES_ID_Inc]", info);
+    inspector.StartElement("[ES_ID_Inc]", info);
     inspector.AddField("track_id", m_TrackId);
+    inspector.EndElement();
+    
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_EsIdRefDescriptor::AP4_EsIdRefDescriptor
++---------------------------------------------------------------------*/
+AP4_EsIdRefDescriptor::AP4_EsIdRefDescriptor(AP4_UI16 ref_index) :
+    AP4_Descriptor(AP4_DESCRIPTOR_TAG_ES_ID_REF, 2, 2),
+    m_RefIndex(ref_index)
+{
+}
+
+/*----------------------------------------------------------------------
+|   AP4_EsIdRefDescriptor::AP4_EsIdRefDescriptor
++---------------------------------------------------------------------*/
+AP4_EsIdRefDescriptor::AP4_EsIdRefDescriptor(AP4_ByteStream& stream, 
+                                             AP4_Size        header_size,
+                                             AP4_Size        payload_size) :
+    AP4_Descriptor(AP4_DESCRIPTOR_TAG_ES_ID_REF, header_size, payload_size)
+{
+    // read the ref index
+    stream.ReadUI16(m_RefIndex);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_EsIdRefDescriptor::WriteFields
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_EsIdRefDescriptor::WriteFields(AP4_ByteStream& stream)
+{
+    // ref index
+    return stream.WriteUI16(m_RefIndex);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_EsIdRefDescriptor::Inspect
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_EsIdRefDescriptor::Inspect(AP4_AtomInspector& inspector)
+{
+    char info[64];
+    AP4_FormatString(info, sizeof(info), "size=%ld+%ld", 
+                     GetHeaderSize(),m_PayloadSize);
+    inspector.StartElement("[ES_ID_Ref]", info);
+    inspector.AddField("ref_index", m_RefIndex);
     inspector.EndElement();
     
     return AP4_SUCCESS;

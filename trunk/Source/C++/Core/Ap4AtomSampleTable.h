@@ -61,19 +61,24 @@ class AP4_AtomSampleTable : public AP4_SampleTable
     virtual ~AP4_AtomSampleTable();
 
     // AP4_SampleTable methods
-    virtual AP4_Result GetSample(AP4_Ordinal index, AP4_Sample& sample);
+    virtual AP4_Result   GetSample(AP4_Ordinal sample_index, AP4_Sample& sample);
     virtual AP4_Cardinal GetSampleCount();
-    virtual AP4_SampleDescription* GetSampleDescription(AP4_Ordinal index);
+    virtual AP4_SampleDescription* GetSampleDescription(AP4_Ordinal sd_index);
     virtual AP4_Cardinal GetSampleDescriptionCount();
-    virtual AP4_Result GetChunkForSample(AP4_Ordinal   sample,
-                                         AP4_Ordinal&  chunk,
-                                         AP4_Ordinal&  skip,
-                                         AP4_Ordinal&  sample_description);
-    virtual AP4_Result GetChunkOffset(AP4_Ordinal chunk, AP4_Position& offset);
-    virtual AP4_Result SetChunkOffset(AP4_Ordinal chunk, AP4_Position offset);
-    virtual AP4_Result SetSampleSize(AP4_Ordinal sample, AP4_Size size);
-    virtual AP4_Result GetSampleIndexForTimeStamp(AP4_TimeStamp ts,
-                                                  AP4_Ordinal& index);
+    virtual AP4_Result   GetSampleChunkPosition(AP4_Ordinal  sample_index, 
+                                                AP4_Ordinal& chunk_index,
+                                                AP4_Ordinal& position_in_chunk);
+    virtual AP4_Result   GetSampleIndexForTimeStamp(AP4_TimeStamp ts,
+                                                    AP4_Ordinal&  sample_index);
+
+    // local methods
+    virtual AP4_Result GetChunkForSample(AP4_Ordinal   sample_index,
+                                         AP4_Ordinal&  chunk_index,
+                                         AP4_Ordinal&  position_in_chunk,
+                                         AP4_Ordinal&  sample_description_index);
+    virtual AP4_Result GetChunkOffset(AP4_Ordinal chunk_index, AP4_Position& offset);
+    virtual AP4_Result SetChunkOffset(AP4_Ordinal chunk_index, AP4_Position offset);
+    virtual AP4_Result SetSampleSize(AP4_Ordinal sample_index, AP4_Size size);
 
 private:
     // members

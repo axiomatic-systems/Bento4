@@ -93,8 +93,9 @@ class AP4_Track {
                             AP4_Sample&     sample,
                             AP4_DataBuffer& data);
     AP4_Result   GetSampleIndexForTimeStampMs(AP4_TimeStamp ts, 
-                                              AP4_Ordinal& index);
+                                              AP4_Ordinal&  index);
     AP4_SampleDescription* GetSampleDescription(AP4_Ordinal index);
+    AP4_SampleTable*       GetSampleTable() { return m_SampleTable; }
     AP4_UI32      GetId();
     AP4_Result    SetId(AP4_UI32 track_id);
     AP4_TrakAtom* GetTrakAtom() { return m_TrakAtom; }

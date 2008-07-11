@@ -84,9 +84,10 @@ AP4_HdlrAtom::AP4_HdlrAtom(AP4_UI32        size,
     // string here, but ISO MP4 files have a C string.
     // we try to detect a pascal encoding and correct it.
     if (name[0] == name_size-1) {
-        ++name;
+        m_HandlerName = name+1;
+    } else {
+        m_HandlerName = name;
     }
-    m_HandlerName = name;
     delete[] name;
 }
 

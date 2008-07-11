@@ -153,7 +153,7 @@ AP4_Result
 AP4_StscAtom::GetChunkForSample(AP4_Ordinal  sample,
                                 AP4_Ordinal& chunk,
                                 AP4_Ordinal& skip,
-                                AP4_Ordinal& sample_description)
+                                AP4_Ordinal& sample_description_index)
 {
     // preconditions
     AP4_ASSERT(sample > 0);
@@ -199,10 +199,10 @@ AP4_StscAtom::GetChunkForSample(AP4_Ordinal  sample,
         skip = sample -
             (m_Entries[group].m_FirstSample +
              m_Entries[group].m_SamplesPerChunk*chunk_offset);
-        sample_description = m_Entries[group].m_SampleDescriptionIndex;
+        sample_description_index = m_Entries[group].m_SampleDescriptionIndex;
 
         // cache the result (to accelerate finding the right group
-        // next time around
+        // next time around)
         m_CachedChunkGroup = group;
 
         return AP4_SUCCESS;
@@ -211,7 +211,7 @@ AP4_StscAtom::GetChunkForSample(AP4_Ordinal  sample,
     // chunk not found
     chunk = 0;
     skip = 0;
-    sample_description = 0;
+    sample_description_index = 0;
     return AP4_ERROR_OUT_OF_RANGE;
 }
 

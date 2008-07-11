@@ -44,18 +44,27 @@
 class AP4_ByteStream;
 
 /*----------------------------------------------------------------------
+|   constants
++---------------------------------------------------------------------*/
+const AP4_Cardinal AP4_SYNTHETIC_SAMPLE_TABLE_DEFAULT_CHUNK_SIZE = 10;
+
+/*----------------------------------------------------------------------
 |   AP4_SyntheticSampleTable
 +---------------------------------------------------------------------*/
 class AP4_SyntheticSampleTable : public AP4_SampleTable
 {
  public:
     // methods
-             AP4_SyntheticSampleTable();
+             AP4_SyntheticSampleTable(AP4_Cardinal chunk_size 
+                                      = AP4_SYNTHETIC_SAMPLE_TABLE_DEFAULT_CHUNK_SIZE);
     virtual ~AP4_SyntheticSampleTable();
 
     // AP4_SampleTable methods
     virtual AP4_Result GetSample(AP4_Ordinal index, AP4_Sample& sample);
     virtual AP4_Cardinal GetSampleCount();
+    virtual AP4_Result   GetSampleChunkPosition(AP4_Ordinal  sample_index, 
+                                                AP4_Ordinal& chunk_index,
+                                                AP4_Ordinal& position_in_chunk);
     virtual AP4_Cardinal GetSampleDescriptionCount();
     virtual AP4_SampleDescription* GetSampleDescription(AP4_Ordinal index);
     virtual AP4_Result GetSampleIndexForTimeStamp(AP4_TimeStamp ts,
@@ -75,6 +84,7 @@ private:
     // members
     AP4_Array<AP4_Sample>           m_Samples;
     AP4_List<AP4_SampleDescription> m_SampleDescriptions;
+    AP4_Cardinal                    m_ChunkSize;
 };
 
 #endif // _AP4_SYNTHETIC_SAMPLE_TABLE_H_

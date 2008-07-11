@@ -58,9 +58,11 @@ AP4_SampleTable::GenerateStblAtom(AP4_ContainerAtom*& stbl)
     AP4_StscAtom* stsc = new AP4_StscAtom();
 
     // start chunk table
-    AP4_Cardinal            samples_in_chunk = 0;
-    AP4_Position            current_chunk_offset = 0;
-    AP4_Size                current_chunk_size = 0;
+    AP4_Ordinal             current_chunk_index              = 0;
+    AP4_Size                current_chunk_size               = 0;
+    AP4_Position            current_chunk_offset             = 0;
+    AP4_Cardinal            current_samples_in_chunk         = 0;
+    AP4_Ordinal             current_sample_description_index = 0;
     AP4_Array<AP4_Position> chunk_offsets;
 
     // process all the samples
@@ -69,31 +71,43 @@ AP4_SampleTable::GenerateStblAtom(AP4_ContainerAtom*& stbl)
         AP4_Sample sample;
         GetSample(i, sample);
         
+        // store the sample description index
+        current_sample_description_index = sample.GetDescriptionIndex();
+        
         // add an entry into the stsz atom
         stsz->AddEntry(sample.GetSize());
         
+        // see in which chunk this sample is
+        AP4_Ordinal chunk_index = 0;
+        AP4_Ordinal position_in_chunk = 0;
+        AP4_Result  result = GetSampleChunkPosition(i, chunk_index, position_in_chunk);
+        if (AP4_SUCCEEDED(result)) {
+            if (chunk_index != current_chunk_index) {
+                // new chunk
+                chunk_offsets.Append(current_chunk_offset);
+                current_chunk_offset += current_chunk_size;
+
+                stsc->AddEntry(1, 
+                               current_samples_in_chunk,
+                               current_sample_description_index+1);
+
+                current_samples_in_chunk = 0;
+                current_chunk_size       = 0;
+            }
+        }
+
         // adjust the current chunk info
         current_chunk_size += sample.GetSize();
-
-        // count the sample
-        samples_in_chunk++;
-        if (samples_in_chunk == 10) {
-            // new chunk
-            chunk_offsets.Append(current_chunk_offset);
-            stsc->AddEntry(1, 10, 1);
-            samples_in_chunk = 0;
-
-            // adjust the chunk offset
-            current_chunk_offset += current_chunk_size;
-            current_chunk_size = 0;
-        }
+        ++current_samples_in_chunk;        
     }
 
     // process any unfinished chunk
-    if (samples_in_chunk != 0) {
+    if (current_samples_in_chunk != 0) {
         // new chunk
         chunk_offsets.Append(current_chunk_offset);
-        stsc->AddEntry(1, samples_in_chunk, 1);
+        stsc->AddEntry(1, 
+                       current_samples_in_chunk,
+                       current_sample_description_index+1);
     }
 
     // create the stts atom (for now, we assume sample of equal duration)

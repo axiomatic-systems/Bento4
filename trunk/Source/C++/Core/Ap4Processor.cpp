@@ -32,7 +32,7 @@
 #include "Ap4Processor.h"
 #include "Ap4AtomSampleTable.h"
 #include "Ap4AtomFactory.h"
-#include "Ap4MoovAtom.h"
+#include "Ap4Movie.h"
 #include "Ap4Array.h"
 #include "Ap4Sample.h"
 #include "Ap4TrakAtom.h"
@@ -47,12 +47,12 @@ struct AP4_SampleLocator {
         m_TrakIndex(0), 
         m_SampleTable(NULL), 
         m_SampleIndex(0), 
-        m_Chunk(0) {}
+        m_ChunkIndex(0) {}
     AP4_Ordinal          m_TrakIndex;
     AP4_AtomSampleTable* m_SampleTable;
     AP4_Ordinal          m_SampleIndex;
+    AP4_Ordinal          m_ChunkIndex;
     AP4_Sample           m_Sample;
-    AP4_Ordinal          m_Chunk;
 };
 
 struct AP4_SampleCursor {
@@ -93,7 +93,7 @@ AP4_Processor::Process(AP4_ByteStream&   input,
     }
 
     // initialize the processor
-    AP4_Result result = Initialize(top_level);
+    AP4_Result result = Initialize(top_level, input);
     if (AP4_FAILED(result)) return result;
 
     // process the tracks if we have a moov atom
@@ -115,16 +115,18 @@ AP4_Processor::Process(AP4_ByteStream&   input,
         AP4_List<AP4_TrakAtom>::Item* item = trak_atoms->FirstItem();
         unsigned int index = 0;
         while (item) {
-            // create the track handler    // find the stsd atom
+            // find the stsd atom
             AP4_ContainerAtom* stbl = dynamic_cast<AP4_ContainerAtom*>(
                 item->GetData()->FindChild("mdia/minf/stbl"));
             if (stbl == NULL) continue;
+            
+            // create the track handler    
             handlers[index] = CreateTrackHandler(item->GetData());
-            cursors[index].m_Locator.m_TrakIndex = index;
+            cursors[index].m_Locator.m_TrakIndex   = index;
             cursors[index].m_Locator.m_SampleTable = new AP4_AtomSampleTable(stbl, input);
             cursors[index].m_Locator.m_SampleIndex = 0;
+            cursors[index].m_Locator.m_ChunkIndex  = 0;
             cursors[index].m_Locator.m_SampleTable->GetSample(0, cursors[index].m_Locator.m_Sample);
-            cursors[index].m_Locator.m_Chunk = 1;
             index++;
             item = item->GetNext();
         }
@@ -158,34 +160,33 @@ AP4_Processor::Process(AP4_ByteStream&   input,
                 // get the next sample info
                 locator.m_SampleTable->GetSample(locator.m_SampleIndex, locator.m_Sample);
                 AP4_Ordinal skip, sdesc;
-                locator.m_SampleTable->GetChunkForSample(locator.m_SampleIndex+1, // the internal API is 1-based
-                                                         locator.m_Chunk,
+                locator.m_SampleTable->GetChunkForSample(locator.m_SampleIndex,
+                                                         locator.m_ChunkIndex,
                                                          skip, sdesc);
             }
         }
 
         // update the stbl atoms and compute the mdat size
-        int current_track  = -1;
-        int current_chunk  = -1;
+        int current_track = -1;
+        int current_chunk = -1;
         AP4_Position current_chunk_offset = 0;
         AP4_Size current_chunk_size = 0;
         for (AP4_Ordinal i=0; i<locators.ItemCount(); i++) {
             AP4_SampleLocator& locator = locators[i];
-            if ((int)locator.m_TrakIndex != current_track ||
-                (int)locator.m_Chunk     != current_chunk) {
+            if ((int)locator.m_TrakIndex  != current_track ||
+                (int)locator.m_ChunkIndex != current_chunk) {
                 // start a new chunk for this track
                 current_chunk_offset += current_chunk_size;
                 current_chunk_size = 0;
                 current_track = locator.m_TrakIndex;
-                current_chunk = locator.m_Chunk;
-                locator.m_SampleTable->SetChunkOffset(locator.m_Chunk, 
-                    current_chunk_offset);
+                current_chunk = locator.m_ChunkIndex;
+                locator.m_SampleTable->SetChunkOffset(locator.m_ChunkIndex, current_chunk_offset);
             } 
             AP4_Size sample_size;
             TrackHandler* handler = handlers[locator.m_TrakIndex];
             if (handler) {
                 sample_size = handler->GetProcessedSampleSize(locator.m_Sample);
-                locator.m_SampleTable->SetSampleSize(locator.m_SampleIndex+1, sample_size);
+                locator.m_SampleTable->SetSampleSize(locator.m_SampleIndex, sample_size);
             } else {
                 sample_size = locator.m_Sample.GetSize();
             }
@@ -225,17 +226,19 @@ AP4_Processor::Process(AP4_ByteStream&   input,
     top_level.GetChildren().Apply(AP4_AtomListWriter(output));
 
     // write mdat header
-    if (mdat_header_size == AP4_ATOM_HEADER_SIZE) {
-        // 32-bit size
-        output.WriteUI32((AP4_UI32)(mdat_header_size+mdat_payload_size));
-        output.WriteUI32(AP4_ATOM_TYPE_MDAT);
-    } else {
-        // 64-bit size
-        output.WriteUI32(1);
-        output.WriteUI32(AP4_ATOM_TYPE_MDAT);
-        output.WriteUI64(mdat_header_size+mdat_payload_size);
+    if (mdat_payload_size) {
+        if (mdat_header_size == AP4_ATOM_HEADER_SIZE) {
+            // 32-bit size
+            output.WriteUI32((AP4_UI32)(mdat_header_size+mdat_payload_size));
+            output.WriteUI32(AP4_ATOM_TYPE_MDAT);
+        } else {
+            // 64-bit size
+            output.WriteUI32(1);
+            output.WriteUI32(AP4_ATOM_TYPE_MDAT);
+            output.WriteUI64(mdat_header_size+mdat_payload_size);
+        }
     }
-
+    
 #if defined(AP4_DEBUG)
     AP4_Position before;
     output.Tell(before);
@@ -287,7 +290,8 @@ AP4_Processor::Process(AP4_ByteStream&   input,
 +---------------------------------------------------------------------*/
 AP4_Result 
 AP4_Processor::Initialize(AP4_AtomParent&   /* top_level */,
-                          ProgressListener* /* listener */)
+                          AP4_ByteStream&   /* stream    */,
+                          ProgressListener* /* listener  */)
 {
     // default implementation: do nothing
     return AP4_SUCCESS;
