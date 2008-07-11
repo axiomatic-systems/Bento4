@@ -345,10 +345,18 @@ ShowTag(AP4_MetaData::Entry* entry)
     printf("%s:", key_name);
 
     // print the value type
-    printf("[%s%s] %s", 
+    printf("[%s%s]",
            TypeCode(entry->m_Value->GetType()),
-           MeaningCode(entry->m_Value->GetMeaning()),
-           entry->m_Value->ToString().GetChars());
+           MeaningCode(entry->m_Value->GetMeaning()));
+    
+    // print the language, unless it is not set
+    if (entry->m_Value->GetLanguage().GetLength()) {
+        printf(" (%s)", entry->m_Value->GetLanguage().GetChars());
+    }
+    
+    // print the value 
+    printf(" %s", entry->m_Value->ToString().GetChars());
+
     printf("\n");
 }
 

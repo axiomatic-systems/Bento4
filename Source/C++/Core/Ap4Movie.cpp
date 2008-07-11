@@ -89,7 +89,7 @@ AP4_Movie::AP4_Movie(AP4_UI32 time_scale)
 /*----------------------------------------------------------------------
 |   AP4_Movie::AP4_Moovie
 +---------------------------------------------------------------------*/
-AP4_Movie::AP4_Movie(AP4_MoovAtom* moov, AP4_ByteStream& mdat) :
+AP4_Movie::AP4_Movie(AP4_MoovAtom* moov, AP4_ByteStream& sample_stream) :
     m_MoovAtom(moov)
 {
     // ignore null atoms
@@ -110,7 +110,7 @@ AP4_Movie::AP4_Movie(AP4_MoovAtom* moov, AP4_ByteStream& mdat) :
     AP4_List<AP4_TrakAtom>::Item* item = trak_atoms->FirstItem();
     while (item) {
         AP4_Track* track = new AP4_Track(*item->GetData(), 
-                                         mdat,
+                                         sample_stream,
                                          time_scale);
         m_Tracks.Add(track);
         item = item->GetNext();

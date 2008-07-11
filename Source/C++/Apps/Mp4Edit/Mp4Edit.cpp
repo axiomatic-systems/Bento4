@@ -93,8 +93,9 @@ public:
     virtual ~AP4_EditingProcessor();
 
     // methods
-    virtual AP4_Result Initialize(AP4_AtomParent& top_level,
-                                  ProgressListener*);
+    virtual AP4_Result Initialize(AP4_AtomParent&   top_level,
+                                  AP4_ByteStream&   stream,
+                                  ProgressListener* listener);
     AP4_Result         AddCommand(Command::Type type, 
                                   const char*   atom_path, 
                                   const char*   file_path,
@@ -139,6 +140,7 @@ AP4_EditingProcessor::AddCommand(Command::Type type,
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_EditingProcessor::Initialize(AP4_AtomParent& top_level,
+                                 AP4_ByteStream&,
                                  ProgressListener*)
 {
     AP4_Result result;

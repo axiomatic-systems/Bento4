@@ -61,7 +61,7 @@ class LibraryModule(Module):
                  included_modules = [], 
                  linked_modules = []) :
         Module.__init__(self, name, Split(included_modules)+Split(build_source_dirs), linked_modules)
-        self.env                = env.Copy()
+        self.env                = env.Clone()
         self.name               = name
         self.build_source_dirs  = build_source_dirs
         self.build_include_dirs = build_include_dirs

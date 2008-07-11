@@ -35,6 +35,7 @@
 #include "Ap4Types.h"
 #include "Ap4String.h"
 #include "Ap4Atom.h"
+#include "Ap4Array.h"
 
 /*----------------------------------------------------------------------
 |   class references
@@ -48,12 +49,15 @@ class AP4_SchmAtom : public AP4_Atom
 {
 public:
     // class methods
-    static AP4_SchmAtom* Create(AP4_Size size, AP4_ByteStream& stream);
+    static AP4_SchmAtom* Create(AP4_Size                   size, 
+                                AP4_Array<AP4_Atom::Type>* context,
+                                AP4_ByteStream&            stream);
 
     // constructors
     AP4_SchmAtom(AP4_UI32    scheme_type,
                  AP4_UI32    scheme_version,
-                 const char* scheme_uri = NULL);
+                 const char* scheme_uri = NULL,
+                 bool        short_form = false);
 
     // methods
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
@@ -69,9 +73,12 @@ private:
     AP4_SchmAtom(AP4_UI32        size, 
                  AP4_UI32        version,
                  AP4_UI32        flags,
+                 bool            short_form,
                  AP4_ByteStream& stream);
 
     // members
+    bool       m_AtomHasShortForm; // for versions of this where the version
+                                   // field is only 16 bits
     AP4_UI32   m_SchemeType;
     AP4_UI32   m_SchemeVersion;
     AP4_String m_SchemeUri;

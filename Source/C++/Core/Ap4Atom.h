@@ -207,7 +207,7 @@ class AP4_Atom {
 |   AP4_AtomParent
 +---------------------------------------------------------------------*/
 /**
- * Base class for atoms that can have children atoms.
+ * Base class for containers of atoms.
  * This class also implements the logic for finding descendents by name.
  */
 class AP4_AtomParent {
@@ -330,6 +330,7 @@ const AP4_Atom::Type AP4_ATOM_TYPE_OHDR = AP4_ATOM_TYPE('o','h','d','r');
 const AP4_Atom::Type AP4_ATOM_TYPE_ODDA = AP4_ATOM_TYPE('o','d','d','a');
 const AP4_Atom::Type AP4_ATOM_TYPE_ODHE = AP4_ATOM_TYPE('o','d','h','e');
 const AP4_Atom::Type AP4_ATOM_TYPE_ODAF = AP4_ATOM_TYPE('o','d','a','f');
+const AP4_Atom::Type AP4_ATOM_TYPE_GRPI = AP4_ATOM_TYPE('g','r','p','i');
 const AP4_Atom::Type AP4_ATOM_TYPE_IPRO = AP4_ATOM_TYPE('i','p','r','o');
 const AP4_Atom::Type AP4_ATOM_TYPE_MDRI = AP4_ATOM_TYPE('m','d','r','i');
 const AP4_Atom::Type AP4_ATOM_TYPE_AVCC = AP4_ATOM_TYPE('a','v','c','C');

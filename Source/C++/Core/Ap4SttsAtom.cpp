@@ -175,12 +175,13 @@ AP4_SttsAtom::WriteFields(AP4_ByteStream& stream)
 |   AP4_SttsAtom::GetSampleIndexForTimeStamp
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_SttsAtom::GetSampleIndexForTimeStamp(AP4_TimeStamp ts, AP4_Ordinal& sample)
+AP4_SttsAtom::GetSampleIndexForTimeStamp(AP4_TimeStamp ts, 
+                                         AP4_Ordinal&  sample_index)
 {
     // init
     AP4_Cardinal entry_count = m_Entries.ItemCount();
     AP4_Duration accumulated = 0;
-    sample = 0;
+    sample_index = 0;
     
     for (AP4_Ordinal i=0; i<entry_count; i++) {
         AP4_Duration next_accumulated = accumulated 
@@ -188,13 +189,13 @@ AP4_SttsAtom::GetSampleIndexForTimeStamp(AP4_TimeStamp ts, AP4_Ordinal& sample)
         
         // check if the ts is in the range of this entry
         if (ts < next_accumulated) {
-            sample += (ts - accumulated) / m_Entries[i].m_SampleDuration;
+            sample_index += (ts - accumulated) / m_Entries[i].m_SampleDuration;
             return AP4_SUCCESS;
         }
 
         // update accumulated and sample
         accumulated = next_accumulated;
-        sample += m_Entries[i].m_SampleCount;
+        sample_index += m_Entries[i].m_SampleCount;
     }
 
     // ts not in range of the table

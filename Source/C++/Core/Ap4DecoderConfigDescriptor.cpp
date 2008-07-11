@@ -127,7 +127,7 @@ AP4_DecoderConfigDescriptor::Inspect(AP4_AtomInspector& inspector)
     AP4_FormatString(info, sizeof(info), "size=%ld+%ld", 
         GetHeaderSize(),
         m_PayloadSize);
-    inspector.StartElement("#[DecoderConfig]", info);
+    inspector.StartElement("[DecoderConfig]", info);
     inspector.AddField("stream_type", m_StreamType);
     inspector.AddField("object_type", m_ObjectTypeIndication);
     inspector.AddField("up_stream", m_UpStream);

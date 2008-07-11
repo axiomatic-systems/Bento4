@@ -45,6 +45,8 @@
 #include "Ap4OhdrAtom.h"
 #include "Ap4OddaAtom.h"
 #include "Ap4OdheAtom.h"
+#include "Ap4FtypAtom.h"
+#include "Ap4GrpiAtom.h"
 
 /*----------------------------------------------------------------------
 |   AP4_OmaDcfAtomDecrypter::DecryptAtoms
@@ -55,43 +57,48 @@ AP4_OmaDcfAtomDecrypter::DecryptAtoms(AP4_AtomParent&                  atoms,
                                       AP4_BlockCipherFactory*          block_cipher_factory,
                                       AP4_ProtectionKeyMap&            key_map)
 {
-    AP4_List<AP4_Atom>::Item* item = atoms.GetChildren().FirstItem();
     unsigned int index = 1;
-    while (item) {
+    for (AP4_List<AP4_Atom>::Item* item = atoms.GetChildren().FirstItem();
+         item;
+        item = item->GetNext()) {
         AP4_Atom* atom = item->GetData();
-        if (atom->GetType() == AP4_ATOM_TYPE_ODRM) {
-            // check that we have the key
-            const AP4_UI08* key = key_map.GetKey(index++);
-            if (key == NULL) return AP4_ERROR_INVALID_PARAMETERS;
+        if (atom->GetType() != AP4_ATOM_TYPE_ODRM) continue;
 
-            // check that we have the atoms
-            AP4_ContainerAtom* odrm = dynamic_cast<AP4_ContainerAtom*>(atom);
-            if (odrm) {
-                AP4_OdheAtom* odhe = dynamic_cast<AP4_OdheAtom*>(odrm->FindChild("odhe"));
-                AP4_OddaAtom* odda = dynamic_cast<AP4_OddaAtom*>(odrm->FindChild("odda"));;
-                if (odhe && odda) {
-                    AP4_OhdrAtom* ohdr = dynamic_cast<AP4_OhdrAtom*>(odhe->FindChild("ohdr"));
-                    if (ohdr) {
-                        // create the byte stream
-                        AP4_ByteStream* cipher_stream = NULL;
-                        AP4_Result result = CreateDecryptingStream(*odrm, 
-                                                                   key, 
-                                                                   16, 
-                                                                   block_cipher_factory, 
-                                                                   cipher_stream);
-                        if (AP4_SUCCEEDED(result)) {
-                            odda->SetEncryptedPayload(*cipher_stream);
-                            cipher_stream->Release();
-                        }
+        // check that we have the key
+        const AP4_UI08* key = key_map.GetKey(index++);
+        if (key == NULL) return AP4_ERROR_INVALID_PARAMETERS;
+        
+        // check that we have all the atoms we need
+        AP4_ContainerAtom* odrm = dynamic_cast<AP4_ContainerAtom*>(atom);
+        if (odrm == NULL) continue; // not enough info
+        AP4_OdheAtom* odhe = dynamic_cast<AP4_OdheAtom*>(odrm->FindChild("odhe"));
+        if (odhe == NULL) continue; // not enough info    
+        AP4_OddaAtom* odda = dynamic_cast<AP4_OddaAtom*>(odrm->FindChild("odda"));;
+        if (odda == NULL) continue; // not enough info
+        AP4_OhdrAtom* ohdr = dynamic_cast<AP4_OhdrAtom*>(odhe->FindChild("ohdr"));
+        if (ohdr == NULL) continue; // not enough info
 
-                        // the atom will now be in the clear
-                        ohdr->SetEncryptionMethod(AP4_OMA_DCF_ENCRYPTION_METHOD_NULL);
-                        ohdr->SetPaddingScheme(AP4_OMA_DCF_PADDING_SCHEME_NONE);
-                    }
-                }
-            }
+        // do nothing if the atom is not encrypted
+        if (ohdr->GetEncryptionMethod() == AP4_OMA_DCF_ENCRYPTION_METHOD_NULL) {
+            continue;
         }
-        item = item->GetNext();
+                
+        // create the byte stream
+        AP4_ByteStream* cipher_stream = NULL;
+        AP4_Result result = CreateDecryptingStream(*odrm, 
+                                                   key, 
+                                                   16, 
+                                                   block_cipher_factory, 
+                                                   cipher_stream);
+        if (AP4_SUCCEEDED(result)) {
+            // replace the odda atom's payload with the decrypted stream
+            odda->SetEncryptedPayload(*cipher_stream, ohdr->GetPlaintextLength());
+            cipher_stream->Release();
+
+            // the atom will now be in the clear
+            ohdr->SetEncryptionMethod(AP4_OMA_DCF_ENCRYPTION_METHOD_NULL);
+            ohdr->SetPaddingScheme(AP4_OMA_DCF_PADDING_SCHEME_NONE);
+        }
     }
 
     return AP4_SUCCESS;
@@ -108,14 +115,81 @@ AP4_OmaDcfAtomDecrypter::CreateDecryptingStream(
     AP4_BlockCipherFactory* block_cipher_factory,
     AP4_ByteStream*&        stream)
 {
-    // default return value
+    // default return values
     stream = NULL;
-
+    
     AP4_OdheAtom* odhe = dynamic_cast<AP4_OdheAtom*>(odrm.FindChild("odhe"));
+    if (odhe == NULL) return AP4_ERROR_INVALID_FORMAT;
     AP4_OddaAtom* odda = dynamic_cast<AP4_OddaAtom*>(odrm.FindChild("odda"));;
-    if (odhe == NULL || odda == NULL) return AP4_ERROR_INVALID_FORMAT;
+    if (odda == NULL) return AP4_ERROR_INVALID_FORMAT;
     AP4_OhdrAtom* ohdr = dynamic_cast<AP4_OhdrAtom*>(odhe->FindChild("ohdr"));
     if (ohdr == NULL) return AP4_ERROR_INVALID_FORMAT;
+    
+    // shortcut for non-encrypted files
+    if (ohdr->GetEncryptionMethod() == AP4_OMA_DCF_ENCRYPTION_METHOD_NULL) {
+        stream = &odda->GetEncryptedPayload();
+        stream->AddReference();
+        return AP4_SUCCESS;
+    }
+    
+    // if this is part of a group, use the group key to obtain the content
+    // key (note that the field called GroupKey in the spec is actually not
+    // the group key but the content key encrypted with the group key...
+    AP4_GrpiAtom* grpi = dynamic_cast<AP4_GrpiAtom*>(ohdr->FindChild("grpi"));
+    AP4_UI08*     key_buffer = NULL;
+    if (grpi) {
+        // sanity check on the encrypted key size
+        if (grpi->GetGroupKey().GetDataSize() < 32) {
+            return AP4_ERROR_INVALID_FORMAT;
+        }
+        
+        // create a block cipher to decrypt the content key
+        AP4_BlockCipher*  block_cipher =  NULL;
+        AP4_Result        result;
+        result = block_cipher_factory->Create(AP4_BlockCipher::AES_128, 
+                                              AP4_BlockCipher::DECRYPT, 
+                                              key, 
+                                              key_size, 
+                                              block_cipher);
+        if (AP4_FAILED(result)) return result;
+                                              
+        // create a stream cipher from the block cipher
+        AP4_StreamCipher* stream_cipher = NULL;            
+        switch (ohdr->GetEncryptionMethod()) {
+            case AP4_OMA_DCF_ENCRYPTION_METHOD_AES_CBC:
+                stream_cipher = new AP4_CbcStreamCipher(block_cipher, AP4_CbcStreamCipher::DECRYPT);
+                break;
+                
+            case AP4_OMA_DCF_ENCRYPTION_METHOD_AES_CTR:
+                stream_cipher = new AP4_CtrStreamCipher(block_cipher, NULL, 16);
+                break;
+                
+            default:
+                delete block_cipher;
+                return AP4_ERROR_NOT_SUPPORTED;
+        }
+
+        // set the IV
+        stream_cipher->SetIV(grpi->GetGroupKey().GetData());
+        
+        // decrypt the content key
+        AP4_Size key_buffer_size = grpi->GetGroupKey().GetDataSize(); // worst case
+        key_buffer = new AP4_UI08[key_buffer_size];
+        result = stream_cipher->ProcessBuffer(grpi->GetGroupKey().GetData()+16, 
+                                              grpi->GetGroupKey().GetDataSize()-16, 
+                                              key_buffer, 
+                                              &key_buffer_size, 
+                                              true);
+        delete stream_cipher; // this will also delete the block cipher
+        if (AP4_FAILED(result)) {
+            delete[] key_buffer;
+            return result;
+        }
+        
+        // point to the new key value
+        key = key_buffer;
+        key_size = key_buffer_size;
+    }
     
     AP4_OmaDcfCipherMode mode;
     switch (ohdr->GetEncryptionMethod()) {
@@ -129,12 +203,18 @@ AP4_OmaDcfAtomDecrypter::CreateDecryptingStream(
             return AP4_ERROR_NOT_SUPPORTED;
     }
         
-    return CreateDecryptingStream(mode,
-                                  odda->GetEncryptedPayload(), 
-                                  ohdr->GetPlaintextLength(), 
-                                  key, key_size, 
-                                  block_cipher_factory,
-                                  stream);
+    AP4_Result result;
+    result = CreateDecryptingStream(mode,
+                                    odda->GetEncryptedPayload(), 
+                                    ohdr->GetPlaintextLength(), 
+                                    key, key_size, 
+                                    block_cipher_factory,
+                                    stream);
+                                    
+    // cleanup
+    delete[] key_buffer;
+
+    return result;
 }
 
 /*----------------------------------------------------------------------
@@ -665,8 +745,8 @@ AP4_OmaDcfTrackDecrypter::Create(
 
     // instantiate the object
     decrypter = new AP4_OmaDcfTrackDecrypter(cipher, 
-                                            sample_entry, 
-                                            sample_description->GetOriginalFormat());
+                                             sample_entry, 
+                                             sample_description->GetOriginalFormat());
     return AP4_SUCCESS;
 }
 
@@ -988,6 +1068,46 @@ AP4_TrackPropertyMap::GetTextualHeaders(AP4_UI32 track_id, AP4_DataBuffer& textu
     
     // success path
     return AP4_SUCCESS;        
+}
+
+/*----------------------------------------------------------------------
+|   AP4_OmaDcfDecryptingProcessor:AP4_OmaDcfDecryptingProcessor
++---------------------------------------------------------------------*/
+AP4_OmaDcfDecryptingProcessor::AP4_OmaDcfDecryptingProcessor(
+    const AP4_ProtectionKeyMap* key_map              /* = NULL */,
+    AP4_BlockCipherFactory*     block_cipher_factory /* = NULL */)
+{
+    if (key_map) {
+        // copy the keys
+        m_KeyMap.SetKeys(*key_map);
+    }
+    
+    if (block_cipher_factory == NULL) {
+        m_BlockCipherFactory = &AP4_DefaultBlockCipherFactory::Instance;
+    } else {
+        m_BlockCipherFactory = block_cipher_factory;
+    }
+}
+
+/*----------------------------------------------------------------------
+|   AP4_OmaDcfDecryptingProcessor:Initialize
++---------------------------------------------------------------------*/
+AP4_Result 
+AP4_OmaDcfDecryptingProcessor::Initialize(AP4_AtomParent&   top_level, 
+                                          AP4_ByteStream&   /* stream */,
+                                          ProgressListener* listener)
+{
+    // decide which processor to instantiate based on the file type
+    AP4_FtypAtom* ftyp = dynamic_cast<AP4_FtypAtom*>(top_level.GetChild(AP4_ATOM_TYPE_FTYP));
+    if (ftyp) {
+        if (ftyp->GetMajorBrand() == AP4_OMA_DCF_BRAND_ODCF || ftyp->HasCompatibleBrand(AP4_OMA_DCF_BRAND_ODCF)) {
+            return AP4_OmaDcfAtomDecrypter::DecryptAtoms(top_level, listener, m_BlockCipherFactory, m_KeyMap);
+        } else {
+            return AP4_ERROR_INVALID_FORMAT;
+        }
+    } else {
+        return AP4_SUCCESS;
+    }
 }
 
 /*----------------------------------------------------------------------

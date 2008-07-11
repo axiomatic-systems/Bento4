@@ -61,6 +61,7 @@ public:
     virtual ~AP4_Array();
     AP4_Cardinal ItemCount() const { return m_ItemCount; }
     AP4_Result   Append(const T& item);
+    AP4_Result   RemoveLast();
     T& operator[](unsigned long idx) { return m_Items[idx]; }
     const T& operator[](unsigned long idx) const { return m_Items[idx]; }
     AP4_Result Clear();
@@ -140,6 +141,21 @@ AP4_Array<T>::EnsureCapacity(AP4_Cardinal count)
     m_AllocatedCount = count;
 
     return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_Array<T>::RemoveLast
++---------------------------------------------------------------------*/
+template <typename T>
+AP4_Result
+AP4_Array<T>::RemoveLast()
+{
+    if (m_ItemCount) {
+        m_Items[--m_ItemCount].~T();
+        return AP4_SUCCESS;
+    } else {
+        return AP4_ERROR_OUT_OF_RANGE;
+    }
 }
 
 /*----------------------------------------------------------------------

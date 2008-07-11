@@ -288,15 +288,14 @@ class AP4_StandardDecryptingProcessor : public AP4_Processor
 {
 public:
     // constructor
-    AP4_StandardDecryptingProcessor(AP4_BlockCipherFactory* block_cipher_factory = NULL);
+    AP4_StandardDecryptingProcessor(const AP4_ProtectionKeyMap* key_map = NULL,
+                                    AP4_BlockCipherFactory*     block_cipher_factory = NULL);
 
     // accessors
     AP4_ProtectionKeyMap& GetKeyMap() { return m_KeyMap; }
-
+    
     // methods
     virtual AP4_Processor::TrackHandler* CreateTrackHandler(AP4_TrakAtom* trak);
-    virtual AP4_Result Initialize(AP4_AtomParent&   top_level,
-                                  ProgressListener* listener);
 
 private:
     // members

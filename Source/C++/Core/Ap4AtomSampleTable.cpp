@@ -182,26 +182,66 @@ AP4_AtomSampleTable::GetSampleDescriptionCount()
 }
 
 /*----------------------------------------------------------------------
+|   AP4_AtomSampleTable::GetSampleChunkPosition
++---------------------------------------------------------------------*/
+AP4_Result   
+AP4_AtomSampleTable::GetSampleChunkPosition(AP4_Ordinal  sample_index, 
+                                            AP4_Ordinal& chunk_index,
+                                            AP4_Ordinal& position_in_chunk)
+{
+    // default values
+    chunk_index       = 0;
+    position_in_chunk = 0;
+    
+    AP4_Ordinal sample_description_index;
+    return GetChunkForSample(sample_index, 
+                             chunk_index, 
+                             position_in_chunk, 
+                             sample_description_index);
+}
+
+/*----------------------------------------------------------------------
 |   AP4_AtomSampleTable::GetChunkForSample
 +---------------------------------------------------------------------*/
 AP4_Result 
-AP4_AtomSampleTable::GetChunkForSample(AP4_Ordinal  sample,
-                                       AP4_Ordinal& chunk,
-                                       AP4_Ordinal& skip,
-                                       AP4_Ordinal& sample_description)
+AP4_AtomSampleTable::GetChunkForSample(AP4_Ordinal  sample_index,
+                                       AP4_Ordinal& chunk_index,
+                                       AP4_Ordinal& position_in_chunk,
+                                       AP4_Ordinal& sample_description_index)
 {
-    return m_StscAtom ? m_StscAtom->GetChunkForSample(sample, chunk, skip, sample_description) : AP4_FAILURE;
+    // default values
+    chunk_index              = 0;
+    position_in_chunk        = 0;
+    sample_description_index = 0;
+
+    // check that we an stsc atom
+    if (m_StscAtom == NULL) return AP4_ERROR_INVALID_STATE;
+    
+    // get the chunk info from the stsc atom
+    AP4_Ordinal chunk = 0;
+    AP4_Result result = m_StscAtom->GetChunkForSample(sample_index+1, // the atom API is 1-based 
+                                                      chunk, 
+                                                      position_in_chunk, 
+                                                      sample_description_index);
+    if (AP4_FAILED(result)) return result;
+    if (chunk == 0) return AP4_ERROR_INTERNAL;
+
+    // the atom sample and chunk indexes are 1-based, so we need to translate
+    chunk_index = chunk-1;
+    
+    return AP4_SUCCESS;
 }
 
 /*----------------------------------------------------------------------
 |   AP4_AtomSampleTable::GetChunkOffset
 +---------------------------------------------------------------------*/
 AP4_Result 
-AP4_AtomSampleTable::GetChunkOffset(AP4_Ordinal chunk, AP4_Position& offset)
+AP4_AtomSampleTable::GetChunkOffset(AP4_Ordinal   chunk_index, 
+                                    AP4_Position& offset)
 {
     if (m_StcoAtom) {
         AP4_UI32 offset_32;
-        AP4_Result result = m_StcoAtom->GetChunkOffset(chunk, offset_32);
+        AP4_Result result = m_StcoAtom->GetChunkOffset(chunk_index+1, offset_32);
         if (AP4_SUCCEEDED(result)) {
             offset = offset_32;
         } else {
@@ -209,7 +249,7 @@ AP4_AtomSampleTable::GetChunkOffset(AP4_Ordinal chunk, AP4_Position& offset)
         }
         return result;
     } else if (m_Co64Atom) {
-        return m_Co64Atom->GetChunkOffset(chunk, offset);
+        return m_Co64Atom->GetChunkOffset(chunk_index+1, offset);
     } else {
         offset = 0;
         return AP4_FAILURE;
@@ -220,13 +260,14 @@ AP4_AtomSampleTable::GetChunkOffset(AP4_Ordinal chunk, AP4_Position& offset)
 |   AP4_AtomSampleTable::SetChunkOffset
 +---------------------------------------------------------------------*/
 AP4_Result 
-AP4_AtomSampleTable::SetChunkOffset(AP4_Ordinal chunk, AP4_Position offset)
+AP4_AtomSampleTable::SetChunkOffset(AP4_Ordinal  chunk_index, 
+                                    AP4_Position offset)
 {
     if (m_StcoAtom) {
         if ((offset >> 32) != 0) return AP4_ERROR_OUT_OF_RANGE;
-        return m_StcoAtom->SetChunkOffset(chunk, (AP4_UI32)offset);
+        return m_StcoAtom->SetChunkOffset(chunk_index+1, (AP4_UI32)offset);
     } else if (m_Co64Atom) {
-        return m_Co64Atom->SetChunkOffset(chunk, offset);
+        return m_Co64Atom->SetChunkOffset(chunk_index+1, offset);
     } else {
         return AP4_FAILURE;
     }
@@ -236,18 +277,18 @@ AP4_AtomSampleTable::SetChunkOffset(AP4_Ordinal chunk, AP4_Position offset)
 |   AP4_AtomSampleTable::SetSampleSize
 +---------------------------------------------------------------------*/
 AP4_Result 
-AP4_AtomSampleTable::SetSampleSize(AP4_Ordinal sample, AP4_Size size)
+AP4_AtomSampleTable::SetSampleSize(AP4_Ordinal sample_index, AP4_Size size)
 {
-    return m_StszAtom ? m_StszAtom->SetSampleSize(sample, size) : AP4_FAILURE;
+    return m_StszAtom ? m_StszAtom->SetSampleSize(sample_index+1, size) : AP4_FAILURE;
 }
 
 /*----------------------------------------------------------------------
-|   AP4_AtomSampleTable::GetSample
+|   AP4_AtomSampleTable::GetSampleIndexForTimeStamp
 +---------------------------------------------------------------------*/
 AP4_Result 
 AP4_AtomSampleTable::GetSampleIndexForTimeStamp(AP4_TimeStamp ts, 
-                                                AP4_Ordinal& index)
+                                                AP4_Ordinal&  sample_index)
 {
-    return m_SttsAtom ? m_SttsAtom->GetSampleIndexForTimeStamp(ts, index) 
+    return m_SttsAtom ? m_SttsAtom->GetSampleIndexForTimeStamp(ts, sample_index) 
                       : AP4_FAILURE;
 }

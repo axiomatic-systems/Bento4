@@ -55,6 +55,7 @@ class AP4_CtrStreamCipher;
 const AP4_UI32 AP4_PROTECTION_SCHEME_TYPE_OMA = AP4_ATOM_TYPE('o','d','k','m');
 const AP4_UI32 AP4_PROTECTION_SCHEME_VERSION_OMA_20 = 0x00000200;
 const AP4_UI32 AP4_OMA_DCF_BRAND_ODCF = AP4_ATOM_TYPE('o','d','c','f');
+const AP4_UI32 AP4_OMA_DCF_BRAND_OPF2 = AP4_ATOM_TYPE('o','p','f','2');
 
 typedef enum {
     AP4_OMA_DCF_CIPHER_MODE_CTR,
@@ -293,6 +294,34 @@ private:
 
     // members
     AP4_List<Entry> m_Entries;
+};
+
+/*----------------------------------------------------------------------
+|   AP4_OmaDcfDecryptingProcessor
++---------------------------------------------------------------------*/
+/**
+ *  Use for DCF only, not PDCF. For PDCF, use the 
+ * AP4_StandardDecryptingProcessor class
+ */
+class AP4_OmaDcfDecryptingProcessor : public AP4_Processor
+{
+public:
+    // constructor
+    AP4_OmaDcfDecryptingProcessor(const AP4_ProtectionKeyMap* key_map = NULL,
+                                  AP4_BlockCipherFactory*     block_cipher_factory = NULL);
+
+    // accessors
+    AP4_ProtectionKeyMap& GetKeyMap() { return m_KeyMap; }
+
+    // methods
+    virtual AP4_Result Initialize(AP4_AtomParent&   top_level,
+                                  AP4_ByteStream&   stream,
+                                  ProgressListener* listener);
+
+private:
+    // members
+    AP4_BlockCipherFactory* m_BlockCipherFactory;
+    AP4_ProtectionKeyMap    m_KeyMap;
 };
 
 /*----------------------------------------------------------------------

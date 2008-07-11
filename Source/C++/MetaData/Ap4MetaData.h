@@ -2,7 +2,7 @@
 |
 |    AP4 - MetaData 
 |
-|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
+|    Copyright 2002-2008 Gilles Boccon-Gibod & Julien Boeuf
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -46,7 +46,7 @@ class AP4_MoovAtom;
 class AP4_DataBuffer;
 class AP4_ContainerAtom;
 class AP4_DataAtom;
-class AP4_3GppAtom;
+class AP4_3GppLocalizedStringAtom;
 
 /*----------------------------------------------------------------------
 |   metadata keys
@@ -103,7 +103,7 @@ const AP4_Atom::Type AP4_ATOM_TYPE_SOSN = AP4_ATOM_TYPE('s','o','s','n'); // Sor
 
 const AP4_Atom::Type AP4_ATOM_TYPE_TITL = AP4_ATOM_TYPE('t','i','t','l'); // 3GPP: title
 const AP4_Atom::Type AP4_ATOM_TYPE_DSCP = AP4_ATOM_TYPE('d','s','c','p'); // 3GPP: description
-const AP4_Atom::Type AP4_ATOM_TYPE_CPRT = AP4_ATOM_TYPE('c','p','r','t'); // ISO or ILST: copyright
+const AP4_Atom::Type AP4_ATOM_TYPE_CPRT = AP4_ATOM_TYPE('c','p','r','t'); // 3GPP, ISO or ILST: copyright
 const AP4_Atom::Type AP4_ATOM_TYPE_PERF = AP4_ATOM_TYPE('p','e','r','f'); // 3GPP: performer
 const AP4_Atom::Type AP4_ATOM_TYPE_AUTH = AP4_ATOM_TYPE('a','u','t','h'); // 3GPP: author
 const AP4_Atom::Type AP4_ATOM_TYPE_GNRE = AP4_ATOM_TYPE('g','n','r','e'); // 3GPP or ILST: genre (in 3GPP -> string, in ILST -> ID3v1 index + 1)
@@ -233,7 +233,7 @@ public:
     
     // methods
     AP4_Result ParseMoov(AP4_MoovAtom* moov);
-    AP4_Result ParseUdta(AP4_ContainerAtom* udta);
+    AP4_Result ParseUdta(AP4_ContainerAtom* udta, const char* namespc);
     
     // destructor
     ~AP4_MetaData();
@@ -242,8 +242,8 @@ public:
     const AP4_List<Entry>& GetEntries() const { return m_Entries; }
 
     // methods
-    AP4_Result AddIlstEntries(AP4_ContainerAtom* atom);
-    AP4_Result Add3GppEntry(AP4_3GppAtom* atom);
+    AP4_Result AddIlstEntries(AP4_ContainerAtom* atom, const char* namespc);
+    AP4_Result Add3GppEntry(AP4_3GppLocalizedStringAtom* atom, const char* namespc);
 
 private:
     // members
@@ -275,8 +275,10 @@ private:
     // class constants
     static const AP4_Atom::Type IlstTypes[];
     static const TypeList       IlstTypeList;
-    static const AP4_Atom::Type _3gppTypes[];
-    static const TypeList       _3gppTypeList;
+    static const AP4_Atom::Type _3gppLocalizedStringTypes[];
+    static const TypeList       _3gppLocalizedStringTypeList;
+    static const AP4_Atom::Type _3gppOtherTypes[];
+    static const TypeList       _3gppOtherTypeList;
     
     // class methods
     static bool IsTypeInList(AP4_Atom::Type type, const TypeList& list);
@@ -309,20 +311,20 @@ protected:
 };
 
 /*----------------------------------------------------------------------
-|   AP4_3GppAtom
+|   AP4_3GppLocalizedStringAtom
 +---------------------------------------------------------------------*/
-class AP4_3GppAtom : public AP4_Atom
+class AP4_3GppLocalizedStringAtom : public AP4_Atom
 {
 public:
     // factory method
-    static AP4_3GppAtom* Create(Type type, AP4_UI32 size, AP4_ByteStream& stream);
+    static AP4_3GppLocalizedStringAtom* Create(Type type, AP4_UI32 size, AP4_ByteStream& stream);
      
     // constructor
-    AP4_3GppAtom(Type            type, 
-                 AP4_UI32        size, 
-                 AP4_UI32        version,
-                 AP4_UI32        flags,
-                 AP4_ByteStream& stream);
+    AP4_3GppLocalizedStringAtom(Type            type, 
+                                AP4_UI32        size, 
+                                AP4_UI32        version,
+                                AP4_UI32        flags,
+                                AP4_ByteStream& stream);
     
     // AP4_Atom methods
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
@@ -330,7 +332,7 @@ public:
     
     // methods
     const char*           GetLanguage() const { return m_Language; }
-    const AP4_DataBuffer& GetPayload() const  { return m_Payload;  }
+    const AP4_DataBuffer& GetPayload()  const { return m_Payload;  }
     
 private:
     // members
@@ -339,14 +341,14 @@ private:
 };
 
 /*----------------------------------------------------------------------
-|   AP4_StringAtom
+|   AP4_MetaDataStringAtom
 +---------------------------------------------------------------------*/
-class AP4_StringAtom : public AP4_Atom
+class AP4_MetaDataStringAtom : public AP4_Atom
 {
 public:
     // constructors
-    AP4_StringAtom(Type type, const char* value);
-    AP4_StringAtom(Type type, AP4_UI32 size, AP4_ByteStream& stream);
+    AP4_MetaDataStringAtom(Type type, const char* value);
+    AP4_MetaDataStringAtom(Type type, AP4_UI32 size, AP4_ByteStream& stream);
 
     // AP4_Atom methods
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
@@ -368,15 +370,15 @@ class AP4_DataAtom : public AP4_Atom
 {
 public:
     typedef enum {
-        DATA_TYPE_BINARY             = 0,
-        DATA_TYPE_STRING_UTF_8       = 1,
-        DATA_TYPE_STRING_UTF_16      = 2,
-        DATA_TYPE_STRING_PASCAL      = 3,
-        DATA_TYPE_GIF                = 13,
-        DATA_TYPE_JPEG               = 14,
-        DATA_TYPE_SIGNED_INT_BE      = 21, /* the size of the integer is derived from the container size */
-        DATA_TYPE_FLOAT_32_BE        = 22,
-        DATA_TYPE_FLOAT_64_BE        = 23
+        DATA_TYPE_BINARY        = 0,
+        DATA_TYPE_STRING_UTF_8  = 1,
+        DATA_TYPE_STRING_UTF_16 = 2,
+        DATA_TYPE_STRING_PASCAL = 3,
+        DATA_TYPE_GIF           = 13,
+        DATA_TYPE_JPEG          = 14,
+        DATA_TYPE_SIGNED_INT_BE = 21, /* the size of the integer is derived from the container size */
+        DATA_TYPE_FLOAT_32_BE   = 22,
+        DATA_TYPE_FLOAT_64_BE   = 23
     } DataType;
 
     typedef enum {
@@ -417,8 +419,9 @@ private:
 class AP4_StringMetaDataValue : public AP4_MetaData::Value {
 public:
     // constructor
-    AP4_StringMetaDataValue(const char* value) : 
-        Value(TYPE_STRING_UTF_8), m_Value(value) {}
+    AP4_StringMetaDataValue(const char* value, const char* language=NULL) : 
+        Value(TYPE_STRING_UTF_8, MEANING_UNKNOWN, language), 
+        m_Value(value) {}
 
     // AP4_MetaData::Value methods
     virtual AP4_String ToString() const;

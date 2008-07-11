@@ -65,7 +65,7 @@ AP4_IodsAtom::AP4_IodsAtom(AP4_UI32        size,
                            AP4_ByteStream& stream) :
     AP4_Atom(AP4_ATOM_TYPE_IODS, size, version, flags)
 {
-    // read descriptor
+    // read the descriptor
     AP4_Descriptor* descriptor = NULL;
     if (AP4_DescriptorFactory::CreateDescriptorFromStream(stream, descriptor) == AP4_SUCCESS) {
         m_ObjectDescriptor = dynamic_cast<AP4_ObjectDescriptor*>(descriptor);

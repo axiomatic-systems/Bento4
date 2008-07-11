@@ -35,6 +35,7 @@
 #include "Ap4List.h"
 #include "Ap4String.h"
 #include "Ap4Descriptor.h"
+#include "Ap4Command.h"
 
 /*----------------------------------------------------------------------
 |   class references
@@ -44,10 +45,10 @@ class AP4_ByteStream;
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-const AP4_Descriptor::Tag AP4_DESCRIPTOR_TAG_OD      = 0x01;
-const AP4_Descriptor::Tag AP4_DESCRIPTOR_TAG_IOD     = 0x02;
-const AP4_Descriptor::Tag AP4_DESCRIPTOR_TAG_MP4_OD  = 0x11;
-const AP4_Descriptor::Tag AP4_DESCRIPTOR_TAG_MP4_IOD = 0x10;
+const AP4_UI08 AP4_DESCRIPTOR_TAG_OD      = 0x01;
+const AP4_UI08 AP4_DESCRIPTOR_TAG_IOD     = 0x02;
+const AP4_UI08 AP4_DESCRIPTOR_TAG_MP4_OD  = 0x11;
+const AP4_UI08 AP4_DESCRIPTOR_TAG_MP4_IOD = 0x10;
 
 /*----------------------------------------------------------------------
 |   AP4_ObjectDescriptor
@@ -56,12 +57,13 @@ class AP4_ObjectDescriptor : public AP4_Descriptor
 {
  public:
     // methods
-    AP4_ObjectDescriptor(AP4_ByteStream&     stream, 
-                         AP4_Descriptor::Tag tag,
-                         AP4_Size            header_size, 
-                         AP4_Size            payload_size);
+    AP4_ObjectDescriptor(AP4_ByteStream& stream, 
+                         AP4_UI08        tag,
+                         AP4_Size        header_size, 
+                         AP4_Size        payload_size);
     virtual ~AP4_ObjectDescriptor();
     virtual AP4_Result AddSubDescriptor(AP4_Descriptor* descriptor);
+    virtual const AP4_Descriptor* FindSubDescriptor(AP4_UI08 tag) const;
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
     virtual AP4_Result Inspect(AP4_AtomInspector& inspector);
 
@@ -72,7 +74,7 @@ class AP4_ObjectDescriptor : public AP4_Descriptor
 
  protected:
     // constructor
-    AP4_ObjectDescriptor(AP4_Descriptor::Tag tag, AP4_Size header_size, AP4_Size payload_size);
+    AP4_ObjectDescriptor(AP4_UI08 tag, AP4_Size header_size, AP4_Size payload_size);
     
     // members
     AP4_UI16                         m_ObjectDescriptorId;
@@ -88,10 +90,10 @@ class AP4_InitialObjectDescriptor : public AP4_ObjectDescriptor
 {
  public:
     // methods
-    AP4_InitialObjectDescriptor(AP4_ByteStream&     stream, 
-                                AP4_Descriptor::Tag tag,
-                                AP4_Size            header_size, 
-                                AP4_Size            payload_size);
+    AP4_InitialObjectDescriptor(AP4_ByteStream& stream, 
+                                AP4_UI08        tag,
+                                AP4_Size        header_size, 
+                                AP4_Size        payload_size);
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
     virtual AP4_Result Inspect(AP4_AtomInspector& inspector);
     
@@ -111,6 +113,34 @@ class AP4_InitialObjectDescriptor : public AP4_ObjectDescriptor
     AP4_UI08 m_AudioProfileLevelIndication; 
     AP4_UI08 m_VisualProfileLevelIndication; 
     AP4_UI08 m_GraphicsProfileLevelIndication; 
+};
+
+/*----------------------------------------------------------------------
+|   AP4_DescriptorUpdateCommand
++---------------------------------------------------------------------*/
+/**
+ * This class is used for ObjectDescriptorUpdateCommand and
+ * IPMP_DescriptorUpdateCommand
+ */
+class AP4_DescriptorUpdateCommand : public AP4_Command
+{
+ public:
+    // methods
+    AP4_DescriptorUpdateCommand(AP4_ByteStream& stream, 
+                                AP4_UI08        tag,
+                                AP4_Size        header_size, 
+                                AP4_Size        payload_size);
+    virtual ~AP4_DescriptorUpdateCommand();
+    virtual AP4_Result AddDescriptor(AP4_Descriptor* descriptor);
+    virtual AP4_Result WriteFields(AP4_ByteStream& stream);
+    virtual AP4_Result Inspect(AP4_AtomInspector& inspector);
+
+    // accessors
+    const AP4_List<AP4_Descriptor>& GetDescriptors() { return m_Descriptors; }
+    
+ protected:
+    // members
+    mutable AP4_List<AP4_Descriptor> m_Descriptors;
 };
 
 #endif // _AP4_OBJECT_DESCRIPTOR_H_

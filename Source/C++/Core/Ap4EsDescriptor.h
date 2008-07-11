@@ -45,8 +45,9 @@ class AP4_ByteStream;
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-const AP4_Descriptor::Tag AP4_DESCRIPTOR_TAG_ES        = 0x03;
-const AP4_Descriptor::Tag AP4_DESCRIPTOR_TAG_ES_ID_INC = 0x0E;
+const AP4_UI08 AP4_DESCRIPTOR_TAG_ES        = 0x03;
+const AP4_UI08 AP4_DESCRIPTOR_TAG_ES_ID_INC = 0x0E;
+const AP4_UI08 AP4_DESCRIPTOR_TAG_ES_ID_REF = 0x0F;
 
 const int AP4_ES_DESCRIPTOR_FLAG_STREAM_DEPENDENCY = 1;
 const int AP4_ES_DESCRIPTOR_FLAG_URL               = 2;
@@ -94,9 +95,34 @@ class AP4_EsIdIncDescriptor : public AP4_Descriptor
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
     virtual AP4_Result Inspect(AP4_AtomInspector& inspector);
 
+    // accessors
+    AP4_UI32 GetTrackId() const { return m_TrackId; }
+    
  private:
     // members
     AP4_UI32 m_TrackId;
+};
+
+/*----------------------------------------------------------------------
+|   AP4_EsIdRefDescriptor
++---------------------------------------------------------------------*/
+class AP4_EsIdRefDescriptor : public AP4_Descriptor
+{
+ public:
+    // methods
+    AP4_EsIdRefDescriptor(AP4_UI16 ref_index);
+    AP4_EsIdRefDescriptor(AP4_ByteStream& stream, 
+                          AP4_Size        header_size, 
+                          AP4_Size        payload_size);
+    virtual AP4_Result WriteFields(AP4_ByteStream& stream);
+    virtual AP4_Result Inspect(AP4_AtomInspector& inspector);
+
+    // accessors
+    AP4_UI16 GetRefIndex() const { return m_RefIndex; }
+    
+ private:
+    // members
+    AP4_UI16 m_RefIndex;
 };
 
 #endif // _AP4_ES_DESCRIPTOR_H_

@@ -37,7 +37,8 @@
 /*----------------------------------------------------------------------
 |   AP4_SyntheticSampleTable::AP4_SyntheticSampleTable()
 +---------------------------------------------------------------------*/
-AP4_SyntheticSampleTable::AP4_SyntheticSampleTable()
+AP4_SyntheticSampleTable::AP4_SyntheticSampleTable(AP4_Cardinal chunk_size) :
+    m_ChunkSize(chunk_size?chunk_size:AP4_SYNTHETIC_SAMPLE_TABLE_DEFAULT_CHUNK_SIZE)
 {
 }
 
@@ -53,14 +54,12 @@ AP4_SyntheticSampleTable::~AP4_SyntheticSampleTable()
 |   AP4_SyntheticSampleTable::GetSample
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_SyntheticSampleTable::GetSample(AP4_Ordinal index, AP4_Sample& sample)
+AP4_SyntheticSampleTable::GetSample(AP4_Ordinal sample_index, AP4_Sample& sample)
 {
-    if (index < m_Samples.ItemCount()) {
-        sample = m_Samples[index];
-        return AP4_SUCCESS;
-    } else {
-        return AP4_ERROR_OUT_OF_RANGE;
-    }
+    if (sample_index >= m_Samples.ItemCount()) return AP4_ERROR_OUT_OF_RANGE;
+
+    sample = m_Samples[sample_index];
+    return AP4_SUCCESS;
 }
 
 /*----------------------------------------------------------------------
@@ -70,6 +69,30 @@ AP4_Cardinal
 AP4_SyntheticSampleTable::GetSampleCount()
 {
     return m_Samples.ItemCount();
+}
+
+/*----------------------------------------------------------------------
+|   AP4_SyntheticSampleTable::GetSampleChunkPosition
++---------------------------------------------------------------------*/
+AP4_Result   
+AP4_SyntheticSampleTable::GetSampleChunkPosition(
+    AP4_Ordinal  sample_index, 
+    AP4_Ordinal& chunk_index,
+    AP4_Ordinal& position_in_chunk)
+{
+    // default values
+    chunk_index       = 0;
+    position_in_chunk = 0;
+    
+    // check parameters
+    if (sample_index >= m_Samples.ItemCount()) return AP4_ERROR_OUT_OF_RANGE;
+    if (m_ChunkSize == 0) return AP4_ERROR_INVALID_STATE;
+    
+    // compute in which chunk this sample falls
+    chunk_index       = sample_index/m_ChunkSize;
+    position_in_chunk = sample_index%m_ChunkSize;
+    
+    return AP4_SUCCESS;
 }
 
 /*----------------------------------------------------------------------
@@ -121,7 +144,7 @@ AP4_SyntheticSampleTable::AddSample(AP4_ByteStream& data_stream,
 }
 
 /*----------------------------------------------------------------------
-|   AP4_SyntheticSampleTable::GetSample
+|   AP4_SyntheticSampleTable::GetSampleIndexForTimeStamp
 +---------------------------------------------------------------------*/
 AP4_Result 
 AP4_SyntheticSampleTable::GetSampleIndexForTimeStamp(AP4_TimeStamp /* ts */, 

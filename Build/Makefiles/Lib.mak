@@ -73,11 +73,20 @@ CORE_SOURCES = 								\
     Ap4Track.cpp                            \
     Ap4TrakAtom.cpp                         \
     Ap4TrefTypeAtom.cpp                     \
-    Ap4UnknownDescriptor.cpp                \
     Ap4UrlAtom.cpp                          \
     Ap4Utils.cpp                            \
     Ap4VmhdAtom.cpp                         \
-    Ap4ElstAtom.cpp               
+    Ap4ElstAtom.cpp                         \
+    Ap4Expandable.cpp                       \
+    Ap4GrpiAtom.cpp                         \
+    Ap4Ipmp.cpp                             \
+    Ap4IodsAtom.cpp                         \
+    Ap4ObjectDescriptor.cpp                 \
+    Ap4Command.cpp                          \
+    Ap4CommandFactory.cpp                   \
+    Ap4UuidAtom.cpp                         \
+    Ap4Marlin.cpp
+    
 
 CORE_OBJECTS=$(CORE_SOURCES:.cpp=.o)
 

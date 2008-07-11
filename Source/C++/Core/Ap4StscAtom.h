@@ -88,7 +88,7 @@ public:
     virtual AP4_Result GetChunkForSample(AP4_Ordinal   sample,
                                          AP4_Ordinal&  chunk,
                                          AP4_Ordinal&  skip,
-                                         AP4_Ordinal&  sample_description);
+                                         AP4_Ordinal&  sample_description_index);
     virtual AP4_Result AddEntry(AP4_Cardinal chunk_count,
                                 AP4_Cardinal samples_per_chunk,
                                 AP4_Ordinal  sample_description_index);
