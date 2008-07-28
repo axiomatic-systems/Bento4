@@ -1340,9 +1340,10 @@ AP4_3GppLocalizedStringAtom::AP4_3GppLocalizedStringAtom(Type            type,
     m_Language[2] = 0x60+((packed_language    )&0x1F);
     m_Language[3] = '\0';
     
-    // read the payload (NULL-terminated string)
-    if (size > AP4_FULL_ATOM_HEADER_SIZE+2+1) {
-        AP4_UI32 payload_size = size-(AP4_FULL_ATOM_HEADER_SIZE+2+1);
+    // read the payload (should be a NULL-terminated string, but we'll
+    // allow for strings that are not terminated)
+    if (size > AP4_FULL_ATOM_HEADER_SIZE+2) {
+        AP4_UI32 payload_size = size-(AP4_FULL_ATOM_HEADER_SIZE+2);
         m_Payload.SetDataSize(payload_size);
         stream.Read(m_Payload.UseData(), payload_size);
         m_Payload.UseData()[payload_size-1] = '\0'; // force null termination
@@ -1360,7 +1361,6 @@ AP4_3GppLocalizedStringAtom::WriteFields(AP4_ByteStream& stream)
                                ((m_Language[2]-0x60));
     stream.WriteUI16(packed_language);
     stream.Write(m_Payload.GetData(), m_Payload.GetDataSize());
-    stream.WriteUI08(0);
     return AP4_SUCCESS;
 }
 
