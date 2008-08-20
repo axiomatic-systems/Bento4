@@ -31,7 +31,7 @@ def ZipIt(dir) :
 #############################################################
 # Main
 #############################################################
-BENTO4_VERSION = '0-9-7'
+BENTO4_VERSION = '0-9-8'
 
 if not os.environ.has_key('BENTO4_HOME'):
     print 'ERROR: BENTO4_HOME not set'
