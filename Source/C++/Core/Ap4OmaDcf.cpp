@@ -71,11 +71,11 @@ AP4_OmaDcfAtomDecrypter::DecryptAtoms(AP4_AtomParent&                  atoms,
         // check that we have all the atoms we need
         AP4_ContainerAtom* odrm = dynamic_cast<AP4_ContainerAtom*>(atom);
         if (odrm == NULL) continue; // not enough info
-        AP4_OdheAtom* odhe = dynamic_cast<AP4_OdheAtom*>(odrm->FindChild("odhe"));
+        AP4_OdheAtom* odhe = dynamic_cast<AP4_OdheAtom*>(odrm->GetChild(AP4_ATOM_TYPE_ODHE));
         if (odhe == NULL) continue; // not enough info    
-        AP4_OddaAtom* odda = dynamic_cast<AP4_OddaAtom*>(odrm->FindChild("odda"));;
+        AP4_OddaAtom* odda = dynamic_cast<AP4_OddaAtom*>(odrm->GetChild(AP4_ATOM_TYPE_ODDA));;
         if (odda == NULL) continue; // not enough info
-        AP4_OhdrAtom* ohdr = dynamic_cast<AP4_OhdrAtom*>(odhe->FindChild("ohdr"));
+        AP4_OhdrAtom* ohdr = dynamic_cast<AP4_OhdrAtom*>(odhe->GetChild(AP4_ATOM_TYPE_OHDR));
         if (ohdr == NULL) continue; // not enough info
 
         // do nothing if the atom is not encrypted
@@ -118,11 +118,11 @@ AP4_OmaDcfAtomDecrypter::CreateDecryptingStream(
     // default return values
     stream = NULL;
     
-    AP4_OdheAtom* odhe = dynamic_cast<AP4_OdheAtom*>(odrm.FindChild("odhe"));
+    AP4_OdheAtom* odhe = dynamic_cast<AP4_OdheAtom*>(odrm.GetChild(AP4_ATOM_TYPE_ODHE));
     if (odhe == NULL) return AP4_ERROR_INVALID_FORMAT;
-    AP4_OddaAtom* odda = dynamic_cast<AP4_OddaAtom*>(odrm.FindChild("odda"));;
+    AP4_OddaAtom* odda = dynamic_cast<AP4_OddaAtom*>(odrm.GetChild(AP4_ATOM_TYPE_ODDA));;
     if (odda == NULL) return AP4_ERROR_INVALID_FORMAT;
-    AP4_OhdrAtom* ohdr = dynamic_cast<AP4_OhdrAtom*>(odhe->FindChild("ohdr"));
+    AP4_OhdrAtom* ohdr = dynamic_cast<AP4_OhdrAtom*>(odhe->GetChild(AP4_ATOM_TYPE_OHDR));
     if (ohdr == NULL) return AP4_ERROR_INVALID_FORMAT;
     
     // shortcut for non-encrypted files
@@ -135,7 +135,7 @@ AP4_OmaDcfAtomDecrypter::CreateDecryptingStream(
     // if this is part of a group, use the group key to obtain the content
     // key (note that the field called GroupKey in the spec is actually not
     // the group key but the content key encrypted with the group key...
-    AP4_GrpiAtom* grpi = dynamic_cast<AP4_GrpiAtom*>(ohdr->FindChild("grpi"));
+    AP4_GrpiAtom* grpi = dynamic_cast<AP4_GrpiAtom*>(ohdr->GetChild(AP4_ATOM_TYPE_GRPI));
     AP4_UI08*     key_buffer = NULL;
     if (grpi) {
         // sanity check on the encrypted key size

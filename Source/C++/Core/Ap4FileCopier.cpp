@@ -58,14 +58,12 @@ AP4_FileCopier::Write(AP4_ByteStream& stream, bool moov_before_mdat)
     // get the file type
     AP4_FtypAtom* file_type = m_File.GetFileType();
 
-    // get the movie object
-    AP4_Movie* movie = m_File.GetMovie();
-    if (movie == NULL) return AP4_SUCCESS;
-
     // write the ftyp atom
     if (file_type) file_type->Write(stream);
 
-    if (moov_before_mdat) {
+    // get the movie object
+    AP4_Movie* movie = m_File.GetMovie();
+    if (movie != NULL && moov_before_mdat) {
         // write the moov atom before the mdat atom
         movie->GetMoovAtom()->Write(stream);
     }
@@ -78,7 +76,7 @@ AP4_FileCopier::Write(AP4_ByteStream& stream, bool moov_before_mdat)
         atom->Write(stream);
     }
 
-    if (!moov_before_mdat) {
+    if (movie != NULL && !moov_before_mdat) {
         // write the moov atom after the mdat atom
         movie->GetMoovAtom()->Write(stream);
     }

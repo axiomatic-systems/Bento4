@@ -39,7 +39,7 @@
 +---------------------------------------------------------------------*/
 #define BANNER "MP4 File Tagger - Version 1.1 "\
                "(Bento4 Version " AP4_VERSION_STRING ")\n"\
-               "(c) 2002-2007 Gilles Boccon-Gibod & Julien Boeuf"
+               "(c) 2002-2008 Gilles Boccon-Gibod & Julien Boeuf"
 
 /*----------------------------------------------------------------------
 |   types
@@ -103,7 +103,7 @@ PrintUsageAndExit()
             "  --help            print this usage information\n"
             "  --show-tags       show tags found in the input file\n"
             "  --list-symbols    list all the builtin symbols\n"
-            "  --list-keys       list all the builtin keys\n"
+            "  --list-keys       list all the builtin symbolic key names\n"
             "  --set <key>:<type>:<value>\n"
             "      set a tag (if the tag does not already exist, set behaves like add)\n"
             "  --add <key>:<type>:<value>\n"
@@ -123,16 +123,20 @@ PrintUsageAndExit()
             "       extract the value of a tag and save it to a file\n"
             "\n"
             "NOTES:\n"
-            "  In all commands with a <key> argument, except for '--add', <key> can be a\n"
-            "  key name or name#n where n is the zero-based index of the key when there is\n"
-            "  more than one key with the same name (ex: multiple images for cover art).\n"
-            "  The name of a key is either one of the builtin keys (see --list-keys)\n"
-            "  or namespace/key, where namespace is either 'meta' for the default metadata\n"
-            "  namespace or a user defined namespace. For the 'meta' namespace, the key\n"
-            "  name must be a 4 character atom name.\n"
-            "  Binary strings can be expressed as a normal string of ASCII characters prefixed\n"
-            "  by a + character if all the bytes fall in the ASCII range, or hex-encoded\n"
-            "  prefixed by a # character (ex: +hello, or #0FC4)\n");
+            "  In all commands with a <key> argument, except for '--add', <key> can be \n"
+            "  <key-name> or <key-name>#n where n is the zero-based index of the key when\n"
+            "  there is more than one key with the same name (ex: multiple images for cover\n"
+            "  art).\n"
+            "  A <key-name> has the form <namespace>/<name> or simply <name> (in which case\n"
+            "  the namespace defaults to 'meta').\n"
+            "  The <name> of a key is either one of a symbolic keys\n"
+            "  (see --list-keys) or a 4-character atom name.\n"
+            "  The namespace can be 'meta' for itunes-style metadata or 'dcf' for\n"
+            "  OMA-DCF-style metadata, or a user-defined long-form namespace\n"
+            "  (ex: com.mycompany.foo).\n"
+            "  Binary strings can be expressed as a normal string of ASCII characters\n"
+            "  prefixed by a + character if all the bytes fall in the ASCII range,\n"
+            "  or hex-encoded prefixed by a # character (ex: +hello, or #0FC4)\n");
     exit(1);
 }
 
@@ -432,27 +436,30 @@ ParseKeySpec(AP4_String&  key,
     } else {
         // assume the namespace is 'meta'
         key_namespace = new AP4_String("meta");
-        
-        // look for the name in the list of keys
-        for (AP4_Ordinal i=0; i<AP4_MetaData::KeyInfos.ItemCount(); i++) {
-            AP4_MetaData::KeyInfo& key_info = AP4_MetaData::KeyInfos[i];
-            if (processed_key == key_info.name) {
-                char four_cc[5];
-                four_cc[0] = key_info.four_cc>>24;
-                four_cc[1] = key_info.four_cc>>16;
-                four_cc[2] = key_info.four_cc>> 8;
-                four_cc[3] = key_info.four_cc    ;
-                four_cc[4] = '\0';
-                key_name = new AP4_String(four_cc);
-                break;
-            }
-        }
-        if (key_name == NULL) {
-            fprintf(stderr, "ERROR: unknown key\n");
-            return AP4_FAILURE;
-        }
+        key_name      = new AP4_String(processed_key);
     }    
-        
+
+    // look for the name in the list of keys
+    for (AP4_Ordinal i=0; i<AP4_MetaData::KeyInfos.ItemCount(); i++) {
+        AP4_MetaData::KeyInfo& key_info = AP4_MetaData::KeyInfos[i];
+        if (*key_name == key_info.name) {
+            char four_cc[5];
+            four_cc[0] = key_info.four_cc>>24;
+            four_cc[1] = key_info.four_cc>>16;
+            four_cc[2] = key_info.four_cc>> 8;
+            four_cc[3] = key_info.four_cc    ;
+            four_cc[4] = '\0';
+            delete key_name;
+            key_name = new AP4_String(four_cc);
+            break;
+        }
+    }
+    if (key_name == NULL) {
+        fprintf(stderr, "ERROR: unknown key\n");
+        delete key_namespace;
+        key_namespace = NULL;
+        return AP4_FAILURE;
+    }
     return AP4_SUCCESS;
 }
 
@@ -790,7 +797,7 @@ main(int argc, char** argv)
 
     if (output) {
         // adjust the chunk offsets if the moov is before the mdat
-        if (file->IsMoovBeforeMdat()) {
+        if (moov && file->IsMoovBeforeMdat()) {
             AP4_LargeSize new_moov_size = moov->GetSize();
             AP4_SI64 size_diff = new_moov_size-moov_size;
             if (size_diff) {
