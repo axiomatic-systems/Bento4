@@ -47,6 +47,8 @@ class AP4_DataBuffer;
 class AP4_ContainerAtom;
 class AP4_DataAtom;
 class AP4_3GppLocalizedStringAtom;
+class AP4_DcfStringAtom;
+class AP4_DcfdAtom;
 
 /*----------------------------------------------------------------------
 |   metadata keys
@@ -114,6 +116,12 @@ const AP4_Atom::Type AP4_ATOM_TYPE_LOCI = AP4_ATOM_TYPE('l','o','c','i'); // 3GP
 const AP4_Atom::Type AP4_ATOM_TYPE_ALBM = AP4_ATOM_TYPE('a','l','b','m'); // 3GPP: album title and track number
 const AP4_Atom::Type AP4_ATOM_TYPE_YRRC = AP4_ATOM_TYPE('y','r','r','c'); // 3GPP: recording year
 const AP4_Atom::Type AP4_ATOM_TYPE_TSEL = AP4_ATOM_TYPE('t','s','e','l'); // 3GPP: track selection
+
+const AP4_Atom::Type AP4_ATOM_TYPE_ICNU = AP4_ATOM_TYPE('i','c','n','u'); // DCF: icon URI      (OMA DCF 2.1)
+const AP4_Atom::Type AP4_ATOM_TYPE_INFU = AP4_ATOM_TYPE('i','n','f','u'); // DCF: info URI      (OMA DCF 2.1)
+const AP4_Atom::Type AP4_ATOM_TYPE_CVRU = AP4_ATOM_TYPE('c','v','r','u'); // DCF: cover art URI (OMA DCF 2.1)
+const AP4_Atom::Type AP4_ATOM_TYPE_LRCU = AP4_ATOM_TYPE('l','r','c','u'); // DCF: lyrics URI    (OMA DCF 2.1)
+const AP4_Atom::Type AP4_ATOM_TYPE_DCFD = AP4_ATOM_TYPE('d','c','f','D'); // DCF: duration      (OMarlin)
 
 /*----------------------------------------------------------------------
 |   AP4_MetaData
@@ -216,7 +224,11 @@ public:
 
         // methods
         AP4_Result         AddToFile(AP4_File& file, AP4_Ordinal index = 0);
+        AP4_Result         AddToFileIlst(AP4_File& file, AP4_Ordinal index = 0);
+        AP4_Result         AddToFileDcf(AP4_File& file, AP4_Ordinal index = 0);
         AP4_Result         RemoveFromFile(AP4_File& file, AP4_Ordinal index);
+        AP4_Result         RemoveFromFileIlst(AP4_File& file, AP4_Ordinal index);
+        AP4_Result         RemoveFromFileDcf(AP4_File& file, AP4_Ordinal index);
         AP4_ContainerAtom* FindInIlst(AP4_ContainerAtom* ilst) const;
         AP4_Atom*          ToAtom() const;
 
@@ -242,9 +254,12 @@ public:
     const AP4_List<Entry>& GetEntries() const { return m_Entries; }
 
     // methods
+    AP4_Result ResolveKeyName(AP4_Atom::Type atom_type, AP4_String& value);
     AP4_Result AddIlstEntries(AP4_ContainerAtom* atom, const char* namespc);
     AP4_Result Add3GppEntry(AP4_3GppLocalizedStringAtom* atom, const char* namespc);
-
+    AP4_Result AddDcfStringEntry(AP4_DcfStringAtom* atom, const char* namespc);
+    AP4_Result AddDcfdEntry(AP4_DcfdAtom* atom, const char* namespc);
+    
 private:
     // members
     AP4_List<Entry> m_Entries;
@@ -265,7 +280,6 @@ public:
                                   AP4_Atom::Type  context,
                                   AP4_Atom*&      atom);
 
-private:
     // types
     struct TypeList {
         const AP4_Atom::Type* m_Types;
@@ -279,10 +293,13 @@ private:
     static const TypeList       _3gppLocalizedStringTypeList;
     static const AP4_Atom::Type _3gppOtherTypes[];
     static const TypeList       _3gppOtherTypeList;
+    static const AP4_Atom::Type DcfStringTypes[];
+    static const TypeList       DcfStringTypeList;
     
     // class methods
     static bool IsTypeInList(AP4_Atom::Type type, const TypeList& list);
 
+private:
     // members
     AP4_AtomFactory* m_AtomFactory;
 };
@@ -338,6 +355,61 @@ private:
     // members
     char           m_Language[4];
     AP4_DataBuffer m_Payload;
+};
+
+/*----------------------------------------------------------------------
+|   AP4_DcfStringAtom
++---------------------------------------------------------------------*/
+class AP4_DcfStringAtom : public AP4_Atom
+{
+public:
+    // factory method
+    static AP4_DcfStringAtom* Create(Type type, AP4_UI32 size, AP4_ByteStream& stream);
+     
+    // constructor
+    AP4_DcfStringAtom(Type type, const char* value);
+    AP4_DcfStringAtom(Type            type, 
+                      AP4_UI32        size, 
+                      AP4_UI32        version,
+                      AP4_UI32        flags,
+                      AP4_ByteStream& stream);
+    
+    // AP4_Atom methods
+    virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
+    virtual AP4_Result WriteFields(AP4_ByteStream& stream);
+    
+    // methods
+    const AP4_String& GetValue() const { return m_Value;  }
+    
+private:
+    // members
+    AP4_String m_Value;
+};
+
+/*----------------------------------------------------------------------
+|   AP4_DcfdAtom
++---------------------------------------------------------------------*/
+class AP4_DcfdAtom : public AP4_Atom
+{
+public:
+    // factory method
+    static AP4_DcfdAtom* Create(AP4_UI32 size, AP4_ByteStream& stream);
+     
+    // constructor
+    AP4_DcfdAtom(AP4_UI32        version,
+                 AP4_UI32        flags,
+                 AP4_ByteStream& stream);
+    
+    // AP4_Atom methods
+    virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
+    virtual AP4_Result WriteFields(AP4_ByteStream& stream);
+    
+    // methods
+    AP4_UI32 GetDuration() const { return m_Duration;  }
+    
+private:
+    // members
+    AP4_UI32 m_Duration;
 };
 
 /*----------------------------------------------------------------------

@@ -79,7 +79,14 @@ static const AP4_MetaData::KeyInfo AP4_MetaData_KeyInfos [] = {
     {"PodcastGuid",         "Podcast GUID",         AP4_ATOM_TYPE_EGID, AP4_MetaData::Value::TYPE_BINARY},
     {"PodcastCategory",     "Podcast Category",     AP4_ATOM_TYPE_CATG, AP4_MetaData::Value::TYPE_STRING_UTF_8},
     {"Keywords",            "Keywords",             AP4_ATOM_TYPE_KEYW, AP4_MetaData::Value::TYPE_STRING_UTF_8},
-    {"PurchaseDate",        "Purchase Date",        AP4_ATOM_TYPE_PURD, AP4_MetaData::Value::TYPE_STRING_UTF_8}
+    {"PurchaseDate",        "Purchase Date",        AP4_ATOM_TYPE_PURD, AP4_MetaData::Value::TYPE_STRING_UTF_8},
+    {"IconUri",             "Icon URI",             AP4_ATOM_TYPE_ICNU, AP4_MetaData::Value::TYPE_STRING_UTF_8},
+    {"InfoUrl",             "Info URL",             AP4_ATOM_TYPE_INFU, AP4_MetaData::Value::TYPE_STRING_UTF_8},
+    {"CoverUri",            "Cover Art URI",        AP4_ATOM_TYPE_CVRU, AP4_MetaData::Value::TYPE_STRING_UTF_8},
+    {"LyricsUri",           "Lyrics URI",           AP4_ATOM_TYPE_LRCU, AP4_MetaData::Value::TYPE_STRING_UTF_8},
+    {"Duration",            "Duration",             AP4_ATOM_TYPE_DCFD, AP4_MetaData::Value::TYPE_INT_32_BE},
+    {"Performer",           "Performer",            AP4_ATOM_TYPE_PERF, AP4_MetaData::Value::TYPE_STRING_UTF_8},
+    {"Author",              "Author",               AP4_ATOM_TYPE_AUTH, AP4_MetaData::Value::TYPE_STRING_UTF_8},
 };
 AP4_Array<AP4_MetaData::KeyInfo> AP4_MetaData::KeyInfos(
     AP4_MetaData_KeyInfos, 
@@ -299,6 +306,20 @@ const AP4_MetaDataAtomTypeHandler::TypeList AP4_MetaDataAtomTypeHandler::_3gppOt
 };
 
 /*----------------------------------------------------------------------
+|   DCF string atoms
++---------------------------------------------------------------------*/
+const AP4_Atom::Type AP4_MetaDataAtomTypeHandler::DcfStringTypes[] = {
+    AP4_ATOM_TYPE_ICNU,
+    AP4_ATOM_TYPE_INFU,
+    AP4_ATOM_TYPE_CVRU,
+    AP4_ATOM_TYPE_LRCU
+};
+const AP4_MetaDataAtomTypeHandler::TypeList AP4_MetaDataAtomTypeHandler::DcfStringTypeList = {
+    DcfStringTypes,
+    sizeof(DcfStringTypes)/sizeof(DcfStringTypes[0])
+};
+
+/*----------------------------------------------------------------------
 |   atom type lists
 +---------------------------------------------------------------------*/
 const AP4_Atom::Type AP4_MetaDataAtomTypeHandler::IlstTypes[] = 
@@ -384,6 +405,10 @@ AP4_MetaDataAtomTypeHandler::CreateAtom(AP4_Atom::Type  type,
     } else if (context == AP4_ATOM_TYPE_UDTA) {
         if (IsTypeInList(type, _3gppLocalizedStringTypeList)) {
             atom = AP4_3GppLocalizedStringAtom::Create(type, size, stream);
+        } else if (IsTypeInList(type, DcfStringTypeList)) {
+            atom = AP4_DcfStringAtom::Create(type, size, stream);
+        } else if (type == AP4_ATOM_TYPE_DCFD) {
+            atom = AP4_DcfdAtom::Create(size, stream);
         }
     }
 
@@ -475,12 +500,23 @@ AP4_MetaData::ParseUdta(AP4_ContainerAtom* udta, const char* namespc)
     }
     
     AP4_List<AP4_Atom>::Item* udta_item = udta->GetChildren().FirstItem();
-    while (udta_item) {
-        AP4_3GppLocalizedStringAtom* entry_atom = dynamic_cast<AP4_3GppLocalizedStringAtom*>(udta_item->GetData()); 
-        if (entry_atom) {
-            Add3GppEntry(entry_atom, namespc);
+    for (; udta_item; udta_item = udta_item->GetNext()) {
+        AP4_3GppLocalizedStringAtom* _3gpp_atom = dynamic_cast<AP4_3GppLocalizedStringAtom*>(udta_item->GetData()); 
+        if (_3gpp_atom) {
+            Add3GppEntry(_3gpp_atom, namespc);
+            continue;
+        } 
+        
+        AP4_DcfStringAtom* dcfs_atom = dynamic_cast<AP4_DcfStringAtom*>(udta_item->GetData());
+        if (dcfs_atom) {
+            AddDcfStringEntry(dcfs_atom, namespc);
+            continue;
+        } 
+
+        AP4_DcfdAtom* dcfd_atom = dynamic_cast<AP4_DcfdAtom*>(udta_item->GetData());
+        if (dcfd_atom) {
+            AddDcfdEntry(dcfd_atom, namespc);
         }
-        udta_item = udta_item->GetNext();
     }
     
     return AP4_SUCCESS;
@@ -492,6 +528,34 @@ AP4_MetaData::ParseUdta(AP4_ContainerAtom* udta, const char* namespc)
 AP4_MetaData::~AP4_MetaData()
 {
     m_Entries.DeleteReferences();
+}
+
+/*----------------------------------------------------------------------
+|   AP4_MetaData::ResolveKeyName
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_MetaData::ResolveKeyName(AP4_Atom::Type atom_type, AP4_String& value)
+{
+    const char* key_name = NULL;
+    char        four_cc[5];
+
+    // look for a match in the key infos
+    for (unsigned int i=0; 
+         i<sizeof(AP4_MetaData_KeyInfos)/sizeof(AP4_MetaData_KeyInfos[0]); 
+         i++) {
+        if (AP4_MetaData_KeyInfos[i].four_cc == atom_type) {
+            key_name = AP4_MetaData_KeyInfos[i].name;
+            break;
+        }
+    }
+    if (key_name == NULL) {
+        // this key was not found in the key infos, create a name for it
+        AP4_FormatFourChars(four_cc, (AP4_UI32)atom_type);
+        key_name = four_cc;
+    }
+    value = key_name;
+    
+    return AP4_SUCCESS;
 }
 
 /*----------------------------------------------------------------------
@@ -549,23 +613,8 @@ AP4_MetaData::AddIlstEntries(AP4_ContainerAtom* atom, const char* namespc)
 AP4_Result
 AP4_MetaData::Add3GppEntry(AP4_3GppLocalizedStringAtom* atom, const char* namespc)
 {
-    const char* key_name = NULL;
-    char        four_cc[5];
-
-    // look for a match in the key infos
-    for (unsigned int i=0; 
-         i<sizeof(AP4_MetaData_KeyInfos)/sizeof(AP4_MetaData_KeyInfos[0]); 
-         i++) {
-        if (AP4_MetaData_KeyInfos[i].four_cc == atom->GetType()) {
-            key_name = AP4_MetaData_KeyInfos[i].name;
-            break;
-        }
-    }
-    if (key_name == NULL) {
-        // this key was not found in the key infos, create a name for it
-        AP4_FormatFourChars(four_cc, (AP4_UI32)atom->GetType());
-        key_name = four_cc;
-    }
+    AP4_String key_name;
+    ResolveKeyName(atom->GetType(), key_name);
     
     const char* language = NULL;
     if (atom->GetLanguage()[0]) {
@@ -573,7 +622,38 @@ AP4_MetaData::Add3GppEntry(AP4_3GppLocalizedStringAtom* atom, const char* namesp
     }
     AP4_MetaData::Value* value = new AP4_StringMetaDataValue((const char*)atom->GetPayload().GetData(),
                                                              language);
-    m_Entries.Add(new Entry(key_name, namespc, value));
+    m_Entries.Add(new Entry(key_name.GetChars(), namespc, value));
+    
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_MetaData::AddDcfStringEntry
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_MetaData::AddDcfStringEntry(AP4_DcfStringAtom* atom, const char* namespc)
+{
+    AP4_String key_name;
+    ResolveKeyName(atom->GetType(), key_name);
+    
+    AP4_MetaData::Value* value = new AP4_StringMetaDataValue(atom->GetValue().GetChars());
+    m_Entries.Add(new Entry(key_name.GetChars(), namespc, value));
+    
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_MetaData::AddDcfdEntry
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_MetaData::AddDcfdEntry(AP4_DcfdAtom* atom, const char* namespc)
+{
+    AP4_String key_name;
+    ResolveKeyName(atom->GetType(), key_name);
+    
+    AP4_MetaData::Value* value = new AP4_IntegerMetaDataValue(AP4_MetaData::Value::TYPE_INT_32_BE, 
+                                                              atom->GetDuration());
+    m_Entries.Add(new Entry(key_name.GetChars(), namespc, value));
     
     return AP4_SUCCESS;
 }
@@ -619,8 +699,7 @@ AP4_MetaData::Value::GetTypeCategory() const
 AP4_Atom*
 AP4_MetaData::Entry::ToAtom() const
 {
-    AP4_DataAtom*      data = new AP4_DataAtom(*m_Value);
-    AP4_ContainerAtom* atom;
+    if (m_Value == NULL) return NULL;
     
     if (m_Key.GetNamespace() == "meta") {
         // convert the name into an atom type
@@ -631,22 +710,44 @@ AP4_MetaData::Entry::ToAtom() const
         AP4_Atom::Type atom_type = AP4_Atom::TypeFromString(m_Key.GetName().GetChars()); 
                                    
         // create a container atom for the data
-        atom = new AP4_ContainerAtom(atom_type);
+        AP4_ContainerAtom* atom = new AP4_ContainerAtom(atom_type);
+
+        // add the data atom
+        AP4_DataAtom* data = new AP4_DataAtom(*m_Value);
+        atom->AddChild(data);
+        
+        return atom;
+    } else if (m_Key.GetNamespace() == "dcf") {
+        // convert the name into an atom type
+        if (m_Key.GetName().GetLength() != 4) {
+            // the name is not in the right format
+            return NULL;
+        }
+        AP4_Atom::Type atom_type = AP4_Atom::TypeFromString(m_Key.GetName().GetChars()); 
+
+        if (AP4_MetaDataAtomTypeHandler::IsTypeInList(atom_type, 
+            AP4_MetaDataAtomTypeHandler::DcfStringTypeList)) {
+            AP4_String atom_value = m_Value->ToString();
+            return new AP4_DcfStringAtom(atom_type, atom_value.GetChars());
+        }
     } else {
         // create a '----' atom
-        atom = new AP4_ContainerAtom(AP4_ATOM_TYPE_dddd);
+        AP4_ContainerAtom* atom = new AP4_ContainerAtom(AP4_ATOM_TYPE_dddd);
         
         // add a 'mean' string
         atom->AddChild(new AP4_MetaDataStringAtom(AP4_ATOM_TYPE_MEAN, m_Key.GetNamespace().GetChars()));
         
         // add a 'name' string
         atom->AddChild(new AP4_MetaDataStringAtom(AP4_ATOM_TYPE_NAME, m_Key.GetName().GetChars()));
+
+        // add the data atom
+        AP4_DataAtom* data = new AP4_DataAtom(*m_Value);
+        atom->AddChild(data);
+        
+        return atom;
     }
         
-    // add the data atom
-    atom->AddChild(data);
-
-    return atom;
+    return NULL;
 }
 
 /*----------------------------------------------------------------------
@@ -678,16 +779,16 @@ AP4_MetaData::Entry::FindInIlst(AP4_ContainerAtom* ilst) const
     // not found
     return NULL;
 }
-
+    
 /*----------------------------------------------------------------------
-|   AP4_MetaData::Entry::AddToFile
+|   AP4_MetaData::Entry::AddToFileIlst
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_MetaData::Entry::AddToFile(AP4_File& file, AP4_Ordinal index)
+AP4_MetaData::Entry::AddToFileIlst(AP4_File& file, AP4_Ordinal index)
 {
     // check that we have a correct entry
     if (m_Value == NULL) return AP4_ERROR_INVALID_STATE;
-    
+
     // convert the entry into an atom
     AP4_ContainerAtom* entry_atom = dynamic_cast<AP4_ContainerAtom*>(ToAtom());
     if (entry_atom == NULL) {
@@ -741,10 +842,55 @@ AP4_MetaData::Entry::AddToFile(AP4_File& file, AP4_Ordinal index)
 }
 
 /*----------------------------------------------------------------------
-|   AP4_MetaData::Entry::RemoveFromFile
+|   AP4_MetaData::Entry::AddToFileDcf
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_MetaData::Entry::RemoveFromFile(AP4_File& file, AP4_Ordinal index)
+AP4_MetaData::Entry::AddToFileDcf(AP4_File& file, AP4_Ordinal index)
+{
+    // check that we have a correct entry
+    if (m_Value == NULL) return AP4_ERROR_INVALID_STATE;
+    
+    // look for 'odrm/odhe'
+    AP4_ContainerAtom* odhe = dynamic_cast<AP4_ContainerAtom*>(file.FindChild("odrm/odhe"));
+    if (odhe == NULL) return AP4_ERROR_NO_SUCH_ITEM;
+
+    // get/create the list of entries
+    AP4_ContainerAtom* udta = dynamic_cast<AP4_ContainerAtom*>(odhe->FindChild("udta", true));
+    if (udta == NULL) return AP4_ERROR_INTERNAL;
+    
+    // convert the entry into an atom
+    AP4_Atom* data_atom = ToAtom();
+    if (data_atom == NULL) return AP4_ERROR_INVALID_FORMAT;
+
+    // add the entry's data to the container
+    return udta->AddChild(data_atom, index);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_MetaData::Entry::AddToFile
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_MetaData::Entry::AddToFile(AP4_File& file, AP4_Ordinal index)
+{
+    // check that we have a correct entry
+    if (m_Value == NULL) return AP4_ERROR_INVALID_STATE;
+ 
+    // check the namespace of the key to know where to add the atom
+    if (m_Key.GetNamespace() == "meta") {
+        return AddToFileIlst(file, index);
+    } else if (m_Key.GetNamespace() == "dcf") {
+        return AddToFileDcf(file, index);
+    } else {
+        // unsupported namespace
+        return AP4_ERROR_NOT_SUPPORTED;
+    }
+}
+
+/*----------------------------------------------------------------------
+|   AP4_MetaData::Entry::RemoveFromFileIlst
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_MetaData::Entry::RemoveFromFileIlst(AP4_File& file, AP4_Ordinal index)
 {
     // look for the 'moov'
     AP4_Movie* movie = file.GetMovie();
@@ -771,6 +917,41 @@ AP4_MetaData::Entry::RemoveFromFile(AP4_File& file, AP4_Ordinal index)
     }
     
     return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_MetaData::Entry::RemoveFromFileDcf
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_MetaData::Entry::RemoveFromFileDcf(AP4_File& file, AP4_Ordinal index)
+{
+    // look for 'odrm/odhe/udta'
+    AP4_ContainerAtom* udta = dynamic_cast<AP4_ContainerAtom*>(file.FindChild("odrm/odhe/udta"));
+    if (udta == NULL) return AP4_ERROR_NO_SUCH_ITEM;
+                
+    // remove the data atom in the entry
+    AP4_UI32 type = AP4_BytesToUInt32BE((const unsigned char*)m_Key.GetName().GetChars());
+    AP4_Result result = udta->DeleteChild(type, index);
+    if (AP4_FAILED(result)) return result;
+    
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_MetaData::Entry::RemoveFromFile
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_MetaData::Entry::RemoveFromFile(AP4_File& file, AP4_Ordinal index)
+{
+    // check the namespace of the key to know where to add the atom
+    if (m_Key.GetNamespace() == "meta") {
+        return RemoveFromFileIlst(file, index);
+    } else if (m_Key.GetNamespace() == "dcf") {
+        return RemoveFromFileDcf(file, index);
+    } else {
+        // unsupported namespace
+        return AP4_ERROR_NOT_SUPPORTED;
+    }
 }
 
 /*----------------------------------------------------------------------
@@ -1372,5 +1553,112 @@ AP4_3GppLocalizedStringAtom::InspectFields(AP4_AtomInspector& inspector)
 {
     inspector.AddField("language", GetLanguage());
     inspector.AddField("value", (const char*)m_Payload.GetData());
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_DcfStringAtom::Create
++---------------------------------------------------------------------*/
+AP4_DcfStringAtom*
+AP4_DcfStringAtom::Create(Type type, AP4_UI32 size, AP4_ByteStream& stream) 
+{
+    AP4_UI32 version;
+    AP4_UI32 flags;
+    if (AP4_FAILED(AP4_Atom::ReadFullHeader(stream, version, flags))) return NULL;
+    if (version != 0) return NULL;
+    return new AP4_DcfStringAtom(type, size, version, flags, stream);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_DcfStringAtom::AP4_DcfStringAtom
++---------------------------------------------------------------------*/
+AP4_DcfStringAtom::AP4_DcfStringAtom(Type type, const char* value) :
+    AP4_Atom(type, AP4_FULL_ATOM_HEADER_SIZE, 0, 0),
+    m_Value(value)
+{
+    m_Size32 += m_Value.GetLength();
+}
+
+/*----------------------------------------------------------------------
+|   AP4_DcfStringAtom::AP4_DcfStringAtom
++---------------------------------------------------------------------*/
+AP4_DcfStringAtom::AP4_DcfStringAtom(Type            type, 
+                                     AP4_UI32        size, 
+                                     AP4_UI32        version,
+                                     AP4_UI32        flags,
+                                     AP4_ByteStream& stream) :
+    AP4_Atom(type, size, version, flags)
+{
+    if (size > AP4_FULL_ATOM_HEADER_SIZE) {
+        AP4_UI32 value_size = size-(AP4_FULL_ATOM_HEADER_SIZE);
+        char* value = new char[value_size];
+        stream.Read(value, value_size);
+        m_Value.Assign(value, value_size);
+        delete[] value;
+    }
+}
+
+/*----------------------------------------------------------------------
+|   AP4_DcfStringAtom::WriteFields
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_DcfStringAtom::WriteFields(AP4_ByteStream& stream)
+{
+    if (m_Value.GetLength()) stream.Write(m_Value.GetChars(), m_Value.GetLength());
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_DcfStringAtom::InspectFields
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_DcfStringAtom::InspectFields(AP4_AtomInspector& inspector)
+{
+    inspector.AddField("value", m_Value.GetChars());
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_DcfdAtom::Create
++---------------------------------------------------------------------*/
+AP4_DcfdAtom*
+AP4_DcfdAtom::Create(AP4_UI32 size, AP4_ByteStream& stream) 
+{
+    AP4_UI32 version;
+    AP4_UI32 flags;
+    if (AP4_FAILED(AP4_Atom::ReadFullHeader(stream, version, flags))) return NULL;
+    if (version != 0) return NULL;
+    if (size != AP4_FULL_ATOM_HEADER_SIZE+4) return NULL;
+    return new AP4_DcfdAtom(version, flags, stream);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_DcfdAtom::AP4_DcfdAtom
++---------------------------------------------------------------------*/
+AP4_DcfdAtom::AP4_DcfdAtom(AP4_UI32        version,
+                           AP4_UI32        flags,
+                           AP4_ByteStream& stream) :
+    AP4_Atom(AP4_ATOM_TYPE_DCFD, AP4_FULL_ATOM_HEADER_SIZE+4, version, flags)
+{
+    stream.ReadUI32(m_Duration);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_DcfdAtom::WriteFields
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_DcfdAtom::WriteFields(AP4_ByteStream& stream)
+{
+    stream.WriteUI32(m_Duration);
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_DcfdAtom::InspectFields
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_DcfdAtom::InspectFields(AP4_AtomInspector& inspector)
+{
+    inspector.AddField("duration", m_Duration);
     return AP4_SUCCESS;
 }
