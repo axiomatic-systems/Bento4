@@ -47,7 +47,7 @@ Setup:
 	mkdir $(OUTPUT_DIR)
     
 # ------- Apps -----------
-ALL_APPS = mp4dump mp4info mp42aac aac2mp4 mp4decrypt mp4encrypt mp4edit mp4extract mp4rtphintinfo mp4tag
+ALL_APPS = mp4dump mp4info mp42aac aac2mp4 mp4decrypt mp4encrypt mp4edit mp4extract mp4rtphintinfo mp4tag mp4dcfpackager
 export ALL_APPS
 
 ##################################################################
@@ -110,6 +110,10 @@ mp4rtphintinfo: lib
 mp4tag: lib
 	$(TITLE)
 	@$(INVOKE_SUBMAKE) -f $(BUILD_ROOT)/Makefiles/Mp4Tag.mak
+
+mp4dcfpackager: lib
+	$(TITLE)
+	@$(INVOKE_SUBMAKE) -f $(BUILD_ROOT)/Makefiles/Mp4DcfPackager.mak
 
 ##################################################################
 # includes
