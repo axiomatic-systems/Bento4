@@ -50,8 +50,8 @@
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-const AP4_UI32 AP4_MARLIN_BRAND_MLN2       = AP4_ATOM_TYPE('M','G','S','V'); // FIXME: temporary value
-const AP4_UI16 AP4_MARLIN_IPMPS_TYPE_MLN2  = 0xA551; // FIXME: temporary name
+const AP4_UI32 AP4_MARLIN_BRAND_MGSV       = AP4_ATOM_TYPE('M','G','S','V');
+const AP4_UI16 AP4_MARLIN_IPMPS_TYPE_MGSV  = 0xA551;
 const AP4_UI32 AP4_MARLIN_SCHEME_TYPE_ACBC = AP4_ATOM_TYPE('A','C','B','C');
 
 /*----------------------------------------------------------------------
