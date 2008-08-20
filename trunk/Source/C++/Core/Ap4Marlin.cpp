@@ -85,7 +85,7 @@ AP4_MarlinDecryptingProcessor::Initialize(AP4_AtomParent&   top_level,
     // check the file type
     AP4_FtypAtom* ftyp = dynamic_cast<AP4_FtypAtom*>(top_level.GetChild(AP4_ATOM_TYPE_FTYP));
     if (ftyp == NULL ||
-        (ftyp->GetMajorBrand() != AP4_MARLIN_BRAND_MLN2 && !ftyp->HasCompatibleBrand(AP4_MARLIN_BRAND_MLN2))) {
+        (ftyp->GetMajorBrand() != AP4_MARLIN_BRAND_MGSV && !ftyp->HasCompatibleBrand(AP4_MARLIN_BRAND_MGSV))) {
         return AP4_ERROR_INVALID_FORMAT;
     }
     
@@ -225,7 +225,7 @@ AP4_MarlinDecryptingProcessor::Initialize(AP4_AtomParent&   top_level,
              ipmpd_item = ipmpd_item->GetNext()) {
             // check that this descriptor is of the right type
             ipmpd = dynamic_cast<AP4_IpmpDescriptor*>(ipmpd_item->GetData());
-            if (ipmpd == NULL || ipmpd->GetIpmpsType() != AP4_MARLIN_IPMPS_TYPE_MLN2) continue;
+            if (ipmpd == NULL || ipmpd->GetIpmpsType() != AP4_MARLIN_IPMPS_TYPE_MGSV) continue;
             
             // check the descriptor id
             if (ipmpd->GetDescriptorId() == ipmpd_pointer->GetDescriptorId()) {
