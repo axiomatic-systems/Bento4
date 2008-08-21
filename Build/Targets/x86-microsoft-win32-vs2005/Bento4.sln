@@ -57,6 +57,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CryptoTest", "CryptoTest\Cr
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Bento4", "Bento4\Bento4.vcproj", "{A714AA1C-45A9-403D-A6E1-020E520119A2}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Mp4DcfPackager", "Mp4DcfPackager\Mp4DcfPackager.vcproj", "{9B072842-1D3B-4CAD-B7AE-E41E545EC420}"
+	ProjectSection(ProjectDependencies) = postProject
+		{A714AA1C-45A9-403D-A6E1-020E520119A2} = {A714AA1C-45A9-403D-A6E1-020E520119A2}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -111,6 +116,10 @@ Global
 		{A714AA1C-45A9-403D-A6E1-020E520119A2}.Debug|Win32.Build.0 = Debug|Win32
 		{A714AA1C-45A9-403D-A6E1-020E520119A2}.Release|Win32.ActiveCfg = Release|Win32
 		{A714AA1C-45A9-403D-A6E1-020E520119A2}.Release|Win32.Build.0 = Release|Win32
+		{9B072842-1D3B-4CAD-B7AE-E41E545EC420}.Debug|Win32.ActiveCfg = Debug|Win32
+		{9B072842-1D3B-4CAD-B7AE-E41E545EC420}.Debug|Win32.Build.0 = Debug|Win32
+		{9B072842-1D3B-4CAD-B7AE-E41E545EC420}.Release|Win32.ActiveCfg = Release|Win32
+		{9B072842-1D3B-4CAD-B7AE-E41E545EC420}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
