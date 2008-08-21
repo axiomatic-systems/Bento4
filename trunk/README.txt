@@ -8,8 +8,8 @@ Bento4 can be used to read and write a number of Quicktime files as well,
 even though some Quicktime specific features are not supported. In addition, 
 Bento4 supports a number of extensions as defined in various other specifications. 
 This includes some support for ISMA Encrytion and Decryption as defined in the 
-ISMA E&A specification (http://www.isma.tv), OMA 2.0 DCF/PDCF Encryption and 
-Decryption as defined in the OMA 2.0 DCF/PDCF specification 
+ISMA E&A specification (http://www.isma.tv), OMA 2.0 and 2.1 DCF/PDCF Encryption and 
+Decryption as defined in the OMA specifications 
 (http://www.openmobilealliance.org) and iTunes compatible metadata. 
 The SDK includes a number of command line tools, built using the class library, 
 that serve as general purpose tools as well as examples of how to use the API.

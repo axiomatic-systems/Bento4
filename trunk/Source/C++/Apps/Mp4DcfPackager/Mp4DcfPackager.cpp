@@ -54,7 +54,7 @@ PrintUsageAndExit()
         "  --method: <method> is NULL, CBC or CTR\n"
         "  Options:\n"
         "  --show-progress: show progress details\n"
-        "  --content-type:  content mime type\n"
+        "  --content-type:  content MIME type\n"
         "  --content-id:    content ID\n"
         "  --rights-issuer: rights issuer URL\n"
         "  --key <k>:<iv>\n"   
@@ -64,7 +64,7 @@ PrintUsageAndExit()
         "  --textual-header <name>:<value>\n"
         "      Specifies a textual header where <name> is the header name,\n"
         "      and <value> is the header value\n"
-        "      (several --header options can be used)\n"
+        "      (several --textual-header options can be used)\n"
         "\n"
         );
     exit(1);
