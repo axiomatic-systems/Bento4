@@ -1,0 +1,4 @@
+Tool('mingw')
+LoadTool('gcc-generic', env)
+
+env.AppendUnique(CPPDEFINES = {'AP4_PLATFORM_BYTE_ORDER':'AP4_PLATFORM_BYTE_ORDER_LITTLE_ENDIAN'})
