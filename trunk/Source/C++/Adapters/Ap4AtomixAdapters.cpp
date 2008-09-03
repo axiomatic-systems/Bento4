@@ -115,10 +115,7 @@ ATX_InputStream_To_AP4_ByteStream_Adapter::Seek(AP4_Position position)
 AP4_Result
 ATX_InputStream_To_AP4_ByteStream_Adapter::Tell(AP4_Position& position)
 {
-    ATX_Position atx_position;
-     ATX_Result result = MapResult(ATX_InputStream_Tell(m_Stream, &atx_position));
-    position = atx_position;
-    return result;
+    return MapResult(ATX_InputStream_Tell(m_Stream, &position));
 }
 
 /*----------------------------------------------------------------------
@@ -127,10 +124,7 @@ ATX_InputStream_To_AP4_ByteStream_Adapter::Tell(AP4_Position& position)
 AP4_Result
 ATX_InputStream_To_AP4_ByteStream_Adapter::GetSize(AP4_LargeSize& size)
 {
-    AP4_Size atx_size;
-    ATX_Result result = MapResult(ATX_InputStream_GetSize(m_Stream, &atx_size));
-    size = atx_size;
-    return result;
+    return MapResult(ATX_InputStream_GetSize(m_Stream, &size));
 }
 
 /*----------------------------------------------------------------------
@@ -200,13 +194,11 @@ AP4_ByteStream_To_ATX_InputStream_Adapter_Tell(ATX_InputStream* _self,
 +---------------------------------------------------------------------*/
 ATX_METHOD
 AP4_ByteStream_To_ATX_InputStream_Adapter_GetSize(ATX_InputStream* _self, 
-                                                  ATX_Size*        size)
+                                                  ATX_LargeSize*   size)
 {
     AP4_ByteStream_To_ATX_InputStream_Adapter* self = ATX_SELF(AP4_ByteStream_To_ATX_InputStream_Adapter, ATX_InputStream);;
 
-    AP4_LargeSize source_size = 0;
-    AP4_Result result = self->source->GetSize(source_size);
-    *size = (ATX_Size)source_size;
+    AP4_Result result = self->source->GetSize(*size);
     
     return AP4_ByteStream_To_ATX_InputStream_Adapter_MapResult(result);
 }
@@ -216,7 +208,7 @@ AP4_ByteStream_To_ATX_InputStream_Adapter_GetSize(ATX_InputStream* _self,
 +---------------------------------------------------------------------*/
 ATX_METHOD
 AP4_ByteStream_To_ATX_InputStream_Adapter_GetAvailable(ATX_InputStream* _self, 
-                                                       ATX_Size*        available)
+                                                       ATX_LargeSize*   available)
 {
     AP4_ByteStream_To_ATX_InputStream_Adapter* self = ATX_SELF(AP4_ByteStream_To_ATX_InputStream_Adapter, ATX_InputStream);;
     
@@ -230,7 +222,7 @@ AP4_ByteStream_To_ATX_InputStream_Adapter_GetAvailable(ATX_InputStream* _self,
     result = self->source->Tell(source_position);
     if (AP4_FAILED(result)) return AP4_ByteStream_To_ATX_InputStream_Adapter_MapResult(result);
     
-    *available = (ATX_Size)(source_size-source_position);
+    *available = (ATX_LargeSize)(source_size-source_position);
     
     return ATX_SUCCESS;
 }
