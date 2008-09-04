@@ -88,7 +88,7 @@ main(int argc, char** argv)
     bool           key_is_set               = false;
     unsigned char  key[16];
     unsigned char  iv[16];
-    AP4_EncryptingStream::CipherMode cipher_mode;
+    AP4_EncryptingStream::CipherMode cipher_mode = AP4_EncryptingStream::CIPHER_MODE_CBC;
     const char*    content_type             = "";
     const char*    content_id               = "";
     const char*    rights_issuer_url        = "";
