@@ -31,7 +31,7 @@ def generate(env, gcc_cross_prefix=None, gcc_extra_options='', gcc_relaxed_warni
         env['LINK']   = gcc_cross_prefix+'-g++ ' + gcc_extra_options
 
     ### general environment
-    env['CPPFLAGS']    = ' '.join([c_compiler_defines])
-    env['CCFLAGS']     = ' '.join([c_compiler_profile_flags, c_compiler_compliance_flags, c_compiler_flags, c_compiler_warnings])
-    env['CXXFLAGS']    = ' '.join([c_compiler_profile_flags, c_compiler_compliance_flags, c_compiler_flags, cxx_compiler_warnings])
-    env['LINKFLAGS']   = c_compiler_profile_flags    
+    env['CPPFLAGS']   = ' '.join([c_compiler_defines])
+    env['CFLAGS']     = ' '.join([c_compiler_profile_flags, c_compiler_compliance_flags, c_compiler_flags, c_compiler_warnings])
+    env['CXXFLAGS']   = ' '.join([c_compiler_profile_flags, c_compiler_compliance_flags, c_compiler_flags, cxx_compiler_warnings])
+    env['LINKFLAGS']  = c_compiler_profile_flags    
