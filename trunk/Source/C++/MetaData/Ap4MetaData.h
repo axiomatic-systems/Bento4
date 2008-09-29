@@ -395,10 +395,11 @@ public:
     // factory method
     static AP4_DcfdAtom* Create(AP4_UI32 size, AP4_ByteStream& stream);
      
-    // constructor
+    // constructors
     AP4_DcfdAtom(AP4_UI32        version,
                  AP4_UI32        flags,
                  AP4_ByteStream& stream);
+    AP4_DcfdAtom(AP4_UI32 duration);
     
     // AP4_Atom methods
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);

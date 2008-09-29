@@ -153,6 +153,10 @@ AP4_CtrStreamCipher::ProcessBuffer(const AP4_UI08* in,
         return AP4_ERROR_BUFFER_TOO_SMALL;
     }
 
+    // in CTR mode, the output is the same size as the input 
+    if (out_size != NULL) *out_size = in_size;
+
+    // process all the bytes in the buffer
     while (in_size) {
         // compute the number of bytes available in this chunk
         AP4_UI32 index = (AP4_UI32)(m_StreamOffset & (AP4_CIPHER_BLOCK_SIZE-1));
@@ -179,9 +183,6 @@ AP4_CtrStreamCipher::ProcessBuffer(const AP4_UI08* in,
         in_size -= chunk;
     }
     
-    // nice thing about CTR mode 
-    if (out_size != NULL)   *out_size   = in_size;
-
     return AP4_SUCCESS;
 }
 

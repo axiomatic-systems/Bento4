@@ -23,28 +23,51 @@ IVS = ['59A8BA40D07FB49D', '312DA80A9E073CF4',
        '0D6586089F9E49E5', '63BF7AEAD8393715',
        '7B9A02EE1954EA91', '4661559786ED2AEF',
        'F43A530B9820CFA8', '7DD52B5D1F784BC7',
-       '0000000000000000','FFFFFFFFFFFFFFFF']
+       '0000000000000000', 'FFFFFFFFFFFFFFFF']
 
-METHODS = ['OMA-PDCF-CBC', 'OMA-PDCF-CTR', 'ISMA-IAEC']
+METHODS = ['OMA-PDCF-CBC', 'OMA-PDCF-CTR', 'OMA-DCF-CBC', 'OMA-DCF-CTR', 'ISMA-IAEC']
 
-def DoEncrypt(input, key, iv, method, output):
-    if (method == 'ISMA-IAEC'):
+def DoDcfEncrypt(input, key, iv, method, output):
+    lmethod = {'OMA-DCF-CBC':'CBC', 'OMA-DCF-CTR':'CTR'}[method]
+    cmd = BIN_ROOT+'/mp4dcfpackager --method '+lmethod+' --content-type video/mp4 --content-id cid:bla@foo.bar --rights-issuer http://bla.com/1234 --key '+key+':'+iv+iv+' '+input+' '+output
+    print cmd
+    os.system(cmd)
+    
+def DoDcfDecrypt(input, key, output):
+    cmd = BIN_ROOT+"/mp4decrypt --key 1:"+key+' '+input+' '+output+'.tmp'
+    print cmd
+    os.system(cmd)
+    cmd = BIN_ROOT+'/mp4extract --payload-only odrm/odda '+output+'.tmp '+output+'.odda'
+    print cmd
+    os.system(cmd)
+    f1 = open(output+'.odda', 'rb')
+    f2 = open(output, 'wb+')
+    f2.truncate()
+    payload = f1.read()
+    f2.write(payload[8:])
+    f1.close()
+    f2.close()
+    os.unlink(output+'.tmp')
+    os.unlink(output+'.odda')
+    
+def DoMp4Encrypt(input, key, iv, method, output):
+    if method == 'ISMA-IAEC':
         options = ' --kms-uri http:foo.bar '
     else:
         options = ''
         
-    cmd = "mp4encrypt --method "+method+options+" --key 1:"+key+":"+iv+" --key 2:"+key+":"+iv+' "'+input+'" "'+output+'"'
+    cmd = BIN_ROOT+"/mp4encrypt --method "+method+options+" --key 1:"+key+":"+iv+" --key 2:"+key+":"+iv+' "'+input+'" "'+output+'"'
     print cmd
     os.system(cmd)
 
-def DoDecrypt(input, key, output):
-    cmd = "mp4decrypt --key 1:"+key+" --key 2:"+key+' "'+input+'" "'+output+'"'
+def DoMp4Decrypt(input, key, output):
+    cmd = BIN_ROOT+"/mp4decrypt --key 1:"+key+" --key 2:"+key+' "'+input+'" "'+output+'"'
     print cmd
     os.system(cmd)
 
 def DoCompare(file1,  file2):
-    f1 = open(file1)
-    f2 = open(file2)
+    f1 = open(file1, 'rb')
+    f2 = open(file2, 'rb')
     
     d1 = f1.read()
     d2 = f2.read()
@@ -61,7 +84,8 @@ def DoCleanup(files):
     for file in files:
         os.unlink(file)
         
-files = sys.argv[1:]
+BIN_ROOT = sys.argv[1]
+files = sys.argv[2:]
 counter = 0
 for key in KEYS:
     for iv in IVS:
@@ -72,7 +96,11 @@ for key in KEYS:
                 file_base = file+"."+method+"."+str(counter) 
                 enc_file = file_base+".enc.mp4"
                 dec_file = file_base+".dec.mp4"
-                DoEncrypt(file, key, iv, method, enc_file)
-                DoDecrypt(enc_file, key, dec_file)
+                if method.startswith('OMA-DCF'):
+                    DoDcfEncrypt(file, key, iv, method, enc_file)
+                    DoDcfDecrypt(enc_file, key, dec_file)
+                else:
+                    DoMp4Encrypt(file, key, iv, method, enc_file)
+                    DoMp4Decrypt(enc_file, key, dec_file)
                 DoCompare(file, dec_file)
                 DoCleanup([enc_file, dec_file])

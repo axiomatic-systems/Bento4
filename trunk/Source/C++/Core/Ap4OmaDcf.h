@@ -338,7 +338,10 @@ public:
     AP4_ProtectionKeyMap& GetKeyMap()      { return m_KeyMap;      }
     AP4_TrackPropertyMap& GetPropertyMap() { return m_PropertyMap; }
 
-    // methods
+    // AP4_Processor methods
+    virtual AP4_Result Initialize(AP4_AtomParent&   top_level,
+                                  AP4_ByteStream&   stream,
+                                  AP4_Processor::ProgressListener* listener = NULL);
     virtual AP4_Processor::TrackHandler* CreateTrackHandler(AP4_TrakAtom* trak);
 
 private:
