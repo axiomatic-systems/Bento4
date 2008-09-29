@@ -1,6 +1,6 @@
 ##########################################################################
 #
-#    Mp4Edit Program
+#    Mp4DcfPackager Program
 #
 #    (c) 2001-2008 Gilles Boccon-Gibod
 #

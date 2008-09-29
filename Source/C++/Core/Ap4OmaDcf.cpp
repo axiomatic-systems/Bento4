@@ -1130,7 +1130,7 @@ AP4_OmaDcfEncryptingProcessor::AP4_OmaDcfEncryptingProcessor(AP4_OmaDcfCipherMod
 +---------------------------------------------------------------------*/
 AP4_Result 
 AP4_OmaDcfEncryptingProcessor::Initialize(AP4_AtomParent&                  top_level,
-                                          AP4_ByteStream&                  stream,
+                                          AP4_ByteStream&                  /*stream*/,
                                           AP4_Processor::ProgressListener* /*listener*/)
 {
     AP4_FtypAtom* ftyp = dynamic_cast<AP4_FtypAtom*>(top_level.GetChild(AP4_ATOM_TYPE_FTYP));
