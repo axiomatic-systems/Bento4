@@ -1100,7 +1100,8 @@ AP4_OmaDcfDecryptingProcessor::Initialize(AP4_AtomParent&   top_level,
     // decide which processor to instantiate based on the file type
     AP4_FtypAtom* ftyp = dynamic_cast<AP4_FtypAtom*>(top_level.GetChild(AP4_ATOM_TYPE_FTYP));
     if (ftyp) {
-        if (ftyp->GetMajorBrand() == AP4_OMA_DCF_BRAND_ODCF || ftyp->HasCompatibleBrand(AP4_OMA_DCF_BRAND_ODCF)) {
+        if (ftyp->GetMajorBrand() == AP4_OMA_DCF_BRAND_ODCF || ftyp->HasCompatibleBrand(AP4_OMA_DCF_BRAND_ODCF) ||
+            ftyp->GetMajorBrand() == AP4_OMA_DCF_BRAND_OPF2 || ftyp->HasCompatibleBrand(AP4_OMA_DCF_BRAND_OPF2)) {
             return AP4_OmaDcfAtomDecrypter::DecryptAtoms(top_level, listener, m_BlockCipherFactory, m_KeyMap);
         } else {
             return AP4_ERROR_INVALID_FORMAT;
@@ -1122,6 +1123,47 @@ AP4_OmaDcfEncryptingProcessor::AP4_OmaDcfEncryptingProcessor(AP4_OmaDcfCipherMod
     } else {
         m_BlockCipherFactory = block_cipher_factory;
     }
+}
+
+/*----------------------------------------------------------------------
+|   AP4_OmaDcfEncryptingProcessor::Initialize
++---------------------------------------------------------------------*/
+AP4_Result 
+AP4_OmaDcfEncryptingProcessor::Initialize(AP4_AtomParent&                  top_level,
+                                          AP4_ByteStream&                  stream,
+                                          AP4_Processor::ProgressListener* /*listener*/)
+{
+    AP4_FtypAtom* ftyp = dynamic_cast<AP4_FtypAtom*>(top_level.GetChild(AP4_ATOM_TYPE_FTYP));
+    if (ftyp) {
+        // remove the atom, it will be replaced with a new one
+        top_level.RemoveChild(ftyp);
+        
+        // keep the existing brand and compatible brands
+        AP4_Array<AP4_UI32> compatible_brands;
+        compatible_brands.EnsureCapacity(ftyp->GetCompatibleBrands().ItemCount()+1);
+        for (unsigned int i=0; i<ftyp->GetCompatibleBrands().ItemCount(); i++) {
+            compatible_brands.Append(ftyp->GetCompatibleBrands()[i]);
+        }
+        
+        // add the OMA compatible brand if it is not already there
+        if (!ftyp->HasCompatibleBrand(AP4_OMA_DCF_BRAND_OPF2)) {
+            compatible_brands.Append(AP4_OMA_DCF_BRAND_OPF2);
+        }
+
+        // create a replacement
+        AP4_FtypAtom* new_ftyp = new AP4_FtypAtom(ftyp->GetMajorBrand(),
+                                                  ftyp->GetMinorVersion(),
+                                                  &compatible_brands[0],
+                                                  compatible_brands.ItemCount());
+        delete ftyp;
+        ftyp = new_ftyp;
+    } else {
+        AP4_UI32 isom = AP4_FTYP_BRAND_ISOM;
+        ftyp = new AP4_FtypAtom(AP4_OMA_DCF_BRAND_OPF2, 0, &isom, 1);
+    }
+    
+    // insert the ftyp atom as the first child
+    return top_level.AddChild(ftyp, 0);
 }
 
 /*----------------------------------------------------------------------

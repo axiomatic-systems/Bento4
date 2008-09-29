@@ -2,7 +2,7 @@
 |
 |    AP4 - MP4 Encrypter
 |
-|    Copyright 2005 Gilles Boccon-Gibod
+|    Copyright 2005-2008 Gilles Boccon-Gibod
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -37,7 +37,7 @@
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-#define BANNER "MP4 Encrypter - Version 1.0\n"\
+#define BANNER "MP4 Encrypter - Version 1.1\n"\
                "(Bento4 Version " AP4_VERSION_STRING ")\n"\
                "(c) 2002-2008 Gilles Boccon-Gibod & Julien Boeuf"
 
@@ -69,7 +69,7 @@ PrintUsageAndExit()
         "\n"
         "  Method Specifics:\n"
         "    OMA-PDCF-CBC and OMA-PDCF-CTR: the <iv> must be a 64-bit hex string.\n"
-        "    ISMA-IAEC: the <iv> must be a 64-bit hex string."
+        "    ISMA-IAEC: the <iv> must be a 64-bit hex string.\n"
         );
     exit(1);
 }

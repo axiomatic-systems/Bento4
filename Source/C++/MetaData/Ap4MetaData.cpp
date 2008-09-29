@@ -729,7 +729,9 @@ AP4_MetaData::Entry::ToAtom() const
             AP4_MetaDataAtomTypeHandler::DcfStringTypeList)) {
             AP4_String atom_value = m_Value->ToString();
             return new AP4_DcfStringAtom(atom_type, atom_value.GetChars());
-        }
+        } else if (atom_type == AP4_ATOM_TYPE_DCFD) {
+            return new AP4_DcfdAtom(m_Value->ToInteger());
+        } 
     } else {
         // create a '----' atom
         AP4_ContainerAtom* atom = new AP4_ContainerAtom(AP4_ATOM_TYPE_dddd);
@@ -987,7 +989,9 @@ AP4_StringMetaDataValue::ToInteger() const
 AP4_String
 AP4_IntegerMetaDataValue::ToString() const
 {
-    return AP4_String(); // not supported
+    char value[16];
+    AP4_FormatString(value, sizeof(value), "%ld", m_Value);
+    return AP4_String(value);
 }
 
 /*----------------------------------------------------------------------
@@ -1641,6 +1645,15 @@ AP4_DcfdAtom::AP4_DcfdAtom(AP4_UI32        version,
     AP4_Atom(AP4_ATOM_TYPE_DCFD, AP4_FULL_ATOM_HEADER_SIZE+4, version, flags)
 {
     stream.ReadUI32(m_Duration);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_DcfdAtom::AP4_DcfdAtom
++---------------------------------------------------------------------*/
+AP4_DcfdAtom::AP4_DcfdAtom(AP4_UI32 duration) :
+    AP4_Atom(AP4_ATOM_TYPE_DCFD, AP4_FULL_ATOM_HEADER_SIZE+4, 0, 0),
+    m_Duration(duration)
+{
 }
 
 /*----------------------------------------------------------------------
