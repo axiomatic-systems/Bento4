@@ -216,7 +216,8 @@ AP4_Atom::Write(AP4_ByteStream& stream)
 #if defined(AP4_DEBUG)
     AP4_Position after;
     stream.Tell(after);
-    AP4_ASSERT(after-before == GetSize());
+    AP4_UI64 atom_size = GetSize();
+    AP4_ASSERT(after-before == atom_size);
 #endif
 
     return AP4_SUCCESS;
