@@ -50,7 +50,7 @@ AP4_StscAtom::Create(AP4_Size size, AP4_ByteStream& stream)
 |   AP4_StscAtom::AP4_StscAtom
 +---------------------------------------------------------------------*/
 AP4_StscAtom::AP4_StscAtom() :
-    AP4_Atom(AP4_ATOM_TYPE_STSC, AP4_FULL_ATOM_HEADER_SIZE+4),   
+    AP4_Atom(AP4_ATOM_TYPE_STSC, AP4_FULL_ATOM_HEADER_SIZE+4, 0, 0),   
     m_CachedChunkGroup(0)
 {
 }

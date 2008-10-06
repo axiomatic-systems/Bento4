@@ -56,22 +56,23 @@ AP4_AvccAtom::GetProfileName(AP4_UI08 profile)
 /*----------------------------------------------------------------------
 |   AP4_AvccAtom::AP4_AvccAtom
 +---------------------------------------------------------------------*/
-AP4_AvccAtom::AP4_AvccAtom(AP4_UI08 config_version, 
-                           AP4_UI08 profile, 
-                           AP4_UI08 level, 
-                           AP4_UI08 profile_compatibility, 
-                           AP4_UI08 length_size, 
-                           AP4_Array<AP4_DataBuffer> sequence_parameters, 
-                           AP4_Array<AP4_DataBuffer> picture_parameters) :
-    AP4_Atom(AP4_ATOM_TYPE_AVCC, AP4_ATOM_HEADER_SIZE+4),
-    m_ConfigurationVersion(config_version),
-    m_Profile(profile),
-    m_Level(level),
-    m_ProfileCompatibility(profile_compatibility),
-    m_NaluLengthSize(length_size),
-    m_SequenceParameters(sequence_parameters),
-    m_PictureParameters(picture_parameters)
+AP4_AvccAtom::AP4_AvccAtom(const AP4_AvccAtom& other) :
+    AP4_Atom(AP4_ATOM_TYPE_AVCC, other.m_Size32),
+    m_ConfigurationVersion (other.m_ConfigurationVersion),
+    m_Profile(other.m_Profile),
+    m_Level(other.m_Level),
+    m_ProfileCompatibility(other.m_ProfileCompatibility),
+    m_NaluLengthSize(other.m_NaluLengthSize),
+    m_RawBytes(other.m_RawBytes)
 {
+    // deep copy of the parameters
+    unsigned int i = 0;
+    for (i=0; i<other.m_SequenceParameters.ItemCount(); i++) {
+        m_SequenceParameters.Append(other.m_SequenceParameters[i]);
+    }
+    for (i=0; i<other.m_PictureParameters.ItemCount(); i++) {
+        m_PictureParameters.Append(other.m_PictureParameters[i]);
+    }    
 }
 
 /*----------------------------------------------------------------------
@@ -115,6 +116,37 @@ AP4_AvccAtom::AP4_AvccAtom(AP4_UI32 size, AP4_ByteStream& stream) :
         stream.Read(m_PictureParameters[i].UseData(), param_length);
     }
 }
+
+
+/*----------------------------------------------------------------------
+|   AP4_AvccAtom::AP4_AvccAtom
++---------------------------------------------------------------------*/
+AP4_AvccAtom::AP4_AvccAtom(AP4_UI08 config_version, 
+                           AP4_UI08 profile, 
+                           AP4_UI08 level, 
+                           AP4_UI08 profile_compatibility, 
+                           AP4_UI08 length_size, 
+                           const AP4_Array<AP4_DataBuffer>& sequence_parameters, 
+                           const AP4_Array<AP4_DataBuffer>& picture_parameters) :
+    AP4_Atom(AP4_ATOM_TYPE_AVCC, AP4_ATOM_HEADER_SIZE+7),
+    m_ConfigurationVersion(config_version),
+    m_Profile(profile),
+    m_Level(level),
+    m_ProfileCompatibility(profile_compatibility),
+    m_NaluLengthSize(length_size)
+{
+    // deep copy of the parameters
+    unsigned int i = 0;
+    for (i=0; i<sequence_parameters.ItemCount(); i++) {
+        m_SequenceParameters.Append(sequence_parameters[i]);
+        m_Size32 += 2+sequence_parameters[i].GetDataSize();
+    }
+    for (i=0; i<picture_parameters.ItemCount(); i++) {
+        m_PictureParameters.Append(picture_parameters[i]);
+        m_Size32 += 2+picture_parameters[i].GetDataSize();
+    }    
+}
+
 
 /*----------------------------------------------------------------------
 |   AP4_AvccAtom::WriteFields

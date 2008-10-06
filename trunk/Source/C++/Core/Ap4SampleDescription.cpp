@@ -32,6 +32,7 @@
 #include "Ap4SampleDescription.h"
 #include "Ap4EsDescriptor.h"
 #include "Ap4SampleEntry.h"
+#include "Ap4AvccAtom.h"
 
 /*----------------------------------------------------------------------
 |   AP4_SampleDescription::AP4_SampleDescription
@@ -61,6 +62,59 @@ AP4_Atom*
 AP4_SampleDescription::ToAtom() const
 {
     return new AP4_SampleEntry(m_Format);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_AvcSampleDescription::AP4_AvcSampleDescription
++---------------------------------------------------------------------*/
+AP4_AvcSampleDescription::AP4_AvcSampleDescription(AP4_UI16     width,
+                                                   AP4_UI16     height,
+                                                   AP4_UI16     depth,
+                                                   const char*  compressor_name,
+                                                   AP4_UI08     config_version,
+                                                   AP4_UI08     profile,
+                                                   AP4_UI08     level,
+                                                   AP4_UI08     profile_compatibility,
+                                                   AP4_UI08     length_size,
+                                                   const AP4_Array<AP4_DataBuffer>& sequence_parameters,
+                                                   const AP4_Array<AP4_DataBuffer>& picture_parameters) :
+    AP4_SampleDescription(TYPE_AVC, AP4_SAMPLE_FORMAT_AVC1, NULL),
+    AP4_VideoSampleDescription(width, height, depth, compressor_name),
+    m_AvccAtom(config_version, 
+               profile, 
+               level, 
+               profile_compatibility,
+               length_size,
+               sequence_parameters,
+               picture_parameters)
+{
+}
+
+/*----------------------------------------------------------------------
+|   AP4_AvcSampleDescription::AP4_AvcSampleDescription
++---------------------------------------------------------------------*/
+AP4_AvcSampleDescription::AP4_AvcSampleDescription(AP4_UI16            width,
+                                                   AP4_UI16            height,
+                                                   AP4_UI16            depth,
+                                                   const char*         compressor_name,
+                                                   const AP4_AvccAtom& avcc) :
+    AP4_SampleDescription(TYPE_AVC, AP4_SAMPLE_FORMAT_AVC1, NULL),
+    AP4_VideoSampleDescription(width, height, depth, compressor_name),
+    m_AvccAtom(avcc) // copy
+{
+}
+
+/*----------------------------------------------------------------------
+|   AP4_AvcSampleDescription::ToAtom
++---------------------------------------------------------------------*/
+AP4_Atom*
+AP4_AvcSampleDescription::ToAtom() const
+{
+    return new AP4_Avc1SampleEntry(m_Width, 
+                                   m_Height, 
+                                   m_Depth, 
+                                   m_CompressorName.GetChars(), 
+                                   m_AvccAtom);
 }
 
 /*----------------------------------------------------------------------

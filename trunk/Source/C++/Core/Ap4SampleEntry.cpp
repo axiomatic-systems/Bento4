@@ -34,6 +34,7 @@
 #include "Ap4AtomFactory.h"
 #include "Ap4TimsAtom.h"
 #include "Ap4SampleDescription.h"
+#include "Ap4AvccAtom.h"
 
 /*----------------------------------------------------------------------
 |   AP4_SampleEntry::AP4_SampleEntry
@@ -898,16 +899,18 @@ AP4_Mp4vSampleEntry::AP4_Mp4vSampleEntry(AP4_Size         size,
 /*----------------------------------------------------------------------
 |   AP4_Avc1SampleEntry::AP4_Avc1SampleEntry
 +---------------------------------------------------------------------*/
-AP4_Avc1SampleEntry::AP4_Avc1SampleEntry(AP4_UI16    width,
-                                         AP4_UI16    height,
-                                         AP4_UI16    depth,
-                                         const char* compressor_name) :
+AP4_Avc1SampleEntry::AP4_Avc1SampleEntry(AP4_UI16             width,
+                                         AP4_UI16             height,
+                                         AP4_UI16             depth,
+                                         const char*          compressor_name,
+                                         const AP4_AvccAtom&  avcc) :
     AP4_VisualSampleEntry(AP4_ATOM_TYPE_AVC1, 
                           width, 
                           height, 
                           depth, 
                           compressor_name)
 {
+    AddChild(new AP4_AvccAtom(avcc));    
 }
 
 /*----------------------------------------------------------------------
@@ -918,6 +921,20 @@ AP4_Avc1SampleEntry::AP4_Avc1SampleEntry(AP4_Size         size,
                                          AP4_AtomFactory& atom_factory) :
     AP4_VisualSampleEntry(AP4_ATOM_TYPE_AVC1, size, stream, atom_factory)
 {
+}
+
+/*----------------------------------------------------------------------
+|   AP4_Avc1SampleEntry::ToSampleDescription
++---------------------------------------------------------------------*/
+AP4_SampleDescription*
+AP4_Avc1SampleEntry::ToSampleDescription()
+{
+    return new AP4_AvcSampleDescription(
+        m_Width,
+        m_Height,
+        m_Depth,
+        m_CompressorName.GetChars(),
+        *dynamic_cast<AP4_AvccAtom*>(GetChild(AP4_ATOM_TYPE_AVCC)));
 }
 
 /*----------------------------------------------------------------------

@@ -213,6 +213,19 @@ ShowSampleDescription(AP4_SampleDescription* desc)
             if (mpeg_audio_desc) ShowMpegAudioSampleDescription(mpeg_audio_desc);
         }
     }
+    if (desc->GetType() == AP4_SampleDescription::TYPE_AVC) {
+        // AVC Sample Description
+        AP4_AvcSampleDescription* avc_desc = dynamic_cast<AP4_AvcSampleDescription*>(desc);
+        const char* profile_name = AP4_AvccAtom::GetProfileName(avc_desc->GetProfile());
+        if (profile_name) {
+            AP4_Debug("    AVC Profile:          %s\n", profile_name);
+        } else {
+            AP4_Debug("    AVC Profile:          %d\n", avc_desc->GetProfile());
+        }
+        AP4_Debug("    AVC Profile Compat:   %x\n", avc_desc->GetProfileCompatibility());
+        AP4_Debug("    AVC Level:            %d\n", avc_desc->GetLevel());
+        AP4_Debug("    AVC NALU Length Size: %d\n", avc_desc->GetNaluLengthSize());
+    }
     AP4_AudioSampleDescription* audio_desc = 
         dynamic_cast<AP4_AudioSampleDescription*>(desc);
     if (audio_desc) {
@@ -228,21 +241,6 @@ ShowSampleDescription(AP4_SampleDescription* desc)
         AP4_Debug("    Width:       %d\n", video_desc->GetWidth());
         AP4_Debug("    Height:      %d\n", video_desc->GetHeight());
         AP4_Debug("    Depth:       %d\n", video_desc->GetDepth());
-    }
-    if (desc->GetFormat() == AP4_ATOM_TYPE_AVC1) {
-        // AVC sample description
-        AP4_AvccAtom* avcc = (AP4_AvccAtom*)desc->GetDetails().GetChild(AP4_ATOM_TYPE_AVCC);
-        if (avcc) {
-            const char* profile_name = AP4_AvccAtom::GetProfileName(avcc->GetProfile());
-            if (profile_name) {
-                AP4_Debug("    AVC Profile:          %s\n", profile_name);
-            } else {
-                AP4_Debug("    AVC Profile:          %d\n", avcc->GetProfile());
-            }
-            AP4_Debug("    AVC Profile Compat:   %x\n", avcc->GetProfileCompatibility());
-            AP4_Debug("    AVC Level:            %d\n", avcc->GetLevel());
-            AP4_Debug("    AVC NALU Length Size: %d\n", avcc->GetNaluLengthSize());
-        }
     }
 }
 
