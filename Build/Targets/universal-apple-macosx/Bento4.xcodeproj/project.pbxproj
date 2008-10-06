@@ -36,6 +36,7 @@
 			);
 			dependencies = (
 				CA646B860CE97EFC009699D7 /* PBXTargetDependency */,
+				F9DBC8030E99B01200913BF6 /* PBXTargetDependency */,
 			);
 			name = Tests;
 			productName = Tests;
@@ -261,6 +262,8 @@
 		CAEDC8FB0DFF61AE00F070A8 /* Ap4Command.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAEDC8FA0DFF61AE00F070A8 /* Ap4Command.cpp */; };
 		F9B1F4FB0B54AD91003F147E /* Ap4AvccAtom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F9B1F4F90B54AD91003F147E /* Ap4AvccAtom.cpp */; };
 		F9B1F4FC0B54AD91003F147E /* Ap4AvccAtom.h in Headers */ = {isa = PBXBuildFile; fileRef = F9B1F4FA0B54AD91003F147E /* Ap4AvccAtom.h */; };
+		F9DBC8010E99B00100913BF6 /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
+		F9DBC8060E99B05000913BF6 /* AvcTrackWriterTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F9DBC8050E99B05000913BF6 /* AvcTrackWriterTest.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -458,6 +461,20 @@
 			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = D2AAC045055464E500DB518D;
+			remoteInfo = Bento4;
+		};
+		F9DBC8020E99B01200913BF6 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = F9DBC7FC0E99AFE100913BF6 /* AvcTrackWriterTest */;
+			remoteInfo = AvcTrackWriterTest;
+		};
+		F9DBC80E0E99BBCB00913BF6 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D2AAC045055464E500DB518D /* Bento4 */;
 			remoteInfo = Bento4;
 		};
 /* End PBXContainerItemProxy section */
@@ -672,6 +689,8 @@
 		D2AAC046055464E500DB518D /* libBento4.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libBento4.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		F9B1F4F90B54AD91003F147E /* Ap4AvccAtom.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4AvccAtom.cpp; sourceTree = "<group>"; };
 		F9B1F4FA0B54AD91003F147E /* Ap4AvccAtom.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = Ap4AvccAtom.h; sourceTree = "<group>"; };
+		F9DBC7FD0E99AFE100913BF6 /* avctrackwritertest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = avctrackwritertest; sourceTree = BUILT_PRODUCTS_DIR; };
+		F9DBC8050E99B05000913BF6 /* AvcTrackWriterTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AvcTrackWriterTest.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -793,6 +812,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		F9DBC7FB0E99AFE100913BF6 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F9DBC8010E99B00100913BF6 /* libBento4.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -839,6 +866,7 @@
 				CA646B6A0CE97E82009699D7 /* cryptotest */,
 				CA3EDA7E0D7E0B81007AE943 /* avcinfo */,
 				CAEA9CE40E144664008C396D /* libBento4Atomix.a */,
+				F9DBC7FD0E99AFE100913BF6 /* avctrackwritertest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -969,6 +997,7 @@
 		CA646A9B0CE97B51009699D7 /* Test */ = {
 			isa = PBXGroup;
 			children = (
+				F9DBC7F70E99AF7D00913BF6 /* Avc */,
 				CA646A9C0CE97B51009699D7 /* Crypto */,
 			);
 			name = Test;
@@ -1211,6 +1240,14 @@
 			name = Adapters;
 			path = "../../../Source/C++/Adapters";
 			sourceTree = SOURCE_ROOT;
+		};
+		F9DBC7F70E99AF7D00913BF6 /* Avc */ = {
+			isa = PBXGroup;
+			children = (
+				F9DBC8050E99B05000913BF6 /* AvcTrackWriterTest.cpp */,
+			);
+			path = Avc;
+			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
@@ -1581,6 +1618,23 @@
 			productReference = D2AAC046055464E500DB518D /* libBento4.a */;
 			productType = "com.apple.product-type.library.static";
 		};
+		F9DBC7FC0E99AFE100913BF6 /* AvcTrackWriterTest */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F9DBC8040E99B03000913BF6 /* Build configuration list for PBXNativeTarget "AvcTrackWriterTest" */;
+			buildPhases = (
+				F9DBC7FA0E99AFE100913BF6 /* Sources */,
+				F9DBC7FB0E99AFE100913BF6 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				F9DBC80F0E99BBCB00913BF6 /* PBXTargetDependency */,
+			);
+			name = AvcTrackWriterTest;
+			productName = AvcTrackWriterTest;
+			productReference = F9DBC7FD0E99AFE100913BF6 /* avctrackwritertest */;
+			productType = "com.apple.product-type.tool";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -1611,6 +1665,7 @@
 				CA646B500CE97E52009699D7 /* Mp4RtpHintInfo */,
 				CA646B600CE97E82009699D7 /* CryptoTest */,
 				CA3EDA7D0D7E0B81007AE943 /* AvcInfo */,
+				F9DBC7FC0E99AFE100913BF6 /* AvcTrackWriterTest */,
 			);
 		};
 /* End PBXProject section */
@@ -1820,6 +1875,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		F9DBC7FA0E99AFE100913BF6 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F9DBC8060E99B05000913BF6 /* AvcTrackWriterTest.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -1962,6 +2025,16 @@
 			isa = PBXTargetDependency;
 			target = D2AAC045055464E500DB518D /* Bento4 */;
 			targetProxy = CAEA9CFD0E144993008C396D /* PBXContainerItemProxy */;
+		};
+		F9DBC8030E99B01200913BF6 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = F9DBC7FC0E99AFE100913BF6 /* AvcTrackWriterTest */;
+			targetProxy = F9DBC8020E99B01200913BF6 /* PBXContainerItemProxy */;
+		};
+		F9DBC80F0E99BBCB00913BF6 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D2AAC045055464E500DB518D /* Bento4 */;
+			targetProxy = F9DBC80E0E99BBCB00913BF6 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -2500,6 +2573,36 @@
 			};
 			name = Release;
 		};
+		F9DBC7FF0E99AFE200913BF6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				INSTALL_PATH = /usr/local/bin;
+				PREBINDING = NO;
+				PRODUCT_NAME = avctrackwritertest;
+			};
+			name = Debug;
+		};
+		F9DBC8000E99AFE200913BF6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_MODEL_TUNING = G5;
+				INSTALL_PATH = /usr/local/bin;
+				PREBINDING = NO;
+				PRODUCT_NAME = avctrackwritertest;
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -2670,6 +2773,15 @@
 			buildConfigurations = (
 				CAEA9CE50E144665008C396D /* Debug */,
 				CAEA9CE60E144665008C396D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		F9DBC8040E99B03000913BF6 /* Build configuration list for PBXNativeTarget "AvcTrackWriterTest" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F9DBC7FF0E99AFE200913BF6 /* Debug */,
+				F9DBC8000E99AFE200913BF6 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

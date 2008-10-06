@@ -46,6 +46,7 @@ const AP4_UI08 AP4_AVC_PROFILE_HIGH_10  = 110;
 const AP4_UI08 AP4_AVC_PROFILE_HIGH_422 = 122;
 const AP4_UI08 AP4_AVC_PROFILE_HIGH_444 = 144;
 
+
 /*----------------------------------------------------------------------
 |   AP4_AvccAtom
 +---------------------------------------------------------------------*/
@@ -58,14 +59,17 @@ public:
     }
     static const char* GetProfileName(AP4_UI08 profile);
 
-    // methods
+    // constructors
     AP4_AvccAtom(AP4_UI08 config_version,
                  AP4_UI08 profile,
                  AP4_UI08 level,
                  AP4_UI08 profile_compatibility,
                  AP4_UI08 length_size,
-                 AP4_Array<AP4_DataBuffer> sequence_parameters,
-                 AP4_Array<AP4_DataBuffer> picture_parameters);
+                 const AP4_Array<AP4_DataBuffer>& sequence_parameters,
+                 const AP4_Array<AP4_DataBuffer>& picture_parameters);
+    AP4_AvccAtom(const AP4_AvccAtom& other); // copy construtor
+    
+    // methods
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
 
@@ -94,4 +98,4 @@ private:
     AP4_DataBuffer            m_RawBytes;
 };
 
-#endif // _AP4_TIMS_ATOM_H_
+#endif // _AP4_AVCC_ATOM_H_

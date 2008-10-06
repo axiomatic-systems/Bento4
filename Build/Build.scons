@@ -147,6 +147,7 @@ for name in ['Mp4Dump', 'Mp4Info', 'Mp4Edit', 'Mp4Encrypt', 'Mp4Decrypt', 'Mp4Ta
 
 Executable('Aac2Mp4', source_dir='C++/Apps/Aac2Mp4', extra_deps='CodecsLib')
 Executable('CryptoTest', source_dir='C++/Test/Crypto')
+Executable('AvcTrackWriterTest', source_dir='C++/Test/Avc')
 
 ### python bindings with SWIG
 if env['python_bindings']:    

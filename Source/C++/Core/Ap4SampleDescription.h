@@ -36,6 +36,8 @@
 #include "Ap4Atom.h"
 #include "Ap4EsDescriptor.h"
 #include "Ap4EsdsAtom.h"
+#include "Ap4Array.h"
+#include "Ap4AvccAtom.h"
 
 /*----------------------------------------------------------------------
 |   class references
@@ -61,7 +63,8 @@ class AP4_SampleDescription
     enum Type {
         TYPE_UNKNOWN   = 0x00,
         TYPE_MPEG      = 0x01,
-        TYPE_PROTECTED = 0x02
+        TYPE_PROTECTED = 0x02,
+        TYPE_AVC       = 0x03
     };
 
     // constructors & destructor
@@ -173,6 +176,54 @@ public:
                                       AP4_AtomParent* details) :
     AP4_SampleDescription(TYPE_UNKNOWN, format, details),
     AP4_VideoSampleDescription(width, height, depth, compressor_name) {}
+};
+
+/*----------------------------------------------------------------------
+|   AP4_AvcSampleDescription
++---------------------------------------------------------------------*/
+class AP4_AvcSampleDescription : public AP4_SampleDescription,
+                                 public AP4_VideoSampleDescription
+{
+public:
+    // constructors
+    AP4_AvcSampleDescription(AP4_UI16             width,
+                             AP4_UI16             height,
+                             AP4_UI16             depth,
+                             const char*          compressor_name,
+                             const AP4_AvccAtom&  avcc);
+    
+    AP4_AvcSampleDescription(AP4_UI16                         width,
+                             AP4_UI16                         height,
+                             AP4_UI16                         depth,
+                             const char*                      compressor_name,
+                             AP4_UI08                         config_version,
+                             AP4_UI08                         profile,
+                             AP4_UI08                         level,
+                             AP4_UI08                         profile_compatibility,
+                             AP4_UI08                         nalu_length_size,
+                             const AP4_Array<AP4_DataBuffer>& sequence_parameters,
+                             const AP4_Array<AP4_DataBuffer>& picture_parameters);
+    
+    // accessors
+    AP4_UI08 GetConfigurationVersion() const { return m_AvccAtom.GetConfigurationVersion(); }
+    AP4_UI08 GetProfile() const { return m_AvccAtom.GetProfile(); }
+    AP4_UI08 GetLevel() const { return m_AvccAtom.GetLevel(); }
+    AP4_UI08 GetProfileCompatibility() const { return m_AvccAtom.GetProfileCompatibility(); }
+    AP4_UI08 GetNaluLengthSize() const { return m_AvccAtom.GetNaluLengthSize(); }
+    AP4_Array<AP4_DataBuffer>& GetSequenceParameters() {return m_AvccAtom.GetSequenceParameters(); }
+    AP4_Array<AP4_DataBuffer>& GetPictureParameters() { return m_AvccAtom.GetPictureParameters(); }
+    const AP4_DataBuffer& GetRawBytes() const { return m_AvccAtom.GetRawBytes(); }
+    
+    // inherited from AP4_SampleDescription
+    virtual AP4_Atom* ToAtom() const;
+    
+    // static methods
+    static const char* GetProfileName(AP4_UI08 profile) {
+        return AP4_AvccAtom::GetProfileName(profile);
+    }
+
+private:
+    AP4_AvccAtom  m_AvccAtom;
 };
 
 /*----------------------------------------------------------------------

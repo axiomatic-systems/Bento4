@@ -43,6 +43,7 @@
 |   class references
 +---------------------------------------------------------------------*/
 class AP4_SampleDescription;
+class AP4_AvccAtom;
 
 /*----------------------------------------------------------------------
 |   AP4_SampleEntry
@@ -305,7 +306,7 @@ class AP4_Mp4vSampleEntry : public AP4_MpegVideoSampleEntry
                         AP4_UI16          height,
                         AP4_UI16          depth,
                         const char*       compressor_name,
-                        AP4_EsDescriptor* descriptor);
+                        AP4_EsDescriptor* descriptor);                        
 };
 
 /*----------------------------------------------------------------------
@@ -318,10 +319,14 @@ public:
     AP4_Avc1SampleEntry(AP4_Size         size,
                         AP4_ByteStream&  stream,
                         AP4_AtomFactory& atom_factory);
-    AP4_Avc1SampleEntry(AP4_UI16    width,
-                        AP4_UI16    height,
-                        AP4_UI16    depth,
-                        const char* compressor_name);
+    AP4_Avc1SampleEntry(AP4_UI16            width,
+                        AP4_UI16            height,
+                        AP4_UI16            depth,
+                        const char*         compressor_name,
+                        const AP4_AvccAtom& avcc);
+                        
+    // inherited from AP4_SampleEntry
+    virtual AP4_SampleDescription* ToSampleDescription();
 };
 
 /*----------------------------------------------------------------------
