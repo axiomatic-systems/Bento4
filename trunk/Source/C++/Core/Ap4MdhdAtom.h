@@ -61,7 +61,9 @@ public:
 
     AP4_UI32          GetDurationMs();
     AP4_UI32          GetDuration()  { return m_Duration;  }
+    void              SetDuration(AP4_UI32 duration) { m_Duration = duration; }
     AP4_UI32          GetTimeScale() { return m_TimeScale; }
+    void              SetTimeScale(AP4_UI32 timescale) { m_TimeScale = timescale; }
     const AP4_String& GetLanguage()  { return m_Language;  }
 
 private:

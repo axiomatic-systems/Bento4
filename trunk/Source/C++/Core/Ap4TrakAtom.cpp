@@ -31,6 +31,7 @@
 +---------------------------------------------------------------------*/
 #include "Ap4TrakAtom.h"
 #include "Ap4MdhdAtom.h"
+#include "Ap4TkhdAtom.h"
 #include "Ap4HdlrAtom.h"
 #include "Ap4VmhdAtom.h"
 #include "Ap4SmhdAtom.h"
@@ -123,14 +124,14 @@ AP4_TrakAtom::AP4_TrakAtom(AP4_SampleTable* sample_table,
     if (stbl) minf->AddChild(stbl);
 
     // create a mdhd atom for the mdia atom
-    AP4_MdhdAtom* mdhd = new AP4_MdhdAtom(creation_time,
-                                          modification_time,
-                                          media_time_scale,
-                                          media_duration,
-                                          language);
+    m_MdhdAtom = new AP4_MdhdAtom(creation_time,
+                                  modification_time,
+                                  media_time_scale,
+                                  media_duration,
+                                  language);
 
     // populate the mdia atom
-    mdia->AddChild(mdhd);
+    mdia->AddChild(m_MdhdAtom);
     mdia->AddChild(hdlr);
     mdia->AddChild(minf);
 
@@ -148,6 +149,53 @@ AP4_TrakAtom::AP4_TrakAtom(AP4_UI32         size,
     AP4_ContainerAtom(AP4_ATOM_TYPE_TRAK, size, false, stream, atom_factory)
 {
     m_TkhdAtom = dynamic_cast<AP4_TkhdAtom*>(FindChild("tkhd"));
+    m_MdhdAtom = dynamic_cast<AP4_MdhdAtom*>(FindChild("mdia/mdhd"));
+}
+
+/*----------------------------------------------------------------------
+|   AP4_TrakAtom::GetId
++---------------------------------------------------------------------*/
+AP4_UI32
+AP4_TrakAtom::GetId()
+{
+    return m_TkhdAtom?m_TkhdAtom->GetTrackId():0; 
+}
+
+/*----------------------------------------------------------------------
+|   AP4_TrakAtom::SetId
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_TrakAtom::SetId(AP4_UI32 id)
+{
+    if (m_TkhdAtom) {
+        m_TkhdAtom->SetTrackId(id); 
+        return AP4_SUCCESS;
+    } else {
+        return AP4_ERROR_INVALID_STATE;
+    }
+}
+
+/*----------------------------------------------------------------------
+|   AP4_TrakAtom::GetMediaTimeScale
++---------------------------------------------------------------------*/
+AP4_UI32
+AP4_TrakAtom::GetMediaTimeScale()
+{
+    return m_MdhdAtom?m_MdhdAtom->GetTimeScale():0; 
+}
+
+/*----------------------------------------------------------------------
+|   AP4_TrakAtom::SetMediaTimeScale
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_TrakAtom::SetMediaTimeScale(AP4_UI32 timescale)
+{
+    if (m_MdhdAtom) {
+        m_MdhdAtom->SetTimeScale(timescale); 
+        return AP4_SUCCESS;
+    } else {
+        return AP4_ERROR_INVALID_STATE;
+    }
 }
 
 /*----------------------------------------------------------------------
@@ -156,11 +204,7 @@ AP4_TrakAtom::AP4_TrakAtom(AP4_UI32         size,
 AP4_UI32
 AP4_TrakAtom::GetDuration()
 {
-    if (m_TkhdAtom) {
-        return m_TkhdAtom->GetDuration();
-    } else {
-        return 0;
-    }
+    return m_TkhdAtom?m_TkhdAtom->GetDuration():0;
 }
 
 /*----------------------------------------------------------------------
@@ -170,9 +214,33 @@ AP4_Result
 AP4_TrakAtom::SetDuration(AP4_UI32 duration)
 {
     if (m_TkhdAtom) {
-        return m_TkhdAtom->SetDuration(duration);
+        m_TkhdAtom->SetDuration(duration);
+        return AP4_SUCCESS;
     } else {
-        return AP4_FAILURE;
+        return AP4_ERROR_INVALID_STATE;
+    }
+}
+
+/*----------------------------------------------------------------------
+|   AP4_TrakAtom::GetMediaDuration
++---------------------------------------------------------------------*/
+AP4_UI32
+AP4_TrakAtom::GetMediaDuration()
+{
+    return m_MdhdAtom?m_MdhdAtom->GetDuration():0;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_TrakAtom::SetMediaDuration
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_TrakAtom::SetMediaDuration(AP4_UI32 duration)
+{
+    if (m_MdhdAtom) {
+        m_MdhdAtom->SetDuration(duration);
+        return AP4_SUCCESS;
+    } else {
+        return AP4_ERROR_INVALID_STATE;
     }
 }
 

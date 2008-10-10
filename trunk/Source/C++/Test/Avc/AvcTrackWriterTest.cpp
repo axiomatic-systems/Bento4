@@ -101,39 +101,37 @@ main(int argc, char** argv)
         argv[2],
         AP4_FileByteStream::STREAM_MODE_WRITE);
     
-    // create a sample table
-    AP4_SyntheticSampleTable* sample_table = new AP4_SyntheticSampleTable();
-
     // get the movie
     AP4_File* input_file = new AP4_File(*input);
     AP4_SampleDescription* sample_description = NULL;
     AP4_Movie* movie = input_file->GetMovie();
     if (movie == NULL) {
         fprintf(stderr, "ERROR: no movie in file\n");
-        exit(-1);
+        return 1;
     }
 
     // get the video track
     AP4_Track* video_track = movie->GetTrack(AP4_Track::TYPE_VIDEO);
     if (video_track == NULL) {
         fprintf(stderr, "ERROR: no video track found\n");
-        exit(-1);
+        return 1;
     }
 
     // check that the track is of the right type
     sample_description = video_track->GetSampleDescription(0);
     if (sample_description == NULL) {
         fprintf(stderr, "ERROR: unable to parse sample description\n");
-        exit(-1);
+        return 1;
     }
     
     // get the info from the input sample description and feed it to the synthetic one
     if (sample_description->GetType() != AP4_SampleDescription::TYPE_AVC) {
         fprintf(stderr, "ERROR: wrong type for sample description\n");
-        exit(-1);
+        return 1;
     }
     AP4_AvcSampleDescription* avc_desc = dynamic_cast<AP4_AvcSampleDescription*>(sample_description);
-    sample_table->AddSampleDescription(new AP4_AvcSampleDescription(
+    AP4_SyntheticSampleTable* video_sample_table = new AP4_SyntheticSampleTable();
+    video_sample_table->AddSampleDescription(new AP4_AvcSampleDescription(
         avc_desc->GetWidth(),
         avc_desc->GetHeight(),
         avc_desc->GetDepth(),
@@ -147,21 +145,70 @@ main(int argc, char** argv)
         avc_desc->GetPictureParameters()));
         
     // add the samples
-    CopySamplesToSyntheticTable(video_track, sample_table);
+    CopySamplesToSyntheticTable(video_track, video_sample_table);
     
     // create the output objects    
     AP4_Track* output_video_track = new AP4_Track(AP4_Track::TYPE_VIDEO,
-                                               sample_table,
-                                               0, // track id
-                                               video_track->GetMediaTimeScale(),
-                                               video_track->GetMediaTimeScale(),
-                                               video_track->GetDuration(),
-                                               video_track->GetTrackLanguage(),
-                                               avc_desc->GetWidth(),
-                                               avc_desc->GetHeight());
+                                                  video_sample_table,
+                                                  1, // track id
+                                                  movie->GetTimeScale(),
+                                                  video_track->GetDuration(),
+                                                  video_track->GetMediaTimeScale(),
+                                                  video_track->GetMediaDuration(),
+                                                  video_track->GetTrackLanguage(),
+                                                  avc_desc->GetWidth(),
+                                                  avc_desc->GetHeight());
                                                
-    AP4_Movie* output_movie = new AP4_Movie();
+    // get the audio track
+    AP4_Track* audio_track = movie->GetTrack(AP4_Track::TYPE_AUDIO);
+    if (audio_track == NULL) {
+        fprintf(stderr, "ERROR: no audio track found\n");
+        return 1;
+    }
+
+    // check that the track is of the right type
+    sample_description = audio_track->GetSampleDescription(0);
+    if (sample_description == NULL) {
+        fprintf(stderr, "ERROR: unable to parse sample description\n");
+        return 1;
+    }
+    
+    // get the info from the input sample description and feed it to the synthetic one
+    if (sample_description->GetType() != AP4_SampleDescription::TYPE_MPEG) {
+        fprintf(stderr, "ERROR: wrong type for sample description\n");
+        return 1;
+    }
+    AP4_MpegAudioSampleDescription* mpg_desc = dynamic_cast<AP4_MpegAudioSampleDescription*>(sample_description);
+    AP4_SyntheticSampleTable* audio_sample_table = new AP4_SyntheticSampleTable();
+    audio_sample_table->AddSampleDescription(new AP4_MpegAudioSampleDescription(
+        mpg_desc->GetObjectTypeId(),
+        mpg_desc->GetSampleRate(),
+        mpg_desc->GetSampleSize(),
+        mpg_desc->GetChannelCount(),
+        &mpg_desc->GetDecoderInfo(),
+        mpg_desc->GetBufferSize(),
+        mpg_desc->GetMaxBitrate(),
+        mpg_desc->GetAvgBitrate()));
+        
+    // add the samples
+    CopySamplesToSyntheticTable(audio_track, audio_sample_table);
+    
+    // create the output objects    
+    AP4_Track* output_audio_track = new AP4_Track(AP4_Track::TYPE_AUDIO,
+                                                  audio_sample_table,
+                                                  2, // track id
+                                                  movie->GetTimeScale(),
+                                                  audio_track->GetDuration(),
+                                                  audio_track->GetMediaTimeScale(),
+                                                  audio_track->GetMediaDuration(),
+                                                  audio_track->GetTrackLanguage(),
+                                                  0,
+                                                  0);
+
+    // put the movie together
+    AP4_Movie* output_movie = new AP4_Movie(movie->GetTimeScale());
     output_movie->AddTrack(output_video_track);
+    output_movie->AddTrack(output_audio_track);
     AP4_File* output_file = new AP4_File(output_movie);    
     output_file->SetFileType(input_file->GetFileType()->GetMajorBrand(),
                              input_file->GetFileType()->GetMinorVersion(),

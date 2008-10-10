@@ -73,40 +73,46 @@ AP4_FileWriter::Write(AP4_ByteStream& stream)
         atom_item = atom_item->GetNext();
     }
              
-    // get the movie object
+    // get the movie object (and stop if there isn't any)
     AP4_Movie* movie = m_File.GetMovie();
     if (movie == NULL) return AP4_SUCCESS;
-    
-    // compute the final offset of the sample data in mdat
-    AP4_UI64 data_offset = 0;
-    if (file_type) data_offset += file_type->GetSize();
-    m_File.GetChildren().Apply(AP4_AtomSizeAdder(data_offset));
-    data_offset += movie->GetMoovAtom()->GetSize();
-    data_offset += AP4_ATOM_HEADER_SIZE; // mdat header
-
-    // adjust the tracks (assuming all chunk offsets were 0-based)
-    AP4_List<AP4_Track>::Item* track_item = movie->GetTracks().FirstItem();
-    while (track_item) {
-        AP4_Track* track = track_item->GetData();
-        track->GetTrakAtom()->AdjustChunkOffsets((int)data_offset);
-        track_item = track_item->GetNext();
-    }
 
     // write the moov atom
+    AP4_Position moov_position;
+    stream.Tell(moov_position);
     movie->GetMoovAtom()->Write(stream);
     
     // create and write the media data (mdat)
     stream.WriteUI32(0);
     stream.Write("mdat", 4);
-    AP4_Track* track = movie->GetTracks().FirstItem()->GetData();
-    AP4_Cardinal sample_count = track->GetSampleCount();
-    for (AP4_Ordinal i=0; i<sample_count; i++) {
-        AP4_Sample sample;
-        AP4_DataBuffer data;
-        track->ReadSample(i, sample, data);
-        stream.Write(data.GetData(), data.GetDataSize());
+    
+    // write all tracks
+    AP4_List<AP4_Track>::Item* track_item = movie->GetTracks().FirstItem();
+    while (track_item) {
+        AP4_Track* track = track_item->GetData();
+        
+        // see where we're starting from
+        AP4_Position position;
+        stream.Tell(position);
+
+        // adjust the tracks (assuming all chunk offsets were 0-based)
+        track->GetTrakAtom()->AdjustChunkOffsets((int)position);
+        track_item = track_item->GetNext();
+
+        AP4_Cardinal sample_count = track->GetSampleCount();
+        AP4_Array<AP4_Position> sample_offsets;
+        for (AP4_Ordinal i=0; i<sample_count; i++) {
+            AP4_Sample sample;
+            AP4_DataBuffer data;
+            track->ReadSample(i, sample, data);
+            stream.Write(data.GetData(), data.GetDataSize());
+        }
     }
 
+    // re-write the moov (updated offsets)
+    stream.Seek(moov_position);
+    movie->GetMoovAtom()->Write(stream);
+    
     // TODO: update the mdat size
 
     return AP4_SUCCESS;

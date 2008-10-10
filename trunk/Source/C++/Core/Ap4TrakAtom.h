@@ -33,12 +33,13 @@
 |   includes
 +---------------------------------------------------------------------*/
 #include "Ap4ContainerAtom.h"
-#include "Ap4TkhdAtom.h"
 
 /*----------------------------------------------------------------------
 |   class references
 +---------------------------------------------------------------------*/
 class AP4_HdlrAtom;
+class AP4_TkhdAtom;
+class AP4_MdhdAtom;
 class AP4_SampleTable;
 
 /*----------------------------------------------------------------------
@@ -68,17 +69,17 @@ class AP4_TrakAtom : public AP4_ContainerAtom
                  const char*      language,
                  AP4_UI32         width,
                  AP4_UI32         heigh);
+    AP4_TkhdAtom* GetTkhdAtom() { return m_TkhdAtom; }
     AP4_Result AdjustChunkOffsets(AP4_SI64 delta);
-    AP4_UI32   GetId() { 
-        return m_TkhdAtom->GetTrackId(); 
-    }
-    AP4_Result SetId(AP4_UI32 track_id) {
-        return m_TkhdAtom->SetTrackId(track_id);
-    }
+    AP4_UI32   GetId();
+    AP4_Result SetId(AP4_UI32 track_id);
     AP4_UI32   GetDuration();
     AP4_Result SetDuration(AP4_UI32 duration);
-    AP4_TkhdAtom* GetTkhdAtom() { return m_TkhdAtom; }
-
+    AP4_UI32   GetMediaDuration();
+    AP4_Result SetMediaDuration(AP4_UI32 duration);
+    AP4_UI32   GetMediaTimeScale();
+    AP4_Result SetMediaTimeScale(AP4_UI32 timescale);
+    
  private:
     // methods
     AP4_TrakAtom(AP4_UI32         size,
@@ -87,6 +88,7 @@ class AP4_TrakAtom : public AP4_ContainerAtom
 
     // members
     AP4_TkhdAtom* m_TkhdAtom;
+    AP4_MdhdAtom* m_MdhdAtom;
 };
 
 #endif // _AP4_TRAK_ATOM_H_
