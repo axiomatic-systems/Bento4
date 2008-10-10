@@ -467,14 +467,14 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = F9DBC7FC0E99AFE100913BF6 /* AvcTrackWriterTest */;
+			remoteGlobalIDString = F9DBC7FC0E99AFE100913BF6;
 			remoteInfo = AvcTrackWriterTest;
 		};
 		F9DBC80E0E99BBCB00913BF6 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = D2AAC045055464E500DB518D /* Bento4 */;
+			remoteGlobalIDString = D2AAC045055464E500DB518D;
 			remoteInfo = Bento4;
 		};
 /* End PBXContainerItemProxy section */

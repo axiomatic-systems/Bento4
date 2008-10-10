@@ -74,9 +74,9 @@ class AP4_SampleDescription
     virtual ~AP4_SampleDescription() {}
                  
     // accessors
-    Type GetType()       const { return m_Type;   }
-    AP4_UI32 GetFormat() const { return m_Format; }
-    AP4_AtomParent& GetDetails() { return m_Details; }
+    Type            GetType()   const { return m_Type;    }
+    AP4_UI32        GetFormat() const { return m_Format;  }
+    AP4_AtomParent& GetDetails()      { return m_Details; }
     
     // factories
     virtual AP4_Atom* ToAtom() const;

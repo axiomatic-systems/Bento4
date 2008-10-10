@@ -281,5 +281,6 @@
 #include "Ap4OddaAtom.h"
 #include "Ap4AvccAtom.h"
 #include "Ap4Marlin.h"
+#include "Ap4GrpiAtom.h"
 
 #endif // _AP4_H_

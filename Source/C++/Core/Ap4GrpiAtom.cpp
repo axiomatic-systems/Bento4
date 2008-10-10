@@ -52,7 +52,7 @@ AP4_GrpiAtom::AP4_GrpiAtom(AP4_UI08        key_encryption_method,
                            const char*     group_id,
                            const AP4_UI08* group_key,
                            AP4_Size        group_key_length) :
-    AP4_Atom(AP4_ATOM_TYPE_GRPI, AP4_FULL_ATOM_HEADER_SIZE, (AP4_UI32)0, (AP4_UI32)0),
+    AP4_Atom(AP4_ATOM_TYPE_GRPI, AP4_FULL_ATOM_HEADER_SIZE, 0, 0),
     m_KeyEncryptionMethod(key_encryption_method),
     m_GroupId(group_id),
     m_GroupKey(group_key, group_key_length)

@@ -97,9 +97,9 @@ AP4_Sample::~AP4_Sample()
 AP4_Sample&
 AP4_Sample::operator=(const AP4_Sample& other)
 {
+    AP4_ADD_REFERENCE(other.m_DataStream);
     AP4_RELEASE(m_DataStream);
     m_DataStream = other.m_DataStream;
-    AP4_ADD_REFERENCE(m_DataStream);
 
     m_Offset           = other.m_Offset;
     m_Size             = other.m_Size;

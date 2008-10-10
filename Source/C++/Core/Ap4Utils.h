@@ -107,6 +107,7 @@ public:
     void StartElement(const char* name, const char* info);
     void EndElement();
     void AddField(const char* name, AP4_UI32 value, FormatHint hint);
+    void AddFieldF(const char* name, float value, FormatHint hint);
     void AddField(const char* name, const char* value, FormatHint hint);
     void AddField(const char* name, const unsigned char* bytes, AP4_Size size, FormatHint hint);
 

@@ -392,6 +392,26 @@ AP4_PrintInspector::AddField(const char* name, AP4_UI32 value, FormatHint hint)
 }
 
 /*----------------------------------------------------------------------
+|   AP4_PrintInspector::AddFieldF
++---------------------------------------------------------------------*/
+void
+AP4_PrintInspector::AddFieldF(const char* name, float value, FormatHint /*hint*/)
+{
+    char prefix[256];
+    AP4_MakePrefixString(m_Indent, prefix, sizeof(prefix));
+    m_Stream->WriteString(prefix);
+
+    char str[32];
+    AP4_FormatString(str, sizeof(str), 
+                     "%f", 
+                     value);
+    m_Stream->WriteString(name);
+    m_Stream->WriteString(" = ");
+    m_Stream->WriteString(str);
+    m_Stream->Write("\n", 1);
+}
+
+/*----------------------------------------------------------------------
 |   AP4_PrintInspector::AddField
 +---------------------------------------------------------------------*/
 void

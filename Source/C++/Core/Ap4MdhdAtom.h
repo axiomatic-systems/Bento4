@@ -59,10 +59,10 @@ public:
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
 
-    AP4_UI32   GetDurationMs();
-    AP4_UI32   GetDuration()  { return m_Duration;  }
-    AP4_UI32   GetTimeScale() { return m_TimeScale; }
-    AP4_String GetLanguage()  { return AP4_String(m_Language, 3); }
+    AP4_UI32          GetDurationMs();
+    AP4_UI32          GetDuration()  { return m_Duration;  }
+    AP4_UI32          GetTimeScale() { return m_TimeScale; }
+    const AP4_String& GetLanguage()  { return m_Language;  }
 
 private:
     // methods
@@ -72,14 +72,14 @@ private:
                  AP4_ByteStream& stream);
 
     // members
-    AP4_UI32 m_CreationTimeH;
-    AP4_UI32 m_CreationTime;
-    AP4_UI32 m_ModificationTimeH;
-    AP4_UI32 m_ModificationTime;
-    AP4_UI32 m_TimeScale;
-    AP4_UI32 m_DurationH;
-    AP4_UI32 m_Duration;
-    char     m_Language[3];
+    AP4_UI32   m_CreationTimeH;
+    AP4_UI32   m_CreationTime;
+    AP4_UI32   m_ModificationTimeH;
+    AP4_UI32   m_ModificationTime;
+    AP4_UI32   m_TimeScale;
+    AP4_UI32   m_DurationH;
+    AP4_UI32   m_Duration;
+    AP4_String m_Language;
 };
 
 #endif // _AP4_MDHD_ATOM_H_

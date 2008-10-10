@@ -137,9 +137,9 @@ AP4_SyntheticSampleTable::AddSample(AP4_ByteStream& data_stream,
                                     AP4_Ordinal     description_index,
                                     AP4_TimeStamp   cts,
                                     AP4_TimeStamp   dts,
-                                    bool            /* sync */)
+                                    bool            sync)
 {
-    AP4_Sample sample(data_stream, offset, size, description_index, dts, cts-dts);
+    AP4_Sample sample(data_stream, offset, size, description_index, dts, cts-dts, sync);
     return m_Samples.Append(sample);
 }
 
