@@ -159,9 +159,10 @@ main(int argc, char** argv)
     AP4_Track* track = new AP4_Track(AP4_Track::TYPE_AUDIO, 
                                      sample_table, 
                                      0,     // track id
-                                     sample_rate, // movie time scale              
-                                     sample_rate, // track time scale
-                                     sample_count*1024, // track duration
+                                     sample_rate,       // movie time scale
+                                     sample_count*1024, // track duration              
+                                     sample_rate,       // media time scale
+                                     sample_count*1024, // media duration
                                      "eng", // language
                                      0, 0); // width, height
 

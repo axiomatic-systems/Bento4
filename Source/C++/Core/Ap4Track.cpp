@@ -49,6 +49,7 @@ AP4_Track::AP4_Track(Type             type,
                      AP4_SampleTable* sample_table,
                      AP4_UI32         track_id, 
                      AP4_UI32         movie_time_scale,
+                     AP4_UI32         track_duration,
                      AP4_UI32         media_time_scale,
                      AP4_UI32         media_duration,
                      const char*      language,
@@ -60,8 +61,7 @@ AP4_Track::AP4_Track(Type             type,
     m_SampleTableIsOwned(false),
     m_MovieTimeScale(movie_time_scale ? 
                      movie_time_scale : 
-                     AP4_TRACK_DEFAULT_MOVIE_TIMESCALE),
-    m_MediaTimeScale(media_time_scale)
+                     AP4_TRACK_DEFAULT_MOVIE_TIMESCALE)
 {
     // compute the default volume value
     unsigned int volume = 0;
@@ -97,11 +97,6 @@ AP4_Track::AP4_Track(Type             type,
             break;
     }
 
-    // compute the track duration in units of the movie time scale
-    AP4_UI32 track_duration = AP4_ConvertTime(media_duration,
-                                              media_time_scale,
-                                              movie_time_scale);
-
     // create a trak atom
     m_TrakAtom = new AP4_TrakAtom(sample_table,
                                   hdlr_type, 
@@ -129,8 +124,7 @@ AP4_Track::AP4_Track(AP4_TrakAtom&   atom,
     m_Type(TYPE_UNKNOWN),
     m_SampleTable(NULL),
     m_SampleTableIsOwned(true),
-    m_MovieTimeScale(movie_time_scale),
-    m_MediaTimeScale(0)
+    m_MovieTimeScale(movie_time_scale)
 {
     // find the handler type
     AP4_Atom* sub = atom.FindChild("mdia/hdlr");
@@ -153,15 +147,6 @@ AP4_Track::AP4_Track(AP4_TrakAtom&   atom,
             } else if (type == AP4_HANDLER_TYPE_JPEG) {
                 m_Type = TYPE_JPEG;
             }
-        }
-    }
-
-    // get the media time scale
-    sub = atom.FindChild("mdia/mdhd");
-    if (sub) {
-        AP4_MdhdAtom* mdhd = dynamic_cast<AP4_MdhdAtom*>(sub);
-        if (mdhd) {
-            m_MediaTimeScale = mdhd->GetTimeScale();
         }
     }
 
@@ -304,7 +289,7 @@ AP4_Result
 AP4_Track::GetSampleIndexForTimeStampMs(AP4_TimeStamp ts, AP4_Ordinal& index)
 {
     // convert the ts in the timescale of the track's media
-    ts = AP4_ConvertTime(ts, 1000, m_MediaTimeScale);
+    ts = AP4_ConvertTime(ts, 1000, GetMediaTimeScale());
 
     return m_SampleTable->GetSampleIndexForTimeStamp(ts, index);
 }
@@ -335,7 +320,16 @@ AP4_Track::SetMovieTimeScale(AP4_UI32 time_scale)
 AP4_UI32
 AP4_Track::GetMediaTimeScale()
 {
-    return m_MediaTimeScale;
+    return m_TrakAtom?m_TrakAtom->GetMediaTimeScale():0;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_Track::GetMediaDuration
++---------------------------------------------------------------------*/
+AP4_UI32
+AP4_Track::GetMediaDuration()
+{
+    return m_TrakAtom?m_TrakAtom->GetMediaDuration():0;
 }
 
 /*----------------------------------------------------------------------

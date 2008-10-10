@@ -320,9 +320,10 @@ ShowTrackInfo(AP4_Track& track, bool verbose = false)
     AP4_Debug("  duration:     %ld ms\n", track.GetDurationMs());
     AP4_Debug("  timescale:    %ld\n", track.GetMediaTimeScale());
     AP4_Debug("  sample count: %ld\n", track.GetSampleCount());
-	AP4_Sample  sample;
-	AP4_Ordinal index = 0;
-    AP4_Ordinal desc_index = 0xFFFFFFFF;
+	AP4_Sample     sample;
+    AP4_DataBuffer sample_data;
+	AP4_Ordinal    index = 0;
+    AP4_Ordinal    desc_index = 0xFFFFFFFF;
     while (AP4_SUCCEEDED(track.GetSample(index, sample))) {
         if (sample.GetDescriptionIndex() != desc_index) {
             desc_index = sample.GetDescriptionIndex();
@@ -342,9 +343,23 @@ ShowTrackInfo(AP4_Track& track, bool verbose = false)
                    (int)sample.GetDts(), 
                    (int)sample.GetCts());
             if (sample.IsSync()) {
-                printf(" [Sync]\n");
+                printf(" [Sync] ");
             } else {
-                printf("\n");
+                printf("        ");
+            }
+            
+            sample.ReadData(sample_data);
+            unsigned int show = sample_data.GetDataSize();
+            if (show > 16) show = 16; // max 16 chars
+            
+            printf("[");
+            for (unsigned int i=0; i<show; i++) {
+                printf("%02x", sample_data.GetData()[i]);
+            }
+            if (show == sample_data.GetDataSize()) {
+                printf("]\n");
+            } else {
+                printf("...]\n");
             }
         }
         index++;

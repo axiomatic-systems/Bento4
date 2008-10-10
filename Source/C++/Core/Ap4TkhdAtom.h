@@ -63,16 +63,10 @@ public:
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
 
-    AP4_UI32   GetDuration() { return m_Duration; }
-    AP4_Result SetDuration(AP4_UI32 duration) {
-        m_Duration = duration;
-        return AP4_SUCCESS;
-    }
-    AP4_UI32   GetTrackId()  { return m_TrackId;  }
-    AP4_Result SetTrackId(AP4_UI32 track_id)  { 
-        m_TrackId = track_id;
-        return AP4_SUCCESS;  
-    }
+    AP4_UI32   GetDuration()                  { return m_Duration;     }
+    void       SetDuration(AP4_UI32 duration) { m_Duration = duration; }
+    AP4_UI32   GetTrackId()                   { return m_TrackId;      }
+    void       SetTrackId(AP4_UI32 track_id)  { m_TrackId = track_id;  }
 
     void GetTranslation(float& x, float& y) {
         x = (float)(*(int*)&m_Matrix[6]) / 65536;
