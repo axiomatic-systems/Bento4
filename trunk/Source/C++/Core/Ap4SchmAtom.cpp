@@ -45,9 +45,11 @@ AP4_SchmAtom::Create(AP4_Size                   size,
     AP4_UI32 flags;
     if (AP4_FAILED(AP4_Atom::ReadFullHeader(stream, version, flags))) return NULL;
     if (version != 0) return NULL;
+    if (size < 6) return NULL;
     
     // check the context to see if this is a short form atom or not
     bool short_form = false;
+    if (size < 8) short_form = true;
     if (context) {
         AP4_Size context_depth = context->ItemCount();
         if (context_depth >= 2 &&

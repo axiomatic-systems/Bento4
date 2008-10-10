@@ -205,6 +205,8 @@ AP4_TkhdAtom::InspectFields(AP4_AtomInspector& inspector)
     inspector.AddField("enabled", ((m_Flags & AP4_TKHD_FLAG_TRACK_ENABLED) ? 1 : 0), AP4_AtomInspector::HINT_BOOLEAN);
     inspector.AddField("id", m_TrackId);
     inspector.AddField("duration", m_Duration);
-
+    inspector.AddFieldF("width", (float)m_Width/65536.0f);
+    inspector.AddFieldF("height", (float)m_Height/65536.0f);
+    
     return AP4_SUCCESS;
 }

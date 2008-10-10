@@ -70,8 +70,8 @@ AP4_TrakAtom::AP4_TrakAtom(AP4_SampleTable* sample_table,
                                   track_id,
                                   track_duration, 
                                   volume, 
-                                  width, 
-                                  height);
+                                  width*65536, 
+                                  height*65536);
 
     // create an edts
 

@@ -37,7 +37,7 @@
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-#define BANNER "MP4 File Info - Version 1.0\n"\
+#define BANNER "MP4 File Info - Version 1.1\n"\
                "(Bento4 Version " AP4_VERSION_STRING ")\n"\
                "(c) 2002-2006 Gilles Boccon-Gibod & Julien Boeuf"
  
@@ -59,20 +59,20 @@ PrintUsageAndExit()
 |   ShowPayload
 +---------------------------------------------------------------------*/
 static void
-ShowPayload(AP4_Atom* atom, bool ascii = false)
+ShowPayload(AP4_Atom& atom, bool ascii = false)
 {
-    AP4_UI64 payload_size = atom->GetSize()-8;
+    AP4_UI64 payload_size = atom.GetSize()-8;
     if (payload_size <= 1024) {
         AP4_MemoryByteStream* payload = new AP4_MemoryByteStream();
-        atom->Write(*payload);
+        atom.Write(*payload);
         if (ascii) {
             // ascii
             payload->WriteUI08(0); // terminate with a NULL character
-            AP4_Debug("%s", (char*)payload->GetData()+atom->GetHeaderSize());
+            printf("%s", (char*)payload->GetData()+atom.GetHeaderSize());
         } else {
             // hex
             for (unsigned int i=0; i<payload_size; i++) {
-                AP4_Debug("%02x", (unsigned char)payload->GetData()[atom->GetHeaderSize()+i]);
+                printf("%02x", (unsigned char)payload->GetData()[atom.GetHeaderSize()+i]);
             }
         }
         payload->Release();
@@ -83,52 +83,51 @@ ShowPayload(AP4_Atom* atom, bool ascii = false)
 |   ShowProtectedSampleDescription
 +---------------------------------------------------------------------*/
 static void
-ShowProtectedSampleDescription(AP4_ProtectedSampleDescription* desc)
+ShowProtectedSampleDescription(AP4_ProtectedSampleDescription& desc)
 {
-    if (desc == NULL) return;
-    AP4_Debug("    [ENCRYPTED]\n");
+    printf("    [ENCRYPTED]\n");
     char coding[5];
-    AP4_FormatFourChars(coding, desc->GetFormat());
-    AP4_Debug("      Coding:         %s\n", coding);
-    AP4_UI32 st = desc->GetSchemeType();
-    AP4_Debug("      Scheme Type:    %c%c%c%c\n", 
+    AP4_FormatFourChars(coding, desc.GetFormat());
+    printf("      Coding:         %s\n", coding);
+    AP4_UI32 st = desc.GetSchemeType();
+    printf("      Scheme Type:    %c%c%c%c\n", 
         (char)((st>>24) & 0xFF),
         (char)((st>>16) & 0xFF),
         (char)((st>> 8) & 0xFF),
         (char)((st    ) & 0xFF));
-    AP4_Debug("      Scheme Version: %d\n", desc->GetSchemeVersion());
-    AP4_Debug("      Scheme URI:     %s\n", desc->GetSchemeUri().GetChars());
-    AP4_ProtectionSchemeInfo* scheme_info = desc->GetSchemeInfo();
+    printf("      Scheme Version: %d\n", desc.GetSchemeVersion());
+    printf("      Scheme URI:     %s\n", desc.GetSchemeUri().GetChars());
+    AP4_ProtectionSchemeInfo* scheme_info = desc.GetSchemeInfo();
     if (scheme_info == NULL) return;
     AP4_ContainerAtom* schi = scheme_info->GetSchiAtom();
     if (schi == NULL) return;
-    if (desc->GetSchemeType() == AP4_PROTECTION_SCHEME_TYPE_IAEC) {
-        AP4_Debug("      iAEC Scheme Info:\n");
+    if (desc.GetSchemeType() == AP4_PROTECTION_SCHEME_TYPE_IAEC) {
+        printf("      iAEC Scheme Info:\n");
         AP4_IkmsAtom* ikms = dynamic_cast<AP4_IkmsAtom*>(schi->FindChild("iKMS"));
         if (ikms) {
-            AP4_Debug("        KMS URI:              %s\n", ikms->GetKmsUri().GetChars());
+            printf("        KMS URI:              %s\n", ikms->GetKmsUri().GetChars());
         }
         AP4_IsfmAtom* isfm = dynamic_cast<AP4_IsfmAtom*>(schi->FindChild("iSFM"));
         if (isfm) {
-            AP4_Debug("        Selective Encryption: %s\n", isfm->GetSelectiveEncryption()?"yes":"no");
-            AP4_Debug("        Key Indicator Length: %d\n", isfm->GetKeyIndicatorLength());
-            AP4_Debug("        IV Length:            %d\n", isfm->GetIvLength());
+            printf("        Selective Encryption: %s\n", isfm->GetSelectiveEncryption()?"yes":"no");
+            printf("        Key Indicator Length: %d\n", isfm->GetKeyIndicatorLength());
+            printf("        IV Length:            %d\n", isfm->GetIvLength());
         }
         AP4_IsltAtom* islt = dynamic_cast<AP4_IsltAtom*>(schi->FindChild("iSLT"));
         if (islt) {
-            AP4_Debug("        Salt:                 ");
+            printf("        Salt:                 ");
             for (unsigned int i=0; i<8; i++) {
-                AP4_Debug("%02x",islt->GetSalt()[i]);
+                printf("%02x",islt->GetSalt()[i]);
             }
-            AP4_Debug("\n");
+            printf("\n");
         }
-    } else if (desc->GetSchemeType() == AP4_PROTECTION_SCHEME_TYPE_OMA) {
-        AP4_Debug("      odkm Scheme Info:\n");
+    } else if (desc.GetSchemeType() == AP4_PROTECTION_SCHEME_TYPE_OMA) {
+        printf("      odkm Scheme Info:\n");
         AP4_OdafAtom* odaf = dynamic_cast<AP4_OdafAtom*>(schi->FindChild("odkm/odaf"));
         if (odaf) {
-            AP4_Debug("        Selective Encryption: %s\n", odaf->GetSelectiveEncryption()?"yes":"no");
-            AP4_Debug("        Key Indicator Length: %d\n", odaf->GetKeyIndicatorLength());
-            AP4_Debug("        IV Length:            %d\n", odaf->GetIvLength());
+            printf("        Selective Encryption: %s\n", odaf->GetSelectiveEncryption()?"yes":"no");
+            printf("        Key Indicator Length: %d\n", odaf->GetKeyIndicatorLength());
+            printf("        IV Length:            %d\n", odaf->GetIvLength());
         }
         AP4_OhdrAtom* ohdr = dynamic_cast<AP4_OhdrAtom*>(schi->FindChild("odkm/ohdr"));
         if (ohdr) {
@@ -139,35 +138,35 @@ ShowProtectedSampleDescription(AP4_ProtectedSampleDescription* desc)
                 case AP4_OMA_DCF_ENCRYPTION_METHOD_AES_CBC: encryption_method = "AES-CBC"; break;
                 default:                                    encryption_method = "UNKNOWN"; break;
             }
-            AP4_Debug("        Encryption Method: %s\n", encryption_method);
-            AP4_Debug("        Content ID:        %s\n", ohdr->GetContentId().GetChars());
-            AP4_Debug("        Rights Issuer URL: %s\n", ohdr->GetRightsIssuerUrl().GetChars());
+            printf("        Encryption Method: %s\n", encryption_method);
+            printf("        Content ID:        %s\n", ohdr->GetContentId().GetChars());
+            printf("        Rights Issuer URL: %s\n", ohdr->GetRightsIssuerUrl().GetChars());
         }
-    } else if (desc->GetSchemeType() == AP4_PROTECTION_SCHEME_TYPE_ITUNES) {
-        AP4_Debug("      itun Scheme Info:\n");
+    } else if (desc.GetSchemeType() == AP4_PROTECTION_SCHEME_TYPE_ITUNES) {
+        printf("      itun Scheme Info:\n");
         AP4_Atom* name = schi->FindChild("name");
         if (name) {
-            AP4_Debug("        Name:    ");
-            ShowPayload(name, true);
-            AP4_Debug("\n");
+            printf("        Name:    ");
+            ShowPayload(*name, true);
+            printf("\n");
         }
         AP4_Atom* user = schi->FindChild("user");
         if (user) {
-            AP4_Debug("        User ID: ");
-            ShowPayload(user);
-            AP4_Debug("\n");
+            printf("        User ID: ");
+            ShowPayload(*user);
+            printf("\n");
         }
         AP4_Atom* key = schi->FindChild("key ");
         if (key) {
-            AP4_Debug("        Key ID:  ");
-            ShowPayload(key);
-            AP4_Debug("\n");
+            printf("        Key ID:  ");
+            ShowPayload(*key);
+            printf("\n");
         }
         AP4_Atom* iviv = schi->FindChild("iviv");
         if (iviv) {
-            AP4_Debug("        IV:      ");
-            ShowPayload(iviv);
-            AP4_Debug("\n");
+            printf("        IV:      ");
+            ShowPayload(*iviv);
+            printf("\n");
         }
     }
 }
@@ -176,10 +175,10 @@ ShowProtectedSampleDescription(AP4_ProtectedSampleDescription* desc)
 |   ShowMpegAudioSampleDescription
 +---------------------------------------------------------------------*/
 static void
-ShowMpegAudioSampleDescription(AP4_MpegAudioSampleDescription* mpeg_audio_desc)
+ShowMpegAudioSampleDescription(AP4_MpegAudioSampleDescription& mpeg_audio_desc)
 {
     AP4_MpegAudioSampleDescription::Mpeg4AudioObjectType object_type = 
-        mpeg_audio_desc->GetMpeg4AudioObjectType();
+        mpeg_audio_desc.GetMpeg4AudioObjectType();
     const char* object_type_string = AP4_MpegAudioSampleDescription::GetMpeg4AudioObjectTypeString(object_type);
     AP4_Debug("    MPEG-4 Audio Object Type: %s\n", object_type_string);
 }
@@ -188,11 +187,12 @@ ShowMpegAudioSampleDescription(AP4_MpegAudioSampleDescription* mpeg_audio_desc)
 |   ShowSampleDescription
 +---------------------------------------------------------------------*/
 static void
-ShowSampleDescription(AP4_SampleDescription* desc)
+ShowSampleDescription(AP4_SampleDescription& description)
 {
+    AP4_SampleDescription* desc = &description;
     if (desc->GetType() == AP4_SampleDescription::TYPE_PROTECTED) {
         AP4_ProtectedSampleDescription* prot_desc = dynamic_cast<AP4_ProtectedSampleDescription*>(desc);
-        ShowProtectedSampleDescription(prot_desc);
+        if (prot_desc) ShowProtectedSampleDescription(*prot_desc);
         desc = prot_desc->GetOriginalSampleDescription();
     }
     char coding[5];
@@ -210,7 +210,7 @@ ShowSampleDescription(AP4_SampleDescription* desc)
         
         if (mpeg_desc->GetObjectTypeId() == AP4_OTI_MPEG4_AUDIO) {
             AP4_MpegAudioSampleDescription* mpeg_audio_desc = dynamic_cast<AP4_MpegAudioSampleDescription*>(mpeg_desc);
-            if (mpeg_audio_desc) ShowMpegAudioSampleDescription(mpeg_audio_desc);
+            if (mpeg_audio_desc) ShowMpegAudioSampleDescription(*mpeg_audio_desc);
         }
     }
     if (desc->GetType() == AP4_SampleDescription::TYPE_AVC) {
@@ -245,14 +245,63 @@ ShowSampleDescription(AP4_SampleDescription* desc)
 }
 
 /*----------------------------------------------------------------------
+|   ShowDcfInfo
++---------------------------------------------------------------------*/
+static void
+ShowDcfInfo(AP4_File& file)
+{
+    AP4_FtypAtom* ftyp = file.GetFileType();
+    if (ftyp == NULL) return;
+    printf("OMA DCF File, version=%d\n", ftyp->GetMinorVersion());
+    if (ftyp->GetMinorVersion() != 2) return;
+
+    AP4_OdheAtom* odhe = dynamic_cast<AP4_OdheAtom*>(file.FindChild("odrm/odhe"));
+    if (odhe) {
+        printf("Content Type:      %s\n", odhe->GetContentType().GetChars());
+    }
+    AP4_OhdrAtom* ohdr = dynamic_cast<AP4_OhdrAtom*>(file.FindChild("odrm/odhe/ohdr"));
+    if (ohdr) {
+        printf("Encryption Method: ");
+        switch (ohdr->GetEncryptionMethod()) {
+            case AP4_OMA_DCF_ENCRYPTION_METHOD_NULL:    printf("NULL\n");        break;
+            case AP4_OMA_DCF_ENCRYPTION_METHOD_AES_CBC: printf("AES-128-CBC\n"); break;
+            case AP4_OMA_DCF_ENCRYPTION_METHOD_AES_CTR: printf("AES-128-CTR\n"); break;
+            default:                                    printf("%d\n", ohdr->GetEncryptionMethod()); 
+        }
+        printf("Padding Scheme:    ");
+        switch (ohdr->GetPaddingScheme()) {
+            case AP4_OMA_DCF_PADDING_SCHEME_NONE:     printf("NONE\n"); break;
+            case AP4_OMA_DCF_PADDING_SCHEME_RFC_2630: printf("RFC 2630\n"); break;
+            default:                                  printf("%d\n", ohdr->GetPaddingScheme());
+        }
+        printf("Content ID:        %s\n", ohdr->GetContentId().GetChars());
+        printf("Rights Issuer URL: %s\n", ohdr->GetRightsIssuerUrl().GetChars());
+        printf("Textual Headers:\n");
+        
+        AP4_Size    headers_size = ohdr->GetTextualHeaders().GetDataSize();
+        const char* headers = (const char*)ohdr->GetTextualHeaders().GetData();
+        while (headers_size) {
+            printf("  %s\n", headers);
+            AP4_Size header_len = strlen(headers);
+            headers_size -= header_len+1;
+            headers      += header_len+1;
+        }
+        AP4_GrpiAtom* grpi = dynamic_cast<AP4_GrpiAtom*>(ohdr->GetChild(AP4_ATOM_TYPE_GRPI));
+        if (grpi) {
+            printf("Group ID:          %s\n", grpi->GetGroupId().GetChars());
+        }
+    }
+}
+
+/*----------------------------------------------------------------------
 |   ShowTrackInfo
 +---------------------------------------------------------------------*/
 static void
-ShowTrackInfo(AP4_Track* track, bool verbose = false)
+ShowTrackInfo(AP4_Track& track, bool verbose = false)
 {
-	AP4_Debug("  id:           %ld\n", track->GetId());
+	AP4_Debug("  id:           %ld\n", track.GetId());
     AP4_Debug("  type:         ");
-    switch (track->GetType()) {
+    switch (track.GetType()) {
         case AP4_Track::TYPE_AUDIO:   AP4_Debug("Audio\n"); break;
         case AP4_Track::TYPE_VIDEO:   AP4_Debug("Video\n"); break;
         case AP4_Track::TYPE_HINT:    AP4_Debug("Hint\n");  break;
@@ -261,29 +310,29 @@ ShowTrackInfo(AP4_Track* track, bool verbose = false)
         case AP4_Track::TYPE_JPEG:    AP4_Debug("Jpeg\n");  break;
         default: {
             char hdlr[5];
-            AP4_FormatFourChars(hdlr, track->GetHandlerType());
+            AP4_FormatFourChars(hdlr, track.GetHandlerType());
             AP4_Debug("Unknown [");
             AP4_Debug(hdlr);
             AP4_Debug("]\n");
             break;
         }
     }
-    AP4_Debug("  duration:     %ld ms\n", track->GetDurationMs());
-    AP4_Debug("  timescale:    %ld\n", track->GetMediaTimeScale());
-    AP4_Debug("  sample count: %ld\n", track->GetSampleCount());
+    AP4_Debug("  duration:     %ld ms\n", track.GetDurationMs());
+    AP4_Debug("  timescale:    %ld\n", track.GetMediaTimeScale());
+    AP4_Debug("  sample count: %ld\n", track.GetSampleCount());
 	AP4_Sample  sample;
 	AP4_Ordinal index = 0;
     AP4_Ordinal desc_index = 0xFFFFFFFF;
-    while (AP4_SUCCEEDED(track->GetSample(index, sample))) {
+    while (AP4_SUCCEEDED(track.GetSample(index, sample))) {
         if (sample.GetDescriptionIndex() != desc_index) {
             desc_index = sample.GetDescriptionIndex();
             AP4_Debug("  [%d]: Sample Description %d\n", index, desc_index);
             
             // get the sample description
             AP4_SampleDescription* sample_desc = 
-                track->GetSampleDescription(desc_index);
-            if (sample_desc != NULL) {
-                ShowSampleDescription(sample_desc);
+                track.GetSampleDescription(desc_index);
+            if (sample_desc) {
+                ShowSampleDescription(*sample_desc);
             }
         }
         if (verbose) {
@@ -306,11 +355,11 @@ ShowTrackInfo(AP4_Track* track, bool verbose = false)
 |   ShowMovieInfo
 +---------------------------------------------------------------------*/
 static void
-ShowMovieInfo(AP4_Movie* movie)
+ShowMovieInfo(AP4_Movie& movie)
 {
     AP4_Debug("Movie:\n");
-    AP4_Debug("  duration:   %ld ms\n", movie->GetDurationMs());
-    AP4_Debug("  time scale: %ld\n", movie->GetTimeScale());
+    AP4_Debug("  duration:   %ld ms\n", movie.GetDurationMs());
+    AP4_Debug("  time scale: %ld\n", movie.GetTimeScale());
     AP4_Debug("\n");
 }
 
@@ -318,9 +367,9 @@ ShowMovieInfo(AP4_Movie* movie)
 |   ShowFileInfo
 +---------------------------------------------------------------------*/
 static void
-ShowFileInfo(AP4_File* file)
+ShowFileInfo(AP4_File& file)
 {
-    AP4_FtypAtom* file_type = file->GetFileType();
+    AP4_FtypAtom* file_type = file.GetFileType();
     if (file_type == NULL) return;
     char four_cc[5];
 
@@ -338,7 +387,6 @@ ShowFileInfo(AP4_File* file)
     }
     AP4_Debug("\n");
 }
-
 
 /*----------------------------------------------------------------------
 |   main
@@ -374,16 +422,16 @@ main(int argc, char** argv)
         input = new AP4_FileByteStream(filename,
                                AP4_FileByteStream::STREAM_MODE_READ);
     } catch (AP4_Exception) {
-        fprintf(stderr, "ERROR: cannot open input file (%s)\n", argv[1]);
+        fprintf(stderr, "ERROR: cannot open input file (%s)\n", filename);
         return 1;
     }
 
     AP4_File* file = new AP4_File(*input);
-    ShowFileInfo(file);
+    ShowFileInfo(*file);
 
     AP4_Movie* movie = file->GetMovie();
-    if (movie != NULL) {
-        ShowMovieInfo(movie);
+    if (movie) {
+        ShowMovieInfo(*movie);
 
         AP4_List<AP4_Track>& tracks = movie->GetTracks();
         AP4_Debug("Found %d Tracks\n", tracks.ItemCount());
@@ -393,11 +441,17 @@ main(int argc, char** argv)
         while (track_item) {
             AP4_Debug("Track %d:\n", index); 
             index++;
-            ShowTrackInfo(track_item->GetData(), verbose);
+            ShowTrackInfo(*track_item->GetData(), verbose);
             track_item = track_item->GetNext();
         }
     } else {
-        AP4_Debug("No movie found in the file\n");
+        // check if this is a DCF file
+        AP4_FtypAtom* ftyp = file->GetFileType();
+        if (ftyp && ftyp->GetMajorBrand() == AP4_OMA_DCF_BRAND_ODCF) {
+            ShowDcfInfo(*file);
+        } else {
+            printf("No movie found in the file\n");
+        }
     }
 
     delete file;

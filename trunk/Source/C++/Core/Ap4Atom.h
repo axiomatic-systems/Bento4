@@ -94,6 +94,11 @@ public:
                           FormatHint  hint = HINT_NONE) {
         (void)hint; // gcc warning
     }
+    virtual void AddFieldF(const char* /* name */, 
+                           float       /* value */, 
+                           FormatHint  hint = HINT_NONE) {
+        (void)hint; // gcc warning
+    }
     virtual void AddField(const char* /* name */, 
                           const char* /* value */, 
                           FormatHint  hint = HINT_NONE) {
@@ -128,29 +133,29 @@ class AP4_Atom {
     /**
      * Create a simple atom with a specified type and 32-bit size.
      */
-    AP4_Atom(Type type, AP4_UI32 size = AP4_ATOM_HEADER_SIZE);
+    explicit AP4_Atom(Type type, AP4_UI32 size = AP4_ATOM_HEADER_SIZE);
 
     /**
      * Create a simple atom with a specified type and 64-bit size.
      */
-    AP4_Atom(Type type, AP4_UI64 size, bool force_64=false);
+    explicit AP4_Atom(Type type, AP4_UI64 size, bool force_64=false);
 
     /**
      * Create a full atom with a specified type, 32-bit size, version and flags.
      */
-    AP4_Atom(Type     type, 
-             AP4_UI32 size,
-             AP4_UI32 version, 
-             AP4_UI32 flags);
+    explicit AP4_Atom(Type     type, 
+                      AP4_UI32 size,
+                      AP4_UI32 version, 
+                      AP4_UI32 flags);
 
     /**
      * Create a full atom with a specified type, 64-bit size, version and flags.
      */
-    AP4_Atom(Type     type, 
-             AP4_UI64 size,
-             bool     force_64,
-             AP4_UI32 version, 
-             AP4_UI32 flags);
+    explicit AP4_Atom(Type     type, 
+                      AP4_UI64 size,
+                      bool     force_64,
+                      AP4_UI32 version, 
+                      AP4_UI32 flags);
 
     // destructor
     virtual ~AP4_Atom() {}

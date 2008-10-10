@@ -76,11 +76,35 @@ public:
     void            SetSize(AP4_Size size) { m_Size = size; }
     AP4_Ordinal     GetDescriptionIndex() const { return m_DescriptionIndex; }
     void            SetDescriptionIndex(AP4_Ordinal index) { m_DescriptionIndex = index; }
-    AP4_TimeStamp   GetDts() const { return m_Dts; }
+    
+    /**
+     * Get the DTS (Decoding Time Stamp) of the sample in the timescale of the media
+     */
+    AP4_UI32        GetDts() const { return m_Dts; }
+
+    /**
+     * Set the DTS (Decoding Time Stamp) of the sample in the timescale of the media
+     */
     void            SetDts(AP4_TimeStamp dts) { m_Dts = dts; }
-    AP4_TimeStamp   GetCts() const { return m_Cts; }
+
+    /**
+     * Get the CTS (Composition Time Stamp) of the sample in the timescale of the media
+     */
+    AP4_UI32        GetCts() const { return m_Cts; }
+
+    /**
+     * Get the CTS (Composition Time Stamp) of the sample in the timescale of the media
+     */
     void            SetCts(AP4_TimeStamp cts) { m_Cts = cts; }
+
+    /**
+     * Return whether the sample is a sync (random-access point) sample or not.
+     */
     bool            IsSync() const { return m_IsSync; }
+
+    /**
+     * Set whether the sample is a sync (random-access point) sample or not.
+     */
     void            SetSync(bool is_sync) { m_IsSync = is_sync; }
 
 protected:

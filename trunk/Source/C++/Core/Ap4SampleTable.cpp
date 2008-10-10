@@ -57,12 +57,18 @@ AP4_SampleTable::GenerateStblAtom(AP4_ContainerAtom*& stbl)
     // create the stsc atom
     AP4_StscAtom* stsc = new AP4_StscAtom();
 
+    // create the stts atom
+    AP4_SttsAtom* stts = new AP4_SttsAtom();
+
     // start chunk table
     AP4_Ordinal             current_chunk_index              = 0;
     AP4_Size                current_chunk_size               = 0;
     AP4_Position            current_chunk_offset             = 0;
     AP4_Cardinal            current_samples_in_chunk         = 0;
     AP4_Ordinal             current_sample_description_index = 0;
+    AP4_UI32                current_dts                      = 0;
+    AP4_UI32                current_dts_delta                = 0;
+    AP4_Cardinal            current_dts_delta_run            = 0;
     AP4_Array<AP4_Position> chunk_offsets;
 
     // process all the samples
@@ -70,6 +76,25 @@ AP4_SampleTable::GenerateStblAtom(AP4_ContainerAtom*& stbl)
     for (AP4_Ordinal i=0; i<sample_count; i++) {
         AP4_Sample sample;
         GetSample(i, sample);
+        
+        // update CTS and DTS tables
+        AP4_UI32 dts = sample.GetDts();
+        if (i > 0) {
+            AP4_UI32 dts_delta = 0;
+            if (dts > current_dts) {
+                dts_delta = dts-current_dts;
+            }
+            if (dts_delta != current_dts_delta && current_dts_delta_run != 0) {
+                // emmit a new stts entry
+                stts->AddEntry(current_dts_delta_run, current_dts_delta);
+                
+                // reset the run count
+                current_dts_delta_run = 0;
+            } 
+            ++current_dts_delta_run;
+            current_dts_delta = dts_delta;
+        }
+        current_dts = dts;
         
         // store the sample description index
         current_sample_description_index = sample.GetDescriptionIndex();
@@ -82,7 +107,7 @@ AP4_SampleTable::GenerateStblAtom(AP4_ContainerAtom*& stbl)
         AP4_Ordinal position_in_chunk = 0;
         AP4_Result  result = GetSampleChunkPosition(i, chunk_index, position_in_chunk);
         if (AP4_SUCCEEDED(result)) {
-            if (chunk_index != current_chunk_index) {
+            if (chunk_index != current_chunk_index && current_samples_in_chunk != 0) {
                 // new chunk
                 chunk_offsets.Append(current_chunk_offset);
                 current_chunk_offset += current_chunk_size;
@@ -94,12 +119,16 @@ AP4_SampleTable::GenerateStblAtom(AP4_ContainerAtom*& stbl)
                 current_samples_in_chunk = 0;
                 current_chunk_size       = 0;
             }
+            current_chunk_index = chunk_index;
         }
 
         // adjust the current chunk info
         current_chunk_size += sample.GetSize();
         ++current_samples_in_chunk;        
     }
+
+    // (we assume the last sample's duration is the same as the next-to-last)
+    stts->AddEntry(current_dts_delta_run+1, current_dts_delta);
 
     // process any unfinished chunk
     if (current_samples_in_chunk != 0) {
@@ -109,10 +138,6 @@ AP4_SampleTable::GenerateStblAtom(AP4_ContainerAtom*& stbl)
                        current_samples_in_chunk,
                        current_sample_description_index+1);
     }
-
-    // create the stts atom (for now, we assume sample of equal duration)
-    AP4_SttsAtom* stts = new AP4_SttsAtom();
-    stts->AddEntry(sample_count, 1000); // FIXME
 
     // attach the children of stbl
     stbl->AddChild(stsd);
