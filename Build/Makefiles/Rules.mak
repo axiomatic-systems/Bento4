@@ -2,7 +2,7 @@
 #
 #    common make rules and variables
 #
-#    (c) 2001-2002 Gilles Boccon-Gibod
+#    (c) 2002-2008 Axiomatic Systems, LLC
 #    Author: Gilles Boccon-Gibod (bok@bok.net)
 #
 ##########################################################################

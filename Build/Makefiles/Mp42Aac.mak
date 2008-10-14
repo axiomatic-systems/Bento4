@@ -2,7 +2,7 @@
 #
 #    Mp42Aac Program
 #
-#    (c) 2002-2003 Gilles Boccon-Gibod & Julien Boeuf
+#    (c) 2002-2008 Axiomatic Systems, LLC
 #
 ##########################################################################
 all: mp42aac

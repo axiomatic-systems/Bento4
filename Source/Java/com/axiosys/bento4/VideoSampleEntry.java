@@ -1,6 +1,6 @@
 /*****************************************************************
 |
-|    Copyright 2002-2007 Gilles Boccon-Gibod & Julien Boeuf
+|    Copyright 2002-2008 Axiomatic Systems, LLC
 |
 |    $Id$
 |

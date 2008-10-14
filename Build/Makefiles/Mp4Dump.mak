@@ -2,7 +2,7 @@
 #
 #    Ap4Dump Program
 #
-#    (c) 2001-2002 Gilles Boccon-Gibod
+#    (c) 2002-2008 Axiomatic Systems, LLC
 #
 ##########################################################################
 all: mp4dump

@@ -2,7 +2,7 @@
 #
 #    Bento4 Runtime Lib
 #
-#    (c) 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
+#    (c) 2002-2008 Axiomatic Systems, LLC
 #
 ##########################################################################
 all: libAP4.a
