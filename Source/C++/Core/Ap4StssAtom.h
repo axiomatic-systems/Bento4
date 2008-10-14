@@ -44,10 +44,16 @@ public:
     // class methods
     static AP4_StssAtom* Create(AP4_Size size, AP4_ByteStream& stream);
 
+    // constructor
+    AP4_StssAtom();
+    
     // methods
-    virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
-    virtual bool       IsSampleSync(AP4_Ordinal sample);
-    virtual AP4_Result WriteFields(AP4_ByteStream& stream);
+    // methods
+    const AP4_Array<AP4_UI32>& GetEntries() { return m_Entries; }
+    AP4_Result                 AddEntry(AP4_UI32 sample);
+    virtual AP4_Result         InspectFields(AP4_AtomInspector& inspector);
+    virtual bool               IsSampleSync(AP4_Ordinal sample);
+    virtual AP4_Result         WriteFields(AP4_ByteStream& stream);
 
 private:
     // methods
@@ -55,7 +61,7 @@ private:
                  AP4_UI32        version,
                  AP4_UI32        flags,
                  AP4_ByteStream& stream);
-
+    
     // members
     AP4_Array<AP4_UI32> m_Entries;
     AP4_Ordinal         m_LookupCache;

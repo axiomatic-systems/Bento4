@@ -67,11 +67,14 @@ public:
     // class methods
     static AP4_CttsAtom* Create(AP4_UI32 size, AP4_ByteStream& stream);
 
+    // constructor
+    AP4_CttsAtom();
+    
     // methods
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
-    virtual AP4_Result GetCtsOffset(AP4_Ordinal sample, 
-                                    AP4_UI32&   cts_offset);
+    AP4_Result AddEntry(AP4_UI32 count, AP4_UI32 cts_offset);
+    AP4_Result GetCtsOffset(AP4_Ordinal sample, AP4_UI32& cts_offset);
 
 private:
     // methods

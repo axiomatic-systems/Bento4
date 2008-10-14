@@ -49,6 +49,14 @@ AP4_StssAtom::Create(AP4_Size size, AP4_ByteStream& stream)
 /*----------------------------------------------------------------------
 |   AP4_StssAtom::AP4_StssAtom
 +---------------------------------------------------------------------*/
+AP4_StssAtom::AP4_StssAtom() :
+    AP4_Atom(AP4_ATOM_TYPE_STSS, AP4_FULL_ATOM_HEADER_SIZE+4, 0, 0)
+{
+}
+
+/*----------------------------------------------------------------------
+|   AP4_StssAtom::AP4_StssAtom
++---------------------------------------------------------------------*/
 AP4_StssAtom::AP4_StssAtom(AP4_UI32        size, 
                            AP4_UI32        version,
                            AP4_UI32        flags,
@@ -86,6 +94,18 @@ AP4_StssAtom::WriteFields(AP4_ByteStream& stream)
     }
 
     return result;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_StssAtom::AddEntry
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_StssAtom::AddEntry(AP4_UI32 sample)
+{
+    m_Entries.Append(sample);
+    m_Size32 += 4;
+    
+    return AP4_SUCCESS;
 }
 
 /*----------------------------------------------------------------------

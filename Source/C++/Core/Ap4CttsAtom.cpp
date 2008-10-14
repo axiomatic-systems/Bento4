@@ -49,6 +49,16 @@ AP4_CttsAtom::Create(AP4_UI32 size, AP4_ByteStream& stream)
 /*----------------------------------------------------------------------
 |   AP4_CttsAtom::AP4_CttsAtom
 +---------------------------------------------------------------------*/
+AP4_CttsAtom::AP4_CttsAtom() :
+    AP4_Atom(AP4_ATOM_TYPE_CTTS, AP4_FULL_ATOM_HEADER_SIZE+4, 0, 0)
+{
+    m_LookupCache.sample      = 0;
+    m_LookupCache.entry_index = 0;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_CttsAtom::AP4_CttsAtom
++---------------------------------------------------------------------*/
 AP4_CttsAtom::AP4_CttsAtom(AP4_UI32        size, 
                            AP4_UI32        version,
                            AP4_UI32        flags,
@@ -69,6 +79,17 @@ AP4_CttsAtom::AP4_CttsAtom(AP4_UI32        size,
                                                 sample_offset));
         }
     }
+}
+
+/*----------------------------------------------------------------------
+|   AP4_CttsAtom::AddEntry
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_CttsAtom::AddEntry(AP4_UI32 count, AP4_UI32 cts_offset)
+{
+    m_Entries.Append(AP4_CttsTableEntry(count, cts_offset));
+    m_Size32 += 8;
+    return AP4_SUCCESS;
 }
 
 /*----------------------------------------------------------------------
