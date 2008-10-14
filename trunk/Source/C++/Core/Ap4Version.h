@@ -2,7 +2,7 @@
 |
 |    AP4 - Target Platform and Compiler Configuration
 |
-|    Copyright 2002-2008 Gilles Boccon-Gibod
+|    Copyright 2002-2008 Axiomatic Systems, LLC
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).

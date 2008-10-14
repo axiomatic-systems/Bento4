@@ -1,6 +1,6 @@
 /*
  * AES Block cipher
- * (c) 2005 Gilles Boccon-Gibod
+ * (c) 2005-2008 Axiomatic Systems, LLC
  * Portions (c) 2001, Dr Brian Gladman (see below)
  */
 
