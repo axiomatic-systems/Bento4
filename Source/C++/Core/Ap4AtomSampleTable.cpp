@@ -2,7 +2,7 @@
 |
 |    AP4 - Atom Based Sample Tables
 |
-|    Copyright 2002-2006 Gilles Boccon-Gibod & Julien Boeuf
+|    Copyright 2002-2008 Axiomatic Systems, LLC
 |
 |
 |    This atom is part of AP4 (MP4 Audio Proatom Library).

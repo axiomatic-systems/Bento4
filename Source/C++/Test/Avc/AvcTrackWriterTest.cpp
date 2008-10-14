@@ -2,7 +2,7 @@
 |
 |    AP4 - Avc Track Writer Test
 |
-|    Copyright 2002-2008 Gilles Boccon-Gibod & Julien Boeuf
+|    Copyright 2002-2008 Axiomatic Systems, LLC
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -39,7 +39,7 @@
 +---------------------------------------------------------------------*/
 #define BANNER "Avc Track Writer Test - Version 1.0\n"\
                "(Bento4 Version " AP4_VERSION_STRING ")\n"\
-               "(c) 2002-2008 Gilles Boccon-Gibod & Julien Boeuf"
+               "(c) 2002-2008 Axiomatic Systems, LLC"
  
 /*----------------------------------------------------------------------
 |   PrintUsageAndExit

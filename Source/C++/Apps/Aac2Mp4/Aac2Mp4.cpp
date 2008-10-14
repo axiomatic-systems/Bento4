@@ -2,7 +2,7 @@
 |
 |    AP4 - AAC to MP4 Converter
 |
-|    Copyright 2003-2006 Gilles Boccon-Gibod & Julien Boeuf
+|    Copyright 2002-2008 Axiomatic Systems, LLC
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -40,7 +40,7 @@
 +---------------------------------------------------------------------*/
 #define BANNER "AAC to MP4 Converter - Version 1.0\n"\
                "(Bento4 Version " AP4_VERSION_STRING ")\n"\
-               "(c) 2002-2006 Gilles Boccon-Gibod & Julien Boeuf"
+               "(c) 2002-2008 Axiomatic Systems, LLC"
  
 /*----------------------------------------------------------------------
 |   PrintUsageAndExit
