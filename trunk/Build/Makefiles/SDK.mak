@@ -2,7 +2,7 @@
 #
 #    SDK Makefile
 #
-#    (c) 2001-2005 Gilles Boccon-Gibod
+#    (c) 2002-2008 Axiomatic Systems, LLC
 #
 ##########################################################################
 all: sdk

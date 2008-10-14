@@ -10,7 +10,7 @@ For applications that cannot be entirely distributable under the terms of
 the GPL (either the application, or code modules linked with the application
 are not compatible with the terms of the GPL licence), a non-GPL commercial
 license is available from Axiomatic Systems LLC. 
-Contact bok@bok.net for more information.
+Contact Gilles Boccon-Gibod (bok@bok.net) for more information.
 
 The GPL license terms are included below:
 

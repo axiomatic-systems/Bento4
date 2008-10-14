@@ -2,7 +2,7 @@
 #
 #    Mp4Tag Program
 #
-#    (c) 2001-2006 Gilles Boccon-Gibod
+#    (c) 2002-2008 Axiomatic Systems, LLC
 #
 ##########################################################################
 all: mp4tag
