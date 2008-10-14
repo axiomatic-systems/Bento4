@@ -62,7 +62,7 @@ main(int argc, char** argv)
 {
     AP4_Result result;
 
-    if (argc < 2) {
+    if (argc < 3) {
         PrintUsageAndExit();
     }
     

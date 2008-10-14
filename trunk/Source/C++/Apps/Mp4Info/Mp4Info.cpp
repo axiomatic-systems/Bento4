@@ -337,29 +337,28 @@ ShowTrackInfo(AP4_Track& track, bool verbose = false)
             }
         }
         if (verbose) {
-            printf("[%08d] size=%6d dts=%8d, cts=%8d", 
+            printf("[%06d] size=%6d dts=%8d, cts=%8d", 
                    index+1,
                    (int)sample.GetSize(),
                    (int)sample.GetDts(), 
                    (int)sample.GetCts());
             if (sample.IsSync()) {
-                printf(" [Sync] ");
+                printf(" [S] ");
             } else {
-                printf("        ");
+                printf("     ");
             }
             
             sample.ReadData(sample_data);
             unsigned int show = sample_data.GetDataSize();
-            if (show > 16) show = 16; // max 16 chars
+            if (show > 12) show = 12; // max first 12 chars
             
-            printf("[");
             for (unsigned int i=0; i<show; i++) {
                 printf("%02x", sample_data.GetData()[i]);
             }
             if (show == sample_data.GetDataSize()) {
-                printf("]\n");
+                printf("\n");
             } else {
-                printf("...]\n");
+                printf("...\n");
             }
         }
         index++;
