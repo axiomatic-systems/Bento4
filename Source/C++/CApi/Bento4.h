@@ -41,6 +41,13 @@ typedef struct AP4_Movie AP4_Movie;
 typedef struct AP4_Track AP4_Track;
 typedef struct AP4_MetaData AP4_MetaData;
 typedef struct AP4_Sample AP4_Sample;
+typedef struct AP4_SampleDescription AP4_SampleDescription;
+typedef struct AP4_AudioSampleDescription AP4_AudioSampleDescription;
+typedef struct AP4_VideoSampleDescription AP4_VideoSampleDescription;
+typedef struct AP4_AvcSampleDescription AP4_AvcSampleDescription;
+typedef struct AP4_MpegSampleDescription AP4_MpegSampleDescription;
+typedef struct AP4_MpegAudioSampleDescription AP4_MpegAudioSampleDescription;
+typedef struct AP4_SampleTable AP4_SampleTable;
 
 /*----------------------------------------------------------------------
 |   constants
@@ -59,6 +66,60 @@ extern const int AP4_TRACK_TYPE_JPEG;
 extern const int AP4_TRACK_TYPE_RTP;
 
 extern const AP4_UI32 AP4_TRACK_DEFAULT_MOVIE_TIMESCALE;
+
+extern const int AP4_SAMPLE_DESCRIPTION_TYPE_UNKNOWN;
+extern const int AP4_SAMPLE_DESCRIPTION_TYPE_MPEG;
+extern const int AP4_SAMPLE_DESCRIPTION_TYPE_PROTECTED;
+extern const int AP4_SAMPLE_DESCRIPTION_TYPE_AVC;
+
+extern const AP4_UI08 AP4_STREAM_TYPE_FORBIDDEN;
+extern const AP4_UI08 AP4_STREAM_TYPE_OD;
+extern const AP4_UI08 AP4_STREAM_TYPE_CR;	
+extern const AP4_UI08 AP4_STREAM_TYPE_BIFS;
+extern const AP4_UI08 AP4_STREAM_TYPE_VISUAL;
+extern const AP4_UI08 AP4_STREAM_TYPE_AUDIO;
+extern const AP4_UI08 AP4_STREAM_TYPE_MPEG7;
+extern const AP4_UI08 AP4_STREAM_TYPE_IPMP;
+extern const AP4_UI08 AP4_STREAM_TYPE_OCI;
+extern const AP4_UI08 AP4_STREAM_TYPE_MPEGJ;
+extern const AP4_UI08 AP4_STREAM_TYPE_TEXT;
+
+extern const AP4_UI08 AP4_OTI_MPEG4_SYSTEM;
+extern const AP4_UI08 AP4_OTI_MPEG4_SYSTEM_COR;
+extern const AP4_UI08 AP4_OTI_MPEG4_TEXT;
+extern const AP4_UI08 AP4_OTI_MPEG4_VISUAL;
+extern const AP4_UI08 AP4_OTI_MPEG4_AUDIO;
+extern const AP4_UI08 AP4_OTI_MPEG2_VISUAL_SIMPLE;
+extern const AP4_UI08 AP4_OTI_MPEG2_VISUAL_MAIN;
+extern const AP4_UI08 AP4_OTI_MPEG2_VISUAL_SNR;
+extern const AP4_UI08 AP4_OTI_MPEG2_VISUAL_SPATIAL;
+extern const AP4_UI08 AP4_OTI_MPEG2_VISUAL_HIGH;
+extern const AP4_UI08 AP4_OTI_MPEG2_VISUAL_422;
+extern const AP4_UI08 AP4_OTI_MPEG2_AAC_AUDIO_MAIN;
+extern const AP4_UI08 AP4_OTI_MPEG2_AAC_AUDIO_LC;
+extern const AP4_UI08 AP4_OTI_MPEG2_AAC_AUDIO_SSRP;
+extern const AP4_UI08 AP4_OTI_MPEG2_PART3_AUDIO;
+extern const AP4_UI08 AP4_OTI_MPEG1_VISUAL;
+extern const AP4_UI08 AP4_OTI_MPEG1_AUDIO;
+extern const AP4_UI08 AP4_OTI_JPEG;
+
+extern const AP4_UI08 AP4_MPEG4_AUDIO_OBJECT_TYPE_AAC_MAIN;        /**< AAC Main Profile              */
+extern const AP4_UI08 AP4_MPEG4_AUDIO_OBJECT_TYPE_AAC_LC;          /**< AAC Low Complexity            */
+extern const AP4_UI08 AP4_MPEG4_AUDIO_OBJECT_TYPE_AAC_SSR;         /**< AAC Scalable Sample Rate      */
+extern const AP4_UI08 AP4_MPEG4_AUDIO_OBJECT_TYPE_AAC_LTP;         /**< AAC Long Term Predictor       */
+extern const AP4_UI08 AP4_MPEG4_AUDIO_OBJECT_TYPE_SBR;             /**< Spectral Band Replication          */
+extern const AP4_UI08 AP4_MPEG4_AUDIO_OBJECT_TYPE_AAC_SCALABLE;    /**< AAC Scalable                       */
+extern const AP4_UI08 AP4_MPEG4_AUDIO_OBJECT_TYPE_TWINVQ;          /**< Twin VQ                            */
+extern const AP4_UI08 AP4_MPEG4_AUDIO_OBJECT_TYPE_ER_AAC_LC;       /**< Error Resilient AAC Low Complexity */
+extern const AP4_UI08 AP4_MPEG4_AUDIO_OBJECT_TYPE_ER_AAC_LTP;      /**< Error Resilient AAC Long Term Prediction */
+extern const AP4_UI08 AP4_MPEG4_AUDIO_OBJECT_TYPE_ER_AAC_SCALABLE; /**< Error Resilient AAC Scalable */
+extern const AP4_UI08 AP4_MPEG4_AUDIO_OBJECT_TYPE_ER_TWINVQ;       /**< Error Resilient Twin VQ */
+extern const AP4_UI08 AP4_MPEG4_AUDIO_OBJECT_TYPE_ER_BSAC;         /**< Error Resilient Bit Sliced Arithmetic Coding */
+extern const AP4_UI08 AP4_MPEG4_AUDIO_OBJECT_TYPE_ER_AAC_LD;       /**< Error Resilient AAC Low Delay */
+extern const AP4_UI08 AP4_MPEG4_AUDIO_OBJECT_TYPE_LAYER_1;         /**< MPEG Layer 1 */
+extern const AP4_UI08 AP4_MPEG4_AUDIO_OBJECT_TYPE_LAYER_2;         /**< MPEG Layer 2 */
+extern const AP4_UI08 AP4_MPEG4_AUDIO_OBJECT_TYPE_LAYER_3;         /**< MPEG Layer 3 */
+
 
 /*----------------------------------------------------------------------
 |   result codes
@@ -324,8 +385,209 @@ AP4_Track_GetDurationMs(AP4_Track* self);
 AP4_Cardinal
 AP4_Track_GetSampleCount(AP4_Track* self);
 
-/** to be continued... */
+AP4_Result
+AP4_Track_GetSample(AP4_Track* self, AP4_Ordinal index, AP4_Sample* sample);
 
+AP4_Result
+AP4_Track_ReadSample(AP4_Track*      self, 
+                     AP4_Ordinal     index, 
+                     AP4_Sample*     sample,
+                     AP4_DataBuffer* data);
+
+AP4_Result
+AP4_Track_GetSampleIndexForTimeStampMs(AP4_Track*    self,
+                                       AP4_TimeStamp ts,
+                                       AP4_Ordinal*  index);
+                                       
+AP4_SampleDescription*
+AP4_Track_GetSampleDescription(AP4_Track* self, AP4_Ordinal index);
+
+AP4_UI32
+AP4_Track_GetId(AP4_Track* self);
+
+AP4_Result
+AP4_Track_SetId(AP4_Track* self, AP4_UI32 track_id);
+
+AP4_Result
+AP4_Track_SetMovieTimeScale(AP4_Track* self, AP4_UI32 time_scale);
+
+AP4_UI32
+AP4_Track_GetMediaTimeScale(AP4_Track* self);
+
+AP4_UI32
+AP4_Track_GetMediaDuration(AP4_Track* self); /* in the timescale of the media */
+
+const char* 
+AP4_Track_GetName(AP4_Track* self);
+
+const char*
+AP4_Track_GetLanguage(AP4_Track* self);
+
+/*----------------------------------------------------------------------
+|   AP4_Track constructors
++---------------------------------------------------------------------*/
+AP4_Track* 
+AP4_Track_Create(int              type,
+                 AP4_SampleTable* sample_table,
+                 AP4_UI32         track_id,
+                 AP4_UI32         movie_time_scale, /* 0 = use default */
+                 AP4_UI32         track_duration,   /* in the movie time scale */
+                 AP4_UI32         media_time_scale,
+                 AP4_UI32         media_duration,   /* in the media time scale */
+                 const char*      language,
+                 AP4_UI32         width,
+                 AP4_UI32         height);
+
+/*----------------------------------------------------------------------
+|   AP4_SampleDescription methods
++---------------------------------------------------------------------*/
+int
+AP4_SampleDescription_GetType(AP4_SampleDescription* self);
+
+AP4_UI32
+AP4_SampleDescription_GetFormat(AP4_SampleDescription* self);
+
+AP4_AudioSampleDescription*
+AP4_SampleDescription_AsAudio(AP4_SampleDescription* self);
+
+AP4_VideoSampleDescription*
+AP4_SampleDescription_AsVideo(AP4_SampleDescription* self);
+
+AP4_AvcSampleDescription*
+AP4_SampleDescription_AsAvc(AP4_SampleDescription* self);
+
+AP4_MpegSampleDescription*
+AP4_SampleDescription_AsMpeg(AP4_SampleDescription* self);
+
+AP4_MpegAudioSampleDescription*
+AP4_SampleDescription_AsMpegAudio(AP4_SampleDescription* self);
+
+AP4_UI32
+AP4_AudioSampleDescription_GetSampleRate(AP4_AudioSampleDescription* self);
+
+AP4_UI16
+AP4_AudioSampleDescription_GetSampleSize(AP4_AudioSampleDescription* self);
+
+AP4_UI16
+AP4_AudioSampleDescription_GetChannelCount(AP4_AudioSampleDescription* self);
+
+AP4_UI32
+AP4_VideoSampleDescription_GetWidth(AP4_VideoSampleDescription* self);
+
+AP4_UI16
+AP4_VideoSampleDescription_GetHeight(AP4_VideoSampleDescription* self);
+
+AP4_UI16
+AP4_VideoSampleDescription_GetDepth(AP4_VideoSampleDescription* self);
+
+const char*
+AP4_VideoSampleDescription_GetCompressorName(AP4_VideoSampleDescription* self);
+
+AP4_UI08
+AP4_AvcSampleDescription_GetConfigurationVersion(AP4_AvcSampleDescription* self);
+
+AP4_UI08
+AP4_AvcSampleDescription_GetProfile(AP4_AvcSampleDescription* self);
+
+AP4_UI08
+AP4_AvcSampleDescription_GetLevel(AP4_AvcSampleDescription* self);
+
+AP4_UI08
+AP4_AvcSampleDescription_GetProfileCompatibility(AP4_AvcSampleDescription* self);
+
+AP4_Cardinal
+AP4_AvcSampleDescription_GetSequenceParameterCount(AP4_AvcSampleDescription* self);
+
+AP4_DataBuffer*
+AP4_AvcSampleDescription_GetSequenceParameter(AP4_AvcSampleDescription* self,
+                                              AP4_Ordinal               index);
+                                              
+AP4_Cardinal
+AP4_AvcSampleDescription_GetPictureParameterCount(AP4_AvcSampleDescription* self);
+
+AP4_DataBuffer*
+AP4_AvcSampleDescription_GetPictureParameter(AP4_AvcSampleDescription* self,
+                                            AP4_Ordinal               index);
+                                              
+const AP4_DataBuffer*
+AP4_AvcSampleDescription_GetRawBytes(AP4_AvcSampleDescription* self);
+
+const char* 
+AP4_AvcSampleDescription_GetProfileName(AP4_UI08 profile); /* class method */
+
+AP4_UI08
+AP4_MpegSampleDescription_GetStreamType(AP4_MpegSampleDescription* self);
+
+AP4_UI08
+AP4_MpegSampleDescription_GetObjectTypeId(AP4_MpegSampleDescription* self);
+
+AP4_UI32
+AP4_MpegSampleDescription_GetBufferSize(AP4_MpegSampleDescription* self);
+
+AP4_UI32
+AP4_MpegSampleDescription_GetMaxBitrate(AP4_MpegSampleDescription* self);
+
+AP4_UI32
+AP4_MpegSampleDescription_GetAvgBitrate(AP4_MpegSampleDescription* self);
+
+const AP4_DataBuffer*
+AP4_MpegSampleDescription_GetDecoderInfo(AP4_MpegSampleDescription* self);
+
+AP4_UI08
+AP4_MpegAudioSampleDescription_GetMpeg4AudioObjectType(AP4_MpegAudioSampleDescription* self);
+
+const char*
+AP4_MpegAudioSampleDescription_GetMpegAudioObjectTypeString(AP4_UI08 type); /* class method */
+
+/*----------------------------------------------------------------------
+|   AP4_SampleDescription constructors
++---------------------------------------------------------------------*/
+AP4_SampleDescription*
+AP4_MpegVideoSampleDescription_Create(AP4_UI08        oti,
+                                      AP4_UI16        width,
+                                      AP4_UI16        height,
+                                      AP4_UI16        depth,
+                                      const char*     compressor_name,
+                                      const AP4_Byte* decoder_info,
+                                      AP4_Size        decoder_info_size,
+                                      AP4_UI32        buffer_size,
+                                      AP4_UI32        max_bitrate,
+                                      AP4_UI32        avg_bitrate);
+
+AP4_SampleDescription*
+AP4_MpegAudioSampleDescription_Create(AP4_UI08        oti,
+                                      AP4_UI32        sample_rate,
+                                      AP4_UI32        sample_size,
+                                      AP4_UI32        channel_count,
+                                      const AP4_Byte* decoder_info,
+                                      AP4_Size        decoder_info_size,
+                                      AP4_UI32        buffer_size,
+                                      AP4_UI32        max_bitrate,
+                                      AP4_UI32        avg_bitrate);
+                                      
+AP4_SampleDescription*
+AP4_MpegSystemSampleDescription_Create(AP4_UI08        stream_type,
+                                       AP4_UI08        oti,
+                                       const AP4_Byte* decoder_info,
+                                       AP4_Size        decoder_info_size,
+                                       AP4_UI32        buffer_size,
+                                       AP4_UI32        max_bitrate,
+                                       AP4_UI32        avg_bitrate);
+                                       
+AP4_SampleDescription*
+AP4_AvcSampleDescription_Create(AP4_UI16         width,
+                                AP4_UI16         height,
+                                AP4_UI16         depth,
+                                const char*      compressor_name,
+                                AP4_UI08         config_version,
+                                AP4_UI08         profile,
+                                AP4_UI08         level,
+                                AP4_UI08         profile_compatibility,
+                                AP4_UI08         nalu_length_size,
+                                AP4_DataBuffer** sequence_parameters,
+                                AP4_Size         sequence_parameter_count,
+                                AP4_DataBuffer** picture_parameters,
+                                AP4_Size         picture_parameter_count);
 
 
 #ifdef __cplusplus
