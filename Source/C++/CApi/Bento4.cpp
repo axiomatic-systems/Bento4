@@ -558,3 +558,314 @@ AP4_Track_Create(int              type,
                          width,
                          height);
 }
+
+/*----------------------------------------------------------------------
+|   AP4_SampleDescription implementation
++---------------------------------------------------------------------*/
+int
+AP4_SampleDescription_GetType(AP4_SampleDescription* self)
+{
+    return self->GetType();
+}
+
+AP4_UI32
+AP4_SampleDescription_GetFormat(AP4_SampleDescription* self)
+{
+    return self->GetFormat();
+}
+
+AP4_AudioSampleDescription*
+AP4_SampleDescription_AsAudio(AP4_SampleDescription* self)
+{
+    return dynamic_cast<AP4_AudioSampleDescription*> (self);
+}
+
+AP4_VideoSampleDescription*
+AP4_SampleDescription_AsVideo(AP4_SampleDescription* self)
+{
+    return dynamic_cast<AP4_VideoSampleDescription*> (self);
+}
+
+AP4_AvcSampleDescription*
+AP4_SampleDescription_AsAvc(AP4_SampleDescription* self)
+{
+    return dynamic_cast<AP4_AvcSampleDescription*> (self);
+}
+
+AP4_MpegSampleDescription*
+AP4_SampleDescription_AsMpeg(AP4_SampleDescription* self)
+{
+    return dynamic_cast<AP4_MpegSampleDescription*> (self);
+}
+
+AP4_MpegAudioSampleDescription*
+AP4_SampleDescription_AsMpegAudio(AP4_SampleDescription* self)
+{
+    return dynamic_cast<AP4_MpegAudioSampleDescription*> (self);
+}
+
+AP4_UI32
+AP4_AudioSampleDescription_GetSampleRate(AP4_AudioSampleDescription* self)
+{
+    return self->GetSampleRate();
+}
+
+AP4_UI16
+AP4_AudioSampleDescription_GetSampleSize(AP4_AudioSampleDescription* self)
+{
+    return self->GetSampleSize();
+}
+
+AP4_UI16
+AP4_AudioSampleDescription_GetChannelCount(AP4_AudioSampleDescription* self)
+{
+    return self->GetChannelCount();
+}
+
+AP4_UI32
+AP4_VideoSampleDescription_GetWidth(AP4_VideoSampleDescription* self)
+{
+    return self->GetWidth();
+}
+
+
+AP4_UI16
+AP4_VideoSampleDescription_GetHeight(AP4_VideoSampleDescription* self)
+{
+    return self->GetHeight();
+}
+
+AP4_UI16
+AP4_VideoSampleDescription_GetDepth(AP4_VideoSampleDescription* self)
+{
+    return self->GetDepth();
+}
+
+const char*
+AP4_VideoSampleDescription_GetCompressorName(AP4_VideoSampleDescription* self)
+{
+    return self->GetCompressorName();
+}
+
+AP4_UI08
+AP4_AvcSampleDescription_GetConfigurationVersion(AP4_AvcSampleDescription* self)
+{
+    return self->GetConfigurationVersion();
+}
+
+AP4_UI08
+AP4_AvcSampleDescription_GetProfile(AP4_AvcSampleDescription* self)
+{
+    return self->GetProfile();
+}
+
+AP4_UI08
+AP4_AvcSampleDescription_GetLevel(AP4_AvcSampleDescription* self)
+{
+    return self->GetLevel();
+}
+
+AP4_UI08
+AP4_AvcSampleDescription_GetProfileCompatibility(AP4_AvcSampleDescription* self)
+{
+    return self->GetProfileCompatibility();
+}
+
+AP4_Cardinal
+AP4_AvcSampleDescription_GetSequenceParameterCount(AP4_AvcSampleDescription* self)
+{
+    return self->GetSequenceParameters().ItemCount();
+}
+
+const AP4_DataBuffer*
+AP4_AvcSampleDescription_GetSequenceParameter(AP4_AvcSampleDescription* self,
+                                              AP4_Ordinal               index)
+{
+    AP4_Array<AP4_DataBuffer>& params = self->GetSequenceParameters();
+    if (index >= params.ItemCount()) {
+        return NULL;
+    } else {
+        return &params[index];
+    }
+}
+                                              
+AP4_Cardinal
+AP4_AvcSampleDescription_GetPictureParameterCount(AP4_AvcSampleDescription* self)
+{
+    return self->GetPictureParameters().ItemCount();
+}
+
+const AP4_DataBuffer*
+AP4_AvcSampleDescription_GetPictureParameter(AP4_AvcSampleDescription* self,
+                                             AP4_Ordinal               index)
+{
+    AP4_Array<AP4_DataBuffer>& params = self->GetPictureParameters();
+    if (index >= params.ItemCount()) {
+        return NULL;
+    } else {
+        return &params[index];
+    }
+}    
+                                          
+const AP4_DataBuffer*
+AP4_AvcSampleDescription_GetRawBytes(AP4_AvcSampleDescription* self)
+{
+    return &self->GetRawBytes();
+}
+
+const char* 
+AP4_AvcSampleDescription_GetProfileName(AP4_UI08 profile)
+{
+    return AP4_AvcSampleDescription::GetProfileName(profile);
+}
+
+AP4_UI08
+AP4_MpegSampleDescription_GetStreamType(AP4_MpegSampleDescription* self)
+{
+    return self->GetStreamType();
+}
+
+AP4_UI08
+AP4_MpegSampleDescription_GetObjectTypeId(AP4_MpegSampleDescription* self)
+{
+    return self->GetObjectTypeId();
+}
+
+AP4_UI32
+AP4_MpegSampleDescription_GetBufferSize(AP4_MpegSampleDescription* self)
+{
+    return self->GetBufferSize();
+}
+
+AP4_UI32
+AP4_MpegSampleDescription_GetMaxBitrate(AP4_MpegSampleDescription* self)
+{
+    return self->GetMaxBitrate();
+}
+
+AP4_UI32
+AP4_MpegSampleDescription_GetAvgBitrate(AP4_MpegSampleDescription* self)
+{
+    return self->GetAvgBitrate();
+}
+
+const AP4_DataBuffer*
+AP4_MpegSampleDescription_GetDecoderInfo(AP4_MpegSampleDescription* self)
+{
+    return &self->GetDecoderInfo();
+}
+
+AP4_UI08
+AP4_MpegAudioSampleDescription_GetMpeg4AudioObjectType(AP4_MpegAudioSampleDescription* self)
+{
+    return self->GetMpeg4AudioObjectType();
+}
+
+const char*
+AP4_MpegAudioSampleDescription_GetMpegAudioObjectTypeString(AP4_UI08 type)
+{
+    return AP4_MpegAudioSampleDescription::GetMpeg4AudioObjectTypeString(type);
+}
+
+AP4_SampleDescription*
+AP4_MpegVideoSampleDescription_Create(AP4_UI08        oti,
+                                      AP4_UI16        width,
+                                      AP4_UI16        height,
+                                      AP4_UI16        depth,
+                                      const char*     compressor_name,
+                                      const AP4_Byte* decoder_info,
+                                      AP4_Size        decoder_info_size,
+                                      AP4_UI32        buffer_size,
+                                      AP4_UI32        max_bitrate,
+                                      AP4_UI32        avg_bitrate)
+{
+    AP4_DataBuffer info(decoder_info, decoder_info_size);
+    return new AP4_MpegVideoSampleDescription(oti,
+                                              width,
+                                              height,
+                                              depth,
+                                              compressor_name,
+                                              &info,
+                                              buffer_size,
+                                              max_bitrate,
+                                              avg_bitrate);
+}
+
+AP4_SampleDescription*
+AP4_MpegAudioSampleDescription_Create(AP4_UI08        oti,
+                                      AP4_UI32        sample_rate,
+                                      AP4_UI32        sample_size,
+                                      AP4_UI32        channel_count,
+                                      const AP4_Byte* decoder_info,
+                                      AP4_Size        decoder_info_size,
+                                      AP4_UI32        buffer_size,
+                                      AP4_UI32        max_bitrate,
+                                      AP4_UI32        avg_bitrate)
+{
+    AP4_DataBuffer info(decoder_info, decoder_info_size);
+    return new AP4_MpegAudioSampleDescription(oti,
+                                              sample_rate,
+                                              sample_size,
+                                              channel_count,
+                                              &info,
+                                              buffer_size,
+                                              max_bitrate,
+                                              avg_bitrate);
+}
+                                      
+AP4_SampleDescription*
+AP4_MpegSystemSampleDescription_Create(AP4_UI08        stream_type,
+                                       AP4_UI08        oti,
+                                       const AP4_Byte* decoder_info,
+                                       AP4_Size        decoder_info_size,
+                                       AP4_UI32        buffer_size,
+                                       AP4_UI32        max_bitrate,
+                                       AP4_UI32        avg_bitrate)
+{
+    AP4_DataBuffer info(decoder_info, decoder_info_size);
+    return new AP4_MpegSystemSampleDescription(stream_type,
+                                               oti,
+                                               &info,
+                                               buffer_size,
+                                               max_bitrate,
+                                               avg_bitrate);
+}
+                                       
+AP4_SampleDescription*
+AP4_AvcSampleDescription_Create(AP4_UI16         width,
+                                AP4_UI16         height,
+                                AP4_UI16         depth,
+                                const char*      compressor_name,
+                                AP4_UI08         config_version,
+                                AP4_UI08         profile,
+                                AP4_UI08         level,
+                                AP4_UI08         profile_compatibility,
+                                AP4_UI08         nalu_length_size,
+                                AP4_DataBuffer** sequence_parameters,
+                                AP4_Size         sequence_parameter_count,
+                                AP4_DataBuffer** picture_parameters,
+                                AP4_Size         picture_parameter_count)
+{
+    AP4_Array<AP4_DataBuffer> sequence_params;
+    AP4_Array<AP4_DataBuffer> picture_params;
+    int i;
+    
+    for (i=0; i<sequence_parameter_count; i++) {
+        sequence_params.Append(*sequence_parameters[i]);
+    }
+    for (i=0; i<picture_parameter_count; i++) {
+        picture_params.Append(*picture_parameters[i]);
+    }
+    
+    return new AP4_AvcSampleDescription(width,
+                                        height,
+                                        depth,
+                                        compressor_name,
+                                        config_version,
+                                        profile,
+                                        level,
+                                        profile_compatibility,
+                                        nalu_length_size,
+                                        sequence_params,
+                                        picture_params);
+}
