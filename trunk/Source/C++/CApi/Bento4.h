@@ -589,6 +589,77 @@ AP4_AvcSampleDescription_Create(AP4_UI16         width,
                                 AP4_DataBuffer** picture_parameters,
                                 AP4_Size         picture_parameter_count);
 
+/*----------------------------------------------------------------------
+|   AP4_Sample methods
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_Sample_ReadData(AP4_Sample* self, AP4_DataBuffer* data);
+
+AP4_Result
+AP4_Sample_ReadPartialData(AP4_Sample*     self, 
+                           AP4_DataBuffer* data,
+                           AP4_Size        size,
+                           AP4_Size        offset);
+
+AP4_ByteStream*
+AP4_Sample_GetDataStream(AP4_Sample* self);
+
+void
+AP4_Sample_SetDataStream(AP4_Sample* self, AP4_ByteStream* stream);
+
+AP4_Position
+AP4_Sample_GetOffset(AP4_Sample* self);
+
+void
+AP4_Sample_SetOffset(AP4_Sample* self, AP4_Position offset);
+
+AP4_Size
+AP4_Sample_GetSize(AP4_Sample* self);
+
+void
+AP4_Sample_SetSize(AP4_Sample* self, AP4_Size size);
+
+AP4_Ordinal
+AP4_Sample_GetDescriptionIndex(AP4_Sample* self);
+
+void
+AP4_Sample_SetDescriptionIndex(AP4_Sample* self, AP4_Ordinal index);
+
+AP4_UI32
+AP4_Sample_GetDts(AP4_Sample* self);
+
+void
+AP4_SampleSetDts(AP4_Sample* self, AP4_UI32 dts);
+
+AP4_UI32
+AP4_Sample_GetCts(AP4_Sample* self);
+
+void
+AP4_Sample_SetCts(AP4_Sample* self, AP4_UI32 cts);
+
+int
+AP4_Sample_IsSync(AP4_Sample* self);
+
+void
+AP4_Sample_SetSync(AP4_Sample* self, int is_sync);
+
+/*----------------------------------------------------------------------
+|   AP4_Sample constructors
++---------------------------------------------------------------------*/
+AP4_Sample*
+AP4_Sample_CreateEmpty(void);
+
+AP4_Sample*
+AP4_Sample_Create(AP4_ByteStream* data_stream,
+                  AP4_Position    offset,
+                  AP4_Size        size,
+                  AP4_Ordinal     description_index,
+                  AP4_TimeStamp   dts,
+                  AP4_UI32        cts_offset,
+                  int             is_sync);
+                  
+AP4_Sample*
+AP4_Sample_Clone(const AP4_Sample* other);
 
 #ifdef __cplusplus
 }

@@ -16,17 +16,17 @@ class ByteStream(object):
     
     @property    
     def size(self):
-        v = c_uint()
+        v = Ap4LargeSize()
         res = lb4.AP4_ByteStream_GetSize(self.stream, byref(v))
         if res != 0:
             raise StreamException(res)
         return v.value
         
     def read_partial(self, bytes_to_read):
-        bytes_read = c_uint()
+        bytes_read = Ap4Size()
         p = create_string_buffer(bytes_to_read)
         res = lb4.AP4_ByteStream_ReadPartial(self.stream, p,
-                                             c_uint(bytes_to_read),
+                                             Ap4Size(bytes_to_read),
                                              byref(bytes_read))
         if res != 0:
             raise StreamException(res)
@@ -35,7 +35,7 @@ class ByteStream(object):
     def read(self, bytes_to_read):
         p = create_string_buffer(bytes_to_read)
         res = lb4.AP4_ByteStream_Read(self.stream, p,
-                                      c_uint(bytes_to_read))
+                                      Ap4Size(bytes_to_read))
         if res != 0:
             raise StreamException(res)
         return p.raw
@@ -48,35 +48,35 @@ class ByteStream(object):
         return v.value
     
     def read_ui64(self):
-        v = c_ulonglong()
+        v = Ap4UI64()
         res = lb4.AP4_ByteStream_ReadUI64(self.stream, byref(v))
         if res != 0:
             raise StreamException(res)
         return v.value
     
     def read_ui32(self):
-        v = c_uint()
+        v = Ap4UI32()
         res = lb4.AP4_ByteStream_ReadUI32(self.stream, byref(v))
         if res != 0:
             raise StreamException(res)
         return v.value
     
     def read_ui24(self):
-        v = c_uint()
+        v = Ap4UI32()
         res = lb4.AP4_ByteStream_ReadUI24(self.stream, byref(v))
         if res != 0:
             raise StreamException(res)
         return v.value
     
     def read_ui16(self):
-        v = c_ushort()
+        v = Ap4UI16()
         res = lb4.AP4_ByteStream_ReadUI16(self.stream, byref(v))
         if res != 0:
             raise StreamException(res)
         return v.value
     
     def read_ui08(self):
-        v = c_ubyte()
+        v = Ap4UI08()
         res = lb4.AP4_ByteStream_ReadUI08(self.straem, byref(v))
         if res != 0:
             raise StreamException(res)
@@ -84,15 +84,15 @@ class ByteStream(object):
 
     def read_string(self, length):
         p = create_string_buffer(length+1)
-        res = lb4.AP4_ByteStream_ReadString(self.stream, p, c_uint(length+1))
+        res = lb4.AP4_ByteStream_ReadString(self.stream, p, Ap4Size(length+1))
         if res != 0:
             raise StreamException(res)
         return p.value
     
     def write_partial(self, buffer):
-        bytes_written = c_uint()
+        bytes_written = Ap4Size()
         res = lb4.AP4_ByteStream_WritePartial(self.stream, c_char_p(buffer),
-                                              c_uint(len(buffer)),
+                                              Ap4Size(len(buffer)),
                                               byref(bytes_written))
         if res != 0:
             raise StreamException(res)
@@ -100,7 +100,7 @@ class ByteStream(object):
 
     def write(self, buffer):
         res = lb4.AP4_ByteStream_Write(self.stream, c_char_p(buffer),
-                                       c_uint(len(buffer)))
+                                       Ap4Size(len(buffer)))
         if res != 0:
             raise StreamException(res)
         
@@ -110,27 +110,27 @@ class ByteStream(object):
             raise StreamException(res)
 
     def write_ui64(self, value):
-        res = lb4.AP4_ByteStream_WriteUI64(self.stream, c_ulonglong(value))
+        res = lb4.AP4_ByteStream_WriteUI64(self.stream, Ap4UI64(value))
         if res != 0:
             raise StreamException(res)
     
     def write_ui32(self, value):
-        res = lb4.AP4_ByteStream_WriteUI32(self.stream, c_uint(value))
+        res = lb4.AP4_ByteStream_WriteUI32(self.stream, Ap4UI32(value))
         if res != 0:
             raise StreamException(res)
                                               
     def write_ui24(self, value):
-        res = lb4.AP4_ByteStream_WriteUI24(self.stream, c_uint(value))
+        res = lb4.AP4_ByteStream_WriteUI24(self.stream, Ap4UI32(value))
         if res != 0:
             raise StreamException(res)
         
     def write_ui16(self, value):
-        res = lb4.AP4_ByteStream_WriteUI16(self.stream, c_ushort(value))
+        res = lb4.AP4_ByteStream_WriteUI16(self.stream, Ap4UI16(value))
         if res != 0:
             raise StreamException(res)
     
     def write_ui08(self, value):
-        res = lb4.AP4_ByteStream_WriteUI08(self.stream, c_ubyte(value))
+        res = lb4.AP4_ByteStream_WriteUI08(self.stream, Ap4UI08(value))
         if res != 0:
             raise StreamException(res)
          
@@ -142,12 +142,12 @@ class ByteStream(object):
     def copy_to(self, receiver, size):
         res = lb4.AP4_ByteStream_CopyTo(self.stream,
                                         receiver.stream,
-                                        c_uint(size))
+                                        AP4_Size(size))
         if res != 0:
             raise StreamException(res)
     
     def seek(self, position):
-        res = lb4.AP4_ByteStream_Seek(self.stream, c_uint(position))
+        res = lb4.AP4_ByteStream_Seek(self.stream, Ap4Position(position))
         if res != 0:
             raise StreamException(res)
     
@@ -157,7 +157,7 @@ class ByteStream(object):
             raise StreamException(res)
     
     def tell(self):
-        pos = c_uint()
+        pos = Ap4Position()
         res = lb4.AP4_ByteStream_Tell(self.stream, byref(pos))
         if res != 0:
             raise StreamException(res)
@@ -169,7 +169,7 @@ class MemoryByteStream(ByteStream):
     @staticmethod
     def FromBuffer(buffer):
         """Factory method"""
-        buffer_size = c_uint(len(buffer))
+        buffer_size = Ap4Size(len(buffer))
         stream = lb4.AP4_MemoryByteStream_FromBuffer(c_char_p(buffer),
                                                      buffer_size)
         return MemoryByteStream(stream=stream)
@@ -177,7 +177,7 @@ class MemoryByteStream(ByteStream):
     
     def __init__(self, size=0, stream=None):
         if stream is None:
-            stream = lb4.AP4_ByteStream_Create(c_uint(size))
+            stream = lb4.AP4_ByteStream_Create(Ap4Size(size))
         super(MemoryByteStream, self).__init__(stream)
         
         
@@ -187,7 +187,7 @@ class FileByteStream(ByteStream):
     MODE_READ_WRITE = 2
     
     def __init__(self, name, mode):
-        stream = lb4.AP4_FileByteStream_Create(c_char_p(name), mode)
+        stream = lb4.AP4_FileByteStream_Create(c_char_p(name), c_int(mode))
         super(FileByteStream, self).__init__(stream)
         
     
