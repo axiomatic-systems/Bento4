@@ -307,6 +307,12 @@ AP4_DataBuffer_Reserve(AP4_DataBuffer* self, AP4_Size size)
     return self->Reserve(size);
 }
 
+void 
+AP4_DataBuffer_Destroy(AP4_DataBuffer* self) 
+{
+    delete self;
+}
+
 AP4_DataBuffer*
 AP4_DataBuffer_Create(AP4_Size size)
 {
@@ -361,6 +367,12 @@ const AP4_MetaData*
 AP4_File_GetMetaData(AP4_File* self)
 {
     return self->GetMetaData();
+}
+
+void
+AP4_File_Destroy(AP4_File* self) 
+{
+    delete self;
 }
 
 AP4_File*
@@ -423,6 +435,12 @@ AP4_Duration
 AP4_Movie_GetDurationMs(AP4_Movie* self)
 {
     return self->GetDurationMs();
+}
+
+void
+AP4_Movie_Destroy(AP4_Movie* self)
+{
+    delete self;
 }
 
 AP4_Movie*
@@ -533,6 +551,12 @@ const char*
 AP4_Track_GetLanguage(AP4_Track* self)
 {
     return self->GetTrackLanguage();
+}
+
+void 
+AP4_Track_Destroy(AP4_Track* self)
+{
+    delete self;
 }
 
 AP4_Track* 
@@ -767,6 +791,12 @@ AP4_MpegAudioSampleDescription_GetMpegAudioObjectTypeString(AP4_UI08 type)
     return AP4_MpegAudioSampleDescription::GetMpeg4AudioObjectTypeString(type);
 }
 
+void
+AP4_SampleDescription_Destroy(AP4_SampleDescription* self)
+{
+    delete self;
+}
+
 AP4_SampleDescription*
 AP4_MpegVideoSampleDescription_Create(AP4_UI08        oti,
                                       AP4_UI16        width,
@@ -972,11 +1002,17 @@ AP4_Sample_SetSync(AP4_Sample* self, int is_sync)
     self->SetSync(is_sync);
 }
 
-/*----------------------------------------------------------------------
-|   AP4_Sample constructors
-+---------------------------------------------------------------------*/
+void 
+AP4_Sample_Destroy(AP4_Sample* self)
+{
+    delete self;
+}
+
 AP4_Sample*
-AP4_Sample_CreateEmpty(void);
+AP4_Sample_CreateEmpty(void)
+{
+    return new AP4_Sample();
+}
 
 AP4_Sample*
 AP4_Sample_Create(AP4_ByteStream* data_stream,
@@ -985,8 +1021,20 @@ AP4_Sample_Create(AP4_ByteStream* data_stream,
                   AP4_Ordinal     description_index,
                   AP4_TimeStamp   dts,
                   AP4_UI32        cts_offset,
-                  int             is_sync);
+                  int             is_sync)
+{
+    return new AP4_Sample(*data_stream,
+                          offset,
+                          size,
+                          description_index,
+                          dts,
+                          cts_offset,
+                          is_sync);
+}
                   
 AP4_Sample*
-AP4_Sample_Clone(const AP4_Sample* other);
+AP4_Sample_Clone(const AP4_Sample* other)
+{
+    return new AP4_Sample(*other);
+}
 

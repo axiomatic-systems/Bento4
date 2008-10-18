@@ -293,6 +293,9 @@ AP4_DataBuffer_SetData(AP4_DataBuffer* self,
 AP4_Result
 AP4_DataBuffer_Reserve(AP4_DataBuffer* self, AP4_Size size);
 
+void 
+AP4_DataBuffer_Destroy(AP4_DataBuffer* self);
+
 /*----------------------------------------------------------------------
 |   AP4_DataBuffer constructors
 +---------------------------------------------------------------------*/
@@ -328,6 +331,9 @@ AP4_File_IsMoovBeforeMdat(const AP4_File* self);
 const AP4_MetaData*
 AP4_File_GetMetaData(AP4_File* self);
 
+void
+AP4_File_Destroy(AP4_File* self);
+
 /*----------------------------------------------------------------------
 |   AP4_File constructors
 +---------------------------------------------------------------------*/
@@ -360,6 +366,9 @@ AP4_Movie_GetDuration(AP4_Movie* self);
 
 AP4_Duration
 AP4_Movie_GetDurationMs(AP4_Movie* self);
+
+void
+AP4_Movie_Destroy(AP4_Movie* self);
 
 /*----------------------------------------------------------------------
 |   AP4_Movie constructors
@@ -422,6 +431,9 @@ AP4_Track_GetName(AP4_Track* self);
 
 const char*
 AP4_Track_GetLanguage(AP4_Track* self);
+
+void
+AP4_Track_Destroy(AP4_Track* self);
 
 /*----------------------------------------------------------------------
 |   AP4_Track constructors
@@ -539,6 +551,8 @@ AP4_MpegAudioSampleDescription_GetMpeg4AudioObjectType(AP4_MpegAudioSampleDescri
 const char*
 AP4_MpegAudioSampleDescription_GetMpegAudioObjectTypeString(AP4_UI08 type); /* class method */
 
+void AP4_SampleDescription_Destroy(AP4_SampleDescription* self);
+
 /*----------------------------------------------------------------------
 |   AP4_SampleDescription constructors
 +---------------------------------------------------------------------*/
@@ -642,6 +656,9 @@ AP4_Sample_IsSync(AP4_Sample* self);
 
 void
 AP4_Sample_SetSync(AP4_Sample* self, int is_sync);
+
+void
+AP4_Sample_Destroy(AP4_Sample* self);
 
 /*----------------------------------------------------------------------
 |   AP4_Sample constructors
