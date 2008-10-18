@@ -431,3 +431,130 @@ AP4_Movie_Create(AP4_UI32 time_scale)
     return new AP4_Movie(time_scale);
 }
 
+/*----------------------------------------------------------------------
+|   AP4_Track implementation
++---------------------------------------------------------------------*/
+int
+AP4_Track_GetType(AP4_Track* self)
+{
+    return self->GetType();
+}
+
+AP4_UI32
+AP4_Track_GetHandlerType(AP4_Track* self)
+{
+    return self->GetHandlerType();
+}
+
+AP4_UI32
+AP4_Track_GetDuration(AP4_Track* self)
+{
+    return self->GetDuration();
+}
+
+AP4_Duration
+AP4_Track_GetDurationMs(AP4_Track* self)
+{
+    return self->GetDurationMs();
+}
+
+AP4_Cardinal
+AP4_Track_GetSampleCount(AP4_Track* self)
+{
+    return self->GetSampleCount();
+}
+
+AP4_Result
+AP4_Track_GetSample(AP4_Track* self, AP4_Ordinal index, AP4_Sample* sample)
+{
+    return self->GetSample(index, *sample);
+}
+
+AP4_Result
+AP4_Track_ReadSample(AP4_Track*      self, 
+                     AP4_Ordinal     index, 
+                     AP4_Sample*     sample,
+                     AP4_DataBuffer* data)
+{
+    return self->ReadSample(index, *sample, *data);
+}
+
+AP4_Result
+AP4_Track_GetSampleIndexForTimeStampMs(AP4_Track*    self,
+                                       AP4_TimeStamp ts,
+                                       AP4_Ordinal*  index)
+{
+    return self->GetSampleIndexForTimeStampMs(ts, *index);
+}
+                                       
+AP4_SampleDescription*
+AP4_Track_GetSampleDescription(AP4_Track* self, AP4_Ordinal index)
+{
+    return self->GetSampleDescription(index);
+}
+
+AP4_UI32
+AP4_Track_GetId(AP4_Track* self)
+{
+    return self->GetId();
+}
+
+AP4_Result
+AP4_Track_SetId(AP4_Track* self, AP4_UI32 track_id)
+{
+    return self->SetId(track_id);
+}
+
+AP4_Result
+AP4_Track_SetMovieTimeScale(AP4_Track* self, AP4_UI32 time_scale)
+{
+    return self->SetMovieTimeScale(time_scale);
+}
+
+AP4_UI32
+AP4_Track_GetMediaTimeScale(AP4_Track* self)
+{
+    return self->GetMediaTimeScale();
+}
+
+AP4_UI32
+AP4_Track_GetMediaDuration(AP4_Track* self)
+{
+    return self->GetMediaDuration();
+}
+
+const char* 
+AP4_Track_GetName(AP4_Track* self)
+{
+    return self->GetTrackName();
+}
+
+const char*
+AP4_Track_GetLanguage(AP4_Track* self)
+{
+    return self->GetTrackLanguage();
+}
+
+AP4_Track* 
+AP4_Track_Create(int              type,
+                 AP4_SampleTable* sample_table,
+                 AP4_UI32         track_id,
+                 AP4_UI32         movie_time_scale, /* 0 = use default */
+                 AP4_UI32         track_duration,   /* in the movie time scale */
+                 AP4_UI32         media_time_scale,
+                 AP4_UI32         media_duration,   /* in the media time scale */
+                 const char*      language,
+                 AP4_UI32         width,
+                 AP4_UI32         height)
+{
+    return new AP4_Track((AP4_Track::Type) type,
+                         sample_table,
+                         track_id,
+                         movie_time_scale,
+                         track_duration,
+                         media_time_scale,
+                         media_duration,
+                         language,
+                         width,
+                         height);
+}
