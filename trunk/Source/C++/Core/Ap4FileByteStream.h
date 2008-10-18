@@ -43,9 +43,9 @@ class AP4_FileByteStream: public AP4_ByteStream
 public:
     // types
     typedef enum {
-        STREAM_MODE_READ,
-        STREAM_MODE_WRITE,
-        STREAM_MODE_READ_WRITE
+        STREAM_MODE_READ        = 0,
+        STREAM_MODE_WRITE       = 1,
+        STREAM_MODE_READ_WRITE  = 2
     } Mode;
 
     // methods
