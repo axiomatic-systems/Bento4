@@ -498,14 +498,14 @@ AP4_AvcSampleDescription_GetProfileCompatibility(AP4_AvcSampleDescription* self)
 AP4_Cardinal
 AP4_AvcSampleDescription_GetSequenceParameterCount(AP4_AvcSampleDescription* self);
 
-AP4_DataBuffer*
+const AP4_DataBuffer*
 AP4_AvcSampleDescription_GetSequenceParameter(AP4_AvcSampleDescription* self,
                                               AP4_Ordinal               index);
                                               
 AP4_Cardinal
 AP4_AvcSampleDescription_GetPictureParameterCount(AP4_AvcSampleDescription* self);
 
-AP4_DataBuffer*
+const AP4_DataBuffer*
 AP4_AvcSampleDescription_GetPictureParameter(AP4_AvcSampleDescription* self,
                                             AP4_Ordinal               index);
                                               
