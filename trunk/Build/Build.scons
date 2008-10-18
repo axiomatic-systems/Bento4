@@ -148,23 +148,4 @@ for name in ['Mp4Dump', 'Mp4Info', 'Mp4Edit', 'Mp4Encrypt', 'Mp4Decrypt', 'Mp4Ta
 Executable('Aac2Mp4', source_dir='C++/Apps/Aac2Mp4', extra_deps='CodecsLib')
 Executable('CryptoTest', source_dir='C++/Test/Crypto')
 Executable('AvcTrackWriterTest', source_dir='C++/Test/Avc')
-
-### python bindings with SWIG
-if env['python_bindings']:    
-    # make a specific environment
-    swig_env = env.Copy()
-    swig_env['SWIGFLAGS'] = ['-python', '-c++', '-Wall', '-Werror']
-    swig_env['CPPPATH']   = distutils.sysconfig.get_python_inc()
-    
-    # remove the -WError flag
-    swig_env_cxxflags = swig_env['CXXFLAGS'].split()
-    swig_env_cxxflags.remove('-Werror')
-    swig_env['CXXFLAGS'] = " ".join(swig_env_cxxflags)
-    
-    Executable(name             = '_bento4.so',
-               source_dir       = 'Swig',
-               shared_lib       = True,
-               source_pattern   = ['Bento4.i'],
-               extra_includes   = [distutils.sysconfig.get_python_inc()],
-               environment      = swig_env)
-    
+Executable('libBento4C.so', source_dir='C++/CApi', shared_lib=True)
