@@ -260,12 +260,12 @@
 		CAEDC8E80DFF5B1100F070A8 /* Ap4Expandable.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAEDC8E60DFF5B1100F070A8 /* Ap4Expandable.cpp */; };
 		CAEDC8E90DFF5B1100F070A8 /* Ap4Expandable.h in Headers */ = {isa = PBXBuildFile; fileRef = CAEDC8E70DFF5B1100F070A8 /* Ap4Expandable.h */; };
 		CAEDC8FB0DFF61AE00F070A8 /* Ap4Command.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAEDC8FA0DFF61AE00F070A8 /* Ap4Command.cpp */; };
+		F98E8CC10EA9AEC3000C8839 /* Bento4C.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F98E8CBF0EA9AEC3000C8839 /* Bento4C.cpp */; };
+		F98E8CC20EA9AEC3000C8839 /* Bento4C.h in Headers */ = {isa = PBXBuildFile; fileRef = F98E8CC00EA9AEC3000C8839 /* Bento4C.h */; };
 		F9B1F4FB0B54AD91003F147E /* Ap4AvccAtom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F9B1F4F90B54AD91003F147E /* Ap4AvccAtom.cpp */; };
 		F9B1F4FC0B54AD91003F147E /* Ap4AvccAtom.h in Headers */ = {isa = PBXBuildFile; fileRef = F9B1F4FA0B54AD91003F147E /* Ap4AvccAtom.h */; };
 		F9DBC8010E99B00100913BF6 /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
 		F9DBC8060E99B05000913BF6 /* AvcTrackWriterTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F9DBC8050E99B05000913BF6 /* AvcTrackWriterTest.cpp */; };
-		F9FDDA330EA799BC0061DCB2 /* Bento4.h in Headers */ = {isa = PBXBuildFile; fileRef = F95E912B0EA401C500D86755 /* Bento4.h */; };
-		F9FDDA340EA799BD0061DCB2 /* Bento4.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F95E912C0EA401C500D86755 /* Bento4.cpp */; };
 		F9FDDA350EA799CA0061DCB2 /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
 /* End PBXBuildFile section */
 
@@ -697,8 +697,8 @@
 		CAEDC8E70DFF5B1100F070A8 /* Ap4Expandable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4Expandable.h; sourceTree = "<group>"; };
 		CAEDC8FA0DFF61AE00F070A8 /* Ap4Command.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4Command.cpp; sourceTree = "<group>"; };
 		D2AAC046055464E500DB518D /* libBento4.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libBento4.a; sourceTree = BUILT_PRODUCTS_DIR; };
-		F95E912B0EA401C500D86755 /* Bento4.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Bento4.h; path = "../../../Source/C++/CApi/Bento4.h"; sourceTree = SOURCE_ROOT; };
-		F95E912C0EA401C500D86755 /* Bento4.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Bento4.cpp; path = "../../../Source/C++/CApi/Bento4.cpp"; sourceTree = SOURCE_ROOT; };
+		F98E8CBF0EA9AEC3000C8839 /* Bento4C.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Bento4C.cpp; path = "../../../Source/C++/CApi/Bento4C.cpp"; sourceTree = SOURCE_ROOT; };
+		F98E8CC00EA9AEC3000C8839 /* Bento4C.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Bento4C.h; path = "../../../Source/C++/CApi/Bento4C.h"; sourceTree = SOURCE_ROOT; };
 		F9B1F4F90B54AD91003F147E /* Ap4AvccAtom.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4AvccAtom.cpp; sourceTree = "<group>"; };
 		F9B1F4FA0B54AD91003F147E /* Ap4AvccAtom.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = Ap4AvccAtom.h; sourceTree = "<group>"; };
 		F9DBC7FD0E99AFE100913BF6 /* avctrackwritertest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = avctrackwritertest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -1267,8 +1267,8 @@
 		F95E912A0EA4017000D86755 /* CApi */ = {
 			isa = PBXGroup;
 			children = (
-				F95E912B0EA401C500D86755 /* Bento4.h */,
-				F95E912C0EA401C500D86755 /* Bento4.cpp */,
+				F98E8CBF0EA9AEC3000C8839 /* Bento4C.cpp */,
+				F98E8CC00EA9AEC3000C8839 /* Bento4C.h */,
 			);
 			name = CApi;
 			sourceTree = "<group>";
@@ -1396,7 +1396,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F9FDDA330EA799BC0061DCB2 /* Bento4.h in Headers */,
+				F98E8CC20EA9AEC3000C8839 /* Bento4C.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1946,7 +1946,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F9FDDA340EA799BD0061DCB2 /* Bento4.cpp in Sources */,
+				F98E8CC10EA9AEC3000C8839 /* Bento4C.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

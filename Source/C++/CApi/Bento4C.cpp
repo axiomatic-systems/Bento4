@@ -29,7 +29,7 @@
 /*----------------------------------------------------------------------
 |   includes
 +---------------------------------------------------------------------*/
-#include "Bento4.h"
+#include "Bento4C.h"
 #include "Ap4.h"
 
 /*----------------------------------------------------------------------
@@ -878,7 +878,7 @@ AP4_AvcSampleDescription_Create(AP4_UI16         width,
 {
     AP4_Array<AP4_DataBuffer> sequence_params;
     AP4_Array<AP4_DataBuffer> picture_params;
-    int i;
+    AP4_Ordinal i;
     
     for (i=0; i<sequence_parameter_count; i++) {
         sequence_params.Append(*sequence_parameters[i]);
