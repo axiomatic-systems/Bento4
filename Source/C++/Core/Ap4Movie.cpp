@@ -224,7 +224,7 @@ AP4_Movie::GetDuration()
 /*----------------------------------------------------------------------
 |   AP4_Movie::GetDurationMs
 +---------------------------------------------------------------------*/
-AP4_UI32
+AP4_Duration
 AP4_Movie::GetDurationMs()
 {
     if (m_MvhdAtom) {
