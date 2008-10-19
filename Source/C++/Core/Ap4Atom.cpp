@@ -70,6 +70,8 @@ AP4_Atom::AP4_Atom(Type type, AP4_UI32 size /* = AP4_ATOM_HEADER_SIZE */) :
 +---------------------------------------------------------------------*/
 AP4_Atom::AP4_Atom(Type type, AP4_UI64 size, bool force_64) : 
     m_Type(type),
+    m_Size32(0),
+    m_Size64(0),
     m_IsFull(false),
     m_Version(0),
     m_Flags(0),
@@ -104,6 +106,8 @@ AP4_Atom::AP4_Atom(Type     type,
                    AP4_UI32 version, 
                    AP4_UI32 flags) :
     m_Type(type),
+    m_Size32(0),
+    m_Size64(0),
     m_IsFull(true),
     m_Version(version),
     m_Flags(flags),
