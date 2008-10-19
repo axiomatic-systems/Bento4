@@ -58,7 +58,7 @@ AP4_Track::AP4_Track(Type             type,
     m_TrakAtomIsOwned(true),
     m_Type(type),
     m_SampleTable(sample_table),
-    m_SampleTableIsOwned(false),
+    m_SampleTableIsOwned(true),
     m_MovieTimeScale(movie_time_scale ? 
                      movie_time_scale : 
                      AP4_TRACK_DEFAULT_MOVIE_TIMESCALE)

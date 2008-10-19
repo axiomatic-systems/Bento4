@@ -71,7 +71,7 @@ class AP4_Track {
 
     // methods
     AP4_Track(Type             type,
-              AP4_SampleTable* sample_table,
+              AP4_SampleTable* sample_table, // ownership is transfered to the Track
               AP4_UI32         track_id, 
               AP4_UI32         movie_time_scale, // 0 = use default
               AP4_UI32         track_duration,   // in the movie timescale

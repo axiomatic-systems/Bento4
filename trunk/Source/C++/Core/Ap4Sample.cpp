@@ -151,7 +151,6 @@ AP4_Sample::ReadData(AP4_DataBuffer& data, AP4_Size size, AP4_Size offset)
 AP4_ByteStream*
 AP4_Sample::GetDataStream()
 {
-    AP4_ADD_REFERENCE(m_DataStream);
     return m_DataStream;
 }
 

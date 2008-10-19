@@ -480,6 +480,13 @@
 			remoteGlobalIDString = D2AAC045055464E500DB518D;
 			remoteInfo = Bento4;
 		};
+		F9E9BE530EABBFC4005D99A0 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D2AAC045055464E500DB518D /* Bento4 */;
+			remoteInfo = Bento4;
+		};
 		F9FDDA360EA799DB0061DCB2 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
@@ -1413,6 +1420,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				F9E9BE540EABBFC4005D99A0 /* PBXTargetDependency */,
 			);
 			name = AvcInfo;
 			productName = AvcInfo;
@@ -2102,6 +2110,11 @@
 			isa = PBXTargetDependency;
 			target = D2AAC045055464E500DB518D /* Bento4 */;
 			targetProxy = F9DBC80E0E99BBCB00913BF6 /* PBXContainerItemProxy */;
+		};
+		F9E9BE540EABBFC4005D99A0 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D2AAC045055464E500DB518D /* Bento4 */;
+			targetProxy = F9E9BE530EABBFC4005D99A0 /* PBXContainerItemProxy */;
 		};
 		F9FDDA370EA799DB0061DCB2 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
