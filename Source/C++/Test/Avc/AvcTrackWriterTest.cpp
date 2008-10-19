@@ -226,6 +226,7 @@ main(int argc, char** argv)
     delete output_file;
     input->Release();
     output->Release();
+    delete writer;
 
     return 0;
                                             
