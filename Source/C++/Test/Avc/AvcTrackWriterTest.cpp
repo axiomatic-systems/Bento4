@@ -66,13 +66,15 @@ CopySamplesToSyntheticTable(AP4_Track* input_track, AP4_SyntheticSampleTable* ta
             // just for the test, fix that later... too lazy for now....
             fprintf(stderr, "ERROR: unable to write tracks with more than one sample desc");
         }
-        table->AddSample(*sample.GetDataStream(),
+        AP4_ByteStream* data_stream = sample.GetDataStream();
+        table->AddSample(*data_stream,
                          sample.GetOffset(),
                          sample.GetSize(),
                          sample.GetDescriptionIndex(),
                          sample.GetCts(),
                          sample.GetDts(),
                          sample.IsSync());
+        AP4_RELEASE(data_stream);
         index++;
     }
 }
