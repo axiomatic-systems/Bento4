@@ -1,4 +1,4 @@
-from ctypes import *
+from ctypes import c_int, c_double, c_char_p
 from bento4 import *
 
 class StreamException(Exception):
@@ -172,7 +172,7 @@ class ByteStream(object):
 class MemoryByteStream(ByteStream):
     
     @staticmethod
-    def FromBuffer(buffer):
+    def from_buffer(buffer):
         """Factory method"""
         buffer_size = Ap4Size(len(buffer))
         bt4stream   = lb4.AP4_MemoryByteStream_FromBuffer(c_char_p(buffer),

@@ -560,16 +560,16 @@ AP4_Track_Destroy(AP4_Track* self)
 }
 
 AP4_Track* 
-AP4_Track_Create(int              type,
-                 AP4_SampleTable* sample_table,
-                 AP4_UI32         track_id,
-                 AP4_UI32         movie_time_scale, /* 0 = use default */
-                 AP4_UI32         track_duration,   /* in the movie time scale */
-                 AP4_UI32         media_time_scale,
-                 AP4_UI32         media_duration,   /* in the media time scale */
-                 const char*      language,
-                 AP4_UI32         width,
-                 AP4_UI32         height)
+AP4_Track_Create(int                       type,
+                 AP4_SyntheticSampleTable* sample_table,
+                 AP4_UI32                  track_id,
+                 AP4_UI32                  movie_time_scale, /* 0 = use default */
+                 AP4_UI32                  track_duration,   /* in the movie time scale */
+                 AP4_UI32                  media_time_scale,
+                 AP4_UI32                  media_duration,   /* in the media time scale */
+                 const char*               language,
+                 AP4_UI32                  width,
+                 AP4_UI32                  height)
 {
     return new AP4_Track((AP4_Track::Type) type,
                          sample_table,
@@ -1038,3 +1038,40 @@ AP4_Sample_Clone(const AP4_Sample* other)
     return new AP4_Sample(*other);
 }
 
+/*----------------------------------------------------------------------
+|   AP4_SyntheticSampleTable implementation
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_SyntheticSampleTable_AddSampleDescription(AP4_SyntheticSampleTable* self,
+                                              AP4_SampleDescription*    desc)
+{
+    return self->AddSampleDescription(desc);
+}
+                                              
+AP4_Result
+AP4_SyntheticSampleTable_AddSample(AP4_SyntheticSampleTable* self,
+                                   AP4_ByteStream*           data_stream,
+                                   AP4_Position              offset,
+                                   AP4_Size                  size,
+                                   AP4_Ordinal               desc_index,
+                                   AP4_TimeStamp             cts, 
+                                   AP4_TimeStamp             dts,
+                                   int                       is_sync)
+{
+    return self->AddSample(*data_stream,
+                           offset,
+                           size,
+                           desc_index,
+                           cts,
+                           dts,
+                           is_sync);
+}
+                                   
+/*----------------------------------------------------------------------
+|   AP4_SyntheticSampleTable constructors
++---------------------------------------------------------------------*/
+AP4_SyntheticSampleTable*
+AP4_SyntheticSampleTable_Create(AP4_Cardinal chunk_size)
+{
+    return new AP4_SyntheticSampleTable(chunk_size);
+}
