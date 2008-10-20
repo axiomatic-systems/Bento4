@@ -484,7 +484,7 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = D2AAC045055464E500DB518D /* Bento4 */;
+			remoteGlobalIDString = D2AAC045055464E500DB518D;
 			remoteInfo = Bento4;
 		};
 		F9FDDA360EA799DB0061DCB2 /* PBXContainerItemProxy */ = {

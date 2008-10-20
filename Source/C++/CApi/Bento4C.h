@@ -47,7 +47,7 @@ typedef struct AP4_VideoSampleDescription AP4_VideoSampleDescription;
 typedef struct AP4_AvcSampleDescription AP4_AvcSampleDescription;
 typedef struct AP4_MpegSampleDescription AP4_MpegSampleDescription;
 typedef struct AP4_MpegAudioSampleDescription AP4_MpegAudioSampleDescription;
-typedef struct AP4_SampleTable AP4_SampleTable;
+typedef struct AP4_SyntheticSampleTable AP4_SyntheticSampleTable;
 
 /*----------------------------------------------------------------------
 |   constants
@@ -120,6 +120,7 @@ extern const AP4_UI08 AP4_MPEG4_AUDIO_OBJECT_TYPE_LAYER_1;         /**< MPEG Lay
 extern const AP4_UI08 AP4_MPEG4_AUDIO_OBJECT_TYPE_LAYER_2;         /**< MPEG Layer 2 */
 extern const AP4_UI08 AP4_MPEG4_AUDIO_OBJECT_TYPE_LAYER_3;         /**< MPEG Layer 3 */
 
+extern const AP4_Cardinal AP4_SYNTHETIC_SAMPLE_TABLE_DEFAULT_CHUNK_SIZE;
 
 /*----------------------------------------------------------------------
 |   result codes
@@ -439,16 +440,16 @@ AP4_Track_Destroy(AP4_Track* self);
 |   AP4_Track constructors
 +---------------------------------------------------------------------*/
 AP4_Track* 
-AP4_Track_Create(int              type,
-                 AP4_SampleTable* sample_table,
-                 AP4_UI32         track_id,
-                 AP4_UI32         movie_time_scale, /* 0 = use default */
-                 AP4_UI32         track_duration,   /* in the movie time scale */
-                 AP4_UI32         media_time_scale,
-                 AP4_UI32         media_duration,   /* in the media time scale */
-                 const char*      language,
-                 AP4_UI32         width,
-                 AP4_UI32         height);
+AP4_Track_Create(int                       type,
+                 AP4_SyntheticSampleTable* sample_table,
+                 AP4_UI32                  track_id,
+                 AP4_UI32                  movie_time_scale, /* 0 = use default */
+                 AP4_UI32                  track_duration,   /* in the movie time scale */
+                 AP4_UI32                  media_time_scale,
+                 AP4_UI32                  media_duration,   /* in the media time scale */
+                 const char*               language,
+                 AP4_UI32                  width,
+                 AP4_UI32                  height);
 
 /*----------------------------------------------------------------------
 |   AP4_SampleDescription methods
@@ -677,6 +678,29 @@ AP4_Sample_Create(AP4_ByteStream* data_stream,
                   
 AP4_Sample*
 AP4_Sample_Clone(const AP4_Sample* other);
+
+/*----------------------------------------------------------------------
+|   AP4_SyntheticSampleTable methods
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_SyntheticSampleTable_AddSampleDescription(AP4_SyntheticSampleTable* self,
+                                              AP4_SampleDescription*    desc);
+                                              
+AP4_Result
+AP4_SyntheticSampleTable_AddSample(AP4_SyntheticSampleTable* self,
+                                   AP4_ByteStream*           data_stream,
+                                   AP4_Position              offset,
+                                   AP4_Size                  size,
+                                   AP4_Ordinal               desc_index,
+                                   AP4_TimeStamp             cts, 
+                                   AP4_TimeStamp             dts,
+                                   int                       is_sync);
+                                   
+/*----------------------------------------------------------------------
+|   AP4_SyntheticSampleTable constructors
++---------------------------------------------------------------------*/
+AP4_SyntheticSampleTable*
+AP4_SyntheticSampleTable_Create(AP4_Cardinal chunk_size); /* see AP4_SYNTHETIC_SAMPLE_TABLE_DEFAULT_CHUNK_SIZE constant */
 
 #ifdef __cplusplus
 }
