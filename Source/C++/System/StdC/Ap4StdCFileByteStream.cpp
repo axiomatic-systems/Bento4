@@ -72,10 +72,17 @@ static int fopen_s(FILE**      file,
 class AP4_StdcFileByteStream: public AP4_ByteStream
 {
 public:
+    // class methods
+    static AP4_Result Create(AP4_FileByteStream*      delegator,
+                             const char*              name,
+                             AP4_FileByteStream::Mode mode,
+                             AP4_ByteStream*&         stream);
+                      
     // methods
-    AP4_StdcFileByteStream(AP4_ByteStream*          delegator,
-                           const char*              name, 
-                           AP4_FileByteStream::Mode mode);
+    AP4_StdcFileByteStream(AP4_FileByteStream* delegator,
+                           FILE*               file, 
+                           AP4_LargeSize       size);
+    
     ~AP4_StdcFileByteStream();
 
     // AP4_ByteStream methods
@@ -103,58 +110,81 @@ private:
 };
 
 /*----------------------------------------------------------------------
-|   AP4_StdcFileByteStream::AP4_StdcFileByteStream
+|   AP4_StdcFileByteStream::Create
 +---------------------------------------------------------------------*/
-AP4_StdcFileByteStream::AP4_StdcFileByteStream(
-    AP4_ByteStream  *        delegator,
-    const char*              name, 
-    AP4_FileByteStream::Mode mode) :
-    m_Delegator(delegator),
-    m_ReferenceCount(1),
-    m_File(NULL),
-    m_Size(0)
+AP4_Result
+AP4_StdcFileByteStream::Create(AP4_FileByteStream*      delegator,
+                               const char*              name, 
+                               AP4_FileByteStream::Mode mode, 
+                               AP4_ByteStream*&         stream)
 {
+    // default value
+    stream = NULL;
+    
+    // check arguments
+    if (name == NULL) return AP4_ERROR_INVALID_PARAMETERS;
+    
+    // open the file
+    FILE* file = NULL;
+    size_t size = 0;
     if (!strcmp(name, "-stdin")) {
-        m_File = stdin;
+        file = stdin;
     } else if (!strcmp(name, "-stdout")) {
-        m_File = stdout;
+        file = stdout;
     } else if (!strcmp(name, "-stderr")) {
-        m_File = stderr;
+        file = stderr;
     } else {
         int open_result;
         switch (mode) {
           case AP4_FileByteStream::STREAM_MODE_READ:
-            open_result = fopen_s(&m_File, name, "rb");
+            open_result = fopen_s(&file, name, "rb");
             break;
 
           case AP4_FileByteStream::STREAM_MODE_WRITE:
-            open_result = fopen_s(&m_File, name, "wb+");
+            open_result = fopen_s(&file, name, "wb+");
             break;
 
           case AP4_FileByteStream::STREAM_MODE_READ_WRITE:
-              open_result = fopen_s(&m_File, name, "r+b");
+              open_result = fopen_s(&file, name, "r+b");
               break;                                  
 
           default:
-            throw AP4_Exception(AP4_ERROR_INVALID_PARAMETERS);
+            return AP4_ERROR_INVALID_PARAMETERS;
         }
     
         if (open_result != 0) {
             if (open_result == ENOENT) {
-                throw AP4_Exception(AP4_ERROR_NO_SUCH_FILE);
+                return AP4_ERROR_NO_SUCH_FILE;
             } else if (open_result == EACCES) {
-                throw AP4_Exception(AP4_ERROR_PERMISSION_DENIED);
+                return AP4_ERROR_PERMISSION_DENIED;
             } else {
-                throw AP4_Exception(AP4_ERROR_CANNOT_OPEN_FILE);
+                return AP4_ERROR_CANNOT_OPEN_FILE;
             }
         }
 
         // get the size
-        if (AP4_fseek(m_File, 0, SEEK_END) >= 0) {
-            m_Size = AP4_ftell(m_File);
-            AP4_fseek(m_File, 0, SEEK_SET);
+        if (AP4_fseek(file, 0, SEEK_END) >= 0) {
+            size = AP4_ftell(file);
+            AP4_fseek(file, 0, SEEK_SET);
         }
+        
     }
+
+    stream = new AP4_StdcFileByteStream(delegator, file, size);
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_StdcFileByteStream::AP4_StdcFileByteStream
++---------------------------------------------------------------------*/
+AP4_StdcFileByteStream::AP4_StdcFileByteStream(AP4_FileByteStream* delegator,
+                                               FILE*               file,
+                                               AP4_LargeSize       size) :
+    m_Delegator(delegator),
+    m_ReferenceCount(1),
+    m_File(file),
+    m_Size(size)
+{
 }
 
 /*----------------------------------------------------------------------
@@ -279,6 +309,16 @@ AP4_StdcFileByteStream::Flush()
     return (ret_val > 0) ? AP4_FAILURE: AP4_SUCCESS;
 }
 
+/*----------------------------------------------------------------------
+|   AP4_FileByteStream::Create
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_FileByteStream::Create(const char*              name, 
+                           AP4_FileByteStream::Mode mode,
+                           AP4_ByteStream*&         stream)
+{
+    return AP4_StdcFileByteStream::Create(NULL, name, mode, stream);
+}
 
 /*----------------------------------------------------------------------
 |   AP4_FileByteStream::AP4_FileByteStream
@@ -286,8 +326,13 @@ AP4_StdcFileByteStream::Flush()
 AP4_FileByteStream::AP4_FileByteStream(const char*              name, 
                                        AP4_FileByteStream::Mode mode)
 {
-    m_Delegate = new AP4_StdcFileByteStream(this, name, mode);
+    AP4_ByteStream* stream = NULL;
+    AP4_Result result = AP4_StdcFileByteStream::Create(this, name, mode, stream);
+    if (AP4_FAILED(result)) throw AP4_Exception(result);
+    
+    m_Delegate = stream;
 }
+
 
 
 

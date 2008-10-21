@@ -1,4 +1,4 @@
-from ctypes import c_int, c_double, c_char_p
+from ctypes import c_int, c_double, c_char_p, c_int_p
 from bento4 import *
 
 class StreamException(Exception):
@@ -192,7 +192,9 @@ class FileByteStream(ByteStream):
     MODE_READ_WRITE = 2
     
     def __init__(self, name, mode):
-        bt4stream = lb4.AP4_FileByteStream_Create(c_char_p(name), c_int(mode))
+        result = 0
+        bt4stream = lb4.AP4_FileByteStream_Create(c_char_p(name), c_int(mode), c_int_p(result))
+        ### TODO: throw if this does not succeed
         super(FileByteStream, self).__init__(bt4stream)
         
     
