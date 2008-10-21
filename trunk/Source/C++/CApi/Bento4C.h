@@ -260,7 +260,7 @@ AP4_ByteStream*
 AP4_MemoryByteStream_AdaptDataBuffer(AP4_DataBuffer* buffer); /* data is read/written from the supplied data buffer */
 
 AP4_ByteStream*
-AP4_FileByteStream_Create(const char* name, int mode);
+AP4_FileByteStream_Create(const char* name, int mode, AP4_Result* result);
 
 /*----------------------------------------------------------------------
 |   AP4_DataBuffer methods

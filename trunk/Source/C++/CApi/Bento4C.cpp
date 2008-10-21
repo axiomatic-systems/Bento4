@@ -243,9 +243,18 @@ AP4_MemoryByteStream_AdaptDataBuffer(AP4_DataBuffer* buffer)
 }
 
 AP4_ByteStream*
-AP4_FileByteStream_Create(const char* name, int mode)
+AP4_FileByteStream_Create(const char* name, int mode, AP4_Result* result)
 {
-    return new AP4_FileByteStream(name, (AP4_FileByteStream::Mode) mode);
+    AP4_Result      local_result;
+    AP4_ByteStream* stream;
+    
+    local_result = AP4_FileByteStream::Create(name, (AP4_FileByteStream::Mode)mode, stream);
+    if (result) *result = local_result;
+    if (AP4_SUCCEEDED(result)) {
+        return stream;
+    } else {
+        return NULL;
+    }
 }
 
 /*----------------------------------------------------------------------
