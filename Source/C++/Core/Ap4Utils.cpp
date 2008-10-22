@@ -312,7 +312,7 @@ AP4_ParseHex(const char* hex, unsigned char* bytes, unsigned int count)
 /*----------------------------------------------------------------------
 |   AP4_PrintInspector::AP4_PrintInspector
 +---------------------------------------------------------------------*/
-AP4_PrintInspector::AP4_PrintInspector(AP4_ByteStream& stream) :
+    AP4_PrintInspector::AP4_PrintInspector(AP4_ByteStream& stream) :
     m_Stream(&stream),
     m_Indent(0)
 {
