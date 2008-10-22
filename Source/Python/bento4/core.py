@@ -12,8 +12,12 @@ class File(object):
             if bt4stream is None:
                 raise IOError("Unable to open file %s" % name)
             self.bt4file = lb4.AP4_File_FromStream(bt4stream)
+            self.movie = None
         else:
             self.bt4file = lb4.AP4_File_Create(movie.bt4movie)
+            movie.bt4owner = False
+            movie.file = self
+            self.movie = movie
         
     def __del__(self):
         lb4.AP4_File_Destroy(self.bt4file)
@@ -28,12 +32,18 @@ class File(object):
         c = lb4.AP4_File_IsMoovBeforeMdat(self.bt4file)
         return True if c.value !=0 else False
     
-    def get_movie(self):
+    @property
+    def movie(self):
+        if self.movie:
+            return self.movie
+        
         bt4movie = lb4.AP4_File_GetMovie(self.bt4file)
         if bt4movie is None:
             return None
         else:
-            return Movie(bt4movie)
+            self.movie = Movie(bt4movie)
+            self.movie.file = file # add a reference here for ref counting
+            return self.movie
         
     
 class Movie(object):
@@ -51,17 +61,28 @@ class Movie(object):
         
     @property    
     def tracks(self):
-        result = []
+        result = {}
         count = lb4.AP4_Movie_GetTrackCount(self.bt4movie)
         for i in xrange(0, count.value):
             bt4track = lb4.AP4_Movie_GetTrackByIndex(self.bt4movie, Ap4Ordinal(i))
-            result += [Track(bt4track)]
+            track = Track(bt4track)
+            track.movie = self # add a reference here for ref counting
+            result[track.id] = track
         return result
     
     @property
     def duration(self):
         return (lb4.AP4_Movie.GetDuration(self.bt4movie).value,
                 lb4.AP4_Movie.GetTimeScale(self.bt4movie).value)
+    
+    def add_track(self, track):
+        result = lb4.AP4_Movie_AddTrack(self.bt4movie. track.bt4track)
+        if result.value != 0:
+            raise RuntimeError("Track insertion failed with error %d" %
+                               result.value)
+        track.bt4owner = False # change ownership
+        track.movie = self 
+        
             
         
         
@@ -97,6 +118,40 @@ class Track(object):
         else:
             self.bt4track = bt4track
         
+    def __del__(self):
+        if self.bt4owner:
+            lb4.AP4_Track_Destroy(self.bt4track)
+    
+    @property
+    def type(self):
+        return lb4.AP4_Track_GetType(self.bt4track).value
+    
+    @property
+    def handler_type(self):
+        return lb4.AP4_Track_GetHandlerType(self.bt4track).value
+    
+    @property
+    def id(self):
+        return lb4.AP4_Track_GetId(self.bt4track).value
+    
+    @property
+    def media_duration(self):
+        return (lb4.AP4_Track_GetMediaDuration(self.bt4track).value,
+                lb4.AP4_Track_GetMediaTimeScale(self.bt4track).value)
+    
+    @property
+    def duration(self):
+        """returns just the duration in the timescale of the movie"""
+        return lb4.AP4_Track_GetDuration(self.bt4track)
+    
+    @property
+    def language(self):
+        return lb4.AP4_Track_GetLanguage(self.bt4track).value
+    
+    def set_movie_timescale(self, timescale):
+        
+    
+    
     
 
         
