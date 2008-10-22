@@ -193,7 +193,7 @@ class FileByteStream(ByteStream):
     
     def __init__(self, name, mode):
         result = 0
-        bt4stream = lb4.AP4_FileByteStream_Create(c_char_p(name), c_int(mode), c_int_p(result))
+        bt4stream = lb4.AP4_FileByteStream_Create(c_char_p(name), c_int(mode), byref(result))
         ### TODO: throw if this does not succeed
         super(FileByteStream, self).__init__(bt4stream)
         

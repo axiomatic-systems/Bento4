@@ -248,7 +248,9 @@ AP4_FileByteStream_Create(const char* name, int mode, AP4_Result* result)
     AP4_Result      local_result;
     AP4_ByteStream* stream;
     
-    local_result = AP4_FileByteStream::Create(name, (AP4_FileByteStream::Mode)mode, stream);
+    local_result = AP4_FileByteStream::Create(name, 
+                                              (AP4_FileByteStream::Mode)mode, 
+                                              stream);
     if (result) *result = local_result;
     if (AP4_SUCCEEDED(result)) {
         return stream;
