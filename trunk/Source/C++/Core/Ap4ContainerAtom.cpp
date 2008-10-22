@@ -50,6 +50,28 @@ AP4_ContainerAtom::Create(Type             type,
         AP4_UI32 version;
         AP4_UI32 flags;
         if (AP4_FAILED(AP4_Atom::ReadFullHeader(stream, version, flags))) return NULL;
+        
+        // special case for 'meta' atoms, because Apple sometimes creates them as
+        // regular (non-full) atoms. This is bogus, but we can try to detect it
+        if (type == AP4_ATOM_TYPE_META) {
+            AP4_UI32 phantom_size = (version<<24)|flags;
+            if (phantom_size >= 8 && size >= 16) {
+                // version+flags looks like a size. read the next 4 bytes just
+                // to be sure it is a hdlr atom
+                AP4_UI32 peek;
+                if (AP4_FAILED(stream.ReadUI32(peek))) return NULL;
+                if (peek == AP4_ATOM_TYPE_HDLR) {
+                    // rewind the stream by 8 bytes
+                    AP4_Position position;
+                    stream.Tell(position);
+                    stream.Seek(position-8);
+                    
+                    // create a non-full container
+                    return new AP4_ContainerAtom(type, size, force_64, stream, atom_factory);
+                }
+            }
+        }
+        
         return new AP4_ContainerAtom(type, size, force_64, version, flags, stream, atom_factory);
     } else {
         return new AP4_ContainerAtom(type, size, force_64, stream, atom_factory);

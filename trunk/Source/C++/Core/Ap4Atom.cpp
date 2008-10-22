@@ -249,7 +249,7 @@ AP4_Atom::InspectHeader(AP4_AtomInspector& inspector)
     // write atom name
     char name[7];
     name[0] = '[';
-    AP4_FormatFourChars(&name[1], m_Type);
+    AP4_FormatFourCharsPrintable(&name[1], m_Type);
     name[5] = ']';
     name[6] = '\0';
     char size[64];
