@@ -452,6 +452,12 @@ AP4_Movie_Destroy(AP4_Movie* self)
     delete self;
 }
 
+AP4_Result 
+AP4_Movie_AddTrack(AP4_Movie* self, AP4_Track* track)
+{
+    return self->AddTrack(track);
+}
+
 AP4_Movie*
 AP4_Movie_Create(AP4_UI32 time_scale)
 {

@@ -368,6 +368,9 @@ AP4_Movie_GetDuration(AP4_Movie* self);
 AP4_Duration
 AP4_Movie_GetDurationMs(AP4_Movie* self);
 
+AP4_Result
+AP4_Movie_AddTrack(AP4_Movie* self, AP4_Track* track);
+
 void
 AP4_Movie_Destroy(AP4_Movie* self);
 
