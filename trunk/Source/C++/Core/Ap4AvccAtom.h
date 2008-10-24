@@ -60,6 +60,7 @@ public:
     static const char* GetProfileName(AP4_UI08 profile);
 
     // constructors
+    AP4_AvccAtom();
     AP4_AvccAtom(AP4_UI08 config_version,
                  AP4_UI08 profile,
                  AP4_UI08 level,

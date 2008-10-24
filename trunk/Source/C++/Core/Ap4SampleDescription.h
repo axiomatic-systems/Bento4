@@ -186,11 +186,11 @@ class AP4_AvcSampleDescription : public AP4_SampleDescription,
 {
 public:
     // constructors
-    AP4_AvcSampleDescription(AP4_UI16             width,
-                             AP4_UI16             height,
-                             AP4_UI16             depth,
-                             const char*          compressor_name,
-                             const AP4_AvccAtom&  avcc);
+    AP4_AvcSampleDescription(AP4_UI16            width,
+                             AP4_UI16            height,
+                             AP4_UI16            depth,
+                             const char*         compressor_name,
+                             const AP4_AvccAtom* avcc);
     
     AP4_AvcSampleDescription(AP4_UI16                         width,
                              AP4_UI16                         height,
@@ -205,14 +205,14 @@ public:
                              const AP4_Array<AP4_DataBuffer>& picture_parameters);
     
     // accessors
-    AP4_UI08 GetConfigurationVersion() const { return m_AvccAtom.GetConfigurationVersion(); }
-    AP4_UI08 GetProfile() const { return m_AvccAtom.GetProfile(); }
-    AP4_UI08 GetLevel() const { return m_AvccAtom.GetLevel(); }
-    AP4_UI08 GetProfileCompatibility() const { return m_AvccAtom.GetProfileCompatibility(); }
-    AP4_UI08 GetNaluLengthSize() const { return m_AvccAtom.GetNaluLengthSize(); }
-    AP4_Array<AP4_DataBuffer>& GetSequenceParameters() {return m_AvccAtom.GetSequenceParameters(); }
-    AP4_Array<AP4_DataBuffer>& GetPictureParameters() { return m_AvccAtom.GetPictureParameters(); }
-    const AP4_DataBuffer& GetRawBytes() const { return m_AvccAtom.GetRawBytes(); }
+    AP4_UI08 GetConfigurationVersion() const { return m_AvccAtom->GetConfigurationVersion(); }
+    AP4_UI08 GetProfile() const { return m_AvccAtom->GetProfile(); }
+    AP4_UI08 GetLevel() const { return m_AvccAtom->GetLevel(); }
+    AP4_UI08 GetProfileCompatibility() const { return m_AvccAtom->GetProfileCompatibility(); }
+    AP4_UI08 GetNaluLengthSize() const { return m_AvccAtom->GetNaluLengthSize(); }
+    AP4_Array<AP4_DataBuffer>& GetSequenceParameters() {return m_AvccAtom->GetSequenceParameters(); }
+    AP4_Array<AP4_DataBuffer>& GetPictureParameters() { return m_AvccAtom->GetPictureParameters(); }
+    const AP4_DataBuffer& GetRawBytes() const { return m_AvccAtom->GetRawBytes(); }
     
     // inherited from AP4_SampleDescription
     virtual AP4_Atom* ToAtom() const;
@@ -223,7 +223,7 @@ public:
     }
 
 private:
-    AP4_AvccAtom  m_AvccAtom;
+    AP4_AvccAtom* m_AvccAtom;
 };
 
 /*----------------------------------------------------------------------
