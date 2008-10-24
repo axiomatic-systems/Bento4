@@ -79,15 +79,16 @@ AP4_AvcSampleDescription::AP4_AvcSampleDescription(AP4_UI16     width,
                                                    const AP4_Array<AP4_DataBuffer>& sequence_parameters,
                                                    const AP4_Array<AP4_DataBuffer>& picture_parameters) :
     AP4_SampleDescription(TYPE_AVC, AP4_SAMPLE_FORMAT_AVC1, NULL),
-    AP4_VideoSampleDescription(width, height, depth, compressor_name),
-    m_AvccAtom(config_version, 
-               profile, 
-               level, 
-               profile_compatibility,
-               length_size,
-               sequence_parameters,
-               picture_parameters)
+    AP4_VideoSampleDescription(width, height, depth, compressor_name)
 {
+    m_AvccAtom = new AP4_AvccAtom(config_version, 
+                                  profile, 
+                                  level, 
+                                  profile_compatibility,
+                                  length_size,
+                                  sequence_parameters,
+                                  picture_parameters);
+    m_Details.AddChild(m_AvccAtom);
 }
 
 /*----------------------------------------------------------------------
@@ -97,11 +98,16 @@ AP4_AvcSampleDescription::AP4_AvcSampleDescription(AP4_UI16            width,
                                                    AP4_UI16            height,
                                                    AP4_UI16            depth,
                                                    const char*         compressor_name,
-                                                   const AP4_AvccAtom& avcc) :
+                                                   const AP4_AvccAtom* avcc) :
     AP4_SampleDescription(TYPE_AVC, AP4_SAMPLE_FORMAT_AVC1, NULL),
-    AP4_VideoSampleDescription(width, height, depth, compressor_name),
-    m_AvccAtom(avcc) // copy
+    AP4_VideoSampleDescription(width, height, depth, compressor_name)
 {
+    if (avcc) {
+        m_AvccAtom = new AP4_AvccAtom(*avcc);
+    } else {
+        m_AvccAtom = new AP4_AvccAtom();
+    }
+    m_Details.AddChild(m_AvccAtom);
 }
 
 /*----------------------------------------------------------------------
@@ -114,7 +120,7 @@ AP4_AvcSampleDescription::ToAtom() const
                                    m_Height, 
                                    m_Depth, 
                                    m_CompressorName.GetChars(), 
-                                   m_AvccAtom);
+                                   *m_AvccAtom);
 }
 
 /*----------------------------------------------------------------------

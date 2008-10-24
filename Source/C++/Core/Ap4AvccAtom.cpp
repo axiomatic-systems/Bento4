@@ -56,6 +56,19 @@ AP4_AvccAtom::GetProfileName(AP4_UI08 profile)
 /*----------------------------------------------------------------------
 |   AP4_AvccAtom::AP4_AvccAtom
 +---------------------------------------------------------------------*/
+AP4_AvccAtom::AP4_AvccAtom() :
+    AP4_Atom(AP4_ATOM_TYPE_AVCC, AP4_ATOM_HEADER_SIZE+7),
+    m_ConfigurationVersion(0),
+    m_Profile(0),
+    m_Level(0),
+    m_ProfileCompatibility(0),
+    m_NaluLengthSize(0)
+{
+}
+
+/*----------------------------------------------------------------------
+|   AP4_AvccAtom::AP4_AvccAtom
++---------------------------------------------------------------------*/
 AP4_AvccAtom::AP4_AvccAtom(const AP4_AvccAtom& other) :
     AP4_Atom(AP4_ATOM_TYPE_AVCC, other.m_Size32),
     m_ConfigurationVersion (other.m_ConfigurationVersion),
