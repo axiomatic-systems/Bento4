@@ -15,7 +15,7 @@ class File(object):
                                                            c_int(0), # read
                                                            byref(result))
             check_result(result.value)
-            self.bt4file = lb4.AP4_File_FromStream(self.bt4stream)
+            self.bt4file = lb4.AP4_File_FromStream(self.bt4stream, 0)
         else:
             self.bt4file = lb4.AP4_File_Create(movie.bt4movie)
             movie.bt4owner = False
@@ -29,10 +29,10 @@ class File(object):
             pass # depending on how the object was created,
                  # self.bt4stream may or may not exist
 
-    
-    def is_moov_before_mdat(self):
+    @property
+    def moov_is_before_mdat(self):
         c = lb4.AP4_File_IsMoovBeforeMdat(self.bt4file)
-        return True if c.value !=0 else False
+        return True if c !=0 else False
     
     @property
     def movie(self):
@@ -43,7 +43,7 @@ class File(object):
         if bt4movie is None:
             return None
         else:
-            self.moov = Movie(bt4movie)
+            self.moov = Movie(bt4movie=bt4movie)
             self.moov.file = file # add a reference here for ref counting
             return self.moov
         
@@ -65,17 +65,17 @@ class Movie(object):
     def tracks(self):
         result = {}
         count = lb4.AP4_Movie_GetTrackCount(self.bt4movie)
-        for i in xrange(0, count):
+        for i in xrange(count):
             bt4track = lb4.AP4_Movie_GetTrackByIndex(self.bt4movie, Ap4Ordinal(i))
-            track = Track(bt4track)
+            track = Track(bt4track=bt4track)
             track.movie = self # add a reference here for ref counting
             result[track.id] = track
         return result
     
     @property
     def duration(self):
-        return (lb4.AP4_Movie.GetDuration(self.bt4movie),
-                lb4.AP4_Movie.GetTimeScale(self.bt4movie))
+        return (lb4.AP4_Movie_GetDuration(self.bt4movie),
+                lb4.AP4_Movie_GetTimeScale(self.bt4movie))
     
     def add_track(self, track):
         result = lb4.AP4_Movie_AddTrack(self.bt4movie. track.bt4track)
@@ -96,15 +96,15 @@ class Track(object):
     TYPE_JPEG    = 6
     TYPE_RTP     = 7
     
-    HANDLER_TYPE_SOUN = unpack('>I', pack('>4s', 'soun'))
-    HANDLER_TYPE_VIDE = unpack('>I', pack('>4s', 'vide'))
-    HANDLER_TYPE_HINT = unpack('>I', pack('>4s', 'hint'))
-    HANDLER_TYPE_MDIR = unpack('>I', pack('>4s', 'mdir'))
-    HANDLER_TYPE_TEXT = unpack('>I', pack('>4s', 'text'))
-    HANDLER_TYPE_TX3G = unpack('>I', pack('>4s', 'tx3g'))
-    HANDLER_TYPE_JPEG = unpack('>I', pack('>4s', 'jpeg'))
-    HANDLER_TYPE_ODSM = unpack('>I', pack('>4s', 'odsm'))
-    HANDLER_TYPE_SDSM = unpack('>I', pack('>4s', 'sdsm'))
+    HANDLER_TYPE_SOUN = unpack('>I', pack('>4s', 'soun'))[0]
+    HANDLER_TYPE_VIDE = unpack('>I', pack('>4s', 'vide'))[0]
+    HANDLER_TYPE_HINT = unpack('>I', pack('>4s', 'hint'))[0]
+    HANDLER_TYPE_MDIR = unpack('>I', pack('>4s', 'mdir'))[0]
+    HANDLER_TYPE_TEXT = unpack('>I', pack('>4s', 'text'))[0]
+    HANDLER_TYPE_TX3G = unpack('>I', pack('>4s', 'tx3g'))[0]
+    HANDLER_TYPE_JPEG = unpack('>I', pack('>4s', 'jpeg'))[0]
+    HANDLER_TYPE_ODSM = unpack('>I', pack('>4s', 'odsm'))[0]
+    HANDLER_TYPE_SDSM = unpack('>I', pack('>4s', 'sdsm'))[0]
     
     def __init__(self, type=TYPE_UNKNOWN, sample_table=None, id=0,
                  track_duration=(), media_duration=(), language='',
@@ -168,14 +168,14 @@ class Track(object):
     def sample_count(self):
         return lb4.AP4_Track_GetSampleCount(self.bt4track)
     
-    def get_sample(self, index):
+    def sample(self, index):
         if index<0 or index>=self.sample_count:
             raise IndexError()
         bt4sample = lb4.AP4_Sample_CreateEmpty()
-        f = AP4_Track_GetSample
+        f = lb4.AP4_Track_GetSample
         f.restype = check_result
         try:
-            f(self.bt4track, bt4sample)
+            f(self.bt4track, index, bt4sample)
         except Exception, e:
             lb4.AP4_Sample_Destroy(bt4sample) # prevents a leak
             raise e
@@ -186,7 +186,7 @@ class Track(object):
         current = start
         end = end if end != -1 else self.sample_count
         while current<end:
-            yield self.get_sample(current)
+            yield self.sample(current)
             current += 1
     
     def set_movie_timescale(self, timescale):
@@ -200,9 +200,35 @@ class Track(object):
         f.restype = check_result
         f(self.bt4track, Ap4TimeStamp(ts), byref(result))
         return result.value
-    
+
     def sample_description(self, index):
-        raise NotImplementedError()
+        bt4sampledesc = lb4.AP4_Track_GetSampleDescription(self.bt4track,
+                                                           Ap4Ordinal(index))
+        if bt4sampledesc == 0:
+            raise IndexError()
+        sampledesc_type = lb4.AP4_SampleDescription_GetType(bt4sampledesc)
+        track_type = self.type
+        if sampledesc_type == SampleDescription.TYPE_AVC:
+            result = AvcSampleDescription(bt4sampledesc=bt4sampledesc)
+        elif sampledesc_type == SampleDescription.TYPE_MPEG:
+            if track_type == Track.TYPE_AUDIO:
+                result = MpegAudioSampleDescription(bt4sampledesc=bt4sampledesc)
+            elif track_type == Track.TYPE_VIDEO:
+                result = MpegVideoSampleDescription(bt4sampledesc=bt4sampledesc)
+            elif track_type == Track.TYPE_MPEG:
+                result = MpegSystemSampleDescription(bt4sampledesc=bt4sampledesc)
+            else:
+                result = MpegSampleDescription(bt4sampledesc=bt4sampledesc)
+        else:
+            if track_type == Track.TYPE_AUDIO:
+                result = GenericAudioSampleDescription(bt4sampledesc=bt4sampledesc)
+            elif track_type == Track.TYPE_VIDEO:
+                result = GenericVideoSampleDescription(bt4sampledesc=bt4sampledesc)
+            else:
+                result = SampleDescription(bt4sampledesc)
+        result.track = self # add a reference
+        return result
+            
     
     
 class Sample(object):
@@ -210,7 +236,6 @@ class Sample(object):
                  dts=0, cts_offset=0, is_sync=False, bt4sample=None):
         if bt4sample is None:
             raise NotImplementedError()
-            pass
         else:
             self.bt4sample = bt4sample
             
@@ -224,7 +249,7 @@ class Sample(object):
         f = lb4.AP4_Sample_ReadData
         f.restype = check_result
         try:
-            f(self.bt4sample, self.bt4buffer)            
+            f(self.bt4sample, bt4buffer)            
             return string_at(lb4.AP4_DataBuffer_GetData(bt4buffer),
                              lb4.AP4_DataBuffer_GetDataSize(bt4buffer))
         except Exception, e:
@@ -241,8 +266,8 @@ class Sample(object):
         return lb4.AP4_Sample_GetSize(self.bt4sample)
     
     @property
-    def sample_description_index(self):
-        return lb4.AP4_Sample_GetSampleDescriptionIndex(self,bt4sample)
+    def description_index(self):
+        return lb4.AP4_Sample_GetDescriptionIndex(self.bt4sample)
     
     @property
     def dts(self):
@@ -261,10 +286,253 @@ class Sample(object):
             
 
 class SampleDescription(object):
-    pass
+    TYPE_UNKNOWN    = 0
+    TYPE_MPEG       = 1
+    TYPE_PROTECTED  = 2
+    TYPE_AVC        = 3
+    
+    def __init__(self, bt4sampledesc=None, bt4owner=False, **kwargs):
+        self.bt4sampledesc = bt4sampledesc
+        self.bt4owner = bt4owner
+        super(SampleDescription, self).__init__()
+
+    def __del__(self):
+        if self.bt4owner:
+            lb4.AP4_SampleDescription_Destroy(self.bt4sampledesc)
+        
+    @property
+    def type(self):
+        return lb4.AP4_SampleDescription_GetType(self.bt4sampledesc)
+    
+    @property
+    def format(self):
+        return lb4.AP4_SampleDescription_GetFormat(self.bt4sampledesc)
+    
+            
+class AudioSampleDescription(object):
+    """mixin class"""
+    
+    def __init__(self, **kwargs):
+        super(AudioSampleDescription, self).__init__(kwargs)
+    
+    @property
+    def sample_rate(self):
+        bt4audiosampledesc = lb4.AP4_SampleDescription_AsAudio(self.bt4sampledesc)
+        return lb4.AP4_AudioSampleDescription_GetSampleRate(bt4audiosampledesc)
+    
+    @property
+    def sample_size(self):
+        bt4audiosampledesc = lb4.AP4_SampleDescription_AsAudio(self.bt4sampledesc)
+        return lb4.AP4_AudioSampleDescription_GetSampleSize(bt4audiosampledesc)
+    
+    @property
+    def channel_count(self):
+        bt4audiosampledesc = lb4.AP4_SampleDescription_AsAudio(self.bt4sampledesc)
+        return lb4.AP4_AudioSampleDescription_GetChannelCount(bt4audiosampledesc)
     
 
+class VideoSampleDescription(object):
+    """mixin class"""
+    
+    def __init__(self, **kwargs):
+        super(VideoSampleDescription, self).__init__(kwargs)
+    
+    @property
+    def width(self):
+        bt4videosampledesc = lb4.AP4_SampleDescription_AsVideo(self.bt4sampledesc)
+        return lb4.AP4_VideoSampleDescription_GetWidth(bt4videosampledesc)
+     
+    @property
+    def height(self):
+        bt4videosampledesc = lb4.AP4_SampleDescription_AsVideo(self.bt4sampledesc)
+        return lb4.AP4_VideoSampleDescription_GetHeight(bt4videosampledesc)
+    
+    @property
+    def depth(self):
+        bt4videosampledesc = lb4.AP4_SampleDescription_AsVideo(self.bt4sampledesc)
+        return lb4.AP4_VideoSampleDescription_GetDepth(bt4videosampledesc)
+     
+    @property
+    def compressor_name(self):
+        bt4videosampledesc = lb4.AP4_SampleDescription_AsVideo(self.bt4sampledesc)
+        f = lb4.AP4_VideoSampleDescription_GetCompressorName
+        f.restype = c_char_p
+        return f(bt4videosampledesc)
+ 
+
+class MpegSampleDescription(SampleDescription):
+    STREAM_TYPE_FORBIDDEN = 0x00
+    STREAM_TYPE_OD        = 0x01
+    STREAM_TYPE_CR        = 0x02	
+    STREAM_TYPE_BIFS      = 0x03
+    STREAM_TYPE_VISUAL    = 0x04
+    STREAM_TYPE_AUDIO     = 0x05
+    STREAM_TYPE_MPEG7     = 0x06
+    STREAM_TYPE_IPMP      = 0x07
+    STREAM_TYPE_OCI       = 0x08
+    STREAM_TYPE_MPEGJ     = 0x09
+    STREAM_TYPE_TEXT      = 0x0D
+
+    OTI_MPEG4_SYSTEM         = 0x01
+    OTI_MPEG4_SYSTEM_COR     = 0x02
+    OTI_MPEG4_TEXT           = 0x08
+    OTI_MPEG4_VISUAL         = 0x20
+    OTI_MPEG4_AUDIO          = 0x40
+    OTI_MPEG2_VISUAL_SIMPLE  = 0x60
+    OTI_MPEG2_VISUAL_MAIN    = 0x61
+    OTI_MPEG2_VISUAL_SNR     = 0x62
+    OTI_MPEG2_VISUAL_SPATIAL = 0x63
+    OTI_MPEG2_VISUAL_HIGH    = 0x64
+    OTI_MPEG2_VISUAL_422     = 0x65
+    OTI_MPEG2_AAC_AUDIO_MAIN = 0x66
+    OTI_MPEG2_AAC_AUDIO_LC   = 0x67
+    OTI_MPEG2_AAC_AUDIO_SSRP = 0x68
+    OTI_MPEG2_PART3_AUDIO    = 0x69
+    OTI_MPEG1_VISUAL         = 0x6A
+    OTI_MPEG1_AUDIO          = 0x6B
+    OTI_JPEG                 = 0x6C
+    
+    def __init__(self, **kwargs):
+        super(MpegSampleDescription, self).__init__(kwargs)
+   
+    @property
+    def stream_type(self):
+        return lb4.AP4_MpegSampleDescription_GetStreamType(self.bt4sampledesc)
+    
+    @property
+    def object_type_id(self):
+        return lb4.AP4_MpegSampleDescription_GetObjectTypeId(self.bt4sampledesc)
+    
+    @property
+    def buffer_size(self):
+        return lb4.AP4_MpegSampleDescription_GetBufferSize(self.bt4sampledesc)
+    
+    @property
+    def max_bitrate(self):
+        return lb4.AP4_MpegSampleDescription_GetMaxBitrate(self.bt4sampledesc)
+    
+    @property
+    def avg_bitrate(self):
+        return lb4.AP4_MpegSampleDescription_GetAvgBitrate(self.bt4sampledesc)
+    
+    @property
+    def decoder_info(self):
+        bt4buf = lb4.AP4_MpegSampleDescription_GetDecoderInfo(self.bt4sampledesc)
+        return string_at(lb4.AP4_DataBuffer_GetData(bt4buf),
+                         lb4.AP4_DataBuffer_GetDataSize(bt4buf))
+
+
+class GenericAudioSampleDescription(SampleDescription,
+                                    AudioSampleDescription):
+    
+    def __init__(self, bt4sampledesc):
+        super(GenericAudioSampleDescription, self).__init__(bt4sampledesc=bt4sampledesc)
+    
+    
+class GenericVideoSampleDescription(SampleDescription,
+                                    VideoSampleDescription):
+    
+    def __init__(self, bt4sampledesc):
+        super(GenericVideoSampleDescription, self).__init__(bt4sampledesc=bt4sampledesc)
         
+        
+def avc_profile_name(profile):
+    f = lb4.AP4_AvcSampleDescription_GetProfileName
+    f.restype = c_char_p
+    return f(profile)
+        
+        
+class AvcSampleDescription(SampleDescription, VideoSampleDescription):
+    
+    def __init__(self, bt4sampledesc):
+        super(AvcSampleDescription, self).__init__(bt4sampledesc=bt4sampledesc)
+        
+    @property
+    def config_version(self):
+        return lb4.AP4_AvcSampleDescription_GetConfigurationVersion(self.bt4sampledesc)
+    
+    @property
+    def profile(self):
+        return lb4.AP4_AvcSampleDescription_GetProfile(self.bt4sampledesc)
+    
+    @property
+    def level(self):
+        return lb4.AP4_AvcSampleDescription_GetLevel(self.bt4sampledesc)
+
+    @property
+    def profile_compatibility(self):
+        return lb4.AP4_AvcSampleDescription_GetProfileCompatibility(self.bt4sampledesc)
+
+    @property
+    def nalu_length_size(self):
+        return lb4.AP4_AvcSampleDescription_GetNaluLengthSize(self.bt4sampledesc)
+    
+    @property
+    def sequence_params(self):
+        result = []
+        count = lb4.AP4_AvcSampleDescription_GetSequenceParameterCount(self.bt4sampledesc)
+        for i in xrange(count):
+            bt4buf = lb4.AP4_AvcSampleDescription_GetSequenceParameter(self.bt4sampledesc, i)
+            result += [string_at(AP4_DataBuffer_GetData(bt4buf),
+                                 AP4_DataBuffer_GetDataSize(bt4buf))]
+        return result
+    
+    @property
+    def picture_params(self):
+        result = []
+        count = lb4.AP4_AvcSampleDescription_GetPictureParametersCount(self.bt4sampledesc)
+        for i in xrange(count):
+            bt4buf = lb4.AP4_AvcSampleDescription_GetPictureParameter(self.bt4sampledesc, i)
+            result += [string_at(AP4_DataBuffer_GetData(bt4buf),
+                                 AP4_DataBuffer_GetDataSize(bt4buf))]
+        return result
+         
+
+class MpegSystemSampleDescription(MpegSampleDescription):
+    
+    def __init__(self, bt4sampledesc):
+        super(MpegSystemSampleDescription, self).__init__(bt4sampledesc=bt4sampledesc)
+        
+def mpeg_audio_object_type_string(type):
+    f = lb4.AP4_MpegAudioSampleDescription_GetMpegAudioObjectTypeString
+    f.restype = c_char_p
+    return f(type)
+
+class MpegAudioSampleDescription(MpegSampleDescription,
+                                 AudioSampleDescription) :
+    
+    MPEG4_AUDIO_OBJECT_TYPE_AAC_MAIN        = 1  #  AAC Main Profile              
+    MPEG4_AUDIO_OBJECT_TYPE_AAC_LC          = 2  #  AAC Low Complexity            
+    MPEG4_AUDIO_OBJECT_TYPE_AAC_SSR         = 3  #  AAC Scalable Sample Rate      
+    MPEG4_AUDIO_OBJECT_TYPE_AAC_LTP         = 4  #  AAC Long Term Predictor       
+    MPEG4_AUDIO_OBJECT_TYPE_SBR             = 5  #  Spectral Band Replication          
+    MPEG4_AUDIO_OBJECT_TYPE_AAC_SCALABLE    = 6  #  AAC Scalable                       
+    MPEG4_AUDIO_OBJECT_TYPE_TWINVQ          = 7  #  Twin VQ                            
+    MPEG4_AUDIO_OBJECT_TYPE_ER_AAC_LC       = 17 #  Error Resilient AAC Low Complexity 
+    MPEG4_AUDIO_OBJECT_TYPE_ER_AAC_LTP      = 19 #  Error Resilient AAC Long Term Prediction 
+    MPEG4_AUDIO_OBJECT_TYPE_ER_AAC_SCALABLE = 20 #  Error Resilient AAC Scalable 
+    MPEG4_AUDIO_OBJECT_TYPE_ER_TWINVQ       = 21 #  Error Resilient Twin VQ 
+    MPEG4_AUDIO_OBJECT_TYPE_ER_BSAC         = 22 #  Error Resilient Bit Sliced Arithmetic Coding 
+    MPEG4_AUDIO_OBJECT_TYPE_ER_AAC_LD       = 23 #  Error Resilient AAC Low Delay 
+    MPEG4_AUDIO_OBJECT_TYPE_LAYER_1         = 32 #  MPEG Layer 1 
+    MPEG4_AUDIO_OBJECT_TYPE_LAYER_2         = 33 #  MPEG Layer 2 
+    MPEG4_AUDIO_OBJECT_TYPE_LAYER_3         = 34 #  MPEG Layer 3 
+
+    def __init__(self, bt4sampledesc):
+        super(MpegAudioSampleDescription, self).__init__(bt4sampledesc=bt4sampledesc)
+    
+    @property    
+    def mpeg4_audio_object_type(self):
+        return lb4.AP4_MpegAudioSampleDescription_GetMpeg4AudioObjecType(self.bt4sampledesc)
+        
+
+class MpegVideoSampleDescription(MpegSampleDescription,
+                                 VideoSampleDescription):
+    
+    def __init__(self, bt4sampledesc):
+        super(MpegVideoSampleDescription, self).__init__(bt4sampledesc=bt4sampledesc)
+
+
         
             
         
