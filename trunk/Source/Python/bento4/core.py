@@ -11,9 +11,7 @@ class File(object):
                 raise ValueError("name param cannot be empty")
             self.bt4stream = lb4.AP4_FileByteStream_Create(c_char_p(name),
                                                            c_int(0)) # read
-            if bt4stream is None:
-                raise IOError("Unable to open file %s" % name)
-            self.bt4file = lb4.AP4_File_FromStream(bt4stream)
+            self.bt4file = lb4.AP4_File_FromStream(self.bt4stream)
             self.movie = None
         else:
             self.bt4file = lb4.AP4_File_Create(movie.bt4movie)

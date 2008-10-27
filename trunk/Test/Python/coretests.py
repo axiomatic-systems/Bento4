@@ -1,3 +1,8 @@
+
+### to be removed
+import sys
+sys.path += ['/Users/julien/Development/Bento4/Source/Python']
+
 import bento4.core as bt4
 import os.path
 import unittest

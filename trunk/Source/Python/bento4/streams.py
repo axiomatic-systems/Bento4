@@ -1,4 +1,4 @@
-from ctypes import c_int, c_double, c_char_p, c_int_p
+from ctypes import c_int, c_double, c_char_p, pointer
 from bento4 import *
 from bento4.errors import check_result
 
@@ -189,7 +189,7 @@ class FileByteStream(ByteStream):
     def __init__(self, name, mode):
         result = Ap4Result(0)
         f = lb4.AP4_FileByteStream_Create
-        bt4stream = (c_char_p(name), c_int(mode), byref(result))
+        bt4stream = f(c_char_p(name), c_int(mode), byref(result))
         check_result(result)
         super(FileByteStream, self).__init__(bt4stream)
         
