@@ -6,18 +6,20 @@ from struct import pack, unpack
 class File(object):
     
     def __init__(self, name='', movie=None):
+        self.moov = movie # can't have self.movie because movie is a property
         if movie is None:
             if len(name) == 0:
                 raise ValueError("name param cannot be empty")
+            result = Ap4Result()
             self.bt4stream = lb4.AP4_FileByteStream_Create(c_char_p(name),
-                                                           c_int(0)) # read
+                                                           c_int(0), # read
+                                                           byref(result))
+            check_result(result.value)
             self.bt4file = lb4.AP4_File_FromStream(self.bt4stream)
-            self.movie = None
         else:
             self.bt4file = lb4.AP4_File_Create(movie.bt4movie)
             movie.bt4owner = False
             movie.file = self
-            self.movie = movie
         
     def __del__(self):
         lb4.AP4_File_Destroy(self.bt4file)
@@ -34,16 +36,16 @@ class File(object):
     
     @property
     def movie(self):
-        if self.movie:
-            return self.movie
+        if self.moov:
+            return self.moov
         
         bt4movie = lb4.AP4_File_GetMovie(self.bt4file)
         if bt4movie is None:
             return None
         else:
-            self.movie = Movie(bt4movie)
-            self.movie.file = file # add a reference here for ref counting
-            return self.movie
+            self.moov = Movie(bt4movie)
+            self.moov.file = file # add a reference here for ref counting
+            return self.moov
         
     
 class Movie(object):
@@ -63,7 +65,7 @@ class Movie(object):
     def tracks(self):
         result = {}
         count = lb4.AP4_Movie_GetTrackCount(self.bt4movie)
-        for i in xrange(0, count.value):
+        for i in xrange(0, count):
             bt4track = lb4.AP4_Movie_GetTrackByIndex(self.bt4movie, Ap4Ordinal(i))
             track = Track(bt4track)
             track.movie = self # add a reference here for ref counting

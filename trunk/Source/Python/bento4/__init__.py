@@ -2,7 +2,7 @@ from ctypes import *
 import sys
 
 if sys.platform == 'darwin':
-    bento4dll = 'libbento4c.so'
+    bento4dll = 'libBento4C.dylib'
 else:
     raise "Unsupported Platform"
 
