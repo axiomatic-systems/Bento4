@@ -252,7 +252,7 @@ AP4_FileByteStream_Create(const char* name, int mode, AP4_Result* result)
                                               (AP4_FileByteStream::Mode)mode, 
                                               stream);
     if (result) *result = local_result;
-    if (AP4_SUCCEEDED(*result)) {
+    if (AP4_SUCCEEDED(local_result)) {
         return stream;
     } else {
         return NULL;
@@ -710,6 +710,12 @@ AP4_UI08
 AP4_AvcSampleDescription_GetProfileCompatibility(AP4_AvcSampleDescription* self)
 {
     return self->GetProfileCompatibility();
+}
+
+AP4_UI08
+AP4_AvcSampleDescription_GetNaluLengthSize(AP4_AvcSampleDescription* self)
+{
+    return self->GetNaluLengthSize();
 }
 
 AP4_Cardinal

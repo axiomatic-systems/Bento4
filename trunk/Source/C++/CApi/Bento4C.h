@@ -521,6 +521,9 @@ AP4_AvcSampleDescription_GetLevel(AP4_AvcSampleDescription* self);
 AP4_UI08
 AP4_AvcSampleDescription_GetProfileCompatibility(AP4_AvcSampleDescription* self);
 
+AP4_UI08
+AP4_AvcSampleDescription_GetNaluLengthSize(AP4_AvcSampleDescription* self);
+
 AP4_Cardinal
 AP4_AvcSampleDescription_GetSequenceParameterCount(AP4_AvcSampleDescription* self);
 
