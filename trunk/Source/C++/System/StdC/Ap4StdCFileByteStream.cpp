@@ -126,7 +126,7 @@ AP4_StdcFileByteStream::Create(AP4_FileByteStream*      delegator,
     
     // open the file
     FILE* file = NULL;
-    size_t size = 0;
+    AP4_Position size = 0;
     if (!strcmp(name, "-stdin")) {
         file = stdin;
     } else if (!strcmp(name, "-stdout")) {
