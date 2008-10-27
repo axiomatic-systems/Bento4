@@ -55,7 +55,7 @@ def check_result(result, msg=''):
     try:
         exception, msg_prefix = RESULT_EXCEPTION_MAP[result]
     except KeyError:
-        raise Exception("Bento4 unknown error code %d" % result)
+        raise RuntimeError("Bento4 unknown error: code %d" % result)
     raise exception(msg_prefix+msg)
     
     

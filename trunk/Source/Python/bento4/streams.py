@@ -187,7 +187,7 @@ class FileByteStream(ByteStream):
     MODE_READ_WRITE = 2
     
     def __init__(self, name, mode):
-        result = 0
+        result = Ap4Result(0)
         f = lb4.AP4_FileByteStream_Create
         bt4stream = (c_char_p(name), c_int(mode), byref(result))
         check_result(result)
