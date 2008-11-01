@@ -13,6 +13,18 @@ class CoreTester(unittest.TestCase):
     def test_moov_position(self):
         self.assertTrue(self.file.moov_is_before_mdat)
         
+    def test_atom_type_name(self):
+        self.assertEquals('caca', bt4.atom_name(bt4.atom_type('caca')))
+        self.assertNotEquals('zobi', bt4.atom_name(bt4.atom_type('fouf')))
+        
+    def test_filetype(self):
+        major_brand, minor_version, compat_brands = self.file.type
+        self.assertEquals(major_brand, bt4.File.FILE_BRAND_MP42)
+        self.assertEquals(minor_version, 1)
+        self.assertEquals(len(compat_brands), 2)
+        self.assertEquals(compat_brands[0], bt4.File.FILE_BRAND_MP42)
+        self.assertEquals(bt4.atom_name(compat_brands[1]), 'avc1')
+        
     def test_movie(self):
         self.failIfEqual(self.file.movie, None, "no movie in file")
         
