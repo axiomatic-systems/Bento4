@@ -351,7 +351,38 @@ AP4_File_GetMovie(AP4_File* self)
     return self->GetMovie();
 }
 
-/* TODO AP4_File_GetFileType */
+AP4_Result
+AP4_File_GetFileType(AP4_File*      self,
+                     AP4_UI32*      major_brand,
+                     AP4_UI32*      minor_version,
+                     AP4_Cardinal*  compatible_brand_count)
+{
+    AP4_FtypAtom* ftyp = self->GetFileType();
+    if (!ftyp) return AP4_FAILURE;
+    
+    if (major_brand) *major_brand = ftyp->GetMajorBrand();
+    if (minor_version) *minor_version = ftyp->GetMinorVersion();
+    if (compatible_brand_count) {
+        *compatible_brand_count = ftyp->GetCompatibleBrands().ItemCount();
+    }
+    return AP4_SUCCESS;
+}
+
+AP4_Result
+AP4_File_GetCompatibleBrand(AP4_File*   self, 
+                            AP4_Ordinal index, 
+                            AP4_UI32*   brand)
+{
+    AP4_FtypAtom* ftyp = self->GetFileType();
+    if (!ftyp || !brand) return AP4_FAILURE;
+    
+    if (index >= ftyp->GetCompatibleBrands().ItemCount()) {
+        return AP4_ERROR_OUT_OF_RANGE;
+    }
+    
+    *brand = ftyp->GetCompatibleBrands()[index];
+    return AP4_SUCCESS;
+}
 
 AP4_Result 
 AP4_File_SetFileType(AP4_File*    self,

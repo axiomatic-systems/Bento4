@@ -3,7 +3,27 @@ from bento4.errors import check_result
 from ctypes import c_int, c_char_p, string_at
 from struct import pack, unpack
 
+def atom_type(name):
+    return unpack('>I', pack('>4s', name))[0]
+
+def atom_name(type):
+    return unpack('>4s', pack('>I', type))[0]
+    
 class File(object):
+    FILE_BRAND_QT__ = atom_type('qt  ')
+    FILE_BRAND_ISOM = atom_type('isom')
+    FILE_BRAND_MP41 = atom_type('mp41')
+    FILE_BRAND_MP42 = atom_type('mp42')
+    FILE_BRAND_3GP1 = atom_type('3gp1')
+    FILE_BRAND_3GP2 = atom_type('3gp2')
+    FILE_BRAND_3GP3 = atom_type('3gp3')
+    FILE_BRAND_3GP4 = atom_type('3gp4')
+    FILE_BRAND_3GP5 = atom_type('3gp5')
+    FILE_BRAND_3G2A = atom_type('3g2a')
+    FILE_BRAND_MMP4 = atom_type('mmp4')
+    FILE_BRAND_M4A_ = atom_type('M4A ')
+    FILE_BRAND_M4P_ = atom_type('M4P ')
+    FILE_BRAND_MJP2 = atom_type('mjp2')
     
     def __init__(self, name='', movie=None):
         self.moov = movie # can't have self.movie because movie is a property
@@ -46,6 +66,40 @@ class File(object):
             self.moov = Movie(bt4movie=bt4movie)
             self.moov.file = file # add a reference here for ref counting
             return self.moov
+    
+    def get_type(self):
+        """returns a tuple (major_brand, minor_version, [compatible_brands])"""
+        major_brand = Ap4UI32()
+        minor_version = Ap4UI32()
+        compat = Ap4UI32()
+        compat_count = Ap4UI32()
+        
+        # get the file type
+        f = lb4.AP4_File_GetFileType
+        f.restype = check_result
+        f(self.bt4file, byref(major_brand),
+          byref(minor_version), byref(compat_count))
+        
+        # get the compatible brands
+        f = lb4.AP4_File_GetCompatibleBrand
+        f.restype = check_result
+        compat_brands = []
+        for i in xrange(compat_count.value):
+            f(self.bt4file, i, byref(compat))
+            compat_brands += [compat.value]
+        return (major_brand.value, minor_version.value, compat_brands)
+    
+    def set_type(self, value):
+        """value: a tuple (major_brand, minor_version, [compatible_brands])"""
+        major_brand, minor_version, compat_brands = value
+        compat_count = len(compat_brands)
+        compat_brand_array = Ap4UI32*compat_count
+        f = lb4.AP4_File_SetFileType
+        f.restype = check_result
+        f(self.bt4file, major_brand, minor_version,
+          compat_brand_array(*compat_brands), compat_count)
+    
+    type = property(get_type, set_type)
         
     
 class Movie(object):
@@ -96,15 +150,15 @@ class Track(object):
     TYPE_JPEG    = 6
     TYPE_RTP     = 7
     
-    HANDLER_TYPE_SOUN = unpack('>I', pack('>4s', 'soun'))[0]
-    HANDLER_TYPE_VIDE = unpack('>I', pack('>4s', 'vide'))[0]
-    HANDLER_TYPE_HINT = unpack('>I', pack('>4s', 'hint'))[0]
-    HANDLER_TYPE_MDIR = unpack('>I', pack('>4s', 'mdir'))[0]
-    HANDLER_TYPE_TEXT = unpack('>I', pack('>4s', 'text'))[0]
-    HANDLER_TYPE_TX3G = unpack('>I', pack('>4s', 'tx3g'))[0]
-    HANDLER_TYPE_JPEG = unpack('>I', pack('>4s', 'jpeg'))[0]
-    HANDLER_TYPE_ODSM = unpack('>I', pack('>4s', 'odsm'))[0]
-    HANDLER_TYPE_SDSM = unpack('>I', pack('>4s', 'sdsm'))[0]
+    HANDLER_TYPE_SOUN = atom_type('soun')
+    HANDLER_TYPE_VIDE = atom_type('vide')
+    HANDLER_TYPE_HINT = atom_type('hint')
+    HANDLER_TYPE_MDIR = atom_type('mdir')
+    HANDLER_TYPE_TEXT = atom_type('text')
+    HANDLER_TYPE_TX3G = atom_type('tx3g')
+    HANDLER_TYPE_JPEG = atom_type('jpeg')
+    HANDLER_TYPE_ODSM = atom_type('odsm')
+    HANDLER_TYPE_SDSM = atom_type('sdsm')
     
     def __init__(self, type=TYPE_UNKNOWN, sample_table=None, id=0,
                  track_duration=(), media_duration=(), language='',

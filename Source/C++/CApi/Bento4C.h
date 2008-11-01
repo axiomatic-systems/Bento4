@@ -56,6 +56,22 @@ extern const int AP4_FILE_BYTE_STREAM_MODE_READ;
 extern const int AP4_FILE_BYTE_STREAM_MODE_WRITE;
 extern const int AP4_FILE_BYTE_STREAM_MODE_READ_WRITE;
 
+extern const AP4_UI32 AP4_FILE_BRAND_QT__;
+extern const AP4_UI32 AP4_FILE_BRAND_ISOM;
+extern const AP4_UI32 AP4_FILE_BRAND_MP41;
+extern const AP4_UI32 AP4_FILE_BRAND_MP42;
+extern const AP4_UI32 AP4_FILE_BRAND_3GP1;
+extern const AP4_UI32 AP4_FILE_BRAND_3GP2;
+extern const AP4_UI32 AP4_FILE_BRAND_3GP3;
+extern const AP4_UI32 AP4_FILE_BRAND_3GP4;
+extern const AP4_UI32 AP4_FILE_BRAND_3GP5;
+extern const AP4_UI32 AP4_FILE_BRAND_3G2A;
+extern const AP4_UI32 AP4_FILE_BRAND_MMP4;
+extern const AP4_UI32 AP4_FILE_BRAND_M4A_;
+extern const AP4_UI32 AP4_FILE_BRAND_M4P_;
+extern const AP4_UI32 AP4_FILE_BRAND_MJP2;
+
+
 extern const int AP4_TRACK_TYPE_UNKNOWN;
 extern const int AP4_TRACK_TYPE_AUDIO;
 extern const int AP4_TRACK_TYPE_VIDEO;
@@ -325,7 +341,16 @@ AP4_DataBuffer_Clone(const AP4_DataBuffer* other);
 AP4_Movie*
 AP4_File_GetMovie(AP4_File* self);
 
-/* TODO AP4_File_GetFileType */
+AP4_Result
+AP4_File_GetFileType(AP4_File*     self,
+                     AP4_UI32*     major_brand,
+                     AP4_UI32*     minor_version,
+                     AP4_Cardinal* compatible_brand_count);
+
+AP4_Result
+AP4_File_GetCompatibleBrand(AP4_File*   self,
+                            AP4_Ordinal index,
+                            AP4_UI32*   brand);
 
 AP4_Result 
 AP4_File_SetFileType(AP4_File*    self,
