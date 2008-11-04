@@ -490,12 +490,16 @@ AP4_File_IsMoovBeforeMdat(const AP4_File* self)
     return (int) self->IsMoovBeforeMdat();
 }
 
-/* TODO AP4_File_Inspect */
-
 const AP4_MetaData*
 AP4_File_GetMetaData(AP4_File* self)
 {
     return self->GetMetaData();
+}
+
+AP4_Result
+AP4_File_Inspect(AP4_File* self, AP4_AtomInspector* inspector)
+{
+    return self->Inspect(*inspector);
 }
 
 void
