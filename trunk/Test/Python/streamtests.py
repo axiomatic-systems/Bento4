@@ -5,4 +5,8 @@ import unittest
 BENTO4_TEST_DATA_DIR = path.join(path.dirname(__file__), '..', 'Data')
 
 class StreamTester(unittest.TestCase):
-    pass
+    
+    def test_memorystream(self):
+        stream = bt4s.MemoryStream()
+        
+        

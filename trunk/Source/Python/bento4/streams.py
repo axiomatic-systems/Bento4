@@ -9,11 +9,12 @@ from bento4.errors import check_result, SUCCESS, ERROR_READ_FAILED, FAILURE, \
 class ByteStream(object):
     """abstract ByteStream class"""
     
-    def __init__(self, bt4stream, add_ref=False):
+    def __init__(self, bt4stream):
         self.bt4stream = bt4stream
-        if add_ref:
-            lb4.AP4_MemoryStream_AddReference(self.bt4stream)
         super(ByteStream, self).__init__()
+    
+    def __del__(self):
+        lb4.AP4_ByteStream_Release(self.bt4stream)
     
     @property    
     def size(self):
@@ -157,10 +158,7 @@ class ByteStream(object):
         f.restype = check_result
         f(self.bt4stream, byref(pos))
         return pos.value
-    
-    def __del__(self):
-        lb4.AP4_ByteStream_Release(self.bt4stream)
-        
+           
     
 class MemoryByteStream(ByteStream):
     
