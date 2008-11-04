@@ -439,7 +439,8 @@ AP4_File_SetFileType(AP4_File*    self,
 int
 AP4_File_IsMoovBeforeMdat(const AP4_File* self);
 
-/* TODO AP4_File_Inspect */
+AP4_Result
+AP4_File_Inspect(AP4_File* self, AP4_AtomInspector* inspector);
 
 const AP4_MetaData*
 AP4_File_GetMetaData(AP4_File* self);

@@ -1,9 +1,11 @@
 from bento4 import *
-from ctypes import CFUNCTYPE, c_char_p, byref, c_int, c_float
+from ctypes import CFUNCTYPE, c_char_p, byref, c_int, c_float, string_at
+from xml.etree.ElementTree import Element, SubElement
+from base64 import b16encode
 
 class AtomInspector(object):
     def __init__(self, bt4inspector):
-        self.bt4inspector = inspector
+        self.bt4inspector = bt4inspector
         super(AtomInspector, self).__init__()
         
     def __del__(self):
@@ -51,8 +53,12 @@ InspectorDelegate._fields_ = [("start_element", start_element_proto),
                               ("destroy", c_void_p), # must be set to None
                               ("oid", c_int)] # object id
 
+# global dict of objects constructed with a delegate
 PYINSPECTOR_OBJECTS = {}
 
+#
+# redirection functions
+#
 def delegate_start_element(pdelegate, name, extra):
     pyinspector = PYINSPECTOR_OBJECTS[pdelegate[0].oid]
     pyinspector.c_start_element(name, extra)
@@ -82,35 +88,71 @@ class PyInspector(AtomInspector):
     
     def __init__(self, pyinspector):
         self.delegate = InspectorDelegate(
-            start_element=delegate_start_element,
-            end_element=delegate_end_element,
-            add_int_field=delegate_add_int_field,
-            add_float_field=delegate_add_float_field,
-            add_string_field=delegate_add_string_field,
-            add_bytes_field=delegate_add_bytes_field,
+            start_element=start_element_proto(delegate_start_element),
+            end_element=end_element_proto(delegate_end_element),
+            add_int_field=add_int_field_proto(delegate_add_int_field),
+            add_float_field=add_float_field_proto(delegate_add_float_field),
+            add_string_field=add_string_field_proto(delegate_add_string_field),
+            add_bytes_field=add_bytes_field_proto(delegate_add_bytes_field),
             destroy=None,
             oid=id(pyinspector))
         PYINSPECTOR_OBJECTS[id(pyinspector)] = pyinspector
         bt4inspector = lb4.AP4_AtomInspector_FromDelegate(byref(self.delegate))
         super(PyInspector, self).__init__(bt4inspector)
 
-    def c_start_element(name, extra):
+    def c_start_element(self, name, extra):
         pass
     
-    def c_end_element():
+    def c_end_element(self):
         pass
     
-    def c_add_int_field(name, value, hint):
+    def c_add_int_field(self, name, value, hint):
         pass
     
-    def c_add_float_field(name, value, hint):
+    def c_add_float_field(self, name, value, hint):
         pass
     
-    def c_add_string_field(name, value, hint):
+    def c_add_string_field(self, name, value, hint):
         pass
     
-    def c_add_bytes_field(name, bytes, byte_count, hint):
+    def c_add_bytes_field(self, name, bytes, byte_count, hint):
         pass
+    
+
+class XmlInspector(PyInspector):
+    
+    def __init__(self):
+        self.root = Element("mp4file")
+        self.current = (None, self.root) # parent, element
+        super(XmlInspector, self).__init__(self)
+        
+    def c_start_element(self, name, extra):
+        parent, element = self.current
+        new_element = SubElement(element, name[1:-1])
+        self.current = ((parent, element), new_element)
+        
+    def c_end_element(self):
+        (grandparent, parent), element = self.current
+        self.current = (grandparent, parent)
+    
+    def c_add_int_field(self, name, value, hint):
+        int_element = SubElement(self.current[1], name, type='int')
+        int_element.text = str(value)
+        
+    def c_add_float_field(self, name, value, hint):
+        float_element = SubElement(self.current[1], name, type='float')
+        float_element.text = str(value)
+            
+    def c_add_string_field(self, name, value, hint):
+        str_element = SubElement(self.current[1], name, type='string')
+        str_element.text = value
+        
+    def c_add_bytes_field(self, name, bytes, byte_count, hint):
+        bytes_element = SubElement(self.current[1], name, type='bytes')
+        bytes_element.text = b16encode(string_at(bytes, byte_count))
+        
+        
+        
     
 
     

@@ -48,6 +48,11 @@ class File(object):
         except AttributeError:
             pass # depending on how the object was created,
                  # self.bt4stream may or may not exist
+                 
+    def inspect(self, inspector):
+        f = lb4.AP4_File_Inspect
+        f.restype = check_result
+        f(self.bt4file, inspector.bt4inspector)
 
     @property
     def moov_is_before_mdat(self):
