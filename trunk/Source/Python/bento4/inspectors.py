@@ -122,13 +122,13 @@ class PyInspector(AtomInspector):
 class XmlInspector(PyInspector):
     
     def __init__(self):
-        self.root = Element("mp4file")
+        self.root = Element("Mp4File")
         self.current = (None, self.root) # parent, element
         super(XmlInspector, self).__init__(self)
         
     def c_start_element(self, name, extra):
         parent, element = self.current
-        new_element = SubElement(element, name[1:-1])
+        new_element = SubElement(element, "Atom", name=name[1:-1])
         self.current = ((parent, element), new_element)
         
     def c_end_element(self):
@@ -136,19 +136,23 @@ class XmlInspector(PyInspector):
         self.current = (grandparent, parent)
     
     def c_add_int_field(self, name, value, hint):
-        int_element = SubElement(self.current[1], name, type='int')
+        int_element = SubElement(self.current[1], "Field",
+                                 name=name, type='int')
         int_element.text = str(value)
         
     def c_add_float_field(self, name, value, hint):
-        float_element = SubElement(self.current[1], name, type='float')
+        float_element = SubElement(self.current[1], "Field",
+                                   name=name, type='float')
         float_element.text = str(value)
             
     def c_add_string_field(self, name, value, hint):
-        str_element = SubElement(self.current[1], name, type='string')
+        str_element = SubElement(self.current[1], "Field",
+                                 name=name, type='string')
         str_element.text = value
         
     def c_add_bytes_field(self, name, bytes, byte_count, hint):
-        bytes_element = SubElement(self.current[1], name, type='bytes')
+        bytes_element = SubElement(self.current[1], "Field",
+                                   name=name, type='bytes')
         bytes_element.text = b16encode(string_at(bytes, byte_count))
         
         
