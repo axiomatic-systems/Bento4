@@ -48,6 +48,76 @@ typedef struct AP4_AvcSampleDescription AP4_AvcSampleDescription;
 typedef struct AP4_MpegSampleDescription AP4_MpegSampleDescription;
 typedef struct AP4_MpegAudioSampleDescription AP4_MpegAudioSampleDescription;
 typedef struct AP4_SyntheticSampleTable AP4_SyntheticSampleTable;
+typedef struct AP4_AtomInspector AP4_AtomInspector;
+
+/*----------------------------------------------------------------------
+|   Delegate types: allow to provide an implementation
++---------------------------------------------------------------------*/
+typedef struct AP4_ByteStreamDelegate {
+    AP4_Result (*ReadPartial)(struct AP4_ByteStreamDelegate* self,
+                              void*                          buffer,
+                              AP4_Size                       bytes_to_read,
+                              AP4_Size*                      bytes_read);
+    
+    AP4_Result (*WritePartial)(struct AP4_ByteStreamDelegate* self,
+                               const void*                    buffer,
+                               AP4_Size                       bytes_to_write,
+                               AP4_Size*                      bytes_written);
+    
+    AP4_Result (*Seek)(struct AP4_ByteStreamDelegate* self,
+                       AP4_Position                   position);
+    
+    AP4_Result (*Tell)(struct AP4_ByteStreamDelegate* self,
+                       AP4_Position*                  position);
+    
+    AP4_Result (*GetSize)(struct AP4_ByteStreamDelegate* self,
+                          AP4_LargeSize*                 size);
+    
+    AP4_Result (*Flush)(struct AP4_ByteStreamDelegate* self);
+    
+    /**
+     * the reference counting is done for you.
+     * The Destroy method will be called when the refcount hits 0.
+     * Can be set to NULL if no cleanup of the delegate is necessary
+     */
+    void (*Destroy)(struct AP4_ByteStreamDelegate* self);
+} AP4_ByteStreamDelegate;
+
+typedef struct AP4_AtomInspectorDelegate {
+    void (*StartElement)(struct AP4_AtomInspectorDelegate* self,
+                         const char*                       name,
+                         const char*                       extra);
+    
+    void (*EndElement)(struct AP4_AtomInspectorDelegate* self);
+    
+    void (*AddIntField)(struct AP4_AtomInspectorDelegate* self,
+                        const char*                       name,
+                        AP4_UI32                          value,
+                        int                               hint);
+                        
+    void (*AddFloatField)(struct AP4_AtomInspectorDelegate* self,
+                          const char*                       name,
+                          float                             value,
+                          int                               hint);
+                          
+    void (*AddStringField)(struct AP4_AtomInspectorDelegate* self,
+                           const char*                       name,
+                           const char*                       value,
+                           int                               hint);
+                           
+    void (*AddBytesField)(struct AP4_AtomInspectorDelegate* self,
+                          const char*                       name,
+                          const unsigned char*              bytes,
+                          AP4_Size                          byte_count,
+                          int                               hint);
+                          
+    /**
+     * The Destroy method will be called when the AtomInspector is destroyed.
+     * Can be set to NULL if no cleanup of the delegate is necessary
+     */
+    void (*Destroy)(struct AP4_AtomInspectorDelegate* self);
+} AP4_AtomInspectorDelegate;
+    
 
 /*----------------------------------------------------------------------
 |   constants
@@ -147,6 +217,10 @@ extern const AP4_UI08 AP4_MPEG4_AUDIO_OBJECT_TYPE_LAYER_2;         /**< MPEG Lay
 extern const AP4_UI08 AP4_MPEG4_AUDIO_OBJECT_TYPE_LAYER_3;         /**< MPEG Layer 3 */
 
 extern const AP4_Cardinal AP4_SYNTHETIC_SAMPLE_TABLE_DEFAULT_CHUNK_SIZE;
+
+extern const int AP4_ATOM_INSPECTOR_HINT_NONE;
+extern const int AP4_ATOM_INSPECTOR_HINT_HEX;
+extern const int AP4_ATOM_INSPECTOR_HIN_BOOLEAN;
 
 /*----------------------------------------------------------------------
 |   result codes
@@ -287,6 +361,9 @@ AP4_MemoryByteStream_AdaptDataBuffer(AP4_DataBuffer* buffer); /* data is read/wr
 
 AP4_ByteStream*
 AP4_FileByteStream_Create(const char* name, int mode, AP4_Result* result);
+
+AP4_ByteStream*
+AP4_ByteStream_FromDelegate(AP4_ByteStreamDelegate* delegate);
 
 /*----------------------------------------------------------------------
 |   AP4_DataBuffer methods
@@ -737,11 +814,29 @@ AP4_SyntheticSampleTable_AddSample(AP4_SyntheticSampleTable* self,
                                    AP4_TimeStamp             dts,
                                    int                       is_sync);
                                    
+void
+AP4_SyntheticSampleTable_Destroy(AP4_SyntheticSampleTable* self);
+                                   
 /*----------------------------------------------------------------------
 |   AP4_SyntheticSampleTable constructors
 +---------------------------------------------------------------------*/
 AP4_SyntheticSampleTable*
 AP4_SyntheticSampleTable_Create(AP4_Cardinal chunk_size); /* see AP4_SYNTHETIC_SAMPLE_TABLE_DEFAULT_CHUNK_SIZE constant */
+
+/*----------------------------------------------------------------------
+|   AP4_AtomInspector methods
++---------------------------------------------------------------------*/
+void
+AP4_AtomInspector_Destroy(AP4_AtomInspector* self);
+
+/*----------------------------------------------------------------------
+|   AP4_AtomInspector constructors
++---------------------------------------------------------------------*/
+AP4_AtomInspector*
+AP4_PrintInspector_Create(AP4_ByteStream* stream);
+
+AP4_AtomInspector*
+AP4_AtomInspector_FromDelegate(AP4_AtomInspectorDelegate* delegate);
 
 #ifdef __cplusplus
 }

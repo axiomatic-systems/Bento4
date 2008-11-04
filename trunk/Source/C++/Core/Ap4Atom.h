@@ -76,9 +76,9 @@ class AP4_AtomInspector {
 public:
     // types
     typedef enum {
-        HINT_NONE,
-        HINT_HEX,
-        HINT_BOOLEAN
+        HINT_NONE       = 0,
+        HINT_HEX        = 1,
+        HINT_BOOLEAN    = 2
     } FormatHint;
 
     // constructor and destructor
