@@ -48,6 +48,87 @@ const int AP4_TRACK_TYPE_TEXT    = AP4_Track::TYPE_TEXT;
 const int AP4_TRACK_TYPE_JPEG    = AP4_Track::TYPE_JPEG;
 const int AP4_TRACK_TYPE_RTP     = AP4_Track::TYPE_RTP;
 
+const int AP4_ATOM_INSPECTOR_HINT_NONE    = AP4_AtomInspector::HINT_NONE;
+const int AP4_ATOM_INSPECTOR_HINT_HEX     = AP4_AtomInspector::HINT_HEX;
+const int AP4_ATOM_INSPECTOR_HINT_BOOLEAN = AP4_AtomInspector::HINT_BOOLEAN;
+
+
+/*----------------------------------------------------------------------
+|   AP4_DelegatorByteStream
++---------------------------------------------------------------------*/
+class AP4_DelegatorByteStream : public AP4_ByteStream
+{
+public:
+    AP4_DelegatorByteStream(AP4_ByteStreamDelegate* delegate) : 
+        m_Delegate(delegate),
+        m_RefCount(1) {}
+    
+    // overloaded methods
+    void AddReference() { m_RefCount++; }
+    void Release() { if (--m_RefCount == 0) delete this; }
+    AP4_Result ReadPartial(void* buffer, 
+                           AP4_Size bytes_to_read, 
+                           AP4_Size& bytes_read);
+    AP4_Result WritePartial(const void* buffer, 
+                            AP4_Size    bytes_to_write, 
+                            AP4_Size&   bytes_written);
+    AP4_Result Seek(AP4_Position position);
+    AP4_Result Tell(AP4_Position& position);
+    AP4_Result GetSize(AP4_LargeSize& size);
+    AP4_Result Flush();
+    
+private:
+    AP4_DelegatorByteStream::~AP4_DelegatorByteStream();
+    AP4_ByteStreamDelegate* m_Delegate;
+    AP4_Cardinal            m_RefCount;
+};
+
+AP4_DelegatorByteStream::~AP4_DelegatorByteStream()
+{
+    if (m_Delegate->Destroy) {
+        m_Delegate->Destroy(m_Delegate);
+    }
+}
+
+AP4_Result
+AP4_DelegatorByteStream::ReadPartial(void*     buffer,
+                                     AP4_Size  bytes_to_read,
+                                     AP4_Size& bytes_read)
+{
+    return m_Delegate->ReadPartial(m_Delegate, buffer, bytes_to_read, &bytes_read);
+}
+
+AP4_Result
+AP4_DelegatorByteStream::WritePartial(const void* buffer,
+                                      AP4_Size    bytes_to_write,
+                                      AP4_Size&   bytes_written)
+{
+    return m_Delegate->WritePartial(m_Delegate, buffer, bytes_to_write, &bytes_written);
+}
+
+AP4_Result
+AP4_DelegatorByteStream::Seek(AP4_Position position)
+{
+    return m_Delegate->Seek(m_Delegate, position);
+}
+
+AP4_Result
+AP4_DelegatorByteStream::Tell(AP4_Position& position)
+{
+    return m_Delegate->Tell(m_Delegate, &position);
+}
+
+AP4_Result
+AP4_DelegatorByteStream::GetSize(AP4_LargeSize& size)
+{
+    return m_Delegate->GetSize(m_Delegate, &size);
+}
+
+AP4_Result 
+AP4_DelegatorByteStream::Flush()
+{
+    return m_Delegate->Flush(m_Delegate);
+}
 
 /*----------------------------------------------------------------------
 |   AP4_ByteStream implementation
@@ -257,6 +338,12 @@ AP4_FileByteStream_Create(const char* name, int mode, AP4_Result* result)
     } else {
         return NULL;
     }
+}
+
+AP4_ByteStream* 
+AP4_ByteStream_FromDelegate(AP4_ByteStreamDelegate* delegate)
+{
+    return new AP4_DelegatorByteStream(delegate);
 }
 
 /*----------------------------------------------------------------------
@@ -1120,12 +1207,113 @@ AP4_SyntheticSampleTable_AddSample(AP4_SyntheticSampleTable* self,
                            dts,
                            is_sync);
 }
+
+void
+AP4_SyntheticSampleTable_Destroy(AP4_SyntheticSampleTable* self)
+{
+    delete self;
+}
                                    
-/*----------------------------------------------------------------------
-|   AP4_SyntheticSampleTable constructors
-+---------------------------------------------------------------------*/
 AP4_SyntheticSampleTable*
 AP4_SyntheticSampleTable_Create(AP4_Cardinal chunk_size)
 {
     return new AP4_SyntheticSampleTable(chunk_size);
 }
+
+/*----------------------------------------------------------------------
+|   AP4_DelegatorAtomInspector
++---------------------------------------------------------------------*/
+class AP4_DelegatorAtomInspector : public AP4_AtomInspector
+{
+public:
+    AP4_DelegatorAtomInspector(AP4_AtomInspectorDelegate* delegate) :
+        m_Delegate(delegate) {}
+    AP4_DelegatorAtomInspector::~AP4_DelegatorAtomInspector();
+    void StartElement(const char* name, const char* extra);
+    void EndElement();
+    void AddField(const char* name, AP4_UI32 value, FormatHint hint);
+    void AddFieldF(const char* name, float value, FormatHint hint);
+    void AddField(const char* name, const char* value, FormatHint hint);
+    void AddField(const char*       name, 
+                  const AP4_Byte*   bytes, 
+                  AP4_Size          byte_count, 
+                  FormatHint        hint);    
+private:
+    AP4_AtomInspectorDelegate* m_Delegate;
+};
+
+AP4_DelegatorAtomInspector::~AP4_DelegatorAtomInspector() 
+{
+    if (m_Delegate->Destroy) {
+        m_Delegate->Destroy(m_Delegate);
+    }
+}
+
+void
+AP4_DelegatorAtomInspector::StartElement(const char* name, const char* extra)
+{
+    m_Delegate->StartElement(m_Delegate, name, extra);
+}
+
+void
+AP4_DelegatorAtomInspector::EndElement()
+{
+    m_Delegate->EndElement(m_Delegate); 
+}
+
+void
+AP4_DelegatorAtomInspector::AddField(const char* name,
+                                     AP4_UI32    value,
+                                     FormatHint  hint)
+{
+    m_Delegate->AddIntField(m_Delegate, name, value, hint);
+}
+
+void
+AP4_DelegatorAtomInspector::AddFieldF(const char* name,
+                                      float    value,
+                                      FormatHint  hint)
+{
+    m_Delegate->AddFloatField(m_Delegate, name, value, hint);
+}
+
+void
+AP4_DelegatorAtomInspector::AddField(const char* name,
+                                     const char* value,
+                                     FormatHint  hint)
+{
+    m_Delegate->AddStringField(m_Delegate, name, value, hint);
+}
+
+void
+AP4_DelegatorAtomInspector::AddField(const char*     name,
+                                     const AP4_Byte* bytes,
+                                     AP4_Size        byte_count,
+                                     FormatHint      hint)
+{
+    m_Delegate->AddBytesField(m_Delegate, name, bytes, byte_count, hint);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_AtomInspector implementation
++---------------------------------------------------------------------*/
+void
+AP4_AtomInspector_Destroy(AP4_AtomInspector* self)
+{
+    delete self;
+}
+
+AP4_AtomInspector*
+AP4_PrintInspector_Create(AP4_ByteStream* stream)
+{
+    return new AP4_PrintInspector(*stream);
+}
+
+AP4_AtomInspector*
+AP4_AtomInspector_FromDelegate(AP4_AtomInspectorDelegate* delegate)
+{
+    return new AP4_DelegatorAtomInspector(delegate);
+}
+
+
+

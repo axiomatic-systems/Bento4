@@ -8,6 +8,7 @@ sys.path += [path.join(BENTO4_HOME, 'Source', 'Python')]
 # import the tests
 import unittest
 from coretests import CoreTester
+from streamtests import StreamTester
 
 # launch the tests
 if __name__ == '__main__':

@@ -1,12 +1,9 @@
-from ctypes import c_int, c_double, c_char_p, pointer
+from ctypes import c_int, c_double, c_char_p, byref, \
+                   CFUNCTYPE, POINTER, string_at
 from bento4 import *
-from bento4.errors import check_result
-
-class StreamException(Exception):
-    
-    def __init__(self, code, msg=''):
-        self.code = code
-        self.msg  = msg
+from bento4.errors import check_result, SUCCESS, ERROR_READ_FAILED, FAILURE, \
+                          ERROR_WRITE_FAILED, ERROR_EOS, ERROR_OUT_OF_RANGE, \
+                          ERROR_NOT_SUPPORTED
 
 
 class ByteStream(object):
@@ -16,6 +13,7 @@ class ByteStream(object):
         self.bt4stream = bt4stream
         if add_ref:
             lb4.AP4_MemoryStream_AddReference(self.bt4stream)
+        super(ByteStream, self).__init__()
     
     @property    
     def size(self):
@@ -192,5 +190,148 @@ class FileByteStream(ByteStream):
         bt4stream = f(c_char_p(name), c_int(mode), byref(result))
         check_result(result)
         super(FileByteStream, self).__init__(bt4stream)
+
+        
+class ByteStreamDelegate(Structure):
+    pass
+
+read_partial_proto  = CFUNCTYPE(Ap4Result,
+                                POINTER(ByteStreamDelegate),
+                                POINTER(Ap4Byte),
+                                Ap4Size,
+                                POINTER(Ap4Size))
+write_partial_proto = CFUNCTYPE(Ap4Result,
+                                POINTER(ByteStreamDelegate),
+                                c_void_p,
+                                Ap4Size,
+                                POINTER(Ap4Size))
+seek_proto          = CFUNCTYPE(Ap4Result,
+                                POINTER(ByteStreamDelegate),
+                                Ap4Position)
+tell_proto          = CFUNCTYPE(Ap4Result,
+                                POINTER(ByteStreamDelegate),
+                                POINTER(Ap4Position))
+get_size_proto      = CFUNCTYPE(Ap4Result,
+                                POINTER(ByteStreamDelegate),
+                                POINTER(Ap4LargeSize))
+flush_proto         = CFUNCTYPE(Ap4Result,
+                                POINTER(ByteStreamDelegate))
+
+ByteStreamDelegate._fields_ = [("read_partial", read_partial_proto),
+                               ("write_partial", write_partial_proto),
+                               ("seek", seek_proto),
+                               ("tell", tell_proto),
+                               ("get_size", get_size_proto),
+                               ("flush", flush_prototype),
+                               ("destroy", c_void_p), # must be set to None
+                               ("oid", c_int)] # object id
+
+# dict where we are going to store the pybytestream instances by id
+PYSTREAM_OBJECTS = {}
+
+def delegate_read_partial(pdelegate, buffer, bytes_to_read, bytes_read):
+    pystream = PYSTREAM_OBJECTS[pdelegate[0].oid]
+    return pystream.c_read_partial(buffer,
+                                   bytes_to_read,
+                                   bytes_read)
+
+def delegate_read_partial(pdelegate, buffer, bytes_to_write, bytes_written):
+    pystream = PYSTREAM_OBJECTS[pdelegate[0].oid]
+    return pystream.c_write_partial(buffer,
+                                    bytes_to_write,
+                                    bytes_written)
+
+def delegate_seek(pdelegate, position):
+    pystream = PYSTREAM_OBJECTS[pdelegate[0].oid]
+    return pystream.c_seek(position)
+
+def delegate_tell(pdelegate, position):
+    pystream = PYSTREAM_OBJECTS[pdelegate[0].oid]
+    return pystream.c_tell(position)
+    
+def delegate_get_size(pdelegate, size):
+    pystream = PYSTREAM_OBJECTS[pdelegate[0].oid]
+    return pystream.c_get_size(size)
+
+def delegate_flush(pdelegate, size):
+    pystream = PYSTREAM_OBJECTS[pdelegate[0].oid]
+    return pystream.c_flush()
+
+
+class PyByteStream(ByteStream):
+    
+    def __init__(self, stream):
+        self.delegate = ByteStreamDelegate(read_partial=delegate_read_partial,
+                                           write_partial=delegate_write_partial,
+                                           seek=delegate_seek,
+                                           tell=delegate_tell,
+                                           get_size=delegate_get_size,
+                                           flush=delegate_flush,
+                                           destroy=None,
+                                           oid=id(stream))
+        PYSTREAM_OBJECTS[id(stream)] = stream # store the stream
+        bt4stream = lb4.AP4_ByteStream_FromDelegate(byref(self.delegate))
+        super(PyByteStream, self).__init__(bt4stream)
+        
+
+class PyFileByteStream(PyByteStream):
+    
+    def __init__(self, file, size=0):
+        self.file = file
+        self.size = size
+        super(PyFileByteStream, self).__init__(self)
+    
+    def c_read_partial(self, buffer, bytes_to_read, bytes_read):
+        try:
+            s = self.file.read(bytes_to_read)
+            bytes_read[0] = len(s)
+            buffer[:bytes_to_read] = s[:bytes_to_read] # copy the buffer
+        except EOFError:
+            return ERROR_EOS
+        except IOError:
+            return READ_FAILED
+        return SUCCESS
+            
+    def c_write_partial(self, buffer, bytes_to_write, bytes_written):
+        try:
+            self.file.write(string_at(buffer, bytes_to_write))
+            bytes_written[0] = bytes_to_write
+        except IOError:
+            return WRITE_FAILED
+        return SUCCESS
+    
+    def c_seek(self, position):
+        try:
+            self.file.seek(position)
+        except Exception:
+            return ERROR_OUT_OF_RANGE
+        return SUCCESS
+    
+    def c_tell(self, position):
+        try:
+            position[0] = self.file.tell()
+        except Exception:
+            return FAILURE
+        return SUCCESS
+    
+    def c_get_size(self, size):
+        if self.size:
+            size[0] = self.size
+            return SUCCESS
+        else:
+            return ERROR_NOT_SUPPORTED
+        
+    def c_flush(self):
+        try:
+            self.file.flush()
+        except Exception:
+            return FAILURE
+        return SUCCESS
+    
+    
+
+
+
+
         
     
