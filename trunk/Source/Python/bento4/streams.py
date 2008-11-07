@@ -173,7 +173,7 @@ class MemoryByteStream(ByteStream):
     
     def __init__(self, size=0, bt4stream=None):
         if bt4stream is None:
-            bt4stream = lb4.AP4_ByteStream_Create(Ap4Size(size))
+            bt4stream = lb4.AP4_MemoryByteStream_Create(Ap4Size(size))
         super(MemoryByteStream, self).__init__(bt4stream)
         
         
@@ -220,7 +220,7 @@ ByteStreamDelegate._fields_ = [("read_partial", read_partial_proto),
                                ("seek", seek_proto),
                                ("tell", tell_proto),
                                ("get_size", get_size_proto),
-                               ("flush", flush_prototype),
+                               ("flush", flush_proto),
                                ("destroy", c_void_p), # must be set to None
                                ("oid", c_int)] # object id
 
@@ -258,19 +258,38 @@ def delegate_flush(pdelegate, size):
 
 class PyByteStream(ByteStream):
     
-    def __init__(self, stream):
-        self.delegate = ByteStreamDelegate(read_partial=delegate_read_partial,
-                                           write_partial=delegate_write_partial,
-                                           seek=delegate_seek,
-                                           tell=delegate_tell,
-                                           get_size=delegate_get_size,
-                                           flush=delegate_flush,
-                                           destroy=None,
-                                           oid=id(stream))
-        PYSTREAM_OBJECTS[id(stream)] = stream # store the stream
+    def __init__(self, pystream):
+        self.delegate = ByteStreamDelegate(
+            read_partial=read_partial_proto(delegate_read_partial),
+            write_partial=write_partial_proto(delegate_write_partial),
+            seek=seek_proto(delegate_seek),
+            tell=tell_proto(delegate_tell),
+            get_size=get_size_proto(delegate_get_size),
+            flush=flush_proto(delegate_flush),
+            destroy=None,
+            oid=id(stream))
+        PYSTREAM_OBJECTS[id(pystream)] = pystream # store the stream
         bt4stream = lb4.AP4_ByteStream_FromDelegate(byref(self.delegate))
         super(PyByteStream, self).__init__(bt4stream)
         
+    def c_read_partial(self, buffer, bytes_to_read, bytes_read):
+        return ERROR_NOT_SUPPORTED
+            
+    def c_write_partial(self, buffer, bytes_to_write, bytes_written):
+        return ERROR_NOT_SUPPORTED
+    
+    def c_seek(self, position):
+        return ERROR_NOT_SUPPORTED
+
+    def c_tell(self, position):
+        return ERROR_NOT_SUPPORTED
+    
+    def c_get_size(self, size):
+        return ERROR_NOT_SUPPORTED
+        
+    def c_flush(self):
+        return ERROR_NOT_SUPPORTED
+ 
 
 class PyFileByteStream(PyByteStream):
     

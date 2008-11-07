@@ -78,7 +78,7 @@ public:
     AP4_Result Flush();
     
 private:
-    AP4_DelegatorByteStream::~AP4_DelegatorByteStream();
+    ~AP4_DelegatorByteStream();
     AP4_ByteStreamDelegate* m_Delegate;
     AP4_Cardinal            m_RefCount;
 };
@@ -1232,7 +1232,7 @@ class AP4_DelegatorAtomInspector : public AP4_AtomInspector
 public:
     AP4_DelegatorAtomInspector(AP4_AtomInspectorDelegate* delegate) :
         m_Delegate(delegate) {}
-    AP4_DelegatorAtomInspector::~AP4_DelegatorAtomInspector();
+    ~AP4_DelegatorAtomInspector();
     void StartElement(const char* name, const char* extra);
     void EndElement();
     void AddField(const char* name, AP4_UI32 value, FormatHint hint);
