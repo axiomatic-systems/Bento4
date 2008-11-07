@@ -129,6 +129,10 @@ class XmlInspector(PyInspector):
     def c_start_element(self, name, extra):
         parent, element = self.current
         new_element = SubElement(element, "Atom", name=name[1:-1])
+        if extra:
+            a = extra.split('=')
+            if len(a) == 2:
+                new_element.attrib[a[0]] = a[1]
         self.current = ((parent, element), new_element)
         
     def c_end_element(self):
