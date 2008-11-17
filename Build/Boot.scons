@@ -59,28 +59,11 @@ options.AddOptions(
     EnumOption('target', 'Build Target', DefaultTarget(), allowed_values=PLATFORM_TO_TARGET_MAP.values()+CROSS_PLATFORMS),
     BoolOption('enable_profiling', 'Enable Profiling', False),
     ListOption('build_config', 'Build Configuration(s)', 'Debug', names=['Debug', 'Release']),
-    BoolOption('python_bindings', 'Generate Python Bindings', False)
 )
 
 ### create the environment
 env = Environment(options=options, ENV={'PATH':os.environ['PATH']})
 Help(options.GenerateHelpText(env))
-
-### test the environment
-if env['python_bindings']:
-    ### make sure swig is in the path
-    def CheckSwig(context):
-        context.Message("Checking that swig is available on the system: ")
-        res = IsCommandInPath(env, 'swig')
-        context.Result(res)
-        return res
-        
-    conf = env.Configure(custom_tests={'CheckSwig':CheckSwig})
-    if not conf.CheckSwig():
-        print 'swig not installed or not in the PATH... aborting...'
-        Exit(1)
-    conf.Finish()
-
 
 ### call the actual build script for each build config
 if not hasattr(env, 'Clone'): env.Clone = env.Copy ## old scons compatibility
