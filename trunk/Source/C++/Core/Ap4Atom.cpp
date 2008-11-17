@@ -221,7 +221,21 @@ AP4_Atom::Write(AP4_ByteStream& stream)
     AP4_Position after;
     stream.Tell(after);
     AP4_UI64 atom_size = GetSize();
-    AP4_ASSERT(after-before == atom_size);
+    if (after-before != atom_size) {
+        AP4_Debug("ERROR: atom size mismatch (declared size=%d, actual size=%d)\n",
+                  (AP4_UI32)atom_size, (AP4_UI32)(after-before));
+        AP4_Atom* atom = this;
+        while (atom) {
+            char name[7];
+            name[0] = '[';
+            AP4_FormatFourCharsPrintable(&name[1], atom->GetType());
+            name[5] = ']';
+            name[6] = '\0';
+            AP4_Debug("       while writing %s\n", name);
+            atom = dynamic_cast<AP4_Atom*>(atom->GetParent());
+        }
+        AP4_ASSERT(after-before == atom_size);
+    }
 #endif
 
     return AP4_SUCCESS;
