@@ -571,12 +571,20 @@ AP4_MpegAudioSampleEntry::AP4_MpegAudioSampleEntry(
 AP4_SampleDescription*
 AP4_MpegAudioSampleEntry::ToSampleDescription()
 {
+    // find the esds atom
+    AP4_EsdsAtom* esds = dynamic_cast<AP4_EsdsAtom*>(GetChild(AP4_ATOM_TYPE_ESDS));
+    if (esds == NULL) {
+        // check if this is a quicktime style sample description
+        if (m_QtVersion > 0) {
+            esds = dynamic_cast<AP4_EsdsAtom*>(FindChild("wave/esds"));
+        }
+    }
+    
     // create a sample description
-    return new AP4_MpegAudioSampleDescription(
-        dynamic_cast<AP4_EsdsAtom*>(GetChild(AP4_ATOM_TYPE_ESDS)),
-        GetSampleRate(),
-        GetSampleSize(),
-        GetChannelCount());
+    return new AP4_MpegAudioSampleDescription(esds,
+                                              GetSampleRate(),
+                                              GetSampleSize(),
+                                              GetChannelCount());
 }
 
 /*----------------------------------------------------------------------
