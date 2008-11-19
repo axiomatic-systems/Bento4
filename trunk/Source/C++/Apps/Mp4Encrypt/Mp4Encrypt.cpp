@@ -37,7 +37,7 @@
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-#define BANNER "MP4 Encrypter - Version 1.1\n"\
+#define BANNER "MP4 Encrypter - Version 1.2\n"\
                "(Bento4 Version " AP4_VERSION_STRING ")\n"\
                "(c) 2002-2008 Axiomatic Systems, LLC"
 
@@ -51,7 +51,7 @@ PrintUsageAndExit()
         BANNER 
         "\n\n"
         "usage: mp4encrypt --method <method> [options] <input> <output>\n"
-        "  --method: <method> is OMA-PDCF-CBC, OMA-PDCF-CTR or ISMA-IAEC\n"
+        "  --method: <method> is OMA-PDCF-CBC, OMA-PDCF-CTR, MARLIN-IPMP or ISMA-IAEC\n"
         "  Options:\n"
         "  --show-progress: show progress details\n"
         "  --key <n>:<k>:<iv>\n"   
@@ -68,8 +68,8 @@ PrintUsageAndExit()
         "      Specifies the KMS URI for the ISMA-IAEC method\n"
         "\n"
         "  Method Specifics:\n"
-        "    OMA-PDCF-CBC and OMA-PDCF-CTR: the <iv> must be a 64-bit hex string.\n"
-        "    ISMA-IAEC: the <iv> must be a 64-bit hex string.\n"
+        "    OMA-PDCF-CBC, OMA-PDCF-CTR, MARLIN-IPMP, ISMA-IAEC: the <iv> must be a 64-bit\n"
+        "    hex string.\n"
         );
     exit(1);
 }
@@ -81,6 +81,7 @@ enum Method {
     METHOD_NONE,
     METHOD_OMA_PDCF_CBC,
     METHOD_OMA_PDCF_CTR,
+    METHOD_MARLIN_IPMP,
     METHOD_ISMA_AES
 }; 
 
@@ -126,6 +127,8 @@ main(int argc, char** argv)
                 method = METHOD_OMA_PDCF_CBC;
             } else if (!strcmp(arg, "OMA-PDCF-CTR")) {
                 method = METHOD_OMA_PDCF_CTR;
+            } else if (!strcmp(arg, "MARLIN-IPMP")) {
+                method = METHOD_MARLIN_IPMP;
             } else if (!strcmp(arg, "ISMA-IAEC")) {
                 method = METHOD_ISMA_AES;
             } else {
@@ -237,6 +240,11 @@ main(int argc, char** argv)
         AP4_IsmaEncryptingProcessor* isma_processor = new AP4_IsmaEncryptingProcessor(kms_uri);
         isma_processor->GetKeyMap().SetKeys(key_map);
         processor = isma_processor;
+    } else if (method == METHOD_MARLIN_IPMP) {
+        AP4_MarlinIpmpEncryptingProcessor* marlin_processor = 
+            new AP4_MarlinIpmpEncryptingProcessor();
+        marlin_processor->GetKeyMap().SetKeys(key_map);
+        processor = marlin_processor;
     } else {
         AP4_OmaDcfEncryptingProcessor* oma_processor = 
             new AP4_OmaDcfEncryptingProcessor(method == METHOD_OMA_PDCF_CTR?

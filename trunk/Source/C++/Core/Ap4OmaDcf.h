@@ -113,9 +113,6 @@ public:
         m_IvLength(iv_length),
         m_SelectiveEncryption(selective_encryption) {}
 
-    // methods
-    virtual AP4_Size GetDecryptedSampleSize(AP4_Sample& sample) = 0;
-
 protected:
     AP4_Size m_IvLength;
     AP4_Size m_KeyIndicatorLength;

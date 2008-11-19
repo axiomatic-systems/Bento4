@@ -164,7 +164,7 @@ main(int argc, char** argv)
         if (ftyp->GetMajorBrand() == AP4_OMA_DCF_BRAND_ODCF || ftyp->HasCompatibleBrand(AP4_OMA_DCF_BRAND_ODCF)) {
             processor = new AP4_OmaDcfDecryptingProcessor(&key_map);
         } else if (ftyp->GetMajorBrand() == AP4_MARLIN_BRAND_MGSV || ftyp->HasCompatibleBrand(AP4_MARLIN_BRAND_MGSV)) {
-            processor = new AP4_MarlinDecryptingProcessor(&key_map);
+            processor = new AP4_MarlinIpmpDecryptingProcessor(&key_map);
         }
     }
     if (processor == NULL) {

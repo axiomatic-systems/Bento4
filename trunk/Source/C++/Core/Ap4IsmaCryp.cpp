@@ -126,6 +126,19 @@ AP4_IsmaCipher::~AP4_IsmaCipher()
 }
 
 /*----------------------------------------------------------------------
+|   AP4_IsmaCipher::GetDecryptedSampleSize
++---------------------------------------------------------------------*/
+AP4_Size   
+AP4_IsmaCipher::GetDecryptedSampleSize(AP4_Sample& sample)
+{
+    AP4_Size isma_header_size = m_KeyIndicatorLength + m_IvLength;
+    if (m_SelectiveEncryption) {
+        ++isma_header_size;
+    }
+    return sample.GetSize()-isma_header_size;
+}
+
+/*----------------------------------------------------------------------
 |   AP4_IsmaCipher::DecryptSampleData
 +---------------------------------------------------------------------*/
 AP4_Result 
@@ -265,13 +278,7 @@ AP4_IsmaTrackDecrypter::~AP4_IsmaTrackDecrypter()
 AP4_Size   
 AP4_IsmaTrackDecrypter::GetProcessedSampleSize(AP4_Sample& sample)
 {
-    AP4_Size isma_header_size = 
-        m_Cipher->GetKeyIndicatorLength() +
-        m_Cipher->GetIvLength();
-    if (m_Cipher->GetSelectiveEncryption()) {
-        isma_header_size++;
-    }
-    return sample.GetSize()-isma_header_size;
+    return m_Cipher->GetDecryptedSampleSize(sample);
 }
 
 /*----------------------------------------------------------------------

@@ -277,6 +277,7 @@ public:
     virtual ~AP4_SampleDecrypter() {}
 
     // methods
+    virtual AP4_Size   GetDecryptedSampleSize(AP4_Sample& sample) = 0;
     virtual AP4_Result DecryptSampleData(AP4_DataBuffer& data_in,
                                          AP4_DataBuffer& data_out) = 0;
 };
