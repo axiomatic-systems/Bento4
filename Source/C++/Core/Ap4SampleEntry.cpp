@@ -812,6 +812,14 @@ AP4_SampleDescription*
 AP4_VisualSampleEntry::ToTargetSampleDescription(AP4_UI32 format)
 {
     switch (format) {
+        case AP4_ATOM_TYPE_AVC1:
+            return new AP4_AvcSampleDescription(
+                m_Width,
+                m_Height,
+                m_Depth,
+                m_CompressorName.GetChars(),
+                dynamic_cast<AP4_AvccAtom*>(GetChild(AP4_ATOM_TYPE_AVCC)));
+                
         case AP4_ATOM_TYPE_MP4V:
             return new AP4_MpegVideoSampleDescription(
                 dynamic_cast<AP4_EsdsAtom*>(GetChild(AP4_ATOM_TYPE_ESDS)),

@@ -1100,8 +1100,7 @@ AP4_OmaDcfDecryptingProcessor::Initialize(AP4_AtomParent&   top_level,
     // decide which processor to instantiate based on the file type
     AP4_FtypAtom* ftyp = dynamic_cast<AP4_FtypAtom*>(top_level.GetChild(AP4_ATOM_TYPE_FTYP));
     if (ftyp) {
-        if (ftyp->GetMajorBrand() == AP4_OMA_DCF_BRAND_ODCF || ftyp->HasCompatibleBrand(AP4_OMA_DCF_BRAND_ODCF) ||
-            ftyp->GetMajorBrand() == AP4_OMA_DCF_BRAND_OPF2 || ftyp->HasCompatibleBrand(AP4_OMA_DCF_BRAND_OPF2)) {
+        if (ftyp->GetMajorBrand() == AP4_OMA_DCF_BRAND_ODCF || ftyp->HasCompatibleBrand(AP4_OMA_DCF_BRAND_ODCF)) {
             return AP4_OmaDcfAtomDecrypter::DecryptAtoms(top_level, listener, m_BlockCipherFactory, m_KeyMap);
         } else {
             return AP4_ERROR_INVALID_FORMAT;

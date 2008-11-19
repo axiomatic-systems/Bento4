@@ -48,9 +48,9 @@
 #include "Ap4AesBlockCipher.h"
 
 /*----------------------------------------------------------------------
-|   AP4_MarlinDecryptingProcessor:AP4_MarlinDecryptingProcessor
+|   AP4_MarlinIpmpDecryptingProcessor:AP4_MarlinIpmpDecryptingProcessor
 +---------------------------------------------------------------------*/
-AP4_MarlinDecryptingProcessor::AP4_MarlinDecryptingProcessor(
+AP4_MarlinIpmpDecryptingProcessor::AP4_MarlinIpmpDecryptingProcessor(
     const AP4_ProtectionKeyMap* key_map              /* = NULL */,
     AP4_BlockCipherFactory*     block_cipher_factory /* = NULL */)
 {
@@ -67,20 +67,20 @@ AP4_MarlinDecryptingProcessor::AP4_MarlinDecryptingProcessor(
 }
 
 /*----------------------------------------------------------------------
-|   AP4_MarlinDecryptingProcessor::~AP4_MarlinDecryptingProcessor
+|   AP4_MarlinIpmpDecryptingProcessor::~AP4_MarlinIpmpDecryptingProcessor
 +---------------------------------------------------------------------*/
-AP4_MarlinDecryptingProcessor::~AP4_MarlinDecryptingProcessor()
+AP4_MarlinIpmpDecryptingProcessor::~AP4_MarlinIpmpDecryptingProcessor()
 {
     m_SinfEntries.DeleteReferences();
 }
 
 /*----------------------------------------------------------------------
-|   AP4_MarlinDecryptingProcessor:Initialize
+|   AP4_MarlinIpmpDecryptingProcessor:Initialize
 +---------------------------------------------------------------------*/
 AP4_Result 
-AP4_MarlinDecryptingProcessor::Initialize(AP4_AtomParent&   top_level, 
-                                          AP4_ByteStream&   stream,
-                                          ProgressListener* /*listener*/)
+AP4_MarlinIpmpDecryptingProcessor::Initialize(AP4_AtomParent&   top_level, 
+                                              AP4_ByteStream&   stream,
+                                              ProgressListener* /*listener*/)
 {
     // check the file type
     AP4_FtypAtom* ftyp = dynamic_cast<AP4_FtypAtom*>(top_level.GetChild(AP4_ATOM_TYPE_FTYP));
@@ -269,7 +269,7 @@ AP4_MarlinDecryptingProcessor::Initialize(AP4_AtomParent&   top_level,
         } while (AP4_SUCCEEDED(result));
         data->Release();
         
-#if 1 // DEBUG
+#if 0 // DEBUG
         if (sinf_entry->m_Sinf) {
             AP4_ByteStream* output =
                 new AP4_FileByteStream("-stdout",
@@ -294,10 +294,10 @@ AP4_MarlinDecryptingProcessor::Initialize(AP4_AtomParent&   top_level,
 }
 
 /*----------------------------------------------------------------------
-|   AP4_MarlinDecryptingProcessor:CreateTrackHandler
+|   AP4_MarlinIpmpDecryptingProcessor:CreateTrackHandler
 +---------------------------------------------------------------------*/
 AP4_Processor::TrackHandler* 
-AP4_MarlinDecryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
+AP4_MarlinIpmpDecryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
 {
     // look for this track in the list of entries
     SinfEntry* sinf_entry = NULL;
@@ -318,21 +318,21 @@ AP4_MarlinDecryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
     if (key == NULL) return NULL;
 
     // create the decrypter
-    AP4_MarlinTrackDecrypter* decrypter = NULL;
-    AP4_Result result = AP4_MarlinTrackDecrypter::Create(*m_BlockCipherFactory,
-                                                         key, decrypter);
+    AP4_MarlinIpmpTrackDecrypter* decrypter = NULL;
+    AP4_Result result = AP4_MarlinIpmpTrackDecrypter::Create(*m_BlockCipherFactory,
+                                                             key, decrypter);
     if (AP4_FAILED(result)) return NULL;
     
     return decrypter;
 }
 
 /*----------------------------------------------------------------------
-|   AP4_MarlinTrackDecrypter::Create
+|   AP4_MarlinIpmpTrackDecrypter::Create
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_MarlinTrackDecrypter::Create(AP4_BlockCipherFactory&    cipher_factory,
-                                 const AP4_UI08*            key,
-                                 AP4_MarlinTrackDecrypter*& decrypter)
+AP4_MarlinIpmpTrackDecrypter::Create(AP4_BlockCipherFactory&        cipher_factory,
+                                     const AP4_UI08*                key,
+                                     AP4_MarlinIpmpTrackDecrypter*& decrypter)
 {
     // default value
     decrypter = NULL;
@@ -350,24 +350,24 @@ AP4_MarlinTrackDecrypter::Create(AP4_BlockCipherFactory&    cipher_factory,
     AP4_CbcStreamCipher* cbc_cipher = new AP4_CbcStreamCipher(block_cipher, AP4_StreamCipher::DECRYPT);
     
     // create the track decrypter
-    decrypter = new AP4_MarlinTrackDecrypter(cbc_cipher);
+    decrypter = new AP4_MarlinIpmpTrackDecrypter(cbc_cipher);
     
     return AP4_SUCCESS;
 }
 
 /*----------------------------------------------------------------------
-|   AP4_MarlinTrackDecrypter::~AP4_MarlinTrackDecrypter
+|   AP4_MarlinIpmpTrackDecrypter::~AP4_MarlinIpmpTrackDecrypter
 +---------------------------------------------------------------------*/
-AP4_MarlinTrackDecrypter::~AP4_MarlinTrackDecrypter()
+AP4_MarlinIpmpTrackDecrypter::~AP4_MarlinIpmpTrackDecrypter()
 {
     delete m_Cipher;
 }
 
 /*----------------------------------------------------------------------
-|   AP4_MarlinTrackDecrypter:GetProcessedSampleSize
+|   AP4_MarlinIpmpTrackDecrypter:GetProcessedSampleSize
 +---------------------------------------------------------------------*/
 AP4_Size 
-AP4_MarlinTrackDecrypter::GetProcessedSampleSize(AP4_Sample& sample)
+AP4_MarlinIpmpTrackDecrypter::GetProcessedSampleSize(AP4_Sample& sample)
 {
     //AP4_DataBuffer foo;
     //sample.ReadData(foo);
@@ -401,11 +401,11 @@ AP4_MarlinTrackDecrypter::GetProcessedSampleSize(AP4_Sample& sample)
 }
 
 /*----------------------------------------------------------------------
-|   AP4_MarlinTrackDecrypter:ProcessSample
+|   AP4_MarlinIpmpTrackDecrypter:ProcessSample
 +---------------------------------------------------------------------*/
 AP4_Result 
-AP4_MarlinTrackDecrypter::ProcessSample(AP4_DataBuffer& data_in,
-                                        AP4_DataBuffer& data_out)
+AP4_MarlinIpmpTrackDecrypter::ProcessSample(AP4_DataBuffer& data_in,
+                                            AP4_DataBuffer& data_out)
 {
     AP4_Result result;
     
@@ -436,5 +436,34 @@ AP4_MarlinTrackDecrypter::ProcessSample(AP4_DataBuffer& data_in,
     data_out.SetDataSize(out_size);
     
     return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_MarlinIpmpEncryptingProcessor::AP4_MarlinIpmpEncryptingProcessor
++---------------------------------------------------------------------*/
+AP4_MarlinIpmpEncryptingProcessor::AP4_MarlinIpmpEncryptingProcessor(
+    AP4_BlockCipherFactory* /*block_cipher_factory*/)
+{
+}
+
+/*----------------------------------------------------------------------
+|   AP4_MarlinIpmpEncryptingProcessor::Initialize
++---------------------------------------------------------------------*/
+AP4_Result 
+AP4_MarlinIpmpEncryptingProcessor::Initialize(
+    AP4_AtomParent&                  /*top_level*/,
+    AP4_ByteStream&                  /*stream*/,
+    AP4_Processor::ProgressListener* /*listener = NULL*/)
+{
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_MarlinIpmpEncryptingProcessor::CreateTrackHandler
++---------------------------------------------------------------------*/
+AP4_Processor::TrackHandler* 
+AP4_MarlinIpmpEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* /*trak*/)
+{
+    return NULL;
 }
 

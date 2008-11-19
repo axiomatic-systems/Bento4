@@ -55,15 +55,15 @@ const AP4_UI16 AP4_MARLIN_IPMPS_TYPE_MGSV  = 0xA551;
 const AP4_UI32 AP4_MARLIN_SCHEME_TYPE_ACBC = AP4_ATOM_TYPE('A','C','B','C');
 
 /*----------------------------------------------------------------------
-|   AP4_MarlinDecryptingProcessor
+|   AP4_MarlinIpmpDecryptingProcessor
 +---------------------------------------------------------------------*/
-class AP4_MarlinDecryptingProcessor : public AP4_Processor
+class AP4_MarlinIpmpDecryptingProcessor : public AP4_Processor
 {
 public:
     // constructor and destructor
-    AP4_MarlinDecryptingProcessor(const AP4_ProtectionKeyMap* key_map = NULL,
-                                  AP4_BlockCipherFactory*     block_cipher_factory = NULL);
-    ~AP4_MarlinDecryptingProcessor();
+    AP4_MarlinIpmpDecryptingProcessor(const AP4_ProtectionKeyMap* key_map = NULL,
+                                      AP4_BlockCipherFactory*     block_cipher_factory = NULL);
+    ~AP4_MarlinIpmpDecryptingProcessor();
     
     // accessors
     AP4_ProtectionKeyMap& GetKeyMap() { return m_KeyMap; }
@@ -85,24 +85,24 @@ private:
     };
     
     // members
-    AP4_BlockCipherFactory*      m_BlockCipherFactory;
-    AP4_ProtectionKeyMap         m_KeyMap;
-    AP4_List<SinfEntry>          m_SinfEntries;
+    AP4_BlockCipherFactory* m_BlockCipherFactory;
+    AP4_ProtectionKeyMap    m_KeyMap;
+    AP4_List<SinfEntry>     m_SinfEntries;
 };
 
 /*----------------------------------------------------------------------
-|   AP4_MarlinTrackDecrypter
+|   AP4_MarlinIpmpTrackDecrypter
 +---------------------------------------------------------------------*/
-class AP4_MarlinTrackDecrypter : public AP4_Processor::TrackHandler
+class AP4_MarlinIpmpTrackDecrypter : public AP4_Processor::TrackHandler
 {
 public:
     // class methods
-    static AP4_Result Create(AP4_BlockCipherFactory&    cipher_factory,
-                             const AP4_UI08*            key,
-                             AP4_MarlinTrackDecrypter*& decrypter);
+    static AP4_Result Create(AP4_BlockCipherFactory&        cipher_factory,
+                             const AP4_UI08*                key,
+                             AP4_MarlinIpmpTrackDecrypter*& decrypter);
                              
     // destructor
-    ~AP4_MarlinTrackDecrypter();
+    ~AP4_MarlinIpmpTrackDecrypter();
     
     // AP4_Processor::TrackHandler methods
     virtual AP4_Size GetProcessedSampleSize(AP4_Sample& sample);
@@ -112,10 +112,34 @@ public:
 
 private:
     // constructor
-    AP4_MarlinTrackDecrypter(AP4_StreamCipher* cipher) : m_Cipher(cipher) {}
+    AP4_MarlinIpmpTrackDecrypter(AP4_StreamCipher* cipher) : m_Cipher(cipher) {}
 
     // members
     AP4_StreamCipher* m_Cipher;
+};
+
+/*----------------------------------------------------------------------
+|   AP4_MarlinIpmpEncryptingProcessor
++---------------------------------------------------------------------*/
+class AP4_MarlinIpmpEncryptingProcessor : public AP4_Processor
+{
+public:
+    // constructor
+    AP4_MarlinIpmpEncryptingProcessor(AP4_BlockCipherFactory* block_cipher_factory = NULL);
+
+    // accessors
+    AP4_ProtectionKeyMap& GetKeyMap() { return m_KeyMap; }
+
+    // AP4_Processor methods
+    virtual AP4_Result Initialize(AP4_AtomParent&   top_level,
+                                  AP4_ByteStream&   stream,
+                                  AP4_Processor::ProgressListener* listener = NULL);
+    virtual AP4_Processor::TrackHandler* CreateTrackHandler(AP4_TrakAtom* trak);
+
+private:
+    // members
+    AP4_BlockCipherFactory* m_BlockCipherFactory;
+    AP4_ProtectionKeyMap    m_KeyMap;
 };
 
 #endif // _AP4_MARLIN_H_
