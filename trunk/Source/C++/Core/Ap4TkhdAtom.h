@@ -73,8 +73,10 @@ public:
         y = (float)(*(int*)&m_Matrix[7]) / 65536;
     }
 
-    AP4_UI32 GetWidth()  { return m_Width; }
-    AP4_UI32 GetHeight() { return m_Height;}
+    AP4_UI32 GetWidth()                 { return m_Width;    }
+    void     SetWidth(AP4_UI32 width)   { m_Width = width;   }
+    AP4_UI32 GetHeight()                { return m_Height;   }
+    void     SetHeight(AP4_UI32 height) { m_Height = height; }
 
  private:
     // methods

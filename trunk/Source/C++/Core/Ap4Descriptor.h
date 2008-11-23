@@ -88,6 +88,7 @@ class AP4_DescriptorFinder : public AP4_List<AP4_Descriptor>::Item::Finder
     AP4_Result Test(AP4_Descriptor* descriptor) const {
         return descriptor->GetTag() == m_Tag ? AP4_SUCCESS : AP4_FAILURE;
     }
+    
  private:
     AP4_UI08 m_Tag;
 };

@@ -110,9 +110,9 @@ AP4_SyntheticSampleTable::GetSampleDescriptionCount()
 AP4_SampleDescription* 
 AP4_SyntheticSampleTable::GetSampleDescription(AP4_Ordinal index)
 {
-    AP4_SampleDescription* description;
-    if (AP4_SUCCEEDED(m_SampleDescriptions.Get(index, description))) {
-        return description;
+    SampleDescriptionHolder* holder;
+    if (AP4_SUCCEEDED(m_SampleDescriptions.Get(index, holder))) {
+        return holder->m_SampleDescription;
     } else {
         return NULL;
     }
@@ -122,9 +122,10 @@ AP4_SyntheticSampleTable::GetSampleDescription(AP4_Ordinal index)
 |   AP4_SyntheticSampleTable::AddSampleDescription
 +---------------------------------------------------------------------*/
 AP4_Result 
-AP4_SyntheticSampleTable::AddSampleDescription(AP4_SampleDescription* description)
+AP4_SyntheticSampleTable::AddSampleDescription(AP4_SampleDescription* description,
+                                               bool                   transfer_ownership)
 {
-    return m_SampleDescriptions.Add(description);
+    return m_SampleDescriptions.Add(new SampleDescriptionHolder(description, transfer_ownership));
 }
 
 /*----------------------------------------------------------------------

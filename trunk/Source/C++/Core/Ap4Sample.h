@@ -46,9 +46,32 @@ class AP4_DataBuffer;
 class AP4_Sample 
 {
 public:
-    // constructors and destructor
+    /**
+     * Default constructor
+     */
     AP4_Sample();
+
+    /**
+     * Copy constructor
+     */
     AP4_Sample(const AP4_Sample& other);
+    
+    /**
+     * Construct an AP4_Sample referencing a data stream
+     *
+     * @param data_stream The byte stream that contains the sample data. 
+     * The sample object added to the track will keep a reference to that byte 
+     * stream
+     * @param offset Position of the first byte of sample data within the stream
+     * @param size Size in bytes of the sample data
+     * @param description_index Index of the sample description that applies to 
+     * this sample
+     * @param dts Decoding timestamp of the sample
+     * @param cts_offset Difference between the Composition timestamp and the 
+     * Decoding timestamp
+     * @param sync_flag Boolean flag indicating whether this is a sync sample
+     * or not
+     */
     AP4_Sample(AP4_ByteStream& data_stream,
                AP4_Position    offset,
                AP4_Size        size,
@@ -56,6 +79,7 @@ public:
                AP4_TimeStamp   dts,
                AP4_UI32        cts_offset = 0,
                bool            sync_flag = true);
+               
     ~AP4_Sample(); // not virtual on purpose: do not derive from it
 
     // operators

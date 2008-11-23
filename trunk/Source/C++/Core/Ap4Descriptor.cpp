@@ -38,7 +38,7 @@
 AP4_Result
 AP4_Descriptor::Inspect(AP4_AtomInspector& inspector)
 {
-    char name[6];
+    char name[20];
     AP4_FormatString(name, sizeof(name), "[Descriptor:%02x]", m_ClassId);
     char info[64];
     AP4_FormatString(info, sizeof(info), "size=%ld+%ld",

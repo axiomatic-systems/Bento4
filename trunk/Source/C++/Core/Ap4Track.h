@@ -71,15 +71,15 @@ class AP4_Track {
 
     // methods
     AP4_Track(Type             type,
-              AP4_SampleTable* sample_table, // ownership is transfered to the Track
+              AP4_SampleTable* sample_table,     // ownership is transfered to the AP4_Track object
               AP4_UI32         track_id, 
               AP4_UI32         movie_time_scale, // 0 = use default
               AP4_UI32         track_duration,   // in the movie timescale
               AP4_UI32         media_time_scale,
               AP4_UI32         media_duration,   // in the media timescale
               const char*      language,
-              AP4_UI32         width,
-              AP4_UI32         height);
+              AP4_UI32         width,            // in 16.16 fixed point
+              AP4_UI32         height);          // in 16.16 fixed point
     AP4_Track(AP4_TrakAtom&   atom, 
               AP4_ByteStream& sample_stream,
               AP4_UI32        movie_time_scale);
@@ -88,6 +88,8 @@ class AP4_Track {
     AP4_UI32     GetHandlerType();
     AP4_UI32     GetDuration();   // in the timescale of the movie
     AP4_Duration GetDurationMs(); // im milliseconds
+    AP4_UI32     GetWidth();      // in 16.16 fixed point
+    AP4_UI32     GetHeight();     // in 16.16 fixed point
     AP4_Cardinal GetSampleCount();
     AP4_Result   GetSample(AP4_Ordinal index, AP4_Sample& sample);
     AP4_Result   ReadSample(AP4_Ordinal     index, 
