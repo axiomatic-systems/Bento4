@@ -79,6 +79,10 @@ class AP4_TrakAtom : public AP4_ContainerAtom
     AP4_Result SetMediaDuration(AP4_UI32 duration);
     AP4_UI32   GetMediaTimeScale();
     AP4_Result SetMediaTimeScale(AP4_UI32 timescale);
+    AP4_UI32   GetWidth();
+    AP4_Result SetWidth(AP4_UI32 width);
+    AP4_UI32   GetHeight();
+    AP4_Result SetHeight(AP4_UI32 height);
     
  private:
     // methods

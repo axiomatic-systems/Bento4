@@ -371,8 +371,8 @@ main(int argc, char** argv)
                                                   video_track->GetMediaTimeScale(),
                                                   video_track->GetMediaDuration(),
                                                   video_track->GetTrackLanguage(),
-                                                  avc_desc->GetWidth(),
-                                                  avc_desc->GetHeight());
+                                                  video_track->GetWidth(),
+                                                  video_track->GetHeight());
                                                
     // get the audio track
     AP4_Track*           audio_track = movie->GetTrack(AP4_Track::TYPE_AUDIO);

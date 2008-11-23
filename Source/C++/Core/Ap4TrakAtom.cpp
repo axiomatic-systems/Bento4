@@ -71,8 +71,8 @@ AP4_TrakAtom::AP4_TrakAtom(AP4_SampleTable* sample_table,
                                   track_id,
                                   track_duration, 
                                   volume, 
-                                  width*65536, 
-                                  height*65536);
+                                  width, 
+                                  height);
 
     // create an edts
 
@@ -238,6 +238,52 @@ AP4_TrakAtom::SetMediaDuration(AP4_UI32 duration)
 {
     if (m_MdhdAtom) {
         m_MdhdAtom->SetDuration(duration);
+        return AP4_SUCCESS;
+    } else {
+        return AP4_ERROR_INVALID_STATE;
+    }
+}
+
+/*----------------------------------------------------------------------
+|   AP4_TrakAtom::GetWidth
++---------------------------------------------------------------------*/
+AP4_UI32
+AP4_TrakAtom::GetWidth()
+{
+    return m_TkhdAtom?m_TkhdAtom->GetWidth():0; 
+}
+
+/*----------------------------------------------------------------------
+|   AP4_TrakAtom::SetWidth
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_TrakAtom::SetWidth(AP4_UI32 width)
+{
+    if (m_TkhdAtom) {
+        m_TkhdAtom->SetWidth(width);
+        return AP4_SUCCESS;
+    } else {
+        return AP4_ERROR_INVALID_STATE;
+    }
+}
+
+/*----------------------------------------------------------------------
+|   AP4_TrakAtom::GetHeight
++---------------------------------------------------------------------*/
+AP4_UI32
+AP4_TrakAtom::GetHeight()
+{
+    return m_TkhdAtom?m_TkhdAtom->GetHeight():0; 
+}
+
+/*----------------------------------------------------------------------
+|   AP4_TrakAtom::SetHeight
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_TrakAtom::SetHeight(AP4_UI32 height)
+{
+    if (m_TkhdAtom) {
+        m_TkhdAtom->SetHeight(height);
         return AP4_SUCCESS;
     } else {
         return AP4_ERROR_INVALID_STATE;

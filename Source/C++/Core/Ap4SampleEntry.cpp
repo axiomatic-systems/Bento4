@@ -524,10 +524,10 @@ AP4_AudioSampleEntry::ToTargetSampleDescription(AP4_UI32 format)
     switch (format) {
         case AP4_ATOM_TYPE_MP4A:
             return new AP4_MpegAudioSampleDescription(
-                dynamic_cast<AP4_EsdsAtom*>(GetChild(AP4_ATOM_TYPE_ESDS)),
                 GetSampleRate(),
                 GetSampleSize(),
-                GetChannelCount());
+                GetChannelCount(),
+                dynamic_cast<AP4_EsdsAtom*>(GetChild(AP4_ATOM_TYPE_ESDS)));
 
         default:
             return new AP4_GenericAudioSampleDescription(
@@ -581,10 +581,10 @@ AP4_MpegAudioSampleEntry::ToSampleDescription()
     }
     
     // create a sample description
-    return new AP4_MpegAudioSampleDescription(esds,
-                                              GetSampleRate(),
+    return new AP4_MpegAudioSampleDescription(GetSampleRate(),
                                               GetSampleSize(),
-                                              GetChannelCount());
+                                              GetChannelCount(),
+                                              esds);
 }
 
 /*----------------------------------------------------------------------
@@ -818,15 +818,15 @@ AP4_VisualSampleEntry::ToTargetSampleDescription(AP4_UI32 format)
                 m_Height,
                 m_Depth,
                 m_CompressorName.GetChars(),
-                dynamic_cast<AP4_AvccAtom*>(GetChild(AP4_ATOM_TYPE_AVCC)));
+                this);
                 
         case AP4_ATOM_TYPE_MP4V:
             return new AP4_MpegVideoSampleDescription(
-                dynamic_cast<AP4_EsdsAtom*>(GetChild(AP4_ATOM_TYPE_ESDS)),
                 m_Width,
                 m_Height,
                 m_Depth,
-                m_CompressorName.GetChars());
+                m_CompressorName.GetChars(),
+                dynamic_cast<AP4_EsdsAtom*>(GetChild(AP4_ATOM_TYPE_ESDS)));
 
         default:
             return new AP4_GenericVideoSampleDescription(
@@ -878,11 +878,11 @@ AP4_MpegVideoSampleEntry::ToSampleDescription()
 {
     // create a sample description
     return new AP4_MpegVideoSampleDescription(
-        dynamic_cast<AP4_EsdsAtom*>(GetChild(AP4_ATOM_TYPE_ESDS)),
         m_Width,
         m_Height,
         m_Depth,
-        m_CompressorName.GetChars());
+        m_CompressorName.GetChars(),
+        dynamic_cast<AP4_EsdsAtom*>(GetChild(AP4_ATOM_TYPE_ESDS)));
 }
 
 /*----------------------------------------------------------------------

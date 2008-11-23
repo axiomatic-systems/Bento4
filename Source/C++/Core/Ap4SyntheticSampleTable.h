@@ -68,10 +68,39 @@ class AP4_SyntheticSampleTable : public AP4_SampleTable
     virtual AP4_Cardinal GetSampleDescriptionCount();
     virtual AP4_SampleDescription* GetSampleDescription(AP4_Ordinal index);
     virtual AP4_Result GetSampleIndexForTimeStamp(AP4_TimeStamp ts,
-                                                  AP4_Ordinal& index);
+                                                  AP4_Ordinal&  index);
 
     // methods
-    virtual AP4_Result AddSampleDescription(AP4_SampleDescription* description);
+    /**
+     * Add a sample description to the sample table. 
+     * Each added sample description will have the next available index, starting at 0
+     *
+     * @param description Pointer to the sample description to add
+     * @param transfer_ownership Boolean flag indicating whether the ownership of the
+     * sample description object is transfered to the sample table object (true by default).
+     * If true, the sample table object will own the sample description object, and will 
+     * delete it when it is itself deleted. If false, the ownership remains with the caller, 
+     * and only a referencing pointer is kept, thus the caller must ensure that the object
+     * is not deleted before the sample table is deleted.
+     */
+    virtual AP4_Result AddSampleDescription(AP4_SampleDescription* description,
+                                            bool                   transfer_ownership=true);
+
+    /**
+     * Add a sample to the sample table
+     *
+     * @param data_stream The byte stream that contains the sample data. The sample
+     * object added to the track will keep a reference to that byte stream.
+     * @param offset Position of the first byte of sample data within the stream
+     * @param size Size in bytes of the sample data
+     * @param description_index Index of the sample description that applies to 
+     * this sample
+     * @param dts Decoding timestamp of the sample
+     * @param cts_offset Difference between the Composition timestamp and the 
+     * Decoding timestamp
+     * @param sync_flag Boolean flag indicating whether this is a sync sample
+     * or not
+     */
     virtual AP4_Result AddSample(AP4_ByteStream& data_stream,
                                  AP4_Position    offset,
                                  AP4_Size        size,
@@ -81,10 +110,20 @@ class AP4_SyntheticSampleTable : public AP4_SampleTable
                                  bool            sync = false);
 
 private:
+    // classes
+    class SampleDescriptionHolder {
+    public:
+        SampleDescriptionHolder(AP4_SampleDescription* description, bool is_owned) :
+            m_SampleDescription(description), m_IsOwned(is_owned) {}
+        ~SampleDescriptionHolder() { if (m_IsOwned) delete m_SampleDescription; }
+        AP4_SampleDescription* m_SampleDescription;
+        bool                   m_IsOwned;
+    };
+    
     // members
-    AP4_Array<AP4_Sample>           m_Samples;
-    AP4_List<AP4_SampleDescription> m_SampleDescriptions;
-    AP4_Cardinal                    m_ChunkSize;
+    AP4_Array<AP4_Sample>             m_Samples;
+    AP4_List<SampleDescriptionHolder> m_SampleDescriptions;
+    AP4_Cardinal                      m_ChunkSize;
 };
 
 #endif // _AP4_SYNTHETIC_SAMPLE_TABLE_H_

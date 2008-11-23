@@ -130,9 +130,9 @@ public:
     m_CompressorName(compressor_name) {}
 
     // accessors
-    AP4_UI32    GetWidth()          { return m_Width;   }
-    AP4_UI16    GetHeight()         { return m_Height;   }
-    AP4_UI16    GetDepth()          { return m_Depth; }
+    AP4_UI32    GetWidth()          { return m_Width;  }
+    AP4_UI16    GetHeight()         { return m_Height; }
+    AP4_UI16    GetDepth()          { return m_Depth;  }
     const char* GetCompressorName() { return m_CompressorName.GetChars(); }
 
 protected:
@@ -192,6 +192,12 @@ public:
                              const char*         compressor_name,
                              const AP4_AvccAtom* avcc);
     
+    AP4_AvcSampleDescription(AP4_UI16        width,
+                             AP4_UI16        height,
+                             AP4_UI16        depth,
+                             const char*     compressor_name,
+                             AP4_AtomParent* details);
+
     AP4_AvcSampleDescription(AP4_UI16                         width,
                              AP4_UI16                         height,
                              AP4_UI16                         depth,
@@ -307,10 +313,11 @@ public:
     static const char* GetMpeg4AudioObjectTypeString(Mpeg4AudioObjectType type);
     
     // constructor
-    AP4_MpegAudioSampleDescription(AP4_EsdsAtom* esds,
-                                   unsigned int  sample_rate,
+    AP4_MpegAudioSampleDescription(unsigned int  sample_rate,
                                    unsigned int  sample_size,
-                                   unsigned int  channel_count);
+                                   unsigned int  channel_count,
+                                   AP4_EsdsAtom* esds);
+                                   
     AP4_MpegAudioSampleDescription(OTI                   oti,
                                    unsigned int          sample_rate,
                                    unsigned int          sample_size,
@@ -339,11 +346,12 @@ class AP4_MpegVideoSampleDescription : public AP4_MpegSampleDescription,
 {
 public:
     // constructor
-    AP4_MpegVideoSampleDescription(AP4_EsdsAtom* esds,
-                                   AP4_UI16      width,
+    AP4_MpegVideoSampleDescription(AP4_UI16      width,
                                    AP4_UI16      height,
                                    AP4_UI16      depth,
-                                   const char*   compressor_name);
+                                   const char*   compressor_name,
+                                   AP4_EsdsAtom* esds);
+                                   
     AP4_MpegVideoSampleDescription(OTI                   oti,
                                    AP4_UI16              width,
                                    AP4_UI16              height,

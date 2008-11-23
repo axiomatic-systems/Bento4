@@ -178,7 +178,8 @@ public:
                                    AP4_UI32               scheme_type,
                                    AP4_UI32               scheme_version,
                                    const char*            scheme_uri,
-                                   AP4_ContainerAtom*     schi_atom);
+                                   AP4_ContainerAtom*     schi_atom, // will be cloned
+                                   bool                   transfer_ownership_of_original=true);
     ~AP4_ProtectedSampleDescription();
     
     // accessors
@@ -199,6 +200,7 @@ public:
 private:
     // members
     AP4_SampleDescription*    m_OriginalSampleDescription;
+    bool                      m_OriginalSampleDescriptionIsOwned;
     AP4_UI32                  m_OriginalFormat;
     AP4_UI32                  m_SchemeType;
     AP4_UI32                  m_SchemeVersion;

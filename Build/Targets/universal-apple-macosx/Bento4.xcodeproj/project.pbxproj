@@ -35,6 +35,7 @@
 			buildPhases = (
 			);
 			dependencies = (
+				CA9A18D50ED54B2E00C60FDF /* PBXTargetDependency */,
 				CA646B860CE97EFC009699D7 /* PBXTargetDependency */,
 				F9DBC8030E99B01200913BF6 /* PBXTargetDependency */,
 			);
@@ -249,6 +250,8 @@
 		CA9367FF0B4383F00067D50B /* Ap4AdtsParser.h in Headers */ = {isa = PBXBuildFile; fileRef = CA9367FB0B4383F00067D50B /* Ap4AdtsParser.h */; };
 		CA9368000B4383F00067D50B /* Ap4BitStream.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA9367FC0B4383F00067D50B /* Ap4BitStream.cpp */; };
 		CA9368010B4383F00067D50B /* Ap4BitStream.h in Headers */ = {isa = PBXBuildFile; fileRef = CA9367FD0B4383F00067D50B /* Ap4BitStream.h */; };
+		CA9A16DE0ED4F43800C60FDF /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
+		CA9A16E10ED4F44C00C60FDF /* PassthroughWriterTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA9A16E00ED4F44C00C60FDF /* PassthroughWriterTest.cpp */; };
 		CAA0332D0DF7D3390086EC1C /* Ap4CommandFactory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAA0332B0DF7D3390086EC1C /* Ap4CommandFactory.cpp */; };
 		CAA0332E0DF7D3390086EC1C /* Ap4CommandFactory.h in Headers */ = {isa = PBXBuildFile; fileRef = CAA0332C0DF7D3390086EC1C /* Ap4CommandFactory.h */; };
 		CAA033320DF7D4CC0086EC1C /* Ap4Command.h in Headers */ = {isa = PBXBuildFile; fileRef = CAA033310DF7D4CC0086EC1C /* Ap4Command.h */; };
@@ -445,6 +448,20 @@
 			proxyType = 1;
 			remoteGlobalIDString = CA646B600CE97E82009699D7;
 			remoteInfo = CryptoTest;
+		};
+		CA9A16DC0ED4F43300C60FDF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D2AAC045055464E500DB518D;
+			remoteInfo = Bento4;
+		};
+		CA9A18D40ED54B2E00C60FDF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CA9A16D70ED4F42A00C60FDF;
+			remoteInfo = PassthroughWriterTest;
 		};
 		CA9ED5D30EADBD81003CE43C /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -698,6 +715,8 @@
 		CA9367FB0B4383F00067D50B /* Ap4AdtsParser.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = Ap4AdtsParser.h; sourceTree = "<group>"; };
 		CA9367FC0B4383F00067D50B /* Ap4BitStream.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4BitStream.cpp; sourceTree = "<group>"; };
 		CA9367FD0B4383F00067D50B /* Ap4BitStream.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = Ap4BitStream.h; sourceTree = "<group>"; };
+		CA9A16D80ED4F42A00C60FDF /* passthroughwritertest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = passthroughwritertest; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA9A16E00ED4F44C00C60FDF /* PassthroughWriterTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PassthroughWriterTest.cpp; sourceTree = "<group>"; };
 		CAA0332B0DF7D3390086EC1C /* Ap4CommandFactory.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4CommandFactory.cpp; sourceTree = "<group>"; };
 		CAA0332C0DF7D3390086EC1C /* Ap4CommandFactory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4CommandFactory.h; sourceTree = "<group>"; };
 		CAA033310DF7D4CC0086EC1C /* Ap4Command.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4Command.h; sourceTree = "<group>"; };
@@ -826,6 +845,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		CA9A16D60ED4F42A00C60FDF /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CA9A16DE0ED4F43800C60FDF /* libBento4.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		CAEA9CE20E144664008C396D /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -905,6 +932,7 @@
 				CAEA9CE40E144664008C396D /* libBento4Atomix.a */,
 				F9DBC7FD0E99AFE100913BF6 /* avctrackwritertest */,
 				F9FDDA2E0EA798FF0061DCB2 /* libBento4C.dylib */,
+				CA9A16D80ED4F42A00C60FDF /* passthroughwritertest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1035,6 +1063,7 @@
 		CA646A9B0CE97B51009699D7 /* Test */ = {
 			isa = PBXGroup;
 			children = (
+				CA9A16DF0ED4F44C00C60FDF /* PassthroughWriter */,
 				F9DBC7F70E99AF7D00913BF6 /* Avc */,
 				CA646A9C0CE97B51009699D7 /* Crypto */,
 			);
@@ -1268,6 +1297,14 @@
 			name = Codecs;
 			path = "../../../Source/C++/Codecs";
 			sourceTree = SOURCE_ROOT;
+		};
+		CA9A16DF0ED4F44C00C60FDF /* PassthroughWriter */ = {
+			isa = PBXGroup;
+			children = (
+				CA9A16E00ED4F44C00C60FDF /* PassthroughWriterTest.cpp */,
+			);
+			path = PassthroughWriter;
+			sourceTree = "<group>";
 		};
 		CAEA9CDD0E14460F008C396D /* Adapters */ = {
 			isa = PBXGroup;
@@ -1639,6 +1676,23 @@
 			productReference = CA646B6A0CE97E82009699D7 /* cryptotest */;
 			productType = "com.apple.product-type.tool";
 		};
+		CA9A16D70ED4F42A00C60FDF /* PassthroughWriterTest */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CA9A16E20ED4F44C00C60FDF /* Build configuration list for PBXNativeTarget "PassthroughWriterTest" */;
+			buildPhases = (
+				CA9A16D50ED4F42A00C60FDF /* Sources */,
+				CA9A16D60ED4F42A00C60FDF /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CA9A16DD0ED4F43300C60FDF /* PBXTargetDependency */,
+			);
+			name = PassthroughWriterTest;
+			productName = PassthroughWriterTest;
+			productReference = CA9A16D80ED4F42A00C60FDF /* passthroughwritertest */;
+			productType = "com.apple.product-type.tool";
+		};
 		CAEA9CE30E144664008C396D /* Bento4Atomix */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = CAEA9CF10E144695008C396D /* Build configuration list for PBXNativeTarget "Bento4Atomix" */;
@@ -1741,6 +1795,7 @@
 				CA646B600CE97E82009699D7 /* CryptoTest */,
 				CA3EDA7D0D7E0B81007AE943 /* AvcInfo */,
 				F9DBC7FC0E99AFE100913BF6 /* AvcTrackWriterTest */,
+				CA9A16D70ED4F42A00C60FDF /* PassthroughWriterTest */,
 			);
 		};
 /* End PBXProject section */
@@ -1848,6 +1903,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				CA646B6F0CE97EC9009699D7 /* CryptoTest.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CA9A16D50ED4F42A00C60FDF /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CA9A16E10ED4F44C00C60FDF /* PassthroughWriterTest.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2093,6 +2156,16 @@
 			isa = PBXTargetDependency;
 			target = CA646B600CE97E82009699D7 /* CryptoTest */;
 			targetProxy = CA646B850CE97EFC009699D7 /* PBXContainerItemProxy */;
+		};
+		CA9A16DD0ED4F43300C60FDF /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D2AAC045055464E500DB518D /* Bento4 */;
+			targetProxy = CA9A16DC0ED4F43300C60FDF /* PBXContainerItemProxy */;
+		};
+		CA9A18D50ED54B2E00C60FDF /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CA9A16D70ED4F42A00C60FDF /* PassthroughWriterTest */;
+			targetProxy = CA9A18D40ED54B2E00C60FDF /* PBXContainerItemProxy */;
 		};
 		CA9ED5D40EADBD81003CE43C /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -2616,6 +2689,36 @@
 			};
 			name = Release;
 		};
+		CA9A16DA0ED4F42C00C60FDF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				INSTALL_PATH = /usr/local/bin;
+				PREBINDING = NO;
+				PRODUCT_NAME = passthroughwritertest;
+			};
+			name = Debug;
+		};
+		CA9A16DB0ED4F42C00C60FDF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_MODEL_TUNING = G5;
+				INSTALL_PATH = /usr/local/bin;
+				PREBINDING = NO;
+				PRODUCT_NAME = passthroughwritertest;
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
 		CAA97B390CF4D54E00C01909 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -2885,6 +2988,15 @@
 			buildConfigurations = (
 				CA646B830CE97EF7009699D7 /* Debug */,
 				CA646B840CE97EF7009699D7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CA9A16E20ED4F44C00C60FDF /* Build configuration list for PBXNativeTarget "PassthroughWriterTest" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CA9A16DA0ED4F42C00C60FDF /* Debug */,
+				CA9A16DB0ED4F42C00C60FDF /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

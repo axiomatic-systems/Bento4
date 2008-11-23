@@ -83,7 +83,7 @@ AP4_EncaSampleEntry::ToSampleDescription()
 
     // get the scheme info
     AP4_SchmAtom* schm = (AP4_SchmAtom*)FindChild("sinf/schm");
-    AP4_UI32 original_format = frma?frma->GetOriginalFormat():0;
+    AP4_UI32 original_format = frma?frma->GetOriginalFormat():AP4_ATOM_TYPE_MP4A;
     if (schm) {
         // create the original sample description
         return new AP4_ProtectedSampleDescription(
@@ -353,9 +353,11 @@ AP4_ProtectedSampleDescription::AP4_ProtectedSampleDescription(
     AP4_UI32               scheme_type,
     AP4_UI32               scheme_version,
     const char*            scheme_uri,
-    AP4_ContainerAtom*     schi) :
+    AP4_ContainerAtom*     schi,
+    bool                   transfer_ownership_of_original /* = true */) :
     AP4_SampleDescription(TYPE_PROTECTED, format, NULL),
     m_OriginalSampleDescription(original_sample_description),
+    m_OriginalSampleDescriptionIsOwned(transfer_ownership_of_original),
     m_OriginalFormat(original_format),
     m_SchemeType(scheme_type),
     m_SchemeVersion(scheme_version),
@@ -370,7 +372,7 @@ AP4_ProtectedSampleDescription::AP4_ProtectedSampleDescription(
 AP4_ProtectedSampleDescription::~AP4_ProtectedSampleDescription()
 {
     delete m_SchemeInfo;
-    delete m_OriginalSampleDescription;
+    if (m_OriginalSampleDescriptionIsOwned) delete m_OriginalSampleDescription;
 }
 
 /*----------------------------------------------------------------------
@@ -379,8 +381,37 @@ AP4_ProtectedSampleDescription::~AP4_ProtectedSampleDescription()
 AP4_Atom*
 AP4_ProtectedSampleDescription::ToAtom() const
 {
-    // TODO: not implemented yet
-    return NULL;
+    // construct the atom for the original sample description
+    if (m_OriginalSampleDescription == NULL) return NULL;
+    AP4_Atom* atom = m_OriginalSampleDescription->ToAtom();
+    
+    // switch the atom type
+    atom->SetType(m_Format);
+
+    // check that the constructed atom is a container
+    AP4_ContainerAtom* container = dynamic_cast<AP4_ContainerAtom*>(atom);
+    if (container == NULL) return atom; // not a container ?? return now.
+        
+    // create the sinf atom
+    AP4_ContainerAtom* sinf = new AP4_ContainerAtom(AP4_ATOM_TYPE_SINF);
+    
+    // create and add a frma atom
+    AP4_FrmaAtom* frma = new AP4_FrmaAtom(m_OriginalFormat);
+    sinf->AddChild(frma);
+    
+    // create and add a schm atom
+    AP4_SchmAtom* schm = new AP4_SchmAtom(m_SchemeType, m_SchemeVersion, m_SchemeUri.GetChars());
+    sinf->AddChild(schm);
+
+    // add the schi atom
+    if (m_SchemeInfo && m_SchemeInfo->GetSchiAtom()) {
+        sinf->AddChild(m_SchemeInfo->GetSchiAtom()->Clone());
+    }
+    
+    // add the sinf to the returned atom
+    container->AddChild(sinf);
+
+    return atom;
 }
 
 /*----------------------------------------------------------------------

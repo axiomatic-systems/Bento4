@@ -111,6 +111,21 @@ AP4_AvcSampleDescription::AP4_AvcSampleDescription(AP4_UI16            width,
 }
 
 /*----------------------------------------------------------------------
+|   AP4_AvcSampleDescription::AP4_AvcSampleDescription
++---------------------------------------------------------------------*/
+AP4_AvcSampleDescription::AP4_AvcSampleDescription(AP4_UI16        width,
+                                                   AP4_UI16        height,
+                                                   AP4_UI16        depth,
+                                                   const char*     compressor_name,
+                                                   AP4_AtomParent* details) :
+    AP4_SampleDescription(TYPE_AVC, AP4_SAMPLE_FORMAT_AVC1, details),
+    AP4_VideoSampleDescription(width, height, depth, compressor_name),
+    m_AvccAtom(NULL)
+{
+    m_AvccAtom = dynamic_cast<AP4_AvccAtom*>(details->GetChild(AP4_ATOM_TYPE_AVCC));
+}
+
+/*----------------------------------------------------------------------
 |   AP4_AvcSampleDescription::ToAtom
 +---------------------------------------------------------------------*/
 AP4_Atom*
@@ -247,10 +262,10 @@ AP4_MpegSystemSampleDescription::ToAtom() const
 |   AP4_MpegAudioSampleDescription::AP4_MpegAudioSampleDescription
 +---------------------------------------------------------------------*/
 AP4_MpegAudioSampleDescription::AP4_MpegAudioSampleDescription(
-    AP4_EsdsAtom* esds,
     unsigned int  sample_rate,
     unsigned int  sample_size,
-    unsigned int  channel_count) :
+    unsigned int  channel_count,
+    AP4_EsdsAtom* esds) :
     AP4_MpegSampleDescription(AP4_ATOM_TYPE_MP4A, esds),
     AP4_AudioSampleDescription(sample_rate, sample_size, channel_count)
 {
@@ -313,11 +328,12 @@ AP4_MpegAudioSampleDescription::GetMpeg4AudioObjectType() const
 |   AP4_MpegVideoSampleDescription::AP4_MpegVideoSampleDescription
 +---------------------------------------------------------------------*/
 AP4_MpegVideoSampleDescription::AP4_MpegVideoSampleDescription(
-    AP4_EsdsAtom* esds,
-    AP4_UI16              width,
-    AP4_UI16              height,
-    AP4_UI16              depth,
-    const char*           compressor_name) :
+    AP4_UI16      width,
+    AP4_UI16      height,
+    AP4_UI16      depth,
+    const char*   compressor_name,
+    AP4_EsdsAtom* esds) :
+    
     AP4_MpegSampleDescription(AP4_ATOM_TYPE_MP4V, esds),
     AP4_VideoSampleDescription(width, height, depth, compressor_name)
 {
