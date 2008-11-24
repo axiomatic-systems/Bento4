@@ -54,33 +54,33 @@ InspectorDelegate._fields_ = [("start_element", start_element_proto),
                               ("oid", c_int)] # object id
 
 # global dict of objects constructed with a delegate
-PYINSPECTOR_OBJECTS = {}
+pyinspector_objects = {}
 
 #
 # redirection functions
 #
 def delegate_start_element(pdelegate, name, extra):
-    pyinspector = PYINSPECTOR_OBJECTS[pdelegate[0].oid]
+    pyinspector = pyinspector_objects[pdelegate[0].oid]
     pyinspector.c_start_element(name, extra)
 
 def delegate_end_element(pdelegate):
-    pyinspector = PYINSPECTOR_OBJECTS[pdelegate[0].oid]
+    pyinspector = pyinspector_objects[pdelegate[0].oid]
     pyinspector.c_end_element()
     
 def delegate_add_int_field(pdelegate, name, value, hint):
-    pyinspector = PYINSPECTOR_OBJECTS[pdelegate[0].oid]
+    pyinspector = pyinspector_objects[pdelegate[0].oid]
     pyinspector.c_add_int_field(name, value, hint)
     
 def delegate_add_float_field(pdelegate, name, value, hint):
-    pyinspector = PYINSPECTOR_OBJECTS[pdelegate[0].oid]
+    pyinspector = pyinspector_objects[pdelegate[0].oid]
     pyinspector.c_add_float_field(name, value, hint)
     
 def delegate_add_string_field(pdelegate, name, value, hint):
-    pyinspector = PYINSPECTOR_OBJECTS[pdelegate[0].oid]
+    pyinspector = pyinspector_objects[pdelegate[0].oid]
     pyinspector.c_add_string_field(name, value, hint)
     
 def delegate_add_bytes_field(pdelegate, name, bytes, byte_count, hint):
-    pyinspector = PYINSPECTOR_OBJECTS[pdelegate[0].oid]
+    pyinspector = pyinspector_objects[pdelegate[0].oid]
     pyinspector.c_add_bytes_field(name, bytes, byte_count, hint)
 
 
@@ -96,7 +96,7 @@ class PyInspector(AtomInspector):
             add_bytes_field=add_bytes_field_proto(delegate_add_bytes_field),
             destroy=None,
             oid=id(pyinspector))
-        PYINSPECTOR_OBJECTS[id(pyinspector)] = pyinspector
+        pyinspector_objects[id(pyinspector)] = pyinspector
         bt4inspector = lb4.AP4_AtomInspector_FromDelegate(byref(self.delegate))
         super(PyInspector, self).__init__(bt4inspector)
 
