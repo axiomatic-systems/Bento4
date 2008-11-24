@@ -62,6 +62,16 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Mp4DcfPackager", "Mp4DcfPac
 		{A714AA1C-45A9-403D-A6E1-020E520119A2} = {A714AA1C-45A9-403D-A6E1-020E520119A2}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AvcTrackWriterTest", "AvcTrackWriterTest\AvcTrackWriterTest.vcproj", "{FA13F082-633C-4DAD-B282-6B0E1BDD3412}"
+	ProjectSection(ProjectDependencies) = postProject
+		{A714AA1C-45A9-403D-A6E1-020E520119A2} = {A714AA1C-45A9-403D-A6E1-020E520119A2}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PassthroughWriterTest", "PassthroughWriterTest\PassthroughWriterTest.vcproj", "{B031A581-FDE5-4CDC-A124-573F6EECB54A}"
+	ProjectSection(ProjectDependencies) = postProject
+		{A714AA1C-45A9-403D-A6E1-020E520119A2} = {A714AA1C-45A9-403D-A6E1-020E520119A2}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -120,6 +130,14 @@ Global
 		{9B072842-1D3B-4CAD-B7AE-E41E545EC420}.Debug|Win32.Build.0 = Debug|Win32
 		{9B072842-1D3B-4CAD-B7AE-E41E545EC420}.Release|Win32.ActiveCfg = Release|Win32
 		{9B072842-1D3B-4CAD-B7AE-E41E545EC420}.Release|Win32.Build.0 = Release|Win32
+		{FA13F082-633C-4DAD-B282-6B0E1BDD3412}.Debug|Win32.ActiveCfg = Debug|Win32
+		{FA13F082-633C-4DAD-B282-6B0E1BDD3412}.Debug|Win32.Build.0 = Debug|Win32
+		{FA13F082-633C-4DAD-B282-6B0E1BDD3412}.Release|Win32.ActiveCfg = Release|Win32
+		{FA13F082-633C-4DAD-B282-6B0E1BDD3412}.Release|Win32.Build.0 = Release|Win32
+		{B031A581-FDE5-4CDC-A124-573F6EECB54A}.Debug|Win32.ActiveCfg = Debug|Win32
+		{B031A581-FDE5-4CDC-A124-573F6EECB54A}.Debug|Win32.Build.0 = Debug|Win32
+		{B031A581-FDE5-4CDC-A124-573F6EECB54A}.Release|Win32.ActiveCfg = Release|Win32
+		{B031A581-FDE5-4CDC-A124-573F6EECB54A}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
