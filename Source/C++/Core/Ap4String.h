@@ -57,10 +57,10 @@ public:
     char operator[](unsigned int index) const {
         return m_Chars[index];
     }
-    const bool operator==(const AP4_String& s) const;
-    const bool operator!=(const AP4_String& s) const { return !(*this == s); }
-    const bool operator==(const char* s) const;
-    const bool operator!=(const char* s) const { return !(*this == s); }
+    bool operator==(const AP4_String& s) const;
+    bool operator!=(const AP4_String& s) const { return !(*this == s); }
+    bool operator==(const char* s) const;
+    bool operator!=(const char* s) const { return !(*this == s); }
 
     // methods
     AP4_Size    GetLength() const { return m_Length; }
