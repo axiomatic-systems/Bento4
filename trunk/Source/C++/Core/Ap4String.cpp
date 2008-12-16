@@ -129,7 +129,7 @@ AP4_String::operator=(const char* s)
 /*----------------------------------------------------------------------
 |   AP4_String::operator==
 +---------------------------------------------------------------------*/
-const bool
+bool
 AP4_String::operator==(const AP4_String& s) const
 {
     if (m_Length != s.m_Length) return false;
@@ -143,7 +143,7 @@ AP4_String::operator==(const AP4_String& s) const
 /*----------------------------------------------------------------------
 |   AP4_String::operator==
 +---------------------------------------------------------------------*/
-const bool
+bool
 AP4_String::operator==(const char* s) const
 {
     AP4_Size s_length = (AP4_Size)AP4_StringLength(s);
