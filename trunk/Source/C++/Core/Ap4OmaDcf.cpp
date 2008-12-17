@@ -146,26 +146,31 @@ AP4_OmaDcfAtomDecrypter::CreateDecryptingStream(
         // create a block cipher to decrypt the content key
         AP4_BlockCipher*  block_cipher =  NULL;
         AP4_Result        result;
-        result = block_cipher_factory->Create(AP4_BlockCipher::AES_128, 
-                                              AP4_BlockCipher::DECRYPT, 
-                                              key, 
-                                              key_size, 
-                                              block_cipher);
-        if (AP4_FAILED(result)) return result;
                                               
         // create a stream cipher from the block cipher
         AP4_StreamCipher* stream_cipher = NULL;            
         switch (ohdr->GetEncryptionMethod()) {
             case AP4_OMA_DCF_ENCRYPTION_METHOD_AES_CBC:
+                result = block_cipher_factory->Create(AP4_BlockCipher::AES_128, 
+                                                      AP4_BlockCipher::DECRYPT, 
+                                                      key, 
+                                                      key_size, 
+                                                      block_cipher);
+                if (AP4_FAILED(result)) return result;
                 stream_cipher = new AP4_CbcStreamCipher(block_cipher, AP4_CbcStreamCipher::DECRYPT);
                 break;
                 
             case AP4_OMA_DCF_ENCRYPTION_METHOD_AES_CTR:
+                result = block_cipher_factory->Create(AP4_BlockCipher::AES_128, 
+                                                      AP4_BlockCipher::ENCRYPT, 
+                                                      key, 
+                                                      key_size, 
+                                                      block_cipher);
+                if (AP4_FAILED(result)) return result;
                 stream_cipher = new AP4_CtrStreamCipher(block_cipher, NULL, 16);
                 break;
                 
             default:
-                delete block_cipher;
                 return AP4_ERROR_NOT_SUPPORTED;
         }
 

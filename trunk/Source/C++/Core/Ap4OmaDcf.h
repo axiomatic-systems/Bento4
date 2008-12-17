@@ -201,7 +201,7 @@ class AP4_OmaDcfSampleEncrypter
 {
 public:
     // constructor and destructor
-    AP4_OmaDcfSampleEncrypter(const AP4_UI08* salt);
+    AP4_OmaDcfSampleEncrypter(const AP4_UI08* salt); // salt is only 8 bytes
     virtual ~AP4_OmaDcfSampleEncrypter() {}
 
     // methods
@@ -224,7 +224,7 @@ class AP4_OmaDcfCtrSampleEncrypter : public AP4_OmaDcfSampleEncrypter
 public:
     // constructor and destructor
     AP4_OmaDcfCtrSampleEncrypter(AP4_BlockCipher* block_cipher,
-                                 const AP4_UI08*  salt);
+                                 const AP4_UI08*  salt); // salt is only 8 bytes
     ~AP4_OmaDcfCtrSampleEncrypter();
 
     // methods
@@ -247,7 +247,7 @@ class AP4_OmaDcfCbcSampleEncrypter : public AP4_OmaDcfSampleEncrypter
 public:
     // constructor and destructor
     AP4_OmaDcfCbcSampleEncrypter(AP4_BlockCipher* block_cipher,
-                                 const AP4_UI08*  salt);
+                                 const AP4_UI08*  salt); // salt is only 8 bytes
     ~AP4_OmaDcfCbcSampleEncrypter();
 
     // methods
