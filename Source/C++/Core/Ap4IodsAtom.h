@@ -51,12 +51,12 @@ public:
     static AP4_IodsAtom* Create(AP4_Size size, AP4_ByteStream& stream);
 
     // methods
-    AP4_IodsAtom(AP4_ObjectDescriptor* descriptor);
+    AP4_IodsAtom(AP4_ObjectDescriptor* descriptor); // ownership of 'descriptor' is transfered
    ~AP4_IodsAtom();
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
     const AP4_ObjectDescriptor* GetObjectDescriptor() const { return m_ObjectDescriptor; }
-
+    
 private:
     // methods
     AP4_IodsAtom(AP4_UI32        size, 

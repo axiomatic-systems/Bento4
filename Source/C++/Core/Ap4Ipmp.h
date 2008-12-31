@@ -49,6 +49,7 @@ class AP4_IpmpDescriptorPointer : public AP4_Descriptor
 {
 public:
     // methods
+    AP4_IpmpDescriptorPointer(AP4_UI08 descriptor_id);
     AP4_IpmpDescriptorPointer(AP4_ByteStream&     stream, 
                               AP4_Size            header_size, 
                               AP4_Size            payload_size);
@@ -74,6 +75,7 @@ class AP4_IpmpDescriptor : public AP4_Descriptor
 { 
 public:
     // methods
+    AP4_IpmpDescriptor(AP4_UI08 descriptor_id, AP4_UI16 ipmps_type);
     AP4_IpmpDescriptor(AP4_ByteStream&     stream, 
                        AP4_Size            header_size, 
                        AP4_Size            payload_size);
@@ -89,7 +91,8 @@ public:
     AP4_UI08              GetSequenceCode()     const { return m_SequenceCode;     }
     const AP4_String&     GetUrl()              const { return m_Url;              }
     const AP4_DataBuffer& GetData()             const { return m_Data;             }
-
+    void                  SetData(const unsigned char* data, AP4_Size data_size);
+    
 private:
     // members
     AP4_UI08       m_DescriptorId; 

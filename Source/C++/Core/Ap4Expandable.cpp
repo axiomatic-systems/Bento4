@@ -70,14 +70,12 @@ AP4_Expandable::Write(AP4_ByteStream& stream)
     // write the class id
     switch (m_ClassIdSize) {
         case CLASS_ID_SIZE_08:
-        result = stream.WriteUI08((AP4_UI08)m_ClassId);
-        if (AP4_FAILED(result)) return result;
-        break;
+            result = stream.WriteUI08((AP4_UI08)m_ClassId);
+            if (AP4_FAILED(result)) return result;
+            break;
         
-        case CLASS_ID_SIZE_16:
-        result = stream.WriteUI16((AP4_UI16)m_ClassId);
-        if (AP4_FAILED(result)) return result;
-        break;
+        default:
+            return AP4_ERROR_INTERNAL;
     }
     
     // write the size

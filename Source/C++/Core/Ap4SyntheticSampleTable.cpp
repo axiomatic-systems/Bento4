@@ -153,3 +153,25 @@ AP4_SyntheticSampleTable::GetSampleIndexForTimeStamp(AP4_TimeStamp /* ts */,
 {
     return AP4_ERROR_NOT_SUPPORTED;
 }
+
+/*----------------------------------------------------------------------
+|   AP4_SyntheticSampleTable::GetNearestSyncSampleIndex
++---------------------------------------------------------------------*/
+AP4_Ordinal  
+AP4_SyntheticSampleTable::GetNearestSyncSampleIndex(AP4_Ordinal sample_index, bool before)
+{
+    if (before) {
+        for (int i=sample_index; i>=0; i--) {
+            if (m_Samples[i].IsSync()) return i;
+        }
+        // not found?
+        return 0;
+    } else {
+        AP4_Cardinal entry_count = m_Samples.ItemCount();
+        for (unsigned int i=sample_index; i<entry_count; i++) {
+            if (m_Samples[i].IsSync()) return i;
+        }
+        // not found?
+        return m_Samples.ItemCount();
+    }
+}

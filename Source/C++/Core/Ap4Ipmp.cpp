@@ -36,6 +36,15 @@
 /*----------------------------------------------------------------------
 |   AP4_IpmpDescriptorPointer::AP4_IpmpDescriptorPointer
 +---------------------------------------------------------------------*/
+AP4_IpmpDescriptorPointer::AP4_IpmpDescriptorPointer(AP4_UI08 descriptor_id) :
+    AP4_Descriptor(AP4_DESCRIPTOR_TAG_IPMP_DESCRIPTOR_POINTER, 2, 1),
+    m_DescriptorId(descriptor_id)
+{
+}
+
+/*----------------------------------------------------------------------
+|   AP4_IpmpDescriptorPointer::AP4_IpmpDescriptorPointer
++---------------------------------------------------------------------*/
 AP4_IpmpDescriptorPointer::AP4_IpmpDescriptorPointer(AP4_ByteStream& stream, 
                                                      AP4_Size        header_size,
                                                      AP4_Size        payload_size) :
@@ -86,6 +95,20 @@ AP4_IpmpDescriptorPointer::Inspect(AP4_AtomInspector& inspector)
 /*----------------------------------------------------------------------
 |   AP4_IpmpDescriptor::AP4_IpmpDescriptor
 +---------------------------------------------------------------------*/
+AP4_IpmpDescriptor::AP4_IpmpDescriptor(AP4_UI08 descriptor_id, AP4_UI16 ipmps_type) :
+    AP4_Descriptor(AP4_DESCRIPTOR_TAG_IPMP_DESCRIPTOR, 2, 3),
+    m_DescriptorId(descriptor_id),
+    m_IpmpsType(ipmps_type),
+    m_DescriptorIdEx(0),
+    m_ControlPointCode(0),
+    m_SequenceCode(0)
+{
+    AP4_SetMemory(m_ToolId, 0, sizeof(m_ToolId));
+}
+
+/*----------------------------------------------------------------------
+|   AP4_IpmpDescriptor::AP4_IpmpDescriptor
++---------------------------------------------------------------------*/
 AP4_IpmpDescriptor::AP4_IpmpDescriptor(AP4_ByteStream& stream, 
                                        AP4_Size        header_size,
                                        AP4_Size        payload_size) :
@@ -124,6 +147,17 @@ AP4_IpmpDescriptor::AP4_IpmpDescriptor(AP4_ByteStream& stream,
             stream.Read(m_Data.UseData(), payload_size-3);
         }
     }
+}
+
+/*----------------------------------------------------------------------
+|   AP4_IpmpDescriptor::SetData
++---------------------------------------------------------------------*/
+void
+AP4_IpmpDescriptor::SetData(const unsigned char* data, AP4_Size data_size)
+{
+    m_Data.SetData(data, data_size);
+    m_PayloadSize += data_size;
+    m_HeaderSize = MinHeaderSize(m_PayloadSize);
 }
 
 /*----------------------------------------------------------------------

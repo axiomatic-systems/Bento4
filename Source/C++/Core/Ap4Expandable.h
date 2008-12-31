@@ -49,8 +49,7 @@ class AP4_Expandable
  public:
     // types
     enum ClassIdSize {
-        CLASS_ID_SIZE_08,
-        CLASS_ID_SIZE_16
+        CLASS_ID_SIZE_08
     };
      
     // class methods

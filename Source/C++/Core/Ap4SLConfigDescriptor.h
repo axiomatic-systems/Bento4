@@ -47,7 +47,7 @@ class AP4_SLConfigDescriptor : public AP4_Descriptor
 {
 public:
     // methods
-    AP4_SLConfigDescriptor(AP4_Size header_size);
+    AP4_SLConfigDescriptor(AP4_Size header_size = 2);
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
 
 private:

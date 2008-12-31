@@ -31,6 +31,7 @@
 +---------------------------------------------------------------------*/
 #include "Ap4SampleDescription.h"
 #include "Ap4EsDescriptor.h"
+#include "Ap4SLConfigDescriptor.h"
 #include "Ap4SampleEntry.h"
 #include "Ap4AvccAtom.h"
 
@@ -218,6 +219,10 @@ AP4_MpegSampleDescription::CreateEsDescriptor() const
         m_AvgBitrate,
         dsi_desc);
     desc->AddSubDescriptor(decoder_config);
+    
+    // add a fixed SL Config
+    desc->AddSubDescriptor(new AP4_SLConfigDescriptor());
+    
     return desc;
 }
 
