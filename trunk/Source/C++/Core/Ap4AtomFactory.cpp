@@ -75,6 +75,7 @@
 #include "Ap4OdafAtom.h"
 #include "Ap4GrpiAtom.h"
 #include "Ap4AvccAtom.h"
+#include "Ap4Marlin.h"
 
 /*----------------------------------------------------------------------
 |   AP4_AtomFactory::~AP4_AtomFactory
@@ -345,6 +346,10 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
         atom = new AP4_UuidAtom(size, stream);
         break;
         
+      case AP4_ATOM_TYPE_8ID_:
+        atom = new AP4_8id_Atom(size, stream);
+        break;
+
       case AP4_ATOM_TYPE_DREF:
         if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
         atom = AP4_DrefAtom::Create(size_32, stream, *this);

@@ -149,6 +149,37 @@ private:
 };
 
 /*----------------------------------------------------------------------
+|   AP4_TrackPropertyMap
++---------------------------------------------------------------------*/
+class AP4_TrackPropertyMap
+{
+public:
+    // methods
+    AP4_Result  SetProperty(AP4_UI32 track_id, const char* name, const char* value);
+    AP4_Result  SetProperties(const AP4_TrackPropertyMap& properties);
+    const char* GetProperty(AP4_UI32 track_id, const char* name);
+    AP4_Result  GetTextualHeaders(AP4_UI32 track_id, AP4_DataBuffer& buffer);
+    
+
+    // destructor
+    virtual ~AP4_TrackPropertyMap();
+
+private:
+    // types
+    class Entry {
+    public:
+        Entry(AP4_UI32 track_id, const char* name, const char* value) :
+          m_TrackId(track_id), m_Name(name), m_Value(value) {}
+        AP4_UI32   m_TrackId;
+        AP4_String m_Name;
+        AP4_String m_Value;
+    };
+
+    // members
+    AP4_List<Entry> m_Entries;
+};
+
+/*----------------------------------------------------------------------
 |   AP4_ProtectionSchemeInfo
 +---------------------------------------------------------------------*/
 class AP4_ProtectionSchemeInfo

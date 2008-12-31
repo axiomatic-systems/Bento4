@@ -125,10 +125,12 @@ class AP4_MarlinIpmpEncryptingProcessor : public AP4_Processor
 {
 public:
     // constructor
-    AP4_MarlinIpmpEncryptingProcessor(AP4_BlockCipherFactory* block_cipher_factory = NULL);
+    AP4_MarlinIpmpEncryptingProcessor(const AP4_ProtectionKeyMap* key_map = NULL,
+                                      AP4_BlockCipherFactory*     block_cipher_factory = NULL);
 
     // accessors
-    AP4_ProtectionKeyMap& GetKeyMap() { return m_KeyMap; }
+    AP4_ProtectionKeyMap& GetKeyMap()      { return m_KeyMap;      }
+    AP4_TrackPropertyMap& GetPropertyMap() { return m_PropertyMap; }
 
     // AP4_Processor methods
     virtual AP4_Result Initialize(AP4_AtomParent&   top_level,
@@ -140,6 +142,26 @@ private:
     // members
     AP4_BlockCipherFactory* m_BlockCipherFactory;
     AP4_ProtectionKeyMap    m_KeyMap;
+    AP4_TrackPropertyMap    m_PropertyMap;
+};
+
+/*----------------------------------------------------------------------
+|   AP4_8id_Atom
++---------------------------------------------------------------------*/
+class AP4_8id_Atom : public AP4_Atom
+{
+public:
+    // methods
+    AP4_8id_Atom(AP4_UI32 size, AP4_ByteStream& stream);
+
+    // methods
+    AP4_8id_Atom(const char* octopus_id);
+    virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
+    virtual AP4_Result WriteFields(AP4_ByteStream& stream);
+
+private:
+    // members
+    AP4_String m_OctopusId;
 };
 
 #endif // _AP4_MARLIN_H_

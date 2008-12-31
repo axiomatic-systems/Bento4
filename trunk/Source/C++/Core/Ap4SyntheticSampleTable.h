@@ -69,6 +69,7 @@ class AP4_SyntheticSampleTable : public AP4_SampleTable
     virtual AP4_SampleDescription* GetSampleDescription(AP4_Ordinal index);
     virtual AP4_Result GetSampleIndexForTimeStamp(AP4_TimeStamp ts,
                                                   AP4_Ordinal&  index);
+    virtual AP4_Ordinal  GetNearestSyncSampleIndex(AP4_Ordinal index, bool before);
 
     // methods
     /**

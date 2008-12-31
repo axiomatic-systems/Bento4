@@ -35,7 +35,7 @@
 /*----------------------------------------------------------------------
 |   AP4_SLConfigDescriptor::AP4_SLConfigDescriptor
 +---------------------------------------------------------------------*/
-AP4_SLConfigDescriptor::AP4_SLConfigDescriptor(AP4_Size header_size = 2) :
+AP4_SLConfigDescriptor::AP4_SLConfigDescriptor(AP4_Size header_size) :
     AP4_Descriptor(AP4_DESCRIPTOR_TAG_SL_CONFIG, header_size, 1),
     m_Predefined(2)
 {

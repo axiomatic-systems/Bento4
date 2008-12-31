@@ -46,6 +46,8 @@
 #include "Ap4FileByteStream.h"
 #include "Ap4Ipmp.h"
 #include "Ap4AesBlockCipher.h"
+#include "Ap4SyntheticSampleTable.h"
+#include "Ap4HdlrAtom.h"
 
 /*----------------------------------------------------------------------
 |   AP4_MarlinIpmpDecryptingProcessor:AP4_MarlinIpmpDecryptingProcessor
@@ -369,12 +371,6 @@ AP4_MarlinIpmpTrackDecrypter::~AP4_MarlinIpmpTrackDecrypter()
 AP4_Size 
 AP4_MarlinIpmpTrackDecrypter::GetProcessedSampleSize(AP4_Sample& sample)
 {
-    //AP4_DataBuffer foo;
-    //sample.ReadData(foo);
-    //FILE* out = fopen("audio.cbc", "w");
-    //fwrite(foo.GetData(), 1, foo.GetDataSize(), out);
-    //fclose(out);
-    
     // with CBC, we need to decrypt the last block to know what the padding was
     AP4_Size       encrypted_size = sample.GetSize()-AP4_AES_BLOCK_SIZE;
     AP4_DataBuffer encrypted;
@@ -442,8 +438,19 @@ AP4_MarlinIpmpTrackDecrypter::ProcessSample(AP4_DataBuffer& data_in,
 |   AP4_MarlinIpmpEncryptingProcessor::AP4_MarlinIpmpEncryptingProcessor
 +---------------------------------------------------------------------*/
 AP4_MarlinIpmpEncryptingProcessor::AP4_MarlinIpmpEncryptingProcessor(
-    AP4_BlockCipherFactory* /*block_cipher_factory*/)
+    const AP4_ProtectionKeyMap* key_map              /* = NULL */,
+    AP4_BlockCipherFactory*     block_cipher_factory /* = NULL */)
 {
+    if (key_map) {
+        // copy the keys
+        m_KeyMap.SetKeys(*key_map);
+    }
+    
+    if (block_cipher_factory == NULL) {
+        m_BlockCipherFactory = &AP4_DefaultBlockCipherFactory::Instance;
+    } else {
+        m_BlockCipherFactory = block_cipher_factory;
+    }
 }
 
 /*----------------------------------------------------------------------
@@ -451,10 +458,179 @@ AP4_MarlinIpmpEncryptingProcessor::AP4_MarlinIpmpEncryptingProcessor(
 +---------------------------------------------------------------------*/
 AP4_Result 
 AP4_MarlinIpmpEncryptingProcessor::Initialize(
-    AP4_AtomParent&                  /*top_level*/,
+    AP4_AtomParent&                  top_level,
     AP4_ByteStream&                  /*stream*/,
     AP4_Processor::ProgressListener* /*listener = NULL*/)
 {
+    // get the moov atom
+    AP4_MoovAtom* moov = dynamic_cast<AP4_MoovAtom*>(top_level.GetChild(AP4_ATOM_TYPE_MOOV));
+    if (moov == NULL) return AP4_ERROR_INVALID_FORMAT;
+    
+    // deal with the file type
+    AP4_FtypAtom* ftyp = dynamic_cast<AP4_FtypAtom*>(top_level.GetChild(AP4_ATOM_TYPE_FTYP));
+    if (ftyp) {
+        // remove the atom, it will be replaced with a new one
+        top_level.RemoveChild(ftyp);
+        
+        // keep the existing brand and compatible brands
+        AP4_Array<AP4_UI32> compatible_brands;
+        compatible_brands.EnsureCapacity(ftyp->GetCompatibleBrands().ItemCount()+1);
+        for (unsigned int i=0; i<ftyp->GetCompatibleBrands().ItemCount(); i++) {
+            compatible_brands.Append(ftyp->GetCompatibleBrands()[i]);
+        }
+        
+        // add the OMA compatible brand if it is not already there
+        if (!ftyp->HasCompatibleBrand(AP4_MARLIN_BRAND_MGSV)) {
+            compatible_brands.Append(AP4_MARLIN_BRAND_MGSV);
+        }
+
+        // create a replacement
+        AP4_FtypAtom* new_ftyp = new AP4_FtypAtom(ftyp->GetMajorBrand(),
+                                                  ftyp->GetMinorVersion(),
+                                                  &compatible_brands[0],
+                                                  compatible_brands.ItemCount());
+        delete ftyp;
+        ftyp = new_ftyp;
+    } else {
+        AP4_UI32 isom = AP4_FTYP_BRAND_ISOM;
+        ftyp = new AP4_FtypAtom(AP4_MARLIN_BRAND_MGSV, 0, &isom, 1);
+    }
+    
+    // insert the ftyp atom as the first child
+    top_level.AddChild(ftyp, 0);
+
+    // create and 'mpod' track reference atom
+    AP4_TrefTypeAtom* mpod = new AP4_TrefTypeAtom(AP4_ATOM_TYPE_MPOD);
+    
+    // look for an available track ID, starting at 1
+    unsigned int od_track_id       = 0;
+    unsigned int od_track_position = 0;
+    AP4_List<AP4_TrakAtom>::Item* trak_item = moov->GetTrakAtoms().FirstItem();
+    while (trak_item) {
+        AP4_TrakAtom* trak = trak_item->GetData();
+        if (trak) {
+            od_track_position++;
+            if (trak->GetId() >= od_track_id) {
+                od_track_id = trak->GetId()+1;
+            }
+            
+            // if the track is encrypted, reference it in the mpod
+            if (m_KeyMap.GetKey(trak->GetId())) {
+                mpod->AddTrackId(trak->GetId());
+            }
+            
+            //m_SinfEntries.Add(new SinfEntry(trak->GetId(), NULL));
+        }
+        trak_item = trak_item->GetNext();
+    }
+    
+    // check that there was at least one track in the file
+    if (od_track_id == 0) return AP4_ERROR_INVALID_FORMAT;
+    
+    // create an initial object descriptor
+    AP4_InitialObjectDescriptor* iod = 
+        new AP4_InitialObjectDescriptor(AP4_DESCRIPTOR_TAG_MP4_IOD,
+                                        1022, // object descriptor id
+                                        false, 0, 0, 0, 0, 0); // FIXME: use real values
+
+    // create an ES_ID_Inc subdescriptor and add it to the initial object descriptor
+    AP4_EsIdIncDescriptor* es_id_inc = new AP4_EsIdIncDescriptor(od_track_id);
+    iod->AddSubDescriptor(es_id_inc);
+    
+    // create an iods atom to hold the initial object descriptor
+    AP4_IodsAtom* iods = new AP4_IodsAtom(iod);
+    
+    // add the iods atom to the moov atom (try to put it just after mvhd)
+    int iods_position = 0;
+    int item_position = 0;
+    for (AP4_List<AP4_Atom>::Item* item = moov->GetChildren().FirstItem();
+         item;
+         ++item) {
+         ++item_position;
+         if (item->GetData()->GetType() == AP4_ATOM_TYPE_MVHD) {
+            iods_position = item_position;
+            break;
+         }
+    }
+    AP4_Result result = moov->AddChild(iods, iods_position);
+    if (AP4_FAILED(result)) {
+        delete iods;
+        return result;
+    }
+    
+    // create a sample table for the OD track
+    AP4_SyntheticSampleTable* od_sample_table = new AP4_SyntheticSampleTable();
+    
+    // create the sample description for the OD track 
+    AP4_MpegSystemSampleDescription* od_sample_description;
+    od_sample_description = new AP4_MpegSystemSampleDescription(AP4_STREAM_TYPE_OD,
+                                                                AP4_OTI_MPEG4_SYSTEM,
+                                                                NULL,
+                                                                32768, // buffer size
+                                                                1024,  // max bitrate
+                                                                512);  // avg bitrate
+    od_sample_table->AddSampleDescription(od_sample_description, true);
+    
+    // create the OD descriptor update 
+    AP4_DescriptorUpdateCommand od_update(AP4_COMMAND_TAG_OBJECT_DESCRIPTOR_UPDATE);
+    for (unsigned int i=0; i<mpod->GetTrackIds().ItemCount(); i++) {
+        od_update.AddDescriptor(new AP4_EsIdIncDescriptor(i));
+        od_update.AddDescriptor(new AP4_IpmpDescriptorPointer(i+1)); // descriptor id = i+1
+    }
+    
+    // create the IPMP descriptor update 
+    AP4_DescriptorUpdateCommand ipmp_update(AP4_COMMAND_TAG_IPMP_DESCRIPTOR_UPDATE);
+    for (unsigned int i=0; i<mpod->GetTrackIds().ItemCount(); i++) {
+        // create the ipmp descriptor
+        AP4_IpmpDescriptor* ipmp_descriptor = new AP4_IpmpDescriptor(i+1, AP4_MARLIN_IPMPS_TYPE_MGSV);
+
+        // create the sinf container
+        AP4_ContainerAtom* sinf = new AP4_ContainerAtom(AP4_ATOM_TYPE_SINF);
+
+        // add the scheme type atom
+        sinf->AddChild(new AP4_SchmAtom(AP4_MARLIN_SCHEME_TYPE_ACBC, 0x0100, NULL, true));
+
+        // setup the scheme info atom
+        const char* content_id = m_PropertyMap.GetProperty(mpod->GetTrackIds()[i], "ContentId");
+        if (content_id) {
+            AP4_ContainerAtom* schi = new AP4_ContainerAtom(AP4_ATOM_TYPE_SCHI);
+            schi->AddChild(new AP4_8id_Atom(content_id));
+            sinf->AddChild(schi);
+        }
+         
+        // serialize the sinf atom to a buffer and set it as the ipmp data
+        AP4_MemoryByteStream* sinf_data = new AP4_MemoryByteStream((AP4_Size)sinf->GetSize());
+        sinf->Write(*sinf_data);
+        ipmp_descriptor->SetData(sinf_data->GetData(), sinf_data->GetDataSize());
+        sinf_data->Release();
+        
+        ipmp_update.AddDescriptor(ipmp_descriptor);
+    }
+    
+    // add the sample with the descriptors and updates
+    AP4_MemoryByteStream* sample_data = new AP4_MemoryByteStream();
+    od_update.Write(*sample_data);
+    ipmp_update.Write(*sample_data);
+    od_sample_table->AddSample(*sample_data, 0, sample_data->GetDataSize(), 0, 0, 0, true);
+    sample_data->Release();
+    
+    // create the OD track
+    AP4_TrakAtom* od_track = new AP4_TrakAtom(od_sample_table,
+                                              AP4_HANDLER_TYPE_ODSM,
+                                              "Bento4 Marlin OD Handler",
+                                              od_track_id,
+                                              0, 0,
+                                              1, 1000, 1, 0, "und",
+                                              0, 0);
+    
+    // add a tref track reference atom
+    AP4_ContainerAtom* tref = new AP4_ContainerAtom(AP4_ATOM_TYPE_TREF);
+    tref->AddChild(mpod);
+    od_track->AddChild(tref, 1); // add after 'tkhd'
+    
+    // add the track to the moov atoms (just after the last track)
+    moov->AddChild(od_track, od_track_position);
+    
     return AP4_SUCCESS;
 }
 
@@ -467,3 +643,54 @@ AP4_MarlinIpmpEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* /*trak*/)
     return NULL;
 }
 
+/*----------------------------------------------------------------------
+|   AP4_8id_Atom::AP4_8id_Atom
++---------------------------------------------------------------------*/
+AP4_8id_Atom::AP4_8id_Atom(const char* octopus_id) :
+    AP4_Atom(AP4_ATOM_TYPE_8ID_, AP4_ATOM_HEADER_SIZE),
+    m_OctopusId(octopus_id)
+{
+    m_Size32 += m_OctopusId.GetLength()+1;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_8id_Atom::AP4_8id_Atom
++---------------------------------------------------------------------*/
+AP4_8id_Atom::AP4_8id_Atom(AP4_UI32 size, AP4_ByteStream& stream) :
+    AP4_Atom(AP4_ATOM_TYPE_8ID_, size)
+{
+    AP4_Size str_size = size-AP4_ATOM_HEADER_SIZE;
+    char* str = new char[str_size];
+    stream.Read(str, str_size);
+    str[str_size-1] = '\0'; // force null-termination
+    m_OctopusId = str;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_8id_Atom::WriteFields
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_8id_Atom::WriteFields(AP4_ByteStream& stream)
+{
+    if (m_Size32 > AP4_ATOM_HEADER_SIZE) {
+        AP4_Result result = stream.Write(m_OctopusId.GetChars(), m_OctopusId.GetLength()+1);
+        if (AP4_FAILED(result)) return result;
+
+        // pad with zeros if necessary
+        AP4_Size padding = m_Size32-(AP4_ATOM_HEADER_SIZE+m_OctopusId.GetLength()+1);
+        while (padding--) stream.WriteUI08(0);
+    }
+
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_8id_Atom::InspectFields
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_8id_Atom::InspectFields(AP4_AtomInspector& inspector)
+{
+    inspector.AddField("octopus id", m_OctopusId.GetChars());
+
+    return AP4_SUCCESS;
+}

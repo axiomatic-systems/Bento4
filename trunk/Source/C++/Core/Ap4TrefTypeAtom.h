@@ -48,10 +48,14 @@ public:
         return new AP4_TrefTypeAtom(type, size, stream);
     }
 
+    // contructor
+    AP4_TrefTypeAtom(AP4_Atom::Type type);
+    
     // methods
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
-    
+    AP4_Result AddTrackId(AP4_UI32 track_id);
+
     // accessors
     const AP4_Array<AP4_UI32>& GetTrackIds() { return m_TrackIds; }
     

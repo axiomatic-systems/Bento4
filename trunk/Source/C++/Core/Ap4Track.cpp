@@ -313,6 +313,16 @@ AP4_Track::GetSampleIndexForTimeStampMs(AP4_TimeStamp ts, AP4_Ordinal& index)
 }
 
 /*----------------------------------------------------------------------
+|   AP4_Track::GetNearestSyncSampleIndex
++---------------------------------------------------------------------*/
+AP4_Ordinal  
+AP4_Track::GetNearestSyncSampleIndex(AP4_Ordinal index, bool before /* = true */)
+{
+    if (m_SampleTable == NULL) return index;
+    return m_SampleTable->GetNearestSyncSampleIndex(index, before);
+}
+
+/*----------------------------------------------------------------------
 |   AP4_Track::SetMovieTimeScale
 +---------------------------------------------------------------------*/
 AP4_Result

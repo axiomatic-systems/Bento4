@@ -61,8 +61,15 @@ class AP4_ObjectDescriptor : public AP4_Descriptor
                          AP4_UI08        tag,
                          AP4_Size        header_size, 
                          AP4_Size        payload_size);
+    AP4_ObjectDescriptor(AP4_UI08 tag, AP4_UI16 id);
     virtual ~AP4_ObjectDescriptor();
+    
+    /**
+     * Add a sub-descriptor. 
+     * Ownership of the sub-descriptor object is transfered.
+     */ 
     virtual AP4_Result AddSubDescriptor(AP4_Descriptor* descriptor);
+    
     virtual const AP4_Descriptor* FindSubDescriptor(AP4_UI08 tag) const;
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
     virtual AP4_Result Inspect(AP4_AtomInspector& inspector);
@@ -94,6 +101,15 @@ class AP4_InitialObjectDescriptor : public AP4_ObjectDescriptor
                                 AP4_UI08        tag,
                                 AP4_Size        header_size, 
                                 AP4_Size        payload_size);
+    AP4_InitialObjectDescriptor(AP4_UI08    tag, // should be AP4_DESCRIPTOR_TAG_IOD or AP4_DESCRIPTOR_TAG_MP4_IOD
+                                AP4_UI16    object_descriptor_id,
+                                bool        include_inline_profile_level,
+                                AP4_UI08    od_profile_level_indication,
+                                AP4_UI08    scene_profile_level_indication,
+                                AP4_UI08    audio_profile_level_indication,
+                                AP4_UI08    visual_profile_level_indication,
+                                AP4_UI08    graphics_profile_level_indication);
+
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
     virtual AP4_Result Inspect(AP4_AtomInspector& inspector);
     
@@ -126,6 +142,7 @@ class AP4_DescriptorUpdateCommand : public AP4_Command
 {
  public:
     // methods
+    AP4_DescriptorUpdateCommand(AP4_UI08 tag);
     AP4_DescriptorUpdateCommand(AP4_ByteStream& stream, 
                                 AP4_UI08        tag,
                                 AP4_Size        header_size, 

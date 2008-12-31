@@ -183,7 +183,9 @@ main(int argc, char** argv)
             char* track_ascii = NULL;
             char* name = NULL;
             char* value = NULL;
-            if (method != METHOD_OMA_PDCF_CBC && method != METHOD_OMA_PDCF_CTR) {
+            if (method != METHOD_OMA_PDCF_CBC && 
+                method != METHOD_OMA_PDCF_CTR &&
+                method != METHOD_MARLIN_IPMP) {
                 fprintf(stderr, "ERROR: this method does not use properties\n");
                 return 1;
             }
@@ -244,6 +246,7 @@ main(int argc, char** argv)
         AP4_MarlinIpmpEncryptingProcessor* marlin_processor = 
             new AP4_MarlinIpmpEncryptingProcessor();
         marlin_processor->GetKeyMap().SetKeys(key_map);
+        marlin_processor->GetPropertyMap().SetProperties(property_map);
         processor = marlin_processor;
     } else {
         AP4_OmaDcfEncryptingProcessor* oma_processor = 

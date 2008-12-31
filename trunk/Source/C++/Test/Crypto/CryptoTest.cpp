@@ -1,6 +1,6 @@
 /*****************************************************************
 |
-|    AP4 - MP4 Decrypter
+|    AP4 - Crypto Test
 |
 |    Copyright 2002-2008 Axiomatic Systems, LLC
 |

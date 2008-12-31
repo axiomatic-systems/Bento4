@@ -60,6 +60,7 @@ public:
     virtual AP4_SampleDescription* GetSampleDescription(AP4_Ordinal index) = 0;
     virtual AP4_Result   GetSampleIndexForTimeStamp(AP4_TimeStamp ts,
                                                     AP4_Ordinal&  index) = 0;
+    virtual AP4_Ordinal  GetNearestSyncSampleIndex(AP4_Ordinal index, bool before=true) = 0;
 };
 
 #endif // _AP4_SAMPLE_TABLE_H_

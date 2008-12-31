@@ -34,6 +34,14 @@
 /*----------------------------------------------------------------------
 |   AP4_TrefTypeAtom::AP4_TrefTypeAtom
 +---------------------------------------------------------------------*/
+AP4_TrefTypeAtom::AP4_TrefTypeAtom(AP4_Atom::Type  type) :
+    AP4_Atom(type, AP4_ATOM_HEADER_SIZE)
+{
+}
+
+/*----------------------------------------------------------------------
+|   AP4_TrefTypeAtom::AP4_TrefTypeAtom
++---------------------------------------------------------------------*/
 AP4_TrefTypeAtom::AP4_TrefTypeAtom(AP4_Atom::Type  type, 
                                    AP4_UI32        size, 
                                    AP4_ByteStream& stream) :
@@ -48,6 +56,19 @@ AP4_TrefTypeAtom::AP4_TrefTypeAtom(AP4_Atom::Type  type,
         m_TrackIds.Append(track_id);
         data_size -= 4;
     }
+}
+
+/*----------------------------------------------------------------------
+|   AP4_TrefTypeAtom::AddTrackId
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_TrefTypeAtom::AddTrackId(AP4_UI32 track_id)
+{
+    AP4_Result result = m_TrackIds.Append(track_id);
+    if (AP4_SUCCEEDED(result)) {
+        m_Size32 += 4;
+    }
+    return result;
 }
 
 /*----------------------------------------------------------------------
