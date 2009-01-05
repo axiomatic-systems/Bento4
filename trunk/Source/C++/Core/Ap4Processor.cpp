@@ -98,11 +98,11 @@ AP4_Processor::Process(AP4_ByteStream&   input,
 
     // process the tracks if we have a moov atom
     AP4_Array<AP4_SampleLocator> locators;
-    AP4_Cardinal                 track_count = 0;
-    AP4_List<AP4_TrakAtom>*      trak_atoms = NULL;
+    AP4_Cardinal                 track_count       = 0;
+    AP4_List<AP4_TrakAtom>*      trak_atoms        = NULL;
     AP4_LargeSize                mdat_payload_size = 0;
-    TrackHandler**               handlers = NULL;
-    AP4_SampleCursor*            cursors = NULL;
+    TrackHandler**               handlers          = NULL;
+    AP4_SampleCursor*            cursors           = NULL;
     if (moov) {
         // build an array of track sample locators
         trak_atoms = &moov->GetTrakAtoms();
@@ -112,23 +112,35 @@ AP4_Processor::Process(AP4_ByteStream&   input,
         for (AP4_Ordinal i=0; i<track_count; i++) {
             handlers[i] = NULL;
         }
-        AP4_List<AP4_TrakAtom>::Item* item = trak_atoms->FirstItem();
+        
         unsigned int index = 0;
-        while (item) {
+        for (AP4_List<AP4_TrakAtom>::Item* item = trak_atoms->FirstItem(); item; item=item->GetNext()) {
+            AP4_TrakAtom* trak = item->GetData();
+
             // find the stsd atom
             AP4_ContainerAtom* stbl = dynamic_cast<AP4_ContainerAtom*>(
-                item->GetData()->FindChild("mdia/minf/stbl"));
+                trak->FindChild("mdia/minf/stbl"));
             if (stbl == NULL) continue;
             
+            // see if there's an external data source for this track
+            AP4_ByteStream* trak_data_stream = &input;
+            for (AP4_List<ExternalTrackData>::Item* ditem = m_ExternalTrackData.FirstItem(); ditem; ditem=ditem->GetNext()) {
+                ExternalTrackData* tdata = ditem->GetData();
+                if (tdata->m_TrackId == trak->GetId()) {
+                    trak_data_stream = tdata->m_MediaData;
+                    break;
+                }
+            }
+
             // create the track handler    
-            handlers[index] = CreateTrackHandler(item->GetData());
+            handlers[index] = CreateTrackHandler(trak);
             cursors[index].m_Locator.m_TrakIndex   = index;
-            cursors[index].m_Locator.m_SampleTable = new AP4_AtomSampleTable(stbl, input);
+            cursors[index].m_Locator.m_SampleTable = new AP4_AtomSampleTable(stbl, *trak_data_stream);
             cursors[index].m_Locator.m_SampleIndex = 0;
             cursors[index].m_Locator.m_ChunkIndex  = 0;
             cursors[index].m_Locator.m_SampleTable->GetSample(0, cursors[index].m_Locator.m_Sample);
-            index++;
-            item = item->GetNext();
+
+            index++;            
         }
 
         // figure out the layout of the chunks
@@ -246,7 +258,7 @@ AP4_Processor::Process(AP4_ByteStream&   input,
 
     // write the samples
     if (moov) {
-        AP4_Sample sample;
+        AP4_Sample     sample;
         AP4_DataBuffer data_in;
         AP4_DataBuffer data_out;
         for (unsigned int i=0; i<locators.ItemCount(); i++) {

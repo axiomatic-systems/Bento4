@@ -671,6 +671,11 @@ AP4_DecryptingStream::Create(CipherMode              mode,
     // default return value
     stream = NULL;
 
+    // default cipher settings
+    if (block_cipher_factory == NULL) {
+        block_cipher_factory = &AP4_DefaultBlockCipherFactory::Instance;
+    }
+    
     // get the encrypted size (includes padding)
     AP4_LargeSize encrypted_size = 0;
     AP4_Result result = encrypted_stream.GetSize(encrypted_size);

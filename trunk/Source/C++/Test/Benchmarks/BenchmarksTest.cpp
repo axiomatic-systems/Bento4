@@ -109,13 +109,194 @@ GetTime()
 static void
 PrintUsage()
 {
-    printf("benchmarktest <test-name> [, <test-name>, ...]\n"
+    printf("benchmarktest [options] <test-name> [, <test-name>, ...]\n"
+           "options:\n"
+           "  --test-file-1=<filename> (MP4 file for read-samples)\n"
+           "  --test-file-2=<filename> (DCF file for read-samples-dcf)\n"
+           "\n"
            "valid test names are:\n"
            "all: run all tests\n"
            "or one or more of the following tests:\n"
            "aes-block-decrypt, aes-block-encrypt, \n"
            "aes-cbc-stream-encrypt, aes-cbc-stream-decrypt\n"
-           "aes-ctr-stream\n");
+           "aes-ctr-stream\n"
+           "read-samples\n"
+           "read-samples-dcf\n");
+}
+
+/*----------------------------------------------------------------------
+|   CreateDcfDecrypter
++---------------------------------------------------------------------*/
+static AP4_ByteStream*
+CreateDcfDecrypter(AP4_AtomParent& atoms, const AP4_Byte* key)
+{
+    for (AP4_List<AP4_Atom>::Item* item = atoms.GetChildren().FirstItem();
+         item;
+        item = item->GetNext()) {
+        AP4_Atom* atom = item->GetData();
+        if (atom->GetType() != AP4_ATOM_TYPE_ODRM) continue;
+
+        // check that we have all the atoms we need
+        AP4_ContainerAtom* odrm = dynamic_cast<AP4_ContainerAtom*>(atom);
+        if (odrm == NULL) continue; // not enough info
+        AP4_OdheAtom* odhe = dynamic_cast<AP4_OdheAtom*>(odrm->GetChild(AP4_ATOM_TYPE_ODHE));
+        if (odhe == NULL) continue; // not enough info    
+        AP4_OddaAtom* odda = dynamic_cast<AP4_OddaAtom*>(odrm->GetChild(AP4_ATOM_TYPE_ODDA));;
+        if (odda == NULL) continue; // not enough info
+        AP4_OhdrAtom* ohdr = dynamic_cast<AP4_OhdrAtom*>(odhe->GetChild(AP4_ATOM_TYPE_OHDR));
+        if (ohdr == NULL) continue; // not enough info
+
+        // do nothing if the atom is not encrypted
+        if (ohdr->GetEncryptionMethod() == AP4_OMA_DCF_ENCRYPTION_METHOD_NULL) {
+            continue;
+        }
+                
+        // create the byte stream
+        AP4_ByteStream* cipher_stream = NULL;
+        AP4_Result result = AP4_OmaDcfAtomDecrypter::CreateDecryptingStream(*odrm, 
+                                                   key, 
+                                                   16, 
+                                                   NULL, 
+                                                   cipher_stream);
+        if (AP4_SUCCEEDED(result)) {
+            return cipher_stream;
+        }
+    }
+
+    return NULL;
+}
+
+/*----------------------------------------------------------------------
+|   LoadSamples
++---------------------------------------------------------------------*/
+static unsigned int
+LoadSamples(AP4_Track* track, unsigned int repeat)
+{
+    unsigned int total_size = 0;
+    while (repeat--) {
+        AP4_Sample     sample;
+        AP4_DataBuffer sample_data;
+        AP4_Ordinal    index = 0;
+        while (AP4_SUCCEEDED(track->ReadSample(index, sample, sample_data))) {
+            total_size += sample.GetSize();
+            index++;
+        }
+    }
+    
+    return total_size;
+}
+
+#if 0
+/*----------------------------------------------------------------------
+|   DecryptAndDumpSamples
++---------------------------------------------------------------------*/
+static void
+DecryptAndDumpSamples(AP4_Track*             track, 
+                      AP4_SampleDescription* sample_desc,
+                      const AP4_UI08*        key,
+                      AP4_ByteStream*        dump)
+{
+    AP4_ProtectedSampleDescription* pdesc = 
+        dynamic_cast<AP4_ProtectedSampleDescription*>(sample_desc);
+    if (pdesc == NULL) {
+        fprintf(stderr, "ERROR: unable to obtain cipher info\n");
+        return;
+    }
+
+    // create the decrypter
+    AP4_SampleDecrypter* decrypter = AP4_SampleDecrypter::Create(pdesc, key, 16);
+    if (decrypter == NULL) {
+        fprintf(stderr, "ERROR: unable to create decrypter\n");
+        return;
+    }
+
+    AP4_Sample     sample;
+    AP4_DataBuffer encrypted_data;
+    AP4_DataBuffer decrypted_data;
+    AP4_Ordinal    index = 0;
+    while (AP4_SUCCEEDED(track->ReadSample(index, sample, encrypted_data))) {
+        if (AP4_FAILED(decrypter->DecryptSampleData(encrypted_data, decrypted_data))) {
+            fprintf(stderr, "ERROR: failed to decrypt sample\n");
+            return;
+        }
+
+        // write the sample size
+        dump->WriteUI32(decrypted_data.GetDataSize());
+
+        // write the sample
+        dump->Write(decrypted_data.GetData(), decrypted_data.GetDataSize());
+        index++;
+        if (index%10 == 0) printf(".");
+    }
+    printf("\n");
+}
+#endif
+
+/*----------------------------------------------------------------------
+|   LoadAllSamples
++---------------------------------------------------------------------*/
+static unsigned int
+LoadAllSamples(const char* filename, unsigned int repeats, bool is_dcf)
+{
+    // open the input
+    AP4_ByteStream* input = NULL;
+    try {
+        input = new AP4_FileByteStream(filename,
+                               AP4_FileByteStream::STREAM_MODE_READ);
+    } catch (AP4_Exception) {
+        fprintf(stderr, "ERROR: cannot open input file (%s)\n", filename);
+        return 0;
+    }
+        
+    // parse the file
+    AP4_File* mp4_file = new AP4_File(*input);
+
+    // create a stream decrypter if necessary
+    if (is_dcf) {
+        const AP4_UI08 key[16] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f};
+        input->Release();
+        input = CreateDcfDecrypter(*mp4_file, key);
+        delete mp4_file;
+        mp4_file = new AP4_File(*input);
+    }
+    
+    // dump all the tracks that need to be dumped
+    unsigned int total_size = 0;
+    for (AP4_List<AP4_Track>::Item* item = mp4_file->GetMovie()->GetTracks().FirstItem(); item; item=item->GetNext()) {
+        AP4_Track* track = item->GetData();
+
+        // get the sample description
+        AP4_SampleDescription* sample_description = track->GetSampleDescription(0);
+
+        switch(sample_description ?
+               sample_description->GetType() :
+               AP4_SampleDescription::TYPE_UNKNOWN) {
+#if 0
+            case AP4_SampleDescription::TYPE_PROTECTED:
+                {
+                    const AP4_UI08* key = key_map.GetKey(track_id);
+                    if (key == NULL) {
+                        fprintf(stderr, 
+                                "WARNING: No key found for encrypted track %d... "
+                                "dumping encrypted samples\n",
+                                track_id);
+                        DumpSamples(track, dump);
+                    } else {
+                        DecryptAndDumpSamples(track, sample_description, key, dump);
+                    }
+                }
+                break;
+#endif
+            default:
+                total_size += LoadSamples(track, repeats);
+        
+        }
+    }
+
+    delete mp4_file;
+    input->Release();
+    
+    return total_size;
 }
 
 /*----------------------------------------------------------------------
@@ -134,7 +315,11 @@ main(int argc, char** argv)
     bool do_aes_cbc_stream_encrypt = false;
     bool do_aes_cbc_stream_decrypt = false;
     bool do_aes_ctr_stream         = false;
-
+    bool do_read_samples           = false;
+    bool do_read_samples_dcf       = false;
+    const char* test_file_1        = "test-001.mp4";
+    const char* test_file_2        = "test-001.mp4.cbc.odf";
+    
     while (const char* arg = *(++argv)) {
         if (!strcmp(arg, "aes-block-decrypt")) {
             do_aes_block_decrypt = true;
@@ -146,12 +331,21 @@ main(int argc, char** argv)
             do_aes_cbc_stream_decrypt = true;
         } else if (!strcmp(arg, "aes-ctr-stream")) {
             do_aes_ctr_stream = true;
+        } else if (!strcmp(arg, "read-samples")) {
+            do_read_samples = true;
+        } else if (!strcmp(arg, "read-samples-dcf")) {
+            do_read_samples_dcf = true;
+        } else if (!strncmp(arg, "--test-file-1=", 14)) {
+            test_file_1 = arg+14;
+        } else if (!strncmp(arg, "--test-file-2=", 14)) {
+            test_file_2 = arg+14;
         } else if (!strcmp(arg, "all")) {
             do_aes_block_decrypt      = true;
             do_aes_block_encrypt      = true;
             do_aes_cbc_stream_encrypt = true;
             do_aes_cbc_stream_decrypt = true;
             do_aes_ctr_stream         = true;
+            do_read_samples           = true;
         } else {
             fprintf(stderr, "ERROR: unknown test name (%s)\n", arg);
             return 1;
@@ -213,6 +407,14 @@ main(int argc, char** argv)
     AP4_Size out_size = ENC_OUT_BUFFER_SIZE;
     ctr_cipher.ProcessBuffer(megabyte_in, ENC_IN_BUFFER_SIZE, megabyte_out, &out_size, false);
     total += ENC_IN_BUFFER_SIZE;
+    BENCH_END
+
+    BENCH_START("Read Samples", do_read_samples)
+    total += LoadAllSamples(test_file_1, 32, false);
+    BENCH_END
+
+    BENCH_START("Read Samples DCF", do_read_samples_dcf)
+    total += LoadAllSamples(test_file_2, 32, true);
     BENCH_END
 
     return 1;

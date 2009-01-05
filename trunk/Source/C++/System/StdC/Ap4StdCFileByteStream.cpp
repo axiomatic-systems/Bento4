@@ -106,6 +106,7 @@ private:
     AP4_ByteStream* m_Delegator;
     AP4_Cardinal    m_ReferenceCount;
     FILE*           m_File;
+    AP4_Position    m_Position;
     AP4_LargeSize   m_Size;
 };
 
@@ -183,6 +184,7 @@ AP4_StdcFileByteStream::AP4_StdcFileByteStream(AP4_FileByteStream* delegator,
     m_Delegator(delegator),
     m_ReferenceCount(1),
     m_File(file),
+    m_Position(0),
     m_Size(size)
 {
 }
@@ -231,6 +233,7 @@ AP4_StdcFileByteStream::ReadPartial(void*     buffer,
 
     if (nbRead > 0) {
         bytesRead = (AP4_Size)nbRead;
+        m_Position += nbRead;
         return AP4_SUCCESS;
     } else if (feof(m_File)) {
         bytesRead = 0;
@@ -256,6 +259,7 @@ AP4_StdcFileByteStream::WritePartial(const void* buffer,
     
     if (nbWritten > 0) {
         bytesWritten = (AP4_Size)nbWritten;
+        m_Position += nbWritten;
         return AP4_SUCCESS;
     } else {
         bytesWritten = 0;
@@ -269,10 +273,13 @@ AP4_StdcFileByteStream::WritePartial(const void* buffer,
 AP4_Result
 AP4_StdcFileByteStream::Seek(AP4_Position position)
 {
+    // shortcut
+    if (position == m_Position) return AP4_SUCCESS;
+    
     size_t result;
-
     result = AP4_fseek(m_File, position, SEEK_SET);
     if (result == 0) {
+        m_Position = position;
         return AP4_SUCCESS;
     } else {
         return AP4_FAILURE;
@@ -285,7 +292,7 @@ AP4_StdcFileByteStream::Seek(AP4_Position position)
 AP4_Result
 AP4_StdcFileByteStream::Tell(AP4_Position& position)
 {
-    position = AP4_ftell(m_File);
+    position = m_Position;
     return AP4_SUCCESS;
 }
 

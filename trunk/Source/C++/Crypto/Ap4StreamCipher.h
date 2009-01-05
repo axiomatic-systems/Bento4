@@ -115,7 +115,6 @@ private:
     AP4_UI64         m_StreamOffset;
     AP4_Size         m_CounterSize;
     AP4_UI08         m_BaseCounter[AP4_CIPHER_BLOCK_SIZE];
-    AP4_UI08         m_CBlock[AP4_CIPHER_BLOCK_SIZE];
     AP4_UI08         m_XBlock[AP4_CIPHER_BLOCK_SIZE];
     AP4_BlockCipher* m_BlockCipher;
 };

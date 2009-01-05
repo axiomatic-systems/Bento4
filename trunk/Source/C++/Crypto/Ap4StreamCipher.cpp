@@ -117,24 +117,25 @@ AP4_CtrStreamCipher::UpdateKeyStream()
     AP4_UI64 counter_offset = m_StreamOffset/AP4_CIPHER_BLOCK_SIZE;
     AP4_UI08 counter_offset_bytes[8];
     AP4_BytesFromUInt64BE(counter_offset_bytes, counter_offset);
-
+    
     // compute the new counter
+    AP4_UI08 counter_block[AP4_CIPHER_BLOCK_SIZE];
     unsigned int carry = 0;
     for (unsigned int i=0; i<m_CounterSize; i++) {
         unsigned int o = AP4_CIPHER_BLOCK_SIZE-1-i;
         unsigned int x = m_BaseCounter[o];
         unsigned int y = (i<8)?counter_offset_bytes[7-i]:0;
         unsigned int sum = x+y+carry;
-        m_CBlock[o] = (AP4_UI08)(sum&0xFF);
+        counter_block[o] = (AP4_UI08)(sum&0xFF);
         carry = ((sum >= 0x100)?1:0);
     }
     for (unsigned int i=m_CounterSize; i<AP4_CIPHER_BLOCK_SIZE; i++) {
         unsigned int o = AP4_CIPHER_BLOCK_SIZE-1-i;
-        m_CBlock[o] = m_BaseCounter[o];
+        counter_block[o] = m_BaseCounter[o];
     }
 
     // compute the key block (x) from the counter block (c)
-    m_BlockCipher->ProcessBlock(m_CBlock, m_XBlock);
+    m_BlockCipher->ProcessBlock(counter_block, m_XBlock);
 }
 
 /*----------------------------------------------------------------------
