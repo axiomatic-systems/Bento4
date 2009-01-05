@@ -656,10 +656,10 @@ AP4_8id_Atom::AP4_8id_Atom(const char* octopus_id) :
 /*----------------------------------------------------------------------
 |   AP4_8id_Atom::AP4_8id_Atom
 +---------------------------------------------------------------------*/
-AP4_8id_Atom::AP4_8id_Atom(AP4_UI32 size, AP4_ByteStream& stream) :
+AP4_8id_Atom::AP4_8id_Atom(AP4_UI64 size, AP4_ByteStream& stream) :
     AP4_Atom(AP4_ATOM_TYPE_8ID_, size)
 {
-    AP4_Size str_size = size-AP4_ATOM_HEADER_SIZE;
+    AP4_Size str_size = (AP4_Size)size-AP4_ATOM_HEADER_SIZE;
     char* str = new char[str_size];
     stream.Read(str, str_size);
     str[str_size-1] = '\0'; // force null-termination

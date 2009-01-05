@@ -152,7 +152,7 @@ class AP4_8id_Atom : public AP4_Atom
 {
 public:
     // methods
-    AP4_8id_Atom(AP4_UI32 size, AP4_ByteStream& stream);
+    AP4_8id_Atom(AP4_UI64 size, AP4_ByteStream& stream);
 
     // methods
     AP4_8id_Atom(const char* octopus_id);
