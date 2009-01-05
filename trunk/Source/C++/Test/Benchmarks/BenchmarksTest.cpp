@@ -34,7 +34,11 @@
 #if !defined _REENTRANT
 #define _REENTRANT
 #endif
+#if defined (WIN32)
+#include <sys/timeb.h>
+#else
 #include <sys/time.h>
+#endif
 
 #include "Ap4.h"
 #include "Ap4StreamCipher.h"
@@ -67,6 +71,24 @@ if (_select) {                          \
     printf(" %f MB/s (%f MB in %f seconds, %d iterations)\n", mbps, mb, time_diff, i); \
 }
 
+#if defined(WIN32)
+/*----------------------------------------------------------------------
+|   GetTime
++---------------------------------------------------------------------*/
+static double
+GetTime()
+{
+    struct _timeb time_stamp;
+
+#if defined(_MSC_VER) && (_MSC_VER >= 1400)
+    _ftime_s(&time_stamp);
+#else
+    _ftime(&time_stamp);
+#endif
+    double nowf = (double)time_stamp.time+((double)time_stamp.millitm)/1000.0f;
+    return nowf;
+}
+#else
 /*----------------------------------------------------------------------
 |   GetTime
 +---------------------------------------------------------------------*/
@@ -79,6 +101,7 @@ GetTime()
     //printf("%f\n", nowf);
     return nowf;
 }
+#endif
 
 /*----------------------------------------------------------------------
 |   PrintUsage
