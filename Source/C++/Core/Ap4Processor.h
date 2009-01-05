@@ -158,6 +158,15 @@ public:
      * needs to be created for that track.
      */
     virtual TrackHandler* CreateTrackHandler(AP4_TrakAtom* trak);
+    
+protected:
+    class ExternalTrackData {
+    public:
+        unsigned int    m_TrackId;
+        AP4_ByteStream* m_MediaData;
+    };
+    
+    AP4_List<ExternalTrackData> m_ExternalTrackData;
 };
 
 #endif // _AP4_PROCESSOR_H_

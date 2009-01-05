@@ -491,6 +491,7 @@ AP4_SubStream::WritePartial(const void* buffer,
 AP4_Result 
 AP4_SubStream::Seek(AP4_Position position)
 {
+    if (position == m_Position) return AP4_SUCCESS;
     if (position > m_Size) return AP4_FAILURE;
     AP4_Result result;
     result = m_Container.Seek(m_Offset+position);
