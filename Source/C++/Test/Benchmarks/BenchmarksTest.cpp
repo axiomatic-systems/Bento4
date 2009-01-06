@@ -56,8 +56,8 @@
 #define BENCH_START(_msg, _select)      \
 if (_select) {                          \
     double before = GetTime();          \
-    double after;                       \
-    double total = 0.0f;                \
+    double after = 0.0;                 \
+    double total = 0.0;                 \
     printf("%s:", _msg);                \
     fflush(stdout);                     \
     unsigned int i;                     \
