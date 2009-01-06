@@ -493,12 +493,8 @@ AP4_SubStream::Seek(AP4_Position position)
 {
     if (position == m_Position) return AP4_SUCCESS;
     if (position > m_Size) return AP4_FAILURE;
-    AP4_Result result;
-    result = m_Container.Seek(m_Offset+position);
-    if (AP4_SUCCEEDED(result)) {
-        m_Position = position;
-    }
-    return result;
+    m_Position = position;
+    return AP4_SUCCESS;
 }
 
 /*----------------------------------------------------------------------
