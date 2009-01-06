@@ -410,11 +410,11 @@ main(int argc, char** argv)
     BENCH_END
 
     BENCH_START("Read Samples", do_read_samples)
-    total += LoadAllSamples(test_file_1, 32, false);
+    total += LoadAllSamples(test_file_1, 16, false);
     BENCH_END
 
     BENCH_START("Read Samples DCF", do_read_samples_dcf)
-    total += LoadAllSamples(test_file_2, 32, true);
+    total += LoadAllSamples(test_file_2, 16, true);
     BENCH_END
 
     return 1;
