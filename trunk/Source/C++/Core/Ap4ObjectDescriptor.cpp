@@ -48,7 +48,7 @@ AP4_ObjectDescriptor::AP4_ObjectDescriptor(AP4_UI08 tag,
 |   AP4_ObjectDescriptor::AP4_ObjectDescriptor
 +---------------------------------------------------------------------*/
 AP4_ObjectDescriptor::AP4_ObjectDescriptor(AP4_UI08 tag, AP4_UI16 id) :
-    AP4_Descriptor(tag, 3, 0),    
+    AP4_Descriptor(tag, 3, 2),    
     m_ObjectDescriptorId(id),
     m_UrlFlag(false)
 {
@@ -412,6 +412,11 @@ AP4_DescriptorUpdateCommand::AddDescriptor(AP4_Descriptor* descriptor)
 {
     m_Descriptors.Add(descriptor);
     m_PayloadSize += descriptor->GetSize();
+
+    // check that the header is still large enough to encode the payload
+    // length
+    unsigned int min_header_size = MinHeaderSize(m_PayloadSize);
+    if (min_header_size > m_HeaderSize) m_HeaderSize = min_header_size;
 
     return AP4_SUCCESS;
 }

@@ -415,6 +415,60 @@ AP4_UnknownAtom::Clone()
 }
 
 /*----------------------------------------------------------------------
+|   AP4_NullTerminatedStringAtom::AP4_NullTerminatedStringAtom
++---------------------------------------------------------------------*/
+AP4_NullTerminatedStringAtom::AP4_NullTerminatedStringAtom(AP4_Atom::Type type, const char* value) :
+    AP4_Atom(type, AP4_ATOM_HEADER_SIZE),
+    m_Value(value)
+{
+    m_Size32 += m_Value.GetLength()+1;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_NullTerminatedStringAtom::AP4_NullTerminatedStringAtom
++---------------------------------------------------------------------*/
+AP4_NullTerminatedStringAtom::AP4_NullTerminatedStringAtom(AP4_Atom::Type  type, 
+                                                           AP4_UI64        size, 
+                                                           AP4_ByteStream& stream) :
+    AP4_Atom(type, size)
+{
+    AP4_Size str_size = (AP4_Size)size-AP4_ATOM_HEADER_SIZE;
+    char* str = new char[str_size];
+    stream.Read(str, str_size);
+    str[str_size-1] = '\0'; // force null-termination
+    m_Value = str;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_NullTerminatedStringAtom::WriteFields
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_NullTerminatedStringAtom::WriteFields(AP4_ByteStream& stream)
+{
+    if (m_Size32 > AP4_ATOM_HEADER_SIZE) {
+        AP4_Result result = stream.Write(m_Value.GetChars(), m_Value.GetLength()+1);
+        if (AP4_FAILED(result)) return result;
+
+        // pad with zeros if necessary
+        AP4_Size padding = m_Size32-(AP4_ATOM_HEADER_SIZE+m_Value.GetLength()+1);
+        while (padding--) stream.WriteUI08(0);
+    }
+
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_NullTerminatedStringAtom::InspectFields
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_NullTerminatedStringAtom::InspectFields(AP4_AtomInspector& inspector)
+{
+    inspector.AddField("string value", m_Value.GetChars());
+
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
 |   AP4_AtomParent::~AP4_AtomParent
 +---------------------------------------------------------------------*/
 AP4_AtomParent::~AP4_AtomParent()
