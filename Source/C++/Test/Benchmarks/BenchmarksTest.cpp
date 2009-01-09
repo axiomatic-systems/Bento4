@@ -301,19 +301,21 @@ ReadFile(const char* filename, unsigned int block_size, bool sequential)
     input->GetSize(file_size);
     
     AP4_UI08* buffer = new AP4_UI08[block_size];
-    unsigned int repeats = 1024;
+    unsigned int repeats = 128;
     unsigned int total_read = 0;
     AP4_Position position = 0;
     while (repeats--) {
         AP4_Result result;
-        do {
+        unsigned int blocks_to_read = file_size/block_size;
+        if (blocks_to_read > 4096) blocks_to_read = 4096;
+        input->Seek(0);
+        while (blocks_to_read--) {
             AP4_Size bytes_read = 0;
             result = input->ReadPartial(buffer, block_size, bytes_read);
             if (AP4_FAILED(result)) {
-                if (result != AP4_ERROR_EOS) {
-                    fprintf(stderr, "ERROR: read failed\n");
-                    return 0;
-                }
+                if (result == AP4_ERROR_EOS) break;
+                fprintf(stderr, "ERROR: read failed\n");
+                return 0;
             } else {
                 total_read += bytes_read;
             }
@@ -322,7 +324,7 @@ ReadFile(const char* filename, unsigned int block_size, bool sequential)
                 position %= file_size;
                 input->Seek(position); 
             }
-        } while (AP4_SUCCEEDED(result));
+        }
     }
     
     delete[] buffer;
