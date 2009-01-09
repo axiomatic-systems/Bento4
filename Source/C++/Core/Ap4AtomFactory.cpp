@@ -347,7 +347,7 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
         break;
         
       case AP4_ATOM_TYPE_8ID_:
-        atom = new AP4_8id_Atom(size, stream);
+        atom = new AP4_NullTerminatedStringAtom(type, size, stream);
         break;
 
       case AP4_ATOM_TYPE_DREF:

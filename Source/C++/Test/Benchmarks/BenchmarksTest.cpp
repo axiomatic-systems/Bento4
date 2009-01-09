@@ -112,6 +112,7 @@ PrintUsage()
     printf("benchmarktest [options] <test-name> [, <test-name>, ...]\n"
            "options:\n"
            "  --iterations=<n>: run each test for <n> iterations instead of a fixed run time.\n"
+           "  --test-file-read=<filename> (any file for read tests)\n"
            "  --test-file-mp4=<filename> (MP4 file for read-samples)\n"
            "  --test-file-dcf-cbc=<filename> (DCF/CBC file for read-samples-dcf-cbc)\n"
            "  --test-file-dcf-ctr=<filename> (DCF/CTR file for read-samples-dcf-ctr)\n"
@@ -124,6 +125,14 @@ PrintUsage()
            "aes-block-decrypt, aes-block-encrypt, \n"
            "aes-cbc-stream-encrypt, aes-cbc-stream-decrypt\n"
            "aes-ctr-stream\n"
+           "read-file-seq-1\n"
+           "read-file-seq-16\n"
+           "read-file-seq-256\n"
+           "read-file-seq-4096\n"
+           "read-file-rnd-1\n"
+           "read-file-rnd-16\n"
+           "read-file-rnd-256\n"
+           "read-file-rnd-4096\n"
            "read-samples\n"
            "read-samples-dcf-cbc\n"
            "read-samples-dcf-ctr\n"
@@ -275,6 +284,54 @@ LoadAllSamples(const char* filename, unsigned int repeats)
 }
 
 /*----------------------------------------------------------------------
+|   ReadFile
++---------------------------------------------------------------------*/
+static unsigned int
+ReadFile(const char* filename, unsigned int block_size, bool sequential)
+{
+    AP4_ByteStream* input;
+    try {
+        input = new AP4_FileByteStream(filename, AP4_FileByteStream::STREAM_MODE_READ);
+    } catch (AP4_Exception e) {
+        fprintf(stderr, "ERROR: cannot open file %s (error %d)\n", filename, e.m_Error);
+        return 0;
+    }
+    
+    AP4_LargeSize file_size = 0;
+    input->GetSize(file_size);
+    
+    AP4_UI08* buffer = new AP4_UI08[block_size];
+    unsigned int repeats = 1024;
+    unsigned int total_read = 0;
+    AP4_Position position = 0;
+    while (repeats--) {
+        AP4_Result result;
+        do {
+            AP4_Size bytes_read = 0;
+            result = input->ReadPartial(buffer, block_size, bytes_read);
+            if (AP4_FAILED(result)) {
+                if (result != AP4_ERROR_EOS) {
+                    fprintf(stderr, "ERROR: read failed\n");
+                    return 0;
+                }
+            } else {
+                total_read += bytes_read;
+            }
+            if (!sequential) {
+                position += file_size-(file_size/7);
+                position %= file_size;
+                input->Seek(position); 
+            }
+        } while (AP4_SUCCEEDED(result));
+    }
+    
+    delete[] buffer;
+    input->Release();
+    
+    return total_read;
+}
+
+/*----------------------------------------------------------------------
 |   main
 +---------------------------------------------------------------------*/
 int
@@ -290,11 +347,20 @@ main(int argc, char** argv)
     bool do_aes_cbc_stream_encrypt = false;
     bool do_aes_cbc_stream_decrypt = false;
     bool do_aes_ctr_stream         = false;
+    bool do_read_file_seq_1        = false;
+    bool do_read_file_seq_16       = false;
+    bool do_read_file_seq_256      = false;
+    bool do_read_file_seq_4096     = false;
+    bool do_read_file_rnd_1        = false;
+    bool do_read_file_rnd_16       = false;
+    bool do_read_file_rnd_256      = false;
+    bool do_read_file_rnd_4096     = false;
     bool do_read_samples           = false;
     bool do_read_samples_dcf_cbc   = false;
     bool do_read_samples_dcf_ctr   = false;
     bool do_read_samples_pdcf_cbc  = false;
     bool do_read_samples_pdcf_ctr  = false;
+    const char* test_file_read        = "test-read.bin";
     const char* test_file_mp4         = "test-001.mp4";
     const char* test_file_dcf_cbc     = "test-001.mp4.cbc.odf";
     const char* test_file_dcf_ctr     = "test-001.mp4.ctr.odf";
@@ -314,6 +380,22 @@ main(int argc, char** argv)
             do_aes_cbc_stream_decrypt = true;
         } else if (!strcmp(arg, "aes-ctr-stream")) {
             do_aes_ctr_stream = true;
+        } else if (!strcmp(arg, "read-file-seq-1")) {
+            do_read_file_seq_1 = true;
+        } else if (!strcmp(arg, "read-file-seq-16")) {
+            do_read_file_seq_16 = true;
+        } else if (!strcmp(arg, "read-file-seq-256")) {
+            do_read_file_seq_256 = true;
+        } else if (!strcmp(arg, "read-file-seq-4096")) {
+            do_read_file_seq_4096 = true;
+        } else if (!strcmp(arg, "read-file-rnd-1")) {
+            do_read_file_rnd_1 = true;
+        } else if (!strcmp(arg, "read-file-rnd-16")) {
+            do_read_file_rnd_16 = true;
+        } else if (!strcmp(arg, "read-file-rnd-256")) {
+            do_read_file_rnd_256 = true;
+        } else if (!strcmp(arg, "read-file-rnd-4096")) {
+            do_read_file_rnd_4096 = true;
         } else if (!strcmp(arg, "read-samples")) {
             do_read_samples = true;
         } else if (!strcmp(arg, "read-samples-dcf-cbc")) {
@@ -324,6 +406,8 @@ main(int argc, char** argv)
             do_read_samples_pdcf_cbc = true;
         } else if (!strcmp(arg, "read-samples-pdcf-ctr")) {
             do_read_samples_pdcf_ctr = true;
+        } else if (!strncmp(arg, "--test-file-read=", 17)) {
+            test_file_read = arg+17;
         } else if (!strncmp(arg, "--test-file-mp4=", 16)) {
             test_file_mp4 = arg+16;
         } else if (!strncmp(arg, "--test-file-dcf-cbc=", 20)) {
@@ -342,6 +426,14 @@ main(int argc, char** argv)
             do_aes_cbc_stream_encrypt = true;
             do_aes_cbc_stream_decrypt = true;
             do_aes_ctr_stream         = true;
+            do_read_file_seq_1        = true;
+            do_read_file_seq_16       = true;
+            do_read_file_seq_256      = true;
+            do_read_file_seq_4096     = true;
+            do_read_file_rnd_1        = true;
+            do_read_file_rnd_16       = true;
+            do_read_file_rnd_256      = true;
+            do_read_file_rnd_4096     = true;
             do_read_samples           = true;
             do_read_samples_dcf_cbc   = true;
             do_read_samples_dcf_ctr   = true;
@@ -407,6 +499,38 @@ main(int argc, char** argv)
     AP4_Size out_size = ENC_OUT_BUFFER_SIZE;
     ctr_cipher.ProcessBuffer(megabyte_in, ENC_IN_BUFFER_SIZE, megabyte_out, &out_size, false);
     total += ENC_IN_BUFFER_SIZE;
+    BENCH_END
+
+    BENCH_START("Read File Sequential (1 Byte Blocks)", do_read_file_seq_1)
+    total += ReadFile(test_file_read, 1, true);
+    BENCH_END
+
+    BENCH_START("Read File Sequential (16 Byte Blocks)", do_read_file_seq_16)
+    total += ReadFile(test_file_read, 16, true);
+    BENCH_END
+
+    BENCH_START("Read File Sequential (256 Byte Blocks)", do_read_file_seq_256)
+    total += ReadFile(test_file_read, 256, true);
+    BENCH_END
+
+    BENCH_START("Read File Sequential (4096 Byte Blocks)", do_read_file_seq_4096)
+    total += ReadFile(test_file_read, 4096, true);
+    BENCH_END
+
+    BENCH_START("Read File Random (1 Byte Blocks)", do_read_file_rnd_1)
+    total += ReadFile(test_file_read, 1, false);
+    BENCH_END
+
+    BENCH_START("Read File Random (16 Byte Blocks)", do_read_file_rnd_16)
+    total += ReadFile(test_file_read, 16, false);
+    BENCH_END
+
+    BENCH_START("Read File Random (256 Byte Blocks)", do_read_file_rnd_256)
+    total += ReadFile(test_file_read, 256, false);
+    BENCH_END
+
+    BENCH_START("Read File Random (4096 Byte Blocks)", do_read_file_rnd_4096)
+    total += ReadFile(test_file_read, 4096, false);
     BENCH_END
 
     BENCH_START("Read Samples", do_read_samples)

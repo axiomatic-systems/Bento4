@@ -39,6 +39,7 @@
 #include "Ap4Types.h"
 #include "Ap4List.h"
 #include "Ap4ByteStream.h"
+#include "Ap4String.h"
 #include "Ap4Debug.h"
 
 /*----------------------------------------------------------------------
@@ -263,6 +264,29 @@ private:
     // members
     AP4_ByteStream* m_SourceStream;
     AP4_Position    m_SourcePosition;
+};
+
+/*----------------------------------------------------------------------
+|   AP4_NullTerminatedStringAtom
++---------------------------------------------------------------------*/
+/**
+ * Generic Class usd for all atoms that contain a single null-terminated
+ * string.
+ */
+class AP4_NullTerminatedStringAtom : public AP4_Atom
+{
+public:
+    // constructors
+    AP4_NullTerminatedStringAtom(AP4_Atom::Type type, AP4_UI64 size, AP4_ByteStream& stream);
+    AP4_NullTerminatedStringAtom(AP4_Atom::Type type, const char* value);
+
+    // methods
+    virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
+    virtual AP4_Result WriteFields(AP4_ByteStream& stream);
+
+private:
+    // members
+    AP4_String m_Value;
 };
 
 /*----------------------------------------------------------------------

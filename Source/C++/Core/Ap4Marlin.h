@@ -146,22 +146,33 @@ private:
 };
 
 /*----------------------------------------------------------------------
-|   AP4_8id_Atom
+|   AP4_MarlinIpmpTrackEncrypter
 +---------------------------------------------------------------------*/
-class AP4_8id_Atom : public AP4_Atom
+class AP4_MarlinIpmpTrackEncrypter : public AP4_Processor::TrackHandler
 {
 public:
-    // methods
-    AP4_8id_Atom(AP4_UI64 size, AP4_ByteStream& stream);
+    // class methods
+    static AP4_Result Create(AP4_BlockCipherFactory&        cipher_factory,
+                             const AP4_UI08*                key,
+                             const AP4_UI08*                iv,
+                             AP4_MarlinIpmpTrackEncrypter*& encrypter);
+                             
+    // destructor
+    ~AP4_MarlinIpmpTrackEncrypter();
+    
+    // AP4_Processor::TrackHandler methods
+    virtual AP4_Size GetProcessedSampleSize(AP4_Sample& sample);
+    virtual AP4_Result ProcessSample(AP4_DataBuffer& data_in,
+                                     AP4_DataBuffer& data_out);
 
-    // methods
-    AP4_8id_Atom(const char* octopus_id);
-    virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
-    virtual AP4_Result WriteFields(AP4_ByteStream& stream);
 
 private:
+    // constructor
+    AP4_MarlinIpmpTrackEncrypter(AP4_StreamCipher* cipher, const AP4_UI08* iv);
+
     // members
-    AP4_String m_OctopusId;
+    AP4_UI08          m_IV[16];
+    AP4_StreamCipher* m_Cipher;
 };
 
 #endif // _AP4_MARLIN_H_

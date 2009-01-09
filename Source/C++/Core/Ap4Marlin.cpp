@@ -411,7 +411,7 @@ AP4_MarlinIpmpTrackDecrypter::ProcessSample(AP4_DataBuffer& data_in,
     // default to 0 output 
     data_out.SetDataSize(0);
 
-    // check the selective encryption flag
+    // check that we have at least the minimum size
     if (in_size < 2*AP4_AES_BLOCK_SIZE) return AP4_ERROR_INVALID_FORMAT;
 
     // process the sample data
@@ -479,14 +479,14 @@ AP4_MarlinIpmpEncryptingProcessor::Initialize(
             compatible_brands.Append(ftyp->GetCompatibleBrands()[i]);
         }
         
-        // add the OMA compatible brand if it is not already there
+        // add the MGSV compatible brand if it is not already there
         if (!ftyp->HasCompatibleBrand(AP4_MARLIN_BRAND_MGSV)) {
             compatible_brands.Append(AP4_MARLIN_BRAND_MGSV);
         }
 
-        // create a replacement
-        AP4_FtypAtom* new_ftyp = new AP4_FtypAtom(ftyp->GetMajorBrand(),
-                                                  ftyp->GetMinorVersion(),
+        // create a replacement for the major brand
+        AP4_FtypAtom* new_ftyp = new AP4_FtypAtom(AP4_MARLIN_BRAND_MGSV,
+                                                  0x13c078c, //AP4_MARLIN_BRAND_MGSV_MAJOR_VERSION,
                                                   &compatible_brands[0],
                                                   compatible_brands.ItemCount());
         delete ftyp;
@@ -574,8 +574,10 @@ AP4_MarlinIpmpEncryptingProcessor::Initialize(
     // create the OD descriptor update 
     AP4_DescriptorUpdateCommand od_update(AP4_COMMAND_TAG_OBJECT_DESCRIPTOR_UPDATE);
     for (unsigned int i=0; i<mpod->GetTrackIds().ItemCount(); i++) {
-        od_update.AddDescriptor(new AP4_EsIdIncDescriptor(i));
-        od_update.AddDescriptor(new AP4_IpmpDescriptorPointer(i+1)); // descriptor id = i+1
+        AP4_ObjectDescriptor* od = new AP4_ObjectDescriptor(AP4_DESCRIPTOR_TAG_MP4_OD, 256+i); // descriptor id = 256+i
+        od->AddSubDescriptor(new AP4_EsIdRefDescriptor(i+1));     // index into mpod (1-based)
+        od->AddSubDescriptor(new AP4_IpmpDescriptorPointer(i+1)); // descriptor id = i+1
+        od_update.AddDescriptor(od);
     }
     
     // create the IPMP descriptor update 
@@ -594,7 +596,7 @@ AP4_MarlinIpmpEncryptingProcessor::Initialize(
         const char* content_id = m_PropertyMap.GetProperty(mpod->GetTrackIds()[i], "ContentId");
         if (content_id) {
             AP4_ContainerAtom* schi = new AP4_ContainerAtom(AP4_ATOM_TYPE_SCHI);
-            schi->AddChild(new AP4_8id_Atom(content_id));
+            schi->AddChild(new AP4_NullTerminatedStringAtom(AP4_ATOM_TYPE_8ID_, content_id));
             sinf->AddChild(schi);
         }
          
@@ -612,7 +614,6 @@ AP4_MarlinIpmpEncryptingProcessor::Initialize(
     od_update.Write(*sample_data);
     ipmp_update.Write(*sample_data);
     od_sample_table->AddSample(*sample_data, 0, sample_data->GetDataSize(), 0, 0, 0, true);
-    sample_data->Release();
     
     // create the OD track
     AP4_TrakAtom* od_track = new AP4_TrakAtom(od_sample_table,
@@ -622,6 +623,12 @@ AP4_MarlinIpmpEncryptingProcessor::Initialize(
                                               0, 0,
                                               1, 1000, 1, 0, "und",
                                               0, 0);
+    
+    // add an entry in the processor's stream table to indicate that the 
+    // media data for the OD track is not in the file stream, but in our
+    // memory stream.
+    m_ExternalTrackData.Add(new ExternalTrackData(od_track_id, sample_data));
+    sample_data->Release();
     
     // add a tref track reference atom
     AP4_ContainerAtom* tref = new AP4_ContainerAtom(AP4_ATOM_TYPE_TREF);
@@ -638,59 +645,116 @@ AP4_MarlinIpmpEncryptingProcessor::Initialize(
 |   AP4_MarlinIpmpEncryptingProcessor::CreateTrackHandler
 +---------------------------------------------------------------------*/
 AP4_Processor::TrackHandler* 
-AP4_MarlinIpmpEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* /*trak*/)
+AP4_MarlinIpmpEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
 {
+    // create a handler for this track if we have a key for it
+    const AP4_UI08* key;
+    const AP4_UI08* iv;
+    if (AP4_SUCCEEDED(m_KeyMap.GetKeyAndIv(trak->GetId(), key, iv))) {
+        // create the track handler
+        AP4_MarlinIpmpTrackEncrypter* handler = NULL;
+        AP4_Result result = AP4_MarlinIpmpTrackEncrypter::Create(*m_BlockCipherFactory, key, iv, handler);
+        if (AP4_FAILED(result)) return NULL;
+        return handler;
+    }
+    
+    // not encrypted
     return NULL;
 }
 
 /*----------------------------------------------------------------------
-|   AP4_8id_Atom::AP4_8id_Atom
-+---------------------------------------------------------------------*/
-AP4_8id_Atom::AP4_8id_Atom(const char* octopus_id) :
-    AP4_Atom(AP4_ATOM_TYPE_8ID_, AP4_ATOM_HEADER_SIZE),
-    m_OctopusId(octopus_id)
-{
-    m_Size32 += m_OctopusId.GetLength()+1;
-}
-
-/*----------------------------------------------------------------------
-|   AP4_8id_Atom::AP4_8id_Atom
-+---------------------------------------------------------------------*/
-AP4_8id_Atom::AP4_8id_Atom(AP4_UI64 size, AP4_ByteStream& stream) :
-    AP4_Atom(AP4_ATOM_TYPE_8ID_, size)
-{
-    AP4_Size str_size = (AP4_Size)size-AP4_ATOM_HEADER_SIZE;
-    char* str = new char[str_size];
-    stream.Read(str, str_size);
-    str[str_size-1] = '\0'; // force null-termination
-    m_OctopusId = str;
-}
-
-/*----------------------------------------------------------------------
-|   AP4_8id_Atom::WriteFields
+|   AP4_MarlinIpmpTrackEncrypter::Create
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_8id_Atom::WriteFields(AP4_ByteStream& stream)
+AP4_MarlinIpmpTrackEncrypter::Create(AP4_BlockCipherFactory&        cipher_factory,
+                                     const AP4_UI08*                key,
+                                     const AP4_UI08*                iv,
+                                     AP4_MarlinIpmpTrackEncrypter*& encrypter)
 {
-    if (m_Size32 > AP4_ATOM_HEADER_SIZE) {
-        AP4_Result result = stream.Write(m_OctopusId.GetChars(), m_OctopusId.GetLength()+1);
-        if (AP4_FAILED(result)) return result;
+    // default value
+    encrypter = NULL;
+    
+    // create a block cipher
+    AP4_BlockCipher* block_cipher = NULL;
+    AP4_Result result = cipher_factory.Create(AP4_BlockCipher::AES_128, 
+                                              AP4_BlockCipher::ENCRYPT, 
+                                              key, 
+                                              AP4_AES_BLOCK_SIZE, 
+                                              block_cipher);
+    if (AP4_FAILED(result)) return result;
 
-        // pad with zeros if necessary
-        AP4_Size padding = m_Size32-(AP4_ATOM_HEADER_SIZE+m_OctopusId.GetLength()+1);
-        while (padding--) stream.WriteUI08(0);
-    }
-
+    // create a CBC cipher
+    AP4_CbcStreamCipher* cbc_cipher = new AP4_CbcStreamCipher(block_cipher, AP4_StreamCipher::ENCRYPT);
+    
+    // create the track encrypter
+    encrypter = new AP4_MarlinIpmpTrackEncrypter(cbc_cipher, iv);
+    
     return AP4_SUCCESS;
 }
 
 /*----------------------------------------------------------------------
-|   AP4_8id_Atom::InspectFields
+|   AP4_MarlinIpmpTrackEncrypter::AP4_MarlinIpmpTrackEncrypter
 +---------------------------------------------------------------------*/
-AP4_Result
-AP4_8id_Atom::InspectFields(AP4_AtomInspector& inspector)
+AP4_MarlinIpmpTrackEncrypter::AP4_MarlinIpmpTrackEncrypter(AP4_StreamCipher* cipher, 
+                                                           const AP4_UI08*   iv) :
+    m_Cipher(cipher)
 {
-    inspector.AddField("octopus id", m_OctopusId.GetChars());
+    // copy the IV
+    AP4_CopyMemory(m_IV, iv, AP4_AES_BLOCK_SIZE);    
+}
 
+/*----------------------------------------------------------------------
+|   AP4_MarlinIpmpTrackEncrypter::~AP4_MarlinIpmpTrackEncrypter
++---------------------------------------------------------------------*/
+AP4_MarlinIpmpTrackEncrypter::~AP4_MarlinIpmpTrackEncrypter()
+{
+    delete m_Cipher;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_MarlinIpmpTrackEncrypter:GetProcessedSampleSize
++---------------------------------------------------------------------*/
+AP4_Size 
+AP4_MarlinIpmpTrackEncrypter::GetProcessedSampleSize(AP4_Sample& sample)
+{
+    return AP4_CIPHER_BLOCK_SIZE*(2+(sample.GetSize()/AP4_CIPHER_BLOCK_SIZE));
+}
+
+/*----------------------------------------------------------------------
+|   AP4_MarlinIpmpTrackEncrypter:ProcessSample
++---------------------------------------------------------------------*/
+AP4_Result 
+AP4_MarlinIpmpTrackEncrypter::ProcessSample(AP4_DataBuffer& data_in,
+                                            AP4_DataBuffer& data_out)
+{
+    AP4_Result result;
+    
+    const AP4_UI08* in = data_in.GetData();
+    AP4_Size        in_size = data_in.GetDataSize();
+
+    // default to 0 output 
+    data_out.SetDataSize(0);
+
+    // process the sample data
+    AP4_Size out_size = AP4_CIPHER_BLOCK_SIZE*(2+(in_size/AP4_CIPHER_BLOCK_SIZE));
+    data_out.SetDataSize(out_size);
+    AP4_UI08* out = data_out.UseData();
+
+    // write the IV
+    AP4_CopyMemory(out, m_IV, AP4_CIPHER_BLOCK_SIZE);
+    out_size -= AP4_CIPHER_BLOCK_SIZE;
+    
+    // encrypt the data
+    m_Cipher->SetIV(m_IV);
+    result = m_Cipher->ProcessBuffer(in, 
+                                     in_size, 
+                                     out+AP4_AES_BLOCK_SIZE,
+                                     &out_size,
+                                     true);
+    if (AP4_FAILED(result)) return result;
+    
+    // update the payload size
+    data_out.SetDataSize(out_size+AP4_AES_BLOCK_SIZE);
+    
     return AP4_SUCCESS;
 }

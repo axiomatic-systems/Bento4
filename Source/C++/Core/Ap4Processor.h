@@ -112,7 +112,7 @@ public:
     /**
      *  Default destructor
      */
-    virtual ~AP4_Processor() {}
+    virtual ~AP4_Processor() { m_ExternalTrackData.DeleteReferences(); }
 
     /**
      * Process the input stream into an output stream.
@@ -162,6 +162,11 @@ public:
 protected:
     class ExternalTrackData {
     public:
+        ExternalTrackData(unsigned int track_id, AP4_ByteStream* media_data) :
+            m_TrackId(track_id), m_MediaData(media_data) {
+            media_data->AddReference();
+        }
+        ~ExternalTrackData() { m_MediaData->Release(); }
         unsigned int    m_TrackId;
         AP4_ByteStream* m_MediaData;
     };
