@@ -44,15 +44,43 @@
 #include "Ap4Command.h"
 
 /*----------------------------------------------------------------------
-|   class references
-+---------------------------------------------------------------------*/
-
-/*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
 const AP4_UI32 AP4_MARLIN_BRAND_MGSV       = AP4_ATOM_TYPE('M','G','S','V');
 const AP4_UI16 AP4_MARLIN_IPMPS_TYPE_MGSV  = 0xA551;
-const AP4_UI32 AP4_MARLIN_SCHEME_TYPE_ACBC = AP4_ATOM_TYPE('A','C','B','C');
+const AP4_UI32 AP4_PROTECTION_SCHEME_TYPE_MARLIN_ACBC = AP4_ATOM_TYPE('A','C','B','C');
+const AP4_UI32 AP4_PROTECTION_SCHEME_TYPE_MARLIN_ACGK = AP4_ATOM_TYPE('A','C','G','K');
+
+const AP4_Atom::Type AP4_ATOM_TYPE_SATR = AP4_ATOM_TYPE('s','a','t','r');
+const AP4_Atom::Type AP4_ATOM_TYPE_STYP = AP4_ATOM_TYPE('s','t','y','p');
+
+const char* const AP4_MARLIN_IPMP_STYP_VIDEO = "urn:marlin:organization:sne:content-type:video";
+const char* const AP4_MARLIN_IPMP_STYP_AUDIO = "urn:marlin:organization:sne:content-type:audio";
+
+/*----------------------------------------------------------------------
+|   AP4_MarlinIpmpParser
++---------------------------------------------------------------------*/
+class AP4_MarlinIpmpParser
+{
+public:
+    // types
+    struct SinfEntry {
+         SinfEntry(AP4_UI32 track_id, AP4_ContainerAtom* sinf) :
+             m_TrackId(track_id), m_Sinf(sinf) {}
+        ~SinfEntry() { delete m_Sinf; }
+        AP4_UI32           m_TrackId;
+        AP4_ContainerAtom* m_Sinf;
+    };
+    
+    // methods
+    static AP4_Result Parse(AP4_AtomParent&      top_level, 
+                            AP4_ByteStream&      stream,
+                            AP4_List<SinfEntry>& sinf_entries,
+                            bool                 remove_od_data=false);
+    
+private:
+    AP4_MarlinIpmpParser() {} // this class can't be instantiated
+};
 
 /*----------------------------------------------------------------------
 |   AP4_MarlinIpmpDecryptingProcessor
@@ -75,19 +103,11 @@ public:
     virtual AP4_Processor::TrackHandler* CreateTrackHandler(AP4_TrakAtom* trak);
 
 private:
-    // types
-    struct SinfEntry {
-         SinfEntry(AP4_UI32 track_id, AP4_ContainerAtom* sinf) :
-             m_TrackId(track_id), m_Sinf(sinf) {}
-        ~SinfEntry() { delete m_Sinf; }
-        AP4_UI32           m_TrackId;
-        AP4_ContainerAtom* m_Sinf;
-    };
     
     // members
-    AP4_BlockCipherFactory* m_BlockCipherFactory;
-    AP4_ProtectionKeyMap    m_KeyMap;
-    AP4_List<SinfEntry>     m_SinfEntries;
+    AP4_BlockCipherFactory*                   m_BlockCipherFactory;
+    AP4_ProtectionKeyMap                      m_KeyMap;
+    AP4_List<AP4_MarlinIpmpParser::SinfEntry> m_SinfEntries;
 };
 
 /*----------------------------------------------------------------------

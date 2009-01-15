@@ -37,9 +37,9 @@
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-#define BANNER "MP4 File Info - Version 1.1\n"\
+#define BANNER "MP4 File Info - Version 1.2\n"\
                "(Bento4 Version " AP4_VERSION_STRING ")\n"\
-               "(c) 2002-2008 Axiomatic Systems, LLC"
+               "(c) 2002-2009 Axiomatic Systems, LLC"
  
 /*----------------------------------------------------------------------
 |   PrintUsageAndExit
@@ -51,7 +51,8 @@ PrintUsageAndExit()
             BANNER 
             "\n\nusage: mp4info [options] <input>\n"
             "Options:\n"
-            "  --verbose: show sample details\n");
+            "  --verbose:      show extended information when available\n"
+            "  --show-samples: show sample details\n");
     exit(1);
 }
 
@@ -80,10 +81,100 @@ ShowPayload(AP4_Atom& atom, bool ascii = false)
 }
 
 /*----------------------------------------------------------------------
+|   ShowProtectionSchemeInfo
++---------------------------------------------------------------------*/
+static void
+ShowProtectionSchemeInfo(AP4_UI32 scheme_type, AP4_ContainerAtom& schi, bool verbose)
+{
+    if (scheme_type == AP4_PROTECTION_SCHEME_TYPE_IAEC) {
+        printf("      iAEC Scheme Info:\n");
+        AP4_IkmsAtom* ikms = dynamic_cast<AP4_IkmsAtom*>(schi.FindChild("iKMS"));
+        if (ikms) {
+            printf("        KMS URI:              %s\n", ikms->GetKmsUri().GetChars());
+        }
+        AP4_IsfmAtom* isfm = dynamic_cast<AP4_IsfmAtom*>(schi.FindChild("iSFM"));
+        if (isfm) {
+            printf("        Selective Encryption: %s\n", isfm->GetSelectiveEncryption()?"yes":"no");
+            printf("        Key Indicator Length: %d\n", isfm->GetKeyIndicatorLength());
+            printf("        IV Length:            %d\n", isfm->GetIvLength());
+        }
+        AP4_IsltAtom* islt = dynamic_cast<AP4_IsltAtom*>(schi.FindChild("iSLT"));
+        if (islt) {
+            printf("        Salt:                 ");
+            for (unsigned int i=0; i<8; i++) {
+                printf("%02x",islt->GetSalt()[i]);
+            }
+            printf("\n");
+        }
+    } else if (scheme_type == AP4_PROTECTION_SCHEME_TYPE_OMA) {
+        printf("      odkm Scheme Info:\n");
+        AP4_OdafAtom* odaf = dynamic_cast<AP4_OdafAtom*>(schi.FindChild("odkm/odaf"));
+        if (odaf) {
+            printf("        Selective Encryption: %s\n", odaf->GetSelectiveEncryption()?"yes":"no");
+            printf("        Key Indicator Length: %d\n", odaf->GetKeyIndicatorLength());
+            printf("        IV Length:            %d\n", odaf->GetIvLength());
+        }
+        AP4_OhdrAtom* ohdr = dynamic_cast<AP4_OhdrAtom*>(schi.FindChild("odkm/ohdr"));
+        if (ohdr) {
+            const char* encryption_method = "";
+            switch (ohdr->GetEncryptionMethod()) {
+                case AP4_OMA_DCF_ENCRYPTION_METHOD_NULL:    encryption_method = "NULL";    break;
+                case AP4_OMA_DCF_ENCRYPTION_METHOD_AES_CTR: encryption_method = "AES-CTR"; break;
+                case AP4_OMA_DCF_ENCRYPTION_METHOD_AES_CBC: encryption_method = "AES-CBC"; break;
+                default:                                    encryption_method = "UNKNOWN"; break;
+            }
+            printf("        Encryption Method: %s\n", encryption_method);
+            printf("        Content ID:        %s\n", ohdr->GetContentId().GetChars());
+            printf("        Rights Issuer URL: %s\n", ohdr->GetRightsIssuerUrl().GetChars());
+        }
+    } else if (scheme_type == AP4_PROTECTION_SCHEME_TYPE_ITUNES) {
+        printf("      itun Scheme Info:\n");
+        AP4_Atom* name = schi.FindChild("name");
+        if (name) {
+            printf("        Name:    ");
+            ShowPayload(*name, true);
+            printf("\n");
+        }
+        AP4_Atom* user = schi.FindChild("user");
+        if (user) {
+            printf("        User ID: ");
+            ShowPayload(*user);
+            printf("\n");
+        }
+        AP4_Atom* key = schi.FindChild("key ");
+        if (key) {
+            printf("        Key ID:  ");
+            ShowPayload(*key);
+            printf("\n");
+        }
+        AP4_Atom* iviv = schi.FindChild("iviv");
+        if (iviv) {
+            printf("        IV:      ");
+            ShowPayload(*iviv);
+            printf("\n");
+        }
+    } else if (scheme_type == AP4_PROTECTION_SCHEME_TYPE_MARLIN_ACBC) {
+        printf("      Marlin IPMP ACBC Scheme Info:\n");
+        AP4_NullTerminatedStringAtom* octopus_id = dynamic_cast<AP4_NullTerminatedStringAtom*>(schi.FindChild("8id "));
+        if (octopus_id) {
+            printf("        Content ID: %s\n", octopus_id->GetValue().GetChars());
+        }
+    }
+    
+    if (verbose) {
+        printf("    Protection System Details:\n");
+        AP4_ByteStream* output = new AP4_FileByteStream("-stdout", AP4_FileByteStream::STREAM_MODE_WRITE);
+        AP4_PrintInspector inspector(*output, 4);
+        schi.Inspect(inspector);
+        output->Release();
+    }
+}
+
+/*----------------------------------------------------------------------
 |   ShowProtectedSampleDescription
 +---------------------------------------------------------------------*/
 static void
-ShowProtectedSampleDescription(AP4_ProtectedSampleDescription& desc)
+ShowProtectedSampleDescription(AP4_ProtectedSampleDescription& desc, bool verbose)
 {
     printf("    [ENCRYPTED]\n");
     char coding[5];
@@ -101,74 +192,7 @@ ShowProtectedSampleDescription(AP4_ProtectedSampleDescription& desc)
     if (scheme_info == NULL) return;
     AP4_ContainerAtom* schi = scheme_info->GetSchiAtom();
     if (schi == NULL) return;
-    if (desc.GetSchemeType() == AP4_PROTECTION_SCHEME_TYPE_IAEC) {
-        printf("      iAEC Scheme Info:\n");
-        AP4_IkmsAtom* ikms = dynamic_cast<AP4_IkmsAtom*>(schi->FindChild("iKMS"));
-        if (ikms) {
-            printf("        KMS URI:              %s\n", ikms->GetKmsUri().GetChars());
-        }
-        AP4_IsfmAtom* isfm = dynamic_cast<AP4_IsfmAtom*>(schi->FindChild("iSFM"));
-        if (isfm) {
-            printf("        Selective Encryption: %s\n", isfm->GetSelectiveEncryption()?"yes":"no");
-            printf("        Key Indicator Length: %d\n", isfm->GetKeyIndicatorLength());
-            printf("        IV Length:            %d\n", isfm->GetIvLength());
-        }
-        AP4_IsltAtom* islt = dynamic_cast<AP4_IsltAtom*>(schi->FindChild("iSLT"));
-        if (islt) {
-            printf("        Salt:                 ");
-            for (unsigned int i=0; i<8; i++) {
-                printf("%02x",islt->GetSalt()[i]);
-            }
-            printf("\n");
-        }
-    } else if (desc.GetSchemeType() == AP4_PROTECTION_SCHEME_TYPE_OMA) {
-        printf("      odkm Scheme Info:\n");
-        AP4_OdafAtom* odaf = dynamic_cast<AP4_OdafAtom*>(schi->FindChild("odkm/odaf"));
-        if (odaf) {
-            printf("        Selective Encryption: %s\n", odaf->GetSelectiveEncryption()?"yes":"no");
-            printf("        Key Indicator Length: %d\n", odaf->GetKeyIndicatorLength());
-            printf("        IV Length:            %d\n", odaf->GetIvLength());
-        }
-        AP4_OhdrAtom* ohdr = dynamic_cast<AP4_OhdrAtom*>(schi->FindChild("odkm/ohdr"));
-        if (ohdr) {
-            const char* encryption_method = "";
-            switch (ohdr->GetEncryptionMethod()) {
-                case AP4_OMA_DCF_ENCRYPTION_METHOD_NULL:    encryption_method = "NULL";    break;
-                case AP4_OMA_DCF_ENCRYPTION_METHOD_AES_CTR: encryption_method = "AES-CTR"; break;
-                case AP4_OMA_DCF_ENCRYPTION_METHOD_AES_CBC: encryption_method = "AES-CBC"; break;
-                default:                                    encryption_method = "UNKNOWN"; break;
-            }
-            printf("        Encryption Method: %s\n", encryption_method);
-            printf("        Content ID:        %s\n", ohdr->GetContentId().GetChars());
-            printf("        Rights Issuer URL: %s\n", ohdr->GetRightsIssuerUrl().GetChars());
-        }
-    } else if (desc.GetSchemeType() == AP4_PROTECTION_SCHEME_TYPE_ITUNES) {
-        printf("      itun Scheme Info:\n");
-        AP4_Atom* name = schi->FindChild("name");
-        if (name) {
-            printf("        Name:    ");
-            ShowPayload(*name, true);
-            printf("\n");
-        }
-        AP4_Atom* user = schi->FindChild("user");
-        if (user) {
-            printf("        User ID: ");
-            ShowPayload(*user);
-            printf("\n");
-        }
-        AP4_Atom* key = schi->FindChild("key ");
-        if (key) {
-            printf("        Key ID:  ");
-            ShowPayload(*key);
-            printf("\n");
-        }
-        AP4_Atom* iviv = schi->FindChild("iviv");
-        if (iviv) {
-            printf("        IV:      ");
-            ShowPayload(*iviv);
-            printf("\n");
-        }
-    }
+    ShowProtectionSchemeInfo(desc.GetSchemeType(), *schi, verbose);
 }
 
 /*----------------------------------------------------------------------
@@ -187,12 +211,12 @@ ShowMpegAudioSampleDescription(AP4_MpegAudioSampleDescription& mpeg_audio_desc)
 |   ShowSampleDescription
 +---------------------------------------------------------------------*/
 static void
-ShowSampleDescription(AP4_SampleDescription& description)
+ShowSampleDescription(AP4_SampleDescription& description, bool verbose)
 {
     AP4_SampleDescription* desc = &description;
     if (desc->GetType() == AP4_SampleDescription::TYPE_PROTECTED) {
         AP4_ProtectedSampleDescription* prot_desc = dynamic_cast<AP4_ProtectedSampleDescription*>(desc);
-        if (prot_desc) ShowProtectedSampleDescription(*prot_desc);
+        if (prot_desc) ShowProtectedSampleDescription(*prot_desc, verbose);
         desc = prot_desc->GetOriginalSampleDescription();
     }
     char coding[5];
@@ -297,7 +321,7 @@ ShowDcfInfo(AP4_File& file)
 |   ShowTrackInfo
 +---------------------------------------------------------------------*/
 static void
-ShowTrackInfo(AP4_Track& track, bool verbose = false)
+ShowTrackInfo(AP4_Track& track, bool show_samples, bool verbose)
 {
 	AP4_Debug("  id:           %ld\n", track.GetId());
     AP4_Debug("  type:         ");
@@ -333,10 +357,10 @@ ShowTrackInfo(AP4_Track& track, bool verbose = false)
             AP4_SampleDescription* sample_desc = 
                 track.GetSampleDescription(desc_index);
             if (sample_desc) {
-                ShowSampleDescription(*sample_desc);
+                ShowSampleDescription(*sample_desc, verbose);
             }
         }
-        if (verbose) {
+        if (show_samples) {
             printf("[%06d] size=%6d dts=%8d, cts=%8d", 
                    index+1,
                    (int)sample.GetSize(),
@@ -402,6 +426,74 @@ ShowFileInfo(AP4_File& file)
     AP4_Debug("\n");
 }
 
+
+/*----------------------------------------------------------------------
+|   ShowTracks
++---------------------------------------------------------------------*/
+static void
+ShowTracks(AP4_List<AP4_Track>& tracks, bool show_samples, bool verbose)
+{
+    int index=1;
+    for (AP4_List<AP4_Track>::Item* track_item = tracks.FirstItem();
+         track_item;
+         track_item = track_item->GetNext(), ++index) {
+        AP4_Debug("Track %d:\n", index); 
+        ShowTrackInfo(*track_item->GetData(), show_samples, verbose);
+    }
+}
+
+/*----------------------------------------------------------------------
+|   ShowMarlinTracks
++---------------------------------------------------------------------*/
+static void
+ShowMarlinTracks(AP4_File& file, AP4_ByteStream& stream, AP4_List<AP4_Track>& tracks, bool show_samples, bool verbose)
+{
+    AP4_List<AP4_MarlinIpmpParser::SinfEntry> sinf_entries;
+    AP4_Result result = AP4_MarlinIpmpParser::Parse(file, stream, sinf_entries);
+    if (AP4_FAILED(result)) {
+        AP4_Debug("WARNING: cannot parse Marlin IPMP info\n");
+        ShowTracks(tracks, show_samples, verbose);
+        return;
+    }
+    int index=1;
+    for (AP4_List<AP4_Track>::Item* track_item = tracks.FirstItem();
+         track_item;
+         track_item = track_item->GetNext(), ++index) {
+        AP4_Debug("Track %d:\n", index); 
+        AP4_Track* track = track_item->GetData();
+        ShowTrackInfo(*track, show_samples, verbose);
+        
+        for (AP4_List<AP4_MarlinIpmpParser::SinfEntry>::Item* sinf_entry_item = sinf_entries.FirstItem();
+             sinf_entry_item;
+             sinf_entry_item = sinf_entry_item->GetNext()) {
+             AP4_MarlinIpmpParser::SinfEntry* sinf_entry = sinf_entry_item->GetData();
+            if (sinf_entry->m_TrackId == track->GetId()) {
+                printf("    [ENCRYPTED]\n");
+                if (sinf_entry->m_Sinf == NULL) {
+                    AP4_Debug("WARNING: NULL sinf entry for track ID %d\n", track->GetId());
+                } else {
+                    AP4_ContainerAtom* schi = dynamic_cast<AP4_ContainerAtom*>(sinf_entry->m_Sinf->GetChild(AP4_ATOM_TYPE_SCHI));
+                    AP4_SchmAtom*      schm = dynamic_cast<AP4_SchmAtom*>(sinf_entry->m_Sinf->GetChild(AP4_ATOM_TYPE_SCHM));
+                    if (schm && schi) {
+                        AP4_UI32 scheme_type = schm->GetSchemeType();
+                        printf("      Scheme Type:    %c%c%c%c\n", 
+                            (char)((scheme_type>>24) & 0xFF),
+                            (char)((scheme_type>>16) & 0xFF),
+                            (char)((scheme_type>> 8) & 0xFF),
+                            (char)((scheme_type    ) & 0xFF));
+                        printf("      Scheme Version: %d\n", schm->GetSchemeVersion());
+                        ShowProtectionSchemeInfo(scheme_type, *schi, verbose);
+                    } else {
+                        if (schm == NULL) printf("WARNING: schm atom is NULL\n");
+                        if (schi == NULL) printf("WARNING: schi atom is NULL\n");
+                    }
+                }
+            }
+        }
+    }
+    sinf_entries.DeleteReferences();
+}
+
 /*----------------------------------------------------------------------
 |   main
 +---------------------------------------------------------------------*/
@@ -411,12 +503,15 @@ main(int argc, char** argv)
     if (argc < 2) {
         PrintUsageAndExit();
     }
-    const char* filename = NULL;
-    bool verbose = false;
+    const char* filename     = NULL;
+    bool        verbose      = false;
+    bool        show_samples = false;
 
     while (char* arg = *++argv) {
         if (!strcmp(arg, "--verbose")) {
             verbose = true;
+        } else if (!strcmp(arg, "--show-samples")) {
+            show_samples = true;
         } else {
             if (filename == NULL) {
                 filename = arg;
@@ -444,23 +539,21 @@ main(int argc, char** argv)
     ShowFileInfo(*file);
 
     AP4_Movie* movie = file->GetMovie();
+    AP4_FtypAtom* ftyp = file->GetFileType();
     if (movie) {
         ShowMovieInfo(*movie);
 
+    
         AP4_List<AP4_Track>& tracks = movie->GetTracks();
         AP4_Debug("Found %d Tracks\n", tracks.ItemCount());
 
-        AP4_List<AP4_Track>::Item* track_item = tracks.FirstItem();
-        int index = 1;
-        while (track_item) {
-            AP4_Debug("Track %d:\n", index); 
-            index++;
-            ShowTrackInfo(*track_item->GetData(), verbose);
-            track_item = track_item->GetNext();
+        if (ftyp->GetMajorBrand() == AP4_MARLIN_BRAND_MGSV) {
+            ShowMarlinTracks(*file, *input, tracks, show_samples, verbose);
+        } else {
+            ShowTracks(tracks, show_samples, verbose);
         }
     } else {
         // check if this is a DCF file
-        AP4_FtypAtom* ftyp = file->GetFileType();
         if (ftyp && ftyp->GetMajorBrand() == AP4_OMA_DCF_BRAND_ODCF) {
             ShowDcfInfo(*file);
         } else {

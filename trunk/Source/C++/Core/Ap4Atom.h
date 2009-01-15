@@ -280,6 +280,9 @@ public:
     AP4_NullTerminatedStringAtom(AP4_Atom::Type type, AP4_UI64 size, AP4_ByteStream& stream);
     AP4_NullTerminatedStringAtom(AP4_Atom::Type type, const char* value);
 
+    // accessors
+    const AP4_String& GetValue() { return m_Value; }
+    
     // methods
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);

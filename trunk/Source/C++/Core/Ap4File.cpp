@@ -68,9 +68,10 @@ AP4_File::AP4_File(AP4_ByteStream&  stream,
     while (keep_parsing &&
            AP4_SUCCEEDED(stream.Tell(stream_position)) && 
            AP4_SUCCEEDED(atom_factory.CreateAtomFromStream(stream, atom))) {
+        AddChild(atom);
         switch (atom->GetType()) {
             case AP4_ATOM_TYPE_MOOV:
-                m_Movie = new AP4_Movie(dynamic_cast<AP4_MoovAtom*>(atom), stream);
+                m_Movie = new AP4_Movie(dynamic_cast<AP4_MoovAtom*>(atom), stream, false);
                 if (moov_only) keep_parsing = false;
                 break;
 
@@ -81,10 +82,6 @@ AP4_File::AP4_File(AP4_ByteStream&  stream,
             case AP4_ATOM_TYPE_MDAT:
                 // see if we are before the moov atom
                 if (m_Movie == NULL) m_MoovIsBeforeMdat = false;
-                // FALLTHROUGH
-                
-            default:
-                AddChild(atom);
                 break;
         }
     }
@@ -96,7 +93,6 @@ AP4_File::AP4_File(AP4_ByteStream&  stream,
 AP4_File::~AP4_File()
 {
     delete m_Movie;
-    delete m_FileType;
     delete m_MetaData;
 }
 

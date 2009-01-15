@@ -89,8 +89,9 @@ AP4_Movie::AP4_Movie(AP4_UI32 time_scale)
 /*----------------------------------------------------------------------
 |   AP4_Movie::AP4_Moovie
 +---------------------------------------------------------------------*/
-AP4_Movie::AP4_Movie(AP4_MoovAtom* moov, AP4_ByteStream& sample_stream) :
-    m_MoovAtom(moov)
+AP4_Movie::AP4_Movie(AP4_MoovAtom* moov, AP4_ByteStream& sample_stream, bool transfer_moov_ownership) :
+    m_MoovAtom(moov),
+    m_MoovAtomIsOwned(transfer_moov_ownership)
 {
     // ignore null atoms
     if (moov == NULL) return;
@@ -123,7 +124,7 @@ AP4_Movie::AP4_Movie(AP4_MoovAtom* moov, AP4_ByteStream& sample_stream) :
 AP4_Movie::~AP4_Movie()
 {
     m_Tracks.DeleteReferences();
-    delete m_MoovAtom;
+    if (m_MoovAtomIsOwned) delete m_MoovAtom;
 }
 
 /*----------------------------------------------------------------------

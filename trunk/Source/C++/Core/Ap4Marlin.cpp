@@ -50,39 +50,79 @@
 #include "Ap4HdlrAtom.h"
 
 /*----------------------------------------------------------------------
-|   AP4_MarlinIpmpDecryptingProcessor:AP4_MarlinIpmpDecryptingProcessor
+|   AP4_MarlinIpmpAtomTypeHandler
 +---------------------------------------------------------------------*/
-AP4_MarlinIpmpDecryptingProcessor::AP4_MarlinIpmpDecryptingProcessor(
-    const AP4_ProtectionKeyMap* key_map              /* = NULL */,
-    AP4_BlockCipherFactory*     block_cipher_factory /* = NULL */)
+class AP4_MarlinIpmpAtomTypeHandler : public AP4_AtomFactory::TypeHandler
 {
-    if (key_map) {
-        // copy the keys
-        m_KeyMap.SetKeys(*key_map);
-    }
-    
-    if (block_cipher_factory == NULL) {
-        m_BlockCipherFactory = &AP4_DefaultBlockCipherFactory::Instance;
-    } else {
-        m_BlockCipherFactory = block_cipher_factory;
-    }
-}
+public:
+    // constructor
+    AP4_MarlinIpmpAtomTypeHandler(AP4_AtomFactory* atom_factory) :
+      m_AtomFactory(atom_factory) {}
+      virtual AP4_Result CreateAtom(AP4_Atom::Type  type,
+          AP4_UI32        size,
+          AP4_ByteStream& stream,
+          AP4_Atom::Type  context,
+          AP4_Atom*&      atom);
+
+private:
+    // members
+    AP4_AtomFactory* m_AtomFactory;
+};
 
 /*----------------------------------------------------------------------
-|   AP4_MarlinIpmpDecryptingProcessor::~AP4_MarlinIpmpDecryptingProcessor
+|   AP4_MarlinIpmpAtomFactory
 +---------------------------------------------------------------------*/
-AP4_MarlinIpmpDecryptingProcessor::~AP4_MarlinIpmpDecryptingProcessor()
+class AP4_MarlinIpmpAtomFactory : public AP4_DefaultAtomFactory
 {
-    m_SinfEntries.DeleteReferences();
-}
+public:
+    // class members
+    static AP4_MarlinIpmpAtomFactory Instance;
+
+    // constructor
+    AP4_MarlinIpmpAtomFactory() {
+        AddTypeHandler(new AP4_MarlinIpmpAtomTypeHandler(this));
+    }
+};
 
 /*----------------------------------------------------------------------
-|   AP4_MarlinIpmpDecryptingProcessor:Initialize
+|   AP4_MarlinIpmpAtomFactory::Instance
++---------------------------------------------------------------------*/
+AP4_MarlinIpmpAtomFactory AP4_MarlinIpmpAtomFactory::Instance;
+
+/*----------------------------------------------------------------------
+|   AP4_MarlinIpmpAtomTypeHandler::CreateAtom
 +---------------------------------------------------------------------*/
 AP4_Result 
-AP4_MarlinIpmpDecryptingProcessor::Initialize(AP4_AtomParent&   top_level, 
-                                              AP4_ByteStream&   stream,
-                                              ProgressListener* /*listener*/)
+AP4_MarlinIpmpAtomTypeHandler::CreateAtom(AP4_Atom::Type  type,
+                                          AP4_UI32        size,
+                                          AP4_ByteStream& stream,
+                                          AP4_Atom::Type  /*context*/,
+                                          AP4_Atom*&      atom)
+{
+    switch (type) {
+        case AP4_ATOM_TYPE_SATR:
+            atom = AP4_ContainerAtom::Create(type, size, false, false, stream, *m_AtomFactory);
+            break;
+            
+        case AP4_ATOM_TYPE_STYP:
+            atom = new AP4_NullTerminatedStringAtom(type, size, stream);
+            break;
+
+        default:
+            atom = NULL;
+    }
+
+    return atom ? AP4_SUCCESS : AP4_FAILURE;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_MarlinIpmpParser:Parse
++---------------------------------------------------------------------*/
+AP4_Result 
+AP4_MarlinIpmpParser::Parse(AP4_AtomParent&      top_level, 
+                            AP4_ByteStream&      stream,
+                            AP4_List<SinfEntry>& sinf_entries,
+                            bool                 remove_od_data)
 {
     // check the file type
     AP4_FtypAtom* ftyp = dynamic_cast<AP4_FtypAtom*>(top_level.GetChild(AP4_ATOM_TYPE_FTYP));
@@ -113,7 +153,7 @@ AP4_MarlinIpmpDecryptingProcessor::Initialize(AP4_AtomParent&   top_level,
             if (trak->GetId() == od_track_id) {
                 od_trak = trak;
             } else {
-                m_SinfEntries.Add(new SinfEntry(trak->GetId(), NULL));
+                sinf_entries.Add(new SinfEntry(trak->GetId(), NULL));
             }
         }
         trak_item = trak_item->GetNext();
@@ -201,7 +241,7 @@ AP4_MarlinIpmpDecryptingProcessor::Initialize(AP4_AtomParent&   top_level,
         }
         AP4_UI32 track_id = track_references->GetTrackIds()[es_id_ref->GetRefIndex()-1];
         SinfEntry* sinf_entry = NULL;
-        for (AP4_List<SinfEntry>::Item* sinf_entry_item = m_SinfEntries.FirstItem();
+        for (AP4_List<SinfEntry>::Item* sinf_entry_item = sinf_entries.FirstItem();
              sinf_entry_item;
              sinf_entry_item = sinf_entry_item->GetNext()) {
             sinf_entry = sinf_entry_item->GetData();
@@ -248,11 +288,11 @@ AP4_MarlinIpmpDecryptingProcessor::Initialize(AP4_AtomParent&   top_level,
             
             // setup the factory with a context so we can instantiate an 'schm'
             // atom with a slightly different format than the standard 'schm'
-            AP4_AtomFactory* factory = &AP4_DefaultAtomFactory::Instance;
+            AP4_AtomFactory* factory = &AP4_MarlinIpmpAtomFactory::Instance;
             factory->PushContext(AP4_ATOM_TYPE('m','r','l','n'));
             
             // parse the next atom in the stream 
-            result = AP4_DefaultAtomFactory::Instance.CreateAtomFromStream(*data, bytes_available, atom);
+            result = factory->CreateAtomFromStream(*data, bytes_available, atom);
             factory->PopContext();
             if (AP4_FAILED(result) || atom == NULL) break;
             
@@ -260,7 +300,7 @@ AP4_MarlinIpmpDecryptingProcessor::Initialize(AP4_AtomParent&   top_level,
             if (atom->GetType() == AP4_ATOM_TYPE_SINF) {
                 AP4_ContainerAtom* sinf = dynamic_cast<AP4_ContainerAtom*>(atom);
                 AP4_SchmAtom* schm = dynamic_cast<AP4_SchmAtom*>(sinf->FindChild("schm"));
-                if (schm->GetSchemeType()    == AP4_MARLIN_SCHEME_TYPE_ACBC && 
+                if (schm->GetSchemeType()    == AP4_PROTECTION_SCHEME_TYPE_MARLIN_ACBC && 
                     schm->GetSchemeVersion() == 0x0100) {
                     // store the sinf in the entry for that track
                     sinf_entry->m_Sinf = sinf;
@@ -269,30 +309,59 @@ AP4_MarlinIpmpDecryptingProcessor::Initialize(AP4_AtomParent&   top_level,
             }
             delete atom;
         } while (AP4_SUCCEEDED(result));
-        data->Release();
-        
-#if 0 // DEBUG
-        if (sinf_entry->m_Sinf) {
-            AP4_ByteStream* output =
-                new AP4_FileByteStream("-stdout",
-                                       AP4_FileByteStream::STREAM_MODE_WRITE);
-            AP4_PrintInspector inspector(*output);
-            sinf_entry->m_Sinf->Inspect(inspector);
-            output->Release();
-    }
-#endif
+        data->Release();        
     }
     
-    // remove the iods atom and the OD track
-    od_trak->Detach();
-    delete od_trak;
-    iods->Detach();
-    delete iods;
+    // remove the iods atom and the OD track if required
+    if (remove_od_data) {
+        od_trak->Detach();
+        delete od_trak;
+        iods->Detach();
+        delete iods;
+    }
     
     // cleanup
     delete od_track;
     
     return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_MarlinIpmpDecryptingProcessor:AP4_MarlinIpmpDecryptingProcessor
++---------------------------------------------------------------------*/
+AP4_MarlinIpmpDecryptingProcessor::AP4_MarlinIpmpDecryptingProcessor(
+    const AP4_ProtectionKeyMap* key_map              /* = NULL */,
+    AP4_BlockCipherFactory*     block_cipher_factory /* = NULL */)
+{
+    if (key_map) {
+        // copy the keys
+        m_KeyMap.SetKeys(*key_map);
+    }
+    
+    if (block_cipher_factory == NULL) {
+        m_BlockCipherFactory = &AP4_DefaultBlockCipherFactory::Instance;
+    } else {
+        m_BlockCipherFactory = block_cipher_factory;
+    }
+}
+
+/*----------------------------------------------------------------------
+|   AP4_MarlinIpmpDecryptingProcessor::~AP4_MarlinIpmpDecryptingProcessor
++---------------------------------------------------------------------*/
+AP4_MarlinIpmpDecryptingProcessor::~AP4_MarlinIpmpDecryptingProcessor()
+{
+    m_SinfEntries.DeleteReferences();
+}
+
+/*----------------------------------------------------------------------
+|   AP4_MarlinIpmpDecryptingProcessor:Initialize
++---------------------------------------------------------------------*/
+AP4_Result 
+AP4_MarlinIpmpDecryptingProcessor::Initialize(AP4_AtomParent&   top_level, 
+                                              AP4_ByteStream&   stream,
+                                              ProgressListener* /*listener*/)
+{
+    return AP4_MarlinIpmpParser::Parse(top_level, stream, m_SinfEntries, true);
 }
 
 /*----------------------------------------------------------------------
@@ -302,8 +371,8 @@ AP4_Processor::TrackHandler*
 AP4_MarlinIpmpDecryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
 {
     // look for this track in the list of entries
-    SinfEntry* sinf_entry = NULL;
-    for (AP4_List<SinfEntry>::Item* sinf_entry_item = m_SinfEntries.FirstItem();
+    AP4_MarlinIpmpParser::SinfEntry* sinf_entry = NULL;
+    for (AP4_List<AP4_MarlinIpmpParser::SinfEntry>::Item* sinf_entry_item = m_SinfEntries.FirstItem();
          sinf_entry_item;
          sinf_entry_item = sinf_entry_item->GetNext()) {
         sinf_entry = sinf_entry_item->GetData();
@@ -529,9 +598,15 @@ AP4_MarlinIpmpEncryptingProcessor::Initialize(
     
     // create an initial object descriptor
     AP4_InitialObjectDescriptor* iod = 
+        // FIXME: get real values from the property map
         new AP4_InitialObjectDescriptor(AP4_DESCRIPTOR_TAG_MP4_IOD,
                                         1022, // object descriptor id
-                                        false, 0, 0, 0, 0, 0); // FIXME: use real values
+                                        false, 
+                                        0xFE,    // OD profile level (0xFE = No OD profile specified)
+                                        0xFF,    // scene profile level
+                                        0xFE,    // audio profile level
+                                        0xFE,    // visual profile level
+                                        0xFF);   // graphics profile
 
     // create an ES_ID_Inc subdescriptor and add it to the initial object descriptor
     AP4_EsIdIncDescriptor* es_id_inc = new AP4_EsIdIncDescriptor(od_track_id);
@@ -590,7 +665,7 @@ AP4_MarlinIpmpEncryptingProcessor::Initialize(
         AP4_ContainerAtom* sinf = new AP4_ContainerAtom(AP4_ATOM_TYPE_SINF);
 
         // add the scheme type atom
-        sinf->AddChild(new AP4_SchmAtom(AP4_MARLIN_SCHEME_TYPE_ACBC, 0x0100, NULL, true));
+        sinf->AddChild(new AP4_SchmAtom(AP4_PROTECTION_SCHEME_TYPE_MARLIN_ACBC, 0x0100, NULL, true));
 
         // setup the scheme info atom
         const char* content_id = m_PropertyMap.GetProperty(mpod->GetTrackIds()[i], "ContentId");
