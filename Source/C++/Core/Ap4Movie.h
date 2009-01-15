@@ -52,7 +52,7 @@ class AP4_Movie {
 public:
     // methods
     AP4_Movie(AP4_UI32 time_scale = 0);
-    AP4_Movie(AP4_MoovAtom* moov, AP4_ByteStream& sample_stream);
+    AP4_Movie(AP4_MoovAtom* moov, AP4_ByteStream& sample_stream, bool transfer_moov_ownership = true);
     virtual ~AP4_Movie();
     AP4_Result Inspect(AP4_AtomInspector& inspector);
 
@@ -69,6 +69,7 @@ public:
 private:
     // members
     AP4_MoovAtom*       m_MoovAtom;
+    bool                m_MoovAtomIsOwned;
     AP4_MvhdAtom*       m_MvhdAtom;
     AP4_List<AP4_Track> m_Tracks;
 };

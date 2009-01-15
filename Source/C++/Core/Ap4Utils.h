@@ -100,7 +100,7 @@ AP4_SplitArgs(char* arg, char*& arg0, char*& arg1);
 +---------------------------------------------------------------------*/
 class AP4_PrintInspector : public AP4_AtomInspector {
 public:
-    AP4_PrintInspector(AP4_ByteStream& stream);
+    AP4_PrintInspector(AP4_ByteStream& stream, AP4_Cardinal indent=0);
     ~AP4_PrintInspector();
 
     // methods
