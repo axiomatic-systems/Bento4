@@ -54,7 +54,7 @@ typedef unsigned long  AP4_Size;
 
 // the rest depends on whether the platform supports 64-bit integers
 #if defined(AP4_CONFIG_HAVE_INT64)
-    // we have 64-bit integers (not handled yet)
+    // we have 64-bit integers
     typedef AP4_CONFIG_INT64_TYPE          AP4_SI64;
     typedef unsigned AP4_CONFIG_INT64_TYPE AP4_UI64;
     typedef unsigned AP4_CONFIG_INT64_TYPE AP4_LargeSize;
