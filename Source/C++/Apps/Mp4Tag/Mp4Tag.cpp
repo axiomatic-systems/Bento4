@@ -586,7 +586,7 @@ AddTag(AP4_File* file, AP4_String& arg, bool remove_first)
             fprintf(stderr, "ERROR: invalid binary encoding\n");
         } else if (value->GetChars()[0] == '+') {
             vobj = new AP4_BinaryMetaDataValue(AP4_MetaData::Value::TYPE_BINARY, 
-                                               (AP4_UI08*)value->GetChars()+1, 
+                                               (const AP4_UI08*)value->GetChars()+1, 
                                                value->GetLength()-1);
         } else if (value->GetChars()[1] == '#') {
             if (((value->GetLength()-1)%2) != 0) {
