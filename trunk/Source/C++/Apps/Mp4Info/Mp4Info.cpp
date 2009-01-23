@@ -69,7 +69,7 @@ ShowPayload(AP4_Atom& atom, bool ascii = false)
         if (ascii) {
             // ascii
             payload->WriteUI08(0); // terminate with a NULL character
-            printf("%s", (char*)payload->GetData()+atom.GetHeaderSize());
+            printf("%s", (const char*)payload->GetData()+atom.GetHeaderSize());
         } else {
             // hex
             for (unsigned int i=0; i<payload_size; i++) {
