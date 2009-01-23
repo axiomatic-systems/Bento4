@@ -96,21 +96,27 @@ def Executable(name,
                shared_lib=False,
                source_pattern=['*.cpp'],
                extra_includes=[],
-               environment = None):
+               environment = None,
+               lowercase = True):
     if environment is None:
         environment = env
     DeclareBuildDir(source_dir)
-    sdk = ['CoreLib', 'SystemLib'] + Split(extra_deps)
+    sdk = ['Bento4'] + Split(extra_deps)
     libs = GetLibraries(sdk)
     cpp_path = GetIncludeDirs(sdk) + extra_includes
     sources = GlobSources(source_dir, source_pattern)
     
+    if lowercase:
+        target_name = name.lower()
+    else:
+        target_name = name
+        
     if shared_lib:
-        exe = environment.LoadableModule(name.lower(),
+        exe = environment.LoadableModule(target_name,
                                          sources,
                                          LIBS=libs, CPPPATH=cpp_path, SHLIBPREFIX='')
     else:
-        exe = environment.Program(name.lower(), 
+        exe = environment.Program(target_name, 
                                   sources, 
                                   LIBS=libs, CPPPATH=cpp_path)
     Alias(name, exe)
@@ -130,25 +136,17 @@ if os.path.exists(target_config_file):
 #######################################################
 # modules
 #######################################################
-LibraryModule(name               = 'CoreLib', 
-              build_source_dirs  = ['C++/'+dir for dir in ['Core', 'Crypto', 'MetaData']],
+LibraryModule(name               = 'Bento4', 
+              build_source_dirs  = ['C++/'+dir for dir in ['Core', 'Crypto', 'MetaData', 'System/StdC', 'Codecs']],
               included_modules   = 'Config')
            
-LibraryModule(name               = 'SystemLib', 
-              build_source_dirs  = ['C++/System/StdC'],
-              included_modules   = 'CoreLib')
- 
-LibraryModule(name               = 'CodecsLib', 
-              build_source_dirs  = ['C++/Codecs'],
-              included_modules   = 'CoreLib')
-
 for name in ['Mp4Dump', 'Mp4Info', 'Mp4Edit', 'Mp4Encrypt', 'Mp4Decrypt', 'Mp4Tag', 'Mp4Extract', 'Mp4RtpHintInfo', 'Mp42Aac', 'Mp4DcfPackager']:       
     Executable(name, source_dir='C++/Apps/'+name)
 
-Executable('Aac2Mp4', source_dir='C++/Apps/Aac2Mp4', extra_deps='CodecsLib')
+Executable('Aac2Mp4', source_dir='C++/Apps/Aac2Mp4')
 Executable('CryptoTest', source_dir='C++/Test/Crypto')
 Executable('AvcTrackWriterTest', source_dir='C++/Test/Avc')
 Executable('PassthroughWriterTest', source_dir='C++/Test/PassthroughWriter')
 Executable('TracksTest', source_dir='C++/Test/Tracks')
 Executable('BenchmarksTest', source_dir='C++/Test/Benchmarks')
-Executable('libBento4C.so', source_dir='C++/CApi', shared_lib=True)
+Executable('libBento4C.so', source_dir='C++/CApi', shared_lib=True, lowercase=False)
