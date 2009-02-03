@@ -37,7 +37,7 @@
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-#define BANNER "MP4 File Tagger - Version 1.1 "\
+#define BANNER "MP4 File Tagger - Version 1.2 "\
                "(Bento4 Version " AP4_VERSION_STRING ")\n"\
                "(c) 2002-2008 Axiomatic Systems, LLC"
 
@@ -110,6 +110,7 @@ PrintUsageAndExit()
             "      set/add a tag\n"
             "      where <type> is:\n"
             "        S    if <value> is a UTF-8 string\n"
+            "        LS   if <value> is a UTF-8 string with a language code (see notes)\n"
             "        I8   if <value> is an 8-bit integer\n"
             "        I16  if <value> is a 16-bit integer\n"
             "        I32  if <value> is a 32-bit integer\n"
@@ -136,7 +137,9 @@ PrintUsageAndExit()
             "  (ex: com.mycompany.foo).\n"
             "  Binary strings can be expressed as a normal string of ASCII characters\n"
             "  prefixed by a + character if all the bytes fall in the ASCII range,\n"
-            "  or hex-encoded prefixed by a # character (ex: +hello, or #0FC4)\n");
+            "  or hex-encoded prefixed by a # character (ex: +hello, or #0FC4)\n"
+            "  Strings with a language code are expressed as: <lang>:<string>,\n"
+            "  where <lang> is a 3 character language code (ex: eng:hello)\n");
     exit(1);
 }
 
@@ -300,9 +303,9 @@ ListKeys()
     PrintTableRow(cells, 4);
     PrintTableSeparator(cells, 4);
 
+    char four_cc[5];
     for (AP4_Ordinal i=0; i<AP4_MetaData::KeyInfos.ItemCount(); i++) {
         AP4_MetaData::KeyInfo& key = AP4_MetaData::KeyInfos[i];
-        char four_cc[5];
         AP4_FormatFourCharsPrintable(four_cc, key.four_cc);
         cells[0].label = key.name;
         cells[1].label = key.description;
@@ -311,6 +314,31 @@ ListKeys()
         PrintTableRow(cells, 4);
     }
     PrintTableSeparator(cells, 4);
+    
+    printf("\nDCF Special 4CC types:\n");
+    printf("dcfD\n\n");
+    printf("DCF String 4CC types:\n");
+    const char* sep = "";
+    for (unsigned int i=0; i<AP4_MetaDataAtomTypeHandler::DcfStringTypeList.m_Size; i++) {
+        AP4_FormatFourCharsPrintable(four_cc, AP4_MetaDataAtomTypeHandler::DcfStringTypeList.m_Types[i]);
+        printf("%s%s", sep, four_cc);
+        sep = ", ";
+    }
+    printf("\n\n3GPP Localized String 4CC types:\n");
+    sep = "";
+    for (unsigned int i=0; i<AP4_MetaDataAtomTypeHandler::_3gppLocalizedStringTypeList.m_Size; i++) {
+        AP4_FormatFourCharsPrintable(four_cc, AP4_MetaDataAtomTypeHandler::_3gppLocalizedStringTypeList.m_Types[i]);
+        printf("%s%s", sep, four_cc);
+        sep = ", ";
+    }
+    printf("\n\n3GPP Other 4CC types:\n");
+    sep = "";
+    for (unsigned int i=0; i<AP4_MetaDataAtomTypeHandler::_3gppOtherTypeList.m_Size; i++) {
+        AP4_FormatFourCharsPrintable(four_cc, AP4_MetaDataAtomTypeHandler::_3gppOtherTypeList.m_Types[i]);
+        printf("%s%s", sep, four_cc);
+        sep = ", ";
+    }
+    printf("\n");
 }
 
 /*----------------------------------------------------------------------
@@ -499,29 +527,34 @@ GetNibble(char c)
 /*----------------------------------------------------------------------
 |   RemoveTag
 +---------------------------------------------------------------------*/
-static void
+static AP4_Result
 RemoveTag(AP4_File* file, AP4_String& key, bool silent) 
 {
     AP4_String* key_namespace;
     AP4_String* key_name;
     AP4_Ordinal key_index;
     AP4_Result result = ParseKeySpec(key, key_namespace, key_name, key_index);
-    if (AP4_FAILED(result)) return;
+    if (AP4_FAILED(result)) {
+        fprintf(stderr, "ERROR: invalid key name (%s)\n", key.GetChars());
+        return AP4_ERROR_INVALID_PARAMETERS;
+    }
     
     AP4_MetaData::Entry entry(key_name->GetChars(), key_namespace->GetChars(), NULL);
     result = entry.RemoveFromFile(*file, key_index);
     if (AP4_FAILED(result) && !silent) {
-        fprintf(stderr, "ERROR: code=%d\n", result);
+        fprintf(stderr, "ERROR: failed to remove entry (%d)\n", result);
     }
 
     delete key_namespace;
     delete key_name;
+    
+    return result;
 }
 
 /*----------------------------------------------------------------------
 |   AddTag
 +---------------------------------------------------------------------*/
-static void
+static AP4_Result
 AddTag(AP4_File* file, AP4_String& arg, bool remove_first) 
 {
     AP4_Result result;
@@ -530,22 +563,28 @@ AddTag(AP4_File* file, AP4_String& arg, bool remove_first)
     result = SplitString(arg, ':', arg_components, 3);
     if (AP4_FAILED(result)) {
         fprintf(stderr, "ERROR: invalid argument syntax for --add command\n");
-        return;
+        return result;
     }
     
     // split the components
-    AP4_String* key;
-    AP4_String* type;
-    AP4_String* value;
+    AP4_String* key   = NULL;
+    AP4_String* type  = NULL;
+    AP4_String* value = NULL;
     arg_components.Get(0, key);
     arg_components.Get(1, type);
     arg_components.Get(2, value);
     
-    AP4_String* key_namespace;
-    AP4_String* key_name;
-    AP4_Ordinal key_index;
+    AP4_String* key_namespace = NULL;
+    AP4_String* key_name = NULL;
+    AP4_Ordinal key_index = NULL;
     result = ParseKeySpec(*key, key_namespace, key_name, key_index);
-    if (AP4_FAILED(result)) return;
+    if (AP4_FAILED(result)) {
+        fprintf(stderr, "ERROR: invalid key name (%s)\n", key->GetChars());
+        delete key;
+        delete type;
+        delete value;
+        return result;
+    }
         
     // remove the entry first if necessary
     if (remove_first) {
@@ -556,6 +595,19 @@ AddTag(AP4_File* file, AP4_String& arg, bool remove_first)
     AP4_MetaData::Value* vobj = NULL;
     if (*type == "S") {
         vobj = new AP4_StringMetaDataValue(value->GetChars());
+    } else if (*type == "LS") {
+        char lang[4];
+        if (value->GetLength() < 4 || (*value)[3] != ':') {
+            fprintf(stderr, "ERROR: invalid syntax for LS value\n");
+            result = AP4_ERROR_INVALID_FORMAT;
+            goto end;
+        }
+        lang[0] = (*value)[0];
+        lang[1] = (*value)[1];
+        lang[2] = (*value)[2];
+        lang[3] = 0;
+        vobj = new AP4_StringMetaDataValue(value->GetChars()+4);
+        vobj->SetLanguage(lang);
     } else if (*type == "I8") {
         long v = strtol(value->GetChars(), NULL, 10);
         vobj = new AP4_IntegerMetaDataValue(AP4_MetaData::Value::TYPE_INT_08_BE, v);
@@ -579,11 +631,15 @@ AddTag(AP4_File* file, AP4_String& arg, bool remove_first)
             vobj = new AP4_BinaryMetaDataValue(data_type, buffer.GetData(), buffer.GetDataSize());
         } catch (AP4_Exception) {
             fprintf(stderr, "ERROR: cannot open file %s\n", value->GetChars());
+            result = AP4_FAILURE;
+            goto end;
         } 
         if (data_file) data_file->Release();
     } else if (*type == "B") {
         if (value->GetLength() == 0) {
             fprintf(stderr, "ERROR: invalid binary encoding\n");
+            result = AP4_ERROR_INVALID_PARAMETERS;
+            goto end;
         } else if (value->GetChars()[0] == '+') {
             vobj = new AP4_BinaryMetaDataValue(AP4_MetaData::Value::TYPE_BINARY, 
                                                (const AP4_UI08*)value->GetChars()+1, 
@@ -591,6 +647,8 @@ AddTag(AP4_File* file, AP4_String& arg, bool remove_first)
         } else if (value->GetChars()[1] == '#') {
             if (((value->GetLength()-1)%2) != 0) {
                 fprintf(stderr, "ERROR: invalid hex encoding\n");
+                result = AP4_ERROR_INVALID_PARAMETERS;
+                goto end;
             } else {
                 AP4_Size  binary_string_length = (value->GetLength()-1)/2;
                 AP4_UI08* binary_string = new AP4_UI08[binary_string_length];
@@ -605,51 +663,72 @@ AddTag(AP4_File* file, AP4_String& arg, bool remove_first)
             }
         } else {
             fprintf(stderr, "ERROR: invalid binary string (does not start with + or #)\n");
+            result = AP4_ERROR_INVALID_PARAMETERS;
+            goto end;
         }
     } else {
         fprintf(stderr, "ERROR: unsupported type '%s'\n", type->GetChars());
+        result = AP4_ERROR_INVALID_PARAMETERS;
+        goto end;
     }
-    AP4_MetaData::Entry entry(key_name->GetChars(), key_namespace->GetChars(), vobj);
+    {
+        AP4_MetaData::Entry entry(key_name->GetChars(), key_namespace->GetChars(), vobj);
     
-    // add the entry to the file
-    entry.AddToFile(*file, key_index);
+        // add the entry to the file
+        result = entry.AddToFile(*file, key_index);
+        if (AP4_FAILED(result)) {
+            fprintf(stderr, 
+                    "ERROR: cannot add entry %s (%d:%s)\n", 
+                    key->GetChars(),
+                    result, AP4_ResultText(result));
+        }
+    }
     
+end:
     delete key;
     delete key_namespace;
     delete key_name;
     delete type;
     delete value;
+
+    return result;
 }
 
 /*----------------------------------------------------------------------
 |   ExtractTag
 +---------------------------------------------------------------------*/
-static void
+static AP4_Result
 ExtractTag(AP4_File* file, AP4_String& arg) 
 {
     AP4_List<AP4_String> arg_components;
     AP4_Result result = SplitString(arg, ':', arg_components, 2);
     if (AP4_FAILED(result)) {
-        fprintf(stderr, "ERROR: invalid argument syntax for --add command\n");
-        return;
+        fprintf(stderr, "ERROR: invalid argument syntax for --extract command\n");
+        return result;
     }
     
     // split the components
-    AP4_String* key;
-    AP4_String* output_filename;
+    AP4_String* key = NULL;
+    AP4_String* output_filename = NULL;
     arg_components.Get(0, key);
     arg_components.Get(1, output_filename);
     
-    AP4_String* key_namespace;
-    AP4_String* key_name;
+    AP4_String* key_namespace = NULL;
+    AP4_String* key_name = NULL;
     AP4_Ordinal key_index;
     result = ParseKeySpec(*key, key_namespace, key_name, key_index);
-    if (AP4_FAILED(result)) return;
+    if (AP4_FAILED(result)) {
+        fprintf(stderr, "ERROR: invalid key name (%s)\n", key->GetChars());
+        delete key;
+        delete output_filename;
+        return result;
+    }
 
     // get the metadata
     const AP4_MetaData* metadata = file->GetMetaData();
     
-    // iterator over the entries and look for a match
+    // iterate over the entries and look for a match
+    bool found = false;
     AP4_List<AP4_MetaData::Entry>::Item* item = NULL; // we init the  var here to work around a gcc/mingw bug
     for (item = metadata->GetEntries().FirstItem();
          item;
@@ -662,6 +741,7 @@ ExtractTag(AP4_File* file, AP4_String& arg)
             if (entry->m_Value == NULL) break;
             AP4_DataBuffer buffer;
             if (AP4_FAILED(entry->m_Value->ToBytes(buffer))) break;
+            found = true;
             try {
                 AP4_FileByteStream* output = new AP4_FileByteStream(output_filename->GetChars(),
                                                  AP4_FileByteStream::STREAM_MODE_WRITE);
@@ -669,14 +749,23 @@ ExtractTag(AP4_File* file, AP4_String& arg)
                 output->Release();
             } catch (AP4_Exception&) {
                 fprintf(stderr, "ERROR: cannot open output/extract file\n");
+                result = AP4_FAILURE;
+                goto end;
             }
         }
     }
-
+    if (!found) {
+        fprintf(stderr, "ERROR: canot extract tag, entry not found\n");
+        result = AP4_ERROR_NO_SUCH_ITEM;
+    }
+    
+end:
     delete key;
     delete key_namespace;
     delete key_name;
     delete output_filename;
+    
+    return result;
 }
 
 /*----------------------------------------------------------------------
@@ -761,6 +850,7 @@ main(int argc, char** argv)
     for (AP4_List<Command>::Item* item = Options.commands.FirstItem();
          item;
          item = item->GetNext()) {
+        AP4_Result result = AP4_SUCCESS;
         switch (item->GetData()->m_Type) {
             case Command::TYPE_LIST_KEYS:
                 ListKeys();
@@ -775,24 +865,26 @@ main(int argc, char** argv)
                 break;
 
             case Command::TYPE_SET:
-                AddTag(file, item->GetData()->m_Arg1, true);
+                result = AddTag(file, item->GetData()->m_Arg1, true);
                 break;
 
             case Command::TYPE_ADD:
-                AddTag(file, item->GetData()->m_Arg1, false);
+                result = AddTag(file, item->GetData()->m_Arg1, false);
                 break;
 
             case Command::TYPE_REMOVE:
-                RemoveTag(file, item->GetData()->m_Arg1, false);
+                result = RemoveTag(file, item->GetData()->m_Arg1, false);
                 break;
 
             case Command::TYPE_EXTRACT:
-                ExtractTag(file, item->GetData()->m_Arg1);
+                result = ExtractTag(file, item->GetData()->m_Arg1);
                 break;
 
             default:
                 break;
         }
+        
+        if (AP4_FAILED(result)) goto end;
     }
 
     if (output) {
@@ -810,6 +902,7 @@ main(int argc, char** argv)
         copier.Write(*output, file->IsMoovBeforeMdat());
     }
     
+end:
     delete file;
     delete input;
     delete output;
