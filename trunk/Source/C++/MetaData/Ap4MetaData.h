@@ -180,10 +180,11 @@ public:
         virtual ~Value() {}
 
         // methods
-        Type               GetType() const         { return m_Type;         }
+        Type               GetType() const                   { return m_Type;         }
         TypeCategory       GetTypeCategory() const;
-        Meaning            GetMeaning() const      { return m_Meaning;      }
-        const AP4_String&  GetLanguage() const     { return m_Language;     }
+        Meaning            GetMeaning() const                { return m_Meaning;      }
+        const AP4_String&  GetLanguage() const               { return m_Language;     }
+        void               SetLanguage(const char* language) { m_Language = language; }
         virtual AP4_String ToString() const = 0;
         virtual AP4_Result ToBytes(AP4_DataBuffer& bytes) const = 0;
         virtual long       ToInteger() const = 0;
@@ -230,7 +231,7 @@ public:
         AP4_Result         RemoveFromFileIlst(AP4_File& file, AP4_Ordinal index);
         AP4_Result         RemoveFromFileDcf(AP4_File& file, AP4_Ordinal index);
         AP4_ContainerAtom* FindInIlst(AP4_ContainerAtom* ilst) const;
-        AP4_Atom*          ToAtom() const;
+        AP4_Result         ToAtom(AP4_Atom*& atom) const;
 
         // members
         Key    m_Key;
@@ -337,6 +338,7 @@ public:
     static AP4_3GppLocalizedStringAtom* Create(Type type, AP4_UI32 size, AP4_ByteStream& stream);
      
     // constructor
+    AP4_3GppLocalizedStringAtom(Type type, const char* language, const char* value);
     AP4_3GppLocalizedStringAtom(Type            type, 
                                 AP4_UI32        size, 
                                 AP4_UI32        version,
@@ -348,13 +350,13 @@ public:
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
     
     // methods
-    const char*           GetLanguage() const { return m_Language; }
-    const AP4_DataBuffer& GetPayload()  const { return m_Payload;  }
+    const char*       GetLanguage() const { return m_Language; }
+    const AP4_String& GetValue()    const { return m_Value;    }
     
 private:
     // members
-    char           m_Language[4];
-    AP4_DataBuffer m_Payload;
+    char       m_Language[4];
+    AP4_String m_Value;
 };
 
 /*----------------------------------------------------------------------

@@ -416,7 +416,7 @@ AP4_MetaDataAtomTypeHandler::CreateAtom(AP4_Atom::Type  type,
 }
 
 /*----------------------------------------------------------------------
-|   AP4_MetaDataAtomTypeHandler::IsInTypeList
+|   AP4_MetaDataAtomTypeHandler::IsTypeInList
 +---------------------------------------------------------------------*/
 bool
 AP4_MetaDataAtomTypeHandler::IsTypeInList(AP4_Atom::Type type, const AP4_MetaDataAtomTypeHandler::TypeList& list)
@@ -620,7 +620,7 @@ AP4_MetaData::Add3GppEntry(AP4_3GppLocalizedStringAtom* atom, const char* namesp
     if (atom->GetLanguage()[0]) {
         language = atom->GetLanguage();
     }
-    AP4_MetaData::Value* value = new AP4_StringMetaDataValue((const char*)atom->GetPayload().GetData(),
+    AP4_MetaData::Value* value = new AP4_StringMetaDataValue(atom->GetValue().GetChars(),
                                                              language);
     m_Entries.Add(new Entry(key_name.GetChars(), namespc, value));
     
@@ -696,16 +696,20 @@ AP4_MetaData::Value::GetTypeCategory() const
 /*----------------------------------------------------------------------
 |   AP4_MetaData::Entry::ToAtom
 +---------------------------------------------------------------------*/
-AP4_Atom*
-AP4_MetaData::Entry::ToAtom() const
+AP4_Result
+AP4_MetaData::Entry::ToAtom(AP4_Atom*& atom) const
 {
-    if (m_Value == NULL) return NULL;
+    atom = NULL;
+    
+    if (m_Value == NULL) {
+        return AP4_ERROR_INVALID_PARAMETERS;
+    }
     
     if (m_Key.GetNamespace() == "meta") {
         // convert the name into an atom type
         if (m_Key.GetName().GetLength() != 4) {
             // the name is not in the right format
-            return NULL;
+            return AP4_ERROR_INVALID_PARAMETERS;
         }
         AP4_Atom::Type atom_type = AP4_Atom::TypeFromString(m_Key.GetName().GetChars()); 
                                    
@@ -716,40 +720,55 @@ AP4_MetaData::Entry::ToAtom() const
         AP4_DataAtom* data = new AP4_DataAtom(*m_Value);
         atom->AddChild(data);
         
-        return atom;
+        return AP4_SUCCESS;
     } else if (m_Key.GetNamespace() == "dcf") {
         // convert the name into an atom type
         if (m_Key.GetName().GetLength() != 4) {
             // the name is not in the right format
-            return NULL;
+            return AP4_ERROR_INVALID_PARAMETERS;
         }
         AP4_Atom::Type atom_type = AP4_Atom::TypeFromString(m_Key.GetName().GetChars()); 
 
         if (AP4_MetaDataAtomTypeHandler::IsTypeInList(atom_type, 
             AP4_MetaDataAtomTypeHandler::DcfStringTypeList)) {
             AP4_String atom_value = m_Value->ToString();
-            return new AP4_DcfStringAtom(atom_type, atom_value.GetChars());
+            atom = new AP4_DcfStringAtom(atom_type, atom_value.GetChars());
+            return AP4_SUCCESS;
+        } else if (AP4_MetaDataAtomTypeHandler::IsTypeInList(atom_type, 
+                   AP4_MetaDataAtomTypeHandler::_3gppLocalizedStringTypeList)) {
+            AP4_String atom_value = m_Value->ToString();
+            const char* language = "eng"; // default
+            if (m_Value->GetLanguage().GetLength() != 0) {
+                language = m_Value->GetLanguage().GetChars();
+            }
+            atom = new AP4_3GppLocalizedStringAtom(atom_type, language, atom_value.GetChars());
+            return AP4_SUCCESS;
         } else if (atom_type == AP4_ATOM_TYPE_DCFD) {
-            return new AP4_DcfdAtom(m_Value->ToInteger());
-        } 
+            atom = new AP4_DcfdAtom(m_Value->ToInteger());
+            return AP4_SUCCESS;
+        }
+        
+         // not supported
+         return AP4_ERROR_NOT_SUPPORTED; 
     } else {
         // create a '----' atom
-        AP4_ContainerAtom* atom = new AP4_ContainerAtom(AP4_ATOM_TYPE_dddd);
+        AP4_ContainerAtom* container = new AP4_ContainerAtom(AP4_ATOM_TYPE_dddd);
         
         // add a 'mean' string
-        atom->AddChild(new AP4_MetaDataStringAtom(AP4_ATOM_TYPE_MEAN, m_Key.GetNamespace().GetChars()));
+        container->AddChild(new AP4_MetaDataStringAtom(AP4_ATOM_TYPE_MEAN, m_Key.GetNamespace().GetChars()));
         
         // add a 'name' string
-        atom->AddChild(new AP4_MetaDataStringAtom(AP4_ATOM_TYPE_NAME, m_Key.GetName().GetChars()));
+        container->AddChild(new AP4_MetaDataStringAtom(AP4_ATOM_TYPE_NAME, m_Key.GetName().GetChars()));
 
         // add the data atom
         AP4_DataAtom* data = new AP4_DataAtom(*m_Value);
-        atom->AddChild(data);
+        container->AddChild(data);
         
-        return atom;
+        atom = container;
+        return AP4_SUCCESS;
     }
         
-    return NULL;
+    return AP4_ERROR_NOT_SUPPORTED;
 }
 
 /*----------------------------------------------------------------------
@@ -792,7 +811,10 @@ AP4_MetaData::Entry::AddToFileIlst(AP4_File& file, AP4_Ordinal index)
     if (m_Value == NULL) return AP4_ERROR_INVALID_STATE;
 
     // convert the entry into an atom
-    AP4_ContainerAtom* entry_atom = dynamic_cast<AP4_ContainerAtom*>(ToAtom());
+    AP4_Atom* atom;
+    AP4_Result result = ToAtom(atom);
+    if (AP4_FAILED(result)) return result;
+    AP4_ContainerAtom* entry_atom = dynamic_cast<AP4_ContainerAtom*>(atom);
     if (entry_atom == NULL) {
         return AP4_ERROR_INVALID_FORMAT;
     }
@@ -861,8 +883,9 @@ AP4_MetaData::Entry::AddToFileDcf(AP4_File& file, AP4_Ordinal index)
     if (udta == NULL) return AP4_ERROR_INTERNAL;
     
     // convert the entry into an atom
-    AP4_Atom* data_atom = ToAtom();
-    if (data_atom == NULL) return AP4_ERROR_INVALID_FORMAT;
+    AP4_Atom* data_atom;
+    AP4_Result result = ToAtom(data_atom);
+    if (AP4_FAILED(result)) return result;
 
     // add the entry's data to the container
     return udta->AddChild(data_atom, index);
@@ -1510,6 +1533,23 @@ AP4_3GppLocalizedStringAtom::Create(Type type, AP4_UI32 size, AP4_ByteStream& st
 /*----------------------------------------------------------------------
 |   AP4_3GppLocalizedStringAtom::AP4_3GppLocalizedStringAtom
 +---------------------------------------------------------------------*/
+AP4_3GppLocalizedStringAtom::AP4_3GppLocalizedStringAtom(Type        type, 
+                                                         const char* language, 
+                                                         const char* value) :
+    AP4_Atom(type, AP4_FULL_ATOM_HEADER_SIZE+2, 0, 0),
+    m_Value(value)
+{
+    m_Language[0] = language[0];
+    m_Language[1] = language[1];
+    m_Language[2] = language[2];
+    m_Language[3] = language[3];
+    
+    m_Size32 += m_Value.GetLength()+1;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_3GppLocalizedStringAtom::AP4_3GppLocalizedStringAtom
++---------------------------------------------------------------------*/
 AP4_3GppLocalizedStringAtom::AP4_3GppLocalizedStringAtom(Type            type, 
                                                          AP4_UI32        size, 
                                                          AP4_UI32        version,
@@ -1525,13 +1565,14 @@ AP4_3GppLocalizedStringAtom::AP4_3GppLocalizedStringAtom(Type            type,
     m_Language[2] = 0x60+((packed_language    )&0x1F);
     m_Language[3] = '\0';
     
-    // read the payload (should be a NULL-terminated string, but we'll
+    // read the value (should be a NULL-terminated string, but we'll
     // allow for strings that are not terminated)
     if (size > AP4_FULL_ATOM_HEADER_SIZE+2) {
-        AP4_UI32 payload_size = size-(AP4_FULL_ATOM_HEADER_SIZE+2);
-        m_Payload.SetDataSize(payload_size);
-        stream.Read(m_Payload.UseData(), payload_size);
-        m_Payload.UseData()[payload_size-1] = '\0'; // force null termination
+        AP4_UI32 value_size = size-(AP4_FULL_ATOM_HEADER_SIZE+2);
+        char* value = new char[value_size];
+        stream.Read(value, value_size);
+        m_Value.Assign(value, value_size);
+        delete[] value;
     }
 }
 
@@ -1545,7 +1586,16 @@ AP4_3GppLocalizedStringAtom::WriteFields(AP4_ByteStream& stream)
                                ((m_Language[1]-0x60)<< 5) |
                                ((m_Language[2]-0x60));
     stream.WriteUI16(packed_language);
-    stream.Write(m_Payload.GetData(), m_Payload.GetDataSize());
+    AP4_Size payload_size = (AP4_UI32)GetSize()-GetHeaderSize();
+    if (payload_size < 2) return AP4_ERROR_INVALID_FORMAT;
+    AP4_Size value_size = m_Value.GetLength()+1;
+    if (value_size > payload_size-2) {
+        value_size = payload_size-2;
+    }
+    stream.Write(m_Value.GetChars(), value_size);
+    for (unsigned int i=value_size; i<payload_size-2; i++) {
+        stream.WriteUI08(0);
+    }
     return AP4_SUCCESS;
 }
 
@@ -1556,7 +1606,7 @@ AP4_Result
 AP4_3GppLocalizedStringAtom::InspectFields(AP4_AtomInspector& inspector)
 {
     inspector.AddField("language", GetLanguage());
-    inspector.AddField("value", (const char*)m_Payload.GetData());
+    inspector.AddField("value", m_Value.GetChars());
     return AP4_SUCCESS;
 }
 

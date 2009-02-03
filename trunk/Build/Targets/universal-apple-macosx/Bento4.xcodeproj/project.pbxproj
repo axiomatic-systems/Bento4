@@ -62,6 +62,7 @@
 /* Begin PBXBuildFile section */
 		CA09F27F0DF62FC600C2B2DA /* Ap4Marlin.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA09F27D0DF62FC600C2B2DA /* Ap4Marlin.cpp */; };
 		CA09F2800DF62FC600C2B2DA /* Ap4Marlin.h in Headers */ = {isa = PBXBuildFile; fileRef = CA09F27E0DF62FC600C2B2DA /* Ap4Marlin.h */; };
+		CA0BBBA10F38D10A00DF01DD /* Ap4Results.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA0BBBA00F38D10A00DF01DD /* Ap4Results.cpp */; };
 		CA1221CF0CA7192B000BEEF6 /* Ap4FileCopier.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA1221CD0CA7192B000BEEF6 /* Ap4FileCopier.cpp */; };
 		CA1221D00CA7192B000BEEF6 /* Ap4FileCopier.h in Headers */ = {isa = PBXBuildFile; fileRef = CA1221CE0CA7192B000BEEF6 /* Ap4FileCopier.h */; };
 		CA28981A0D87DA81006A758B /* Ap4UuidAtom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA2898180D87DA81006A758B /* Ap4UuidAtom.cpp */; };
@@ -558,6 +559,7 @@
 /* Begin PBXFileReference section */
 		CA09F27D0DF62FC600C2B2DA /* Ap4Marlin.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4Marlin.cpp; sourceTree = "<group>"; };
 		CA09F27E0DF62FC600C2B2DA /* Ap4Marlin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4Marlin.h; sourceTree = "<group>"; };
+		CA0BBBA00F38D10A00DF01DD /* Ap4Results.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4Results.cpp; sourceTree = "<group>"; };
 		CA1221CD0CA7192B000BEEF6 /* Ap4FileCopier.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4FileCopier.cpp; sourceTree = "<group>"; };
 		CA1221CE0CA7192B000BEEF6 /* Ap4FileCopier.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = Ap4FileCopier.h; sourceTree = "<group>"; };
 		CA2898180D87DA81006A758B /* Ap4UuidAtom.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4UuidAtom.cpp; sourceTree = "<group>"; };
@@ -1140,6 +1142,7 @@
 		CA93660F0B437D030067D50B /* Core */ = {
 			isa = PBXGroup;
 			children = (
+				CA0BBBA00F38D10A00DF01DD /* Ap4Results.cpp */,
 				CAEA9E970E17006D008C396D /* Ap4GrpiAtom.cpp */,
 				CAEA9E980E17006D008C396D /* Ap4GrpiAtom.h */,
 				CAEDC8FA0DFF61AE00F070A8 /* Ap4Command.cpp */,
@@ -2136,6 +2139,7 @@
 				CAEDC8E80DFF5B1100F070A8 /* Ap4Expandable.cpp in Sources */,
 				CAEDC8FB0DFF61AE00F070A8 /* Ap4Command.cpp in Sources */,
 				CAEA9E990E17006D008C396D /* Ap4GrpiAtom.cpp in Sources */,
+				CA0BBBA10F38D10A00DF01DD /* Ap4Results.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
