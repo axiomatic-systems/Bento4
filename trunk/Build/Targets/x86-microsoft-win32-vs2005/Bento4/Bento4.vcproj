@@ -373,6 +373,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\..\Source\C++\Core\Ap4Results.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\Source\C++\Core\Ap4RtpAtom.cpp"
 				>
 			</File>
@@ -859,11 +863,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\..\Source\C++\Core\Ap4Version.h"
+				RelativePath="..\..\..\..\Source\C++\Config\Ap4Version.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\..\Source\C++\Config\Ap4Version.h"
+				RelativePath="..\..\..\..\Source\C++\Core\Ap4Version.h"
 				>
 			</File>
 			<File
@@ -877,10 +881,6 @@
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
 		</Filter>
-		<File
-			RelativePath=".\VTune\Bento4.vpj"
-			>
-		</File>
 	</Files>
 	<Globals>
 	</Globals>

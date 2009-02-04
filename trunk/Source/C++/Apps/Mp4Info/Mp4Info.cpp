@@ -306,7 +306,7 @@ ShowDcfInfo(AP4_File& file)
         const char* headers = (const char*)ohdr->GetTextualHeaders().GetData();
         while (headers_size) {
             printf("  %s\n", headers);
-            AP4_Size header_len = strlen(headers);
+            AP4_Size header_len = (AP4_Size)strlen(headers);
             headers_size -= header_len+1;
             headers      += header_len+1;
         }
