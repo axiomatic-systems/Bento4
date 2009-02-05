@@ -714,12 +714,13 @@ AP4_MetaData::Entry::ToAtom(AP4_Atom*& atom) const
         AP4_Atom::Type atom_type = AP4_Atom::TypeFromString(m_Key.GetName().GetChars()); 
                                    
         // create a container atom for the data
-        AP4_ContainerAtom* atom = new AP4_ContainerAtom(atom_type);
+        AP4_ContainerAtom* container = new AP4_ContainerAtom(atom_type);
 
         // add the data atom
         AP4_DataAtom* data = new AP4_DataAtom(*m_Value);
-        atom->AddChild(data);
+        container->AddChild(data);
         
+        atom = container;
         return AP4_SUCCESS;
     } else if (m_Key.GetNamespace() == "dcf") {
         // convert the name into an atom type
