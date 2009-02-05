@@ -119,7 +119,7 @@ def Executable(name,
         exe = environment.Program(target_name, 
                                   sources, 
                                   LIBS=libs, CPPPATH=cpp_path)
-    Alias(name, exe)
+    #environment.Alias(name, exe)
     
 #######################################################
 # Main Build
