@@ -4,6 +4,7 @@ import sys
 import os
 import shutil
 import zipfile
+import re
 
 #############################################################
 # ZIP support
@@ -28,15 +29,27 @@ def ZipIt(dir) :
     ZipDir(dir, archive, dir)
     archive.close()
     
+def GetVersion():
+    f = open(BENTO4_HOME+'/Source/C++/Core/Ap4Version.h')
+    lines = f.readlines()
+    f.close()
+    for line in lines:
+        m = re.match(r'.*AP4_VERSION_STRING *"([0-9]*)\.([0-9]*)\.([0-9]*)"', line)
+        if m:
+            return m.group(1) + '-' + m.group(2) + '-' + m.group(3)
+    return '0-0-0'
+
+
 #############################################################
 # Main
 #############################################################
-BENTO4_VERSION = '1-0-0'
 
 if not os.environ.has_key('BENTO4_HOME'):
     print 'ERROR: BENTO4_HOME not set'
     sys.exit(1)
 BENTO4_HOME = os.environ['BENTO4_HOME']
+
+BENTO4_VERSION = GetVersion()
 
 SDK_REVISION = sys.argv[1]
 print "Exporting Revision", SDK_REVISION
