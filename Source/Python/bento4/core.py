@@ -535,8 +535,8 @@ class AvcSampleDescription(SampleDescription, VideoSampleDescription):
         count = lb4.AP4_AvcSampleDescription_GetSequenceParameterCount(self.bt4avcdesc)
         for i in xrange(count):
             bt4buf = lb4.AP4_AvcSampleDescription_GetSequenceParameter(self.bt4avcdesc, i)
-            result += [string_at(AP4_DataBuffer_GetData(bt4buf),
-                                 AP4_DataBuffer_GetDataSize(bt4buf))]
+            result += [string_at(lb4.AP4_DataBuffer_GetData(bt4buf),
+                                 lb4.AP4_DataBuffer_GetDataSize(bt4buf))]
         return result
     
     @property
