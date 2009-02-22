@@ -3,6 +3,8 @@ import os
 import platform
 import distutils.sysconfig
 
+EnsureSConsVersion(0,98,1)
+
 #######################################################
 # reusable functions and data structures
 #######################################################
@@ -62,11 +64,10 @@ options.AddVariables(
 )
 
 ### create the environment
-env = Environment(options=options, ENV={'PATH':os.environ['PATH']})
+env = Environment(variables=options, ENV={'PATH':os.environ['PATH']})
 Help(options.GenerateHelpText(env))
 
 ### call the actual build script for each build config
-if not hasattr(env, 'Clone'): env.Clone = env.Copy ## old scons compatibility
 base_env = env
 for build_config in env['build_config']:
     env = base_env.Clone()
