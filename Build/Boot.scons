@@ -57,7 +57,7 @@ def IsCommandInPath(env, cmd):
 options = Options()
 options.AddOptions(
     EnumOption('target', 'Build Target', DefaultTarget(), allowed_values=PLATFORM_TO_TARGET_MAP.values()+CROSS_PLATFORMS),
-    BoolOption('enable_profiling', 'Enable Profiling', False),
+    BoolOption('stop_on_warning', 'Stop the build on warnings', False),
     ListOption('build_config', 'Build Configuration(s)', 'Debug', names=['Debug', 'Release']),
 )
 
