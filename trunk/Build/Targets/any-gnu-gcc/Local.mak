@@ -48,7 +48,7 @@ endif
 DEFINES_CPP = -D_REENTRANT $(DEFINES_CPP_BYTE_ORDER)
 
 # warning flags
-WARNINGS_CPP = -Wall -Werror -Wshadow -Wpointer-arith -Wcast-qual 
+WARNINGS_CPP = -Wall -Wshadow -Wpointer-arith -Wcast-qual 
 
 # include directories
 INCLUDES_CPP =
