@@ -362,12 +362,12 @@ main(int argc, char** argv)
     bool do_read_samples_dcf_ctr   = false;
     bool do_read_samples_pdcf_cbc  = false;
     bool do_read_samples_pdcf_ctr  = false;
-    const char* test_file_read        = "test-read.bin";
-    const char* test_file_mp4         = "test-001.mp4";
-    const char* test_file_dcf_cbc     = "test-001.mp4.cbc.odf";
-    const char* test_file_dcf_ctr     = "test-001.mp4.ctr.odf";
-    const char* test_file_pdcf_cbc    = "test-001.cbc.pdcf.mp4";
-    const char* test_file_pdcf_ctr    = "test-001.ctr.pdcf.mp4";
+    const char* test_file_read        = "test-bench.mp4";
+    const char* test_file_mp4         = "test-bench.mp4";
+    const char* test_file_dcf_cbc     = "test-bench.mp4.cbc.odf";
+    const char* test_file_dcf_ctr     = "test-bench.mp4.ctr.odf";
+    const char* test_file_pdcf_cbc    = "test-bench.cbc.pdcf.mp4";
+    const char* test_file_pdcf_ctr    = "test-bench.ctr.pdcf.mp4";
     float max_time = TIME_SPAN;
     unsigned int max_iterations = 0xFFFFFFFF;
     
