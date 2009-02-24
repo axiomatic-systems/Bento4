@@ -6,8 +6,8 @@ import os
 filename_orig    = 'test-bench.mp4'
 filename_dcf_cbc = 'test-bench.mp4.cbc.odf'
 filename_dcf_ctr = 'test-bench.mp4.ctr.odf'
-filename_pdcf_cbc = 'test-bench.cbc.mp4'
-filename_pdcf_ctr = 'test-bench.ctr.mp4'
+filename_pdcf_cbc = 'test-bench.cbc.pdcf.mp4'
+filename_pdcf_ctr = 'test-bench.ctr.pdcf.mp4'
 
 key1 = '000102030405060708090a0b0c0d0e0f'
 iv1  = 'a0a1a2a3a4a5a6a7'
