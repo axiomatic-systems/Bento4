@@ -87,6 +87,10 @@ public:
     virtual ~AP4_AtomInspector() {}
 
     // methods
+    void        SetVerbosity(AP4_Ordinal verbosity) { m_Verbosity = verbosity; }
+    AP4_Ordinal GetVerbosity()                      { return m_Verbosity;      }
+    
+    // virtual methods
     virtual void StartElement(const char* /* name */, 
                               const char* /* extra = NULL */) {}
     virtual void EndElement() {}
@@ -111,6 +115,9 @@ public:
                           FormatHint           hint = HINT_NONE) {
         (void)hint; // gcc warning 
     }
+    
+protected:
+    AP4_Ordinal m_Verbosity;
 };
 
 /*----------------------------------------------------------------------

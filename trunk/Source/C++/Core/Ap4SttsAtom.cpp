@@ -184,8 +184,10 @@ AP4_SttsAtom::GetSampleIndexForTimeStamp(AP4_TimeStamp ts,
     sample_index = 0;
     
     for (AP4_Ordinal i=0; i<entry_count; i++) {
-        AP4_Duration next_accumulated = accumulated 
-            + m_Entries[i].m_SampleCount * m_Entries[i].m_SampleDuration;
+        AP4_Duration next_accumulated = 
+            accumulated +
+            (AP4_UI64)m_Entries[i].m_SampleCount * 
+            (AP4_UI64)m_Entries[i].m_SampleDuration;
         
         // check if the ts is in the range of this entry
         if (ts < next_accumulated) {
@@ -209,6 +211,19 @@ AP4_Result
 AP4_SttsAtom::InspectFields(AP4_AtomInspector& inspector)
 {
     inspector.AddField("entry_count", m_Entries.ItemCount());
+
+    if (inspector.GetVerbosity() >= 1) {
+        char header[32];
+        char value[256];
+        for (AP4_Ordinal i=0; i<m_Entries.ItemCount(); i++) {
+            AP4_FormatString(header, sizeof(header), "entry %8d", i);
+            AP4_FormatString(value, sizeof(value), 
+                             "sample_count=%ld, sample_duration=%ld", 
+                            m_Entries[i].m_SampleCount,
+                            m_Entries[i].m_SampleDuration);
+            inspector.AddField(header, value);
+        }
+    }
 
     return AP4_SUCCESS;
 }
