@@ -182,13 +182,9 @@ main(int argc, char** argv)
     };
     file->SetFileType(AP4_FILE_BRAND_M4A_, 0, compatible_brands, 2);
 
-    // create a writer to write the file
-    AP4_FileWriter* writer = new AP4_FileWriter(*file);
-
     // write the file to the output
-    writer->Write(*output);
+    AP4_FileWriter::Write(*file, *output);
 
-    delete writer;
     delete file;
     delete output;
     

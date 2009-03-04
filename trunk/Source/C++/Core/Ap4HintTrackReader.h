@@ -61,10 +61,10 @@ public:
 
     // methods
     AP4_Result      GetNextPacket(AP4_DataBuffer& packet, 
-                                  AP4_TimeStamp&  ts_ms);
-    AP4_Result      SeekToTimeStampMs(AP4_TimeStamp  desired_ts,
-                                      AP4_TimeStamp& actual_ts);
-    AP4_TimeStamp   GetCurrentTimeStampMs();
+                                  AP4_UI32&       ts_ms);
+    AP4_Result      SeekToTimeStampMs(AP4_UI32  desired_ts_ms,
+                                      AP4_UI32& actual_ts_ms);
+    AP4_UI32        GetCurrentTimeStampMs();
     AP4_Result      Rewind();
     AP4_Result      GetSdpText(AP4_String& sdp);
     AP4_Track*      GetMediaTrack() { return m_MediaTrack; }
@@ -89,7 +89,7 @@ private:
     AP4_Ordinal         m_SampleIndex;
     AP4_Ordinal         m_PacketIndex;
     AP4_UI16            m_RtpSequenceStart;
-    AP4_TimeStamp       m_RtpTimeStampStart;
+    AP4_UI64            m_RtpTimeStampStart;
     AP4_UI32            m_RtpTimeScale;
 };
 

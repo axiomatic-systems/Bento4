@@ -49,7 +49,8 @@ public:
     ~AP4_Co64Atom();
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
-    AP4_Cardinal GetChunkCount() { return m_EntryCount;  }
+    AP4_Cardinal GetChunkCount()   { return m_EntryCount; }
+    AP4_UI64*    GetChunkOffsets() { return m_Entries;    }
     AP4_Result   GetChunkOffset(AP4_Ordinal chunk, AP4_UI64& chunk_offset);
     AP4_Result   SetChunkOffset(AP4_Ordinal chunk, AP4_UI64  chunk_offset);
     AP4_Result   AdjustChunkOffsets(AP4_SI64 delta);

@@ -58,8 +58,8 @@ public:
                                                 AP4_Ordinal& position_in_chunk) = 0;
     virtual AP4_Cardinal GetSampleDescriptionCount() = 0;
     virtual AP4_SampleDescription* GetSampleDescription(AP4_Ordinal index) = 0;
-    virtual AP4_Result   GetSampleIndexForTimeStamp(AP4_TimeStamp ts,
-                                                    AP4_Ordinal&  index) = 0;
+    virtual AP4_Result   GetSampleIndexForTimeStamp(AP4_UI64     ts,
+                                                    AP4_Ordinal& index) = 0;
     virtual AP4_Ordinal  GetNearestSyncSampleIndex(AP4_Ordinal index, bool before=true) = 0;
 };
 

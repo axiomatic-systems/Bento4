@@ -71,11 +71,11 @@ DumpRtpPackets(AP4_HintTrackReader& reader, const char* file_name)
 
     // read the packets from the reader and write them in the output stream
     AP4_DataBuffer data(1500);
-    AP4_TimeStamp ts;
-    while(AP4_SUCCEEDED(reader.GetNextPacket(data, ts))) {
+    AP4_UI32 ts_ms;
+    while(AP4_SUCCEEDED(reader.GetNextPacket(data, ts_ms))) {
         output->Write(data.GetData(), data.GetDataSize());
         AP4_Debug("#########\n\tpacket contains %d bytes\n", data.GetDataSize());
-        AP4_Debug("\tsent at time stamp %d\n\n", ts);
+        AP4_Debug("\tsent at time stamp %d\n\n", ts_ms);
     }
     
     output->Release();

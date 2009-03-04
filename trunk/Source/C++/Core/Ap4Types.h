@@ -42,8 +42,6 @@ typedef unsigned int   AP4_Flags;
 typedef unsigned int   AP4_Mask;
 typedef unsigned int   AP4_Cardinal;
 typedef unsigned int   AP4_Ordinal;
-typedef unsigned int   AP4_TimeStamp;
-typedef unsigned long  AP4_Duration;
 typedef unsigned int   AP4_UI32;
 typedef signed   int   AP4_SI32;
 typedef unsigned short AP4_UI16;

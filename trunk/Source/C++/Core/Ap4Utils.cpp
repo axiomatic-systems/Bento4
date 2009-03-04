@@ -193,24 +193,24 @@ AP4_MakePrefixString(unsigned int indent, char* prefix, AP4_Size size)
 /*----------------------------------------------------------------------
 |   AP4_DurationMsFromUnits
 +---------------------------------------------------------------------*/
-unsigned long
-AP4_DurationMsFromUnits(unsigned long units, unsigned long units_per_second)
+AP4_UI32
+AP4_DurationMsFromUnits(AP4_UI64 units, AP4_UI32 units_per_second)
 {
 	if (units_per_second == 0) return 0;
-	return (unsigned long)(((float)units*1000.0f)/(float)units_per_second);
+	return (AP4_UI32)(((double)units*1000.0)/(double)units_per_second);
 }
 
 /*----------------------------------------------------------------------
 |   AP4_ConvertTime
 +---------------------------------------------------------------------*/
-unsigned long 
-AP4_ConvertTime(unsigned long time_value,
-                unsigned long from_time_scale,
-                unsigned long to_time_scale)
+AP4_UI64 
+AP4_ConvertTime(AP4_UI64 time_value,
+                AP4_UI32 from_time_scale,
+                AP4_UI32 to_time_scale)
 {
     if (from_time_scale == 0) return 0;
-    float ratio = (float)to_time_scale/(float)from_time_scale;
-    return ((unsigned long)((float)time_value*ratio));
+    double ratio = (double)to_time_scale/(double)from_time_scale;
+    return ((AP4_UI64)((double)time_value*ratio));
 }
 
 /*----------------------------------------------------------------------
@@ -375,7 +375,7 @@ AP4_PrintInspector::AddField(const char* name, const char* value, FormatHint)
 |   AP4_PrintInspector::AddField
 +---------------------------------------------------------------------*/
 void
-AP4_PrintInspector::AddField(const char* name, AP4_UI32 value, FormatHint hint)
+AP4_PrintInspector::AddField(const char* name, AP4_UI64 value, FormatHint hint)
 {
     char prefix[256];
     AP4_MakePrefixString(m_Indent, prefix, sizeof(prefix));
@@ -383,7 +383,7 @@ AP4_PrintInspector::AddField(const char* name, AP4_UI32 value, FormatHint hint)
 
     char str[32];
     AP4_FormatString(str, sizeof(str), 
-                     hint == HINT_HEX ? "%x":"%d", 
+                     hint == HINT_HEX ? "%llx":"%lld", 
                      value);
     m_Stream->WriteString(name);
     m_Stream->WriteString(" = ");

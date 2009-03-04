@@ -558,13 +558,13 @@ AP4_Movie_GetTimeScale(AP4_Movie* self)
     return self->GetTimeScale();
 }
 
-AP4_UI32
+AP4_UI64
 AP4_Movie_GetDuration(AP4_Movie* self)
 {
     return self->GetDuration();
 }
 
-AP4_Duration
+AP4_UI32
 AP4_Movie_GetDurationMs(AP4_Movie* self)
 {
     return self->GetDurationMs();
@@ -603,13 +603,13 @@ AP4_Track_GetHandlerType(AP4_Track* self)
     return self->GetHandlerType();
 }
 
-AP4_UI32
+AP4_UI64
 AP4_Track_GetDuration(AP4_Track* self)
 {
     return self->GetDuration();
 }
 
-AP4_Duration
+AP4_UI32
 AP4_Track_GetDurationMs(AP4_Track* self)
 {
     return self->GetDurationMs();
@@ -637,9 +637,9 @@ AP4_Track_ReadSample(AP4_Track*      self,
 }
 
 AP4_Result
-AP4_Track_GetSampleIndexForTimeStampMs(AP4_Track*    self,
-                                       AP4_TimeStamp ts,
-                                       AP4_Ordinal*  index)
+AP4_Track_GetSampleIndexForTimeStampMs(AP4_Track*   self,
+                                       AP4_UI32     ts,
+                                       AP4_Ordinal* index)
 {
     return self->GetSampleIndexForTimeStampMs(ts, *index);
 }
@@ -1164,7 +1164,7 @@ AP4_Sample_Create(AP4_ByteStream* data_stream,
                   AP4_Position    offset,
                   AP4_Size        size,
                   AP4_Ordinal     description_index,
-                  AP4_TimeStamp   dts,
+                  AP4_UI32        dts,
                   AP4_UI32        cts_offset,
                   int             is_sync)
 {
@@ -1199,8 +1199,8 @@ AP4_SyntheticSampleTable_AddSample(AP4_SyntheticSampleTable* self,
                                    AP4_Position              offset,
                                    AP4_Size                  size,
                                    AP4_Ordinal               desc_index,
-                                   AP4_TimeStamp             cts, 
-                                   AP4_TimeStamp             dts,
+                                   AP4_UI32                  cts, 
+                                   AP4_UI32                  dts,
                                    int                       is_sync)
 {
     return self->AddSample(*data_stream,

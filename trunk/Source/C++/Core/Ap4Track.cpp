@@ -41,6 +41,7 @@
 #include "Ap4AtomSampleTable.h"
 #include "Ap4SdpAtom.h"
 #include "Ap4MdhdAtom.h"
+#include "Ap4SyntheticSampleTable.h"
 
 /*----------------------------------------------------------------------
 |   AP4_Track::AP4_Track
@@ -168,6 +169,55 @@ AP4_Track::~AP4_Track()
 }
 
 /*----------------------------------------------------------------------
+|   AP4_Track::Clone
++---------------------------------------------------------------------*/
+AP4_Track* 
+AP4_Track::Clone(AP4_Result* result)
+{
+    AP4_SyntheticSampleTable* sample_table = new AP4_SyntheticSampleTable();
+    
+    // default return value
+    if (result) *result = AP4_SUCCESS;
+    
+    // add clones of the sample descriptions to the new sample table
+    for (unsigned int i=0; ;i++) {
+        AP4_SampleDescription* sample_description = GetSampleDescription(i);
+        if (sample_description == NULL) break;
+        sample_table->AddSampleDescription(sample_description->Clone());
+    }
+
+    AP4_Sample  sample;
+    AP4_Ordinal index = 0;
+    while (AP4_SUCCEEDED(GetSample(index, sample))) {
+        AP4_ByteStream* data_stream;
+        data_stream = sample.GetDataStream();
+        sample_table->AddSample(*data_stream,
+                                sample.GetOffset(),
+                                sample.GetSize(),
+                                sample.GetDescriptionIndex(),
+                                sample.GetCts(),
+                                sample.GetDts(),
+                                sample.IsSync());
+        AP4_RELEASE(data_stream); // release our ref, the table has kept its own ref.
+        index++;
+    }    
+    
+    // create the cloned track
+    AP4_Track* clone = new AP4_Track(GetType(),
+                                     sample_table,
+                                     GetId(),
+                                     GetMovieTimeScale(),
+                                     GetDuration(),
+                                     GetMediaTimeScale(),
+                                     GetMediaDuration(),
+                                     GetTrackLanguage(),
+                                     GetWidth(),
+                                     GetHeight());
+                                     
+    return clone;
+}
+
+/*----------------------------------------------------------------------
 |   AP4_Track::Attach
 +---------------------------------------------------------------------*/
 AP4_Result
@@ -236,7 +286,7 @@ AP4_Track::SetId(AP4_UI32 id)
 /*----------------------------------------------------------------------
 |   AP4_Track::GetDuration
 +---------------------------------------------------------------------*/
-AP4_UI32
+AP4_UI64
 AP4_Track::GetDuration()
 {
     return m_TrakAtom->GetDuration();
@@ -245,10 +295,10 @@ AP4_Track::GetDuration()
 /*----------------------------------------------------------------------
 |   AP4_Track::GetDurationMs
 +---------------------------------------------------------------------*/
-AP4_Duration
+AP4_UI32
 AP4_Track::GetDurationMs()
 {
-    AP4_UI32 duration = m_TrakAtom->GetDuration();
+    AP4_UI64 duration = m_TrakAtom->GetDuration();
     return AP4_DurationMsFromUnits(duration, m_MovieTimeScale);
 }
 
@@ -304,10 +354,10 @@ AP4_Track::ReadSample(AP4_Ordinal     index,
 |   AP4_Track::GetSampleIndexForTimeStampMs
 +---------------------------------------------------------------------*/
 AP4_Result  
-AP4_Track::GetSampleIndexForTimeStampMs(AP4_TimeStamp ts, AP4_Ordinal& index)
+AP4_Track::GetSampleIndexForTimeStampMs(AP4_UI32 ts_ms, AP4_Ordinal& index)
 {
     // convert the ts in the timescale of the track's media
-    ts = AP4_ConvertTime(ts, 1000, GetMediaTimeScale());
+    AP4_UI64 ts = AP4_ConvertTime(ts_ms, 1000, GetMediaTimeScale());
 
     return m_SampleTable->GetSampleIndexForTimeStamp(ts, index);
 }

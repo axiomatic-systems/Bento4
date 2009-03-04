@@ -288,11 +288,8 @@ main(int argc, char** argv)
     // add the odrm atom to the file (the owndership is transfered)
     file.GetOtherAtoms().Add(odrm);
     
-    // create a writer to write the file
-    AP4_FileWriter writer(file);
-
     // write the file to the output
-    writer.Write(*output);
+    AP4_FileWriter::Write(file, *output);
     
     // cleanup
     input->Release();

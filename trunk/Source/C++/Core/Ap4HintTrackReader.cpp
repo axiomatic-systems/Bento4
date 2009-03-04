@@ -136,7 +136,7 @@ AP4_HintTrackReader::GetRtpSample(AP4_Ordinal index)
 /*----------------------------------------------------------------------
 |   AP4_HintTrackReader::GetCurrentTimeStampMs
 +---------------------------------------------------------------------*/
-AP4_TimeStamp
+AP4_UI32
 AP4_HintTrackReader::GetCurrentTimeStampMs()
 {
     return AP4_ConvertTime(m_CurrentHintSample.GetCts(), 
@@ -172,12 +172,12 @@ AP4_HintTrackReader::GetSdpText(AP4_String& sdp_text)
 |   AP4_HintTrackReader::SeekToTimeStampMs
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_HintTrackReader::SeekToTimeStampMs(AP4_TimeStamp  desired_ts, 
-                                       AP4_TimeStamp& actual_ts)
+AP4_HintTrackReader::SeekToTimeStampMs(AP4_UI32  desired_ts_ms, 
+                                       AP4_UI32& actual_ts_ms)
 {
     // get the sample index
     AP4_Cardinal index;
-    AP4_Result result = m_HintTrack.GetSampleIndexForTimeStampMs(desired_ts, index);
+    AP4_Result result = m_HintTrack.GetSampleIndexForTimeStampMs(desired_ts_ms, index);
     if (AP4_FAILED(result)) return result;
 
     // get the current sample based on the index and renew the sample data
@@ -185,7 +185,7 @@ AP4_HintTrackReader::SeekToTimeStampMs(AP4_TimeStamp  desired_ts,
     if (AP4_FAILED(result)) return result;
 
     // set the actual ts
-    actual_ts = GetCurrentTimeStampMs();
+    actual_ts_ms = GetCurrentTimeStampMs();
     return AP4_SUCCESS;
 }
 
@@ -194,7 +194,7 @@ AP4_HintTrackReader::SeekToTimeStampMs(AP4_TimeStamp  desired_ts,
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_HintTrackReader::GetNextPacket(AP4_DataBuffer& packet_data, 
-                                   AP4_TimeStamp&  ts_ms)
+                                   AP4_UI32&       ts_ms)
 {
     AP4_Result result = AP4_SUCCESS;
 

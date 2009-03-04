@@ -43,13 +43,13 @@ class AP4_SttsTableEntry {
     AP4_SttsTableEntry() : 
         m_SampleCount(0), 
         m_SampleDuration(0) {}
-    AP4_SttsTableEntry(AP4_Cardinal sample_count,
-                       AP4_Duration sample_duration) :
+    AP4_SttsTableEntry(AP4_UI32 sample_count,
+                       AP4_UI32 sample_duration) :
         m_SampleCount(sample_count),
         m_SampleDuration(sample_duration) {}
 
-    AP4_Cardinal m_SampleCount;
-    AP4_Duration m_SampleDuration;
+    AP4_UI32 m_SampleCount;
+    AP4_UI32 m_SampleDuration;
 };
 
 /*----------------------------------------------------------------------
@@ -64,9 +64,9 @@ public:
     // methods
     AP4_SttsAtom();
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
-    virtual AP4_Result GetDts(AP4_Ordinal sample, AP4_TimeStamp& dts);
+    virtual AP4_Result GetDts(AP4_Ordinal sample, AP4_UI32& dts);
     virtual AP4_Result AddEntry(AP4_UI32 sample_count, AP4_UI32 sample_duration);
-    virtual AP4_Result GetSampleIndexForTimeStamp(AP4_TimeStamp ts, 
+    virtual AP4_Result GetSampleIndexForTimeStamp(AP4_UI64      ts, 
                                                   AP4_Ordinal&  sample_index);
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
 
@@ -80,9 +80,9 @@ private:
     // members
     AP4_Array<AP4_SttsTableEntry> m_Entries;
     struct {
-        AP4_Ordinal   entry_index;
-        AP4_Ordinal   sample;
-        AP4_TimeStamp dts;
+        AP4_Ordinal entry_index;
+        AP4_Ordinal sample;
+        AP4_UI32    dts;
     } m_LookupCache;
 };
 

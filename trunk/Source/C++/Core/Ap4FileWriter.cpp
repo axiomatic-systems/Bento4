@@ -38,82 +38,114 @@
 #include "Ap4Sample.h"
 #include "Ap4DataBuffer.h"
 #include "Ap4FtypAtom.h"
-
-/*----------------------------------------------------------------------
-|   AP4_FileWriter::AP4_FileWriter
-+---------------------------------------------------------------------*/
-AP4_FileWriter::AP4_FileWriter(AP4_File& file) : m_File(file)
-{
-}
-
-/*----------------------------------------------------------------------
-|   AP4_FileWriter::~AP4_FileWriter
-+---------------------------------------------------------------------*/
-AP4_FileWriter::~AP4_FileWriter()
-{
-}
+#include "Ap4SampleTable.h"
 
 /*----------------------------------------------------------------------
 |   AP4_FileWriter::Write
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_FileWriter::Write(AP4_ByteStream& stream)
+AP4_FileWriter::Write(AP4_File& file, AP4_ByteStream& stream, Interleaving interleaving)
 {
     // get the file type
-    AP4_FtypAtom* file_type = m_File.GetFileType();
+    AP4_FtypAtom* file_type = file.GetFileType();
 
     // write the ftyp atom (always first)
     if (file_type) file_type->Write(stream);
 
-    // write the top-level atoms
-    AP4_List<AP4_Atom>::Item* atom_item = m_File.GetChildren().FirstItem();
-    while (atom_item) {
+    // write the top-level atoms, except for ftyp, moov and mdat
+    for (AP4_List<AP4_Atom>::Item* atom_item = file.GetChildren().FirstItem();
+         atom_item;
+         atom_item = atom_item->GetNext()) {
         AP4_Atom* atom = atom_item->GetData();
-        atom->Write(stream);
-        atom_item = atom_item->GetNext();
+        if (atom->GetType() != AP4_ATOM_TYPE_MDAT &&
+            atom->GetType() != AP4_ATOM_TYPE_FTYP &&
+            atom->GetType() != AP4_ATOM_TYPE_MOOV) {
+            atom->Write(stream);
+            atom_item = atom_item->GetNext();
+        }
     }
              
     // get the movie object (and stop if there isn't any)
-    AP4_Movie* movie = m_File.GetMovie();
+    AP4_Movie* movie = file.GetMovie();
     if (movie == NULL) return AP4_SUCCESS;
 
+    // see how much we've written so far
+    AP4_Position position;
+    stream.Tell(position);
+    
+    // backup and recompute all the chunk offsets
+    unsigned int t=0;
+    AP4_Result result = AP4_SUCCESS;
+    AP4_UI64   mdat_size = AP4_ATOM_HEADER_SIZE;
+    AP4_UI64   mdat_position = position+movie->GetMoovAtom()->GetSize();
+    AP4_Array<AP4_Array<AP4_UI64>*> trak_chunk_offsets_backup;
+    AP4_Array<AP4_UI64>             chunk_offsets;
+    for (AP4_List<AP4_Track>::Item* track_item = movie->GetTracks().FirstItem();
+         track_item;
+         track_item = track_item->GetNext()) {
+        AP4_Track*    track = track_item->GetData();
+        AP4_TrakAtom* trak  = track->GetTrakAtom();
+        
+        // backup the chunk offsets
+        AP4_Array<AP4_UI64>* chunk_offsets_backup = new AP4_Array<AP4_UI64>();
+        trak_chunk_offsets_backup.Append(chunk_offsets_backup);
+        result = trak->GetChunkOffsets(*chunk_offsets_backup);
+        if (AP4_FAILED(result)) goto end;
+
+        // allocate space for the new chunk offsets
+        chunk_offsets.SetItemCount(chunk_offsets_backup->ItemCount());
+        
+        // compute the new chunk offsets
+        AP4_Cardinal     sample_count = track->GetSampleCount();
+        AP4_SampleTable* sample_table = track->GetSampleTable();
+        AP4_Sample       sample;
+        for (AP4_Ordinal i=0; i<sample_count; i++) {
+            AP4_Ordinal chunk_index = 0;
+            AP4_Ordinal position_in_chunk = 0;
+            sample_table->GetSampleChunkPosition(i, chunk_index, position_in_chunk);
+            sample_table->GetSample(i, sample);
+            if (position_in_chunk == 0) {
+                // this sample is the first sample in a chunk, so this is the start of a chunk
+                if (chunk_index >= chunk_offsets.ItemCount()) return AP4_ERROR_INTERNAL;
+                chunk_offsets[chunk_index] = mdat_position+mdat_size;
+            }
+            mdat_size += sample.GetSize();
+        }        
+        result = trak->SetChunkOffsets(chunk_offsets);
+    }
+    
     // write the moov atom
-    AP4_Position moov_position;
-    stream.Tell(moov_position);
     movie->GetMoovAtom()->Write(stream);
     
     // create and write the media data (mdat)
-    stream.WriteUI32(0);
-    stream.Write("mdat", 4);
+    // FIXME: this only supports 32-bit mdat size
+    stream.WriteUI32((AP4_UI32)mdat_size);
+    stream.WriteUI32(AP4_ATOM_TYPE_MDAT);
     
-    // write all tracks
-    AP4_List<AP4_Track>::Item* track_item = movie->GetTracks().FirstItem();
-    while (track_item) {
-        AP4_Track* track = track_item->GetData();
+    // write all tracks and restore the chunk offsets to their backed-up values
+    for (AP4_List<AP4_Track>::Item* track_item = movie->GetTracks().FirstItem();
+         track_item;
+         track_item = track_item->GetNext(), ++t) {
+        AP4_Track*    track = track_item->GetData();
+        AP4_TrakAtom* trak  = track->GetTrakAtom();
         
-        // see where we're starting from
-        AP4_Position position;
-        stream.Tell(position);
+        // restore the backed-up chunk offsets
+        result = trak->SetChunkOffsets(*trak_chunk_offsets_backup[t]);
 
-        // adjust the tracks (assuming all chunk offsets were 0-based)
-        track->GetTrakAtom()->AdjustChunkOffsets((int)position);
-        track_item = track_item->GetNext();
-
-        AP4_Cardinal sample_count = track->GetSampleCount();
-        AP4_Array<AP4_Position> sample_offsets;
+        // write all the track's samples
+        AP4_Cardinal   sample_count = track->GetSampleCount();
+        AP4_Sample     sample;
+        AP4_DataBuffer sample_data;
         for (AP4_Ordinal i=0; i<sample_count; i++) {
-            AP4_Sample sample;
-            AP4_DataBuffer data;
-            track->ReadSample(i, sample, data);
-            stream.Write(data.GetData(), data.GetDataSize());
+            track->ReadSample(i, sample, sample_data);
+            stream.Write(sample_data.GetData(), sample_data.GetDataSize());
         }
     }
 
-    // re-write the moov (updated offsets)
-    stream.Seek(moov_position);
-    movie->GetMoovAtom()->Write(stream);
+end:
+    for (unsigned int i=0; i<trak_chunk_offsets_backup.ItemCount(); i++) {
+        delete trak_chunk_offsets_backup[i];
+    }
     
-    // TODO: update the mdat size
-
-    return AP4_SUCCESS;
+    return result;
 }

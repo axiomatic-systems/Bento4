@@ -40,6 +40,7 @@
 				CA9A18D50ED54B2E00C60FDF /* PBXTargetDependency */,
 				CA646B860CE97EFC009699D7 /* PBXTargetDependency */,
 				F9DBC8030E99B01200913BF6 /* PBXTargetDependency */,
+				CA40CB340F40DC3E0008649B /* PBXTargetDependency */,
 			);
 			name = Tests;
 			productName = Tests;
@@ -74,6 +75,8 @@
 		CA3EDA850D7E0BA0007AE943 /* AvcInfo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA3EDA790D7E0B6B007AE943 /* AvcInfo.cpp */; };
 		CA3EDA8D0D7E0C92007AE943 /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
 		CA3EDA970D7E14D3007AE943 /* Ap4AvcParser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA3EDA960D7E14D3007AE943 /* Ap4AvcParser.cpp */; };
+		CA40CB2F0F40DC1C0008649B /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
+		CA40CB370F40DC580008649B /* BasicTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA40CB360F40DC580008649B /* BasicTest.cpp */; };
 		CA44C5310D46379100173F5F /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
 		CA44C5340D46383A00173F5F /* Mp4DcfPackager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA44C5250D46370B00173F5F /* Mp4DcfPackager.cpp */; };
 		CA504D5D0C5E8A8A0060E6FE /* Ap4ElstAtom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA504D5B0C5E8A8A0060E6FE /* Ap4ElstAtom.cpp */; };
@@ -294,6 +297,20 @@
 			proxyType = 1;
 			remoteGlobalIDString = CA3EDA7D0D7E0B81007AE943;
 			remoteInfo = AvcInfo;
+		};
+		CA40CB2D0F40DC160008649B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D2AAC045055464E500DB518D;
+			remoteInfo = Bento4;
+		};
+		CA40CB330F40DC3E0008649B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CA40CB280F40DC100008649B;
+			remoteInfo = BasicTest;
 		};
 		CA44C52E0D46376500173F5F /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -572,6 +589,8 @@
 		CA3EDA7E0D7E0B81007AE943 /* avcinfo */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = avcinfo; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA3EDA950D7E0D18007AE943 /* Ap4AvcParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4AvcParser.h; sourceTree = "<group>"; };
 		CA3EDA960D7E14D3007AE943 /* Ap4AvcParser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4AvcParser.cpp; sourceTree = "<group>"; };
+		CA40CB290F40DC100008649B /* basictest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = basictest; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA40CB360F40DC580008649B /* BasicTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BasicTest.cpp; sourceTree = "<group>"; };
 		CA44C5250D46370B00173F5F /* Mp4DcfPackager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Mp4DcfPackager.cpp; path = Mp4DcfPackager/Mp4DcfPackager.cpp; sourceTree = "<group>"; };
 		CA44C52A0D46375F00173F5F /* mp4dcfpackager */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mp4dcfpackager; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA504D5B0C5E8A8A0060E6FE /* Ap4ElstAtom.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4ElstAtom.cpp; sourceTree = "<group>"; };
@@ -789,6 +808,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		CA40CB270F40DC100008649B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CA40CB2F0F40DC1C0008649B /* libBento4.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		CA44C5280D46375F00173F5F /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -991,6 +1018,7 @@
 				CA9A16D80ED4F42A00C60FDF /* passthroughwritertest */,
 				CABB61F30F02BABC00B53D31 /* TracksTest */,
 				CAF4792B0F0951B8004073ED /* benchmarkstest */,
+				CA40CB290F40DC100008649B /* basictest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1008,6 +1036,14 @@
 				CA3EDA790D7E0B6B007AE943 /* AvcInfo.cpp */,
 			);
 			path = AvcInfo;
+			sourceTree = "<group>";
+		};
+		CA40CB350F40DC580008649B /* Basic */ = {
+			isa = PBXGroup;
+			children = (
+				CA40CB360F40DC580008649B /* BasicTest.cpp */,
+			);
+			path = Basic;
 			sourceTree = "<group>";
 		};
 		CA44C5260D46371C00173F5F /* Mp4DcfPackager */ = {
@@ -1121,6 +1157,7 @@
 		CA646A9B0CE97B51009699D7 /* Test */ = {
 			isa = PBXGroup;
 			children = (
+				CA40CB350F40DC580008649B /* Basic */,
 				CAF479360F0951E7004073ED /* Benchmarks */,
 				CABB61EE0F02B85900B53D31 /* Tracks */,
 				CA9A16DF0ED4F44C00C60FDF /* PassthroughWriter */,
@@ -1549,6 +1586,23 @@
 			productReference = CA3EDA7E0D7E0B81007AE943 /* avcinfo */;
 			productType = "com.apple.product-type.tool";
 		};
+		CA40CB280F40DC100008649B /* BasicTest */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CA40CB380F40DC590008649B /* Build configuration list for PBXNativeTarget "BasicTest" */;
+			buildPhases = (
+				CA40CB260F40DC100008649B /* Sources */,
+				CA40CB270F40DC100008649B /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CA40CB2E0F40DC160008649B /* PBXTargetDependency */,
+			);
+			name = BasicTest;
+			productName = BasicTest;
+			productReference = CA40CB290F40DC100008649B /* basictest */;
+			productType = "com.apple.product-type.tool";
+		};
 		CA44C5290D46375F00173F5F /* Mp4DcfPackager */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = CA44C5300D46378400173F5F /* Build configuration list for PBXNativeTarget "Mp4DcfPackager" */;
@@ -1909,6 +1963,7 @@
 				CA9A16D70ED4F42A00C60FDF /* PassthroughWriterTest */,
 				CABB61F20F02BABC00B53D31 /* TracksTest */,
 				CAF4792A0F0951B8004073ED /* BenchmarksTest */,
+				CA40CB280F40DC100008649B /* BasicTest */,
 			);
 		};
 /* End PBXProject section */
@@ -1920,6 +1975,14 @@
 			files = (
 				CA3EDA850D7E0BA0007AE943 /* AvcInfo.cpp in Sources */,
 				CA3EDA970D7E14D3007AE943 /* Ap4AvcParser.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CA40CB260F40DC100008649B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CA40CB370F40DC580008649B /* BasicTest.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2171,6 +2234,16 @@
 			isa = PBXTargetDependency;
 			target = CA3EDA7D0D7E0B81007AE943 /* AvcInfo */;
 			targetProxy = CA0D91AD0E258349005667F1 /* PBXContainerItemProxy */;
+		};
+		CA40CB2E0F40DC160008649B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D2AAC045055464E500DB518D /* Bento4 */;
+			targetProxy = CA40CB2D0F40DC160008649B /* PBXContainerItemProxy */;
+		};
+		CA40CB340F40DC3E0008649B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CA40CB280F40DC100008649B /* BasicTest */;
+			targetProxy = CA40CB330F40DC3E0008649B /* PBXContainerItemProxy */;
 		};
 		CA44C52F0D46376500173F5F /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -2448,6 +2521,36 @@
 				INSTALL_PATH = /usr/local/bin;
 				PREBINDING = NO;
 				PRODUCT_NAME = avcinfo;
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
+		CA40CB2B0F40DC100008649B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				INSTALL_PATH = /usr/local/bin;
+				PREBINDING = NO;
+				PRODUCT_NAME = basictest;
+			};
+			name = Debug;
+		};
+		CA40CB2C0F40DC100008649B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_MODEL_TUNING = G5;
+				INSTALL_PATH = /usr/local/bin;
+				PREBINDING = NO;
+				PRODUCT_NAME = basictest;
 				ZERO_LINK = NO;
 			};
 			name = Release;
@@ -3081,6 +3184,15 @@
 			buildConfigurations = (
 				CA3EDA800D7E0B81007AE943 /* Debug */,
 				CA3EDA810D7E0B81007AE943 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CA40CB380F40DC590008649B /* Build configuration list for PBXNativeTarget "BasicTest" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CA40CB2B0F40DC100008649B /* Debug */,
+				CA40CB2C0F40DC100008649B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

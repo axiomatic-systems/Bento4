@@ -42,7 +42,7 @@ AP4_MvhdAtom::Create(AP4_Size size, AP4_ByteStream& stream)
     AP4_UI32 version;
     AP4_UI32 flags;
     if (AP4_FAILED(AP4_Atom::ReadFullHeader(stream, version, flags))) return NULL;
-    if (version != 0 && version != 1) return NULL;
+    if (version > 1) return NULL;
     return new AP4_MvhdAtom(size, version, flags, stream);
 }
 
@@ -56,12 +56,9 @@ AP4_MvhdAtom::AP4_MvhdAtom(AP4_UI32 creation_time,
                            AP4_UI32 rate,
                            AP4_UI16 volume) :
     AP4_Atom(AP4_ATOM_TYPE_MVHD, AP4_FULL_ATOM_HEADER_SIZE+96, 0, 0),
-    m_CreationTimeH(0),
     m_CreationTime(creation_time),
-    m_ModificationTimeH(0),
     m_ModificationTime(modification_time),
     m_TimeScale(time_scale),
-    m_DurationH(0),
     m_Duration(duration),
     m_Rate(rate),
     m_Volume(volume),
@@ -92,18 +89,21 @@ AP4_MvhdAtom::AP4_MvhdAtom(AP4_UI32        size,
     AP4_Atom(AP4_ATOM_TYPE_MVHD, size, version, flags)
 {
     if (m_Version == 0) {
-        stream.ReadUI32(m_CreationTime);
-        stream.ReadUI32(m_ModificationTime);
+        AP4_UI32 creation_time;
+        stream.ReadUI32(creation_time);
+        m_CreationTime = creation_time;
+        AP4_UI32 modification_time;
+        stream.ReadUI32(modification_time);
+        m_ModificationTime = modification_time;
         stream.ReadUI32(m_TimeScale);
-        stream.ReadUI32(m_Duration);
+        AP4_UI32 duration;
+        stream.ReadUI32(duration);
+        m_Duration = duration;
     } else {
-        stream.ReadUI32(m_CreationTimeH);
-        stream.ReadUI32(m_CreationTime);
-        stream.ReadUI32(m_ModificationTimeH);
-        stream.ReadUI32(m_ModificationTime);
+        stream.ReadUI64(m_CreationTime);
+        stream.ReadUI64(m_ModificationTime);
         stream.ReadUI32(m_TimeScale);
-        stream.ReadUI32(m_DurationH);
-        stream.ReadUI32(m_Duration);
+        stream.ReadUI64(m_Duration);
     }
 
     stream.ReadUI32(m_Rate);
@@ -134,19 +134,14 @@ AP4_MvhdAtom::WriteFields(AP4_ByteStream& stream)
         if (AP4_FAILED(result)) return result;
         result = stream.WriteUI32(m_Duration);
     } else {
-        result = stream.WriteUI32(m_CreationTimeH);
+        result = stream.WriteUI64(m_CreationTime);
         if (AP4_FAILED(result)) return result;
-        result = stream.WriteUI32(m_CreationTime);
-        if (AP4_FAILED(result)) return result;
-        result = stream.WriteUI32(m_ModificationTimeH);
-        if (AP4_FAILED(result)) return result;
-        result = stream.WriteUI32(m_ModificationTime);
+        result = stream.WriteUI64(m_ModificationTime);
         if (AP4_FAILED(result)) return result;
         result = stream.WriteUI32(m_TimeScale);
         if (AP4_FAILED(result)) return result;
-        result = stream.WriteUI32(m_DurationH);
+        result = stream.WriteUI64(m_Duration);
         if (AP4_FAILED(result)) return result;
-        result = stream.WriteUI32(m_Duration);
     }
 
     // rate & volume
@@ -178,11 +173,11 @@ AP4_MvhdAtom::WriteFields(AP4_ByteStream& stream)
 /*----------------------------------------------------------------------
 |   AP4_MvhdAtom::GetDurationMs
 +---------------------------------------------------------------------*/
-AP4_Duration
+AP4_UI32
 AP4_MvhdAtom::GetDurationMs()
 {
     if (m_TimeScale) {
-        return AP4_ConvertTime(m_Duration, m_TimeScale, 1000);
+        return (AP4_UI32)AP4_ConvertTime(m_Duration, m_TimeScale, 1000);
     } else {
         return 0;
     }

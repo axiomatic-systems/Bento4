@@ -63,8 +63,8 @@ public:
     AP4_Track*   GetTrack(AP4_Track::Type type, AP4_Ordinal index = 0);
     AP4_Result   AddTrack(AP4_Track* track);
     AP4_UI32     GetTimeScale();
-    AP4_UI32     GetDuration();
-    AP4_Duration GetDurationMs();
+    AP4_UI64     GetDuration();
+    AP4_UI32     GetDurationMs();
     
 private:
     // members

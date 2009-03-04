@@ -84,10 +84,18 @@ class AP4_Track {
               AP4_ByteStream& sample_stream,
               AP4_UI32        movie_time_scale);
     virtual ~AP4_Track();
+    
+    /** 
+     * Clone a track. This is useful if you want to create a track from 
+     * a non-synthetic track (parsed from a file for example) and 
+     * write it out
+     */
+    AP4_Track* Clone(AP4_Result* result = NULL);
+    
     AP4_Track::Type GetType() { return m_Type; }
     AP4_UI32     GetHandlerType();
-    AP4_UI32     GetDuration();   // in the timescale of the movie
-    AP4_Duration GetDurationMs(); // im milliseconds
+    AP4_UI64     GetDuration();   // in the timescale of the movie
+    AP4_UI32     GetDurationMs(); // im milliseconds
     AP4_UI32     GetWidth();      // in 16.16 fixed point
     AP4_UI32     GetHeight();     // in 16.16 fixed point
     AP4_Cardinal GetSampleCount();
@@ -95,8 +103,8 @@ class AP4_Track {
     AP4_Result   ReadSample(AP4_Ordinal     index, 
                             AP4_Sample&     sample,
                             AP4_DataBuffer& data);
-    AP4_Result   GetSampleIndexForTimeStampMs(AP4_TimeStamp ts, 
-                                              AP4_Ordinal&  index);
+    AP4_Result   GetSampleIndexForTimeStampMs(AP4_UI32     ts_ms, 
+                                              AP4_Ordinal& index);
     AP4_Ordinal  GetNearestSyncSampleIndex(AP4_Ordinal index, bool before=true);
     AP4_SampleDescription* GetSampleDescription(AP4_Ordinal index);
     AP4_SampleTable*       GetSampleTable() { return m_SampleTable; }
@@ -104,6 +112,7 @@ class AP4_Track {
     AP4_Result    SetId(AP4_UI32 track_id);
     AP4_TrakAtom* GetTrakAtom() { return m_TrakAtom; }
     AP4_Result    SetMovieTimeScale(AP4_UI32 time_scale);
+    AP4_UI32      GetMovieTimeScale() { return m_MovieTimeScale; }
     AP4_UI32      GetMediaTimeScale();
     AP4_UI32      GetMediaDuration(); // in the timescale of the media
     const char*   GetTrackName();

@@ -201,7 +201,7 @@ AP4_TrakAtom::SetMediaTimeScale(AP4_UI32 timescale)
 /*----------------------------------------------------------------------
 |   AP4_TrakAtom::GetDuration
 +---------------------------------------------------------------------*/
-AP4_UI32
+AP4_UI64
 AP4_TrakAtom::GetDuration()
 {
     return m_TkhdAtom?m_TkhdAtom->GetDuration():0;
@@ -211,7 +211,7 @@ AP4_TrakAtom::GetDuration()
 |   AP4_TrakAtom::SetDuration
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_TrakAtom::SetDuration(AP4_UI32 duration)
+AP4_TrakAtom::SetDuration(AP4_UI64 duration)
 {
     if (m_TkhdAtom) {
         m_TkhdAtom->SetDuration(duration);
@@ -296,17 +296,82 @@ AP4_TrakAtom::SetHeight(AP4_UI32 height)
 AP4_Result    
 AP4_TrakAtom::AdjustChunkOffsets(AP4_SI64 delta)
 {
-    AP4_Atom* atom = FindChild("mdia/minf/stbl/stco");
-    if (atom) {    
+    AP4_Atom* atom;
+    if (atom = FindChild("mdia/minf/stbl/stco")) {    
         AP4_StcoAtom* stco = dynamic_cast<AP4_StcoAtom*>(atom);
         return stco->AdjustChunkOffsets((int)delta);
+    } else if (atom = FindChild("mdia/minf/stbl/co64")) {
+        AP4_Co64Atom* co64 = dynamic_cast<AP4_Co64Atom*>(atom);
+        return co64->AdjustChunkOffsets(delta);
     } else {
-        atom = FindChild("mdia/minf/stbl/co64");
-        if (atom) {
-            AP4_Co64Atom* co64 = dynamic_cast<AP4_Co64Atom*>(atom);
-            return co64->AdjustChunkOffsets(delta);
-        } else {
-            return AP4_FAILURE;
+        return AP4_ERROR_INVALID_STATE;
+    }
+}
+
+/*----------------------------------------------------------------------
+|   AP4_TrakAtom::GetChunkOffsets
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_TrakAtom::GetChunkOffsets(AP4_Array<AP4_UI64>& chunk_offsets)
+{
+    AP4_Atom* atom;
+    if (atom = FindChild("mdia/minf/stbl/stco")) {
+        AP4_StcoAtom* stco = dynamic_cast<AP4_StcoAtom*>(atom);
+        if (stco == NULL) return AP4_ERROR_INTERNAL;
+        AP4_Cardinal    stco_chunk_count   = stco->GetChunkCount();
+        const AP4_UI32* stco_chunk_offsets = stco->GetChunkOffsets();
+        chunk_offsets.SetItemCount(stco_chunk_count);
+        for (unsigned int i=0; i<stco_chunk_count; i++) {
+            chunk_offsets[i] = stco_chunk_offsets[i];
         }
+        return AP4_SUCCESS;
+    } else if (atom = FindChild("mdia/minf/stbl/co64")) {
+        AP4_Co64Atom* co64 = dynamic_cast<AP4_Co64Atom*>(atom);
+        if (co64 == NULL) return AP4_ERROR_INTERNAL;
+        AP4_Cardinal    co64_chunk_count   = co64->GetChunkCount();
+        const AP4_UI64* co64_chunk_offsets = co64->GetChunkOffsets();
+        chunk_offsets.SetItemCount(co64_chunk_count);
+        for (unsigned int i=0; i<co64_chunk_count; i++) {
+            chunk_offsets[i] = co64_chunk_offsets[i];
+        }
+        return AP4_SUCCESS;
+    } else {
+        return AP4_ERROR_INVALID_STATE;
+    }
+}
+
+/*----------------------------------------------------------------------
+|   AP4_TrakAtom::SetChunkOffsets
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_TrakAtom::SetChunkOffsets(const AP4_Array<AP4_UI64>& chunk_offsets)
+{
+    AP4_Atom* atom;
+    if (atom = FindChild("mdia/minf/stbl/stco")) {
+        AP4_StcoAtom* stco = dynamic_cast<AP4_StcoAtom*>(atom);
+        if (stco == NULL) return AP4_ERROR_INTERNAL;
+        AP4_Cardinal stco_chunk_count   = stco->GetChunkCount();
+        AP4_UI32*    stco_chunk_offsets = stco->GetChunkOffsets();
+        if (stco_chunk_count > chunk_offsets.ItemCount()) {
+            return AP4_ERROR_OUT_OF_RANGE;
+        }
+        for (unsigned int i=0; i<stco_chunk_count; i++) {
+            stco_chunk_offsets[i] = chunk_offsets[i];
+        }
+        return AP4_SUCCESS;
+    } else if (atom = FindChild("mdia/minf/stbl/co64")) {
+        AP4_Co64Atom* co64 = dynamic_cast<AP4_Co64Atom*>(atom);
+        if (co64 == NULL) return AP4_ERROR_INTERNAL;
+        AP4_Cardinal co64_chunk_count   = co64->GetChunkCount();
+        AP4_UI64*    co64_chunk_offsets = co64->GetChunkOffsets();
+        if (co64_chunk_count > chunk_offsets.ItemCount()) {
+            return AP4_ERROR_OUT_OF_RANGE;
+        }
+        for (unsigned int i=0; i<co64_chunk_count; i++) {
+            co64_chunk_offsets[i] = chunk_offsets[i];
+        }
+        return AP4_SUCCESS;
+    } else {
+        return AP4_ERROR_INVALID_STATE;
     }
 }
