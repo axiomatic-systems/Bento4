@@ -37,9 +37,9 @@
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-#define BANNER "MP4 File Dumper - Version 1.0\n"\
+#define BANNER "MP4 File Dumper - Version 1.1\n"\
                "(Bento4 Version " AP4_VERSION_STRING ")\n"\
-               "(c) 2002-2008 Axiomatic Systems, LLC"
+               "(c) 2002-2009 Axiomatic Systems, LLC"
 
 /*----------------------------------------------------------------------
 |   PrintUsageAndExit
@@ -51,6 +51,7 @@ PrintUsageAndExit()
             BANNER 
             "\n\nusage: mp4dump [options] <input>\n"
             "options are:\n"
+            "  --verbosity <n> sets the verbosity (details) level to <n> (between 0 and 3)\n"
             "  --track <track_id>[:<key>] writes the track data into a file\n"
             "                             (<mp4filename>.<track_id>) and optionally\n"
             "                             tries to decrypt it with the key (128-bit in hex)\n"
@@ -229,7 +230,7 @@ main(int argc, char** argv)
     const char*             filename    = NULL;
     AP4_ProtectionKeyMap    key_map;
     AP4_Array<AP4_Ordinal>  tracks_to_dump;
-    
+    AP4_Ordinal             verbosity = 0;
 
     // parse the command line
     argv++;
@@ -263,6 +264,13 @@ main(int argc, char** argv)
                 // set the key in the map
                 key_map.SetKey(track_id, key);
             }
+        } else if (!strcmp(arg, "--verbosity")) {
+            arg = *argv++;
+            if (arg == NULL) {
+                fprintf(stderr, "ERROR: missing argument after --verbosity option\n");
+                return 1;
+            }
+            verbosity = strtoul(arg, NULL, 10);
         } else {
             try {
                 filename = arg;
@@ -282,6 +290,7 @@ main(int argc, char** argv)
     
     // create an inspector
     AP4_PrintInspector inspector(*output);
+    inspector.SetVerbosity(verbosity);
 
     // inspect the atoms one by one
     AP4_Atom* atom;

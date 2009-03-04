@@ -67,8 +67,7 @@ class AP4_SyntheticSampleTable : public AP4_SampleTable
                                                 AP4_Ordinal& position_in_chunk);
     virtual AP4_Cardinal GetSampleDescriptionCount();
     virtual AP4_SampleDescription* GetSampleDescription(AP4_Ordinal index);
-    virtual AP4_Result GetSampleIndexForTimeStamp(AP4_TimeStamp ts,
-                                                  AP4_Ordinal&  index);
+    virtual AP4_Result GetSampleIndexForTimeStamp(AP4_UI64 ts, AP4_Ordinal& index);
     virtual AP4_Ordinal  GetNearestSyncSampleIndex(AP4_Ordinal index, bool before);
 
     // methods
@@ -106,8 +105,8 @@ class AP4_SyntheticSampleTable : public AP4_SampleTable
                                  AP4_Position    offset,
                                  AP4_Size        size,
                                  AP4_Ordinal     description_index,
-                                 AP4_TimeStamp   cts = 0,
-                                 AP4_TimeStamp   dts = 0,
+                                 AP4_UI32        cts = 0,
+                                 AP4_UI32        dts = 0,
                                  bool            sync = false);
 
 private:

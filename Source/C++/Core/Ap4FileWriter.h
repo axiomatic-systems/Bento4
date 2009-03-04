@@ -45,15 +45,15 @@ class AP4_File;
 +---------------------------------------------------------------------*/
 class AP4_FileWriter {
  public:
-    // constructors and destructor
-    AP4_FileWriter(AP4_File& file);
-    virtual ~AP4_FileWriter();
-
-    // methods
-    AP4_Result Write(AP4_ByteStream& stream);
-
- private:
-    AP4_File& m_File;
+    // types
+    typedef enum {
+        INTERLEAVING_SEQUENTIAL
+    } Interleaving;
+    
+    // class methods
+    static AP4_Result AP4_FileWriter::Write(AP4_File&       file, 
+                                            AP4_ByteStream& stream, 
+                                            Interleaving    interleaving = INTERLEAVING_SEQUENTIAL);
 };
 
 #endif // _AP4_FILE_WRITER_H_

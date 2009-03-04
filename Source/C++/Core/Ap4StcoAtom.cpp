@@ -161,6 +161,13 @@ AP4_Result
 AP4_StcoAtom::InspectFields(AP4_AtomInspector& inspector)
 {
     inspector.AddField("entry_count", m_EntryCount);
-
+    if (inspector.GetVerbosity() >= 1) {
+        char header[32];
+        for (AP4_Ordinal i=0; i<m_EntryCount; i++) {
+            AP4_FormatString(header, sizeof(header), "entry %8d", i);
+            inspector.AddField(header, m_Entries[i]);
+        }
+    }
+    
     return AP4_SUCCESS;
 }

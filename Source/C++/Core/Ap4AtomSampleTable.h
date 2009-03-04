@@ -68,8 +68,7 @@ class AP4_AtomSampleTable : public AP4_SampleTable
     virtual AP4_Result   GetSampleChunkPosition(AP4_Ordinal  sample_index, 
                                                 AP4_Ordinal& chunk_index,
                                                 AP4_Ordinal& position_in_chunk);
-    virtual AP4_Result   GetSampleIndexForTimeStamp(AP4_TimeStamp ts,
-                                                    AP4_Ordinal&  sample_index);
+    virtual AP4_Result   GetSampleIndexForTimeStamp(AP4_UI64 ts, AP4_Ordinal& sample_index);
     virtual AP4_Ordinal  GetNearestSyncSampleIndex(AP4_Ordinal index, bool before=true);
 
     // local methods

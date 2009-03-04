@@ -49,11 +49,12 @@ public:
     ~AP4_StcoAtom();
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
-    AP4_Cardinal GetChunkCount() { return m_EntryCount;  }
+    AP4_Cardinal GetChunkCount()   { return m_EntryCount;  }
+    AP4_UI32*    GetChunkOffsets() { return m_Entries;     }
     AP4_Result   GetChunkOffset(AP4_Ordinal chunk, AP4_UI32& chunk_offset);
     AP4_Result   SetChunkOffset(AP4_Ordinal chunk, AP4_UI32  chunk_offset);
     AP4_Result   AdjustChunkOffsets(int delta);
-
+    
 private:
     // methods
     AP4_StcoAtom(AP4_UI32        size, 

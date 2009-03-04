@@ -33,6 +33,7 @@
 |   includes
 +---------------------------------------------------------------------*/
 #include "Ap4ContainerAtom.h"
+#include "Ap4Array.h"
 
 /*----------------------------------------------------------------------
 |   class references
@@ -71,10 +72,12 @@ class AP4_TrakAtom : public AP4_ContainerAtom
                  AP4_UI32         heigh);
     AP4_TkhdAtom* GetTkhdAtom() { return m_TkhdAtom; }
     AP4_Result AdjustChunkOffsets(AP4_SI64 delta);
+    AP4_Result GetChunkOffsets(AP4_Array<AP4_UI64>& chunk_offsets);
+    AP4_Result SetChunkOffsets(const AP4_Array<AP4_UI64>& chunk_offsets);
     AP4_UI32   GetId();
     AP4_Result SetId(AP4_UI32 track_id);
-    AP4_UI32   GetDuration();
-    AP4_Result SetDuration(AP4_UI32 duration);
+    AP4_UI64   GetDuration();
+    AP4_Result SetDuration(AP4_UI64 duration);
     AP4_UI32   GetMediaDuration();
     AP4_Result SetMediaDuration(AP4_UI32 duration);
     AP4_UI32   GetMediaTimeScale();

@@ -76,7 +76,7 @@ public:
                AP4_Position    offset,
                AP4_Size        size,
                AP4_Ordinal     description_index,
-               AP4_TimeStamp   dts,
+               AP4_UI32        dts,
                AP4_UI32        cts_offset = 0,
                bool            sync_flag = true);
                
@@ -109,7 +109,7 @@ public:
     /**
      * Set the DTS (Decoding Time Stamp) of the sample in the timescale of the media
      */
-    void            SetDts(AP4_TimeStamp dts) { m_Dts = dts; }
+    void            SetDts(AP4_UI32 dts) { m_Dts = dts; }
 
     /**
      * Get the CTS (Composition Time Stamp) of the sample in the timescale of the media
@@ -119,7 +119,7 @@ public:
     /**
      * Get the CTS (Composition Time Stamp) of the sample in the timescale of the media
      */
-    void            SetCts(AP4_TimeStamp cts) { m_Cts = cts; }
+    void            SetCts(AP4_UI32 cts) { m_Cts = cts; }
 
     /**
      * Return whether the sample is a sync (random-access point) sample or not.
@@ -136,8 +136,8 @@ protected:
     AP4_Position    m_Offset;
     AP4_Size        m_Size;
     AP4_Ordinal     m_DescriptionIndex;
-    AP4_TimeStamp   m_Dts;
-    AP4_TimeStamp   m_Cts;
+    AP4_UI32        m_Dts;
+    AP4_UI32        m_Cts;
     bool            m_IsSync;
 };
 

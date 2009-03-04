@@ -53,9 +53,9 @@ public:
                  AP4_UI16 volume);
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
-    AP4_UI32           GetDuration() { return m_Duration; }
-    void               SetDuration(AP4_UI32 duration) { m_Duration = duration;}
-    AP4_Duration       GetDurationMs();
+    AP4_UI64           GetDuration() { return m_Duration; }
+    void               SetDuration(AP4_UI64 duration) { m_Duration = duration;}
+    AP4_UI32           GetDurationMs();
     AP4_UI32           GetTimeScale() { return m_TimeScale; }
     AP4_Result         SetTimeScale(AP4_UI32 time_scale) {
         m_TimeScale = time_scale;
@@ -70,13 +70,10 @@ private:
                  AP4_ByteStream& stream); 
 
     // members
-    AP4_UI32 m_CreationTimeH;
-    AP4_UI32 m_CreationTime;
-    AP4_UI32 m_ModificationTimeH;
-    AP4_UI32 m_ModificationTime;
+    AP4_UI64 m_CreationTime;
+    AP4_UI64 m_ModificationTime;
     AP4_UI32 m_TimeScale;
-    AP4_UI32 m_DurationH;
-    AP4_UI32 m_Duration;
+    AP4_UI64 m_Duration;
     AP4_UI32 m_Rate;
     AP4_UI16 m_Volume;
     AP4_UI08 m_Reserved1[2];

@@ -42,7 +42,7 @@ AP4_TkhdAtom::Create(AP4_Size size, AP4_ByteStream& stream)
     AP4_UI32 version;
     AP4_UI32 flags;
     if (AP4_FAILED(AP4_Atom::ReadFullHeader(stream, version, flags))) return NULL;
-    if (version != 0 && version != 1) return NULL;
+    if (version > 1) return NULL;
     return new AP4_TkhdAtom(size, version, flags, stream);
 }
 
@@ -57,13 +57,10 @@ AP4_TkhdAtom::AP4_TkhdAtom(AP4_UI32 creation_time,
                            AP4_UI32 width,
                            AP4_UI32 height) :
     AP4_Atom(AP4_ATOM_TYPE_TKHD, AP4_FULL_ATOM_HEADER_SIZE+80, 0, 0),
-    m_CreationTimeH(0),
     m_CreationTime(creation_time),
-    m_ModificationTimeH(0),
     m_ModificationTime(modification_time),
     m_TrackId(track_id),
     m_Reserved1(0),
-    m_DurationH(0),
     m_Duration(duration),
     m_Layer(0),
     m_AlternateGroup(0),
@@ -99,20 +96,23 @@ AP4_TkhdAtom::AP4_TkhdAtom(AP4_UI32        size,
 {
     if (m_Version == 0) {
         // we only deal with version 0 for now
-        stream.ReadUI32(m_CreationTime);
-        stream.ReadUI32(m_ModificationTime);
+        AP4_UI32 creation_time;
+        stream.ReadUI32(creation_time);
+        m_CreationTime = creation_time;
+        AP4_UI32 modification_time;
+        stream.ReadUI32(modification_time);
+        m_ModificationTime = modification_time;
         stream.ReadUI32(m_TrackId);
         stream.ReadUI32(m_Reserved1);
-        stream.ReadUI32(m_Duration);
+        AP4_UI32 duration;
+        stream.ReadUI32(duration);
+        m_Duration = duration;
     } else {
-        stream.ReadUI32(m_CreationTimeH);
-        stream.ReadUI32(m_CreationTime);
-        stream.ReadUI32(m_ModificationTimeH);
-        stream.ReadUI32(m_ModificationTime);
+        stream.ReadUI64(m_CreationTime);
+        stream.ReadUI64(m_ModificationTime);
         stream.ReadUI32(m_TrackId);
         stream.ReadUI32(m_Reserved1);
-        stream.ReadUI32(m_DurationH);
-        stream.ReadUI32(m_Duration);
+        stream.ReadUI64(m_Duration);
     }
 
     stream.Read((void*)m_Reserved2, 8);
@@ -148,21 +148,15 @@ AP4_TkhdAtom::WriteFields(AP4_ByteStream& stream)
         result = stream.WriteUI32(m_Duration);
         if (AP4_FAILED(result)) return result;
     } else {
-        result = stream.WriteUI32(m_CreationTimeH);
+        result = stream.WriteUI64(m_CreationTime);
         if (AP4_FAILED(result)) return result;
-        result = stream.WriteUI32(m_CreationTime);
-        if (AP4_FAILED(result)) return result;
-        result = stream.WriteUI32(m_ModificationTimeH);
-        if (AP4_FAILED(result)) return result;
-        result = stream.WriteUI32(m_ModificationTime);
+        result = stream.WriteUI64(m_ModificationTime);
         if (AP4_FAILED(result)) return result;
         result = stream.WriteUI32(m_TrackId);
         if (AP4_FAILED(result)) return result;
         result = stream.WriteUI32(m_Reserved1);
         if (AP4_FAILED(result)) return result;
-        result = stream.WriteUI32(m_DurationH);
-        if (AP4_FAILED(result)) return result;
-        result = stream.WriteUI32(m_Duration);
+        result = stream.WriteUI64(m_Duration);
         if (AP4_FAILED(result)) return result;
     }
 

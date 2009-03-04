@@ -171,18 +171,14 @@ main(int argc, char** argv)
         track_item = track_item->GetNext();
     }
     
-    // create a writer to write the file
-    AP4_FileWriter* writer = new AP4_FileWriter(*output_file);
-
     // write the file to the output
-    writer->Write(*output);
+    AP4_FileWriter::Write(*output_file, *output);
     
     // cleanup
     delete input_file;
     delete output_file;
     input->Release();
     output->Release();
-    delete writer;
 
     return 0;                                            
 }

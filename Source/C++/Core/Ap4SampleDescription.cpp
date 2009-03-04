@@ -57,6 +57,34 @@ AP4_SampleDescription::AP4_SampleDescription(Type            type,
 }
 
 /*----------------------------------------------------------------------
+|   AP4_SampleDescription::Clone
++---------------------------------------------------------------------*/
+AP4_SampleDescription*
+AP4_SampleDescription::Clone(AP4_Result* result)
+{
+    if (result) *result = AP4_SUCCESS;
+    AP4_Atom* atom = ToAtom();
+    if (atom == NULL) {
+        if (result) *result = AP4_FAILURE;
+        return NULL;
+    }
+    AP4_SampleEntry* sample_entry = dynamic_cast<AP4_SampleEntry*>(atom);
+    if (sample_entry == NULL) {
+        if (result) *result = AP4_ERROR_INTERNAL;
+        delete atom;
+        return NULL;
+    }
+    
+    AP4_SampleDescription* clone = sample_entry->ToSampleDescription();
+    if (clone == NULL) {
+        if (result) *result = AP4_ERROR_INTERNAL;
+    }
+    
+    delete atom;
+    return clone;
+}
+
+/*----------------------------------------------------------------------
 |   AP4_SampleDescription::ToAtom
 +---------------------------------------------------------------------*/
 AP4_Atom*

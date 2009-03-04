@@ -72,7 +72,8 @@ class AP4_SampleDescription
                           AP4_UI32        format, 
                           AP4_AtomParent* details);
     virtual ~AP4_SampleDescription() {}
-                 
+    virtual AP4_SampleDescription* Clone(AP4_Result* result = NULL);
+    
     // accessors
     Type            GetType()   const { return m_Type;    }
     AP4_UI32        GetFormat() const { return m_Format;  }

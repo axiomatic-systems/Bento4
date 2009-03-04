@@ -66,6 +66,7 @@ public:
     const T& operator[](unsigned long idx) const { return m_Items[idx]; }
     AP4_Result Clear();
     AP4_Result EnsureCapacity(AP4_Cardinal count);
+    AP4_Result SetItemCount(AP4_Cardinal item_count);
 
 protected:
     // members
@@ -140,6 +141,20 @@ AP4_Array<T>::EnsureCapacity(AP4_Cardinal count)
     m_Items = new_items;
     m_AllocatedCount = count;
 
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_Array<T>::SetItemCount
++---------------------------------------------------------------------*/
+template <typename T>
+AP4_Result 
+AP4_Array<T>::SetItemCount(AP4_Cardinal item_count)
+{
+    AP4_Result result = EnsureCapacity(item_count);
+    if (AP4_FAILED(result)) return result;
+    m_ItemCount = item_count;
+    
     return AP4_SUCCESS;
 }
 

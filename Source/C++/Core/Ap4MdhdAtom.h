@@ -60,8 +60,8 @@ public:
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
 
     AP4_UI32          GetDurationMs();
-    AP4_UI32          GetDuration()  { return m_Duration;  }
-    void              SetDuration(AP4_UI32 duration) { m_Duration = duration; }
+    AP4_UI64          GetDuration()  { return m_Duration;  }
+    void              SetDuration(AP4_UI64 duration) { m_Duration = duration; }
     AP4_UI32          GetTimeScale() { return m_TimeScale; }
     void              SetTimeScale(AP4_UI32 timescale) { m_TimeScale = timescale; }
     const AP4_String& GetLanguage()  { return m_Language;  }
@@ -74,13 +74,10 @@ private:
                  AP4_ByteStream& stream);
 
     // members
-    AP4_UI32   m_CreationTimeH;
-    AP4_UI32   m_CreationTime;
-    AP4_UI32   m_ModificationTimeH;
-    AP4_UI32   m_ModificationTime;
+    AP4_UI64   m_CreationTime;
+    AP4_UI64   m_ModificationTime;
     AP4_UI32   m_TimeScale;
-    AP4_UI32   m_DurationH;
-    AP4_UI32   m_Duration;
+    AP4_UI64   m_Duration;
     AP4_String m_Language;
 };
 

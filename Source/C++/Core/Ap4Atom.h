@@ -95,7 +95,7 @@ public:
                               const char* /* extra = NULL */) {}
     virtual void EndElement() {}
     virtual void AddField(const char* /* name */, 
-                          AP4_UI32    /* value */, 
+                          AP4_UI64    /* value */, 
                           FormatHint  hint = HINT_NONE) {
         (void)hint; // gcc warning
     }

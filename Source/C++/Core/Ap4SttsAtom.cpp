@@ -87,7 +87,7 @@ AP4_SttsAtom::AP4_SttsAtom(AP4_UI32        size,
 |   AP4_SttsAtom::GetDts
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_SttsAtom::GetDts(AP4_Ordinal sample, AP4_TimeStamp& dts)
+AP4_SttsAtom::GetDts(AP4_Ordinal sample, AP4_UI32& dts)
 {
     // default value
     dts = 0;
@@ -96,9 +96,9 @@ AP4_SttsAtom::GetDts(AP4_Ordinal sample, AP4_TimeStamp& dts)
     if (sample == 0) return AP4_ERROR_OUT_OF_RANGE;
 
     // check the lookup cache
-    AP4_Ordinal   lookup_start  = 0;
-    AP4_Ordinal   sample_start = 0;
-    AP4_TimeStamp dts_start    = 0;
+    AP4_Ordinal lookup_start  = 0;
+    AP4_Ordinal sample_start = 0;
+    AP4_UI32    dts_start    = 0;
     if (sample >= m_LookupCache.sample) {
         // start from the cached entry
         lookup_start = m_LookupCache.entry_index;
@@ -175,16 +175,16 @@ AP4_SttsAtom::WriteFields(AP4_ByteStream& stream)
 |   AP4_SttsAtom::GetSampleIndexForTimeStamp
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_SttsAtom::GetSampleIndexForTimeStamp(AP4_TimeStamp ts, 
+AP4_SttsAtom::GetSampleIndexForTimeStamp(AP4_UI64      ts, 
                                          AP4_Ordinal&  sample_index)
 {
     // init
     AP4_Cardinal entry_count = m_Entries.ItemCount();
-    AP4_Duration accumulated = 0;
+    AP4_UI64 accumulated = 0;
     sample_index = 0;
     
     for (AP4_Ordinal i=0; i<entry_count; i++) {
-        AP4_Duration next_accumulated = 
+        AP4_UI64 next_accumulated = 
             accumulated +
             (AP4_UI64)m_Entries[i].m_SampleCount * 
             (AP4_UI64)m_Entries[i].m_SampleDuration;

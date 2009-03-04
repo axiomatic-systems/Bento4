@@ -136,8 +136,8 @@ AP4_SyntheticSampleTable::AddSample(AP4_ByteStream& data_stream,
                                     AP4_Position    offset,
                                     AP4_Size        size,
                                     AP4_Ordinal     description_index,
-                                    AP4_TimeStamp   cts,
-                                    AP4_TimeStamp   dts,
+                                    AP4_UI32        cts,
+                                    AP4_UI32        dts,
                                     bool            sync)
 {
     AP4_Sample sample(data_stream, offset, size, description_index, dts, cts-dts, sync);
@@ -148,8 +148,8 @@ AP4_SyntheticSampleTable::AddSample(AP4_ByteStream& data_stream,
 |   AP4_SyntheticSampleTable::GetSampleIndexForTimeStamp
 +---------------------------------------------------------------------*/
 AP4_Result 
-AP4_SyntheticSampleTable::GetSampleIndexForTimeStamp(AP4_TimeStamp /* ts */, 
-                                                     AP4_Ordinal&  /* index */)
+AP4_SyntheticSampleTable::GetSampleIndexForTimeStamp(AP4_UI64     /* ts */, 
+                                                     AP4_Ordinal& /* index */)
 {
     return AP4_ERROR_NOT_SUPPORTED;
 }

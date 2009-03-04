@@ -54,7 +54,7 @@ AP4_Sample::AP4_Sample(AP4_ByteStream& data_stream,
                        AP4_Position    offset,
                        AP4_Size        size,
                        AP4_Ordinal     description_index,
-                       AP4_TimeStamp   dts,
+                       AP4_UI32        dts,
                        AP4_UI32        cts_offset /* = 0 */,
                        bool            is_sync /* = true  */) :
     m_Offset(offset),

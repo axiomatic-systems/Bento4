@@ -224,16 +224,22 @@ AP4_StscAtom::InspectFields(AP4_AtomInspector& inspector)
     inspector.AddField("entry_count", m_Entries.ItemCount());
 
     // dump table entries
-    //for (unsigned int i=0; i<m_Entries.GetItemCount(); i++) {
-    //    char dump[256];
-    //    sprintf(dump, "  f=%ld, spc=%ld, sdi=%ld\n", 
-    //            m_Entries[i].m_FirstChunk,
-    //            m_Entries[i].m_SamplesPerChunk,
-    //            m_Entries[i].m_SampleDescriptionIndex);
-    //    stream.WriteString(prefix);
-    //    stream.WriteString(dump);
-    //}
-
+    if (inspector.GetVerbosity() >= 1) {
+        char header[32];
+        char value[256];
+        for (unsigned int i=0; i<m_Entries.ItemCount(); i++) {
+            AP4_FormatString(header, sizeof(header), "entry %8d", i);  
+            AP4_FormatString(value, sizeof(value), 
+                    "first_chunk=%ld, first_sample*=%ld, chunk_count*=%ld, samples_per_chunk=%ld, sample_desc_index=%ld", 
+                    m_Entries[i].m_FirstChunk,
+                    m_Entries[i].m_FirstSample,
+                    m_Entries[i].m_ChunkCount,
+                    m_Entries[i].m_SamplesPerChunk,
+                    m_Entries[i].m_SampleDescriptionIndex);
+            inspector.AddField(header, value);
+        }
+    }
+    
     return AP4_SUCCESS;
 }
 

@@ -54,11 +54,11 @@ void AP4_BytesFromUInt64BE(unsigned char* bytes, AP4_UI64 value);
 void AP4_BytesFromUInt32BE(unsigned char* bytes, AP4_UI32 value);
 void AP4_BytesFromUInt24BE(unsigned char* bytes, AP4_UI32 value);
 void AP4_BytesFromUInt16BE(unsigned char* bytes, AP4_UI16 value);
-unsigned long AP4_DurationMsFromUnits(unsigned long units,
-                                      unsigned long units_per_second);
-unsigned long AP4_ConvertTime(unsigned long time_value,
-                              unsigned long from_time_scale,
-                              unsigned long to_time_scale);
+AP4_UI32 AP4_DurationMsFromUnits(AP4_UI64 units,
+                                 AP4_UI32 units_per_second);
+AP4_UI64 AP4_ConvertTime(AP4_UI64 time_value,
+                         AP4_UI32 from_time_scale,
+                         AP4_UI32 to_time_scale);
 
 /*----------------------------------------------------------------------
 |   string utils
@@ -106,7 +106,7 @@ public:
     // methods
     void StartElement(const char* name, const char* info);
     void EndElement();
-    void AddField(const char* name, AP4_UI32 value, FormatHint hint);
+    void AddField(const char* name, AP4_UI64 value, FormatHint hint);
     void AddFieldF(const char* name, float value, FormatHint hint);
     void AddField(const char* name, const char* value, FormatHint hint);
     void AddField(const char* name, const unsigned char* bytes, AP4_Size size, FormatHint hint);
