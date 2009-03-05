@@ -218,7 +218,7 @@ AP4_SttsAtom::InspectFields(AP4_AtomInspector& inspector)
         for (AP4_Ordinal i=0; i<m_Entries.ItemCount(); i++) {
             AP4_FormatString(header, sizeof(header), "entry %8d", i);
             AP4_FormatString(value, sizeof(value), 
-                             "sample_count=%ld, sample_duration=%ld", 
+                             "sample_count=%d, sample_duration=%d", 
                             m_Entries[i].m_SampleCount,
                             m_Entries[i].m_SampleDuration);
             inspector.AddField(header, value);
