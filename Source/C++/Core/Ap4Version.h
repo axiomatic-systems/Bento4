@@ -1,6 +1,6 @@
 /*****************************************************************
 |
-|    AP4 - Target Platform and Compiler Configuration
+|    AP4 - Version Numbers
 |
 |    Copyright 2002-2008 Axiomatic Systems, LLC
 |
