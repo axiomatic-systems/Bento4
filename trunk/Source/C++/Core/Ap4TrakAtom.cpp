@@ -315,7 +315,7 @@ AP4_Result
 AP4_TrakAtom::GetChunkOffsets(AP4_Array<AP4_UI64>& chunk_offsets)
 {
     AP4_Atom* atom;
-    if (atom = FindChild("mdia/minf/stbl/stco")) {
+    if ((atom = FindChild("mdia/minf/stbl/stco"))) {
         AP4_StcoAtom* stco = dynamic_cast<AP4_StcoAtom*>(atom);
         if (stco == NULL) return AP4_ERROR_INTERNAL;
         AP4_Cardinal    stco_chunk_count   = stco->GetChunkCount();
@@ -325,7 +325,7 @@ AP4_TrakAtom::GetChunkOffsets(AP4_Array<AP4_UI64>& chunk_offsets)
             chunk_offsets[i] = stco_chunk_offsets[i];
         }
         return AP4_SUCCESS;
-    } else if (atom = FindChild("mdia/minf/stbl/co64")) {
+    } else if ((atom = FindChild("mdia/minf/stbl/co64"))) {
         AP4_Co64Atom* co64 = dynamic_cast<AP4_Co64Atom*>(atom);
         if (co64 == NULL) return AP4_ERROR_INTERNAL;
         AP4_Cardinal    co64_chunk_count   = co64->GetChunkCount();
@@ -347,7 +347,7 @@ AP4_Result
 AP4_TrakAtom::SetChunkOffsets(const AP4_Array<AP4_UI64>& chunk_offsets)
 {
     AP4_Atom* atom;
-    if (atom = FindChild("mdia/minf/stbl/stco")) {
+    if ((atom = FindChild("mdia/minf/stbl/stco"))) {
         AP4_StcoAtom* stco = dynamic_cast<AP4_StcoAtom*>(atom);
         if (stco == NULL) return AP4_ERROR_INTERNAL;
         AP4_Cardinal stco_chunk_count   = stco->GetChunkCount();
@@ -359,7 +359,7 @@ AP4_TrakAtom::SetChunkOffsets(const AP4_Array<AP4_UI64>& chunk_offsets)
             stco_chunk_offsets[i] = (AP4_UI32)chunk_offsets[i];
         }
         return AP4_SUCCESS;
-    } else if (atom = FindChild("mdia/minf/stbl/co64")) {
+    } else if ((atom = FindChild("mdia/minf/stbl/co64"))) {
         AP4_Co64Atom* co64 = dynamic_cast<AP4_Co64Atom*>(atom);
         if (co64 == NULL) return AP4_ERROR_INTERNAL;
         AP4_Cardinal co64_chunk_count   = co64->GetChunkCount();
