@@ -51,9 +51,9 @@ class AP4_FileWriter {
     } Interleaving;
     
     // class methods
-    static AP4_Result AP4_FileWriter::Write(AP4_File&       file, 
-                                            AP4_ByteStream& stream, 
-                                            Interleaving    interleaving = INTERLEAVING_SEQUENTIAL);
+    static AP4_Result Write(AP4_File&       file, 
+                            AP4_ByteStream& stream, 
+                            Interleaving    interleaving = INTERLEAVING_SEQUENTIAL);
 };
 
 #endif // _AP4_FILE_WRITER_H_
