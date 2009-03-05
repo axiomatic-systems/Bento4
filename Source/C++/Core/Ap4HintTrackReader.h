@@ -89,7 +89,7 @@ private:
     AP4_Ordinal         m_SampleIndex;
     AP4_Ordinal         m_PacketIndex;
     AP4_UI16            m_RtpSequenceStart;
-    AP4_UI64            m_RtpTimeStampStart;
+    AP4_UI32            m_RtpTimeStampStart;
     AP4_UI32            m_RtpTimeScale;
 };
 

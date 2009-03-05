@@ -139,9 +139,9 @@ AP4_HintTrackReader::GetRtpSample(AP4_Ordinal index)
 AP4_UI32
 AP4_HintTrackReader::GetCurrentTimeStampMs()
 {
-    return AP4_ConvertTime(m_CurrentHintSample.GetCts(), 
-                           m_HintTrack.GetMediaTimeScale(),
-                           1000);
+    return (AP4_UI32)AP4_ConvertTime(m_CurrentHintSample.GetCts(), 
+                                     m_HintTrack.GetMediaTimeScale(),
+                                     1000);
 }
 
 /*----------------------------------------------------------------------

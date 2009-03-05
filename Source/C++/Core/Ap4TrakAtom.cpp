@@ -54,9 +54,9 @@ AP4_TrakAtom::AP4_TrakAtom(AP4_SampleTable* sample_table,
                            AP4_UI32         track_id,
                            AP4_UI32         creation_time,
                            AP4_UI32         modification_time,
-                           AP4_UI32         track_duration,
+                           AP4_UI64         track_duration,
                            AP4_UI32         media_time_scale,
-                           AP4_UI32         media_duration,
+                           AP4_UI64         media_duration,
                            AP4_UI16         volume,
                            const char*      language,
                            AP4_UI32         width,
@@ -224,7 +224,7 @@ AP4_TrakAtom::SetDuration(AP4_UI64 duration)
 /*----------------------------------------------------------------------
 |   AP4_TrakAtom::GetMediaDuration
 +---------------------------------------------------------------------*/
-AP4_UI32
+AP4_UI64
 AP4_TrakAtom::GetMediaDuration()
 {
     return m_MdhdAtom?m_MdhdAtom->GetDuration():0;
@@ -356,7 +356,7 @@ AP4_TrakAtom::SetChunkOffsets(const AP4_Array<AP4_UI64>& chunk_offsets)
             return AP4_ERROR_OUT_OF_RANGE;
         }
         for (unsigned int i=0; i<stco_chunk_count; i++) {
-            stco_chunk_offsets[i] = chunk_offsets[i];
+            stco_chunk_offsets[i] = (AP4_UI32)chunk_offsets[i];
         }
         return AP4_SUCCESS;
     } else if (atom = FindChild("mdia/minf/stbl/co64")) {

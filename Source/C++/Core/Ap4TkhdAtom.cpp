@@ -52,7 +52,7 @@ AP4_TkhdAtom::Create(AP4_Size size, AP4_ByteStream& stream)
 AP4_TkhdAtom::AP4_TkhdAtom(AP4_UI32 creation_time,
                            AP4_UI32 modification_time,
                            AP4_UI32 track_id,
-                           AP4_UI32 duration,
+                           AP4_UI64 duration,
                            AP4_UI16 volume,
                            AP4_UI32 width,
                            AP4_UI32 height) :
@@ -137,15 +137,15 @@ AP4_TkhdAtom::WriteFields(AP4_ByteStream& stream)
 
     // creation/modification time, track id, reserved1 & duration
     if (m_Version == 0) {
-        result = stream.WriteUI32(m_CreationTime);
+        result = stream.WriteUI32((AP4_UI32)m_CreationTime);
         if (AP4_FAILED(result)) return result;
-        result = stream.WriteUI32(m_ModificationTime);
+        result = stream.WriteUI32((AP4_UI32)m_ModificationTime);
         if (AP4_FAILED(result)) return result;
         result = stream.WriteUI32(m_TrackId);
         if (AP4_FAILED(result)) return result;
         result = stream.WriteUI32(m_Reserved1);
         if (AP4_FAILED(result)) return result;
-        result = stream.WriteUI32(m_Duration);
+        result = stream.WriteUI32((AP4_UI32)m_Duration);
         if (AP4_FAILED(result)) return result;
     } else {
         result = stream.WriteUI64(m_CreationTime);

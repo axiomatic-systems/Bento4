@@ -54,7 +54,7 @@ public:
     AP4_MdhdAtom(AP4_UI32    creation_time,
                  AP4_UI32    modification_time,
                  AP4_UI32    time_scale,
-                 AP4_UI32    duration,
+                 AP4_UI64    duration,
                  const char* language);
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
