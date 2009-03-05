@@ -126,13 +126,13 @@ AP4_MvhdAtom::WriteFields(AP4_ByteStream& stream)
     AP4_Result result;
     
     if (m_Version == 0) {
-        result = stream.WriteUI32(m_CreationTime);
+        result = stream.WriteUI32((AP4_UI32)m_CreationTime);
         if (AP4_FAILED(result)) return result;
-        result = stream.WriteUI32(m_ModificationTime);
+        result = stream.WriteUI32((AP4_UI32)m_ModificationTime);
         if (AP4_FAILED(result)) return result;
         result = stream.WriteUI32(m_TimeScale);
         if (AP4_FAILED(result)) return result;
-        result = stream.WriteUI32(m_Duration);
+        result = stream.WriteUI32((AP4_UI32)m_Duration);
     } else {
         result = stream.WriteUI64(m_CreationTime);
         if (AP4_FAILED(result)) return result;

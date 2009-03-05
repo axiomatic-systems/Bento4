@@ -50,9 +50,9 @@ AP4_Track::AP4_Track(Type             type,
                      AP4_SampleTable* sample_table,
                      AP4_UI32         track_id, 
                      AP4_UI32         movie_time_scale,
-                     AP4_UI32         track_duration,
+                     AP4_UI64         track_duration,
                      AP4_UI32         media_time_scale,
-                     AP4_UI32         media_duration,
+                     AP4_UI64         media_duration,
                      const char*      language,
                      AP4_UI32         width,
                      AP4_UI32         height) :
@@ -404,7 +404,7 @@ AP4_Track::GetMediaTimeScale()
 /*----------------------------------------------------------------------
 |   AP4_Track::GetMediaDuration
 +---------------------------------------------------------------------*/
-AP4_UI32
+AP4_UI64
 AP4_Track::GetMediaDuration()
 {
     return m_TrakAtom?m_TrakAtom->GetMediaDuration():0;

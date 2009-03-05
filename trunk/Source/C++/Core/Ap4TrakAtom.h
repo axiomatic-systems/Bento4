@@ -63,9 +63,9 @@ class AP4_TrakAtom : public AP4_ContainerAtom
                  AP4_UI32         track_id, 
                  AP4_UI32         creation_time,
                  AP4_UI32         modification_time,
-                 AP4_UI32         track_duration,
+                 AP4_UI64         track_duration,
                  AP4_UI32         media_time_scale,
-                 AP4_UI32         media_duration,
+                 AP4_UI64         media_duration,
                  AP4_UI16         volume,
                  const char*      language,
                  AP4_UI32         width,
@@ -78,7 +78,7 @@ class AP4_TrakAtom : public AP4_ContainerAtom
     AP4_Result SetId(AP4_UI32 track_id);
     AP4_UI64   GetDuration();
     AP4_Result SetDuration(AP4_UI64 duration);
-    AP4_UI32   GetMediaDuration();
+    AP4_UI64   GetMediaDuration();
     AP4_Result SetMediaDuration(AP4_UI32 duration);
     AP4_UI32   GetMediaTimeScale();
     AP4_Result SetMediaTimeScale(AP4_UI32 timescale);

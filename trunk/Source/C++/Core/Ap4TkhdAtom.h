@@ -56,7 +56,7 @@ public:
     AP4_TkhdAtom(AP4_UI32 creation_time,
                  AP4_UI32 modification_time,
                  AP4_UI32 track_id,
-                 AP4_UI32 duration,
+                 AP4_UI64 duration,
                  AP4_UI16 volume,
                  AP4_UI32 width,
                  AP4_UI32 height);    
