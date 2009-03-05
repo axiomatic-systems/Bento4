@@ -44,7 +44,7 @@
 |   AP4_FileWriter::Write
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_FileWriter::Write(AP4_File& file, AP4_ByteStream& stream, Interleaving interleaving)
+AP4_FileWriter::Write(AP4_File& file, AP4_ByteStream& stream, Interleaving /* interleaving */)
 {
     // get the file type
     AP4_FtypAtom* file_type = file.GetFileType();
