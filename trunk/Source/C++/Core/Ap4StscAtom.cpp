@@ -230,7 +230,7 @@ AP4_StscAtom::InspectFields(AP4_AtomInspector& inspector)
         for (unsigned int i=0; i<m_Entries.ItemCount(); i++) {
             AP4_FormatString(header, sizeof(header), "entry %8d", i);  
             AP4_FormatString(value, sizeof(value), 
-                    "first_chunk=%ld, first_sample*=%ld, chunk_count*=%ld, samples_per_chunk=%ld, sample_desc_index=%ld", 
+                    "first_chunk=%d, first_sample*=%d, chunk_count*=%d, samples_per_chunk=%d, sample_desc_index=%d", 
                     m_Entries[i].m_FirstChunk,
                     m_Entries[i].m_FirstSample,
                     m_Entries[i].m_ChunkCount,
