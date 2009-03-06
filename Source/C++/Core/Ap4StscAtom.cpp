@@ -68,27 +68,28 @@ AP4_StscAtom::AP4_StscAtom(AP4_UI32        size,
     AP4_UI32 first_sample = 1;
     AP4_UI32 entry_count;
     stream.ReadUI32(entry_count);
-    while (entry_count--) {
-        AP4_UI32 first_chunk;
-        AP4_UI32 samples_per_chunk;
-        AP4_UI32 sample_description_index;
-        if (stream.ReadUI32(first_chunk)              == AP4_SUCCESS &&
-            stream.ReadUI32(samples_per_chunk)        == AP4_SUCCESS &&
-            stream.ReadUI32(sample_description_index) == AP4_SUCCESS) {
-            if (m_Entries.ItemCount() != 0) {
-                AP4_Ordinal prev = m_Entries.ItemCount()-1;
-                m_Entries[prev].m_ChunkCount = 
-                    first_chunk-m_Entries[prev].m_FirstChunk;
-                first_sample += 
-                    m_Entries[prev].m_ChunkCount *
-                    m_Entries[prev].m_SamplesPerChunk;
-            }
-            m_Entries.Append(AP4_StscTableEntry(first_chunk, 
-                                                first_sample,
-                                                samples_per_chunk, 
-                                                sample_description_index));
-        }
+    m_Entries.SetItemCount(entry_count);
+    unsigned char* buffer = new unsigned char[entry_count*12];
+    AP4_Result result = stream.Read(buffer, entry_count*12);
+    if (AP4_FAILED(result)) {
+        delete[] buffer;
+        return;
     }
+    for (unsigned int i=0; i<entry_count; i++) {
+        AP4_UI32 first_chunk              = AP4_BytesToUInt32BE(&buffer[i*12  ]);
+        AP4_UI32 samples_per_chunk        = AP4_BytesToUInt32BE(&buffer[i*12+4]);
+        AP4_UI32 sample_description_index = AP4_BytesToUInt32BE(&buffer[i*12+8]);
+        if (i) {
+            AP4_Ordinal prev = i-1;
+            m_Entries[prev].m_ChunkCount = first_chunk-m_Entries[prev].m_FirstChunk;
+            first_sample += m_Entries[prev].m_ChunkCount * m_Entries[prev].m_SamplesPerChunk;
+        }
+        m_Entries[i].m_FirstChunk             = first_chunk;
+        m_Entries[i].m_FirstSample            = first_sample;
+        m_Entries[i].m_SamplesPerChunk        = samples_per_chunk;
+        m_Entries[i].m_SampleDescriptionIndex = sample_description_index;
+    }
+    delete[] buffer;
 }
 
 /*----------------------------------------------------------------------

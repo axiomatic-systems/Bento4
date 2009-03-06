@@ -113,7 +113,7 @@ PrintUsage()
            "options:\n"
            "  --iterations=<n>: run each test for <n> iterations instead of a fixed run time.\n"
            "  --test-file-read=<filename> (any file for read tests)\n"
-           "  --test-file-mp4=<filename> (MP4 file for read-samples)\n"
+           "  --test-file-mp4=<filename> (MP4 file for parse-file and read-samples)\n"
            "  --test-file-dcf-cbc=<filename> (DCF/CBC file for read-samples-dcf-cbc)\n"
            "  --test-file-dcf-ctr=<filename> (DCF/CTR file for read-samples-dcf-ctr)\n"
            "  --test-file-pdcf-cbc=<filename> (PDCF/CBC file for read-samples-pdcf-cbc)\n"
@@ -122,9 +122,12 @@ PrintUsage()
            "valid test names are:\n"
            "all: run all tests\n"
            "or one or more of the following tests:\n"
-           "aes-block-decrypt, aes-block-encrypt, \n"
-           "aes-cbc-stream-encrypt, aes-cbc-stream-decrypt\n"
+           "aes-block-decrypt\n"
+           "aes-block-encrypt\n"
+           "aes-cbc-stream-encrypt\n"
+           "aes-cbc-stream-decrypt\n"
            "aes-ctr-stream\n"
+           "parse-file\n"
            "read-file-seq-1\n"
            "read-file-seq-16\n"
            "read-file-seq-256\n"
@@ -238,6 +241,39 @@ LoadSamples(AP4_Track* track, unsigned int repeats)
             index++;
         }
     }
+    
+    return total_size;
+}
+
+/*----------------------------------------------------------------------
+|   ParseFile
++---------------------------------------------------------------------*/
+static unsigned int
+ParseFile(const char* filename, unsigned int repeats)
+{
+    unsigned int total_size = 0;
+    
+    // open the input
+    AP4_ByteStream* input = NULL;
+    try {
+        input = new AP4_FileByteStream(filename,
+                               AP4_FileByteStream::STREAM_MODE_READ);
+    } catch (AP4_Exception) {
+        fprintf(stderr, "ERROR: cannot open input file (%s)\n", filename);
+        return 0;
+    }
+        
+    for (unsigned int i=0; i<repeats; i++) {
+        // parse the file
+        AP4_File* mp4_file = new AP4_File(*input, AP4_DefaultAtomFactory::Instance, true);
+        AP4_Movie* movie = mp4_file->GetMovie();
+        if (movie) {
+            total_size += movie->GetMoovAtom()->GetSize();
+        }
+        delete mp4_file;
+    }
+
+    input->Release();
     
     return total_size;
 }
@@ -357,6 +393,7 @@ main(int argc, char** argv)
     bool do_read_file_rnd_16       = false;
     bool do_read_file_rnd_256      = false;
     bool do_read_file_rnd_4096     = false;
+    bool do_parse_file             = false;
     bool do_read_samples           = false;
     bool do_read_samples_dcf_cbc   = false;
     bool do_read_samples_dcf_ctr   = false;
@@ -398,6 +435,8 @@ main(int argc, char** argv)
             do_read_file_rnd_256 = true;
         } else if (!strcmp(arg, "read-file-rnd-4096")) {
             do_read_file_rnd_4096 = true;
+        } else if (!strcmp(arg, "parse-file")) {
+            do_parse_file = true;
         } else if (!strcmp(arg, "read-samples")) {
             do_read_samples = true;
         } else if (!strcmp(arg, "read-samples-dcf-cbc")) {
@@ -533,6 +572,10 @@ main(int argc, char** argv)
 
     BENCH_START("Read File Random (4096 Byte Blocks)", do_read_file_rnd_4096)
     total += ReadFile(test_file_read, 4096, false);
+    BENCH_END
+
+    BENCH_START("Parse File", do_parse_file)
+    total += ParseFile(test_file_mp4, 32);
     BENCH_END
 
     BENCH_START("Read Samples", do_read_samples)
