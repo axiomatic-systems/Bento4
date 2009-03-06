@@ -39,21 +39,103 @@
 #include "Ap4Atom.h"
 
 /*----------------------------------------------------------------------
-|   byte I/O
+|   non-inline functions
 +---------------------------------------------------------------------*/
 double   AP4_BytesToDoubleBE(const unsigned char* bytes);
 AP4_UI64 AP4_BytesToUInt64BE(const unsigned char* bytes);
-AP4_UI32 AP4_BytesToUInt32BE(const unsigned char* bytes);
-AP4_UI32 AP4_BytesToUInt24BE(const unsigned char* bytes);
-AP4_UI16 AP4_BytesToUInt16BE(const unsigned char* bytes);
-AP4_SI32 AP4_BytesToInt32BE(const unsigned char* bytes);
-AP4_SI16 AP4_BytesToInt16BE(const unsigned char* bytes);
-
 void AP4_BytesFromDoubleBE(unsigned char* bytes, double value);
 void AP4_BytesFromUInt64BE(unsigned char* bytes, AP4_UI64 value);
-void AP4_BytesFromUInt32BE(unsigned char* bytes, AP4_UI32 value);
-void AP4_BytesFromUInt24BE(unsigned char* bytes, AP4_UI32 value);
-void AP4_BytesFromUInt16BE(unsigned char* bytes, AP4_UI16 value);
+
+/*----------------------------------------------------------------------
+|   AP4_BytesToUInt32BE
++---------------------------------------------------------------------*/
+inline AP4_UI32
+AP4_BytesToUInt32BE(const unsigned char* bytes)
+{
+    return 
+        ( ((AP4_UI32)bytes[0])<<24 ) |
+        ( ((AP4_UI32)bytes[1])<<16 ) |
+        ( ((AP4_UI32)bytes[2])<<8  ) |
+        ( ((AP4_UI32)bytes[3])     );    
+}
+
+/*----------------------------------------------------------------------
+|   AP4_BytesToInt32BE
++---------------------------------------------------------------------*/
+inline AP4_SI32
+AP4_BytesToInt32BE(const unsigned char* bytes)
+{
+    return AP4_BytesToUInt32BE(bytes);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_BytesToUInt24BE
++---------------------------------------------------------------------*/
+inline AP4_UI32
+AP4_BytesToUInt24BE(const unsigned char* bytes)
+{
+    return 
+        ( ((AP4_UI32)bytes[0])<<16 ) |
+        ( ((AP4_UI32)bytes[1])<<8  ) |
+        ( ((AP4_UI32)bytes[2])     );    
+}
+
+/*----------------------------------------------------------------------
+|   AP4_BytesToInt16BE
++---------------------------------------------------------------------*/
+inline AP4_UI16
+AP4_BytesToUInt16BE(const unsigned char* bytes)
+{
+    return 
+        ( ((AP4_UI16)bytes[0])<<8  ) |
+        ( ((AP4_UI16)bytes[1])     );    
+}
+
+/*----------------------------------------------------------------------
+|   AP4_BytesToInt16BE
++---------------------------------------------------------------------*/
+inline AP4_SI16
+AP4_BytesToInt16BE(const unsigned char* bytes)
+{
+    return (AP4_SI16)AP4_BytesToUInt16BE(bytes);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_BytesFromUInt32BE
++---------------------------------------------------------------------*/
+inline void
+AP4_BytesFromUInt32BE(unsigned char* bytes, AP4_UI32 value)
+{
+    bytes[0] = (unsigned char)(value >> 24);
+    bytes[1] = (unsigned char)(value >> 16);
+    bytes[2] = (unsigned char)(value >>  8);
+    bytes[3] = (unsigned char)(value      );
+}
+
+/*----------------------------------------------------------------------
+|   AP4_BytesFromUInt24BE
++---------------------------------------------------------------------*/
+inline void
+AP4_BytesFromUInt24BE(unsigned char* bytes, AP4_UI32 value)
+{
+    bytes[0] = (unsigned char)(value >> 16);
+    bytes[1] = (unsigned char)(value >>  8);
+    bytes[2] = (unsigned char)(value      );
+}
+
+/*----------------------------------------------------------------------
+|   AP4_BytesFromUInt16BE
++---------------------------------------------------------------------*/
+inline void
+AP4_BytesFromUInt16BE(unsigned char* bytes, AP4_UI16 value)
+{
+    bytes[0] = (unsigned char)(value >> 8);
+    bytes[1] = (unsigned char)(value     );
+}
+
+/*----------------------------------------------------------------------
+|   time functions
++---------------------------------------------------------------------*/
 AP4_UI32 AP4_DurationMsFromUnits(AP4_UI64 units,
                                  AP4_UI32 units_per_second);
 AP4_UI64 AP4_ConvertTime(AP4_UI64 time_value,

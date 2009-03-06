@@ -87,7 +87,7 @@ AP4_SttsAtom::AP4_SttsAtom(AP4_UI32        size,
 |   AP4_SttsAtom::GetDts
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_SttsAtom::GetDts(AP4_Ordinal sample, AP4_UI32& dts)
+AP4_SttsAtom::GetDts(AP4_Ordinal sample, AP4_UI64& dts)
 {
     // default value
     dts = 0;
@@ -98,7 +98,7 @@ AP4_SttsAtom::GetDts(AP4_Ordinal sample, AP4_UI32& dts)
     // check the lookup cache
     AP4_Ordinal lookup_start  = 0;
     AP4_Ordinal sample_start = 0;
-    AP4_UI32    dts_start    = 0;
+    AP4_UI64    dts_start    = 0;
     if (sample >= m_LookupCache.sample) {
         // start from the cached entry
         lookup_start = m_LookupCache.entry_index;
@@ -113,7 +113,7 @@ AP4_SttsAtom::GetDts(AP4_Ordinal sample, AP4_UI32& dts)
         // check if we have reached the sample
         if (sample <= sample_start+entry.m_SampleCount) {
             // we are within the sample range for the current entry
-            dts = dts_start + (sample-1 - sample_start) * entry.m_SampleDuration;
+            dts = dts_start + (AP4_UI64)(sample-1 - sample_start) * (AP4_UI64)entry.m_SampleDuration;
 
             // update the lookup cache
             m_LookupCache.entry_index = i;

@@ -77,7 +77,7 @@ AP4_StszAtom::AP4_StszAtom(AP4_UI32        size,
             return;
         }
         for (unsigned int i=0; i<sample_count; i++) {
-            m_Entries[i] = AP4_BytesToInt32BE(&buffer[i*4]);
+            m_Entries[i] = AP4_BytesToUInt32BE(&buffer[i*4]);
         }
         delete[] buffer;
     }
