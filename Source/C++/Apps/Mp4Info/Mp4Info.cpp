@@ -361,11 +361,11 @@ ShowTrackInfo(AP4_Track& track, bool show_samples, bool verbose)
             }
         }
         if (show_samples) {
-            printf("[%06d] size=%6d dts=%8d, cts=%8d", 
+            printf("[%06d] size=%6d dts=%10lld, cts=%10lld", 
                    index+1,
                    (int)sample.GetSize(),
-                   (int)sample.GetDts(), 
-                   (int)sample.GetCts());
+                   sample.GetDts(), 
+                   sample.GetCts());
             if (sample.IsSync()) {
                 printf(" [S] ");
             } else {

@@ -62,60 +62,6 @@ AP4_BytesToUInt64BE(const unsigned char* bytes)
 }
 
 /*----------------------------------------------------------------------
-|   AP4_BytesToUInt32BE
-+---------------------------------------------------------------------*/
-AP4_UI32
-AP4_BytesToUInt32BE(const unsigned char* bytes)
-{
-    return 
-        ( ((AP4_UI32)bytes[0])<<24 ) |
-        ( ((AP4_UI32)bytes[1])<<16 ) |
-        ( ((AP4_UI32)bytes[2])<<8  ) |
-        ( ((AP4_UI32)bytes[3])     );    
-}
-
-/*----------------------------------------------------------------------
-|   AP4_BytesToInt32BE
-+---------------------------------------------------------------------*/
-AP4_SI32
-AP4_BytesToInt32BE(const unsigned char* bytes)
-{
-    return AP4_BytesToUInt32BE(bytes);
-}
-
-/*----------------------------------------------------------------------
-|   AP4_BytesToUInt24BE
-+---------------------------------------------------------------------*/
-AP4_UI32
-AP4_BytesToUInt24BE(const unsigned char* bytes)
-{
-    return 
-        ( ((AP4_UI32)bytes[0])<<16 ) |
-        ( ((AP4_UI32)bytes[1])<<8  ) |
-        ( ((AP4_UI32)bytes[2])     );    
-}
-
-/*----------------------------------------------------------------------
-|   AP4_BytesToInt16BE
-+---------------------------------------------------------------------*/
-AP4_UI16
-AP4_BytesToUInt16BE(const unsigned char* bytes)
-{
-    return 
-        ( ((AP4_UI16)bytes[0])<<8  ) |
-        ( ((AP4_UI16)bytes[1])     );    
-}
-
-/*----------------------------------------------------------------------
-|   AP4_BytesToInt16BE
-+---------------------------------------------------------------------*/
-AP4_SI16
-AP4_BytesToInt16BE(const unsigned char* bytes)
-{
-    return (AP4_SI16)AP4_BytesToUInt16BE(bytes);
-}
-
-/*----------------------------------------------------------------------
 |   AP4_BytesFromDoubleBE
 +---------------------------------------------------------------------*/
 void
@@ -141,39 +87,6 @@ AP4_BytesFromUInt64BE(unsigned char* bytes, AP4_UI64 value)
     bytes[5] = (unsigned char)(value >> 16);
     bytes[6] = (unsigned char)(value >>  8);
     bytes[7] = (unsigned char)(value      );
-}
-
-/*----------------------------------------------------------------------
-|   AP4_BytesFromUInt32BE
-+---------------------------------------------------------------------*/
-void
-AP4_BytesFromUInt32BE(unsigned char* bytes, AP4_UI32 value)
-{
-    bytes[0] = (unsigned char)(value >> 24);
-    bytes[1] = (unsigned char)(value >> 16);
-    bytes[2] = (unsigned char)(value >>  8);
-    bytes[3] = (unsigned char)(value      );
-}
-
-/*----------------------------------------------------------------------
-|   AP4_BytesFromUInt24BE
-+---------------------------------------------------------------------*/
-void
-AP4_BytesFromUInt24BE(unsigned char* bytes, AP4_UI32 value)
-{
-    bytes[0] = (unsigned char)(value >> 16);
-    bytes[1] = (unsigned char)(value >>  8);
-    bytes[2] = (unsigned char)(value      );
-}
-
-/*----------------------------------------------------------------------
-|   AP4_BytesFromUInt16BE
-+---------------------------------------------------------------------*/
-void
-AP4_BytesFromUInt16BE(unsigned char* bytes, AP4_UI16 value)
-{
-    bytes[0] = (unsigned char)(value >> 8);
-    bytes[1] = (unsigned char)(value     );
 }
 
 /*----------------------------------------------------------------------
