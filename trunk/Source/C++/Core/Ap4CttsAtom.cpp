@@ -70,15 +70,18 @@ AP4_CttsAtom::AP4_CttsAtom(AP4_UI32        size,
 
     AP4_UI32 entry_count;
     stream.ReadUI32(entry_count);
-    while (entry_count--) {
-        AP4_UI32 sample_count;
-        AP4_UI32 sample_offset;
-        if (stream.ReadUI32(sample_count)  == AP4_SUCCESS &&
-            stream.ReadUI32(sample_offset) == AP4_SUCCESS) {
-            m_Entries.Append(AP4_CttsTableEntry(sample_count, 
-                                                sample_offset));
-        }
+    m_Entries.SetItemCount(entry_count);
+    unsigned char* buffer = new unsigned char[entry_count*8];
+    AP4_Result result = stream.Read(buffer, entry_count*8);
+    if (AP4_FAILED(result)) {
+        delete[] buffer;
+        return;
     }
+    for (unsigned i=0; i<entry_count; i++) {
+        m_Entries[i].m_SampleCount  = AP4_BytesToUInt32BE(&buffer[i*8  ]);
+        m_Entries[i].m_SampleOffset = AP4_BytesToUInt32BE(&buffer[i*8+4]);
+    }
+    delete[] buffer;
 }
 
 /*----------------------------------------------------------------------
@@ -170,6 +173,18 @@ AP4_Result
 AP4_CttsAtom::InspectFields(AP4_AtomInspector& inspector)
 {
     inspector.AddField("entry_count", m_Entries.ItemCount());
+
+    if (inspector.GetVerbosity() >= 2) {
+        char header[32];
+        char value[64];
+        for (AP4_Ordinal i=0; i<m_Entries.ItemCount(); i++) {
+            AP4_FormatString(header, sizeof(header), "entry %8d", i);
+            AP4_FormatString(value, sizeof(value), "count=%d, offset=%d", 
+                             m_Entries[i].m_SampleCount, 
+                             m_Entries[i].m_SampleOffset);
+            inspector.AddField(header, value);
+        }
+    }
 
     return AP4_SUCCESS;
 }

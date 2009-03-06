@@ -73,9 +73,16 @@ AP4_StcoAtom::AP4_StcoAtom(AP4_UI32        size,
         m_EntryCount = (size-AP4_FULL_ATOM_HEADER_SIZE-4)/4;
     }
     m_Entries = new AP4_UI32[m_EntryCount];
-    for (AP4_Ordinal i=0; i<m_EntryCount; i++) {
-        stream.ReadUI32(m_Entries[i]);
+    unsigned char* buffer = new unsigned char[m_EntryCount*4];
+    AP4_Result result = stream.Read(buffer, m_EntryCount*4);
+    if (AP4_FAILED(result)) {
+        delete[] buffer;
+        return;
     }
+    for (AP4_Ordinal i=0; i<m_EntryCount; i++) {
+        m_Entries[i] = AP4_BytesToUInt32BE(&buffer[i*4]);
+    }
+    delete[] buffer;
 }
 
 /*----------------------------------------------------------------------
