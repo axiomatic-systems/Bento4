@@ -239,7 +239,7 @@ AP4_HintTrackReader::BuildRtpPacket(AP4_RtpPacket*  packet,
     stream->WriteUI08(0x80 | (packet->GetPBit() << 5) | (packet->GetXBit() << 4));
     stream->WriteUI08((packet->GetMBit() << 7) | packet->GetPayloadType());
     stream->WriteUI16(m_RtpSequenceStart + packet->GetSequenceSeed());
-    stream->WriteUI32(m_RtpTimeStampStart + m_CurrentHintSample.GetCts() + packet->GetTimeStampOffset());
+    stream->WriteUI32(m_RtpTimeStampStart + (AP4_UI32)m_CurrentHintSample.GetCts() + packet->GetTimeStampOffset());
     stream->WriteUI32(m_Ssrc);
 
     AP4_List<AP4_RtpConstructor>::Item* constructors_it 
