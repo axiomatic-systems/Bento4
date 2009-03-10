@@ -74,7 +74,7 @@ AP4_SampleTable::GenerateStblAtom(AP4_ContainerAtom*& stbl)
     AP4_Position            current_chunk_offset             = 0;
     AP4_Cardinal            current_samples_in_chunk         = 0;
     AP4_Ordinal             current_sample_description_index = 0;
-    AP4_UI32                current_dts                      = 0;
+    AP4_UI64                current_dts                      = 0;
     AP4_UI32                current_dts_delta                = 0;
     AP4_Cardinal            current_dts_delta_run            = 0;
     AP4_UI32                current_cts_delta                = 0;
@@ -88,11 +88,11 @@ AP4_SampleTable::GenerateStblAtom(AP4_ContainerAtom*& stbl)
         GetSample(i, sample);
         
         // update DTS table
-        AP4_UI32 new_dts = sample.GetDts();
+        AP4_UI64 new_dts = sample.GetDts();
         if (i > 0) {
             AP4_UI32 new_dts_delta = 0;
             if (new_dts > current_dts) {
-                new_dts_delta = new_dts-current_dts;
+                new_dts_delta = (AP4_UI32)(new_dts-current_dts);
             }
             if (new_dts_delta != current_dts_delta && current_dts_delta_run != 0) {
                 // emmit a new stts entry
@@ -107,9 +107,11 @@ AP4_SampleTable::GenerateStblAtom(AP4_ContainerAtom*& stbl)
         current_dts = new_dts;
         
         // update CTS table
-        AP4_UI32 new_cts = sample.GetCts();
+        AP4_UI64 new_cts = sample.GetCts();
         AP4_UI32 new_cts_delta = 0;
-        if (new_cts > new_dts) new_cts_delta = new_cts-new_dts;
+        if (new_cts > new_dts) {
+            new_cts_delta = (AP4_UI32)(new_cts-new_dts);
+        }
         if (new_cts_delta != current_cts_delta && current_cts_delta_run != 0) {
             // create a ctts atom if we don't have one
             if (ctts == NULL) ctts = new AP4_CttsAtom();

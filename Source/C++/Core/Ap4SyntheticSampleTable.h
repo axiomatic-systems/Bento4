@@ -95,9 +95,8 @@ class AP4_SyntheticSampleTable : public AP4_SampleTable
      * @param size Size in bytes of the sample data
      * @param description_index Index of the sample description that applies to 
      * this sample
+     * @param cts Decoding timestamp of the sample
      * @param dts Decoding timestamp of the sample
-     * @param cts_offset Difference between the Composition timestamp and the 
-     * Decoding timestamp
      * @param sync_flag Boolean flag indicating whether this is a sync sample
      * or not
      */
@@ -105,8 +104,8 @@ class AP4_SyntheticSampleTable : public AP4_SampleTable
                                  AP4_Position    offset,
                                  AP4_Size        size,
                                  AP4_Ordinal     description_index,
-                                 AP4_UI32        cts = 0,
-                                 AP4_UI32        dts = 0,
+                                 AP4_UI64        cts = 0,
+                                 AP4_UI64        dts = 0,
                                  bool            sync = false);
 
 private:
