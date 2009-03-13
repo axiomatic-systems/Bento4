@@ -131,7 +131,7 @@ public:
     m_CompressorName(compressor_name) {}
 
     // accessors
-    AP4_UI32    GetWidth()          { return m_Width;  }
+    AP4_UI16    GetWidth()          { return m_Width;  }
     AP4_UI16    GetHeight()         { return m_Height; }
     AP4_UI16    GetDepth()          { return m_Depth;  }
     const char* GetCompressorName() { return m_CompressorName.GetChars(); }

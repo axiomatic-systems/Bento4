@@ -1,6 +1,6 @@
 /*****************************************************************
 |
-|    AP4 - ctts Atoms 
+|    AP4 - mfhd Atoms 
 |
 |    Copyright 2002-2008 Axiomatic Systems, LLC
 |
@@ -26,69 +26,62 @@
 |
  ****************************************************************/
 
-#ifndef _AP4_CTTS_ATOM_H_
-#define _AP4_CTTS_ATOM_H_
-
 /*----------------------------------------------------------------------
 |   includes
 +---------------------------------------------------------------------*/
-#include "Ap4Atom.h"
-#include "Ap4Types.h"
-#include "Ap4Array.h"
+#include "Ap4MfhdAtom.h"
+#include "Ap4Utils.h"
 
 /*----------------------------------------------------------------------
-|   class references
+|   AP4_MfhdAtom::Create
 +---------------------------------------------------------------------*/
-class AP4_ByteStream;
-
-/*----------------------------------------------------------------------
-|   AP4_CttsTableEntry
-+---------------------------------------------------------------------*/
-class AP4_CttsTableEntry {
- public:
-    AP4_CttsTableEntry() : 
-        m_SampleCount(0), 
-        m_SampleOffset(0) {}
-    AP4_CttsTableEntry(AP4_UI32 sample_count,
-                       AP4_UI32 sample_offset) :
-        m_SampleCount(sample_count),
-        m_SampleOffset(sample_offset) {}
-
-    AP4_UI32 m_SampleCount;
-    AP4_UI32 m_SampleOffset;
-};
-
-/*----------------------------------------------------------------------
-|   AP4_CttsAtom
-+---------------------------------------------------------------------*/
-class AP4_CttsAtom : public AP4_Atom
+AP4_MfhdAtom*
+AP4_MfhdAtom::Create(AP4_Size size, AP4_ByteStream& stream)
 {
-public:
-    // class methods
-    static AP4_CttsAtom* Create(AP4_UI32 size, AP4_ByteStream& stream);
+    AP4_UI32 version;
+    AP4_UI32 flags;
+    if (AP4_FAILED(AP4_Atom::ReadFullHeader(stream, version, flags))) return NULL;
+    if (version > 0) return NULL;
+    return new AP4_MfhdAtom(size, version, flags, stream);
+}
 
-    // constructor
-    AP4_CttsAtom();
-    
-    // methods
-    virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
-    virtual AP4_Result WriteFields(AP4_ByteStream& stream);
-    AP4_Result AddEntry(AP4_UI32 count, AP4_UI32 cts_offset);
-    AP4_Result GetCtsOffset(AP4_Ordinal sample, AP4_UI32& cts_offset);
+/*----------------------------------------------------------------------
+|   AP4_MfhdAtom::AP4_MfhdAtom
++---------------------------------------------------------------------*/
+AP4_MfhdAtom::AP4_MfhdAtom(AP4_UI32 sequence_number) :
+    AP4_Atom(AP4_ATOM_TYPE_MFHD, AP4_FULL_ATOM_HEADER_SIZE+4, 0, 0),
+    m_SequenceNumber(sequence_number)
+{
+}
 
-private:
-    // methods
-    AP4_CttsAtom(AP4_UI32        size, 
-                 AP4_UI32        version,
-                 AP4_UI32        flags,
-                 AP4_ByteStream& stream);
+/*----------------------------------------------------------------------
+|   AP4_MfhdAtom::AP4_MfhdAtom
++---------------------------------------------------------------------*/
+AP4_MfhdAtom::AP4_MfhdAtom(AP4_UI32        size, 
+                           AP4_UI32        version,
+                           AP4_UI32        flags,
+                           AP4_ByteStream& stream) :
+    AP4_Atom(AP4_ATOM_TYPE_MFHD, size, version, flags)
+{
+    stream.ReadUI32(m_SequenceNumber);
+}
 
-    // members
-    AP4_Array<AP4_CttsTableEntry> m_Entries;
-    struct {
-        AP4_Ordinal sample;
-        AP4_Ordinal entry_index;
-    } m_LookupCache;
-};
+/*----------------------------------------------------------------------
+|   AP4_MfhdAtom::WriteFields
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_MfhdAtom::WriteFields(AP4_ByteStream& stream)
+{
+    return stream.WriteUI32(m_SequenceNumber);
+}
 
-#endif // _AP4_CTTS_ATOM_H_
+/*----------------------------------------------------------------------
+|   AP4_MfhdAtom::InspectFields
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_MfhdAtom::InspectFields(AP4_AtomInspector& inspector)
+{
+    inspector.AddField("sequence number", m_SequenceNumber);
+
+    return AP4_SUCCESS;
+}

@@ -1,6 +1,6 @@
 /*****************************************************************
 |
-|    AP4 - ctts Atoms 
+|    AP4 - trun Atoms 
 |
 |    Copyright 2002-2008 Axiomatic Systems, LLC
 |
@@ -26,69 +26,61 @@
 |
  ****************************************************************/
 
-#ifndef _AP4_CTTS_ATOM_H_
-#define _AP4_CTTS_ATOM_H_
+#ifndef _AP4_TRUN_ATOM_H_
+#define _AP4_TRUN_ATOM_H_
 
 /*----------------------------------------------------------------------
 |   includes
 +---------------------------------------------------------------------*/
 #include "Ap4Atom.h"
-#include "Ap4Types.h"
 #include "Ap4Array.h"
 
 /*----------------------------------------------------------------------
-|   class references
+|   constants
 +---------------------------------------------------------------------*/
-class AP4_ByteStream;
+const AP4_UI32 AP4_TRUN_FLAG_DATA_OFFSET_PRESENT                    = 0x0001;
+const AP4_UI32 AP4_TRUN_FLAG_FIRST_SAMPLE_FLAGS_PRESENT             = 0x0004;
+const AP4_UI32 AP4_TRUN_FLAG_SAMPLE_DURATION_PRESENT                = 0x0100;
+const AP4_UI32 AP4_TRUN_FLAG_SAMPLE_SIZE_PRESENT                    = 0x0200;
+const AP4_UI32 AP4_TRUN_FLAG_SAMPLE_FLAGS_PRESENT                   = 0x0400;
+const AP4_UI32 AP4_TRUN_FLAG_SAMPLE_COMPOSITION_TIME_OFFSET_PRESENT = 0x0800;
 
 /*----------------------------------------------------------------------
-|   AP4_CttsTableEntry
+|   AP4_TrunAtom
 +---------------------------------------------------------------------*/
-class AP4_CttsTableEntry {
- public:
-    AP4_CttsTableEntry() : 
-        m_SampleCount(0), 
-        m_SampleOffset(0) {}
-    AP4_CttsTableEntry(AP4_UI32 sample_count,
-                       AP4_UI32 sample_offset) :
-        m_SampleCount(sample_count),
-        m_SampleOffset(sample_offset) {}
-
-    AP4_UI32 m_SampleCount;
-    AP4_UI32 m_SampleOffset;
-};
-
-/*----------------------------------------------------------------------
-|   AP4_CttsAtom
-+---------------------------------------------------------------------*/
-class AP4_CttsAtom : public AP4_Atom
+class AP4_TrunAtom : public AP4_Atom
 {
 public:
-    // class methods
-    static AP4_CttsAtom* Create(AP4_UI32 size, AP4_ByteStream& stream);
-
-    // constructor
-    AP4_CttsAtom();
+    // types
+    struct Entry {
+        AP4_UI32 sample_duration;
+        AP4_UI32 sample_size;
+        AP4_UI32 sample_flags;
+        AP4_UI32 sample_composition_time_offset;
+    };
     
+    // class methods
+    static AP4_TrunAtom* Create(AP4_Size size, AP4_ByteStream& stream);
+    static AP4_UI32      ComputeEntrySize(AP4_UI32 flags);
+
     // methods
+    AP4_TrunAtom(AP4_UI32 flags, 
+                 AP4_SI32 data_offset,
+                 AP4_UI32 first_sample_flags);
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
-    AP4_Result AddEntry(AP4_UI32 count, AP4_UI32 cts_offset);
-    AP4_Result GetCtsOffset(AP4_Ordinal sample, AP4_UI32& cts_offset);
 
 private:
     // methods
-    AP4_CttsAtom(AP4_UI32        size, 
+    AP4_TrunAtom(AP4_UI32        size, 
                  AP4_UI32        version,
                  AP4_UI32        flags,
                  AP4_ByteStream& stream);
 
     // members
-    AP4_Array<AP4_CttsTableEntry> m_Entries;
-    struct {
-        AP4_Ordinal sample;
-        AP4_Ordinal entry_index;
-    } m_LookupCache;
+    AP4_SI32         m_DataOffset;
+    AP4_UI32         m_FirstSampleFlags;
+    AP4_Array<Entry> m_Entries;
 };
 
-#endif // _AP4_CTTS_ATOM_H_
+#endif // _AP4_TRUN_ATOM_H_

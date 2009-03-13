@@ -37,10 +37,14 @@
 #include "Ap4UrlAtom.h"
 #include "Ap4MoovAtom.h"
 #include "Ap4MvhdAtom.h"
+#include "Ap4MfhdAtom.h"
+#include "Ap4TfhdAtom.h"
+#include "Ap4TrunAtom.h"
 #include "Ap4TrakAtom.h"
 #include "Ap4HdlrAtom.h"
 #include "Ap4DrefAtom.h"
 #include "Ap4TkhdAtom.h"
+#include "Ap4TfhdAtom.h"
 #include "Ap4MdhdAtom.h"
 #include "Ap4StsdAtom.h"
 #include "Ap4StscAtom.h"
@@ -200,6 +204,11 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
         atom = AP4_MvhdAtom::Create(size_32, stream);
         break;
 
+      case AP4_ATOM_TYPE_MFHD:
+        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+        atom = AP4_MfhdAtom::Create(size_32, stream);
+        break;
+
       case AP4_ATOM_TYPE_TRAK:
         if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
         atom = AP4_TrakAtom::Create(size_32, stream, *this);
@@ -213,6 +222,16 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
       case AP4_ATOM_TYPE_TKHD:
         if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
         atom = AP4_TkhdAtom::Create(size_32, stream);
+        break;
+
+      case AP4_ATOM_TYPE_TFHD:
+        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+        atom = AP4_TfhdAtom::Create(size_32, stream);
+        break;
+
+      case AP4_ATOM_TYPE_TRUN:
+        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+        atom = AP4_TrunAtom::Create(size_32, stream);
         break;
 
       case AP4_ATOM_TYPE_MDHD:
@@ -479,6 +498,9 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
 #endif // AP4_CONFIG_MINI_BUILD
 
       // container atoms
+      case AP4_ATOM_TYPE_MOOF:
+      case AP4_ATOM_TYPE_MVEX:
+      case AP4_ATOM_TYPE_TRAF:
       case AP4_ATOM_TYPE_TREF:
       case AP4_ATOM_TYPE_HNTI:
       case AP4_ATOM_TYPE_STBL:

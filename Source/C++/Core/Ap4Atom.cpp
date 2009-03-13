@@ -266,16 +266,30 @@ AP4_Atom::InspectHeader(AP4_AtomInspector& inspector)
     AP4_FormatFourCharsPrintable(&name[1], m_Type);
     name[5] = ']';
     name[6] = '\0';
-    char size[64];
-    if (m_Size64 == 0) {
-        AP4_FormatString(size, sizeof(size), "size=%ld+%ld", GetHeaderSize(), 
-            m_Size32-GetHeaderSize());
-    } else {
-        AP4_UI64 payload_size = m_Size64-GetHeaderSize();
-        AP4_FormatString(size, sizeof(size), "size=%ld+%d%d (L)", GetHeaderSize(), 
-            (AP4_UI32)(payload_size/1000000000), (AP4_UI32)(payload_size%1000000000));
+    char header[128];
+    char extra[32] = "";
+    if (m_IsFull) {
+        if (m_Version && m_Flags) {
+            AP4_FormatString(extra, sizeof(extra), 
+                             ", version=%d, flags=%x",
+                             m_Version,
+                             m_Flags);
+        } else if (m_Version) {
+            AP4_FormatString(extra, sizeof(extra), 
+                             ", version=%d",
+                             m_Version);
+        } else if (m_Flags) {
+            AP4_FormatString(extra, sizeof(extra), 
+                             ", flags=%x",
+                             m_Flags);
+        }
     }
-    inspector.StartElement(name, size);
+    AP4_FormatString(header, sizeof(header), 
+                     "size=%ld+%lld%s", 
+                     GetHeaderSize(), 
+                     GetSize()-GetHeaderSize(), 
+                     extra);
+    inspector.StartElement(name, header);
 
     return AP4_SUCCESS;
 }
