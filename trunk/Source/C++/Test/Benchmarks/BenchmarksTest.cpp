@@ -271,6 +271,7 @@ ParseFile(const char* filename, unsigned int repeats)
             total_size += movie->GetMoovAtom()->GetSize();
         }
         delete mp4_file;
+        input->Seek(0);
     }
 
     input->Release();
@@ -575,7 +576,7 @@ main(int argc, char** argv)
     BENCH_END
 
     BENCH_START("Parse File", do_parse_file)
-    total += ParseFile(test_file_mp4, 32);
+    total += ParseFile(test_file_mp4, 10);
     BENCH_END
 
     BENCH_START("Read Samples", do_read_samples)

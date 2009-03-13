@@ -1,6 +1,6 @@
 /*****************************************************************
 |
-|    AP4 - ctts Atoms 
+|    AP4 - mfhd Atoms 
 |
 |    Copyright 2002-2008 Axiomatic Systems, LLC
 |
@@ -26,69 +26,40 @@
 |
  ****************************************************************/
 
-#ifndef _AP4_CTTS_ATOM_H_
-#define _AP4_CTTS_ATOM_H_
+#ifndef _AP4_MFHD_ATOM_H_
+#define _AP4_MFHD_ATOM_H_
 
 /*----------------------------------------------------------------------
 |   includes
 +---------------------------------------------------------------------*/
 #include "Ap4Atom.h"
-#include "Ap4Types.h"
-#include "Ap4Array.h"
 
 /*----------------------------------------------------------------------
-|   class references
+|   AP4_MfhdAtom
 +---------------------------------------------------------------------*/
-class AP4_ByteStream;
-
-/*----------------------------------------------------------------------
-|   AP4_CttsTableEntry
-+---------------------------------------------------------------------*/
-class AP4_CttsTableEntry {
- public:
-    AP4_CttsTableEntry() : 
-        m_SampleCount(0), 
-        m_SampleOffset(0) {}
-    AP4_CttsTableEntry(AP4_UI32 sample_count,
-                       AP4_UI32 sample_offset) :
-        m_SampleCount(sample_count),
-        m_SampleOffset(sample_offset) {}
-
-    AP4_UI32 m_SampleCount;
-    AP4_UI32 m_SampleOffset;
-};
-
-/*----------------------------------------------------------------------
-|   AP4_CttsAtom
-+---------------------------------------------------------------------*/
-class AP4_CttsAtom : public AP4_Atom
+class AP4_MfhdAtom : public AP4_Atom
 {
 public:
     // class methods
-    static AP4_CttsAtom* Create(AP4_UI32 size, AP4_ByteStream& stream);
+    static AP4_MfhdAtom* Create(AP4_Size size, AP4_ByteStream& stream);
 
-    // constructor
-    AP4_CttsAtom();
-    
     // methods
+    AP4_MfhdAtom(AP4_UI32 sequence_number);
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
-    AP4_Result AddEntry(AP4_UI32 count, AP4_UI32 cts_offset);
-    AP4_Result GetCtsOffset(AP4_Ordinal sample, AP4_UI32& cts_offset);
+
+    AP4_UI32 GetSequenceNumber()                         { return m_SequenceNumber;            }
+    void     SetSequenceNumber(AP4_UI32 sequence_number) { m_SequenceNumber = sequence_number; }
 
 private:
     // methods
-    AP4_CttsAtom(AP4_UI32        size, 
+    AP4_MfhdAtom(AP4_UI32        size, 
                  AP4_UI32        version,
                  AP4_UI32        flags,
                  AP4_ByteStream& stream);
 
     // members
-    AP4_Array<AP4_CttsTableEntry> m_Entries;
-    struct {
-        AP4_Ordinal sample;
-        AP4_Ordinal entry_index;
-    } m_LookupCache;
+    AP4_UI32 m_SequenceNumber;
 };
 
-#endif // _AP4_CTTS_ATOM_H_
+#endif // _AP4_MFHD_ATOM_H_
