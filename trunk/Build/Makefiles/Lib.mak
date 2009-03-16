@@ -86,7 +86,10 @@ CORE_SOURCES = 								\
     Ap4Command.cpp                          \
     Ap4CommandFactory.cpp                   \
     Ap4UuidAtom.cpp                         \
-    Ap4Marlin.cpp
+    Ap4Marlin.cpp                           \
+    Ap4TrunAtom.cpp                         \
+    Ap4TfhdAtom.cpp                         \
+    Ap4MfhdATom.cpp 
     
 
 CORE_OBJECTS=$(CORE_SOURCES:.cpp=.o)
