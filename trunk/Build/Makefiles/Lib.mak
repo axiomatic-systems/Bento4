@@ -89,7 +89,7 @@ CORE_SOURCES = 								\
     Ap4Marlin.cpp                           \
     Ap4TrunAtom.cpp                         \
     Ap4TfhdAtom.cpp                         \
-    Ap4MfhdATom.cpp 
+    Ap4MfhdAtom.cpp 
     
 
 CORE_OBJECTS=$(CORE_SOURCES:.cpp=.o)
