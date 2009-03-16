@@ -644,7 +644,7 @@ AddTag(AP4_File* file, AP4_String& arg, bool remove_first)
             vobj = new AP4_BinaryMetaDataValue(AP4_MetaData::Value::TYPE_BINARY, 
                                                (const AP4_UI08*)value->GetChars()+1, 
                                                value->GetLength()-1);
-        } else if (value->GetChars()[1] == '#') {
+        } else if (value->GetChars()[0] == '#') {
             if (((value->GetLength()-1)%2) != 0) {
                 fprintf(stderr, "ERROR: invalid hex encoding\n");
                 result = AP4_ERROR_INVALID_PARAMETERS;
@@ -653,8 +653,8 @@ AddTag(AP4_File* file, AP4_String& arg, bool remove_first)
                 AP4_Size  binary_string_length = (value->GetLength()-1)/2;
                 AP4_UI08* binary_string = new AP4_UI08[binary_string_length];
                 for (unsigned int i=0; i<binary_string_length; i++) {
-                    unsigned int nibble_0 = GetNibble(value->GetChars()[i*2  ]);
-                    unsigned int nibble_1 = GetNibble(value->GetChars()[i*2+1]);
+                    unsigned int nibble_0 = GetNibble(value->GetChars()[1+i*2  ]);
+                    unsigned int nibble_1 = GetNibble(value->GetChars()[1+i*2+1]);
                     binary_string[i] = (nibble_0<<4)|nibble_1;
                 }
                 vobj = new AP4_BinaryMetaDataValue(AP4_MetaData::Value::TYPE_BINARY, 
