@@ -44,7 +44,7 @@ class AP4_File;
 |   AP4_FileWriter
 +---------------------------------------------------------------------*/
 class AP4_FileWriter {
- public:
+public:
     // types
     typedef enum {
         INTERLEAVING_SEQUENTIAL
@@ -54,6 +54,10 @@ class AP4_FileWriter {
     static AP4_Result Write(AP4_File&       file, 
                             AP4_ByteStream& stream, 
                             Interleaving    interleaving = INTERLEAVING_SEQUENTIAL);
+                            
+private:
+    // don't instantiate this class
+    AP4_FileWriter() {}
 };
 
 #endif // _AP4_FILE_WRITER_H_

@@ -98,9 +98,9 @@ public:
     virtual ~AP4_File();
  
     /**
-     * Get the top level atoms of the file (except ftyp and mdat atoms)
+     * Get the top level atoms of the file
      */
-    AP4_List<AP4_Atom>& GetOtherAtoms() { return m_Children; }
+    AP4_List<AP4_Atom>& GetTopLevelAtoms() { return m_Children; }
 
     /** 
      * Get the AP4_Movie object of this file

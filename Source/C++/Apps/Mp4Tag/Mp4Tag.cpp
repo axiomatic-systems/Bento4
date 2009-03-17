@@ -898,8 +898,7 @@ main(int argc, char** argv)
         }
         
         // write the modified file
-        AP4_FileCopier copier(*file);
-        copier.Write(*output, file->IsMoovBeforeMdat());
+        AP4_FileCopier::Write(*file, *output, file->IsMoovBeforeMdat());
     }
     
 end:

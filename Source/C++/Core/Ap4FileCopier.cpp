@@ -36,49 +36,17 @@
 #include "Ap4FtypAtom.h"
 
 /*----------------------------------------------------------------------
-|   AP4_FileCopier::AP4_FileCopier
-+---------------------------------------------------------------------*/
-AP4_FileCopier::AP4_FileCopier(AP4_File& file) : m_File(file)
-{
-}
-
-/*----------------------------------------------------------------------
-|   AP4_FileCopier::~AP4_FileCopier
-+---------------------------------------------------------------------*/
-AP4_FileCopier::~AP4_FileCopier()
-{
-}
-
-/*----------------------------------------------------------------------
 |   AP4_FileCopier::Write
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_FileCopier::Write(AP4_ByteStream& stream, bool moov_before_mdat)
+AP4_FileCopier::Write(AP4_File& file, AP4_ByteStream& stream, bool moov_before_mdat)
 {
-    // get the file type
-    AP4_FtypAtom* file_type = m_File.GetFileType();
-
-    // write the ftyp atom
-    if (file_type) file_type->Write(stream);
-
-    // get the movie object
-    AP4_Movie* movie = m_File.GetMovie();
-    if (movie != NULL && moov_before_mdat) {
-        // write the moov atom before the mdat atom
-        movie->GetMoovAtom()->Write(stream);
-    }
-    
-    // write the other atoms
-    for (AP4_List<AP4_Atom>::Item* item = m_File.GetOtherAtoms().FirstItem();
+    // write the top-level atoms
+    for (AP4_List<AP4_Atom>::Item* item = file.GetTopLevelAtoms().FirstItem();
          item;
          item = item->GetNext()) {
         AP4_Atom* atom = item->GetData();
         atom->Write(stream);
-    }
-
-    if (movie != NULL && !moov_before_mdat) {
-        // write the moov atom after the mdat atom
-        movie->GetMoovAtom()->Write(stream);
     }
 
     return AP4_SUCCESS;
