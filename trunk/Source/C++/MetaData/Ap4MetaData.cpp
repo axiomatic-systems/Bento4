@@ -442,7 +442,7 @@ AP4_MetaData::AP4_MetaData(AP4_File* file)
         ParseMoov(moov);
     } else {
         // if we don't have a movie, try to show metadata from a udta atom
-        AP4_List<AP4_Atom>& top_level_atoms = file->GetOtherAtoms();
+        AP4_List<AP4_Atom>& top_level_atoms = file->GetTopLevelAtoms();
         
         AP4_List<AP4_Atom>::Item* atom_item = top_level_atoms.FirstItem();
         while (atom_item) {

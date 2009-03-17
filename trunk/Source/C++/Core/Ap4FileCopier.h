@@ -44,16 +44,13 @@ class AP4_File;
 |   AP4_FileCopier
 +---------------------------------------------------------------------*/
 class AP4_FileCopier {
- public:
-    // constructors and destructor
-    AP4_FileCopier(AP4_File& file);
-    virtual ~AP4_FileCopier();
+public:
+    // class methods
+    static AP4_Result Write(AP4_File& file, AP4_ByteStream& stream, bool moov_before_mdat);
 
-    // methods
-    AP4_Result Write(AP4_ByteStream& stream, bool moov_before_mdat);
-
- private:
-    AP4_File& m_File;
+private:
+    // don't instantiate this class
+    AP4_FileCopier() {};
 };
 
 #endif // _AP4_FILE_COPIER_H_

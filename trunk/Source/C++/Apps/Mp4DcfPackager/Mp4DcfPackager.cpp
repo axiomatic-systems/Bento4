@@ -286,7 +286,7 @@ main(int argc, char** argv)
     odrm->AddChild(odda);
     
     // add the odrm atom to the file (the owndership is transfered)
-    file.GetOtherAtoms().Add(odrm);
+    file.GetTopLevelAtoms().Add(odrm);
     
     // write the file to the output
     AP4_FileWriter::Write(file, *output);
