@@ -1515,9 +1515,8 @@ main(int /*argc*/, char** /*argv*/)
             AP4_Size total_read = 0;
             do {
                 unsigned int chunk = rand()%128;
-                AP4_Size bytes_read = 0;
                 result = encrypting_stream->ReadPartial(out_buffer, chunk, out_size);
-                if (bytes_read) CHECK(BuffersEqual(vector.enc+total_read, out_buffer, out_size));
+                if (out_size) CHECK(BuffersEqual(vector.enc+total_read, out_buffer, out_size));
                 total_read += out_size;
             } while (result == AP4_SUCCESS);
             CHECK(result == AP4_ERROR_EOS);
@@ -1552,9 +1551,8 @@ main(int /*argc*/, char** /*argv*/)
             AP4_Size total_read = 0;
             do {
                 unsigned int chunk = rand()%128;
-                AP4_Size bytes_read = 0;
                 result = decrypting_stream->ReadPartial(out_buffer, chunk, out_size);
-                if (bytes_read) CHECK(BuffersEqual(vector.clear+total_read, out_buffer, out_size));
+                if (out_size) CHECK(BuffersEqual(vector.clear+total_read, out_buffer, out_size));
                 total_read += out_size;
             } while (result == AP4_SUCCESS);
             CHECK(result == AP4_ERROR_EOS);

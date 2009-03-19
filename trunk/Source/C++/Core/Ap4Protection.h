@@ -439,7 +439,7 @@ private:
     AP4_LargeSize     m_EncryptedSize;
     AP4_Position      m_EncryptedPosition;
     AP4_StreamCipher* m_StreamCipher;
-    AP4_UI08          m_Buffer[16];
+    AP4_UI08          m_Buffer[32]; // one cipher block plus one block padding
     AP4_Size          m_BufferFullness;
     AP4_Size          m_BufferOffset;
     AP4_Cardinal      m_ReferenceCount;
