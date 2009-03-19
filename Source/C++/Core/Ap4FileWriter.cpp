@@ -61,7 +61,6 @@ AP4_FileWriter::Write(AP4_File& file, AP4_ByteStream& stream, Interleaving /* in
             atom->GetType() != AP4_ATOM_TYPE_FTYP &&
             atom->GetType() != AP4_ATOM_TYPE_MOOV) {
             atom->Write(stream);
-            atom_item = atom_item->GetNext();
         }
     }
              

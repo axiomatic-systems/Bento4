@@ -65,6 +65,11 @@ def DoMp4Decrypt(input, key, output):
     print cmd
     os.system(cmd)
 
+def DoCompareMp4(file1, file2):
+    retval = os.system(BIN_ROOT+'/CompareFilesTest '+file1+' '+file2)
+    if retval != 0:
+        raise("Files " + file + " and " + file2 + " do not match")
+    
 def DoCompare(file1,  file2):
     f1 = open(file1, 'rb')
     f2 = open(file2, 'rb')
@@ -99,8 +104,9 @@ for key in KEYS:
                 if method.startswith('OMA-DCF'):
                     DoDcfEncrypt(file, key, iv, method, enc_file)
                     DoDcfDecrypt(enc_file, key, dec_file)
+                    DoCompare(file, dec_file)
                 else:
                     DoMp4Encrypt(file, key, iv, method, enc_file)
                     DoMp4Decrypt(enc_file, key, dec_file)
-                DoCompare(file, dec_file)
+                    DoCompareMp4(file, dec_file)
                 DoCleanup([enc_file, dec_file])

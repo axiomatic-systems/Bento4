@@ -1074,7 +1074,7 @@ AP4_EncryptingStream::ReadPartial(void*     buffer,
             m_CleartextPosition += cleartext_read;
         }
         bool is_last_buffer = (m_CleartextPosition >= m_CleartextSize);
-        AP4_Size buffer_size = 16;
+        AP4_Size buffer_size = 32; // enough for one block plus one block padding
         result = m_StreamCipher->ProcessBuffer(cleartext, 
                                                cleartext_read, 
                                                m_Buffer, 

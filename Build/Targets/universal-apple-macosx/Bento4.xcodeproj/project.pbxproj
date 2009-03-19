@@ -103,6 +103,8 @@
 		CA646B5F0CE97E75009699D7 /* Mp4RtpHintInfo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA646A980CE97B2D009699D7 /* Mp4RtpHintInfo.cpp */; };
 		CA646B660CE97E82009699D7 /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
 		CA646B6F0CE97EC9009699D7 /* CryptoTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA646A9D0CE97B51009699D7 /* CryptoTest.cpp */; };
+		CA7EECEB0F720656009F85F9 /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
+		CA7EECEC0F720663009F85F9 /* CompareFiles.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA7EECE10F720627009F85F9 /* CompareFiles.cpp */; };
 		CA8B6A620F66D20900720A07 /* Ap4MfhdAtom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA8B6A600F66D20900720A07 /* Ap4MfhdAtom.cpp */; };
 		CA8B6A630F66D20900720A07 /* Ap4MfhdAtom.h in Headers */ = {isa = PBXBuildFile; fileRef = CA8B6A610F66D20900720A07 /* Ap4MfhdAtom.h */; };
 		CA8B6A800F66D82C00720A07 /* Ap4TfhdAtom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA8B6A7E0F66D82C00720A07 /* Ap4TfhdAtom.cpp */; };
@@ -479,6 +481,13 @@
 			remoteGlobalIDString = CA646B600CE97E82009699D7;
 			remoteInfo = CryptoTest;
 		};
+		CA7EECE90F720650009F85F9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D2AAC045055464E500DB518D /* Bento4 */;
+			remoteInfo = Bento4;
+		};
 		CA9A16DC0ED4F43300C60FDF /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
@@ -623,6 +632,8 @@
 		CA646B4A0CE97E27009699D7 /* mp42aac */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mp42aac; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA646B5A0CE97E52009699D7 /* mp4rtphintinfo */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mp4rtphintinfo; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA646B6A0CE97E82009699D7 /* cryptotest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = cryptotest; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA7EECE10F720627009F85F9 /* CompareFiles.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CompareFiles.cpp; sourceTree = "<group>"; };
+		CA7EECE50F720648009F85F9 /* CompareFilesTest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; name = CompareFilesTest; path = build/Debug/CompareFilesTest; sourceTree = "<group>"; };
 		CA8B6A600F66D20900720A07 /* Ap4MfhdAtom.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4MfhdAtom.cpp; sourceTree = "<group>"; };
 		CA8B6A610F66D20900720A07 /* Ap4MfhdAtom.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4MfhdAtom.h; sourceTree = "<group>"; };
 		CA8B6A7E0F66D82C00720A07 /* Ap4TfhdAtom.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4TfhdAtom.cpp; sourceTree = "<group>"; };
@@ -924,6 +935,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		CA7EECE30F720648009F85F9 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CA7EECEB0F720656009F85F9 /* libBento4.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		CA9A16D60ED4F42A00C60FDF /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -1031,6 +1050,7 @@
 				CABB61F30F02BABC00B53D31 /* TracksTest */,
 				CAF4792B0F0951B8004073ED /* benchmarkstest */,
 				CA40CB290F40DC100008649B /* basictest */,
+				CA7EECE50F720648009F85F9 /* CompareFilesTest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1169,6 +1189,7 @@
 		CA646A9B0CE97B51009699D7 /* Test */ = {
 			isa = PBXGroup;
 			children = (
+				CA7EECE00F720627009F85F9 /* CompareFiles */,
 				CA40CB350F40DC580008649B /* Basic */,
 				CAF479360F0951E7004073ED /* Benchmarks */,
 				CABB61EE0F02B85900B53D31 /* Tracks */,
@@ -1186,6 +1207,14 @@
 				CA646A9D0CE97B51009699D7 /* CryptoTest.cpp */,
 			);
 			path = Crypto;
+			sourceTree = "<group>";
+		};
+		CA7EECE00F720627009F85F9 /* CompareFiles */ = {
+			isa = PBXGroup;
+			children = (
+				CA7EECE10F720627009F85F9 /* CompareFiles.cpp */,
+			);
+			path = CompareFiles;
 			sourceTree = "<group>";
 		};
 		CA93660F0B437D030067D50B /* Core */ = {
@@ -1828,6 +1857,23 @@
 			productReference = CA646B6A0CE97E82009699D7 /* cryptotest */;
 			productType = "com.apple.product-type.tool";
 		};
+		CA7EECE40F720648009F85F9 /* CompareFilesTest */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CA7EECF10F720668009F85F9 /* Build configuration list for PBXNativeTarget "CompareFilesTest" */;
+			buildPhases = (
+				CA7EECE20F720648009F85F9 /* Sources */,
+				CA7EECE30F720648009F85F9 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CA7EECEA0F720650009F85F9 /* PBXTargetDependency */,
+			);
+			name = CompareFilesTest;
+			productName = CompareFilesTest;
+			productReference = CA7EECE50F720648009F85F9 /* CompareFilesTest */;
+			productType = "com.apple.product-type.tool";
+		};
 		CA9A16D70ED4F42A00C60FDF /* PassthroughWriterTest */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = CA9A16E20ED4F44C00C60FDF /* Build configuration list for PBXNativeTarget "PassthroughWriterTest" */;
@@ -1985,6 +2031,7 @@
 				CABB61F20F02BABC00B53D31 /* TracksTest */,
 				CAF4792A0F0951B8004073ED /* BenchmarksTest */,
 				CA40CB280F40DC100008649B /* BasicTest */,
+				CA7EECE40F720648009F85F9 /* CompareFilesTest */,
 			);
 		};
 /* End PBXProject section */
@@ -2100,6 +2147,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				CA646B6F0CE97EC9009699D7 /* CryptoTest.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CA7EECE20F720648009F85F9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CA7EECEC0F720663009F85F9 /* CompareFiles.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2383,6 +2438,11 @@
 			isa = PBXTargetDependency;
 			target = CA646B600CE97E82009699D7 /* CryptoTest */;
 			targetProxy = CA646B850CE97EFC009699D7 /* PBXContainerItemProxy */;
+		};
+		CA7EECEA0F720650009F85F9 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D2AAC045055464E500DB518D /* Bento4 */;
+			targetProxy = CA7EECE90F720650009F85F9 /* PBXContainerItemProxy */;
 		};
 		CA9A16DD0ED4F43300C60FDF /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -2971,6 +3031,36 @@
 			};
 			name = Release;
 		};
+		CA7EECE70F720649009F85F9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				INSTALL_PATH = /usr/local/bin;
+				PREBINDING = NO;
+				PRODUCT_NAME = CompareFilesTest;
+			};
+			name = Debug;
+		};
+		CA7EECE80F720649009F85F9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_MODEL_TUNING = G5;
+				INSTALL_PATH = /usr/local/bin;
+				PREBINDING = NO;
+				PRODUCT_NAME = CompareFilesTest;
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
 		CA9A16DA0ED4F42C00C60FDF /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -3343,6 +3433,15 @@
 			buildConfigurations = (
 				CA646B830CE97EF7009699D7 /* Debug */,
 				CA646B840CE97EF7009699D7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CA7EECF10F720668009F85F9 /* Build configuration list for PBXNativeTarget "CompareFilesTest" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CA7EECE70F720649009F85F9 /* Debug */,
+				CA7EECE80F720649009F85F9 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
