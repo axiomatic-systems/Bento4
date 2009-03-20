@@ -37,7 +37,7 @@
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-#define BANNER "MP4 File Info - Version 1.2\n"\
+#define BANNER "MP4 File Info - Version 1.3\n"\
                "(Bento4 Version " AP4_VERSION_STRING ")\n"\
                "(c) 2002-2009 Axiomatic Systems, LLC"
  
@@ -52,6 +52,7 @@ PrintUsageAndExit()
             "\n\nusage: mp4info [options] <input>\n"
             "Options:\n"
             "  --verbose:      show extended information when available\n"
+            "  --show-layout:  show sample layout\n"
             "  --show-samples: show sample details\n");
     exit(1);
 }
@@ -495,6 +496,75 @@ ShowMarlinTracks(AP4_File& file, AP4_ByteStream& stream, AP4_List<AP4_Track>& tr
 }
 
 /*----------------------------------------------------------------------
+|   ShowSampleLayout
++---------------------------------------------------------------------*/
+static void
+ShowSampleLayout(AP4_List<AP4_Track>& tracks, bool /* verbose */)
+{
+    AP4_Array<int> cursors;
+    cursors.SetItemCount(tracks.ItemCount());
+    for (unsigned int i=0; i<tracks.ItemCount(); i++) {
+        cursors[i] = 0;
+    }
+    
+    AP4_Sample  sample;
+    AP4_UI64    sample_offset;
+    AP4_UI32    sample_size;
+    bool        sample_is_sync;
+    bool        indicator = true;
+    AP4_Track*  previous_track = NULL;
+    for (unsigned int i=0;;i++) {
+        AP4_UI64    min_offset = (AP4_UI64)(-1);
+        AP4_Track*  chosen_track = NULL;
+        AP4_Ordinal index = 0;
+        for (AP4_List<AP4_Track>::Item* track_item = tracks.FirstItem();
+             track_item;
+             track_item = track_item->GetNext()) {
+             AP4_Track* track = track_item->GetData();
+             AP4_Result result = track->GetSample(cursors[index], sample);
+             if (AP4_SUCCEEDED(result)) {
+                if (sample.GetOffset() < min_offset) {
+                    cursors[index] = cursors[index]+1;
+                    chosen_track   = track;
+                    sample_offset  = sample.GetOffset();
+                    sample_size    = sample.GetSize();
+                    sample_is_sync = sample.IsSync();
+                    min_offset     = sample_offset;
+                }
+             }
+             index++;
+        }
+        
+        // stop if we've exhausted all samples
+        if (chosen_track == NULL) break;
+        
+        // see if we've changed tracks
+        if (previous_track != chosen_track) {
+            previous_track = chosen_track;
+            indicator = !indicator;
+        }
+        
+        // show the chosen track/sample
+        char track_type = ' ';
+        switch (chosen_track->GetType()) {
+            case AP4_Track::TYPE_AUDIO:  track_type = 'A'; break;
+            case AP4_Track::TYPE_VIDEO:  track_type = 'V'; break;
+            case AP4_Track::TYPE_HINT:   track_type = 'H'; break;
+            case AP4_Track::TYPE_TEXT:   track_type = 'T'; break;
+            case AP4_Track::TYPE_SYSTEM: track_type = 'S'; break;
+        }
+        printf("%c %08d [%c] (%d)%c size=%6d, offset=%8lld\n",
+               indicator?'|':' ', 
+               i, 
+               track_type, 
+               chosen_track->GetId(),
+               sample_is_sync?'*':' ', 
+               sample_size, 
+               sample_offset);
+    }
+}
+
+/*----------------------------------------------------------------------
 |   main
 +---------------------------------------------------------------------*/
 int
@@ -506,12 +576,15 @@ main(int argc, char** argv)
     const char* filename     = NULL;
     bool        verbose      = false;
     bool        show_samples = false;
-
+    bool        show_layout  = false;
+    
     while (char* arg = *++argv) {
         if (!strcmp(arg, "--verbose")) {
             verbose = true;
         } else if (!strcmp(arg, "--show-samples")) {
             show_samples = true;
+        } else if (!strcmp(arg, "--show-layout")) {
+            show_layout = true;
         } else {
             if (filename == NULL) {
                 filename = arg;
@@ -551,6 +624,10 @@ main(int argc, char** argv)
             ShowMarlinTracks(*file, *input, tracks, show_samples, verbose);
         } else {
             ShowTracks(tracks, show_samples, verbose);
+        }
+        
+        if (show_layout) {
+            ShowSampleLayout(tracks, verbose);
         }
     } else {
         // check if this is a DCF file
