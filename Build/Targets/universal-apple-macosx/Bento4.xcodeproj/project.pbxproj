@@ -485,7 +485,7 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = D2AAC045055464E500DB518D /* Bento4 */;
+			remoteGlobalIDString = D2AAC045055464E500DB518D;
 			remoteInfo = Bento4;
 		};
 		CA9A16DC0ED4F43300C60FDF /* PBXContainerItemProxy */ = {
@@ -633,7 +633,7 @@
 		CA646B5A0CE97E52009699D7 /* mp4rtphintinfo */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mp4rtphintinfo; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA646B6A0CE97E82009699D7 /* cryptotest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = cryptotest; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA7EECE10F720627009F85F9 /* CompareFiles.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CompareFiles.cpp; sourceTree = "<group>"; };
-		CA7EECE50F720648009F85F9 /* CompareFilesTest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; name = CompareFilesTest; path = build/Debug/CompareFilesTest; sourceTree = "<group>"; };
+		CA7EECE50F720648009F85F9 /* CompareFilesTest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = CompareFilesTest; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA8B6A600F66D20900720A07 /* Ap4MfhdAtom.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4MfhdAtom.cpp; sourceTree = "<group>"; };
 		CA8B6A610F66D20900720A07 /* Ap4MfhdAtom.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4MfhdAtom.h; sourceTree = "<group>"; };
 		CA8B6A7E0F66D82C00720A07 /* Ap4TfhdAtom.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4TfhdAtom.cpp; sourceTree = "<group>"; };
