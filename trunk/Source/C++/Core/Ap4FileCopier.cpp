@@ -39,7 +39,7 @@
 |   AP4_FileCopier::Write
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_FileCopier::Write(AP4_File& file, AP4_ByteStream& stream, bool moov_before_mdat)
+AP4_FileCopier::Write(AP4_File& file, AP4_ByteStream& stream)
 {
     // write the top-level atoms
     for (AP4_List<AP4_Atom>::Item* item = file.GetTopLevelAtoms().FirstItem();

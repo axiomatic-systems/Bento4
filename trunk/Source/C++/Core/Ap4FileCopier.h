@@ -46,7 +46,7 @@ class AP4_File;
 class AP4_FileCopier {
 public:
     // class methods
-    static AP4_Result Write(AP4_File& file, AP4_ByteStream& stream, bool moov_before_mdat);
+    static AP4_Result Write(AP4_File& file, AP4_ByteStream& stream);
 
 private:
     // don't instantiate this class
