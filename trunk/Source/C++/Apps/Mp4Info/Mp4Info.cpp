@@ -508,10 +508,10 @@ ShowSampleLayout(AP4_List<AP4_Track>& tracks, bool /* verbose */)
     }
     
     AP4_Sample  sample;
-    AP4_UI64    sample_offset;
-    AP4_UI32    sample_size;
-    bool        sample_is_sync;
-    bool        indicator = true;
+    AP4_UI64    sample_offset  = 0;
+    AP4_UI32    sample_size    = 0;
+    bool        sample_is_sync = false;
+    bool        indicator      = true;
     AP4_Track*  previous_track = NULL;
     for (unsigned int i=0;;i++) {
         AP4_UI64    min_offset = (AP4_UI64)(-1);
