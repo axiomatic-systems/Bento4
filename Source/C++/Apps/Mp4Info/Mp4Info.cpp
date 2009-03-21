@@ -552,6 +552,7 @@ ShowSampleLayout(AP4_List<AP4_Track>& tracks, bool /* verbose */)
             case AP4_Track::TYPE_HINT:   track_type = 'H'; break;
             case AP4_Track::TYPE_TEXT:   track_type = 'T'; break;
             case AP4_Track::TYPE_SYSTEM: track_type = 'S'; break;
+            default:                     track_type = ' '; break;
         }
         printf("%c %08d [%c] (%d)%c size=%6d, offset=%8lld\n",
                indicator?'|':' ', 
