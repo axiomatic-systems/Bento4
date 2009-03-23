@@ -362,11 +362,13 @@ ShowTrackInfo(AP4_Track& track, bool show_samples, bool verbose)
             }
         }
         if (show_samples) {
-            printf("[%06d] size=%6d dts=%10lld, cts=%10lld", 
-                   index+1,
-                   (int)sample.GetSize(),
-                   sample.GetDts(), 
-                   sample.GetCts());
+            printf("[%06d] size=%6d", index+1, (int)sample.GetSize());
+            if (verbose) {
+                printf(" offset=%10lld dts=%10lld cts=%10lld", 
+                       sample.GetOffset(),
+                       sample.GetDts(), 
+                       sample.GetCts());
+            }
             if (sample.IsSync()) {
                 printf(" [S] ");
             } else {
@@ -515,6 +517,7 @@ ShowSampleLayout(AP4_List<AP4_Track>& tracks, bool /* verbose */)
     AP4_Track*  previous_track = NULL;
     for (unsigned int i=0;;i++) {
         AP4_UI64    min_offset = (AP4_UI64)(-1);
+        int         chosen_index = -1;
         AP4_Track*  chosen_track = NULL;
         AP4_Ordinal index = 0;
         for (AP4_List<AP4_Track>::Item* track_item = tracks.FirstItem();
@@ -524,7 +527,7 @@ ShowSampleLayout(AP4_List<AP4_Track>& tracks, bool /* verbose */)
              AP4_Result result = track->GetSample(cursors[index], sample);
              if (AP4_SUCCEEDED(result)) {
                 if (sample.GetOffset() < min_offset) {
-                    cursors[index] = cursors[index]+1;
+                    chosen_index   = index;
                     chosen_track   = track;
                     sample_offset  = sample.GetOffset();
                     sample_size    = sample.GetSize();
@@ -536,8 +539,11 @@ ShowSampleLayout(AP4_List<AP4_Track>& tracks, bool /* verbose */)
         }
         
         // stop if we've exhausted all samples
-        if (chosen_track == NULL) break;
+        if (chosen_index == -1) break;
         
+        // update the cursor for the chosen track
+        cursors[chosen_index] = cursors[chosen_index]+1;
+
         // see if we've changed tracks
         if (previous_track != chosen_track) {
             previous_track = chosen_track;
