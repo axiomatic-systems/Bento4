@@ -123,6 +123,10 @@ main(int argc, char** argv)
     while ((arg = *++argv)) {
         if (!strcmp(arg, "--method")) {
             arg = *++argv;
+            if (arg == NULL) {
+                fprintf(stderr, "ERROR: missing argument for --method option\n");
+                return 1;
+            }
             if (!strcmp(arg, "OMA-PDCF-CBC")) {
                 method = METHOD_OMA_PDCF_CBC;
             } else if (!strcmp(arg, "OMA-PDCF-CTR")) {
