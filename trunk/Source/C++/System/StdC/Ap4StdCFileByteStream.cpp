@@ -215,7 +215,11 @@ void
 AP4_StdcFileByteStream::Release()
 {
     if (--m_ReferenceCount == 0) {
-        delete m_Delegator;
+        if (m_Delegator) {
+            delete m_Delegator;
+        } else {
+            delete this;
+        }
     }
 }
 
