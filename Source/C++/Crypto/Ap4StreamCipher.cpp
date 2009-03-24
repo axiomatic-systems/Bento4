@@ -300,8 +300,8 @@ AP4_CbcStreamCipher::ProcessBuffer(const AP4_UI08* in,
     }
 
     // compute how many blocks we span
-    AP4_UI64 start_block   = m_StreamOffset/AP4_CIPHER_BLOCK_SIZE;
-    AP4_UI64 end_block     = (m_StreamOffset+in_size-m_PrerollByteCount)/AP4_CIPHER_BLOCK_SIZE;
+    AP4_UI64 start_block = m_StreamOffset/AP4_CIPHER_BLOCK_SIZE;
+    AP4_UI64 end_block   = (m_StreamOffset+in_size-m_PrerollByteCount)/AP4_CIPHER_BLOCK_SIZE;
     AP4_UI32 blocks_needed = (AP4_UI32)(end_block-start_block);
 
     if (m_Direction == ENCRYPT) {
