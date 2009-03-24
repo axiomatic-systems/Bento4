@@ -349,8 +349,7 @@ ShowTrackInfo(AP4_Track& track, bool show_samples, bool verbose)
     AP4_DataBuffer sample_data;
 	AP4_Ordinal    index = 0;
     AP4_Ordinal    desc_index = 0xFFFFFFFF;
-    AP4_Result     result = AP4_FAILURE;
-    while (AP4_SUCCEEDED(result = track.GetSample(index, sample))) {
+    while (AP4_SUCCEEDED(track.GetSample(index, sample))) {
         if (sample.GetDescriptionIndex() != desc_index) {
             desc_index = sample.GetDescriptionIndex();
             AP4_Debug("  [%d]: Sample Description %d\n", index, desc_index);
@@ -390,7 +389,6 @@ ShowTrackInfo(AP4_Track& track, bool show_samples, bool verbose)
         }
         index++;
     }
-    printf("R=%d %d\n", index, result);
 }
 
 /*----------------------------------------------------------------------
