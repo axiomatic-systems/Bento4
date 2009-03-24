@@ -84,6 +84,7 @@ AP4_StscAtom::AP4_StscAtom(AP4_UI32        size,
             m_Entries[prev].m_ChunkCount = first_chunk-m_Entries[prev].m_FirstChunk;
             first_sample += m_Entries[prev].m_ChunkCount * m_Entries[prev].m_SamplesPerChunk;
         }
+        m_Entries[i].m_ChunkCount             = 0; // not known yet
         m_Entries[i].m_FirstChunk             = first_chunk;
         m_Entries[i].m_FirstSample            = first_sample;
         m_Entries[i].m_SamplesPerChunk        = samples_per_chunk;
