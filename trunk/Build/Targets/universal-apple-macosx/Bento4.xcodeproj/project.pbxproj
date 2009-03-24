@@ -35,6 +35,7 @@
 			buildPhases = (
 			);
 			dependencies = (
+				CA52643C0F788AD8009D7E0D /* PBXTargetDependency */,
 				CAF479350F0951D5004073ED /* PBXTargetDependency */,
 				CAF479330F0951D0004073ED /* PBXTargetDependency */,
 				CA9A18D50ED54B2E00C60FDF /* PBXTargetDependency */,
@@ -326,6 +327,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = D2AAC045055464E500DB518D;
 			remoteInfo = Bento4;
+		};
+		CA52643B0F788AD8009D7E0D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CA7EECE40F720648009F85F9 /* CompareFilesTest */;
+			remoteInfo = CompareFilesTest;
 		};
 		CA646AC80CE97C4E009699D7 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -2328,6 +2336,11 @@
 			isa = PBXTargetDependency;
 			target = D2AAC045055464E500DB518D /* Bento4 */;
 			targetProxy = CA44C52E0D46376500173F5F /* PBXContainerItemProxy */;
+		};
+		CA52643C0F788AD8009D7E0D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CA7EECE40F720648009F85F9 /* CompareFilesTest */;
+			targetProxy = CA52643B0F788AD8009D7E0D /* PBXContainerItemProxy */;
 		};
 		CA646AC90CE97C4E009699D7 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;

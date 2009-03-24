@@ -125,7 +125,6 @@ main(int argc, char** argv)
         fprintf(stderr, "ERROR: cannot open input file 1 (%s)\n", filename1);
         return 1;
     }
-    input1->Release();
     
     // open the second file
     AP4_ByteStream* input2 = NULL;
@@ -134,12 +133,13 @@ main(int argc, char** argv)
         fprintf(stderr, "ERROR: cannot open input file 2 (%s)\n", filename2);
         return 1;
     }
-    input2->Release();
         
     // parse the files
     AP4_File* mp4_file1 = new AP4_File(*input1);
+    input1->Release();
     AP4_Movie* movie1 = mp4_file1->GetMovie();
     AP4_File* mp4_file2 = new AP4_File(*input2);
+    input2->Release();
     AP4_Movie* movie2 = mp4_file2->GetMovie();
     
     AP4_FtypAtom* ftyp1 = mp4_file1->GetFileType();
