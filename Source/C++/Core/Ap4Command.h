@@ -33,6 +33,7 @@
 |   includes
 +---------------------------------------------------------------------*/
 #include "Ap4Expandable.h"
+#include "Ap4DynamicCast.h"
 
 /*----------------------------------------------------------------------
 |   constants
@@ -52,6 +53,8 @@ const AP4_UI08 AP4_COMMAND_TAG_OBJECT_DESCRIPTOR_EXECUTE = 0x08;
 class AP4_Command : public AP4_Expandable
 {
  public:
+     AP4_IMPLEMENT_DYNAMIC_CAST(AP4_Command)
+
     // constructor
     AP4_Command(AP4_UI08 tag, AP4_Size header_size, AP4_Size payload_size) :
         AP4_Expandable(tag, CLASS_ID_SIZE_08, header_size, payload_size) {}

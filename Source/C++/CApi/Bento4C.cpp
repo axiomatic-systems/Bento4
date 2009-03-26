@@ -740,31 +740,31 @@ AP4_SampleDescription_GetFormat(AP4_SampleDescription* self)
 AP4_AudioSampleDescription*
 AP4_SampleDescription_AsAudio(AP4_SampleDescription* self)
 {
-    return dynamic_cast<AP4_AudioSampleDescription*> (self);
+    return AP4_DYNAMIC_CAST(AP4_AudioSampleDescription, self);
 }
 
 AP4_VideoSampleDescription*
 AP4_SampleDescription_AsVideo(AP4_SampleDescription* self)
 {
-    return dynamic_cast<AP4_VideoSampleDescription*> (self);
+    return AP4_DYNAMIC_CAST(AP4_VideoSampleDescription, self);
 }
 
 AP4_AvcSampleDescription*
 AP4_SampleDescription_AsAvc(AP4_SampleDescription* self)
 {
-    return dynamic_cast<AP4_AvcSampleDescription*> (self);
+    return AP4_DYNAMIC_CAST(AP4_AvcSampleDescription, self);
 }
 
 AP4_MpegSampleDescription*
 AP4_SampleDescription_AsMpeg(AP4_SampleDescription* self)
 {
-    return dynamic_cast<AP4_MpegSampleDescription*> (self);
+    return AP4_DYNAMIC_CAST(AP4_MpegSampleDescription, self);
 }
 
 AP4_MpegAudioSampleDescription*
 AP4_SampleDescription_AsMpegAudio(AP4_SampleDescription* self)
 {
-    return dynamic_cast<AP4_MpegAudioSampleDescription*> (self);
+    return AP4_DYNAMIC_CAST(AP4_MpegAudioSampleDescription, self);
 }
 
 AP4_UI32

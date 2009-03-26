@@ -41,6 +41,8 @@
 class AP4_TrefTypeAtom : public AP4_Atom
 {
 public:
+    AP4_IMPLEMENT_DYNAMIC_CAST_D(AP4_TrefTypeAtom, AP4_Atom)
+
     // class methods
     static AP4_TrefTypeAtom* Create(AP4_Atom::Type  type, 
                                     AP4_UI32        size, 

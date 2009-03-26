@@ -32,6 +32,13 @@
 #include "Ap4DecoderConfigDescriptor.h"
 #include "Ap4DescriptorFactory.h"
 #include "Ap4Utils.h"
+#include "Ap4ByteStream.h"
+#include "Ap4Atom.h"
+
+/*----------------------------------------------------------------------
+|   dynamic cast support
++---------------------------------------------------------------------*/
+AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_DecoderConfigDescriptor)
 
 /*----------------------------------------------------------------------
 |   AP4_DecoderConfigDescriptor::AP4_DecoderConfigDescriptor
@@ -158,7 +165,7 @@ AP4_DecoderConfigDescriptor::GetDecoderSpecificInfoDescriptor() const
     
     // return it
     if (AP4_SUCCEEDED(result)) {
-        return dynamic_cast<AP4_DecoderSpecificInfoDescriptor*>(descriptor);
+        return AP4_DYNAMIC_CAST(AP4_DecoderSpecificInfoDescriptor, descriptor);
     } else {
         return NULL;
     }

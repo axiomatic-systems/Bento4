@@ -620,20 +620,18 @@ AddTag(AP4_File* file, AP4_String& arg, bool remove_first)
     } else if (*type == "JPEG" || *type == "GIF") {
         AP4_MetaData::Value::Type data_type = 
             (*type == "JPEG" ? AP4_MetaData::Value::TYPE_JPEG : AP4_MetaData::Value::TYPE_GIF);
-        AP4_FileByteStream* data_file = NULL;
-        try {
-            data_file = new AP4_FileByteStream(value->GetChars(), AP4_FileByteStream::STREAM_MODE_READ);
-            AP4_DataBuffer buffer;
-            AP4_LargeSize  data_size;
-            data_file->GetSize(data_size);
-            buffer.SetDataSize((AP4_Size)data_size);
-            data_file->Read(buffer.UseData(), (AP4_Size)data_size);
-            vobj = new AP4_BinaryMetaDataValue(data_type, buffer.GetData(), buffer.GetDataSize());
-        } catch (AP4_Exception) {
+        AP4_ByteStream* data_file = NULL;
+        AP4_Result result = AP4_FileByteStream::Create(value->GetChars(), AP4_FileByteStream::STREAM_MODE_READ, data_file);
+        if (AP4_FAILED(result)) {
             fprintf(stderr, "ERROR: cannot open file %s\n", value->GetChars());
-            result = AP4_FAILURE;
             goto end;
         } 
+        AP4_DataBuffer buffer;
+        AP4_LargeSize  data_size;
+        data_file->GetSize(data_size);
+        buffer.SetDataSize((AP4_Size)data_size);
+        data_file->Read(buffer.UseData(), (AP4_Size)data_size);
+        vobj = new AP4_BinaryMetaDataValue(data_type, buffer.GetData(), buffer.GetDataSize());
         if (data_file) data_file->Release();
     } else if (*type == "B") {
         if (value->GetLength() == 0) {
@@ -742,16 +740,14 @@ ExtractTag(AP4_File* file, AP4_String& arg)
             AP4_DataBuffer buffer;
             if (AP4_FAILED(entry->m_Value->ToBytes(buffer))) break;
             found = true;
-            try {
-                AP4_FileByteStream* output = new AP4_FileByteStream(output_filename->GetChars(),
-                                                 AP4_FileByteStream::STREAM_MODE_WRITE);
-                output->Write(buffer.GetData(), buffer.GetDataSize());
-                output->Release();
-            } catch (AP4_Exception&) {
+            AP4_ByteStream* output = NULL;
+            result = AP4_FileByteStream::Create(output_filename->GetChars(), AP4_FileByteStream::STREAM_MODE_WRITE, output);
+            if (AP4_FAILED(result)) {
                 fprintf(stderr, "ERROR: cannot open output/extract file\n");
-                result = AP4_FAILURE;
                 goto end;
             }
+            output->Write(buffer.GetData(), buffer.GetDataSize());
+            output->Release();
         }
     }
     if (!found) {
@@ -811,16 +807,15 @@ main(int argc, char** argv)
         }
     }
 
-    AP4_ByteStream* input = NULL;
-    AP4_File* file = NULL;
-    AP4_Movie* movie = NULL;
-    AP4_MoovAtom* moov = NULL;
-    AP4_LargeSize moov_size = 0;
+    AP4_ByteStream* input     = NULL;
+    AP4_File*       file      = NULL;
+    AP4_Movie*      movie     = NULL;
+    AP4_MoovAtom*   moov      = NULL;
+    AP4_LargeSize   moov_size = 0;
+    AP4_Result      result;
     if (Options.need_input) {
-        try {
-            input = new AP4_FileByteStream(Options.input_filename,
-                                           AP4_FileByteStream::STREAM_MODE_READ);
-        } catch (AP4_Exception&) {
+        result =AP4_FileByteStream::Create(Options.input_filename, AP4_FileByteStream::STREAM_MODE_READ, input);
+        if (AP4_FAILED(result)) {
             fprintf(stderr, "ERROR: cannot open input file\n");
             return 1;
         }
@@ -838,10 +833,8 @@ main(int argc, char** argv)
 
     AP4_ByteStream* output = NULL;
     if (Options.need_output) {
-        try {
-            output = new AP4_FileByteStream(Options.output_filename,
-                                            AP4_FileByteStream::STREAM_MODE_WRITE);
-        } catch (AP4_Exception&) {
+        result = AP4_FileByteStream::Create(Options.output_filename, AP4_FileByteStream::STREAM_MODE_WRITE, output);
+        if (AP4_FAILED(result)) {
             fprintf(stderr, "ERROR: cannot open output file for writing\n");
             return 1;
         }

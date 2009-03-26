@@ -48,6 +48,11 @@
 #include "Ap4Marlin.h"
 
 /*----------------------------------------------------------------------
+|   dynamic cast support
++---------------------------------------------------------------------*/
+AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_ProtectedSampleDescription)
+
+/*----------------------------------------------------------------------
 |   AP4_EncaSampleEntry::AP4_EncaSampleEntry
 +---------------------------------------------------------------------*/
 AP4_EncaSampleEntry::AP4_EncaSampleEntry(AP4_UI32         type,
@@ -511,7 +516,7 @@ AP4_ProtectedSampleDescription::ToAtom() const
     atom->SetType(m_Format);
 
     // check that the constructed atom is a container
-    AP4_ContainerAtom* container = dynamic_cast<AP4_ContainerAtom*>(atom);
+    AP4_ContainerAtom* container = AP4_DYNAMIC_CAST(AP4_ContainerAtom, atom);
     if (container == NULL) return atom; // not a container ?? return now.
         
     // create the sinf atom
@@ -608,8 +613,7 @@ AP4_Processor::TrackHandler*
 AP4_StandardDecryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
 {
     // find the stsd atom
-    AP4_StsdAtom* stsd = dynamic_cast<AP4_StsdAtom*>(
-        trak->FindChild("mdia/minf/stbl/stsd"));
+    AP4_StsdAtom* stsd = AP4_DYNAMIC_CAST(AP4_StsdAtom, trak->FindChild("mdia/minf/stbl/stsd"));
 
     // avoid tracks with no stsd atom (should not happen)
     if (stsd == NULL) return NULL;

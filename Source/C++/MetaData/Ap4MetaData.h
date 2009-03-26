@@ -334,6 +334,8 @@ protected:
 class AP4_3GppLocalizedStringAtom : public AP4_Atom
 {
 public:
+    AP4_IMPLEMENT_DYNAMIC_CAST_D(AP4_3GppLocalizedStringAtom, AP4_Atom)
+
     // factory method
     static AP4_3GppLocalizedStringAtom* Create(Type type, AP4_UI32 size, AP4_ByteStream& stream);
      
@@ -365,6 +367,8 @@ private:
 class AP4_DcfStringAtom : public AP4_Atom
 {
 public:
+    AP4_IMPLEMENT_DYNAMIC_CAST_D(AP4_DcfStringAtom, AP4_Atom)
+
     // factory method
     static AP4_DcfStringAtom* Create(Type type, AP4_UI32 size, AP4_ByteStream& stream);
      
@@ -394,6 +398,8 @@ private:
 class AP4_DcfdAtom : public AP4_Atom
 {
 public:
+    AP4_IMPLEMENT_DYNAMIC_CAST_D(AP4_DcfdAtom, AP4_Atom)
+
     // factory method
     static AP4_DcfdAtom* Create(AP4_UI32 size, AP4_ByteStream& stream);
      
@@ -444,6 +450,8 @@ private:
 class AP4_DataAtom : public AP4_Atom
 {
 public:
+    AP4_IMPLEMENT_DYNAMIC_CAST_D(AP4_DataAtom, AP4_Atom)
+
     typedef enum {
         DATA_TYPE_BINARY        = 0,
         DATA_TYPE_STRING_UTF_8  = 1,

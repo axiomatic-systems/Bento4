@@ -68,8 +68,6 @@ static AP4_ByteStream*
 CreateTrackDumpByteStream(const char* mp4_filename,
                           AP4_Ordinal track_id)
 {
-    AP4_FileByteStream* output = NULL;
-
     // create the output file name
     AP4_Size mp4_filename_len = strlen(mp4_filename);
     char* dump_filename = new char[mp4_filename_len+16]; // <filename>.<trackid>
@@ -78,12 +76,11 @@ CreateTrackDumpByteStream(const char* mp4_filename,
     sprintf(dump_filename+mp4_filename_len+1, "%d", track_id);
 
     // create a FileByteStream
-    try {
-        output = new AP4_FileByteStream(dump_filename,
-                                        AP4_FileByteStream::STREAM_MODE_WRITE);
-    } catch (AP4_Exception e) {
+    AP4_ByteStream* output = NULL;
+    AP4_Result result = AP4_FileByteStream::Create(dump_filename, AP4_FileByteStream::STREAM_MODE_WRITE, output);
+    if (AP4_FAILED(result)) {
         fprintf(stderr, "ERROR: %d cannot open file for dumping track %d", 
-                e.m_Error, track_id);
+                result, track_id);
     }
     
     delete [] dump_filename;
@@ -125,7 +122,7 @@ DecryptAndDumpSamples(AP4_Track*             track,
                       AP4_ByteStream*        dump)
 {
     AP4_ProtectedSampleDescription* pdesc = 
-        dynamic_cast<AP4_ProtectedSampleDescription*>(sample_desc);
+        AP4_DYNAMIC_CAST(AP4_ProtectedSampleDescription, sample_desc);
     if (pdesc == NULL) {
         fprintf(stderr, "ERROR: unable to obtain cipher info\n");
         return;
@@ -272,21 +269,18 @@ main(int argc, char** argv)
             }
             verbosity = strtoul(arg, NULL, 10);
         } else {
-            try {
-                filename = arg;
-                input = new AP4_FileByteStream(filename,
-                                               AP4_FileByteStream::STREAM_MODE_READ);
-            } catch(AP4_Exception e) {
-                AP4_Debug("ERROR: cannot open input (%d)\n", e.m_Error);
+            filename = arg;
+            AP4_Result result = AP4_FileByteStream::Create(filename, AP4_FileByteStream::STREAM_MODE_READ, input);
+            if (AP4_FAILED(result)) {
+                AP4_Debug("ERROR: cannot open input (%d)\n", result);
                 return 1;
             }
         }
     }
 
     // open the output
-    AP4_ByteStream* output =
-        new AP4_FileByteStream("-stdout",
-                               AP4_FileByteStream::STREAM_MODE_WRITE);
+    AP4_ByteStream* output = NULL;
+    AP4_FileByteStream::Create("-stdout", AP4_FileByteStream::STREAM_MODE_WRITE, output);
     
     // create an inspector
     AP4_PrintInspector inspector(*output);

@@ -37,6 +37,11 @@
 #include "Ap4AvccAtom.h"
 
 /*----------------------------------------------------------------------
+|   dynamic cast support
++---------------------------------------------------------------------*/
+AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_SampleEntry)
+
+/*----------------------------------------------------------------------
 |   AP4_SampleEntry::AP4_SampleEntry
 +---------------------------------------------------------------------*/
 AP4_SampleEntry::AP4_SampleEntry(AP4_Atom::Type format,
@@ -225,7 +230,7 @@ AP4_SampleDescription*
 AP4_MpegSystemSampleEntry::ToSampleDescription()
 {
     return new AP4_MpegSystemSampleDescription(
-        dynamic_cast<AP4_EsdsAtom*>(GetChild(AP4_ATOM_TYPE_ESDS)));
+        AP4_DYNAMIC_CAST(AP4_EsdsAtom, GetChild(AP4_ATOM_TYPE_ESDS)));
 }
 
 /*----------------------------------------------------------------------
@@ -254,7 +259,7 @@ AP4_Mp4sSampleEntry::ToSampleDescription()
 {
     // create a sample description
     return new AP4_MpegSystemSampleDescription(
-        dynamic_cast<AP4_EsdsAtom*>(GetChild(AP4_ATOM_TYPE_ESDS)));
+        AP4_DYNAMIC_CAST(AP4_EsdsAtom, GetChild(AP4_ATOM_TYPE_ESDS)));
 }
 
 /*----------------------------------------------------------------------
@@ -527,7 +532,7 @@ AP4_AudioSampleEntry::ToTargetSampleDescription(AP4_UI32 format)
                 GetSampleRate(),
                 GetSampleSize(),
                 GetChannelCount(),
-                dynamic_cast<AP4_EsdsAtom*>(GetChild(AP4_ATOM_TYPE_ESDS)));
+                AP4_DYNAMIC_CAST(AP4_EsdsAtom, GetChild(AP4_ATOM_TYPE_ESDS)));
 
         default:
             return new AP4_GenericAudioSampleDescription(
@@ -572,11 +577,11 @@ AP4_SampleDescription*
 AP4_MpegAudioSampleEntry::ToSampleDescription()
 {
     // find the esds atom
-    AP4_EsdsAtom* esds = dynamic_cast<AP4_EsdsAtom*>(GetChild(AP4_ATOM_TYPE_ESDS));
+    AP4_EsdsAtom* esds = AP4_DYNAMIC_CAST(AP4_EsdsAtom, GetChild(AP4_ATOM_TYPE_ESDS));
     if (esds == NULL) {
         // check if this is a quicktime style sample description
         if (m_QtVersion > 0) {
-            esds = dynamic_cast<AP4_EsdsAtom*>(FindChild("wave/esds"));
+            esds = AP4_DYNAMIC_CAST(AP4_EsdsAtom, FindChild("wave/esds"));
         }
     }
     
@@ -826,7 +831,7 @@ AP4_VisualSampleEntry::ToTargetSampleDescription(AP4_UI32 format)
                 m_Height,
                 m_Depth,
                 m_CompressorName.GetChars(),
-                dynamic_cast<AP4_EsdsAtom*>(GetChild(AP4_ATOM_TYPE_ESDS)));
+                AP4_DYNAMIC_CAST(AP4_EsdsAtom, GetChild(AP4_ATOM_TYPE_ESDS)));
 
         default:
             return new AP4_GenericVideoSampleDescription(
@@ -882,7 +887,7 @@ AP4_MpegVideoSampleEntry::ToSampleDescription()
         m_Height,
         m_Depth,
         m_CompressorName.GetChars(),
-        dynamic_cast<AP4_EsdsAtom*>(GetChild(AP4_ATOM_TYPE_ESDS)));
+        AP4_DYNAMIC_CAST(AP4_EsdsAtom, GetChild(AP4_ATOM_TYPE_ESDS)));
 }
 
 /*----------------------------------------------------------------------
@@ -950,7 +955,7 @@ AP4_Avc1SampleEntry::ToSampleDescription()
         m_Height,
         m_Depth,
         m_CompressorName.GetChars(),
-        dynamic_cast<AP4_AvccAtom*>(GetChild(AP4_ATOM_TYPE_AVCC)));
+        AP4_DYNAMIC_CAST(AP4_AvccAtom, GetChild(AP4_ATOM_TYPE_AVCC)));
 }
 
 /*----------------------------------------------------------------------

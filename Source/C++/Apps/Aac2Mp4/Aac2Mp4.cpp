@@ -67,18 +67,20 @@ main(int argc, char** argv)
     }
     
     // open the input
-    AP4_ByteStream* input;
-    try {
-        input = new AP4_FileByteStream(argv[1], AP4_FileByteStream::STREAM_MODE_READ);
-    } catch (AP4_Exception&) {
-        AP4_Debug("ERROR: cannot open input (%s)\n", argv[1]);
+    AP4_ByteStream* input = NULL;
+    result = AP4_FileByteStream::Create(argv[1], AP4_FileByteStream::STREAM_MODE_READ, input);
+    if (AP4_FAILED(result)) {
+        AP4_Debug("ERROR: cannot open input (%s) %d\n", argv[1], result);
         return 1;
     }
 
     // open the output
-    AP4_ByteStream* output = new AP4_FileByteStream(
-        argv[2],
-        AP4_FileByteStream::STREAM_MODE_WRITE);
+    AP4_ByteStream* output = NULL;
+    result = AP4_FileByteStream::Create(argv[2], AP4_FileByteStream::STREAM_MODE_WRITE, output);
+    if (AP4_FAILED(result)) {
+        AP4_Debug("ERROR: cannot open output (%s) %d\n", argv[2], result);
+        return 1;
+    }
     
     // create a sample table
     AP4_SyntheticSampleTable* sample_table = new AP4_SyntheticSampleTable();

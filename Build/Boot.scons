@@ -26,7 +26,8 @@ CROSS_PLATFORMS = ['ppu-sony-ps3',
                    'arm-gp2x-linux',
                    'mipsel-sigma-linux',
                    'x86-unknown-mingw',
-                   'mipsel-broadcom-linux']
+                   'mipsel-broadcom-linux',
+                   'arm-android-linux']
 
 def DefaultTarget():
     platform_id = sys.platform

@@ -53,6 +53,8 @@ const AP4_UI08 AP4_DESCRIPTOR_TAG_DECODER_SPECIFIC_INFO = 0x05;
 class AP4_DecoderSpecificInfoDescriptor : public AP4_Descriptor
 {
 public:
+    AP4_IMPLEMENT_DYNAMIC_CAST_D(AP4_DecoderSpecificInfoDescriptor, AP4_Descriptor)
+
     // methods
     AP4_DecoderSpecificInfoDescriptor(const AP4_DataBuffer& data);
     AP4_DecoderSpecificInfoDescriptor(AP4_ByteStream& stream, 

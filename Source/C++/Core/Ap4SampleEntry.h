@@ -51,6 +51,8 @@ class AP4_AvccAtom;
 class AP4_SampleEntry : public AP4_ContainerAtom
 {
  public: 
+    AP4_IMPLEMENT_DYNAMIC_CAST_D(AP4_SampleEntry, AP4_ContainerAtom)
+
     // methods
     AP4_SampleEntry(AP4_Atom::Type format, AP4_UI16 data_ref_index = 1);
     AP4_SampleEntry(AP4_Atom::Type   format, 

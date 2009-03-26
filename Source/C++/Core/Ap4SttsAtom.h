@@ -58,6 +58,8 @@ class AP4_SttsTableEntry {
 class AP4_SttsAtom : public AP4_Atom
 {
 public:
+    AP4_IMPLEMENT_DYNAMIC_CAST_D(AP4_SttsAtom, AP4_Atom)
+
     // class methods
     static AP4_SttsAtom* Create(AP4_Size size, AP4_ByteStream& stream);
 

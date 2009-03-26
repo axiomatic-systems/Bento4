@@ -64,6 +64,8 @@ class AP4_CttsTableEntry {
 class AP4_CttsAtom : public AP4_Atom
 {
 public:
+    AP4_IMPLEMENT_DYNAMIC_CAST_D(AP4_CttsAtom, AP4_Atom)
+
     // class methods
     static AP4_CttsAtom* Create(AP4_UI32 size, AP4_ByteStream& stream);
 

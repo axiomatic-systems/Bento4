@@ -48,6 +48,8 @@ class AP4_AtomFactory;
 class AP4_ContainerAtom : public AP4_Atom, public AP4_AtomParent 
 {
 public:
+    AP4_IMPLEMENT_DYNAMIC_CAST_D2(AP4_ContainerAtom, AP4_Atom, AP4_AtomParent)
+
     // class methods
     static AP4_ContainerAtom* Create(Type             type, 
                                      AP4_UI64         size, 

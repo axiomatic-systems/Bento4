@@ -118,8 +118,7 @@ AP4_Processor::Process(AP4_ByteStream&   input,
             AP4_TrakAtom* trak = item->GetData();
 
             // find the stsd atom
-            AP4_ContainerAtom* stbl = dynamic_cast<AP4_ContainerAtom*>(
-                trak->FindChild("mdia/minf/stbl"));
+            AP4_ContainerAtom* stbl = AP4_DYNAMIC_CAST(AP4_ContainerAtom, trak->FindChild("mdia/minf/stbl"));
             if (stbl == NULL) continue;
             
             // see if there's an external data source for this track

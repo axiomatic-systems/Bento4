@@ -47,6 +47,8 @@ class AP4_TrakAtom;
 class AP4_MoovAtom : public AP4_ContainerAtom
 {
 public:
+    AP4_IMPLEMENT_DYNAMIC_CAST_D(AP4_MoovAtom, AP4_Atom)
+
     // class methods
     static AP4_MoovAtom* Create(AP4_Size         size,
                                 AP4_ByteStream&  stream,

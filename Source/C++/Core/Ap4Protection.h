@@ -202,6 +202,8 @@ protected:
 class AP4_ProtectedSampleDescription : public AP4_SampleDescription
 {
 public:
+    AP4_IMPLEMENT_DYNAMIC_CAST_D(AP4_ProtectedSampleDescription, AP4_SampleDescription)
+
     // constructor and destructor
     AP4_ProtectedSampleDescription(AP4_UI32               format,
                                    AP4_SampleDescription* original_sample_description,

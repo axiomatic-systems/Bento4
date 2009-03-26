@@ -38,6 +38,7 @@
 #include "Ap4EsdsAtom.h"
 #include "Ap4Array.h"
 #include "Ap4AvccAtom.h"
+#include "Ap4DynamicCast.h"
 
 /*----------------------------------------------------------------------
 |   class references
@@ -59,6 +60,8 @@ class AP4_DataBuffer;
 class AP4_SampleDescription
 {
  public:
+    AP4_IMPLEMENT_DYNAMIC_CAST(AP4_SampleDescription)
+
     // type constants of the sample description
     enum Type {
         TYPE_UNKNOWN   = 0x00,
@@ -94,6 +97,8 @@ class AP4_SampleDescription
 class AP4_AudioSampleDescription
 {
 public:
+    AP4_IMPLEMENT_DYNAMIC_CAST(AP4_AudioSampleDescription)
+
     // constructor
     AP4_AudioSampleDescription(unsigned int sample_rate,
                                unsigned int sample_size,
@@ -120,6 +125,8 @@ protected:
 class AP4_VideoSampleDescription
 {
 public:
+    AP4_IMPLEMENT_DYNAMIC_CAST(AP4_VideoSampleDescription)
+
     // constructor
     AP4_VideoSampleDescription(AP4_UI16    width,
                                AP4_UI16    height,
@@ -151,6 +158,8 @@ class AP4_GenericAudioSampleDescription : public AP4_SampleDescription,
                                           public AP4_AudioSampleDescription
 {
 public:
+    AP4_IMPLEMENT_DYNAMIC_CAST_D2(AP4_GenericAudioSampleDescription, AP4_SampleDescription, AP4_AudioSampleDescription)
+
     // constructors
     AP4_GenericAudioSampleDescription(AP4_UI32        format,
                                       unsigned int    sample_rate,
@@ -168,6 +177,8 @@ class AP4_GenericVideoSampleDescription : public AP4_SampleDescription,
                                           public AP4_VideoSampleDescription
 {
 public:
+    AP4_IMPLEMENT_DYNAMIC_CAST_D2(AP4_GenericVideoSampleDescription, AP4_SampleDescription, AP4_VideoSampleDescription)
+
     // constructor
     AP4_GenericVideoSampleDescription(AP4_UI32        format,
                                       AP4_UI16        width,
@@ -186,6 +197,8 @@ class AP4_AvcSampleDescription : public AP4_SampleDescription,
                                  public AP4_VideoSampleDescription
 {
 public:
+    AP4_IMPLEMENT_DYNAMIC_CAST_D2(AP4_AvcSampleDescription, AP4_SampleDescription, AP4_VideoSampleDescription)
+
     // constructors
     AP4_AvcSampleDescription(AP4_UI16            width,
                              AP4_UI16            height,
@@ -239,6 +252,8 @@ private:
 class AP4_MpegSampleDescription : public AP4_SampleDescription
 {
  public:
+    AP4_IMPLEMENT_DYNAMIC_CAST_D(AP4_MpegSampleDescription, AP4_SampleDescription)
+
     // types
     typedef AP4_UI08 StreamType;
     typedef AP4_UI08 OTI;
@@ -287,6 +302,8 @@ class AP4_MpegSampleDescription : public AP4_SampleDescription
 class AP4_MpegSystemSampleDescription : public AP4_MpegSampleDescription
 {
 public:
+    AP4_IMPLEMENT_DYNAMIC_CAST_D(AP4_MpegSystemSampleDescription, AP4_MpegSampleDescription)
+
     // constructor
     AP4_MpegSystemSampleDescription(AP4_EsdsAtom* esds);
     AP4_MpegSystemSampleDescription(StreamType            stream_type,
@@ -307,6 +324,8 @@ class AP4_MpegAudioSampleDescription : public AP4_MpegSampleDescription,
                                        public AP4_AudioSampleDescription
 {
 public:
+    AP4_IMPLEMENT_DYNAMIC_CAST_D2(AP4_MpegAudioSampleDescription, AP4_MpegSampleDescription, AP4_AudioSampleDescription)
+
     // types
     typedef AP4_UI08 Mpeg4AudioObjectType;
     
@@ -346,6 +365,8 @@ class AP4_MpegVideoSampleDescription : public AP4_MpegSampleDescription,
                                        public AP4_VideoSampleDescription
 {
 public:
+    AP4_IMPLEMENT_DYNAMIC_CAST_D2(AP4_MpegVideoSampleDescription, AP4_MpegSampleDescription, AP4_VideoSampleDescription)
+
     // constructor
     AP4_MpegVideoSampleDescription(AP4_UI16      width,
                                    AP4_UI16      height,

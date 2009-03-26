@@ -34,6 +34,11 @@
 #include "Ap4Utils.h"
 
 /*----------------------------------------------------------------------
+|   dynamic cast support
++---------------------------------------------------------------------*/
+AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_IodsAtom)
+
+/*----------------------------------------------------------------------
 |   AP4_IodsAtom::Create
 +---------------------------------------------------------------------*/
 AP4_IodsAtom*
@@ -68,7 +73,7 @@ AP4_IodsAtom::AP4_IodsAtom(AP4_UI32        size,
     // read the descriptor
     AP4_Descriptor* descriptor = NULL;
     if (AP4_DescriptorFactory::CreateDescriptorFromStream(stream, descriptor) == AP4_SUCCESS) {
-        m_ObjectDescriptor = dynamic_cast<AP4_ObjectDescriptor*>(descriptor);
+        m_ObjectDescriptor = AP4_DYNAMIC_CAST(AP4_ObjectDescriptor, descriptor);
         if (m_ObjectDescriptor == NULL) delete descriptor;
     } else {
         m_ObjectDescriptor = NULL;

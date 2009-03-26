@@ -49,6 +49,8 @@ class AP4_SampleTable;
 class AP4_TrakAtom : public AP4_ContainerAtom
 {
  public:
+    AP4_IMPLEMENT_DYNAMIC_CAST_D(AP4_TrakAtom, AP4_ContainerAtom)
+
     // class methods
      static AP4_TrakAtom* Create(AP4_Size         size,
                                  AP4_ByteStream&  stream,

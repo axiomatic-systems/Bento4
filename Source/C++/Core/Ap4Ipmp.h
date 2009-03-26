@@ -48,6 +48,8 @@ const AP4_UI08 AP4_DESCRIPTOR_TAG_IPMP_DESCRIPTOR         = 0x0B;
 class AP4_IpmpDescriptorPointer : public AP4_Descriptor  
 {
 public:
+    AP4_IMPLEMENT_DYNAMIC_CAST_D(AP4_IpmpDescriptorPointer, AP4_Descriptor)
+
     // methods
     AP4_IpmpDescriptorPointer(AP4_UI08 descriptor_id);
     AP4_IpmpDescriptorPointer(AP4_ByteStream&     stream, 
@@ -74,6 +76,8 @@ private:
 class AP4_IpmpDescriptor : public AP4_Descriptor  
 { 
 public:
+    AP4_IMPLEMENT_DYNAMIC_CAST_D(AP4_IpmpDescriptor, AP4_Descriptor)
+
     // methods
     AP4_IpmpDescriptor(AP4_UI08 descriptor_id, AP4_UI16 ipmps_type);
     AP4_IpmpDescriptor(AP4_ByteStream&     stream, 

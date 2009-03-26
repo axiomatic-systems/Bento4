@@ -34,6 +34,7 @@
 +---------------------------------------------------------------------*/
 #include "Ap4Expandable.h"
 #include "Ap4List.h"
+#include "Ap4DynamicCast.h"
 
 /*----------------------------------------------------------------------
 |   class references
@@ -47,6 +48,8 @@ class AP4_AtomInspector;
 class AP4_Descriptor : public AP4_Expandable
 {
  public:
+    AP4_IMPLEMENT_DYNAMIC_CAST(AP4_Descriptor)
+    
     // constructor
     AP4_Descriptor(AP4_UI08 tag, AP4_Size header_size, AP4_Size payload_size) :
         AP4_Expandable(tag, CLASS_ID_SIZE_08, header_size, payload_size) {}

@@ -32,6 +32,13 @@
 #include "Ap4DecoderSpecificInfoDescriptor.h"
 #include "Ap4DescriptorFactory.h"
 #include "Ap4Utils.h"
+#include "Ap4ByteStream.h"
+#include "Ap4Atom.h"
+
+/*----------------------------------------------------------------------
+|   dynamic cast support
++---------------------------------------------------------------------*/
+AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_DecoderSpecificInfoDescriptor)
 
 /*----------------------------------------------------------------------
 |   AP4_DecoderSpecificInfoDescriptor::AP4_DecoderSpecificInfoDescriptor

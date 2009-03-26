@@ -40,6 +40,14 @@
 #include "Ap4String.h"
 
 /*----------------------------------------------------------------------
+|   dynamic cast support
++---------------------------------------------------------------------*/
+AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_3GppLocalizedStringAtom)
+AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_DcfdAtom)
+AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_DcfStringAtom)
+AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_DataAtom)
+
+/*----------------------------------------------------------------------
 |   metadata keys
 +---------------------------------------------------------------------*/
 static const AP4_MetaData::KeyInfo AP4_MetaData_KeyInfos [] = {
@@ -446,12 +454,12 @@ AP4_MetaData::AP4_MetaData(AP4_File* file)
         
         AP4_List<AP4_Atom>::Item* atom_item = top_level_atoms.FirstItem();
         while (atom_item) {
-            AP4_ContainerAtom* container = dynamic_cast<AP4_ContainerAtom*>(atom_item->GetData());
+            AP4_ContainerAtom* container = AP4_DYNAMIC_CAST(AP4_ContainerAtom, atom_item->GetData());
             if (container) {
                 // look for a udta in a DCF layout
                 AP4_Atom* udta = container->FindChild("odhe/udta");
                 if (udta) {
-                    AP4_ContainerAtom* udta_container = dynamic_cast<AP4_ContainerAtom*>(udta);
+                    AP4_ContainerAtom* udta_container = AP4_DYNAMIC_CAST(AP4_ContainerAtom, udta);
                     if (udta_container) {
                         ParseUdta(udta_container, "dcf");
                     }
@@ -469,16 +477,16 @@ AP4_Result
 AP4_MetaData::ParseMoov(AP4_MoovAtom* moov)
 {
     // look for a 'meta' atom with 'hdlr' type 'mdir'
-    AP4_HdlrAtom* hdlr = dynamic_cast<AP4_HdlrAtom*>(moov->FindChild("udta/meta/hdlr"));
+    AP4_HdlrAtom* hdlr = AP4_DYNAMIC_CAST(AP4_HdlrAtom, moov->FindChild("udta/meta/hdlr"));
     if (hdlr == NULL || hdlr->GetHandlerType() != AP4_HANDLER_TYPE_MDIR) return AP4_ERROR_NO_SUCH_ITEM;
 
     // get the list of entries
-    AP4_ContainerAtom* ilst = dynamic_cast<AP4_ContainerAtom*>(moov->FindChild("udta/meta/ilst"));
+    AP4_ContainerAtom* ilst = AP4_DYNAMIC_CAST(AP4_ContainerAtom, moov->FindChild("udta/meta/ilst"));
     if (ilst == NULL) return AP4_ERROR_NO_SUCH_ITEM;
     
     AP4_List<AP4_Atom>::Item* ilst_item = ilst->GetChildren().FirstItem();
     while (ilst_item) {
-        AP4_ContainerAtom* entry_atom = dynamic_cast<AP4_ContainerAtom*>(ilst_item->GetData()); 
+        AP4_ContainerAtom* entry_atom = AP4_DYNAMIC_CAST(AP4_ContainerAtom, ilst_item->GetData()); 
         if (entry_atom) {
             AddIlstEntries(entry_atom, "meta");
         }
@@ -501,19 +509,19 @@ AP4_MetaData::ParseUdta(AP4_ContainerAtom* udta, const char* namespc)
     
     AP4_List<AP4_Atom>::Item* udta_item = udta->GetChildren().FirstItem();
     for (; udta_item; udta_item = udta_item->GetNext()) {
-        AP4_3GppLocalizedStringAtom* _3gpp_atom = dynamic_cast<AP4_3GppLocalizedStringAtom*>(udta_item->GetData()); 
+        AP4_3GppLocalizedStringAtom* _3gpp_atom = AP4_DYNAMIC_CAST(AP4_3GppLocalizedStringAtom, udta_item->GetData()); 
         if (_3gpp_atom) {
             Add3GppEntry(_3gpp_atom, namespc);
             continue;
         } 
         
-        AP4_DcfStringAtom* dcfs_atom = dynamic_cast<AP4_DcfStringAtom*>(udta_item->GetData());
+        AP4_DcfStringAtom* dcfs_atom = AP4_DYNAMIC_CAST(AP4_DcfStringAtom, udta_item->GetData());
         if (dcfs_atom) {
             AddDcfStringEntry(dcfs_atom, namespc);
             continue;
         } 
 
-        AP4_DcfdAtom* dcfd_atom = dynamic_cast<AP4_DcfdAtom*>(udta_item->GetData());
+        AP4_DcfdAtom* dcfd_atom = AP4_DYNAMIC_CAST(AP4_DcfdAtom, udta_item->GetData());
         if (dcfd_atom) {
             AddDcfdEntry(dcfd_atom, namespc);
         }
@@ -780,11 +788,11 @@ AP4_MetaData::Entry::FindInIlst(AP4_ContainerAtom* ilst) const
 {
     if (m_Key.GetNamespace() == "meta") {
         AP4_Atom::Type atom_type = AP4_Atom::TypeFromString(m_Key.GetName().GetChars());
-        return dynamic_cast<AP4_ContainerAtom*>(ilst->GetChild(atom_type));
+        return AP4_DYNAMIC_CAST(AP4_ContainerAtom, ilst->GetChild(atom_type));
     } else {
         AP4_List<AP4_Atom>::Item* ilst_item = ilst->GetChildren().FirstItem();
         while (ilst_item) {
-            AP4_ContainerAtom* entry_atom = dynamic_cast<AP4_ContainerAtom*>(ilst_item->GetData()); 
+            AP4_ContainerAtom* entry_atom = AP4_DYNAMIC_CAST(AP4_ContainerAtom, ilst_item->GetData()); 
             if (entry_atom) {
                 AP4_MetaDataStringAtom* mean = static_cast<AP4_MetaDataStringAtom*>(entry_atom->GetChild(AP4_ATOM_TYPE_MEAN));
                 AP4_MetaDataStringAtom* name = static_cast<AP4_MetaDataStringAtom*>(entry_atom->GetChild(AP4_ATOM_TYPE_NAME));
@@ -815,7 +823,7 @@ AP4_MetaData::Entry::AddToFileIlst(AP4_File& file, AP4_Ordinal index)
     AP4_Atom* atom;
     AP4_Result result = ToAtom(atom);
     if (AP4_FAILED(result)) return result;
-    AP4_ContainerAtom* entry_atom = dynamic_cast<AP4_ContainerAtom*>(atom);
+    AP4_ContainerAtom* entry_atom = AP4_DYNAMIC_CAST(AP4_ContainerAtom, atom);
     if (entry_atom == NULL) {
         return AP4_ERROR_INVALID_FORMAT;
     }
@@ -827,15 +835,15 @@ AP4_MetaData::Entry::AddToFileIlst(AP4_File& file, AP4_Ordinal index)
     if (moov == NULL) return AP4_ERROR_INVALID_FORMAT;
     
     // look for 'udta', and create if it does not exist 
-    AP4_ContainerAtom* udta = dynamic_cast<AP4_ContainerAtom*>(moov->FindChild("udta", true));
+    AP4_ContainerAtom* udta = AP4_DYNAMIC_CAST(AP4_ContainerAtom, moov->FindChild("udta", true));
     if (udta == NULL) return AP4_ERROR_INTERNAL;
     
     // look for 'meta', and create if it does not exist ('meta' is a FULL atom)
-    AP4_ContainerAtom* meta = dynamic_cast<AP4_ContainerAtom*>(udta->FindChild("meta", true, true));
+    AP4_ContainerAtom* meta = AP4_DYNAMIC_CAST(AP4_ContainerAtom, udta->FindChild("meta", true, true));
     if (meta == NULL) return AP4_ERROR_INTERNAL;
 
     // look for a 'hdlr' atom type 'mdir'
-    AP4_HdlrAtom* hdlr = dynamic_cast<AP4_HdlrAtom*>(meta->FindChild("hdlr"));
+    AP4_HdlrAtom* hdlr = AP4_DYNAMIC_CAST(AP4_HdlrAtom, meta->FindChild("hdlr"));
     if (hdlr == NULL) {
         hdlr = new AP4_HdlrAtom(AP4_HANDLER_TYPE_MDIR, "");
         meta->AddChild(hdlr);
@@ -846,7 +854,7 @@ AP4_MetaData::Entry::AddToFileIlst(AP4_File& file, AP4_Ordinal index)
     }
 
     // get/create the list of entries
-    AP4_ContainerAtom* ilst = dynamic_cast<AP4_ContainerAtom*>(meta->FindChild("ilst", true));
+    AP4_ContainerAtom* ilst = AP4_DYNAMIC_CAST(AP4_ContainerAtom, meta->FindChild("ilst", true));
     if (ilst == NULL) return AP4_ERROR_INTERNAL;
     
     // look if there is already a container for this entry
@@ -856,7 +864,7 @@ AP4_MetaData::Entry::AddToFileIlst(AP4_File& file, AP4_Ordinal index)
         ilst->AddChild(entry_atom);
     } else {
         // add the entry's data to the existing entry
-        AP4_DataAtom* data_atom = dynamic_cast<AP4_DataAtom*>(entry_atom->GetChild(AP4_ATOM_TYPE_DATA));
+        AP4_DataAtom* data_atom = AP4_DYNAMIC_CAST(AP4_DataAtom, entry_atom->GetChild(AP4_ATOM_TYPE_DATA));
         if (data_atom == NULL) return AP4_ERROR_INTERNAL;
         entry_atom->RemoveChild(data_atom);
         existing->AddChild(data_atom, index);
@@ -876,11 +884,11 @@ AP4_MetaData::Entry::AddToFileDcf(AP4_File& file, AP4_Ordinal index)
     if (m_Value == NULL) return AP4_ERROR_INVALID_STATE;
     
     // look for 'odrm/odhe'
-    AP4_ContainerAtom* odhe = dynamic_cast<AP4_ContainerAtom*>(file.FindChild("odrm/odhe"));
+    AP4_ContainerAtom* odhe = AP4_DYNAMIC_CAST(AP4_ContainerAtom, file.FindChild("odrm/odhe"));
     if (odhe == NULL) return AP4_ERROR_NO_SUCH_ITEM;
 
     // get/create the list of entries
-    AP4_ContainerAtom* udta = dynamic_cast<AP4_ContainerAtom*>(odhe->FindChild("udta", true));
+    AP4_ContainerAtom* udta = AP4_DYNAMIC_CAST(AP4_ContainerAtom, odhe->FindChild("udta", true));
     if (udta == NULL) return AP4_ERROR_INTERNAL;
     
     // convert the entry into an atom
@@ -925,7 +933,7 @@ AP4_MetaData::Entry::RemoveFromFileIlst(AP4_File& file, AP4_Ordinal index)
     if (moov == NULL) return AP4_ERROR_INVALID_FORMAT;
     
     // look for 'udta/meta/ilst'
-    AP4_ContainerAtom* ilst = dynamic_cast<AP4_ContainerAtom*>(moov->FindChild("udta/meta/ilst"));
+    AP4_ContainerAtom* ilst = AP4_DYNAMIC_CAST(AP4_ContainerAtom, moov->FindChild("udta/meta/ilst"));
     if (ilst == NULL) return AP4_ERROR_NO_SUCH_ITEM;
     
     // look if there is already a container for this entry
@@ -952,7 +960,7 @@ AP4_Result
 AP4_MetaData::Entry::RemoveFromFileDcf(AP4_File& file, AP4_Ordinal index)
 {
     // look for 'odrm/odhe/udta'
-    AP4_ContainerAtom* udta = dynamic_cast<AP4_ContainerAtom*>(file.FindChild("odrm/odhe/udta"));
+    AP4_ContainerAtom* udta = AP4_DYNAMIC_CAST(AP4_ContainerAtom, file.FindChild("odrm/odhe/udta"));
     if (udta == NULL) return AP4_ERROR_NO_SUCH_ITEM;
                 
     // remove the data atom in the entry

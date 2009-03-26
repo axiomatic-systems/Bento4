@@ -37,6 +37,11 @@
 #include "Ap4SampleDescription.h"
 
 /*----------------------------------------------------------------------
+|   dynamic cast support
++---------------------------------------------------------------------*/
+AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_StsdAtom)
+
+/*----------------------------------------------------------------------
 |   AP4_StsdAtom::Create
 +---------------------------------------------------------------------*/
 AP4_StsdAtom*
@@ -169,7 +174,7 @@ AP4_StsdAtom::GetSampleDescription(AP4_Ordinal index)
     // create and cache a sample description for this entry
     AP4_Atom* entry;
     m_Children.Get(index, entry);
-    AP4_SampleEntry* sample_entry = dynamic_cast<AP4_SampleEntry*>(entry);
+    AP4_SampleEntry* sample_entry = AP4_DYNAMIC_CAST(AP4_SampleEntry, entry);
     if (sample_entry == NULL) return NULL;
     m_SampleDescriptions[index] = sample_entry->ToSampleDescription();
     return m_SampleDescriptions[index];
@@ -187,7 +192,7 @@ AP4_StsdAtom::GetSampleEntry(AP4_Ordinal index)
     // return the sample entry
     AP4_Atom* entry;
     m_Children.Get(index, entry);
-    return dynamic_cast<AP4_SampleEntry*>(entry);
+    return AP4_DYNAMIC_CAST(AP4_SampleEntry, entry);
 }
 
 /*----------------------------------------------------------------------
