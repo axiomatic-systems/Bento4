@@ -47,6 +47,8 @@ const AP4_UI32 AP4_MDHD_DEFAULT_VIDEO_TIMESCALE   = 90000;
 class AP4_MdhdAtom : public AP4_Atom
 {
 public:
+    AP4_IMPLEMENT_DYNAMIC_CAST_D(AP4_MdhdAtom, AP4_Atom)
+
     // class methods
     static AP4_MdhdAtom* Create(AP4_Size size, AP4_ByteStream& stream);
 

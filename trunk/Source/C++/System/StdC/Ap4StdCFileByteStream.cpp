@@ -331,6 +331,7 @@ AP4_FileByteStream::Create(const char*              name,
     return AP4_StdcFileByteStream::Create(NULL, name, mode, stream);
 }
 
+#if !defined(AP4_CONFIG_NO_EXCEPTIONS)
 /*----------------------------------------------------------------------
 |   AP4_FileByteStream::AP4_FileByteStream
 +---------------------------------------------------------------------*/
@@ -343,7 +344,7 @@ AP4_FileByteStream::AP4_FileByteStream(const char*              name,
     
     m_Delegate = stream;
 }
-
+#endif
 
 
 

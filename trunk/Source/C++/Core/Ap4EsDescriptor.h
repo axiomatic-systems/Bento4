@@ -59,6 +59,8 @@ const int AP4_ES_DESCRIPTOR_FLAG_OCR_STREAM        = 4;
 class AP4_EsDescriptor : public AP4_Descriptor
 {
  public:
+    AP4_IMPLEMENT_DYNAMIC_CAST_D(AP4_EsDescriptor, AP4_Descriptor)
+
     // methods
     AP4_EsDescriptor(AP4_UI16 es_id);
     AP4_EsDescriptor(AP4_ByteStream& stream, 
@@ -87,6 +89,8 @@ class AP4_EsDescriptor : public AP4_Descriptor
 class AP4_EsIdIncDescriptor : public AP4_Descriptor
 {
  public:
+    AP4_IMPLEMENT_DYNAMIC_CAST_D(AP4_EsIdIncDescriptor, AP4_Descriptor)
+
     // methods
     AP4_EsIdIncDescriptor(AP4_UI32 track_id);
     AP4_EsIdIncDescriptor(AP4_ByteStream& stream, 
@@ -109,6 +113,8 @@ class AP4_EsIdIncDescriptor : public AP4_Descriptor
 class AP4_EsIdRefDescriptor : public AP4_Descriptor
 {
  public:
+    AP4_IMPLEMENT_DYNAMIC_CAST_D(AP4_EsIdRefDescriptor, AP4_Descriptor)
+
     // methods
     AP4_EsIdRefDescriptor(AP4_UI16 ref_index);
     AP4_EsIdRefDescriptor(AP4_ByteStream& stream, 

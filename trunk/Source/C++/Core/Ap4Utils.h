@@ -36,7 +36,6 @@
 #include "Ap4Types.h"
 #include "Ap4Results.h"
 #include "Ap4Config.h"
-#include "Ap4Atom.h"
 
 /*----------------------------------------------------------------------
 |   non-inline functions
@@ -176,28 +175,6 @@ AP4_Result
 AP4_SplitArgs(char* arg, char*& arg0, char*& arg1, char*& arg2);
 AP4_Result
 AP4_SplitArgs(char* arg, char*& arg0, char*& arg1);
-
-/*----------------------------------------------------------------------
-|   AP4_PrintInspector
-+---------------------------------------------------------------------*/
-class AP4_PrintInspector : public AP4_AtomInspector {
-public:
-    AP4_PrintInspector(AP4_ByteStream& stream, AP4_Cardinal indent=0);
-    ~AP4_PrintInspector();
-
-    // methods
-    void StartElement(const char* name, const char* info);
-    void EndElement();
-    void AddField(const char* name, AP4_UI64 value, FormatHint hint);
-    void AddFieldF(const char* name, float value, FormatHint hint);
-    void AddField(const char* name, const char* value, FormatHint hint);
-    void AddField(const char* name, const unsigned char* bytes, AP4_Size size, FormatHint hint);
-
-private:
-    // members
-    AP4_ByteStream* m_Stream;
-    AP4_Cardinal    m_Indent;
-};
 
 
 #endif // _AP4_UTILS_H_

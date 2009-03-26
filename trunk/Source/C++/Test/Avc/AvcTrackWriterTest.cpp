@@ -209,7 +209,7 @@ CheckProtection(AP4_SampleDescription*& sample_description,
     // check if the sample description indicates an encrypted track
     if (sample_description->GetType() == AP4_SampleDescription::TYPE_PROTECTED) {
         AP4_ProtectedSampleDescription* prot_desc = 
-            dynamic_cast<AP4_ProtectedSampleDescription*>(sample_description);
+            AP4_DYNAMIC_CAST(AP4_ProtectedSampleDescription, sample_description);
             
         printf("INFO: track %d is encrypted\n", track_id);
         // check that we have a key
@@ -296,19 +296,21 @@ main(int argc, char** argv)
         return 1;
     }
     
+    AP4_Result result;
     AP4_ByteStream* input = NULL;
-    try {
-        input = new AP4_FileByteStream(input_filename,
-                               AP4_FileByteStream::STREAM_MODE_READ);
-    } catch (AP4_Exception) {
+    result = AP4_FileByteStream::Create(input_filename, AP4_FileByteStream::STREAM_MODE_READ, input);
+    if (AP4_FAILED(result)) {
         fprintf(stderr, "ERROR: cannot open input file (%s)\n", input_filename);
         return 1;
     }
     
     // open the output
-    AP4_ByteStream* output = new AP4_FileByteStream(
-        output_filename,
-        AP4_FileByteStream::STREAM_MODE_WRITE);
+    AP4_ByteStream* output = NULL;
+    result = AP4_FileByteStream::Create(output_filename, AP4_FileByteStream::STREAM_MODE_WRITE, output);
+    if (AP4_FAILED(result)) {
+        fprintf(stderr, "ERROR: cannot open output file (%s)\n", output_filename);
+        return 1;
+    }
     
     // get the movie
     AP4_File* input_file = new AP4_File(*input);
@@ -344,7 +346,7 @@ main(int argc, char** argv)
         fprintf(stderr, "ERROR: wrong type for sample description\n");
         return 1;
     }
-    AP4_AvcSampleDescription* avc_desc = dynamic_cast<AP4_AvcSampleDescription*>(sample_description);
+    AP4_AvcSampleDescription* avc_desc = AP4_DYNAMIC_CAST(AP4_AvcSampleDescription, sample_description);
     AP4_SyntheticSampleTable* video_sample_table = new AP4_SyntheticSampleTable();
     video_sample_table->AddSampleDescription(new AP4_AvcSampleDescription(
         avc_desc->GetWidth(),
@@ -399,7 +401,7 @@ main(int argc, char** argv)
         fprintf(stderr, "ERROR: wrong type for sample description\n");
         return 1;
     }
-    AP4_MpegAudioSampleDescription* mpg_desc = dynamic_cast<AP4_MpegAudioSampleDescription*>(sample_description);
+    AP4_MpegAudioSampleDescription* mpg_desc = AP4_DYNAMIC_CAST(AP4_MpegAudioSampleDescription, sample_description);
     AP4_SyntheticSampleTable* audio_sample_table = new AP4_SyntheticSampleTable();
     audio_sample_table->AddSampleDescription(new AP4_MpegAudioSampleDescription(
         mpg_desc->GetObjectTypeId(),

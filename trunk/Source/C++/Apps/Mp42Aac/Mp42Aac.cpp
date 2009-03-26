@@ -106,7 +106,7 @@ DecryptAndWriteSamples(AP4_Track*             track,
                        AP4_Byte*              key, 
                        AP4_ByteStream*        output)
 {
-    AP4_ProtectedSampleDescription* pdesc = dynamic_cast<AP4_ProtectedSampleDescription*>(sdesc);
+    AP4_ProtectedSampleDescription* pdesc = AP4_DYNAMIC_CAST(AP4_ProtectedSampleDescription, sdesc);
     if (pdesc == NULL) {
         fprintf(stderr, "ERROR: unable to obtain cipher info\n");
         return;
@@ -162,6 +162,7 @@ main(int argc, char** argv)
     }
     
     // parse command line
+    AP4_Result result;
     char** args = argv+1;
     unsigned char key[16];
     bool          key_option = false;
@@ -179,14 +180,18 @@ main(int argc, char** argv)
     }
 
 	// create the input stream
-    AP4_ByteStream* input = 
-        new AP4_FileByteStream(*args++,
-                               AP4_FileByteStream::STREAM_MODE_READ);
-
+    AP4_ByteStream* input = NULL;
+    result = AP4_FileByteStream::Create(*args++, AP4_FileByteStream::STREAM_MODE_READ, input);
+    if (AP4_FAILED(result)) {
+        fprintf(stderr, "ERROR: cannot open input (%d)\n", result);
+    }
+    
 	// create the output stream
-    AP4_ByteStream* output =
-        new AP4_FileByteStream(*args++,
-                               AP4_FileByteStream::STREAM_MODE_WRITE);
+    AP4_ByteStream* output = NULL;
+    result = AP4_FileByteStream::Create(*args++, AP4_FileByteStream::STREAM_MODE_WRITE, output);
+    if (AP4_FAILED(result)) {
+        fprintf(stderr, "ERROR: cannot open output (%d)\n", result);
+    }
 
 	// open the file
     AP4_File* input_file = new AP4_File(*input);   

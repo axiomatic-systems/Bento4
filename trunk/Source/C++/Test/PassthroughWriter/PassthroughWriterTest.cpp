@@ -133,19 +133,21 @@ main(int argc, char** argv)
     const char* output_filename = argv[2];
     
     // open the input
+    AP4_Result result;
     AP4_ByteStream* input = NULL;
-    try {
-        input = new AP4_FileByteStream(input_filename,
-                               AP4_FileByteStream::STREAM_MODE_READ);
-    } catch (AP4_Exception) {
+    result = AP4_FileByteStream::Create(input_filename, AP4_FileByteStream::STREAM_MODE_READ, input);
+    if (AP4_FAILED(result)) {
         fprintf(stderr, "ERROR: cannot open input file (%s)\n", input_filename);
         return 1;
     }
     
     // open the output
-    AP4_ByteStream* output = new AP4_FileByteStream(
-        output_filename,
-        AP4_FileByteStream::STREAM_MODE_WRITE);
+    AP4_ByteStream* output = NULL;
+    result = AP4_FileByteStream::Create(output_filename, AP4_FileByteStream::STREAM_MODE_WRITE, output);
+    if (AP4_FAILED(result)) {
+        fprintf(stderr, "ERROR: cannot open output file (%s)\n", output_filename);
+        return 1;
+    }
     
     // get the movie
     AP4_File* input_file = new AP4_File(*input);

@@ -39,6 +39,13 @@
 static const unsigned int AP4_ATOM_MAX_CLONE_SIZE = 1048576; // 1 meg
 
 /*----------------------------------------------------------------------
+|   dynamic cast support
++---------------------------------------------------------------------*/
+AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_Atom)
+AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_AtomParent)
+AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_NullTerminatedStringAtom)
+
+/*----------------------------------------------------------------------
 |   AP4_Atom::TypeFromString
 +---------------------------------------------------------------------*/
 AP4_Atom::Type
@@ -232,7 +239,7 @@ AP4_Atom::Write(AP4_ByteStream& stream)
             name[5] = ']';
             name[6] = '\0';
             AP4_Debug("       while writing %s\n", name);
-            atom = dynamic_cast<AP4_Atom*>(atom->GetParent());
+            atom = AP4_DYNAMIC_CAST(AP4_Atom, atom->GetParent());
         }
         AP4_ASSERT(after-before == atom_size);
     }
@@ -649,7 +656,7 @@ AP4_AtomParent::FindChild(const char* path,
         if (tail) {
             path = tail;
             // if this atom is an atom parent, recurse
-            parent = dynamic_cast<AP4_ContainerAtom*>(atom);
+            parent = AP4_DYNAMIC_CAST(AP4_ContainerAtom, atom);
             if (parent == NULL) return NULL;
         } else {
             return atom;
@@ -693,3 +700,145 @@ AP4_AtomListWriter::Action(AP4_Atom* atom) const
 
     return AP4_SUCCESS;
 }
+
+/*----------------------------------------------------------------------
+|   AP4_MakePrefixString
++---------------------------------------------------------------------*/
+static void
+AP4_MakePrefixString(unsigned int indent, char* prefix, AP4_Size size)
+{
+    if (size == 0) return;
+    if (indent >= size-1) indent = size-1;
+    for (unsigned int i=0; i<indent; i++) {
+        prefix[i] = ' ';
+    }
+    prefix[indent] = '\0';    
+}
+
+/*----------------------------------------------------------------------
+|   AP4_PrintInspector::AP4_PrintInspector
++---------------------------------------------------------------------*/
+    AP4_PrintInspector::AP4_PrintInspector(AP4_ByteStream& stream, AP4_Cardinal indent) :
+    m_Stream(&stream),
+    m_Indent(indent)
+{
+    m_Stream->AddReference();
+}
+
+/*----------------------------------------------------------------------
+|   AP4_PrintInspector::~AP4_PrintInspector
++---------------------------------------------------------------------*/
+AP4_PrintInspector::~AP4_PrintInspector()
+{
+    m_Stream->Release();
+}
+
+/*----------------------------------------------------------------------
+|   AP4_PrintInspector::StartElement
++---------------------------------------------------------------------*/
+void
+AP4_PrintInspector::StartElement(const char* name, const char* info)
+{
+    char prefix[256];
+    AP4_MakePrefixString(m_Indent, prefix, sizeof(prefix));
+    m_Stream->WriteString(prefix);
+    m_Stream->WriteString(name);
+    if (info) {
+        m_Stream->Write(" ", 1);
+        m_Stream->WriteString(info);
+    }
+    m_Stream->Write("\n", 1);
+
+    m_Indent += 2;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_PrintInspector::EndElement
++---------------------------------------------------------------------*/
+void
+AP4_PrintInspector::EndElement()
+{
+    m_Indent -= 2;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_PrintInspector::AddField
++---------------------------------------------------------------------*/
+void
+AP4_PrintInspector::AddField(const char* name, const char* value, FormatHint)
+{
+    char prefix[256];
+    AP4_MakePrefixString(m_Indent, prefix, sizeof(prefix));
+    m_Stream->WriteString(prefix);
+    
+    m_Stream->WriteString(name);
+    m_Stream->WriteString(" = ");
+    m_Stream->WriteString(value);
+    m_Stream->Write("\n", 1);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_PrintInspector::AddField
++---------------------------------------------------------------------*/
+void
+AP4_PrintInspector::AddField(const char* name, AP4_UI64 value, FormatHint hint)
+{
+    char prefix[256];
+    AP4_MakePrefixString(m_Indent, prefix, sizeof(prefix));
+    m_Stream->WriteString(prefix);
+
+    char str[32];
+    AP4_FormatString(str, sizeof(str), 
+                     hint == HINT_HEX ? "%llx":"%lld", 
+                     value);
+    m_Stream->WriteString(name);
+    m_Stream->WriteString(" = ");
+    m_Stream->WriteString(str);
+    m_Stream->Write("\n", 1);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_PrintInspector::AddFieldF
++---------------------------------------------------------------------*/
+void
+AP4_PrintInspector::AddFieldF(const char* name, float value, FormatHint /*hint*/)
+{
+    char prefix[256];
+    AP4_MakePrefixString(m_Indent, prefix, sizeof(prefix));
+    m_Stream->WriteString(prefix);
+
+    char str[32];
+    AP4_FormatString(str, sizeof(str), 
+                     "%f", 
+                     value);
+    m_Stream->WriteString(name);
+    m_Stream->WriteString(" = ");
+    m_Stream->WriteString(str);
+    m_Stream->Write("\n", 1);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_PrintInspector::AddField
++---------------------------------------------------------------------*/
+void
+AP4_PrintInspector::AddField(const char*          name, 
+                             const unsigned char* bytes, 
+                             AP4_Size             byte_count,
+                             FormatHint           /* hint */)
+{
+    char prefix[256];
+    AP4_MakePrefixString(m_Indent, prefix, sizeof(prefix));
+    m_Stream->WriteString(prefix);
+
+    m_Stream->WriteString(name);
+    m_Stream->WriteString(" = [");
+    unsigned int offset = 1;
+    char byte[4];
+    for (unsigned int i=0; i<byte_count; i++) {
+        AP4_FormatString(byte, 4, " %02x", bytes[i]);
+        m_Stream->Write(&byte[offset], 3-offset);
+        offset = 0;
+    }
+    m_Stream->Write("]\n", 2);
+}
+

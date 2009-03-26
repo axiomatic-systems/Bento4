@@ -42,6 +42,8 @@
 class AP4_OddaAtom : public AP4_Atom
 {
 public:
+    AP4_IMPLEMENT_DYNAMIC_CAST_D(AP4_OddaAtom, AP4_Atom)
+
     // class methods
     static AP4_OddaAtom* Create(AP4_UI64        size, 
                                 AP4_ByteStream& stream);

@@ -32,6 +32,13 @@
 #include "Ap4ObjectDescriptor.h"
 #include "Ap4DescriptorFactory.h"
 #include "Ap4Utils.h"
+#include "Ap4Atom.h"
+
+/*----------------------------------------------------------------------
+|   dynamic cast support
++---------------------------------------------------------------------*/
+AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_ObjectDescriptor)
+AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_DescriptorUpdateCommand)
 
 /*----------------------------------------------------------------------
 |   AP4_ObjectDescriptor::AP4_ObjectDescriptor
@@ -106,7 +113,7 @@ AP4_ObjectDescriptor::~AP4_ObjectDescriptor()
 /*----------------------------------------------------------------------
 |   AP4_ObjectDescriptor::FindSubDescriptor
 +---------------------------------------------------------------------*/
-const AP4_Descriptor* 
+AP4_Descriptor* 
 AP4_ObjectDescriptor::FindSubDescriptor(AP4_UI08 tag) const
 {
     AP4_Descriptor* descriptor = NULL;

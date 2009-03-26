@@ -40,6 +40,7 @@
 #define AP4_RELEASE(o) do { if (o) (o)->Release(); (o) = NULL; } while (0)
 #define AP4_ADD_REFERENCE(o) do { if (o) (o)->AddReference(); } while (0)
 
+#if !defined(AP4_CONFIG_NO_EXCEPTIONS)
 /*----------------------------------------------------------------------
 |   AP4_Exception
 +---------------------------------------------------------------------*/
@@ -52,6 +53,7 @@ public:
     // members
     AP4_Result m_Error;
 };
+#endif
 
 /*----------------------------------------------------------------------
 |   AP4_Referenceable

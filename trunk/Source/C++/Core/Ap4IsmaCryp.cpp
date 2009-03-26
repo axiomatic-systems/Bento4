@@ -72,11 +72,11 @@ AP4_IsmaCipher::CreateSampleDecrypter(AP4_ProtectedSampleDescription* sample_des
     if (schi == NULL) return AP4_ERROR_INVALID_FORMAT;
 
     // get the cipher params
-    AP4_IsfmAtom* isfm = dynamic_cast<AP4_IsfmAtom*>(schi->FindChild("iSFM"));
+    AP4_IsfmAtom* isfm = AP4_DYNAMIC_CAST(AP4_IsfmAtom, schi->FindChild("iSFM"));
     if (isfm == NULL) return AP4_ERROR_INVALID_FORMAT;
     
     // get the salt
-    AP4_IsltAtom* salt = dynamic_cast<AP4_IsltAtom*>(schi->FindChild("iSLT"));
+    AP4_IsltAtom* salt = AP4_DYNAMIC_CAST(AP4_IsltAtom, schi->FindChild("iSLT"));
 
     // instantiate the decrypter
     decrypter = new AP4_IsmaCipher(block_cipher, 
@@ -442,8 +442,7 @@ AP4_Processor::TrackHandler*
 AP4_IsmaEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
 {
     // find the stsd atom
-    AP4_StsdAtom* stsd = dynamic_cast<AP4_StsdAtom*>(
-        trak->FindChild("mdia/minf/stbl/stsd"));
+    AP4_StsdAtom* stsd = AP4_DYNAMIC_CAST(AP4_StsdAtom, trak->FindChild("mdia/minf/stbl/stsd"));
 
     // avoid tracks with no stsd atom (should not happen)
     if (stsd == NULL) return NULL;

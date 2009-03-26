@@ -263,28 +263,25 @@ main(int argc, char** argv)
     }
 
     // create the input stream
-    AP4_ByteStream* input;
-    try{
-        input = new AP4_FileByteStream(input_filename,
-            AP4_FileByteStream::STREAM_MODE_READ);
-    } catch (AP4_Exception) {
+    AP4_Result result;
+    AP4_ByteStream* input = NULL;
+    result = AP4_FileByteStream::Create(input_filename, AP4_FileByteStream::STREAM_MODE_READ, input);
+    if (AP4_FAILED(result)) {
         fprintf(stderr, "ERROR: cannot open input file (%s)\n", input_filename);
         return 1;
     }
 
     // create the output stream
-    AP4_ByteStream* output;
-    try {
-        output = new AP4_FileByteStream(output_filename,
-            AP4_FileByteStream::STREAM_MODE_WRITE);
-    } catch (AP4_Exception) {
+    AP4_ByteStream* output = NULL;
+    result = AP4_FileByteStream::Create(output_filename, AP4_FileByteStream::STREAM_MODE_WRITE, output);
+    if (AP4_FAILED(result)) {
         fprintf(stderr, "ERROR: cannot open output file (%s)\n", output_filename);
         return 1;
     }
 
     // process/decrypt the file
     ProgressListener listener;
-    AP4_Result result = processor->Process(*input, *output, show_progress?&listener:NULL);
+    result = processor->Process(*input, *output, show_progress?&listener:NULL);
     if (AP4_FAILED(result)) {
         fprintf(stderr, "ERROR: failed to process the file (%d)\n", result);
     }

@@ -31,6 +31,7 @@
 +---------------------------------------------------------------------*/
 #include "Ap4Types.h"
 #include "Ap4ByteStream.h"
+#include "Ap4Config.h"
 
 #ifndef _AP4_FILE_BYTE_STREAM_H_
 #define _AP4_FILE_BYTE_STREAM_H_
@@ -63,10 +64,12 @@ public:
     // constructors
     AP4_FileByteStream(AP4_ByteStream* delegate) : m_Delegate(delegate) {}
     
+#if !defined(AP4_CONFIG_NO_EXCEPTIONS)
     /**
      * @deprecated
      */
     AP4_FileByteStream(const char* name, Mode mode);
+#endif
 
     // AP4_ByteStream methods
     AP4_Result ReadPartial(void*    buffer, 

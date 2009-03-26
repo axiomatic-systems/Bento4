@@ -56,6 +56,8 @@ const AP4_UI08 AP4_DESCRIPTOR_TAG_MP4_IOD = 0x10;
 class AP4_ObjectDescriptor : public AP4_Descriptor
 {
  public:
+    AP4_IMPLEMENT_DYNAMIC_CAST_D(AP4_ObjectDescriptor, AP4_Descriptor)
+
     // methods
     AP4_ObjectDescriptor(AP4_ByteStream& stream, 
                          AP4_UI08        tag,
@@ -70,7 +72,7 @@ class AP4_ObjectDescriptor : public AP4_Descriptor
      */ 
     virtual AP4_Result AddSubDescriptor(AP4_Descriptor* descriptor);
     
-    virtual const AP4_Descriptor* FindSubDescriptor(AP4_UI08 tag) const;
+    virtual AP4_Descriptor* FindSubDescriptor(AP4_UI08 tag) const;
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
     virtual AP4_Result Inspect(AP4_AtomInspector& inspector);
 
@@ -141,6 +143,8 @@ class AP4_InitialObjectDescriptor : public AP4_ObjectDescriptor
 class AP4_DescriptorUpdateCommand : public AP4_Command
 {
  public:
+    AP4_IMPLEMENT_DYNAMIC_CAST_D(AP4_DescriptorUpdateCommand, AP4_Command)
+
     // methods
     AP4_DescriptorUpdateCommand(AP4_UI08 tag);
     AP4_DescriptorUpdateCommand(AP4_ByteStream& stream, 

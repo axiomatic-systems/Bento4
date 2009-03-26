@@ -46,6 +46,11 @@
 #include "Ap4Utils.h"
 
 /*----------------------------------------------------------------------
+|   dynamic cast support
++---------------------------------------------------------------------*/
+AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_TrakAtom)
+
+/*----------------------------------------------------------------------
 |   AP4_TrakAtom::AP4_TrakAtom
 +---------------------------------------------------------------------*/
 AP4_TrakAtom::AP4_TrakAtom(AP4_SampleTable* sample_table,
@@ -148,8 +153,8 @@ AP4_TrakAtom::AP4_TrakAtom(AP4_UI32         size,
                            AP4_AtomFactory& atom_factory) :
     AP4_ContainerAtom(AP4_ATOM_TYPE_TRAK, size, false, stream, atom_factory)
 {
-    m_TkhdAtom = dynamic_cast<AP4_TkhdAtom*>(FindChild("tkhd"));
-    m_MdhdAtom = dynamic_cast<AP4_MdhdAtom*>(FindChild("mdia/mdhd"));
+    m_TkhdAtom = AP4_DYNAMIC_CAST(AP4_TkhdAtom, FindChild("tkhd"));
+    m_MdhdAtom = AP4_DYNAMIC_CAST(AP4_MdhdAtom, FindChild("mdia/mdhd"));
 }
 
 /*----------------------------------------------------------------------
@@ -298,10 +303,10 @@ AP4_TrakAtom::AdjustChunkOffsets(AP4_SI64 delta)
 {
     AP4_Atom* atom;
     if ((atom = FindChild("mdia/minf/stbl/stco"))) {    
-        AP4_StcoAtom* stco = dynamic_cast<AP4_StcoAtom*>(atom);
+        AP4_StcoAtom* stco = AP4_DYNAMIC_CAST(AP4_StcoAtom, atom);
         return stco->AdjustChunkOffsets((int)delta);
     } else if ((atom = FindChild("mdia/minf/stbl/co64"))) {
-        AP4_Co64Atom* co64 = dynamic_cast<AP4_Co64Atom*>(atom);
+        AP4_Co64Atom* co64 = AP4_DYNAMIC_CAST(AP4_Co64Atom, atom);
         return co64->AdjustChunkOffsets(delta);
     } else {
         return AP4_ERROR_INVALID_STATE;
@@ -316,7 +321,7 @@ AP4_TrakAtom::GetChunkOffsets(AP4_Array<AP4_UI64>& chunk_offsets)
 {
     AP4_Atom* atom;
     if ((atom = FindChild("mdia/minf/stbl/stco"))) {
-        AP4_StcoAtom* stco = dynamic_cast<AP4_StcoAtom*>(atom);
+        AP4_StcoAtom* stco = AP4_DYNAMIC_CAST(AP4_StcoAtom, atom);
         if (stco == NULL) return AP4_ERROR_INTERNAL;
         AP4_Cardinal    stco_chunk_count   = stco->GetChunkCount();
         const AP4_UI32* stco_chunk_offsets = stco->GetChunkOffsets();
@@ -326,7 +331,7 @@ AP4_TrakAtom::GetChunkOffsets(AP4_Array<AP4_UI64>& chunk_offsets)
         }
         return AP4_SUCCESS;
     } else if ((atom = FindChild("mdia/minf/stbl/co64"))) {
-        AP4_Co64Atom* co64 = dynamic_cast<AP4_Co64Atom*>(atom);
+        AP4_Co64Atom* co64 = AP4_DYNAMIC_CAST(AP4_Co64Atom, atom);
         if (co64 == NULL) return AP4_ERROR_INTERNAL;
         AP4_Cardinal    co64_chunk_count   = co64->GetChunkCount();
         const AP4_UI64* co64_chunk_offsets = co64->GetChunkOffsets();
@@ -348,7 +353,7 @@ AP4_TrakAtom::SetChunkOffsets(const AP4_Array<AP4_UI64>& chunk_offsets)
 {
     AP4_Atom* atom;
     if ((atom = FindChild("mdia/minf/stbl/stco"))) {
-        AP4_StcoAtom* stco = dynamic_cast<AP4_StcoAtom*>(atom);
+        AP4_StcoAtom* stco = AP4_DYNAMIC_CAST(AP4_StcoAtom, atom);
         if (stco == NULL) return AP4_ERROR_INTERNAL;
         AP4_Cardinal stco_chunk_count   = stco->GetChunkCount();
         AP4_UI32*    stco_chunk_offsets = stco->GetChunkOffsets();
@@ -360,7 +365,7 @@ AP4_TrakAtom::SetChunkOffsets(const AP4_Array<AP4_UI64>& chunk_offsets)
         }
         return AP4_SUCCESS;
     } else if ((atom = FindChild("mdia/minf/stbl/co64"))) {
-        AP4_Co64Atom* co64 = dynamic_cast<AP4_Co64Atom*>(atom);
+        AP4_Co64Atom* co64 = AP4_DYNAMIC_CAST(AP4_Co64Atom, atom);
         if (co64 == NULL) return AP4_ERROR_INTERNAL;
         AP4_Cardinal co64_chunk_count   = co64->GetChunkCount();
         AP4_UI64*    co64_chunk_offsets = co64->GetChunkOffsets();

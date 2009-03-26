@@ -32,6 +32,13 @@
 #include "Ap4Utils.h"
 #include "Ap4ByteStream.h"
 #include "Ap4Ipmp.h"
+#include "Ap4Atom.h"
+
+/*----------------------------------------------------------------------
+|   dynamic cast support
++---------------------------------------------------------------------*/
+AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_IpmpDescriptor)
+AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_IpmpDescriptorPointer)
 
 /*----------------------------------------------------------------------
 |   AP4_IpmpDescriptorPointer::AP4_IpmpDescriptorPointer

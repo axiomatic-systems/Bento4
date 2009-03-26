@@ -41,6 +41,8 @@
 class AP4_IsltAtom : public AP4_Atom
 {
 public:
+    AP4_IMPLEMENT_DYNAMIC_CAST_D(AP4_IsltAtom, AP4_Atom)
+
     // class methods
     static AP4_IsltAtom* Create(AP4_Size size, AP4_ByteStream& stream) {
         if (size != AP4_ATOM_HEADER_SIZE+8) return NULL;

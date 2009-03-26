@@ -71,12 +71,12 @@ AP4_File::AP4_File(AP4_ByteStream&  stream,
         AddChild(atom);
         switch (atom->GetType()) {
             case AP4_ATOM_TYPE_MOOV:
-                m_Movie = new AP4_Movie(dynamic_cast<AP4_MoovAtom*>(atom), stream, false);
+                m_Movie = new AP4_Movie(AP4_DYNAMIC_CAST(AP4_MoovAtom, atom), stream, false);
                 if (moov_only) keep_parsing = false;
                 break;
 
             case AP4_ATOM_TYPE_FTYP:
-                m_FileType = dynamic_cast<AP4_FtypAtom*>(atom);
+                m_FileType = AP4_DYNAMIC_CAST(AP4_FtypAtom, atom);
                 break;
 
             case AP4_ATOM_TYPE_MDAT:

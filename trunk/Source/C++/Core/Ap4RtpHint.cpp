@@ -217,8 +217,7 @@ AP4_RtpPacket::AP4_RtpPacket(AP4_ByteStream& stream) :
         stream.ReadUI32(extra_length);
 
         // check it 
-        if (extra_length < 4) 
-            throw AP4_Exception(AP4_ERROR_INVALID_RTP_PACKET_EXTRA_DATA);
+        if (extra_length < 4) return;
 
         // now read the entries
         extra_length -= 4;
@@ -229,9 +228,7 @@ AP4_RtpPacket::AP4_RtpPacket(AP4_ByteStream& stream) :
             stream.ReadUI32(entry_tag);
 
             // check the entry
-            if (entry_length < 8) {
-                throw AP4_Exception(AP4_ERROR_INVALID_RTP_PACKET_EXTRA_DATA);
-            }
+            if (entry_length < 8) return;
 
             // parse the single entry that's currently defined in the spec
             if (entry_tag == AP4_ATOM_TYPE('r','t','p','o') && entry_length == 12) {

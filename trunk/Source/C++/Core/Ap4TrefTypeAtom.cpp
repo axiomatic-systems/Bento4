@@ -32,6 +32,11 @@
 #include "Ap4TrefTypeAtom.h"
 
 /*----------------------------------------------------------------------
+|   dynamic cast support
++---------------------------------------------------------------------*/
+AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_TrefTypeAtom)
+
+/*----------------------------------------------------------------------
 |   AP4_TrefTypeAtom::AP4_TrefTypeAtom
 +---------------------------------------------------------------------*/
 AP4_TrefTypeAtom::AP4_TrefTypeAtom(AP4_Atom::Type  type) :

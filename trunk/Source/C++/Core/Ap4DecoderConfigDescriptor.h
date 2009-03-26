@@ -53,6 +53,8 @@ const AP4_UI08 AP4_DESCRIPTOR_TAG_DECODER_CONFIG = 0x04;
 class AP4_DecoderConfigDescriptor : public AP4_Descriptor
 {
  public:
+    AP4_IMPLEMENT_DYNAMIC_CAST_D(AP4_DecoderConfigDescriptor, AP4_Descriptor)
+
     // methods
     AP4_DecoderConfigDescriptor(AP4_UI08 stream_type,
                                 AP4_UI08 oti,

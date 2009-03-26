@@ -69,13 +69,13 @@ AP4_OmaDcfAtomDecrypter::DecryptAtoms(AP4_AtomParent&                  atoms,
         if (key == NULL) return AP4_ERROR_INVALID_PARAMETERS;
         
         // check that we have all the atoms we need
-        AP4_ContainerAtom* odrm = dynamic_cast<AP4_ContainerAtom*>(atom);
+        AP4_ContainerAtom* odrm = AP4_DYNAMIC_CAST(AP4_ContainerAtom, atom);
         if (odrm == NULL) continue; // not enough info
-        AP4_OdheAtom* odhe = dynamic_cast<AP4_OdheAtom*>(odrm->GetChild(AP4_ATOM_TYPE_ODHE));
+        AP4_OdheAtom* odhe = AP4_DYNAMIC_CAST(AP4_OdheAtom, odrm->GetChild(AP4_ATOM_TYPE_ODHE));
         if (odhe == NULL) continue; // not enough info    
-        AP4_OddaAtom* odda = dynamic_cast<AP4_OddaAtom*>(odrm->GetChild(AP4_ATOM_TYPE_ODDA));;
+        AP4_OddaAtom* odda = AP4_DYNAMIC_CAST(AP4_OddaAtom, odrm->GetChild(AP4_ATOM_TYPE_ODDA));;
         if (odda == NULL) continue; // not enough info
-        AP4_OhdrAtom* ohdr = dynamic_cast<AP4_OhdrAtom*>(odhe->GetChild(AP4_ATOM_TYPE_OHDR));
+        AP4_OhdrAtom* ohdr = AP4_DYNAMIC_CAST(AP4_OhdrAtom, odhe->GetChild(AP4_ATOM_TYPE_OHDR));
         if (ohdr == NULL) continue; // not enough info
 
         // do nothing if the atom is not encrypted
@@ -118,11 +118,11 @@ AP4_OmaDcfAtomDecrypter::CreateDecryptingStream(
     // default return values
     stream = NULL;
     
-    AP4_OdheAtom* odhe = dynamic_cast<AP4_OdheAtom*>(odrm.GetChild(AP4_ATOM_TYPE_ODHE));
+    AP4_OdheAtom* odhe = AP4_DYNAMIC_CAST(AP4_OdheAtom, odrm.GetChild(AP4_ATOM_TYPE_ODHE));
     if (odhe == NULL) return AP4_ERROR_INVALID_FORMAT;
-    AP4_OddaAtom* odda = dynamic_cast<AP4_OddaAtom*>(odrm.GetChild(AP4_ATOM_TYPE_ODDA));;
+    AP4_OddaAtom* odda = AP4_DYNAMIC_CAST(AP4_OddaAtom, odrm.GetChild(AP4_ATOM_TYPE_ODDA));;
     if (odda == NULL) return AP4_ERROR_INVALID_FORMAT;
-    AP4_OhdrAtom* ohdr = dynamic_cast<AP4_OhdrAtom*>(odhe->GetChild(AP4_ATOM_TYPE_OHDR));
+    AP4_OhdrAtom* ohdr = AP4_DYNAMIC_CAST(AP4_OhdrAtom, odhe->GetChild(AP4_ATOM_TYPE_OHDR));
     if (ohdr == NULL) return AP4_ERROR_INVALID_FORMAT;
     
     // shortcut for non-encrypted files
@@ -135,7 +135,7 @@ AP4_OmaDcfAtomDecrypter::CreateDecryptingStream(
     // if this is part of a group, use the group key to obtain the content
     // key (note that the field called GroupKey in the spec is actually not
     // the group key but the content key encrypted with the group key...
-    AP4_GrpiAtom* grpi = dynamic_cast<AP4_GrpiAtom*>(ohdr->GetChild(AP4_ATOM_TYPE_GRPI));
+    AP4_GrpiAtom* grpi = AP4_DYNAMIC_CAST(AP4_GrpiAtom, ohdr->GetChild(AP4_ATOM_TYPE_GRPI));
     AP4_UI08*     key_buffer = NULL;
     if (grpi) {
         // sanity check on the encrypted key size
@@ -314,14 +314,14 @@ AP4_OmaDcfSampleDecrypter::Create(AP4_ProtectedSampleDescription* sample_descrip
     // get and check the cipher params
     // NOTE: we only support an IV Length less than or equal to the cipher block size, 
     // and we don't know how to deal with a key indicator length != 0
-    AP4_OdafAtom* odaf = dynamic_cast<AP4_OdafAtom*>(schi->FindChild("odkm/odaf"));
+    AP4_OdafAtom* odaf = AP4_DYNAMIC_CAST(AP4_OdafAtom, schi->FindChild("odkm/odaf"));
     if (odaf) {
         if (odaf->GetIvLength() > AP4_CIPHER_BLOCK_SIZE) return AP4_ERROR_INVALID_FORMAT;
         if (odaf->GetKeyIndicatorLength() != 0) return AP4_ERROR_INVALID_FORMAT;
     }
 
     // check the scheme details and create the cipher
-    AP4_OhdrAtom* ohdr = dynamic_cast<AP4_OhdrAtom*>(schi->FindChild("odkm/ohdr"));
+    AP4_OhdrAtom* ohdr = AP4_DYNAMIC_CAST(AP4_OhdrAtom, schi->FindChild("odkm/ohdr"));
     if (ohdr == NULL) return AP4_ERROR_INVALID_FORMAT;
     AP4_UI08 encryption_method = ohdr->GetEncryptionMethod();
     if (encryption_method == AP4_OMA_DCF_ENCRYPTION_METHOD_AES_CBC) {
@@ -981,7 +981,7 @@ AP4_OmaDcfDecryptingProcessor::Initialize(AP4_AtomParent&   top_level,
                                           ProgressListener* listener)
 {
     // decide which processor to instantiate based on the file type
-    AP4_FtypAtom* ftyp = dynamic_cast<AP4_FtypAtom*>(top_level.GetChild(AP4_ATOM_TYPE_FTYP));
+    AP4_FtypAtom* ftyp = AP4_DYNAMIC_CAST(AP4_FtypAtom, top_level.GetChild(AP4_ATOM_TYPE_FTYP));
     if (ftyp) {
         if (ftyp->GetMajorBrand() == AP4_OMA_DCF_BRAND_ODCF || ftyp->HasCompatibleBrand(AP4_OMA_DCF_BRAND_ODCF)) {
             return AP4_OmaDcfAtomDecrypter::DecryptAtoms(top_level, listener, m_BlockCipherFactory, m_KeyMap);
@@ -1015,7 +1015,7 @@ AP4_OmaDcfEncryptingProcessor::Initialize(AP4_AtomParent&                  top_l
                                           AP4_ByteStream&                  /*stream*/,
                                           AP4_Processor::ProgressListener* /*listener*/)
 {
-    AP4_FtypAtom* ftyp = dynamic_cast<AP4_FtypAtom*>(top_level.GetChild(AP4_ATOM_TYPE_FTYP));
+    AP4_FtypAtom* ftyp = AP4_DYNAMIC_CAST(AP4_FtypAtom, top_level.GetChild(AP4_ATOM_TYPE_FTYP));
     if (ftyp) {
         // remove the atom, it will be replaced with a new one
         top_level.RemoveChild(ftyp);
@@ -1055,8 +1055,7 @@ AP4_Processor::TrackHandler*
 AP4_OmaDcfEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
 {
     // find the stsd atom
-    AP4_StsdAtom* stsd = dynamic_cast<AP4_StsdAtom*>(
-        trak->FindChild("mdia/minf/stbl/stsd"));
+    AP4_StsdAtom* stsd = AP4_DYNAMIC_CAST(AP4_StsdAtom, trak->FindChild("mdia/minf/stbl/stsd"));
 
     // avoid tracks with no stsd atom (should not happen)
     if (stsd == NULL) return NULL;

@@ -112,12 +112,15 @@ def Executable(name,
         target_name = name
         
     if shared_lib:
-        exe = environment.LoadableModule(target_name,
-                                         sources,
-                                         LIBS=libs, CPPPATH=cpp_path, SHLIBPREFIX='')
+        if env['target'] == 'universal-apple-macosx':
+            func = environment.LoadableModule
+        else:
+            func = environment.SharedLibrary
+        exe = func(target_name, sources,
+                   LIBS=libs, CPPPATH=cpp_path, SHLIBPREFIX='')
     else:
         exe = environment.Program(target_name, 
-                                  sources, 
+                                  sources + environment['AP4_EXTRA_EXECUTABLE_OBJECTS'], 
                                   LIBS=libs, CPPPATH=cpp_path)
     #environment.Alias(name, exe)
     
@@ -126,6 +129,7 @@ def Executable(name,
 #######################################################
 Import("env")
 SOURCE_ROOT='Source'
+env['AP4_EXTRA_EXECUTABLE_OBJECTS'] = []
 
 ### try to read in any target specific configuration
 target_config_file = env.GetBuildPath('#/Build/Targets/'+env['target']+'/Config.scons')

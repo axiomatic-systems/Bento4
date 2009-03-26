@@ -32,6 +32,15 @@
 #include "Ap4EsDescriptor.h"
 #include "Ap4DescriptorFactory.h"
 #include "Ap4Utils.h"
+#include "Ap4ByteStream.h"
+#include "Ap4Atom.h"
+
+/*----------------------------------------------------------------------
+|   dynamic cast support
++---------------------------------------------------------------------*/
+AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_EsDescriptor)
+AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_EsIdIncDescriptor)
+AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_EsIdRefDescriptor)
 
 /*----------------------------------------------------------------------
 |   AP4_EsDescriptor::AP4_EsDescriptor
@@ -197,7 +206,7 @@ AP4_EsDescriptor::GetDecoderConfigDescriptor() const
     
     // return it
     if (AP4_SUCCEEDED(result)) {
-        return dynamic_cast<AP4_DecoderConfigDescriptor*>(descriptor);
+        return AP4_DYNAMIC_CAST(AP4_DecoderConfigDescriptor, descriptor);
     } else {
         return NULL;
     }

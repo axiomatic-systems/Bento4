@@ -125,25 +125,24 @@ AP4_MarlinIpmpParser::Parse(AP4_AtomParent&      top_level,
                             bool                 remove_od_data)
 {
     // check the file type
-    AP4_FtypAtom* ftyp = dynamic_cast<AP4_FtypAtom*>(top_level.GetChild(AP4_ATOM_TYPE_FTYP));
+    AP4_FtypAtom* ftyp = AP4_DYNAMIC_CAST(AP4_FtypAtom, top_level.GetChild(AP4_ATOM_TYPE_FTYP));
     if (ftyp == NULL ||
         (ftyp->GetMajorBrand() != AP4_MARLIN_BRAND_MGSV && !ftyp->HasCompatibleBrand(AP4_MARLIN_BRAND_MGSV))) {
         return AP4_ERROR_INVALID_FORMAT;
     }
     
     // check the initial object descriptor and get the OD Track ID
-    AP4_IodsAtom* iods = dynamic_cast<AP4_IodsAtom*>(top_level.FindChild("moov/iods"));
+    AP4_IodsAtom* iods = AP4_DYNAMIC_CAST(AP4_IodsAtom, top_level.FindChild("moov/iods"));
     AP4_UI32      od_track_id = 0;
     if (iods == NULL) return AP4_ERROR_INVALID_FORMAT;
     const AP4_ObjectDescriptor* od = iods->GetObjectDescriptor();
     if (od == NULL) return AP4_ERROR_INVALID_FORMAT;
-    const AP4_EsIdIncDescriptor* es_id_inc = dynamic_cast<const AP4_EsIdIncDescriptor*>(
-        od->FindSubDescriptor(AP4_DESCRIPTOR_TAG_ES_ID_INC));
+    AP4_EsIdIncDescriptor* es_id_inc = AP4_DYNAMIC_CAST(AP4_EsIdIncDescriptor, od->FindSubDescriptor(AP4_DESCRIPTOR_TAG_ES_ID_INC));
     if (es_id_inc == NULL) return AP4_ERROR_INVALID_FORMAT;
     od_track_id = es_id_inc->GetTrackId();
     
     // find the track pointed to by the descriptor
-    AP4_MoovAtom* moov = dynamic_cast<AP4_MoovAtom*>(top_level.GetChild(AP4_ATOM_TYPE_MOOV));
+    AP4_MoovAtom* moov = AP4_DYNAMIC_CAST(AP4_MoovAtom, top_level.GetChild(AP4_ATOM_TYPE_MOOV));
     if (moov == NULL) return AP4_ERROR_INVALID_FORMAT;
     AP4_TrakAtom* od_trak = NULL;
     AP4_List<AP4_TrakAtom>::Item* trak_item = moov->GetTrakAtoms().FirstItem();
@@ -164,7 +163,7 @@ AP4_MarlinIpmpParser::Parse(AP4_AtomParent&      top_level,
 
     // look for the 'mpod' trak references
     AP4_TrefTypeAtom* track_references;
-    track_references = dynamic_cast<AP4_TrefTypeAtom*>(od_trak->FindChild("tref/mpod"));
+    track_references = AP4_DYNAMIC_CAST(AP4_TrefTypeAtom, od_trak->FindChild("tref/mpod"));
     if (track_references == NULL) return AP4_ERROR_INVALID_FORMAT;
 
     // create an AP4_Track object from the trak atom and check that it has samples
@@ -199,13 +198,13 @@ AP4_MarlinIpmpParser::Parse(AP4_AtomParent&      top_level,
             switch (command->GetTag()) {
               case AP4_COMMAND_TAG_OBJECT_DESCRIPTOR_UPDATE:
                 if (od_update == NULL) {
-                    od_update = dynamic_cast<AP4_DescriptorUpdateCommand*>(command);
+                    od_update = AP4_DYNAMIC_CAST(AP4_DescriptorUpdateCommand, command);
                 }
                 break;
                 
               case AP4_COMMAND_TAG_IPMP_DESCRIPTOR_UPDATE:
                 if (ipmp_update == NULL) {
-                    ipmp_update = dynamic_cast<AP4_DescriptorUpdateCommand*>(command);
+                    ipmp_update = AP4_DYNAMIC_CAST(AP4_DescriptorUpdateCommand, command);
                 }
                 break;
 
@@ -227,13 +226,12 @@ AP4_MarlinIpmpParser::Parse(AP4_AtomParent&      top_level,
     for (AP4_List<AP4_Descriptor>::Item* od_item = od_update->GetDescriptors().FirstItem();
          od_item;
          od_item = od_item->GetNext()) {
-        od = dynamic_cast<AP4_ObjectDescriptor*>(od_item->GetData());
+        od = AP4_DYNAMIC_CAST(AP4_ObjectDescriptor, od_item->GetData());
         if (od == NULL) continue;
 
         // find which track this od references
-        const AP4_EsIdRefDescriptor* es_id_ref;
-        es_id_ref = dynamic_cast<const AP4_EsIdRefDescriptor*>(
-            od->FindSubDescriptor(AP4_DESCRIPTOR_TAG_ES_ID_REF));
+        AP4_EsIdRefDescriptor* es_id_ref;
+        es_id_ref = AP4_DYNAMIC_CAST(AP4_EsIdRefDescriptor, od->FindSubDescriptor(AP4_DESCRIPTOR_TAG_ES_ID_REF));
         if (es_id_ref == NULL || 
             es_id_ref->GetRefIndex() > track_references->GetTrackIds().ItemCount() ||
             es_id_ref->GetRefIndex() == 0) {
@@ -255,9 +253,8 @@ AP4_MarlinIpmpParser::Parse(AP4_AtomParent&      top_level,
         if (sinf_entry->m_Sinf != NULL) continue; // entry already populated
         
         // see what ipmp descriptor this od points to
-        const AP4_IpmpDescriptorPointer* ipmpd_pointer;
-        ipmpd_pointer = dynamic_cast<const AP4_IpmpDescriptorPointer*>(
-            od->FindSubDescriptor(AP4_DESCRIPTOR_TAG_IPMP_DESCRIPTOR_POINTER));
+        AP4_IpmpDescriptorPointer* ipmpd_pointer;
+        ipmpd_pointer = AP4_DYNAMIC_CAST(AP4_IpmpDescriptorPointer, od->FindSubDescriptor(AP4_DESCRIPTOR_TAG_IPMP_DESCRIPTOR_POINTER));
         if (ipmpd_pointer == NULL) continue; // no pointer
 
         // find the ipmp descriptor referenced by the pointer
@@ -266,7 +263,7 @@ AP4_MarlinIpmpParser::Parse(AP4_AtomParent&      top_level,
              ipmpd_item;
              ipmpd_item = ipmpd_item->GetNext()) {
             // check that this descriptor is of the right type
-            ipmpd = dynamic_cast<AP4_IpmpDescriptor*>(ipmpd_item->GetData());
+            ipmpd = AP4_DYNAMIC_CAST(AP4_IpmpDescriptor, ipmpd_item->GetData());
             if (ipmpd == NULL || ipmpd->GetIpmpsType() != AP4_MARLIN_IPMPS_TYPE_MGSV) continue;
             
             // check the descriptor id
@@ -298,8 +295,8 @@ AP4_MarlinIpmpParser::Parse(AP4_AtomParent&      top_level,
             
             // check that what we have parsed is indeed an 'sinf' of the right type
             if (atom->GetType() == AP4_ATOM_TYPE_SINF) {
-                AP4_ContainerAtom* sinf = dynamic_cast<AP4_ContainerAtom*>(atom);
-                AP4_SchmAtom* schm = dynamic_cast<AP4_SchmAtom*>(sinf->FindChild("schm"));
+                AP4_ContainerAtom* sinf = AP4_DYNAMIC_CAST(AP4_ContainerAtom, atom);
+                AP4_SchmAtom* schm = AP4_DYNAMIC_CAST(AP4_SchmAtom, sinf->FindChild("schm"));
                 if (schm->GetSchemeType()    == AP4_PROTECTION_SCHEME_TYPE_MARLIN_ACBC && 
                     schm->GetSchemeVersion() == 0x0100) {
                     // store the sinf in the entry for that track
@@ -532,11 +529,11 @@ AP4_MarlinIpmpEncryptingProcessor::Initialize(
     AP4_Processor::ProgressListener* /*listener = NULL*/)
 {
     // get the moov atom
-    AP4_MoovAtom* moov = dynamic_cast<AP4_MoovAtom*>(top_level.GetChild(AP4_ATOM_TYPE_MOOV));
+    AP4_MoovAtom* moov = AP4_DYNAMIC_CAST(AP4_MoovAtom, top_level.GetChild(AP4_ATOM_TYPE_MOOV));
     if (moov == NULL) return AP4_ERROR_INVALID_FORMAT;
     
     // deal with the file type
-    AP4_FtypAtom* ftyp = dynamic_cast<AP4_FtypAtom*>(top_level.GetChild(AP4_ATOM_TYPE_FTYP));
+    AP4_FtypAtom* ftyp = AP4_DYNAMIC_CAST(AP4_FtypAtom, top_level.GetChild(AP4_ATOM_TYPE_FTYP));
     if (ftyp) {
         // remove the atom, it will be replaced with a new one
         top_level.RemoveChild(ftyp);

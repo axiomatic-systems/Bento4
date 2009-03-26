@@ -46,8 +46,8 @@
 |   AP4_HintTrackReader::AP4_HintTrackReader
 +---------------------------------------------------------------------*/
 AP4_HintTrackReader::AP4_HintTrackReader(AP4_Track& hint_track, 
-                                         AP4_Movie& movie, 
-                                         AP4_UI32   ssrc /* = 0 */) :
+                                         AP4_Movie& movie,
+                                         AP4_UI32   ssrc) :
     m_HintTrack(hint_track),
     m_MediaTrack(NULL),
     m_MediaTimeScale(0),
@@ -59,10 +59,6 @@ AP4_HintTrackReader::AP4_HintTrackReader(AP4_Track& hint_track,
     m_RtpTimeStampStart(0),
     m_RtpTimeScale(0)
 {
-    // check the type
-    if (m_HintTrack.GetType() != AP4_Track::TYPE_HINT) 
-        throw AP4_Exception(AP4_ERROR_INVALID_TRACK_TYPE);
-
     // get the media track
     AP4_TrakAtom* hint_trak_atom = hint_track.GetTrakAtom();
     AP4_Atom* atom = hint_trak_atom->FindChild("tref/hint");
@@ -97,6 +93,29 @@ AP4_HintTrackReader::AP4_HintTrackReader(AP4_Track& hint_track,
 
     // get the first sample
     GetRtpSample(0);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_HintTrackReader::Create
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_HintTrackReader::Create(AP4_Track&            hint_track, 
+                            AP4_Movie&            movie, 
+                            AP4_UI32              ssrc,
+                            AP4_HintTrackReader*& reader)
+{
+    // default value
+    reader = NULL;
+    
+    // check the type
+    if (hint_track.GetType() != AP4_Track::TYPE_HINT) {
+        return AP4_ERROR_INVALID_TRACK_TYPE;
+    }
+    
+    // create a new object
+    reader = new AP4_HintTrackReader(hint_track, movie, ssrc);
+    
+    return AP4_SUCCESS;
 }
 
 /*----------------------------------------------------------------------

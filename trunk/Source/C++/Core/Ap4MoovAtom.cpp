@@ -34,6 +34,11 @@
 #include "Ap4AtomFactory.h"
 
 /*----------------------------------------------------------------------
+|   dynamic cast support
++---------------------------------------------------------------------*/
+AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_MoovAtom)
+
+/*----------------------------------------------------------------------
 |   AP4_TrakAtomCollector
 +---------------------------------------------------------------------*/
 class AP4_TrakAtomCollector : public AP4_List<AP4_Atom>::Item::Operator
@@ -44,7 +49,7 @@ public:
 
     AP4_Result Action(AP4_Atom* atom) const {
         if (atom->GetType() == AP4_ATOM_TYPE_TRAK) {
-            AP4_TrakAtom* trak = dynamic_cast<AP4_TrakAtom*>(atom);
+            AP4_TrakAtom* trak = AP4_DYNAMIC_CAST(AP4_TrakAtom, atom);
             if (trak) {
                 m_TrakAtoms->Add(trak);
             }
@@ -102,7 +107,7 @@ AP4_MoovAtom::OnChildAdded(AP4_Atom* atom)
 {
     // keep the atom in the list of trak atoms
     if (atom->GetType() == AP4_ATOM_TYPE_TRAK) {
-        AP4_TrakAtom* trak = dynamic_cast<AP4_TrakAtom*>(atom);
+        AP4_TrakAtom* trak = AP4_DYNAMIC_CAST(AP4_TrakAtom, atom);
         if (trak) {
             m_TrakAtoms.Add(trak);
         }
@@ -120,7 +125,7 @@ AP4_MoovAtom::OnChildRemoved(AP4_Atom* atom)
 {
     // remove the atom from the list of trak atoms
     if (atom->GetType() == AP4_ATOM_TYPE_TRAK) {
-        AP4_TrakAtom* trak = dynamic_cast<AP4_TrakAtom*>(atom);
+        AP4_TrakAtom* trak = AP4_DYNAMIC_CAST(AP4_TrakAtom, atom);
         if (trak) {
             m_TrakAtoms.Remove(trak);
         }

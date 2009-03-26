@@ -32,6 +32,9 @@
 #include "Ap4Sample.h"
 #include "Ap4Utils.h"
 #include "Ap4DataBuffer.h"
+#include "Ap4Interfaces.h"
+#include "Ap4ByteStream.h"
+#include "Ap4Atom.h"
 
 /*----------------------------------------------------------------------
 |   AP4_Sample::AP4_Sample

@@ -98,7 +98,7 @@ AP4_Movie::AP4_Movie(AP4_MoovAtom* moov, AP4_ByteStream& sample_stream, bool tra
 
     // get the time scale
     AP4_UI32 time_scale;
-    m_MvhdAtom = dynamic_cast<AP4_MvhdAtom*>(moov->GetChild(AP4_ATOM_TYPE_MVHD));
+    m_MvhdAtom = AP4_DYNAMIC_CAST(AP4_MvhdAtom, moov->GetChild(AP4_ATOM_TYPE_MVHD));
     if (m_MvhdAtom) {
         time_scale = m_MvhdAtom->GetTimeScale();
     } else {

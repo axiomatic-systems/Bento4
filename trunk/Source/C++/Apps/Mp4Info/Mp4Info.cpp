@@ -89,17 +89,17 @@ ShowProtectionSchemeInfo(AP4_UI32 scheme_type, AP4_ContainerAtom& schi, bool ver
 {
     if (scheme_type == AP4_PROTECTION_SCHEME_TYPE_IAEC) {
         printf("      iAEC Scheme Info:\n");
-        AP4_IkmsAtom* ikms = dynamic_cast<AP4_IkmsAtom*>(schi.FindChild("iKMS"));
+        AP4_IkmsAtom* ikms = AP4_DYNAMIC_CAST(AP4_IkmsAtom, schi.FindChild("iKMS"));
         if (ikms) {
             printf("        KMS URI:              %s\n", ikms->GetKmsUri().GetChars());
         }
-        AP4_IsfmAtom* isfm = dynamic_cast<AP4_IsfmAtom*>(schi.FindChild("iSFM"));
+        AP4_IsfmAtom* isfm = AP4_DYNAMIC_CAST(AP4_IsfmAtom, schi.FindChild("iSFM"));
         if (isfm) {
             printf("        Selective Encryption: %s\n", isfm->GetSelectiveEncryption()?"yes":"no");
             printf("        Key Indicator Length: %d\n", isfm->GetKeyIndicatorLength());
             printf("        IV Length:            %d\n", isfm->GetIvLength());
         }
-        AP4_IsltAtom* islt = dynamic_cast<AP4_IsltAtom*>(schi.FindChild("iSLT"));
+        AP4_IsltAtom* islt = AP4_DYNAMIC_CAST(AP4_IsltAtom, schi.FindChild("iSLT"));
         if (islt) {
             printf("        Salt:                 ");
             for (unsigned int i=0; i<8; i++) {
@@ -109,13 +109,13 @@ ShowProtectionSchemeInfo(AP4_UI32 scheme_type, AP4_ContainerAtom& schi, bool ver
         }
     } else if (scheme_type == AP4_PROTECTION_SCHEME_TYPE_OMA) {
         printf("      odkm Scheme Info:\n");
-        AP4_OdafAtom* odaf = dynamic_cast<AP4_OdafAtom*>(schi.FindChild("odkm/odaf"));
+        AP4_OdafAtom* odaf = AP4_DYNAMIC_CAST(AP4_OdafAtom, schi.FindChild("odkm/odaf"));
         if (odaf) {
             printf("        Selective Encryption: %s\n", odaf->GetSelectiveEncryption()?"yes":"no");
             printf("        Key Indicator Length: %d\n", odaf->GetKeyIndicatorLength());
             printf("        IV Length:            %d\n", odaf->GetIvLength());
         }
-        AP4_OhdrAtom* ohdr = dynamic_cast<AP4_OhdrAtom*>(schi.FindChild("odkm/ohdr"));
+        AP4_OhdrAtom* ohdr = AP4_DYNAMIC_CAST(AP4_OhdrAtom, schi.FindChild("odkm/ohdr"));
         if (ohdr) {
             const char* encryption_method = "";
             switch (ohdr->GetEncryptionMethod()) {
@@ -156,7 +156,7 @@ ShowProtectionSchemeInfo(AP4_UI32 scheme_type, AP4_ContainerAtom& schi, bool ver
         }
     } else if (scheme_type == AP4_PROTECTION_SCHEME_TYPE_MARLIN_ACBC) {
         printf("      Marlin IPMP ACBC Scheme Info:\n");
-        AP4_NullTerminatedStringAtom* octopus_id = dynamic_cast<AP4_NullTerminatedStringAtom*>(schi.FindChild("8id "));
+        AP4_NullTerminatedStringAtom* octopus_id = AP4_DYNAMIC_CAST(AP4_NullTerminatedStringAtom, schi.FindChild("8id "));
         if (octopus_id) {
             printf("        Content ID: %s\n", octopus_id->GetValue().GetChars());
         }
@@ -164,7 +164,8 @@ ShowProtectionSchemeInfo(AP4_UI32 scheme_type, AP4_ContainerAtom& schi, bool ver
     
     if (verbose) {
         printf("    Protection System Details:\n");
-        AP4_ByteStream* output = new AP4_FileByteStream("-stdout", AP4_FileByteStream::STREAM_MODE_WRITE);
+        AP4_ByteStream* output = NULL;
+        AP4_FileByteStream::Create("-stdout", AP4_FileByteStream::STREAM_MODE_WRITE, output);
         AP4_PrintInspector inspector(*output, 4);
         schi.Inspect(inspector);
         output->Release();
@@ -216,7 +217,7 @@ ShowSampleDescription(AP4_SampleDescription& description, bool verbose)
 {
     AP4_SampleDescription* desc = &description;
     if (desc->GetType() == AP4_SampleDescription::TYPE_PROTECTED) {
-        AP4_ProtectedSampleDescription* prot_desc = dynamic_cast<AP4_ProtectedSampleDescription*>(desc);
+        AP4_ProtectedSampleDescription* prot_desc = AP4_DYNAMIC_CAST(AP4_ProtectedSampleDescription, desc);
         if (prot_desc) ShowProtectedSampleDescription(*prot_desc, verbose);
         desc = prot_desc->GetOriginalSampleDescription();
     }
@@ -225,7 +226,7 @@ ShowSampleDescription(AP4_SampleDescription& description, bool verbose)
     AP4_Debug(    "    Coding:      %s\n", coding);
     if (desc->GetType() == AP4_SampleDescription::TYPE_MPEG) {
         // MPEG sample description
-        AP4_MpegSampleDescription* mpeg_desc = dynamic_cast<AP4_MpegSampleDescription*>(desc);
+        AP4_MpegSampleDescription* mpeg_desc = AP4_DYNAMIC_CAST(AP4_MpegSampleDescription, desc);
 
         AP4_Debug("    Stream Type: %s\n", mpeg_desc->GetStreamTypeString(mpeg_desc->GetStreamType()));
         AP4_Debug("    Object Type: %s\n", mpeg_desc->GetObjectTypeString(mpeg_desc->GetObjectTypeId()));
@@ -234,13 +235,13 @@ ShowSampleDescription(AP4_SampleDescription& description, bool verbose)
         AP4_Debug("    Buffer Size: %d\n", mpeg_desc->GetBufferSize());
         
         if (mpeg_desc->GetObjectTypeId() == AP4_OTI_MPEG4_AUDIO) {
-            AP4_MpegAudioSampleDescription* mpeg_audio_desc = dynamic_cast<AP4_MpegAudioSampleDescription*>(mpeg_desc);
+            AP4_MpegAudioSampleDescription* mpeg_audio_desc = AP4_DYNAMIC_CAST(AP4_MpegAudioSampleDescription, mpeg_desc);
             if (mpeg_audio_desc) ShowMpegAudioSampleDescription(*mpeg_audio_desc);
         }
     }
     if (desc->GetType() == AP4_SampleDescription::TYPE_AVC) {
         // AVC Sample Description
-        AP4_AvcSampleDescription* avc_desc = dynamic_cast<AP4_AvcSampleDescription*>(desc);
+        AP4_AvcSampleDescription* avc_desc = AP4_DYNAMIC_CAST(AP4_AvcSampleDescription, desc);
         const char* profile_name = AP4_AvccAtom::GetProfileName(avc_desc->GetProfile());
         if (profile_name) {
             AP4_Debug("    AVC Profile:          %s\n", profile_name);
@@ -252,7 +253,7 @@ ShowSampleDescription(AP4_SampleDescription& description, bool verbose)
         AP4_Debug("    AVC NALU Length Size: %d\n", avc_desc->GetNaluLengthSize());
     }
     AP4_AudioSampleDescription* audio_desc = 
-        dynamic_cast<AP4_AudioSampleDescription*>(desc);
+        AP4_DYNAMIC_CAST(AP4_AudioSampleDescription, desc);
     if (audio_desc) {
         // Audio sample description
         AP4_Debug("    Sample Rate: %d\n", audio_desc->GetSampleRate());
@@ -260,7 +261,7 @@ ShowSampleDescription(AP4_SampleDescription& description, bool verbose)
         AP4_Debug("    Channels:    %d\n", audio_desc->GetChannelCount());
     }
     AP4_VideoSampleDescription* video_desc = 
-        dynamic_cast<AP4_VideoSampleDescription*>(desc);
+        AP4_DYNAMIC_CAST(AP4_VideoSampleDescription, desc);
     if (video_desc) {
         // Video sample description
         AP4_Debug("    Width:       %d\n", video_desc->GetWidth());
@@ -280,11 +281,11 @@ ShowDcfInfo(AP4_File& file)
     printf("OMA DCF File, version=%d\n", ftyp->GetMinorVersion());
     if (ftyp->GetMinorVersion() != 2) return;
 
-    AP4_OdheAtom* odhe = dynamic_cast<AP4_OdheAtom*>(file.FindChild("odrm/odhe"));
+    AP4_OdheAtom* odhe = AP4_DYNAMIC_CAST(AP4_OdheAtom, file.FindChild("odrm/odhe"));
     if (odhe) {
         printf("Content Type:      %s\n", odhe->GetContentType().GetChars());
     }
-    AP4_OhdrAtom* ohdr = dynamic_cast<AP4_OhdrAtom*>(file.FindChild("odrm/odhe/ohdr"));
+    AP4_OhdrAtom* ohdr = AP4_DYNAMIC_CAST(AP4_OhdrAtom, file.FindChild("odrm/odhe/ohdr"));
     if (ohdr) {
         printf("Encryption Method: ");
         switch (ohdr->GetEncryptionMethod()) {
@@ -311,7 +312,7 @@ ShowDcfInfo(AP4_File& file)
             headers_size -= header_len+1;
             headers      += header_len+1;
         }
-        AP4_GrpiAtom* grpi = dynamic_cast<AP4_GrpiAtom*>(ohdr->GetChild(AP4_ATOM_TYPE_GRPI));
+        AP4_GrpiAtom* grpi = AP4_DYNAMIC_CAST(AP4_GrpiAtom, ohdr->GetChild(AP4_ATOM_TYPE_GRPI));
         if (grpi) {
             printf("Group ID:          %s\n", grpi->GetGroupId().GetChars());
         }
@@ -474,8 +475,8 @@ ShowMarlinTracks(AP4_File& file, AP4_ByteStream& stream, AP4_List<AP4_Track>& tr
                 if (sinf_entry->m_Sinf == NULL) {
                     AP4_Debug("WARNING: NULL sinf entry for track ID %d\n", track->GetId());
                 } else {
-                    AP4_ContainerAtom* schi = dynamic_cast<AP4_ContainerAtom*>(sinf_entry->m_Sinf->GetChild(AP4_ATOM_TYPE_SCHI));
-                    AP4_SchmAtom*      schm = dynamic_cast<AP4_SchmAtom*>(sinf_entry->m_Sinf->GetChild(AP4_ATOM_TYPE_SCHM));
+                    AP4_ContainerAtom* schi = AP4_DYNAMIC_CAST(AP4_ContainerAtom, sinf_entry->m_Sinf->GetChild(AP4_ATOM_TYPE_SCHI));
+                    AP4_SchmAtom*      schm = AP4_DYNAMIC_CAST(AP4_SchmAtom, sinf_entry->m_Sinf->GetChild(AP4_ATOM_TYPE_SCHM));
                     if (schm && schi) {
                         AP4_UI32 scheme_type = schm->GetSchemeType();
                         printf("      Scheme Type:    %c%c%c%c\n", 

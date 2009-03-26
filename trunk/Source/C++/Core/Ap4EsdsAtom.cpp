@@ -34,6 +34,11 @@
 #include "Ap4Utils.h"
 
 /*----------------------------------------------------------------------
+|   dynamic cast support
++---------------------------------------------------------------------*/
+AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_EsdsAtom)
+
+/*----------------------------------------------------------------------
 |   AP4_EsdsAtom::Create
 +---------------------------------------------------------------------*/
 AP4_EsdsAtom*
@@ -69,7 +74,7 @@ AP4_EsdsAtom::AP4_EsdsAtom(AP4_UI32        size,
     AP4_Descriptor* descriptor = NULL;
     if (AP4_DescriptorFactory::CreateDescriptorFromStream(stream, descriptor) 
         == AP4_SUCCESS) {
-        m_EsDescriptor = dynamic_cast<AP4_EsDescriptor*>(descriptor);
+        m_EsDescriptor = AP4_DYNAMIC_CAST(AP4_EsDescriptor, descriptor);
     } else {
         m_EsDescriptor = NULL;
     }

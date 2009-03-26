@@ -38,10 +38,8 @@
 #define AP4_CONFIG_HAVE_STDIO_H
 #define AP4_CONFIG_HAVE_ASSERT_H
 #define AP4_CONFIG_HAVE_STRING_H
-
 #define AP4_CONFIG_HAVE_SNPRINTF
 #define AP4_CONFIG_HAVE_VSNPRINTF
-
 #define AP4_CONFIG_HAVE_INT64
 
 /*----------------------------------------------------------------------
@@ -109,6 +107,12 @@
 #define AP4_fseek fseek
 #define AP4_ftell ftell
 #define explicit
+#endif
+
+/* Android */
+#if defined(ANDROID)
+#define AP4_CONFIG_NO_RTTI
+#define AP4_CONFIG_NO_EXCEPTIONS
 #endif
 
 /*----------------------------------------------------------------------

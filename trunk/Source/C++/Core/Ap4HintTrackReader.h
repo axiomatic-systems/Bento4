@@ -54,9 +54,10 @@ class AP4_HintTrackReader
 {
 public:
     // constructor and destructor
-    AP4_HintTrackReader(AP4_Track& hint_track, 
-                        AP4_Movie& movie, 
-                        AP4_UI32   ssrc = 0); // if 0, random value is chosen
+    static AP4_Result Create(AP4_Track&            hint_track, 
+                             AP4_Movie&            movie, 
+                             AP4_UI32              ssrc, // if 0, a random value is chosen
+                             AP4_HintTrackReader*& reader);
     ~AP4_HintTrackReader();
 
     // methods
@@ -70,6 +71,11 @@ public:
     AP4_Track*      GetMediaTrack() { return m_MediaTrack; }
     
 private:
+    // use the factory instead of the constructor
+    AP4_HintTrackReader(AP4_Track& hint_track, 
+                        AP4_Movie& movie, 
+                        AP4_UI32   ssrc);
+    
     // methods
     AP4_Result GetRtpSample(AP4_Ordinal index);
     AP4_Result BuildRtpPacket(AP4_RtpPacket*  packet, 

@@ -156,13 +156,13 @@ CreateDcfDecrypter(AP4_AtomParent& atoms, const AP4_Byte* key)
         if (atom->GetType() != AP4_ATOM_TYPE_ODRM) continue;
 
         // check that we have all the atoms we need
-        AP4_ContainerAtom* odrm = dynamic_cast<AP4_ContainerAtom*>(atom);
+        AP4_ContainerAtom* odrm = AP4_DYNAMIC_CAST(AP4_ContainerAtom, atom);
         if (odrm == NULL) continue; // not enough info
-        AP4_OdheAtom* odhe = dynamic_cast<AP4_OdheAtom*>(odrm->GetChild(AP4_ATOM_TYPE_ODHE));
+        AP4_OdheAtom* odhe = AP4_DYNAMIC_CAST(AP4_OdheAtom, odrm->GetChild(AP4_ATOM_TYPE_ODHE));
         if (odhe == NULL) continue; // not enough info    
-        AP4_OddaAtom* odda = dynamic_cast<AP4_OddaAtom*>(odrm->GetChild(AP4_ATOM_TYPE_ODDA));;
+        AP4_OddaAtom* odda = AP4_DYNAMIC_CAST(AP4_OddaAtom, odrm->GetChild(AP4_ATOM_TYPE_ODDA));;
         if (odda == NULL) continue; // not enough info
-        AP4_OhdrAtom* ohdr = dynamic_cast<AP4_OhdrAtom*>(odhe->GetChild(AP4_ATOM_TYPE_OHDR));
+        AP4_OhdrAtom* ohdr = AP4_DYNAMIC_CAST(AP4_OhdrAtom, odhe->GetChild(AP4_ATOM_TYPE_OHDR));
         if (ohdr == NULL) continue; // not enough info
 
         // do nothing if the atom is not encrypted
@@ -194,7 +194,7 @@ LoadAndDecryptSamples(AP4_Track*             track,
                       unsigned int           repeats)
 {
     AP4_ProtectedSampleDescription* pdesc = 
-        dynamic_cast<AP4_ProtectedSampleDescription*>(sample_desc);
+        AP4_DYNAMIC_CAST(AP4_ProtectedSampleDescription, sample_desc);
 
     const AP4_UI08 key[16] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f};
     AP4_SampleDecrypter* decrypter = AP4_SampleDecrypter::Create(pdesc, key, 16);
@@ -255,10 +255,8 @@ ParseFile(const char* filename, unsigned int repeats)
     
     // open the input
     AP4_ByteStream* input = NULL;
-    try {
-        input = new AP4_FileByteStream(filename,
-                               AP4_FileByteStream::STREAM_MODE_READ);
-    } catch (AP4_Exception) {
+    AP4_Result result = AP4_FileByteStream::Create(filename, AP4_FileByteStream::STREAM_MODE_READ, input);
+    if (AP4_FAILED(result)) {
         fprintf(stderr, "ERROR: cannot open input file (%s)\n", filename);
         return 0;
     }
@@ -287,10 +285,8 @@ LoadAllSamples(const char* filename, unsigned int repeats)
 {
     // open the input
     AP4_ByteStream* input = NULL;
-    try {
-        input = new AP4_FileByteStream(filename,
-                               AP4_FileByteStream::STREAM_MODE_READ);
-    } catch (AP4_Exception) {
+    AP4_Result result = AP4_FileByteStream::Create(filename, AP4_FileByteStream::STREAM_MODE_READ, input);
+    if (AP4_FAILED(result)) {
         fprintf(stderr, "ERROR: cannot open input file (%s)\n", filename);
         return 0;
     }
@@ -326,11 +322,10 @@ LoadAllSamples(const char* filename, unsigned int repeats)
 static unsigned int
 ReadFile(const char* filename, unsigned int block_size, bool sequential)
 {
-    AP4_ByteStream* input;
-    try {
-        input = new AP4_FileByteStream(filename, AP4_FileByteStream::STREAM_MODE_READ);
-    } catch (AP4_Exception e) {
-        fprintf(stderr, "ERROR: cannot open file %s (error %d)\n", filename, e.m_Error);
+    AP4_ByteStream* input = NULL;
+    AP4_Result result = AP4_FileByteStream::Create(filename, AP4_FileByteStream::STREAM_MODE_READ, input);
+    if (AP4_FAILED(result)) {
+        fprintf(stderr, "ERROR: cannot open file %s (error %d)\n", filename, result);
         return 0;
     }
     

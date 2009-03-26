@@ -130,7 +130,7 @@ AP4_Track::AP4_Track(AP4_TrakAtom&   atom,
     // find the handler type
     AP4_Atom* sub = atom.FindChild("mdia/hdlr");
     if (sub) {
-        AP4_HdlrAtom* hdlr = dynamic_cast<AP4_HdlrAtom*>(sub);
+        AP4_HdlrAtom* hdlr = AP4_DYNAMIC_CAST(AP4_HdlrAtom, sub);
         if (hdlr) {
             AP4_UI32 type = hdlr->GetHandlerType();
             if (type == AP4_HANDLER_TYPE_SOUN) {
@@ -152,8 +152,7 @@ AP4_Track::AP4_Track(AP4_TrakAtom&   atom,
     }
 
     // create a facade for the stbl atom
-    AP4_ContainerAtom* stbl = dynamic_cast<AP4_ContainerAtom*>(
-        atom.FindChild("mdia/minf/stbl"));
+    AP4_ContainerAtom* stbl = AP4_DYNAMIC_CAST(AP4_ContainerAtom, atom.FindChild("mdia/minf/stbl"));
     if (stbl) {
         m_SampleTable = new AP4_AtomSampleTable(stbl, sample_stream);
     }
@@ -237,7 +236,7 @@ AP4_UI32
 AP4_Track::GetHandlerType()
 {
     if (m_TrakAtom) {
-        AP4_HdlrAtom* hdlr = dynamic_cast<AP4_HdlrAtom*>(m_TrakAtom->FindChild("mdia/hdlr"));
+        AP4_HdlrAtom* hdlr = AP4_DYNAMIC_CAST(AP4_HdlrAtom, m_TrakAtom->FindChild("mdia/hdlr"));
         if (hdlr) {
             return hdlr->GetHandlerType();
         }
@@ -416,7 +415,7 @@ AP4_Track::GetMediaDuration()
 const char*
 AP4_Track::GetTrackName()
 {
-    if (AP4_HdlrAtom* hdlr = dynamic_cast<AP4_HdlrAtom*>(m_TrakAtom->FindChild("mdia/hdlr"))) {
+    if (AP4_HdlrAtom* hdlr = AP4_DYNAMIC_CAST(AP4_HdlrAtom, m_TrakAtom->FindChild("mdia/hdlr"))) {
         return hdlr->GetHandlerName().GetChars();
     }
     return NULL;
@@ -428,7 +427,7 @@ AP4_Track::GetTrackName()
 const char*
 AP4_Track::GetTrackLanguage()
 {
-    if (AP4_MdhdAtom* mdhd = dynamic_cast<AP4_MdhdAtom*>(m_TrakAtom->FindChild("mdia/mdhd"))) {
+    if (AP4_MdhdAtom* mdhd = AP4_DYNAMIC_CAST(AP4_MdhdAtom, m_TrakAtom->FindChild("mdia/mdhd"))) {
         return mdhd->GetLanguage().GetChars();
     }
     return NULL;

@@ -36,6 +36,20 @@
 #include "Ap4AvccAtom.h"
 
 /*----------------------------------------------------------------------
+|   dynamic cast support
++---------------------------------------------------------------------*/
+AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_SampleDescription)
+AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_AudioSampleDescription)
+AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_VideoSampleDescription)
+AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_GenericAudioSampleDescription)
+AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_GenericVideoSampleDescription)
+AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_MpegSampleDescription)
+AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_MpegAudioSampleDescription)
+AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_MpegVideoSampleDescription)
+AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_MpegSystemSampleDescription)
+AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_AvcSampleDescription)
+
+/*----------------------------------------------------------------------
 |   AP4_SampleDescription::AP4_SampleDescription
 +---------------------------------------------------------------------*/
 AP4_SampleDescription::AP4_SampleDescription(Type            type,
@@ -68,7 +82,7 @@ AP4_SampleDescription::Clone(AP4_Result* result)
         if (result) *result = AP4_FAILURE;
         return NULL;
     }
-    AP4_SampleEntry* sample_entry = dynamic_cast<AP4_SampleEntry*>(atom);
+    AP4_SampleEntry* sample_entry = AP4_DYNAMIC_CAST(AP4_SampleEntry, atom);
     if (sample_entry == NULL) {
         if (result) *result = AP4_ERROR_INTERNAL;
         delete atom;
@@ -151,7 +165,7 @@ AP4_AvcSampleDescription::AP4_AvcSampleDescription(AP4_UI16        width,
     AP4_VideoSampleDescription(width, height, depth, compressor_name),
     m_AvccAtom(NULL)
 {
-    m_AvccAtom = dynamic_cast<AP4_AvccAtom*>(details->GetChild(AP4_ATOM_TYPE_AVCC));
+    m_AvccAtom = AP4_DYNAMIC_CAST(AP4_AvccAtom, details->GetChild(AP4_ATOM_TYPE_AVCC));
 }
 
 /*----------------------------------------------------------------------

@@ -59,6 +59,8 @@ const AP4_UI32 AP4_HANDLER_TYPE_SDSM = AP4_ATOM_TYPE('s','d','s','m');
 class AP4_HdlrAtom : public AP4_Atom
 {
 public:
+    AP4_IMPLEMENT_DYNAMIC_CAST_D(AP4_HdlrAtom, AP4_Atom)
+
     // class methods
     static AP4_HdlrAtom* Create(AP4_Size size, AP4_ByteStream& stream);
 

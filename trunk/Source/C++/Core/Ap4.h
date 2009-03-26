@@ -227,6 +227,7 @@
 #include "Ap4Results.h"
 #include "Ap4Debug.h"
 #include "Ap4Utils.h"
+#include "Ap4DynamicCast.h"
 #include "Ap4FileByteStream.h"
 #include "Ap4Movie.h"
 #include "Ap4Track.h"

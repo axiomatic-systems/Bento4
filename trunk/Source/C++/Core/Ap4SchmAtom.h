@@ -48,6 +48,8 @@ class AP4_ByteStream;
 class AP4_SchmAtom : public AP4_Atom
 {
 public:
+    AP4_IMPLEMENT_DYNAMIC_CAST_D(AP4_SchmAtom, AP4_Atom)
+
     // class methods
     static AP4_SchmAtom* Create(AP4_Size                   size, 
                                 AP4_Array<AP4_Atom::Type>* context,
