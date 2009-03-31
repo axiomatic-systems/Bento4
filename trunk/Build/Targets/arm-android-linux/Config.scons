@@ -78,13 +78,12 @@ droid_link = ['-Bdynamic',
               '-L' + DROID_ROOT,
               '-L' + DROID_ALIB,
               '-nostdlib',
-              DROID_ALIB+'/crtend_android.o',
               DROID_TOOLCHAIN+'/lib/gcc/arm-eabi/4.2.1/interwork/libgcc.a',
               '-lc',
               '-lstdc++',
               '-lm']
 
-env['AP4_EXTRA_EXECUTABLE_OBJECTS'] = [DROID_ALIB+'/crtbegin_dynamic.o']
+env['AP4_EXTRA_EXECUTABLE_OBJECTS'] = [DROID_ALIB+'/crtbegin_dynamic.o', DROID_ALIB+'/crtend_android.o']
 
 ### Load the tools
 LoadTool('gcc-generic', env, gcc_cross_prefix='arm-eabi', gcc_strict=False)
