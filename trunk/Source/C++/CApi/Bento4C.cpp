@@ -1163,17 +1163,19 @@ AP4_Sample*
 AP4_Sample_Create(AP4_ByteStream* data_stream,
                   AP4_Position    offset,
                   AP4_Size        size,
+                  AP4_UI32        duration,
                   AP4_Ordinal     description_index,
                   AP4_UI32        dts,
-                  AP4_UI32        cts_offset,
+                  AP4_UI32        cts_delta,
                   int             is_sync)
 {
     return new AP4_Sample(*data_stream,
                           offset,
                           size,
+                          duration,
                           description_index,
                           dts,
-                          cts_offset,
+                          cts_delta,
                           is_sync);
 }
                   
@@ -1198,17 +1200,19 @@ AP4_SyntheticSampleTable_AddSample(AP4_SyntheticSampleTable* self,
                                    AP4_ByteStream*           data_stream,
                                    AP4_Position              offset,
                                    AP4_Size                  size,
+                                   AP4_UI32                  duration,
                                    AP4_Ordinal               desc_index,
-                                   AP4_UI32                  cts, 
-                                   AP4_UI32                  dts,
+                                   AP4_UI32                  dts, 
+                                   AP4_UI32                  cts_delta,
                                    int                       is_sync)
 {
     return self->AddSample(*data_stream,
                            offset,
                            size,
+                           duration,
                            desc_index,
-                           cts,
                            dts,
+                           cts_delta,
                            is_sync);
 }
 

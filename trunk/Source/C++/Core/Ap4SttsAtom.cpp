@@ -92,11 +92,12 @@ AP4_SttsAtom::AP4_SttsAtom(AP4_UI32        size,
 |   AP4_SttsAtom::GetDts
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_SttsAtom::GetDts(AP4_Ordinal sample, AP4_UI64& dts)
+AP4_SttsAtom::GetDts(AP4_Ordinal sample, AP4_UI64& dts, AP4_UI32* duration)
 {
     // default value
     dts = 0;
-
+    if (duration) *duration = 0;
+    
     // sample indexes start at 1
     if (sample == 0) return AP4_ERROR_OUT_OF_RANGE;
 
@@ -119,7 +120,8 @@ AP4_SttsAtom::GetDts(AP4_Ordinal sample, AP4_UI64& dts)
         if (sample <= sample_start+entry.m_SampleCount) {
             // we are within the sample range for the current entry
             dts = dts_start + (AP4_UI64)(sample-1 - sample_start) * (AP4_UI64)entry.m_SampleDuration;
-
+            if (duration) *duration = entry.m_SampleDuration;
+            
             // update the lookup cache
             m_LookupCache.entry_index = i;
             m_LookupCache.sample      = sample_start;

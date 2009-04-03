@@ -489,6 +489,8 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
       case AP4_ATOM_TYPE_MPOD:
       case AP4_ATOM_TYPE_DPND:
       case AP4_ATOM_TYPE_IPIR:
+      case AP4_ATOM_TYPE_ALIS:
+      case AP4_ATOM_TYPE_CHAP:
         if (GetContext() == AP4_ATOM_TYPE_TREF) {
             if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
             atom = AP4_TrefTypeAtom::Create(type, size_32, stream);

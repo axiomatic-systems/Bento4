@@ -127,8 +127,7 @@ main(int argc, char** argv)
 
             AP4_MemoryByteStream* sample_data = new AP4_MemoryByteStream(frame.m_Info.m_FrameLength);
             frame.m_Source->ReadBytes(sample_data->UseData(), frame.m_Info.m_FrameLength);
-            unsigned int dts = sample_count*1024;
-            sample_table->AddSample(*sample_data, 0, frame.m_Info.m_FrameLength, sample_description_index, dts, dts, true);
+            sample_table->AddSample(*sample_data, 0, frame.m_Info.m_FrameLength, 1024, sample_description_index, 0, 0, true);
             sample_data->Release();
             sample_count++;
         } else {

@@ -37,6 +37,7 @@
 #include "Ap4Sample.h"
 #include "Ap4DataBuffer.h"
 #include "Ap4TrakAtom.h"
+#include "Ap4TkhdAtom.h"
 #include "Ap4MoovAtom.h"
 #include "Ap4AtomSampleTable.h"
 #include "Ap4SdpAtom.h"
@@ -193,9 +194,10 @@ AP4_Track::Clone(AP4_Result* result)
         sample_table->AddSample(*data_stream,
                                 sample.GetOffset(),
                                 sample.GetSize(),
+                                sample.GetDuration(),
                                 sample.GetDescriptionIndex(),
-                                sample.GetCts(),
                                 sample.GetDts(),
+                                sample.GetCtsDelta(),
                                 sample.IsSync());
         AP4_RELEASE(data_stream); // release our ref, the table has kept its own ref.
         index++;
@@ -227,6 +229,37 @@ AP4_Track::Attach(AP4_MoovAtom* moov)
     m_TrakAtomIsOwned = false;
 
     return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_Track::GetFlags
++---------------------------------------------------------------------*/
+AP4_UI32
+AP4_Track::GetFlags()
+{
+    if (m_TrakAtom) {
+        AP4_TkhdAtom* tkhd = AP4_DYNAMIC_CAST(AP4_TkhdAtom, m_TrakAtom->FindChild("tkhd"));
+        if (tkhd) {
+            return tkhd->GetFlags();
+        }
+    }
+    return 0;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_Track::SetFlags
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_Track::SetFlags(AP4_UI32 flags)
+{
+    if (m_TrakAtom) {
+        AP4_TkhdAtom* tkhd = AP4_DYNAMIC_CAST(AP4_TkhdAtom, m_TrakAtom->FindChild("tkhd"));
+        if (tkhd) {
+            tkhd->SetFlags(flags);
+            return AP4_SUCCESS;
+        }
+    }
+    return AP4_ERROR_INVALID_STATE;
 }
 
 /*----------------------------------------------------------------------

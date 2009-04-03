@@ -74,44 +74,33 @@ AP4_SampleTable::GenerateStblAtom(AP4_ContainerAtom*& stbl)
     AP4_Position            current_chunk_offset             = 0;
     AP4_Cardinal            current_samples_in_chunk         = 0;
     AP4_Ordinal             current_sample_description_index = 0;
-    AP4_UI64                current_dts                      = 0;
-    AP4_UI32                current_dts_delta                = 0;
-    AP4_Cardinal            current_dts_delta_run            = 0;
+    AP4_UI32                current_duration                 = 0;
+    AP4_Cardinal            current_duration_run             = 0;
     AP4_UI32                current_cts_delta                = 0;
     AP4_Cardinal            current_cts_delta_run            = 0;
     AP4_Array<AP4_Position> chunk_offsets;
 
     // process all the samples
+    bool         all_samples_are_sync = false;
     AP4_Cardinal sample_count = GetSampleCount();
     for (AP4_Ordinal i=0; i<sample_count; i++) {
         AP4_Sample sample;
         GetSample(i, sample);
         
         // update DTS table
-        AP4_UI64 new_dts = sample.GetDts();
-        if (i > 0) {
-            AP4_UI32 new_dts_delta = 0;
-            if (new_dts > current_dts) {
-                new_dts_delta = (AP4_UI32)(new_dts-current_dts);
-            }
-            if (new_dts_delta != current_dts_delta && current_dts_delta_run != 0) {
-                // emmit a new stts entry
-                stts->AddEntry(current_dts_delta_run, current_dts_delta);
-                
-                // reset the run count
-                current_dts_delta_run = 0;
-            } 
-            ++current_dts_delta_run;
-            current_dts_delta = new_dts_delta;
-        }
-        current_dts = new_dts;
+        AP4_UI64 new_duration = sample.GetDuration();
+        if (new_duration != current_duration && current_duration_run != 0) {
+            // emmit a new stts entry
+            stts->AddEntry(current_duration_run, current_duration);
+            
+            // reset the run count
+            current_duration_run = 0;
+        } 
+        ++current_duration_run;
+        current_duration = new_duration;
         
         // update CTS table
-        AP4_UI64 new_cts = sample.GetCts();
-        AP4_UI32 new_cts_delta = 0;
-        if (new_cts > new_dts) {
-            new_cts_delta = (AP4_UI32)(new_cts-new_dts);
-        }
+        AP4_UI32 new_cts_delta = sample.GetCtsDelta();
         if (new_cts_delta != current_cts_delta && current_cts_delta_run != 0) {
             // create a ctts atom if we don't have one
             if (ctts == NULL) ctts = new AP4_CttsAtom();
@@ -134,6 +123,9 @@ AP4_SampleTable::GenerateStblAtom(AP4_ContainerAtom*& stbl)
         // update the sync sample table
         if (sample.IsSync()) {
             stss->AddEntry(i+1);
+            if (i==0) all_samples_are_sync = true;
+        } else {
+            all_samples_are_sync = false;
         }
         
         // see in which chunk this sample is
@@ -161,8 +153,8 @@ AP4_SampleTable::GenerateStblAtom(AP4_ContainerAtom*& stbl)
         ++current_samples_in_chunk;        
     }
 
-    // (we assume the last sample's duration is the same as the next-to-last)
-    stts->AddEntry(current_dts_delta_run+1, current_dts_delta);
+    // finish the stts table
+    stts->AddEntry(current_duration_run, current_duration);
 
     // finish the ctts table if we have one
     if (ctts) {
@@ -187,7 +179,7 @@ AP4_SampleTable::GenerateStblAtom(AP4_ContainerAtom*& stbl)
     stbl->AddChild(stsc);
     stbl->AddChild(stts);
     if (ctts) stbl->AddChild(ctts);
-    if (stss->GetEntries().ItemCount()) {
+    if (!all_samples_are_sync && stss->GetEntries().ItemCount() != 0) {
         stbl->AddChild(stss);
     } else {
         delete stss;

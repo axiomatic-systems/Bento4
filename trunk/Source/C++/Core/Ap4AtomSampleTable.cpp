@@ -118,10 +118,12 @@ AP4_AtomSampleTable::GetSample(AP4_Ordinal index,
     sample.SetDescriptionIndex(desc-1); // adjust for 0-based indexes
 
     // set the dts and cts
-    AP4_UI32 cts_offset;
-    AP4_UI64 dts;
-    result = m_SttsAtom->GetDts(index, dts);
+    AP4_UI32 cts_offset = 0;
+    AP4_UI64 dts        = 0;
+    AP4_UI32 duration   = 0;
+    result = m_SttsAtom->GetDts(index, dts, &duration);
     if (AP4_FAILED(result)) return result;
+    sample.SetDuration(duration);
     sample.SetDts(dts);
     if (m_CttsAtom == NULL) {
         sample.SetCts(dts);

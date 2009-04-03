@@ -194,6 +194,8 @@ class AP4_Atom {
     virtual ~AP4_Atom() {}
     
     // methods
+    AP4_UI32           GetFlags() const { return m_Flags; }
+    void               SetFlags(AP4_UI32 flags) { m_Flags = flags; }
     Type               GetType() const { return m_Type; }
     void               SetType(Type type) { m_Type = type; }
     AP4_Size           GetHeaderSize() const;
@@ -396,6 +398,8 @@ const AP4_Atom::Type AP4_ATOM_TYPE_HINT = AP4_ATOM_TYPE('h','i','n','t');
 const AP4_Atom::Type AP4_ATOM_TYPE_CDSC = AP4_ATOM_TYPE('c','d','s','c');
 const AP4_Atom::Type AP4_ATOM_TYPE_MPOD = AP4_ATOM_TYPE('m','p','o','d');
 const AP4_Atom::Type AP4_ATOM_TYPE_IPIR = AP4_ATOM_TYPE('i','p','i','r');
+const AP4_Atom::Type AP4_ATOM_TYPE_CHAP = AP4_ATOM_TYPE('c','h','a','p');
+const AP4_Atom::Type AP4_ATOM_TYPE_ALIS = AP4_ATOM_TYPE('a','l','i','s');
 const AP4_Atom::Type AP4_ATOM_TYPE_SYNC = AP4_ATOM_TYPE('s','y','n','c');
 const AP4_Atom::Type AP4_ATOM_TYPE_DPND = AP4_ATOM_TYPE('d','p','n','d');
 const AP4_Atom::Type AP4_ATOM_TYPE_ODRM = AP4_ATOM_TYPE('o','d','r','m');
