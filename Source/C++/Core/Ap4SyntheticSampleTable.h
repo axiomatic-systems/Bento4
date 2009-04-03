@@ -87,26 +87,37 @@ class AP4_SyntheticSampleTable : public AP4_SampleTable
                                             bool                   transfer_ownership=true);
 
     /**
-     * Add a sample to the sample table
+     * Add a sample to the sample table, where the sample duration is given
      *
      * @param data_stream The byte stream that contains the sample data. The sample
      * object added to the track will keep a reference to that byte stream.
      * @param offset Position of the first byte of sample data within the stream
      * @param size Size in bytes of the sample data
+     * @param duration Duration of the sample (in the timescale of the media). This
+     * value can be 0 if the duration is not known. In that case, the next sample
+     * added to the table MUST have a non-zero value for the DTS (decoding timestamp),
+     * which will allow the actual duration of this sample to be computed.
      * @param description_index Index of the sample description that applies to 
-     * this sample
-     * @param cts Decoding timestamp of the sample
-     * @param dts Decoding timestamp of the sample
-     * @param sync_flag Boolean flag indicating whether this is a sync sample
-     * or not
+     * this sample (typically 0).
+     * @param dts DTS (decoding timestamp) of the sample. If this value is 0, and there
+     * already are samples in the table, the DTS of the sample will be automatically 
+     * computed based on the DTS and duration of the preceding sample. If this value is
+     * not equal to the DTS+duration of the preceding sample, the duration of the 
+     * preceding sample is automatically adjusted, unless it has a non-zero value, in which
+     * case AP4_ERROR_INVALID_PARAMETERS is returned.
+     * The DTS of the first sample in the table MUST always be 0.
+     * @param cts_delta Difference between the CTS (composition/display timestamp) and DTS 
+     * (decoding timestamp) of the sample (in the timescale of the media)
+     * @param sync Boolean flag indicating whether this is a sync sample or not.
      */
     virtual AP4_Result AddSample(AP4_ByteStream& data_stream,
                                  AP4_Position    offset,
                                  AP4_Size        size,
+                                 AP4_UI32        duration,
                                  AP4_Ordinal     description_index,
-                                 AP4_UI64        cts = 0,
-                                 AP4_UI64        dts = 0,
-                                 bool            sync = false);
+                                 AP4_UI64        dts,
+                                 AP4_UI32        cts_delta,
+                                 bool            sync);
 
 private:
     // classes

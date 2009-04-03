@@ -179,17 +179,19 @@ CopySamplesToSyntheticTable(AP4_Track*                track,
                              0,
                              (AP4_Size)sample_size,
                              sample.GetDescriptionIndex(),
-                             sample.GetCts(),
+                             sample.GetDuration(),
                              sample.GetDts(),
+                             sample.GetCtsDelta(),
                              sample.IsSync());
         } else {
             data_stream = sample.GetDataStream();
             table->AddSample(*data_stream,
                              sample.GetOffset(),
                              sample.GetSize(),
+                             sample.GetDuration(),
                              sample.GetDescriptionIndex(),
-                             sample.GetCts(),
                              sample.GetDts(),
+                             sample.GetCtsDelta(),
                              sample.IsSync());
         }
         AP4_RELEASE(data_stream); // release our ref, the table has kept its own ref.

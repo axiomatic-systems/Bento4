@@ -66,7 +66,7 @@ public:
     // methods
     AP4_SttsAtom();
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
-    virtual AP4_Result GetDts(AP4_Ordinal sample, AP4_UI64& dts);
+    virtual AP4_Result GetDts(AP4_Ordinal sample, AP4_UI64& dts, AP4_UI32* duration = NULL);
     virtual AP4_Result AddEntry(AP4_UI32 sample_count, AP4_UI32 sample_duration);
     virtual AP4_Result GetSampleIndexForTimeStamp(AP4_UI64      ts, 
                                                   AP4_Ordinal&  sample_index);

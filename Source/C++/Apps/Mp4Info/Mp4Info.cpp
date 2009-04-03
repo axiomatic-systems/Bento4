@@ -325,6 +325,17 @@ ShowDcfInfo(AP4_File& file)
 static void
 ShowTrackInfo(AP4_Track& track, bool show_samples, bool verbose)
 {
+    AP4_Debug("  flags:        %d", track.GetFlags());
+    if (track.GetFlags() & AP4_TRACK_FLAG_ENABLED) {
+        AP4_Debug(" ENABLED");
+    }
+    if (track.GetFlags() & AP4_TRACK_FLAG_IN_MOVIE) {
+        AP4_Debug(" IN-MOVIE");
+    }
+    if (track.GetFlags() & AP4_TRACK_FLAG_IN_PREVIEW) {
+        AP4_Debug(" IN-PREVIEW");
+    }
+    AP4_Debug("\n");
 	AP4_Debug("  id:           %ld\n", track.GetId());
     AP4_Debug("  type:         ");
     switch (track.GetType()) {
@@ -362,7 +373,10 @@ ShowTrackInfo(AP4_Track& track, bool show_samples, bool verbose)
             }
         }
         if (show_samples) {
-            printf("[%06d] size=%6d", index+1, (int)sample.GetSize());
+            printf("[%06d] size=%6d duration=%6d", 
+                   index+1, 
+                   (int)sample.GetSize(), 
+                   (int)sample.GetDuration());
             if (verbose) {
                 printf(" offset=%10lld dts=%10lld cts=%10lld", 
                        sample.GetOffset(),
@@ -616,6 +630,7 @@ main(int argc, char** argv)
     }
 
     AP4_File* file = new AP4_File(*input);
+    input->Release();
     ShowFileInfo(*file);
 
     AP4_Movie* movie = file->GetMovie();
@@ -646,7 +661,6 @@ main(int argc, char** argv)
     }
 
     delete file;
-    input->Release();
 
     return 0;
 }

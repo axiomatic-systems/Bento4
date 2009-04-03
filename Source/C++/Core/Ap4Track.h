@@ -52,6 +52,10 @@ class AP4_SampleTable;
 +---------------------------------------------------------------------*/
 const AP4_UI32 AP4_TRACK_DEFAULT_MOVIE_TIMESCALE = 1000;
 
+const AP4_UI32 AP4_TRACK_FLAG_ENABLED    = 0x0001;
+const AP4_UI32 AP4_TRACK_FLAG_IN_MOVIE   = 0x0002;
+const AP4_UI32 AP4_TRACK_FLAG_IN_PREVIEW = 0x0004;
+
 /*----------------------------------------------------------------------
 |   AP4_Track
 +---------------------------------------------------------------------*/
@@ -92,6 +96,8 @@ class AP4_Track {
      */
     AP4_Track* Clone(AP4_Result* result = NULL);
     
+    AP4_UI32     GetFlags();
+    AP4_Result   SetFlags(AP4_UI32 flags);
     AP4_Track::Type GetType() { return m_Type; }
     AP4_UI32     GetHandlerType();
     AP4_UI64     GetDuration();   // in the timescale of the movie

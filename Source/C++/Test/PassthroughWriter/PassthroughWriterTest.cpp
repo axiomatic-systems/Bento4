@@ -95,9 +95,10 @@ CopyTrack(AP4_Movie* input_movie, AP4_Track* input_track, AP4_Movie* output_movi
         sample_table->AddSample(*data_stream,
                                 sample.GetOffset(),
                                 sample.GetSize(),
+                                sample.GetDuration(),
                                 sample.GetDescriptionIndex(),
-                                sample.GetCts(),
                                 sample.GetDts(),
+                                sample.GetCtsDelta(),
                                 sample.IsSync());
         AP4_RELEASE(data_stream); // release our ref, the table has kept its own ref.
         index++;

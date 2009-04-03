@@ -67,18 +67,19 @@ public:
      * @param description_index Index of the sample description that applies to 
      * this sample
      * @param dts Decoding timestamp of the sample
-     * @param cts_offset Difference between the Composition timestamp and the 
-     * Decoding timestamp
+     * @param cts_delta Difference between the CTS (composition/display timestamp) and the 
+     * DTS (decoding timestamp), in the timescale of the media.
      * @param sync_flag Boolean flag indicating whether this is a sync sample
      * or not
      */
     AP4_Sample(AP4_ByteStream& data_stream,
                AP4_Position    offset,
                AP4_Size        size,
+               AP4_UI32        duration,
                AP4_Ordinal     description_index,
                AP4_UI64        dts,
-               AP4_UI32        cts_offset = 0,
-               bool            sync_flag = true);
+               AP4_UI32        cts_delta,
+               bool            sync_flag);
                
     ~AP4_Sample(); // not virtual on purpose: do not derive from it
 
@@ -114,12 +115,34 @@ public:
     /**
      * Get the CTS (Composition Time Stamp) of the sample in the timescale of the media
      */
-    AP4_UI64        GetCts() const { return m_Cts; }
+    AP4_UI64        GetCts() const { return m_Dts+m_CtsDelta; }
 
     /**
-     * Get the CTS (Composition Time Stamp) of the sample in the timescale of the media
+     * Set the CTS (Composition Time Stamp) of the sample in the timescale of the media
      */
-    void            SetCts(AP4_UI64 cts) { m_Cts = cts; }
+    void            SetCts(AP4_UI64 cts) { m_CtsDelta = (cts > m_Dts) ? cts-m_Dts : 0;  }
+
+    /**
+     * Get the CTS Delta (difference between the CTS (Composition Time Stamp) and DTS (Decoding Time Stamp)
+     * of the sample in the timescale of the media.
+     */
+    AP4_UI32        GetCtsDelta() const { return m_CtsDelta; }
+
+    /**
+     * Set the CTS Delta (difference between the CTS (Composition Time Stamp) and DTS (Decoding Time Stamp)
+     * of the sample in the timescale of the media.
+     */
+    void            SetCtsDelta(AP4_UI32 delta) { m_CtsDelta = delta;  }
+
+    /**
+     * Get the duration of the sample in the timescale of the media
+     */
+    AP4_UI32        GetDuration() const { return m_Duration; }
+
+    /**
+     * Set the duration of the sample in the timescale of the media
+     */
+    void            SetDuration(AP4_UI32 duration) { m_Duration = duration; }
 
     /**
      * Return whether the sample is a sync (random-access point) sample or not.
@@ -135,9 +158,10 @@ protected:
     AP4_ByteStream* m_DataStream;
     AP4_Position    m_Offset;
     AP4_Size        m_Size;
+    AP4_UI32        m_Duration;
     AP4_Ordinal     m_DescriptionIndex;
     AP4_UI64        m_Dts;
-    AP4_UI64        m_Cts;
+    AP4_UI32        m_CtsDelta;
     bool            m_IsSync;
 };
 

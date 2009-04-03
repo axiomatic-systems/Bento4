@@ -685,7 +685,7 @@ AP4_MarlinIpmpEncryptingProcessor::Initialize(
     AP4_MemoryByteStream* sample_data = new AP4_MemoryByteStream();
     od_update.Write(*sample_data);
     ipmp_update.Write(*sample_data);
-    od_sample_table->AddSample(*sample_data, 0, sample_data->GetDataSize(), 0, 0, 0, true);
+    od_sample_table->AddSample(*sample_data, 0, sample_data->GetDataSize(), 0, 0, 0, 0, true);
     
     // create the OD track
     AP4_TrakAtom* od_track = new AP4_TrakAtom(od_sample_table,

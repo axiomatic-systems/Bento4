@@ -43,9 +43,10 @@ AP4_Sample::AP4_Sample() :
     m_DataStream(NULL),
     m_Offset(0),
     m_Size(0),
+    m_Duration(0),
     m_DescriptionIndex(0),
     m_Dts(0),
-    m_Cts(0),
+    m_CtsDelta(0),
     m_IsSync(true)
 {
 }
@@ -56,15 +57,17 @@ AP4_Sample::AP4_Sample() :
 AP4_Sample::AP4_Sample(AP4_ByteStream& data_stream,
                        AP4_Position    offset,
                        AP4_Size        size,
+                       AP4_UI32        duration,
                        AP4_Ordinal     description_index,
                        AP4_UI64        dts,
-                       AP4_UI32        cts_offset /* = 0 */,
-                       bool            is_sync /* = true  */) :
+                       AP4_UI32        cts_delta,
+                       bool            is_sync) :
     m_Offset(offset),
     m_Size(size),
+    m_Duration(duration),
     m_DescriptionIndex(description_index),
     m_Dts(dts),
-    m_Cts(dts + cts_offset),
+    m_CtsDelta(cts_delta),
     m_IsSync(is_sync)
 {
     m_DataStream = &data_stream;
@@ -78,9 +81,10 @@ AP4_Sample::AP4_Sample(const AP4_Sample& other) :
     m_DataStream(other.m_DataStream),
     m_Offset(other.m_Offset),
     m_Size(other.m_Size),
+    m_Duration(other.m_Duration),
     m_DescriptionIndex(other.m_DescriptionIndex),
     m_Dts(other.m_Dts),
-    m_Cts(other.m_Cts),
+    m_CtsDelta(other.m_CtsDelta),
     m_IsSync(other.m_IsSync)
 {
     AP4_ADD_REFERENCE(m_DataStream);
@@ -106,9 +110,10 @@ AP4_Sample::operator=(const AP4_Sample& other)
 
     m_Offset           = other.m_Offset;
     m_Size             = other.m_Size;
+    m_Duration         = other.m_Duration;
     m_DescriptionIndex = other.m_DescriptionIndex;
     m_Dts              = other.m_Dts;
-    m_Cts              = other.m_Cts;
+    m_CtsDelta         = other.m_CtsDelta;
     m_IsSync           = other.m_IsSync;
 
     return *this;
