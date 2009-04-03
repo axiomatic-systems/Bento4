@@ -120,7 +120,7 @@ public:
     /**
      * Set the CTS (Composition Time Stamp) of the sample in the timescale of the media
      */
-    void            SetCts(AP4_UI64 cts) { m_CtsDelta = (cts > m_Dts) ? cts-m_Dts : 0;  }
+    void            SetCts(AP4_UI64 cts) { m_CtsDelta = (cts > m_Dts) ? (AP4_UI32)(cts-m_Dts) : 0;  }
 
     /**
      * Get the CTS Delta (difference between the CTS (Composition Time Stamp) and DTS (Decoding Time Stamp)

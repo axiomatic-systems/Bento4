@@ -88,9 +88,9 @@ AP4_SampleTable::GenerateStblAtom(AP4_ContainerAtom*& stbl)
         GetSample(i, sample);
         
         // update DTS table
-        AP4_UI64 new_duration = sample.GetDuration();
+        AP4_UI32 new_duration = sample.GetDuration();
         if (new_duration != current_duration && current_duration_run != 0) {
-            // emmit a new stts entry
+            // emit a new stts entry
             stts->AddEntry(current_duration_run, current_duration);
             
             // reset the run count
@@ -105,7 +105,7 @@ AP4_SampleTable::GenerateStblAtom(AP4_ContainerAtom*& stbl)
             // create a ctts atom if we don't have one
             if (ctts == NULL) ctts = new AP4_CttsAtom();
             
-            // emmit a new ctts entry
+            //emit a new ctts entry
             ctts->AddEntry(current_cts_delta_run, current_cts_delta);
             
             // reset the run count

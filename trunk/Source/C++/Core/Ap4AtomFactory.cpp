@@ -371,7 +371,8 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
         break;
 
       case AP4_ATOM_TYPE_8BDL:
-        atom = AP4_8bdlAtom::Create(size, stream);
+        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+        atom = AP4_8bdlAtom::Create(size_32, stream);
         break;
 
       case AP4_ATOM_TYPE_DREF:
