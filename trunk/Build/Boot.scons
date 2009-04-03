@@ -14,6 +14,7 @@ PLATFORM_TO_TARGET_MAP = {
     'linux-i386'   : 'x86-unknown-linux',
     'linux-x86_64' : 'x86_64-unknown-linux',
     'linux2'       : 'x86-unknown-linux',
+    'linux-arm'    : 'arm-unknown-linux',
     'win32'        : 'x86-microsoft-win32',
     'cygwin'       : 'x86-unknown-cygwin',
     'darwin'       : 'universal-apple-macosx'
@@ -39,6 +40,8 @@ def DefaultTarget():
             platform_id = 'linux-i386'
         if (platform.machine() == 'x86_64'):
             platform_id = 'linux-x86_64'
+        if (platform.machine() == 'arm'):
+            platform_id = 'linux-arm'
     
     if PLATFORM_TO_TARGET_MAP.has_key(platform_id):
         return PLATFORM_TO_TARGET_MAP[platform_id]
