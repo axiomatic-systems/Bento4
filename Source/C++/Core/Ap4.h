@@ -283,5 +283,6 @@
 #include "Ap4AvccAtom.h"
 #include "Ap4Marlin.h"
 #include "Ap4GrpiAtom.h"
+#include "Ap48bdlAtom.h"
 
 #endif // _AP4_H_

@@ -80,6 +80,7 @@
 #include "Ap4GrpiAtom.h"
 #include "Ap4AvccAtom.h"
 #include "Ap4Marlin.h"
+#include "Ap48bdlAtom.h"
 
 /*----------------------------------------------------------------------
 |   AP4_AtomFactory::~AP4_AtomFactory
@@ -367,6 +368,10 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
         
       case AP4_ATOM_TYPE_8ID_:
         atom = new AP4_NullTerminatedStringAtom(type, size, stream);
+        break;
+
+      case AP4_ATOM_TYPE_8BDL:
+        atom = AP4_8bdlAtom::Create(size, stream);
         break;
 
       case AP4_ATOM_TYPE_DREF:
