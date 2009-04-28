@@ -34,9 +34,9 @@ def GetVersion():
     lines = f.readlines()
     f.close()
     for line in lines:
-        m = re.match(r'.*AP4_VERSION_STRING *"([0-9]*)\.([0-9]*)\.([0-9]*)"', line)
+        m = re.match(r'.*AP4_VERSION_STRING *"([0-9]*)\.([0-9]*)\.([0-9]*)\.([0-9]*)"', line)
         if m:
-            return m.group(1) + '-' + m.group(2) + '-' + m.group(3)
+            return m.group(1) + '-' + m.group(2) + '-' + m.group(3) + '-' + m.group(4)
     return '0-0-0'
 
 
