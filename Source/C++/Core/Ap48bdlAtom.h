@@ -34,6 +34,7 @@
 +---------------------------------------------------------------------*/
 #include "Ap4DataBuffer.h"
 #include "Ap4Atom.h"
+#include "Ap4DynamicCast.h"
 
 /*----------------------------------------------------------------------
 |   constants
@@ -46,6 +47,8 @@ const AP4_UI32 AP4_8BDL_XML_DATA_ENCODING = AP4_ATOM_TYPE('x','m','l',' ');
 class AP4_8bdlAtom : public AP4_Atom
 {
 public:
+    AP4_IMPLEMENT_DYNAMIC_CAST_D(AP4_8bdlAtom, AP4_Atom)
+
     // virtual constructor
     static AP4_8bdlAtom* Create(AP4_Size size, AP4_ByteStream& stream);
     

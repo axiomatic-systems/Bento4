@@ -127,6 +127,24 @@ ShowProtectionSchemeInfo(AP4_UI32 scheme_type, AP4_ContainerAtom& schi, bool ver
             printf("        Encryption Method: %s\n", encryption_method);
             printf("        Content ID:        %s\n", ohdr->GetContentId().GetChars());
             printf("        Rights Issuer URL: %s\n", ohdr->GetRightsIssuerUrl().GetChars());
+            
+            const AP4_DataBuffer& headers = ohdr->GetTextualHeaders();
+            AP4_Size              data_len    = headers.GetDataSize();
+            if (data_len) {
+                AP4_Byte*      textual_headers_string;
+                AP4_Byte*      curr;
+                AP4_DataBuffer output_buffer;
+                output_buffer.SetData((const AP4_Byte*)headers.GetData(), data_len);
+                curr = textual_headers_string = output_buffer.UseData();
+                textual_headers_string[data_len] = '\0';
+                while(curr < textual_headers_string+data_len) {
+                    if ('\0' == *curr) {
+                        *curr = '\n';
+                    }
+                    curr++;
+                }
+                printf("        Textual Headers: \n%s\n", (const char*)textual_headers_string);
+            }
         }
     } else if (scheme_type == AP4_PROTECTION_SCHEME_TYPE_ITUNES) {
         printf("      itun Scheme Info:\n");

@@ -1392,7 +1392,6 @@ AP4_DataAtom::InspectFields(AP4_AtomInspector& inspector)
 {
     inspector.AddField("type", m_DataType);
     inspector.AddField("lang", m_DataLang);
-
     if (m_DataType == DATA_TYPE_STRING_UTF_8) {
         AP4_String* str;
         if (AP4_SUCCEEDED(LoadString(str))) {

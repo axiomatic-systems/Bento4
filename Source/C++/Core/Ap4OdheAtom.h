@@ -48,7 +48,7 @@ class AP4_OhdrAtom;
 class AP4_OdheAtom : public AP4_ContainerAtom
 {
 public:
-    AP4_IMPLEMENT_DYNAMIC_CAST_D(AP4_OdheAtom, AP4_Atom)
+    AP4_IMPLEMENT_DYNAMIC_CAST_D(AP4_OdheAtom, AP4_ContainerAtom)
 
     // class methods
     static AP4_OdheAtom* Create(AP4_Size         size, 

@@ -751,7 +751,7 @@ ExtractTag(AP4_File* file, AP4_String& arg)
         }
     }
     if (!found) {
-        fprintf(stderr, "ERROR: canot extract tag, entry not found\n");
+        fprintf(stderr, "ERROR: cannot extract tag, entry not found\n");
         result = AP4_ERROR_NO_SUCH_ITEM;
     }
     
