@@ -49,7 +49,7 @@ class AP4_SampleEntry;
 class AP4_StsdAtom : public AP4_ContainerAtom
 {
 public:
-    AP4_IMPLEMENT_DYNAMIC_CAST_D(AP4_StsdAtom, AP4_Atom)
+    AP4_IMPLEMENT_DYNAMIC_CAST_D(AP4_StsdAtom, AP4_ContainerAtom)
 
     // class methods
     static AP4_StsdAtom* Create(AP4_Size         size,

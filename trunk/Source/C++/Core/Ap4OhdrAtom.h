@@ -53,7 +53,7 @@ const AP4_UI08 AP4_OMA_DCF_PADDING_SCHEME_RFC_2630 = 1;
 class AP4_OhdrAtom : public AP4_ContainerAtom
 {
 public:
-    AP4_IMPLEMENT_DYNAMIC_CAST_D(AP4_OhdrAtom, AP4_Atom)
+    AP4_IMPLEMENT_DYNAMIC_CAST_D(AP4_OhdrAtom, AP4_ContainerAtom)
 
     // class methods
     static AP4_OhdrAtom* Create(AP4_Size         size, 

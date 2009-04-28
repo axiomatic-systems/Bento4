@@ -43,7 +43,8 @@ droid_extras = ['-include', DROID_ROOT+'/system/core/include/arch/linux-arm/Andr
                  '-ffunction-sections',
                  '-funwind-tables',
                  '-fstack-protector',
-                 '-fmessage-length=0']
+                 '-fmessage-length=0',
+                 '-fno-short-enums']
 
 droid_extras_cpp = ['-fno-exceptions',
                     '-fno-rtti']
@@ -57,7 +58,7 @@ droid_defines = ['-DANDROID',
 
 if env['build_config'] == 'Release':
     droid_optimize = ['-finline-functions',
-                  '-finline-limit=300',
+                   '-finline-limit=300',
                    '-fno-inline-functions-called-once',
                    '-fgcse-after-reload',
                    '-frerun-cse-after-loop',
