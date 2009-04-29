@@ -607,6 +607,39 @@ AP4_StandardDecryptingProcessor::AP4_StandardDecryptingProcessor(
 }
 
 /*----------------------------------------------------------------------
+ |   AP4_StandardDecryptingProcessor:Initialize
+ +---------------------------------------------------------------------*/
+AP4_Result 
+AP4_StandardDecryptingProcessor::Initialize(AP4_AtomParent&   top_level,
+                                            AP4_ByteStream&   stream,
+                                            ProgressListener* listener)
+{
+    AP4_FtypAtom* ftyp = AP4_DYNAMIC_CAST(AP4_FtypAtom, top_level.GetChild(AP4_ATOM_TYPE_FTYP));
+    if (ftyp) {
+        // remove the atom, it will be replaced with a new one
+        top_level.RemoveChild(ftyp);
+        
+        // keep the existing brand and compatible brands except for the ones we want to remove
+        AP4_Array<AP4_UI32> compatible_brands;
+        compatible_brands.EnsureCapacity(ftyp->GetCompatibleBrands().ItemCount());
+        for (unsigned int i=0; i<ftyp->GetCompatibleBrands().ItemCount(); i++) {
+            if (ftyp->GetCompatibleBrands()[i] != AP4_OMA_DCF_BRAND_OPF2) {
+                compatible_brands.Append(ftyp->GetCompatibleBrands()[i]);
+            }
+        }
+        
+        // create a replacement for the major brand
+        top_level.AddChild(new AP4_FtypAtom(ftyp->GetMajorBrand(),
+                                            ftyp->GetMinorVersion(),
+                                            &compatible_brands[0],
+                                            compatible_brands.ItemCount()), 0);
+        delete ftyp;
+    }
+    
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
 |   AP4_StandardDecryptingProcessor:CreateTrackHandler
 +---------------------------------------------------------------------*/
 AP4_Processor::TrackHandler* 
