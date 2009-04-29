@@ -1040,8 +1040,8 @@ AP4_OmaDcfEncryptingProcessor::Initialize(AP4_AtomParent&                  top_l
         delete ftyp;
         ftyp = new_ftyp;
     } else {
-        AP4_UI32 isom = AP4_FTYP_BRAND_ISOM;
-        ftyp = new AP4_FtypAtom(AP4_OMA_DCF_BRAND_OPF2, 0, &isom, 1);
+        AP4_UI32 opf2 = AP4_OMA_DCF_BRAND_OPF2;
+        ftyp = new AP4_FtypAtom(AP4_FTYP_BRAND_ISOM, 0, &opf2, 1);
     }
     
     // insert the ftyp atom as the first child
