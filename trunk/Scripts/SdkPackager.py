@@ -149,7 +149,8 @@ CopyFiles(single_config_files)
 
 # copy multi-config files
 multi_config_files = [
-    (SDK_TARGET_DIR,'*.exe','bin'),
+    (SDK_TARGET_DIR,'mp4*.exe','bin'),
+    (SDK_TARGET_DIR,'aac2mp4.exe','bin'),
     (SDK_TARGET_DIR,'mp42aac','bin'),
     (SDK_TARGET_DIR,'mp4dcfpackager','bin'),
     (SDK_TARGET_DIR,'mp4decrypt','bin'),
