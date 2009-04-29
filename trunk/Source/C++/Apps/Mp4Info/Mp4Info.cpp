@@ -134,7 +134,8 @@ ShowProtectionSchemeInfo(AP4_UI32 scheme_type, AP4_ContainerAtom& schi, bool ver
                 AP4_Byte*      textual_headers_string;
                 AP4_Byte*      curr;
                 AP4_DataBuffer output_buffer;
-                output_buffer.SetData((const AP4_Byte*)headers.GetData(), data_len);
+                output_buffer.SetDataSize(data_len+1);
+                AP4_CopyMemory(output_buffer.UseData(), headers.GetData(), data_len);
                 curr = textual_headers_string = output_buffer.UseData();
                 textual_headers_string[data_len] = '\0';
                 while(curr < textual_headers_string+data_len) {
