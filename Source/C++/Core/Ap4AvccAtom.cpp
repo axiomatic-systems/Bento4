@@ -183,6 +183,15 @@ AP4_AvccAtom::AP4_AvccAtom(AP4_UI08 profile,
     m_ProfileCompatibility(profile_compatibility),
     m_NaluLengthSize(length_size)
 {
+    // deep copy of the parameters
+    unsigned int i = 0;
+    for (i=0; i<sequence_parameters.ItemCount(); i++) {
+        m_SequenceParameters.Append(sequence_parameters[i]);
+    }
+    for (i=0; i<picture_parameters.ItemCount(); i++) {
+        m_PictureParameters.Append(picture_parameters[i]);
+    }    
+
     // compute the raw bytes
     UpdateRawBytes();
 

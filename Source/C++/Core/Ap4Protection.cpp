@@ -669,8 +669,8 @@ AP4_StandardDecryptingProcessor::AP4_StandardDecryptingProcessor(
  +---------------------------------------------------------------------*/
 AP4_Result 
 AP4_StandardDecryptingProcessor::Initialize(AP4_AtomParent&   top_level,
-                                            AP4_ByteStream&   stream,
-                                            ProgressListener* listener)
+                                            AP4_ByteStream&   /*stream*/,
+                                            ProgressListener* /*listener*/)
 {
     AP4_FtypAtom* ftyp = AP4_DYNAMIC_CAST(AP4_FtypAtom, top_level.GetChild(AP4_ATOM_TYPE_FTYP));
     if (ftyp) {

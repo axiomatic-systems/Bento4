@@ -95,6 +95,8 @@ AP4_TrexAtom::WriteFields(AP4_ByteStream& stream)
     stream.ReadUI32(m_DefaultSampleDuration);
     stream.ReadUI32(m_DefaultSampleSize);
     stream.ReadUI32(m_DefaultSampleFlags);
+
+    return AP4_SUCCESS;
 }
 
 /*----------------------------------------------------------------------
