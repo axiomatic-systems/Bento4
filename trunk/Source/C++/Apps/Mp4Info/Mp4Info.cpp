@@ -361,7 +361,7 @@ ShowTrackInfo(AP4_Track& track, bool show_samples, bool verbose)
         printf(" IN-PREVIEW");
     }
     printf("\n");
-	printf("  id:           %ld\n", track.GetId());
+	printf("  id:           %d\n", track.GetId());
     printf("  type:         ");
     switch (track.GetType()) {
         case AP4_Track::TYPE_AUDIO:   printf("Audio\n"); break;
@@ -374,14 +374,14 @@ ShowTrackInfo(AP4_Track& track, bool show_samples, bool verbose)
             char hdlr[5];
             AP4_FormatFourChars(hdlr, track.GetHandlerType());
             printf("Unknown [");
-            printf(hdlr);
+            printf("%s", hdlr);
             printf("]\n");
             break;
         }
     }
-    printf("  duration:       %ld ms\n", track.GetDurationMs());
-    printf("  timescale:      %ld\n", track.GetMediaTimeScale());
-    printf("  sample count:   %ld\n", track.GetSampleCount());
+    printf("  duration:       %d ms\n", track.GetDurationMs());
+    printf("  timescale:      %d\n", track.GetMediaTimeScale());
+    printf("  sample count:   %d\n", track.GetSampleCount());
     if (track.GetWidth()  || track.GetHeight()) {
         printf("  display width:  %f\n", (float)track.GetWidth()/65536.0);
         printf("  display height: %f\n", (float)track.GetHeight()/65536.0);
@@ -441,8 +441,8 @@ static void
 ShowMovieInfo(AP4_Movie& movie)
 {
     printf("Movie:\n");
-    printf("  duration:   %ld ms\n", movie.GetDurationMs());
-    printf("  time scale: %ld\n", movie.GetTimeScale());
+    printf("  duration:   %d ms\n", movie.GetDurationMs());
+    printf("  time scale: %d\n", movie.GetTimeScale());
     printf("\n");
 }
 

@@ -2,7 +2,7 @@
 |
 |    AP4 - MP4 File Tagger
 |
-|    Copyright 2002-2003 |    Copyright 2002-2008 Axiomatic Systems, LLC Boccon-Gibod
+|    Copyright 2002-2009 Axiomatic Systems, LLC Boccon-Gibod
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -621,7 +621,7 @@ AddTag(AP4_File* file, AP4_String& arg, bool remove_first)
         AP4_MetaData::Value::Type data_type = 
             (*type == "JPEG" ? AP4_MetaData::Value::TYPE_JPEG : AP4_MetaData::Value::TYPE_GIF);
         AP4_ByteStream* data_file = NULL;
-        AP4_Result result = AP4_FileByteStream::Create(value->GetChars(), AP4_FileByteStream::STREAM_MODE_READ, data_file);
+        result = AP4_FileByteStream::Create(value->GetChars(), AP4_FileByteStream::STREAM_MODE_READ, data_file);
         if (AP4_FAILED(result)) {
             fprintf(stderr, "ERROR: cannot open file %s\n", value->GetChars());
             goto end;
@@ -843,7 +843,7 @@ main(int argc, char** argv)
     for (AP4_List<Command>::Item* item = Options.commands.FirstItem();
          item;
          item = item->GetNext()) {
-        AP4_Result result = AP4_SUCCESS;
+        result = AP4_SUCCESS;
         switch (item->GetData()->m_Type) {
             case Command::TYPE_LIST_KEYS:
                 ListKeys();
