@@ -284,6 +284,10 @@
 		CAEDC8E80DFF5B1100F070A8 /* Ap4Expandable.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAEDC8E60DFF5B1100F070A8 /* Ap4Expandable.cpp */; };
 		CAEDC8E90DFF5B1100F070A8 /* Ap4Expandable.h in Headers */ = {isa = PBXBuildFile; fileRef = CAEDC8E70DFF5B1100F070A8 /* Ap4Expandable.h */; };
 		CAEDC8FB0DFF61AE00F070A8 /* Ap4Command.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAEDC8FA0DFF61AE00F070A8 /* Ap4Command.cpp */; };
+		CAEFE10E0FB6993D00AF6434 /* Ap4MehdAtom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAEFE10C0FB6993D00AF6434 /* Ap4MehdAtom.cpp */; };
+		CAEFE10F0FB6993D00AF6434 /* Ap4MehdAtom.h in Headers */ = {isa = PBXBuildFile; fileRef = CAEFE10D0FB6993D00AF6434 /* Ap4MehdAtom.h */; };
+		CAEFE1340FB69CF600AF6434 /* Ap4TrexAtom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAEFE1320FB69CF600AF6434 /* Ap4TrexAtom.cpp */; };
+		CAEFE1350FB69CF600AF6434 /* Ap4TrexAtom.h in Headers */ = {isa = PBXBuildFile; fileRef = CAEFE1330FB69CF600AF6434 /* Ap4TrexAtom.h */; };
 		CAF479310F0951C3004073ED /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
 		CAF479380F0951E7004073ED /* BenchmarksTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAF479370F0951E7004073ED /* BenchmarksTest.cpp */; };
 		F98E8CC10EA9AEC3000C8839 /* Bento4C.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F98E8CBF0EA9AEC3000C8839 /* Bento4C.cpp */; };
@@ -824,6 +828,10 @@
 		CAEDC8E60DFF5B1100F070A8 /* Ap4Expandable.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4Expandable.cpp; sourceTree = "<group>"; };
 		CAEDC8E70DFF5B1100F070A8 /* Ap4Expandable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4Expandable.h; sourceTree = "<group>"; };
 		CAEDC8FA0DFF61AE00F070A8 /* Ap4Command.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4Command.cpp; sourceTree = "<group>"; };
+		CAEFE10C0FB6993D00AF6434 /* Ap4MehdAtom.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4MehdAtom.cpp; sourceTree = "<group>"; };
+		CAEFE10D0FB6993D00AF6434 /* Ap4MehdAtom.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4MehdAtom.h; sourceTree = "<group>"; };
+		CAEFE1320FB69CF600AF6434 /* Ap4TrexAtom.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4TrexAtom.cpp; sourceTree = "<group>"; };
+		CAEFE1330FB69CF600AF6434 /* Ap4TrexAtom.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4TrexAtom.h; sourceTree = "<group>"; };
 		CAF4792B0F0951B8004073ED /* benchmarkstest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = benchmarkstest; sourceTree = BUILT_PRODUCTS_DIR; };
 		CAF479370F0951E7004073ED /* BenchmarksTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BenchmarksTest.cpp; sourceTree = "<group>"; };
 		D2AAC046055464E500DB518D /* libBento4.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libBento4.a; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -1236,6 +1244,10 @@
 		CA93660F0B437D030067D50B /* Core */ = {
 			isa = PBXGroup;
 			children = (
+				CAEFE1320FB69CF600AF6434 /* Ap4TrexAtom.cpp */,
+				CAEFE1330FB69CF600AF6434 /* Ap4TrexAtom.h */,
+				CAEFE10C0FB6993D00AF6434 /* Ap4MehdAtom.cpp */,
+				CAEFE10D0FB6993D00AF6434 /* Ap4MehdAtom.h */,
 				CAD6A7C30F7AFFD800456513 /* Ap4DynamicCast.h */,
 				CA8B6A9F0F66E2DC00720A07 /* Ap4TrunAtom.cpp */,
 				CA8B6AA00F66E2DC00720A07 /* Ap4TrunAtom.h */,
@@ -1624,6 +1636,8 @@
 				CA8B6AA20F66E2DC00720A07 /* Ap4TrunAtom.h in Headers */,
 				CAD6A7C40F7AFFD800456513 /* Ap4DynamicCast.h in Headers */,
 				CA9CB9BF0F86ABB400063C70 /* Ap48bdlAtom.h in Headers */,
+				CAEFE10F0FB6993D00AF6434 /* Ap4MehdAtom.h in Headers */,
+				CAEFE1350FB69CF600AF6434 /* Ap4TrexAtom.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2302,6 +2316,8 @@
 				CA8B6A800F66D82C00720A07 /* Ap4TfhdAtom.cpp in Sources */,
 				CA8B6AA10F66E2DC00720A07 /* Ap4TrunAtom.cpp in Sources */,
 				CA9CB9BE0F86ABB400063C70 /* Ap48bdlAtom.cpp in Sources */,
+				CAEFE10E0FB6993D00AF6434 /* Ap4MehdAtom.cpp in Sources */,
+				CAEFE1340FB69CF600AF6434 /* Ap4TrexAtom.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -41,6 +41,7 @@
 #include "Ap4IsltAtom.h"
 #include "Ap4Utils.h"
 #include "Ap4TrakAtom.h"
+#include "Ap4HdlrAtom.h"
 
 /*----------------------------------------------------------------------
 |   AP4_IsmaCipher::CreateSampleDecrypter
@@ -466,6 +467,23 @@ AP4_IsmaEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
             case AP4_ATOM_TYPE_AVC1:
                 format = AP4_ATOM_TYPE_ENCV;
                 break;
+
+            default: {
+                // try to find if this is audio or video
+                AP4_HdlrAtom* hdlr = AP4_DYNAMIC_CAST(AP4_HdlrAtom, trak->FindChild("mdia/hdlr"));
+                if (hdlr) {
+                    switch (hdlr->GetHandlerType()) {
+                        case AP4_HANDLER_TYPE_SOUN:
+                            format = AP4_ATOM_TYPE_ENCA;
+                            break;
+
+                        case AP4_HANDLER_TYPE_VIDE:
+                            format = AP4_ATOM_TYPE_ENCV;
+                            break;
+                    }
+                }
+                break;
+            }
         }
         if (format) {
             // create the block cipher

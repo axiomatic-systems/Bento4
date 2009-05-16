@@ -225,7 +225,7 @@ ShowMpegAudioSampleDescription(AP4_MpegAudioSampleDescription& mpeg_audio_desc)
     AP4_MpegAudioSampleDescription::Mpeg4AudioObjectType object_type = 
         mpeg_audio_desc.GetMpeg4AudioObjectType();
     const char* object_type_string = AP4_MpegAudioSampleDescription::GetMpeg4AudioObjectTypeString(object_type);
-    AP4_Debug("    MPEG-4 Audio Object Type: %s\n", object_type_string);
+    printf("    MPEG-4 Audio Object Type: %s\n", object_type_string);
 }
 
 /*----------------------------------------------------------------------
@@ -242,16 +242,22 @@ ShowSampleDescription(AP4_SampleDescription& description, bool verbose)
     }
     char coding[5];
     AP4_FormatFourChars(coding, desc->GetFormat());
-    AP4_Debug(    "    Coding:      %s\n", coding);
+    printf(    "    Coding:      %s", coding);
+    const char* format_name = AP4_GetFormatName(desc->GetFormat());
+    if (format_name) {
+        printf(" (%s)\n", format_name);
+    } else {
+        printf("\n");
+    }
     if (desc->GetType() == AP4_SampleDescription::TYPE_MPEG) {
         // MPEG sample description
         AP4_MpegSampleDescription* mpeg_desc = AP4_DYNAMIC_CAST(AP4_MpegSampleDescription, desc);
 
-        AP4_Debug("    Stream Type: %s\n", mpeg_desc->GetStreamTypeString(mpeg_desc->GetStreamType()));
-        AP4_Debug("    Object Type: %s\n", mpeg_desc->GetObjectTypeString(mpeg_desc->GetObjectTypeId()));
-        AP4_Debug("    Max Bitrate: %d\n", mpeg_desc->GetMaxBitrate());
-        AP4_Debug("    Avg Bitrate: %d\n", mpeg_desc->GetAvgBitrate());
-        AP4_Debug("    Buffer Size: %d\n", mpeg_desc->GetBufferSize());
+        printf("    Stream Type: %s\n", mpeg_desc->GetStreamTypeString(mpeg_desc->GetStreamType()));
+        printf("    Object Type: %s\n", mpeg_desc->GetObjectTypeString(mpeg_desc->GetObjectTypeId()));
+        printf("    Max Bitrate: %d\n", mpeg_desc->GetMaxBitrate());
+        printf("    Avg Bitrate: %d\n", mpeg_desc->GetAvgBitrate());
+        printf("    Buffer Size: %d\n", mpeg_desc->GetBufferSize());
         
         if (mpeg_desc->GetObjectTypeId() == AP4_OTI_MPEG4_AUDIO) {
             AP4_MpegAudioSampleDescription* mpeg_audio_desc = AP4_DYNAMIC_CAST(AP4_MpegAudioSampleDescription, mpeg_desc);
@@ -263,29 +269,29 @@ ShowSampleDescription(AP4_SampleDescription& description, bool verbose)
         AP4_AvcSampleDescription* avc_desc = AP4_DYNAMIC_CAST(AP4_AvcSampleDescription, desc);
         const char* profile_name = AP4_AvccAtom::GetProfileName(avc_desc->GetProfile());
         if (profile_name) {
-            AP4_Debug("    AVC Profile:          %s\n", profile_name);
+            printf("    AVC Profile:          %s\n", profile_name);
         } else {
-            AP4_Debug("    AVC Profile:          %d\n", avc_desc->GetProfile());
+            printf("    AVC Profile:          %d\n", avc_desc->GetProfile());
         }
-        AP4_Debug("    AVC Profile Compat:   %x\n", avc_desc->GetProfileCompatibility());
-        AP4_Debug("    AVC Level:            %d\n", avc_desc->GetLevel());
-        AP4_Debug("    AVC NALU Length Size: %d\n", avc_desc->GetNaluLengthSize());
+        printf("    AVC Profile Compat:   %x\n", avc_desc->GetProfileCompatibility());
+        printf("    AVC Level:            %d\n", avc_desc->GetLevel());
+        printf("    AVC NALU Length Size: %d\n", avc_desc->GetNaluLengthSize());
     }
     AP4_AudioSampleDescription* audio_desc = 
         AP4_DYNAMIC_CAST(AP4_AudioSampleDescription, desc);
     if (audio_desc) {
         // Audio sample description
-        AP4_Debug("    Sample Rate: %d\n", audio_desc->GetSampleRate());
-        AP4_Debug("    Sample Size: %d\n", audio_desc->GetSampleSize());
-        AP4_Debug("    Channels:    %d\n", audio_desc->GetChannelCount());
+        printf("    Sample Rate: %d\n", audio_desc->GetSampleRate());
+        printf("    Sample Size: %d\n", audio_desc->GetSampleSize());
+        printf("    Channels:    %d\n", audio_desc->GetChannelCount());
     }
     AP4_VideoSampleDescription* video_desc = 
         AP4_DYNAMIC_CAST(AP4_VideoSampleDescription, desc);
     if (video_desc) {
         // Video sample description
-        AP4_Debug("    Width:       %d\n", video_desc->GetWidth());
-        AP4_Debug("    Height:      %d\n", video_desc->GetHeight());
-        AP4_Debug("    Depth:       %d\n", video_desc->GetDepth());
+        printf("    Width:       %d\n", video_desc->GetWidth());
+        printf("    Height:      %d\n", video_desc->GetHeight());
+        printf("    Depth:       %d\n", video_desc->GetDepth());
     }
 }
 
@@ -344,54 +350,57 @@ ShowDcfInfo(AP4_File& file)
 static void
 ShowTrackInfo(AP4_Track& track, bool show_samples, bool verbose)
 {
-    AP4_Debug("  flags:        %d", track.GetFlags());
+    printf("  flags:        %d", track.GetFlags());
     if (track.GetFlags() & AP4_TRACK_FLAG_ENABLED) {
-        AP4_Debug(" ENABLED");
+        printf(" ENABLED");
     }
     if (track.GetFlags() & AP4_TRACK_FLAG_IN_MOVIE) {
-        AP4_Debug(" IN-MOVIE");
+        printf(" IN-MOVIE");
     }
     if (track.GetFlags() & AP4_TRACK_FLAG_IN_PREVIEW) {
-        AP4_Debug(" IN-PREVIEW");
+        printf(" IN-PREVIEW");
     }
-    AP4_Debug("\n");
-	AP4_Debug("  id:           %ld\n", track.GetId());
-    AP4_Debug("  type:         ");
+    printf("\n");
+	printf("  id:           %ld\n", track.GetId());
+    printf("  type:         ");
     switch (track.GetType()) {
-        case AP4_Track::TYPE_AUDIO:   AP4_Debug("Audio\n"); break;
-        case AP4_Track::TYPE_VIDEO:   AP4_Debug("Video\n"); break;
-        case AP4_Track::TYPE_HINT:    AP4_Debug("Hint\n");  break;
-        case AP4_Track::TYPE_SYSTEM:  AP4_Debug("System\n");  break;
-        case AP4_Track::TYPE_TEXT:    AP4_Debug("Text\n");  break;
-        case AP4_Track::TYPE_JPEG:    AP4_Debug("Jpeg\n");  break;
+        case AP4_Track::TYPE_AUDIO:   printf("Audio\n"); break;
+        case AP4_Track::TYPE_VIDEO:   printf("Video\n"); break;
+        case AP4_Track::TYPE_HINT:    printf("Hint\n");  break;
+        case AP4_Track::TYPE_SYSTEM:  printf("System\n");  break;
+        case AP4_Track::TYPE_TEXT:    printf("Text\n");  break;
+        case AP4_Track::TYPE_JPEG:    printf("Jpeg\n");  break;
         default: {
             char hdlr[5];
             AP4_FormatFourChars(hdlr, track.GetHandlerType());
-            AP4_Debug("Unknown [");
-            AP4_Debug(hdlr);
-            AP4_Debug("]\n");
+            printf("Unknown [");
+            printf(hdlr);
+            printf("]\n");
             break;
         }
     }
-    AP4_Debug("  duration:     %ld ms\n", track.GetDurationMs());
-    AP4_Debug("  timescale:    %ld\n", track.GetMediaTimeScale());
-    AP4_Debug("  sample count: %ld\n", track.GetSampleCount());
-	AP4_Sample     sample;
-    AP4_DataBuffer sample_data;
-	AP4_Ordinal    index = 0;
-    AP4_Ordinal    desc_index = 0xFFFFFFFF;
-    while (AP4_SUCCEEDED(track.GetSample(index, sample))) {
-        if (sample.GetDescriptionIndex() != desc_index) {
-            desc_index = sample.GetDescriptionIndex();
-            AP4_Debug("  [%d]: Sample Description %d\n", index, desc_index);
-            
-            // get the sample description
-            AP4_SampleDescription* sample_desc = track.GetSampleDescription(desc_index);
-            if (sample_desc) {
-                ShowSampleDescription(*sample_desc, verbose);
-            }
-        }
-        if (show_samples) {
+    printf("  duration:       %ld ms\n", track.GetDurationMs());
+    printf("  timescale:      %ld\n", track.GetMediaTimeScale());
+    printf("  sample count:   %ld\n", track.GetSampleCount());
+    if (track.GetWidth()  || track.GetHeight()) {
+        printf("  display width:  %f\n", (float)track.GetWidth()/65536.0);
+        printf("  display height: %f\n", (float)track.GetHeight()/65536.0);
+    }
+
+    // show all sample descriptions
+    for (unsigned int desc_index=0;
+        AP4_SampleDescription* sample_desc = track.GetSampleDescription(desc_index);
+        desc_index++) {
+        printf("  Sample Description %d\n", desc_index);
+        ShowSampleDescription(*sample_desc, verbose);
+    }
+
+    // show samples if requested
+    if (show_samples) {
+        AP4_Sample     sample;
+        AP4_DataBuffer sample_data;
+        AP4_Ordinal    index = 0;
+        while (AP4_SUCCEEDED(track.GetSample(index, sample))) {
             printf("[%06d] size=%6d duration=%6d", 
                    index+1, 
                    (int)sample.GetSize(), 
@@ -420,8 +429,8 @@ ShowTrackInfo(AP4_Track& track, bool show_samples, bool verbose)
             } else {
                 printf("...\n");
             }
+            index++;
         }
-        index++;
     }
 }
 
@@ -431,10 +440,10 @@ ShowTrackInfo(AP4_Track& track, bool show_samples, bool verbose)
 static void
 ShowMovieInfo(AP4_Movie& movie)
 {
-    AP4_Debug("Movie:\n");
-    AP4_Debug("  duration:   %ld ms\n", movie.GetDurationMs());
-    AP4_Debug("  time scale: %ld\n", movie.GetTimeScale());
-    AP4_Debug("\n");
+    printf("Movie:\n");
+    printf("  duration:   %ld ms\n", movie.GetDurationMs());
+    printf("  time scale: %ld\n", movie.GetTimeScale());
+    printf("\n");
 }
 
 /*----------------------------------------------------------------------
@@ -448,18 +457,18 @@ ShowFileInfo(AP4_File& file)
     char four_cc[5];
 
     AP4_FormatFourChars(four_cc, file_type->GetMajorBrand());
-    AP4_Debug("File:\n");
-    AP4_Debug("  major brand:      %s\n", four_cc);
-    AP4_Debug("  minor version:    %x\n", file_type->GetMinorVersion());
+    printf("File:\n");
+    printf("  major brand:      %s\n", four_cc);
+    printf("  minor version:    %x\n", file_type->GetMinorVersion());
 
     // compatible brands
     for (unsigned int i=0; i<file_type->GetCompatibleBrands().ItemCount(); i++) {
         AP4_UI32 cb = file_type->GetCompatibleBrands()[i];
         if (cb == 0) continue;
         AP4_FormatFourChars(four_cc, cb);
-        AP4_Debug("  compatible brand: %s\n", four_cc);
+        printf("  compatible brand: %s\n", four_cc);
     }
-    AP4_Debug("\n");
+    printf("\n");
 }
 
 
@@ -473,7 +482,7 @@ ShowTracks(AP4_List<AP4_Track>& tracks, bool show_samples, bool verbose)
     for (AP4_List<AP4_Track>::Item* track_item = tracks.FirstItem();
          track_item;
          track_item = track_item->GetNext(), ++index) {
-        AP4_Debug("Track %d:\n", index); 
+        printf("Track %d:\n", index); 
         ShowTrackInfo(*track_item->GetData(), show_samples, verbose);
     }
 }
@@ -487,7 +496,7 @@ ShowMarlinTracks(AP4_File& file, AP4_ByteStream& stream, AP4_List<AP4_Track>& tr
     AP4_List<AP4_MarlinIpmpParser::SinfEntry> sinf_entries;
     AP4_Result result = AP4_MarlinIpmpParser::Parse(file, stream, sinf_entries);
     if (AP4_FAILED(result)) {
-        AP4_Debug("WARNING: cannot parse Marlin IPMP info\n");
+        printf("WARNING: cannot parse Marlin IPMP info\n");
         ShowTracks(tracks, show_samples, verbose);
         return;
     }
@@ -495,7 +504,7 @@ ShowMarlinTracks(AP4_File& file, AP4_ByteStream& stream, AP4_List<AP4_Track>& tr
     for (AP4_List<AP4_Track>::Item* track_item = tracks.FirstItem();
          track_item;
          track_item = track_item->GetNext(), ++index) {
-        AP4_Debug("Track %d:\n", index); 
+        printf("Track %d:\n", index); 
         AP4_Track* track = track_item->GetData();
         ShowTrackInfo(*track, show_samples, verbose);
         
@@ -506,7 +515,7 @@ ShowMarlinTracks(AP4_File& file, AP4_ByteStream& stream, AP4_List<AP4_Track>& tr
             if (sinf_entry->m_TrackId == track->GetId()) {
                 printf("    [ENCRYPTED]\n");
                 if (sinf_entry->m_Sinf == NULL) {
-                    AP4_Debug("WARNING: NULL sinf entry for track ID %d\n", track->GetId());
+                    printf("WARNING: NULL sinf entry for track ID %d\n", track->GetId());
                 } else {
                     AP4_ContainerAtom* schi = AP4_DYNAMIC_CAST(AP4_ContainerAtom, sinf_entry->m_Sinf->GetChild(AP4_ATOM_TYPE_SCHI));
                     AP4_SchmAtom*      schm = AP4_DYNAMIC_CAST(AP4_SchmAtom, sinf_entry->m_Sinf->GetChild(AP4_ATOM_TYPE_SCHM));
@@ -659,7 +668,7 @@ main(int argc, char** argv)
 
     
         AP4_List<AP4_Track>& tracks = movie->GetTracks();
-        AP4_Debug("Found %d Tracks\n", tracks.ItemCount());
+        printf("Found %d Tracks\n", tracks.ItemCount());
 
         if (ftyp->GetMajorBrand() == AP4_MARLIN_BRAND_MGSV) {
             ShowMarlinTracks(*file, *input, tracks, show_samples, verbose);

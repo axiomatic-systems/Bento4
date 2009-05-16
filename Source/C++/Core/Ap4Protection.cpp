@@ -120,6 +120,30 @@ AP4_EncaSampleEntry::ToSampleDescription()
 }
 
 /*----------------------------------------------------------------------
+|   AP4_EncaSampleEntry::ToTargetSampleDescription
++---------------------------------------------------------------------*/
+AP4_SampleDescription*
+AP4_EncaSampleEntry::ToTargetSampleDescription(AP4_UI32 format)
+{
+    switch (format) {
+        case AP4_ATOM_TYPE_MP4A:
+            return new AP4_MpegAudioSampleDescription(
+                GetSampleRate(),
+                GetSampleSize(),
+                GetChannelCount(),
+                AP4_DYNAMIC_CAST(AP4_EsdsAtom, GetChild(AP4_ATOM_TYPE_ESDS)));
+
+        default:
+            return new AP4_GenericAudioSampleDescription(
+                format,
+                GetSampleRate(),
+                GetSampleSize(),
+                GetChannelCount(),
+                this);
+    }
+}
+
+/*----------------------------------------------------------------------
 |   AP4_EncvSampleEntry::AP4_EncvSampleEntry
 +---------------------------------------------------------------------*/
 AP4_EncvSampleEntry::AP4_EncvSampleEntry(AP4_UI32         type,
@@ -185,6 +209,40 @@ AP4_EncvSampleEntry::ToSampleDescription()
     // unknown scheme
     return NULL;
 
+}
+
+/*----------------------------------------------------------------------
+|   AP4_EncvSampleEntry::ToTargetSampleDescription
++---------------------------------------------------------------------*/
+AP4_SampleDescription*
+AP4_EncvSampleEntry::ToTargetSampleDescription(AP4_UI32 format)
+{
+    switch (format) {
+        case AP4_ATOM_TYPE_AVC1:
+            return new AP4_AvcSampleDescription(
+                m_Width,
+                m_Height,
+                m_Depth,
+                m_CompressorName.GetChars(),
+                this);
+                
+        case AP4_ATOM_TYPE_MP4V:
+            return new AP4_MpegVideoSampleDescription(
+                m_Width,
+                m_Height,
+                m_Depth,
+                m_CompressorName.GetChars(),
+                AP4_DYNAMIC_CAST(AP4_EsdsAtom, GetChild(AP4_ATOM_TYPE_ESDS)));
+
+        default:
+            return new AP4_GenericVideoSampleDescription(
+                format,
+                m_Width,
+                m_Height,
+                m_Depth,
+                m_CompressorName.GetChars(),
+                this);
+    }
 }
 
 /*----------------------------------------------------------------------

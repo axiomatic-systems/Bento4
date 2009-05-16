@@ -39,6 +39,7 @@
 |   dynamic cast support
 +---------------------------------------------------------------------*/
 AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_SampleDescription)
+AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_UnknownSampleDescription)
 AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_AudioSampleDescription)
 AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_VideoSampleDescription)
 AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_GenericAudioSampleDescription)
@@ -48,6 +49,47 @@ AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_MpegAudioSampleDescription)
 AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_MpegVideoSampleDescription)
 AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_MpegSystemSampleDescription)
 AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_AvcSampleDescription)
+
+/*----------------------------------------------------------------------
+|  AP4_GetFormatName
++---------------------------------------------------------------------*/
+const char*
+AP4_GetFormatName(AP4_UI32 format)
+{
+    switch (format) {
+        case AP4_SAMPLE_FORMAT_MP4A: return "MPEG-4 Audio";
+        case AP4_SAMPLE_FORMAT_MP4V: return "MPEG-4 Video";
+        case AP4_SAMPLE_FORMAT_MP4S: return "MPEG-4 Systems";
+        case AP4_SAMPLE_FORMAT_ALAC: return "Apple Lossless Audio";
+        case AP4_SAMPLE_FORMAT_AVC1: return "H.264";
+        case AP4_SAMPLE_FORMAT_OVC1: return "VC-1";
+        case AP4_SAMPLE_FORMAT_OWMA: return "WMA";
+        case AP4_SAMPLE_FORMAT_AC_3: return "AC-3";
+        case AP4_SAMPLE_FORMAT_AVCP: return "Advanced Video Coding Parameters";
+        case AP4_SAMPLE_FORMAT_DRAC: return "Dirac";
+        case AP4_SAMPLE_FORMAT_DRA1: return "DRA Audio";
+        case AP4_SAMPLE_FORMAT_EC_3: return "Enhanced AC-3";
+        case AP4_SAMPLE_FORMAT_G726: return "G726";
+        case AP4_SAMPLE_FORMAT_MJP2: return "Motion JPEG 2000";
+        case AP4_SAMPLE_FORMAT_OKSD: return "OMA Keys";
+        case AP4_SAMPLE_FORMAT_RAW_: return "Uncompressed Audio";
+        case AP4_SAMPLE_FORMAT_RTP_: return "RTP Hints";
+        case AP4_SAMPLE_FORMAT_S263: return "H.263";
+        case AP4_SAMPLE_FORMAT_SAMR: return "Narrowband AMR";
+        case AP4_SAMPLE_FORMAT_SAWB: return "Wideband AMR";
+        case AP4_SAMPLE_FORMAT_SAWP: return "Extended AMR";
+        case AP4_SAMPLE_FORMAT_SEVC: return "EVRC Voice";
+        case AP4_SAMPLE_FORMAT_SQCP: return "13K Voice";
+        case AP4_SAMPLE_FORMAT_SRTP: return "SRTP Hints";
+        case AP4_SAMPLE_FORMAT_SSMV: return "SMV Voice";
+        case AP4_SAMPLE_FORMAT_TEXT: return "Textual Metadata";
+        case AP4_SAMPLE_FORMAT_TWOS: return "Uncompressed 16-bit Audio";
+        case AP4_SAMPLE_FORMAT_TX3G: return "Timed Text";
+        case AP4_SAMPLE_FORMAT_VC_1: return "SMPTE VC-1";
+        case AP4_SAMPLE_FORMAT_XML_: return "XML Metadata";
+        default: return NULL;
+    }
+}
 
 /*----------------------------------------------------------------------
 |   AP4_SampleDescription::AP4_SampleDescription
@@ -108,13 +150,62 @@ AP4_SampleDescription::ToAtom() const
 }
 
 /*----------------------------------------------------------------------
+|   AP4_UnknownSampleDescription::AP4_UnknownSampleDescription
++---------------------------------------------------------------------*/
+AP4_UnknownSampleDescription::AP4_UnknownSampleDescription(AP4_Atom* atom) :
+    AP4_SampleDescription(AP4_SampleDescription::TYPE_UNKNOWN, 
+                          atom->GetType(), 
+                          NULL),
+    m_Atom(atom->Clone())
+{
+}
+
+/*----------------------------------------------------------------------
+|   AP4_UnknownSampleDescription::~AP4_UnknownSampleDescription
++---------------------------------------------------------------------*/
+AP4_UnknownSampleDescription::~AP4_UnknownSampleDescription()
+{
+    delete m_Atom;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_UnknownSampleDescription::Clone
++---------------------------------------------------------------------*/
+AP4_SampleDescription*
+AP4_UnknownSampleDescription::Clone(AP4_Result* result)
+{
+    AP4_Atom* atom_clone = NULL;
+    if (m_Atom) {
+        atom_clone = m_Atom->Clone();
+        if (atom_clone == NULL) {
+            if (result) *result = AP4_FAILURE;
+            return NULL;
+        }
+    }
+    if (result) *result = AP4_SUCCESS;
+    return new AP4_UnknownSampleDescription(atom_clone);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_UnknownSampleDescription::ToAtom
++---------------------------------------------------------------------*/
+AP4_Atom* 
+AP4_UnknownSampleDescription::ToAtom() const
+{
+    if (m_Atom) {
+        return m_Atom->Clone();
+    } else {
+        return NULL;
+    }
+}
+    
+/*----------------------------------------------------------------------
 |   AP4_AvcSampleDescription::AP4_AvcSampleDescription
 +---------------------------------------------------------------------*/
 AP4_AvcSampleDescription::AP4_AvcSampleDescription(AP4_UI16     width,
                                                    AP4_UI16     height,
                                                    AP4_UI16     depth,
                                                    const char*  compressor_name,
-                                                   AP4_UI08     config_version,
                                                    AP4_UI08     profile,
                                                    AP4_UI08     level,
                                                    AP4_UI08     profile_compatibility,
@@ -124,8 +215,7 @@ AP4_AvcSampleDescription::AP4_AvcSampleDescription(AP4_UI16     width,
     AP4_SampleDescription(TYPE_AVC, AP4_SAMPLE_FORMAT_AVC1, NULL),
     AP4_VideoSampleDescription(width, height, depth, compressor_name)
 {
-    m_AvccAtom = new AP4_AvccAtom(config_version, 
-                                  profile, 
+    m_AvccAtom = new AP4_AvccAtom(profile, 
                                   level, 
                                   profile_compatibility,
                                   length_size,
@@ -148,6 +238,7 @@ AP4_AvcSampleDescription::AP4_AvcSampleDescription(AP4_UI16            width,
     if (avcc) {
         m_AvccAtom = new AP4_AvccAtom(*avcc);
     } else {
+        // should never happen
         m_AvccAtom = new AP4_AvccAtom();
     }
     m_Details.AddChild(m_AvccAtom);
@@ -165,7 +256,14 @@ AP4_AvcSampleDescription::AP4_AvcSampleDescription(AP4_UI16        width,
     AP4_VideoSampleDescription(width, height, depth, compressor_name),
     m_AvccAtom(NULL)
 {
-    m_AvccAtom = AP4_DYNAMIC_CAST(AP4_AvccAtom, details->GetChild(AP4_ATOM_TYPE_AVCC));
+    AP4_AvccAtom* avcc = AP4_DYNAMIC_CAST(AP4_AvccAtom, details->GetChild(AP4_ATOM_TYPE_AVCC));
+    if (avcc) {
+        m_AvccAtom = new AP4_AvccAtom(*avcc);
+    } else {
+        // shoud never happen
+        m_AvccAtom = new AP4_AvccAtom();
+    }
+    m_Details.AddChild(m_AvccAtom);
 }
 
 /*----------------------------------------------------------------------

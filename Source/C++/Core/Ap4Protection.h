@@ -69,6 +69,12 @@ public:
 
     // methods
     AP4_SampleDescription* ToSampleDescription();
+
+    // this method is used as a factory by the ISMACryp classes
+    // NOTE: this should be named ToSampleDescription, but C++ has a 
+    // problem with that because the base class does not have this
+    // overloaded method, but has another other one by that name
+    virtual AP4_SampleDescription* ToTargetSampleDescription(AP4_UI32 format);
 };
 
 /*----------------------------------------------------------------------
@@ -88,6 +94,12 @@ public:
 
     // methods
     AP4_SampleDescription* ToSampleDescription();
+
+    // this method is used as a factory by the ISMACryp classes
+    // NOTE: this should be named ToSampleDescription, but C++ has a 
+    // problem with that because the base class does not have this
+    // overloaded method, but has another other one by that name
+    virtual AP4_SampleDescription* ToTargetSampleDescription(AP4_UI32 format);
 };
 
 /*----------------------------------------------------------------------
