@@ -37,6 +37,7 @@
 #include "Ap4UrlAtom.h"
 #include "Ap4MoovAtom.h"
 #include "Ap4MvhdAtom.h"
+#include "Ap4MehdAtom.h"
 #include "Ap4MfhdAtom.h"
 #include "Ap4TfhdAtom.h"
 #include "Ap4TrunAtom.h"
@@ -44,6 +45,7 @@
 #include "Ap4HdlrAtom.h"
 #include "Ap4DrefAtom.h"
 #include "Ap4TkhdAtom.h"
+#include "Ap4TrexAtom.h"
 #include "Ap4TfhdAtom.h"
 #include "Ap4MdhdAtom.h"
 #include "Ap4StsdAtom.h"
@@ -194,364 +196,368 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
     }
 
     // create the atom
-    switch (type) {
-      case AP4_ATOM_TYPE_MOOV:
+    if (GetContext() == AP4_ATOM_TYPE_STSD) {
+        // sample entry
         if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        atom = AP4_MoovAtom::Create(size_32, stream, *this);
-        break;
-
-      case AP4_ATOM_TYPE_MVHD:
-        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        atom = AP4_MvhdAtom::Create(size_32, stream);
-        break;
-
-      case AP4_ATOM_TYPE_MFHD:
-        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        atom = AP4_MfhdAtom::Create(size_32, stream);
-        break;
-
-      case AP4_ATOM_TYPE_TRAK:
-        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        atom = AP4_TrakAtom::Create(size_32, stream, *this);
-        break;
-
-      case AP4_ATOM_TYPE_HDLR:
-        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        atom = AP4_HdlrAtom::Create(size_32, stream);
-        break;
-
-      case AP4_ATOM_TYPE_TKHD:
-        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        atom = AP4_TkhdAtom::Create(size_32, stream);
-        break;
-
-      case AP4_ATOM_TYPE_TFHD:
-        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        atom = AP4_TfhdAtom::Create(size_32, stream);
-        break;
-
-      case AP4_ATOM_TYPE_TRUN:
-        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        atom = AP4_TrunAtom::Create(size_32, stream);
-        break;
-
-      case AP4_ATOM_TYPE_MDHD:
-        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        atom = AP4_MdhdAtom::Create(size_32, stream);
-        break;
-
-      case AP4_ATOM_TYPE_STSD:
-        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        atom = AP4_StsdAtom::Create(size_32, stream, *this);
-        break;
-
-      case AP4_ATOM_TYPE_STSC:
-        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        atom = AP4_StscAtom::Create(size_32, stream);
-        break;
-
-      case AP4_ATOM_TYPE_STCO:
-        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        atom = AP4_StcoAtom::Create(size_32, stream);
-        break;
-
-      case AP4_ATOM_TYPE_CO64:
-        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        atom = AP4_Co64Atom::Create(size_32, stream);
-        break;
-
-      case AP4_ATOM_TYPE_STSZ:
-        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        atom = AP4_StszAtom::Create(size_32, stream);
-        break;
-
-      case AP4_ATOM_TYPE_STTS:
-        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        atom = AP4_SttsAtom::Create(size_32, stream);
-        break;
-
-      case AP4_ATOM_TYPE_CTTS:
-        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        atom = AP4_CttsAtom::Create(size_32, stream);
-        break;
-
-      case AP4_ATOM_TYPE_STSS:
-        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        atom = AP4_StssAtom::Create(size_32, stream);
-        break;
-
-      case AP4_ATOM_TYPE_IODS:
-        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        atom = AP4_IodsAtom::Create(size_32, stream);
-        break;
-
-      case AP4_ATOM_TYPE_ESDS:
-        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        atom = AP4_EsdsAtom::Create(size_32, stream);
-        break;
-
-      case AP4_ATOM_TYPE_MP4S:
-        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        if (GetContext() == AP4_ATOM_TYPE_STSD) {
-            atom = new AP4_Mp4sSampleEntry(size_32, stream, *this);
-        }
-        break;
-
-      case AP4_ATOM_TYPE_ENCA:
-        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        if (GetContext() == AP4_ATOM_TYPE_STSD) {
-            atom = new AP4_EncaSampleEntry(size_32, stream, *this);
-        }
-        break;
-
-      case AP4_ATOM_TYPE_ENCV:
-        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        if (GetContext() == AP4_ATOM_TYPE_STSD) {
-            atom = new AP4_EncvSampleEntry(size_32, stream, *this);
-        }
-        break;
-
-      case AP4_ATOM_TYPE_DRMS:
-        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        if (GetContext() == AP4_ATOM_TYPE_STSD) {
-            atom = new AP4_DrmsSampleEntry(size_32, stream, *this);
-        }
-        break;
-
-      case AP4_ATOM_TYPE_DRMI:
-        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        if (GetContext() == AP4_ATOM_TYPE_STSD) {
-            atom = new AP4_DrmiSampleEntry(size_32, stream, *this);
-        }
-        break;
-
-      case AP4_ATOM_TYPE_MP4A:
-        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        if (GetContext() == AP4_ATOM_TYPE_STSD) {
+        switch (type) {
+          case AP4_ATOM_TYPE_MP4A:
             atom = new AP4_Mp4aSampleEntry(size_32, stream, *this);
-        }
-        break;
-
-      case AP4_ATOM_TYPE_MP4V:
-        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        if (GetContext() == AP4_ATOM_TYPE_STSD) {
-            atom = new AP4_Mp4vSampleEntry(size_32, stream, *this);
-        }
-        break;
-
-      case AP4_ATOM_TYPE_AVC1:
-        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        if (GetContext() == AP4_ATOM_TYPE_STSD) {
-            atom = new AP4_Avc1SampleEntry(size_32, stream, *this);
-        }
-        break;
-
-      case AP4_ATOM_TYPE_ALAC:
-        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        if (GetContext() == AP4_ATOM_TYPE_STSD) {
-            atom = new AP4_AudioSampleEntry(AP4_ATOM_TYPE_ALAC, 
-                                            size_32, 
-                                            stream, 
-                                            *this);
-        }
-        break;
-
-      case AP4_ATOM_TYPE_AVCC:
-        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        atom = AP4_AvccAtom::Create(size_32, stream);
-        break;
-
-#if !defined(AP4_CONFIG_MINI_BUILD)
-      case AP4_ATOM_TYPE_UUID:
-        atom = new AP4_UuidAtom(size, stream);
-        break;
-        
-      case AP4_ATOM_TYPE_8ID_:
-        atom = new AP4_NullTerminatedStringAtom(type, size, stream);
-        break;
-
-      case AP4_ATOM_TYPE_8BDL:
-        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        atom = AP4_8bdlAtom::Create(size_32, stream);
-        break;
-
-      case AP4_ATOM_TYPE_DREF:
-        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        atom = AP4_DrefAtom::Create(size_32, stream, *this);
-        break;
-
-      case AP4_ATOM_TYPE_URL:
-        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        atom = AP4_UrlAtom::Create(size_32, stream);
-        break;
-
-      case AP4_ATOM_TYPE_ELST:
-        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        atom = AP4_ElstAtom::Create(size_32, stream);
-        break;
-
-      case AP4_ATOM_TYPE_VMHD:
-        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        atom = AP4_VmhdAtom::Create(size_32, stream);
-        break;
-
-      case AP4_ATOM_TYPE_SMHD:
-        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        atom = AP4_SmhdAtom::Create(size_32, stream);
-        break;
-
-      case AP4_ATOM_TYPE_NMHD:
-        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        atom = AP4_NmhdAtom::Create(size_32, stream);
-        break;
-
-      case AP4_ATOM_TYPE_HMHD:
-        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        atom = AP4_HmhdAtom::Create(size_32, stream);
-        break;
-
-      case AP4_ATOM_TYPE_FRMA:
-        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        atom = AP4_FrmaAtom::Create(size_32, stream);
-        break;
-
-      case AP4_ATOM_TYPE_SCHM:
-        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        atom = AP4_SchmAtom::Create(size_32, &m_ContextStack, stream);
-        break;
-
-      case AP4_ATOM_TYPE_FTYP:
-        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        atom = AP4_FtypAtom::Create(size_32, stream);
-        break;
-          
-      case AP4_ATOM_TYPE_RTP_:
-        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        if (GetContext() == AP4_ATOM_TYPE_STSD) {
-            atom = new AP4_RtpHintSampleEntry(size_32, stream, *this);
-        } else {
-            atom = AP4_RtpAtom::Create(size_32, stream);
-        }
-        break;
-      
-      case AP4_ATOM_TYPE_TIMS:
-        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        atom = AP4_TimsAtom::Create(size_32, stream);
-        break;
- 
-      case AP4_ATOM_TYPE_SDP_:
-        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        atom = AP4_SdpAtom::Create(size_32, stream);
-        break;
-
-      case AP4_ATOM_TYPE_IKMS:
-        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        atom = AP4_IkmsAtom::Create(size_32, stream);
-        break;
-
-      case AP4_ATOM_TYPE_ISFM:
-        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        atom = AP4_IsfmAtom::Create(size_32, stream);
-        break;
-
-      case AP4_ATOM_TYPE_ISLT:
-        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        atom = AP4_IsltAtom::Create(size_32, stream);
-        break;
-
-      case AP4_ATOM_TYPE_ODHE:
-        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        atom = AP4_OdheAtom::Create(size_32, stream, *this);
-        break;
-
-      case AP4_ATOM_TYPE_OHDR:
-        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        atom = AP4_OhdrAtom::Create(size_32, stream, *this);
-        break;
-
-      case AP4_ATOM_TYPE_ODDA:
-        atom = AP4_OddaAtom::Create(size, stream);
-        break;
-
-      case AP4_ATOM_TYPE_ODAF:
-        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        atom = AP4_OdafAtom::Create(size_32, stream);
-        break;
-
-      case AP4_ATOM_TYPE_GRPI:
-        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        atom = AP4_GrpiAtom::Create(size_32, stream);
-        break;
-
-      case AP4_ATOM_TYPE_IPRO:
-        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        atom = AP4_IproAtom::Create(size_32, stream, *this);
-        break;
-
-      // track ref types
-      case AP4_ATOM_TYPE_HINT:
-      case AP4_ATOM_TYPE_CDSC:
-      case AP4_ATOM_TYPE_SYNC:
-      case AP4_ATOM_TYPE_MPOD:
-      case AP4_ATOM_TYPE_DPND:
-      case AP4_ATOM_TYPE_IPIR:
-      case AP4_ATOM_TYPE_ALIS:
-      case AP4_ATOM_TYPE_CHAP:
-        if (GetContext() == AP4_ATOM_TYPE_TREF) {
-            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-            atom = AP4_TrefTypeAtom::Create(type, size_32, stream);
-        }
-        break;
-
-#endif // AP4_CONFIG_MINI_BUILD
-
-      // container atoms
-      case AP4_ATOM_TYPE_MOOF:
-      case AP4_ATOM_TYPE_MVEX:
-      case AP4_ATOM_TYPE_TRAF:
-      case AP4_ATOM_TYPE_TREF:
-      case AP4_ATOM_TYPE_HNTI:
-      case AP4_ATOM_TYPE_STBL:
-      case AP4_ATOM_TYPE_MDIA:
-      case AP4_ATOM_TYPE_DINF:
-      case AP4_ATOM_TYPE_MINF:
-      case AP4_ATOM_TYPE_SCHI:
-      case AP4_ATOM_TYPE_SINF:
-      case AP4_ATOM_TYPE_UDTA:
-      case AP4_ATOM_TYPE_ILST:
-      case AP4_ATOM_TYPE_EDTS: 
-      case AP4_ATOM_TYPE_MDRI:
-      case AP4_ATOM_TYPE_WAVE:
-        if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-        atom = AP4_ContainerAtom::Create(type, size, false, force_64, stream, *this);
-        break;
-
-      // full container atoms
-      case AP4_ATOM_TYPE_META:
-      case AP4_ATOM_TYPE_ODRM:
-      case AP4_ATOM_TYPE_ODKM:
-        atom = AP4_ContainerAtom::Create(type, size, true, force_64, stream, *this);
-        break;
-
-      case AP4_ATOM_TYPE_FREE:
-      case AP4_ATOM_TYPE_WIDE:
-      case AP4_ATOM_TYPE_MDAT:
-        // generic atoms
-        break;
-        
-      default:
-        // try all the external type handlers
-        {
-            AP4_List<TypeHandler>::Item* handler_item = m_TypeHandlers.FirstItem();
-            while (handler_item) {
-                TypeHandler* handler = handler_item->GetData();
-                if (AP4_SUCCEEDED(handler->CreateAtom(type, size_32, stream, GetContext(), atom))) {
-                    break;
-                }
-                handler_item = handler_item->GetNext();
-            }
-
             break;
+
+          case AP4_ATOM_TYPE_MP4V:
+            atom = new AP4_Mp4vSampleEntry(size_32, stream, *this);
+            break;
+
+          case AP4_ATOM_TYPE_MP4S:
+            atom = new AP4_Mp4sSampleEntry(size_32, stream, *this);
+            break;
+
+          case AP4_ATOM_TYPE_ENCA:
+            atom = new AP4_EncaSampleEntry(size_32, stream, *this);
+            break;
+
+          case AP4_ATOM_TYPE_ENCV:
+            atom = new AP4_EncvSampleEntry(size_32, stream, *this);
+            break;
+
+          case AP4_ATOM_TYPE_DRMS:
+            atom = new AP4_DrmsSampleEntry(size_32, stream, *this);
+            break;
+
+          case AP4_ATOM_TYPE_DRMI:
+            atom = new AP4_DrmiSampleEntry(size_32, stream, *this);
+            break;
+
+          case AP4_ATOM_TYPE_AVC1:
+            atom = new AP4_Avc1SampleEntry(size_32, stream, *this);
+            break;
+
+          case AP4_ATOM_TYPE_ALAC:
+            atom = new AP4_AudioSampleEntry(AP4_ATOM_TYPE_ALAC, size_32, stream, *this);
+            break;
+
+          case AP4_ATOM_TYPE_RTP_:
+            atom = new AP4_RtpHintSampleEntry(size_32, stream, *this);
+            break;
+
+          default: 
+            {
+                // try all the external type handlers
+                AP4_List<TypeHandler>::Item* handler_item = m_TypeHandlers.FirstItem();
+                while (handler_item) {
+                    TypeHandler* handler = handler_item->GetData();
+                    if (AP4_SUCCEEDED(handler->CreateAtom(type, size_32, stream, GetContext(), atom))) {
+                        break;
+                    }
+                    handler_item = handler_item->GetNext();
+                }
+                
+                // no custom handler, create a generic entry
+                atom = new AP4_UnknownSampleEntry(type, size, stream);
+            }
+            break;
+        }
+    } else {
+        // regular atom
+        switch (type) {
+          case AP4_ATOM_TYPE_MOOV:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_MoovAtom::Create(size_32, stream, *this);
+            break;
+
+          case AP4_ATOM_TYPE_MVHD:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_MvhdAtom::Create(size_32, stream);
+            break;
+
+          case AP4_ATOM_TYPE_MEHD:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_MehdAtom::Create(size_32, stream);
+            break;
+
+          case AP4_ATOM_TYPE_MFHD:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_MfhdAtom::Create(size_32, stream);
+            break;
+
+          case AP4_ATOM_TYPE_TRAK:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_TrakAtom::Create(size_32, stream, *this);
+            break;
+
+          case AP4_ATOM_TYPE_TREX:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_TrexAtom::Create(size_32, stream);
+            break;
+
+          case AP4_ATOM_TYPE_HDLR:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_HdlrAtom::Create(size_32, stream);
+            break;
+
+          case AP4_ATOM_TYPE_TKHD:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_TkhdAtom::Create(size_32, stream);
+            break;
+
+          case AP4_ATOM_TYPE_TFHD:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_TfhdAtom::Create(size_32, stream);
+            break;
+
+          case AP4_ATOM_TYPE_TRUN:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_TrunAtom::Create(size_32, stream);
+            break;
+
+          case AP4_ATOM_TYPE_MDHD:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_MdhdAtom::Create(size_32, stream);
+            break;
+
+          case AP4_ATOM_TYPE_STSD:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_StsdAtom::Create(size_32, stream, *this);
+            break;
+
+          case AP4_ATOM_TYPE_STSC:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_StscAtom::Create(size_32, stream);
+            break;
+
+          case AP4_ATOM_TYPE_STCO:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_StcoAtom::Create(size_32, stream);
+            break;
+
+          case AP4_ATOM_TYPE_CO64:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_Co64Atom::Create(size_32, stream);
+            break;
+
+          case AP4_ATOM_TYPE_STSZ:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_StszAtom::Create(size_32, stream);
+            break;
+
+          case AP4_ATOM_TYPE_STTS:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_SttsAtom::Create(size_32, stream);
+            break;
+
+          case AP4_ATOM_TYPE_CTTS:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_CttsAtom::Create(size_32, stream);
+            break;
+
+          case AP4_ATOM_TYPE_STSS:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_StssAtom::Create(size_32, stream);
+            break;
+
+          case AP4_ATOM_TYPE_IODS:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_IodsAtom::Create(size_32, stream);
+            break;
+
+          case AP4_ATOM_TYPE_ESDS:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_EsdsAtom::Create(size_32, stream);
+            break;
+
+          case AP4_ATOM_TYPE_AVCC:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_AvccAtom::Create(size_32, stream);
+            break;
+            
+    #if !defined(AP4_CONFIG_MINI_BUILD)
+          case AP4_ATOM_TYPE_UUID:
+            atom = new AP4_UuidAtom(size, stream);
+            break;
+            
+          case AP4_ATOM_TYPE_8ID_:
+            atom = new AP4_NullTerminatedStringAtom(type, size, stream);
+            break;
+
+          case AP4_ATOM_TYPE_8BDL:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_8bdlAtom::Create(size_32, stream);
+            break;
+
+          case AP4_ATOM_TYPE_DREF:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_DrefAtom::Create(size_32, stream, *this);
+            break;
+
+          case AP4_ATOM_TYPE_URL:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_UrlAtom::Create(size_32, stream);
+            break;
+
+          case AP4_ATOM_TYPE_ELST:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_ElstAtom::Create(size_32, stream);
+            break;
+
+          case AP4_ATOM_TYPE_VMHD:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_VmhdAtom::Create(size_32, stream);
+            break;
+
+          case AP4_ATOM_TYPE_SMHD:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_SmhdAtom::Create(size_32, stream);
+            break;
+
+          case AP4_ATOM_TYPE_NMHD:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_NmhdAtom::Create(size_32, stream);
+            break;
+
+          case AP4_ATOM_TYPE_HMHD:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_HmhdAtom::Create(size_32, stream);
+            break;
+
+          case AP4_ATOM_TYPE_FRMA:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_FrmaAtom::Create(size_32, stream);
+            break;
+
+          case AP4_ATOM_TYPE_SCHM:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_SchmAtom::Create(size_32, &m_ContextStack, stream);
+            break;
+
+          case AP4_ATOM_TYPE_FTYP:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_FtypAtom::Create(size_32, stream);
+            break;
+                        
+          case AP4_ATOM_TYPE_TIMS:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_TimsAtom::Create(size_32, stream);
+            break;
+     
+          case AP4_ATOM_TYPE_SDP_:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_SdpAtom::Create(size_32, stream);
+            break;
+
+          case AP4_ATOM_TYPE_IKMS:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_IkmsAtom::Create(size_32, stream);
+            break;
+
+          case AP4_ATOM_TYPE_ISFM:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_IsfmAtom::Create(size_32, stream);
+            break;
+
+          case AP4_ATOM_TYPE_ISLT:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_IsltAtom::Create(size_32, stream);
+            break;
+
+          case AP4_ATOM_TYPE_ODHE:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_OdheAtom::Create(size_32, stream, *this);
+            break;
+
+          case AP4_ATOM_TYPE_OHDR:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_OhdrAtom::Create(size_32, stream, *this);
+            break;
+
+          case AP4_ATOM_TYPE_ODDA:
+            atom = AP4_OddaAtom::Create(size, stream);
+            break;
+
+          case AP4_ATOM_TYPE_ODAF:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_OdafAtom::Create(size_32, stream);
+            break;
+
+          case AP4_ATOM_TYPE_GRPI:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_GrpiAtom::Create(size_32, stream);
+            break;
+
+          case AP4_ATOM_TYPE_IPRO:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_IproAtom::Create(size_32, stream, *this);
+            break;
+
+          case AP4_ATOM_TYPE_RTP_:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_RtpAtom::Create(size_32, stream);
+            break;
+
+          // track ref types
+          case AP4_ATOM_TYPE_HINT:
+          case AP4_ATOM_TYPE_CDSC:
+          case AP4_ATOM_TYPE_SYNC:
+          case AP4_ATOM_TYPE_MPOD:
+          case AP4_ATOM_TYPE_DPND:
+          case AP4_ATOM_TYPE_IPIR:
+          case AP4_ATOM_TYPE_ALIS:
+          case AP4_ATOM_TYPE_CHAP:
+            if (GetContext() == AP4_ATOM_TYPE_TREF) {
+                if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+                atom = AP4_TrefTypeAtom::Create(type, size_32, stream);
+            }
+            break;
+
+    #endif // AP4_CONFIG_MINI_BUILD
+
+          // container atoms
+          case AP4_ATOM_TYPE_MOOF:
+          case AP4_ATOM_TYPE_MVEX:
+          case AP4_ATOM_TYPE_TRAF:
+          case AP4_ATOM_TYPE_TREF:
+          case AP4_ATOM_TYPE_HNTI:
+          case AP4_ATOM_TYPE_STBL:
+          case AP4_ATOM_TYPE_MDIA:
+          case AP4_ATOM_TYPE_DINF:
+          case AP4_ATOM_TYPE_MINF:
+          case AP4_ATOM_TYPE_SCHI:
+          case AP4_ATOM_TYPE_SINF:
+          case AP4_ATOM_TYPE_UDTA:
+          case AP4_ATOM_TYPE_ILST:
+          case AP4_ATOM_TYPE_EDTS: 
+          case AP4_ATOM_TYPE_MDRI:
+          case AP4_ATOM_TYPE_WAVE:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_ContainerAtom::Create(type, size, false, force_64, stream, *this);
+            break;
+
+          // full container atoms
+          case AP4_ATOM_TYPE_META:
+          case AP4_ATOM_TYPE_ODRM:
+          case AP4_ATOM_TYPE_ODKM:
+            atom = AP4_ContainerAtom::Create(type, size, true, force_64, stream, *this);
+            break;
+
+          case AP4_ATOM_TYPE_FREE:
+          case AP4_ATOM_TYPE_WIDE:
+          case AP4_ATOM_TYPE_MDAT:
+            // generic atoms
+            break;
+            
+          default:
+            // try all the external type handlers
+            {
+                AP4_List<TypeHandler>::Item* handler_item = m_TypeHandlers.FirstItem();
+                while (handler_item) {
+                    TypeHandler* handler = handler_item->GetData();
+                    if (AP4_SUCCEEDED(handler->CreateAtom(type, size_32, stream, GetContext(), atom))) {
+                        break;
+                    }
+                    handler_item = handler_item->GetNext();
+                }
+
+                break;
+            }
         }
     }
     

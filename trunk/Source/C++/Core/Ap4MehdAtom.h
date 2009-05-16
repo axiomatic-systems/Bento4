@@ -1,14 +1,12 @@
 /*****************************************************************
 |
-|    AP4 - Version Numbers
+|    AP4 - mehd Atoms 
 |
 |    Copyright 2002-2008 Axiomatic Systems, LLC
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
 |
-|    Unless you have obtained Bento4 under a difference license,
-|    this version of Bento4 is Bento4|GPL.
 |    Unless you have obtained Bento4 under a difference license,
 |    this version of Bento4 is Bento4|GPL.
 |    Bento4|GPL is free software; you can redistribute it and/or modify
@@ -26,18 +24,44 @@
 |    Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 |    02111-1307, USA.
 |
-****************************************************************/
+ ****************************************************************/
 
-#ifndef _AP4_VERSION_H_
-#define _AP4_VERSION_H_
+#ifndef _AP4_MEHD_ATOM_H_
+#define _AP4_MEHD_ATOM_H_
 
 /*----------------------------------------------------------------------
-|   version constants
+|   includes
 +---------------------------------------------------------------------*/
-/**
- * Version number of the SDK
- */
-#define AP4_VERSION        0x01020000
-#define AP4_VERSION_STRING "1.2.0.0"
+#include "Ap4List.h"
+#include "Ap4Atom.h"
 
-#endif // _AP4_VERSION_H_
+/*----------------------------------------------------------------------
+|   AP4_MehdAtom
++---------------------------------------------------------------------*/
+class AP4_MehdAtom : public AP4_Atom
+{
+public:
+    AP4_IMPLEMENT_DYNAMIC_CAST_D(AP4_MehdAtom, AP4_Atom)
+
+    // class methods
+    static AP4_MehdAtom* Create(AP4_Size size, AP4_ByteStream& stream);
+
+    // methods
+    AP4_MehdAtom(AP4_UI64 duration);
+    virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
+    virtual AP4_Result WriteFields(AP4_ByteStream& stream);
+    AP4_UI64           GetDuration() { return m_Duration; }
+    void               SetDuration(AP4_UI64 duration) { m_Duration = duration;}
+
+private:
+    // methods
+    AP4_MehdAtom(AP4_UI32        size, 
+                 AP4_UI32        version,
+                 AP4_UI32        flags,
+                 AP4_ByteStream& stream); 
+
+    // members
+    AP4_UI64 m_Duration;
+};
+
+#endif // _AP4_MEHD_ATOM_H_

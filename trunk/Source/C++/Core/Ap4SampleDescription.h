@@ -49,10 +49,39 @@ class AP4_DataBuffer;
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-#define AP4_SAMPLE_FORMAT_MP4A AP4_ATOM_TYPE_MP4A
-#define AP4_SAMPLE_FORMAT_MP4V AP4_ATOM_TYPE_MP4V
-#define AP4_SAMPLE_FORMAT_AVC1 AP4_ATOM_TYPE_AVC1
-#define AP4_SAMPLE_FORMAT_ALAC AP4_ATOM_TYPE_ALAC
+#define AP4_SAMPLE_FORMAT_MP4A AP4_ATOM_TYPE('m','p','4','a')
+#define AP4_SAMPLE_FORMAT_MP4V AP4_ATOM_TYPE('m','p','4','v')
+#define AP4_SAMPLE_FORMAT_MP4S AP4_ATOM_TYPE('m','p','4','s')
+#define AP4_SAMPLE_FORMAT_AVC1 AP4_ATOM_TYPE('a','v','c','1')
+#define AP4_SAMPLE_FORMAT_ALAC AP4_ATOM_TYPE('a','l','a','c')
+#define AP4_SAMPLE_FORMAT_AC_3 AP4_ATOM_TYPE('a','c','-','3')
+#define AP4_SAMPLE_FORMAT_OWMA AP4_ATOM_TYPE('o','w','m','a')
+#define AP4_SAMPLE_FORMAT_OVC1 AP4_ATOM_TYPE('o','v','c','1')
+#define AP4_SAMPLE_FORMAT_AVCP AP4_ATOM_TYPE('a','v','c','p')
+#define AP4_SAMPLE_FORMAT_DRAC AP4_ATOM_TYPE('d','r','a','c')
+#define AP4_SAMPLE_FORMAT_DRA1 AP4_ATOM_TYPE('d','r','a','1')
+#define AP4_SAMPLE_FORMAT_EC_3 AP4_ATOM_TYPE('e','c','-','3')
+#define AP4_SAMPLE_FORMAT_G726 AP4_ATOM_TYPE('g','7','2','6')
+#define AP4_SAMPLE_FORMAT_MJP2 AP4_ATOM_TYPE('m','j','p','2')
+#define AP4_SAMPLE_FORMAT_OKSD AP4_ATOM_TYPE('o','k','s','d')
+#define AP4_SAMPLE_FORMAT_RAW_ AP4_ATOM_TYPE('r','a','w',' ')
+#define AP4_SAMPLE_FORMAT_RTP_ AP4_ATOM_TYPE('r','t','p',' ')
+#define AP4_SAMPLE_FORMAT_S263 AP4_ATOM_TYPE('s','2','6','3')
+#define AP4_SAMPLE_FORMAT_SAMR AP4_ATOM_TYPE('s','a','m','r')
+#define AP4_SAMPLE_FORMAT_SAWB AP4_ATOM_TYPE('s','a','w','b')
+#define AP4_SAMPLE_FORMAT_SAWP AP4_ATOM_TYPE('s','a','w','p')
+#define AP4_SAMPLE_FORMAT_SEVC AP4_ATOM_TYPE('s','e','v','c')
+#define AP4_SAMPLE_FORMAT_SQCP AP4_ATOM_TYPE('s','q','c','p')
+#define AP4_SAMPLE_FORMAT_SRTP AP4_ATOM_TYPE('s','r','t','p')
+#define AP4_SAMPLE_FORMAT_SSMV AP4_ATOM_TYPE('s','s','m','v')
+#define AP4_SAMPLE_FORMAT_TEXT AP4_ATOM_TYPE('t','e','t','x')
+#define AP4_SAMPLE_FORMAT_TWOS AP4_ATOM_TYPE('t','w','o','s')
+#define AP4_SAMPLE_FORMAT_TX3G AP4_ATOM_TYPE('t','x','3','g')
+#define AP4_SAMPLE_FORMAT_VC_1 AP4_ATOM_TYPE('v','c','-','1')
+#define AP4_SAMPLE_FORMAT_XML_ AP4_ATOM_TYPE('x','m','l',' ')
+
+const char*
+AP4_GetFormatName(AP4_UI32 format);
 
 /*----------------------------------------------------------------------
 |   AP4_SampleDescription
@@ -89,6 +118,28 @@ class AP4_SampleDescription
     Type           m_Type;
     AP4_UI32       m_Format;
     AP4_AtomParent m_Details;
+};
+
+/*----------------------------------------------------------------------
+|   AP4_UnknownSampleDescription
++---------------------------------------------------------------------*/
+class AP4_UnknownSampleDescription : public AP4_SampleDescription
+{
+public:
+    AP4_IMPLEMENT_DYNAMIC_CAST_D(AP4_UnknownSampleDescription, AP4_SampleDescription)
+
+    // this constructor takes makes a copy of the atom passed as an argument
+    AP4_UnknownSampleDescription(AP4_Atom* atom);
+    ~AP4_UnknownSampleDescription();
+
+    virtual AP4_SampleDescription* Clone(AP4_Result* result);
+    virtual AP4_Atom* ToAtom() const;    
+    
+    // accessor
+    const AP4_Atom* GetAtom() { return m_Atom; }
+    
+private:
+    AP4_Atom* m_Atom;
 };
 
 /*----------------------------------------------------------------------
@@ -216,7 +267,6 @@ public:
                              AP4_UI16                         height,
                              AP4_UI16                         depth,
                              const char*                      compressor_name,
-                             AP4_UI08                         config_version,
                              AP4_UI08                         profile,
                              AP4_UI08                         level,
                              AP4_UI08                         profile_compatibility,

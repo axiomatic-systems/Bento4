@@ -355,7 +355,6 @@ main(int argc, char** argv)
         avc_desc->GetHeight(),
         avc_desc->GetDepth(),
         avc_desc->GetCompressorName(),
-        avc_desc->GetConfigurationVersion(),
         avc_desc->GetProfile(),
         avc_desc->GetLevel(),
         avc_desc->GetProfileCompatibility(),
