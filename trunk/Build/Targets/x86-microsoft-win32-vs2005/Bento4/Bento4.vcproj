@@ -325,6 +325,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\..\Source\C++\Core\Ap4MehdAtom.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\Source\C++\MetaData\Ap4MetaData.cpp"
 				>
 			</File>
@@ -489,6 +493,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\..\Source\C++\Core\Ap4TrexAtom.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\Source\C++\Core\Ap4TrunAtom.cpp"
 				>
 			</File>
@@ -615,6 +623,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\..\Source\C++\Core\Ap4DynamicCast.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\Source\C++\Core\Ap4ElstAtom.h"
 				>
 			</File>
@@ -712,6 +724,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\..\Source\C++\Core\Ap4MdhdAtom.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\Source\C++\Core\Ap4MehdAtom.h"
 				>
 			</File>
 			<File
@@ -872,6 +888,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\..\Source\C++\Core\Ap4TrefTypeAtom.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\Source\C++\Core\Ap4TrexAtom.h"
 				>
 			</File>
 			<File

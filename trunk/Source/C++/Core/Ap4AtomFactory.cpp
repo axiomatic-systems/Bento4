@@ -253,7 +253,7 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
                 }
                 
                 // no custom handler, create a generic entry
-                atom = new AP4_UnknownSampleEntry(type, size, stream);
+                atom = new AP4_UnknownSampleEntry(type, (AP4_Size)size, stream);
             }
             break;
         }
