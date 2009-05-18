@@ -90,11 +90,11 @@ AP4_TrexAtom::AP4_TrexAtom(AP4_UI32        size,
 AP4_Result
 AP4_TrexAtom::WriteFields(AP4_ByteStream& stream)
 {
-    stream.ReadUI32(m_TrackId);
-    stream.ReadUI32(m_DefaultSampleDescriptionIndex);
-    stream.ReadUI32(m_DefaultSampleDuration);
-    stream.ReadUI32(m_DefaultSampleSize);
-    stream.ReadUI32(m_DefaultSampleFlags);
+    stream.WriteUI32(m_TrackId);
+    stream.WriteUI32(m_DefaultSampleDescriptionIndex);
+    stream.WriteUI32(m_DefaultSampleDuration);
+    stream.WriteUI32(m_DefaultSampleSize);
+    stream.WriteUI32(m_DefaultSampleFlags);
 
     return AP4_SUCCESS;
 }

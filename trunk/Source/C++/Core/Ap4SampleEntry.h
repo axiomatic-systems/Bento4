@@ -128,7 +128,7 @@ public:
 
     // accessors
     AP4_UI32 GetSampleRate();
-    AP4_UI16 GetSampleSize() { return m_SampleSize;     }
+    AP4_UI16 GetSampleSize() { return m_SampleSize; }
     AP4_UI16 GetChannelCount();
 
     // methods

@@ -137,7 +137,11 @@ AP4_Processor::Process(AP4_ByteStream&   input,
             cursors[index].m_Locator.m_SampleTable = new AP4_AtomSampleTable(stbl, *trak_data_stream);
             cursors[index].m_Locator.m_SampleIndex = 0;
             cursors[index].m_Locator.m_ChunkIndex  = 0;
-            cursors[index].m_Locator.m_SampleTable->GetSample(0, cursors[index].m_Locator.m_Sample);
+            if (cursors[index].m_Locator.m_SampleTable->GetSampleCount()) {
+                cursors[index].m_Locator.m_SampleTable->GetSample(0, cursors[index].m_Locator.m_Sample);
+            } else {
+                cursors[index].m_EndReached = true;
+            }
 
             index++;            
         }
