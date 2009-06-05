@@ -37,6 +37,7 @@
 #include "Ap4Debug.h"
 
 static const unsigned int AP4_ATOM_MAX_CLONE_SIZE = 1048576; // 1 meg
+static const unsigned int AP4_UNKNOWN_ATOM_MAX_LOCAL_PAYLOAD_SIZE = 4096;
 
 /*----------------------------------------------------------------------
 |   dynamic cast support
@@ -352,6 +353,15 @@ AP4_UnknownAtom::AP4_UnknownAtom(Type            type,
     AP4_Atom(type, size),
     m_SourceStream(&stream)
 {
+    if (size <= AP4_UNKNOWN_ATOM_MAX_LOCAL_PAYLOAD_SIZE) {
+        m_SourcePosition = 0;
+        m_SourceStream   = NULL;
+        AP4_UI32 payload_size = size-GetHeaderSize();
+        m_Payload.SetDataSize(payload_size);
+        stream.Read(m_Payload.UseData(), payload_size);
+        return;
+    }
+    
     // store source stream position
     stream.Tell(m_SourcePosition);
 
@@ -374,6 +384,22 @@ AP4_UnknownAtom::AP4_UnknownAtom(Type            type,
 }
 
 /*----------------------------------------------------------------------
+|   AP4_UnknownAtom::AP4_UnknownAtom
++---------------------------------------------------------------------*/
+AP4_UnknownAtom::AP4_UnknownAtom(const AP4_UnknownAtom& other) :
+    AP4_Atom(other.m_Type, (AP4_UI32)0),
+    m_SourceStream(other.m_SourceStream),
+    m_SourcePosition(other.m_SourcePosition),
+    m_Payload(other.m_Payload)
+{
+    m_Size32 = other.m_Size32;
+    m_Size64 = other.m_Size64;
+    if (m_SourceStream) {
+        m_SourceStream->AddReference();
+    }
+}
+
+/*----------------------------------------------------------------------
 |   AP4_UnknownAtom::~AP4_UnknownAtom
 +---------------------------------------------------------------------*/
 AP4_UnknownAtom::~AP4_UnknownAtom()
@@ -392,12 +418,11 @@ AP4_UnknownAtom::WriteFields(AP4_ByteStream& stream)
 {
     AP4_Result result;
 
-    // check that we have a source stream
-    // and a normal size
-    if (m_SourceStream == NULL || GetSize() < 8) {
-        return AP4_FAILURE;
+    // if we don't have a source, write from the buffered payload
+    if (m_SourceStream == NULL) {
+        return stream.Write(m_Payload.GetData(), m_Payload.GetDataSize());
     }
-
+    
     // remember the source position
     AP4_Position position;
     m_SourceStream->Tell(position);
@@ -423,16 +448,7 @@ AP4_UnknownAtom::WriteFields(AP4_ByteStream& stream)
 AP4_Atom*  
 AP4_UnknownAtom::Clone()
 {
-    // refuse to clone large atoms
-    if (GetSize() >= 32768) return NULL;
-    AP4_UI32 size = (AP4_UI32)GetSize();
-
-    AP4_MemoryByteStream* memory_stream = new AP4_MemoryByteStream(size);
-    m_SourceStream->Seek(m_SourcePosition);
-    m_SourceStream->CopyTo(*memory_stream, size);
-    memory_stream->Seek(0);
-    return new AP4_UnknownAtom(m_Type, GetSize(), *memory_stream);
-    memory_stream->Release();
+    return new AP4_UnknownAtom(*this);
 }
 
 /*----------------------------------------------------------------------

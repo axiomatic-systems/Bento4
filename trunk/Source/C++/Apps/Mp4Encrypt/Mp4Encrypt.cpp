@@ -70,6 +70,11 @@ PrintUsageAndExit()
         "  Method Specifics:\n"
         "    OMA-PDCF-CBC, OMA-PDCF-CTR, MARLIN-IPMP, ISMA-IAEC: the <iv> must be a 64-bit\n"
         "    hex string.\n"
+        "\n"
+        "    OMA-PDCF-CBC, OMA-PDCF-CTR: The following properties are defined,\n"
+        "    and all other properties are stored in the textual headers:\n"
+        "      ContentId       -> the content ID for the track\n"
+        "      RightsIssuerUrl -> the Rights Issuer URL\n"
         );
     exit(1);
 }

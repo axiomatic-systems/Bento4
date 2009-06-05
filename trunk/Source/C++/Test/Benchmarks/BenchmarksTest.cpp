@@ -128,6 +128,7 @@ PrintUsage()
            "aes-cbc-stream-decrypt\n"
            "aes-ctr-stream\n"
            "parse-file\n"
+           "parse-file-buffered\n"
            "read-file-seq-1\n"
            "read-file-seq-16\n"
            "read-file-seq-256\n"
@@ -249,7 +250,7 @@ LoadSamples(AP4_Track* track, unsigned int repeats)
 |   ParseFile
 +---------------------------------------------------------------------*/
 static unsigned int
-ParseFile(const char* filename, unsigned int repeats)
+ParseFile(const char* filename, unsigned int repeats, bool buffered)
 {
     unsigned int total_size = 0;
     
@@ -259,6 +260,11 @@ ParseFile(const char* filename, unsigned int repeats)
     if (AP4_FAILED(result)) {
         fprintf(stderr, "ERROR: cannot open input file (%s)\n", filename);
         return 0;
+    }
+    if (buffered) {
+        AP4_BufferedInputStream* buffered = new AP4_BufferedInputStream(*input);
+        input->Release();
+        input = buffered;
     }
         
     for (unsigned int i=0; i<repeats; i++) {
@@ -390,6 +396,7 @@ main(int argc, char** argv)
     bool do_read_file_rnd_256      = false;
     bool do_read_file_rnd_4096     = false;
     bool do_parse_file             = false;
+    bool do_parse_file_buffered    = false;
     bool do_read_samples           = false;
     bool do_read_samples_dcf_cbc   = false;
     bool do_read_samples_dcf_ctr   = false;
@@ -433,6 +440,8 @@ main(int argc, char** argv)
             do_read_file_rnd_4096 = true;
         } else if (!strcmp(arg, "parse-file")) {
             do_parse_file = true;
+        } else if (!strcmp(arg, "parse-file-buffered")) {
+            do_parse_file_buffered = true;
         } else if (!strcmp(arg, "read-samples")) {
             do_read_samples = true;
         } else if (!strcmp(arg, "read-samples-dcf-cbc")) {
@@ -471,6 +480,8 @@ main(int argc, char** argv)
             do_read_file_rnd_16       = true;
             do_read_file_rnd_256      = true;
             do_read_file_rnd_4096     = true;
+            do_parse_file             = true;
+            do_parse_file_buffered    = true;
             do_read_samples           = true;
             do_read_samples_dcf_cbc   = true;
             do_read_samples_dcf_ctr   = true;
@@ -571,7 +582,11 @@ main(int argc, char** argv)
     BENCH_END
 
     BENCH_START("Parse File", do_parse_file)
-    total += ParseFile(test_file_mp4, 10);
+    total += ParseFile(test_file_mp4, 10, false);
+    BENCH_END
+
+    BENCH_START("Parse File Buffered", do_parse_file_buffered)
+    total += ParseFile(test_file_mp4, 10, true);
     BENCH_END
 
     BENCH_START("Read Samples", do_read_samples)

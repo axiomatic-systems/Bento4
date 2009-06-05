@@ -55,6 +55,17 @@ PrintUsageAndExit()
 }
 
 /*----------------------------------------------------------------------
+|   MakeDsi
++---------------------------------------------------------------------*/
+static void
+MakeDsi(unsigned int sampling_frequency_index, unsigned int channel_configuration, unsigned char* dsi)
+{
+    unsigned int object_type = 2; // AAC LC by default
+    dsi[0] = (object_type<<3) | (sampling_frequency_index>>1);
+    dsi[1] = ((sampling_frequency_index&1)<<7) | (channel_configuration<<3);
+}
+
+/*----------------------------------------------------------------------
 |   main
 +---------------------------------------------------------------------*/
 int
@@ -109,7 +120,8 @@ main(int argc, char** argv)
 
                 // create a sample description for our samples
                 AP4_DataBuffer dsi;
-                unsigned char aac_dsi[2] = {0x12, 0x10};
+                unsigned char aac_dsi[2];
+                MakeDsi(frame.m_Info.m_SamplingFrequencyIndex, frame.m_Info.m_ChannelConfiguration, aac_dsi);
                 dsi.SetData(aac_dsi, 2);
                 AP4_MpegAudioSampleDescription* sample_description = 
                     new AP4_MpegAudioSampleDescription(

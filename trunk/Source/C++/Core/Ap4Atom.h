@@ -283,6 +283,8 @@ protected:
  * Instances of this class keep a reference to the stream from which 
  * the atom is parsed, so that it can read the atom's payload when it
  * is serialized.
+ * If the atom is small, its payload is actually read and stored in 
+ * a data buffer, so no reference to the source stream is kept
  */
 class AP4_UnknownAtom : public AP4_Atom {
 public:
@@ -290,6 +292,7 @@ public:
     AP4_UnknownAtom(AP4_Atom::Type   type, 
                     AP4_UI64         size, 
                     AP4_ByteStream&  stream);
+    AP4_UnknownAtom(const AP4_UnknownAtom& other);
     ~AP4_UnknownAtom();
 
     // methods
@@ -300,6 +303,7 @@ private:
     // members
     AP4_ByteStream* m_SourceStream;
     AP4_Position    m_SourcePosition;
+    AP4_DataBuffer  m_Payload;
 };
 
 /*----------------------------------------------------------------------
