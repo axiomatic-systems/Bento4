@@ -356,7 +356,7 @@ AP4_UnknownAtom::AP4_UnknownAtom(Type            type,
     if (size <= AP4_UNKNOWN_ATOM_MAX_LOCAL_PAYLOAD_SIZE) {
         m_SourcePosition = 0;
         m_SourceStream   = NULL;
-        AP4_UI32 payload_size = size-GetHeaderSize();
+        AP4_UI32 payload_size = (AP4_UI32)size-GetHeaderSize();
         m_Payload.SetDataSize(payload_size);
         stream.Read(m_Payload.UseData(), payload_size);
         return;

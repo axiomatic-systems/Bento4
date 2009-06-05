@@ -783,7 +783,7 @@ AP4_BufferedInputStream::Seek(AP4_Position position)
         // seek in the source
         if (position > m_SourcePosition && m_SeekAsReadThreshold != 0) {
             char*    discard = new char[4096];
-            AP4_Size to_skip = position-m_SourcePosition;
+            AP4_Size to_skip = (AP4_Size)(position-m_SourcePosition);
             while (to_skip) {
                 AP4_Size chunk = 4096;
                 if (chunk > to_skip) chunk = to_skip;
@@ -804,7 +804,7 @@ AP4_BufferedInputStream::Seek(AP4_Position position)
     }
     
     // compute the buffer position
-    m_BufferPosition = position-(m_SourcePosition-m_Buffer.GetDataSize());
+    m_BufferPosition = (AP4_Size)(position-(m_SourcePosition-m_Buffer.GetDataSize()));
     
     return AP4_SUCCESS;
 }

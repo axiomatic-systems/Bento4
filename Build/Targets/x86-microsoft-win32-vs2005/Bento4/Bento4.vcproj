@@ -317,6 +317,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\..\Source\C++\Core\Ap4LinearReader.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\Source\C++\Core\Ap4Marlin.cpp"
 				>
 			</File>
@@ -712,6 +716,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\..\Source\C++\Core\Ap4IsmaCryp.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\Source\C++\Core\Ap4LinearReader.h"
 				>
 			</File>
 			<File
