@@ -576,7 +576,7 @@ AddTag(AP4_File* file, AP4_String& arg, bool remove_first)
     
     AP4_String* key_namespace = NULL;
     AP4_String* key_name = NULL;
-    AP4_Ordinal key_index = NULL;
+    AP4_Ordinal key_index = 0;
     result = ParseKeySpec(*key, key_namespace, key_name, key_index);
     if (AP4_FAILED(result)) {
         fprintf(stderr, "ERROR: invalid key name (%s)\n", key->GetChars());

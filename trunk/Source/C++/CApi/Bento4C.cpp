@@ -1237,13 +1237,13 @@ public:
     ~AP4_DelegatorAtomInspector();
     void StartElement(const char* name, const char* extra);
     void EndElement();
-    void AddField(const char* name, AP4_UI32 value, FormatHint hint);
+    void AddField(const char* name, AP4_UI64 value, FormatHint hint);
     void AddFieldF(const char* name, float value, FormatHint hint);
     void AddField(const char* name, const char* value, FormatHint hint);
-    void AddField(const char*       name, 
-                  const AP4_Byte*   bytes, 
-                  AP4_Size          byte_count, 
-                  FormatHint        hint);    
+    void AddField(const char*          name, 
+                  const unsigned char* bytes, 
+                  AP4_Size             byte_count, 
+                  FormatHint           hint);    
 private:
     AP4_AtomInspectorDelegate* m_Delegate;
 };
@@ -1269,7 +1269,7 @@ AP4_DelegatorAtomInspector::EndElement()
 
 void
 AP4_DelegatorAtomInspector::AddField(const char* name,
-                                     AP4_UI32    value,
+                                     AP4_UI64    value,
                                      FormatHint  hint)
 {
     m_Delegate->AddIntField(m_Delegate, name, value, hint);
