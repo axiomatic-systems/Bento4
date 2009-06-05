@@ -681,10 +681,10 @@ AP4_MemoryByteStream::Release()
 AP4_BufferedInputStream::AP4_BufferedInputStream(AP4_ByteStream& source, 
                                                  AP4_Size        buffer_size,
                                                  AP4_Size        seek_as_read_threshold) :
-    m_Source(source),
-    m_SourcePosition(0),
     m_Buffer(buffer_size),
     m_BufferPosition(0),
+    m_Source(source),
+    m_SourcePosition(0),
     m_SeekAsReadThreshold(seek_as_read_threshold),
     m_ReferenceCount(1)
 {
