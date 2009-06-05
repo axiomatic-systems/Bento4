@@ -92,7 +92,8 @@ CORE_SOURCES = 								\
     Ap4MfhdAtom.cpp                         \
     Ap48bdlAtom.cpp                         \
     Ap4MehdAtom.cpp                         \
-    Ap4TrexAtom.cpp
+    Ap4TrexAtom.cpp                         \
+    Ap4LinearReader.cpp
     
 
 CORE_OBJECTS=$(CORE_SOURCES:.cpp=.o)
