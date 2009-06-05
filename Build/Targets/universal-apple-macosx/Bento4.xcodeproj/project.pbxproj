@@ -35,6 +35,7 @@
 			buildPhases = (
 			);
 			dependencies = (
+				CAE7240E0FC3365E008F2905 /* PBXTargetDependency */,
 				CA52643C0F788AD8009D7E0D /* PBXTargetDependency */,
 				CAF479350F0951D5004073ED /* PBXTargetDependency */,
 				CAF479330F0951D0004073ED /* PBXTargetDependency */,
@@ -274,9 +275,15 @@
 		CAA033320DF7D4CC0086EC1C /* Ap4Command.h in Headers */ = {isa = PBXBuildFile; fileRef = CAA033310DF7D4CC0086EC1C /* Ap4Command.h */; };
 		CAA033680DF7E2FA0086EC1C /* Ap4Ipmp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAA033660DF7E2FA0086EC1C /* Ap4Ipmp.cpp */; };
 		CAA033690DF7E2FA0086EC1C /* Ap4Ipmp.h in Headers */ = {isa = PBXBuildFile; fileRef = CAA033670DF7E2FA0086EC1C /* Ap4Ipmp.h */; };
+		CAB3CB770FCB35C4007C4260 /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
+		CAB3CB790FCB35EC007C4260 /* BufferedStreamTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAB3CB6C0FCB35A8007C4260 /* BufferedStreamTest.cpp */; };
 		CABB61F70F02BADB00B53D31 /* TracksTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CABB61EF0F02B85900B53D31 /* TracksTest.cpp */; };
 		CABB61FD0F02CD0B00B53D31 /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
 		CAD6A7C40F7AFFD800456513 /* Ap4DynamicCast.h in Headers */ = {isa = PBXBuildFile; fileRef = CAD6A7C30F7AFFD800456513 /* Ap4DynamicCast.h */; };
+		CAE723FF0FC33618008F2905 /* Ap4LinearReader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAE723FD0FC33618008F2905 /* Ap4LinearReader.cpp */; };
+		CAE724000FC33618008F2905 /* Ap4LinearReader.h in Headers */ = {isa = PBXBuildFile; fileRef = CAE723FE0FC33618008F2905 /* Ap4LinearReader.h */; };
+		CAE7240C0FC33654008F2905 /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
+		CAE724290FC337C0008F2905 /* LinearReaderTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAE724020FC3362B008F2905 /* LinearReaderTest.cpp */; };
 		CAEA9CE70E144676008C396D /* Ap4AtomixAdapters.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAEA9CDE0E14460F008C396D /* Ap4AtomixAdapters.cpp */; };
 		CAEA9CE80E144677008C396D /* Ap4AtomixAdapters.h in Headers */ = {isa = PBXBuildFile; fileRef = CAEA9CDF0E14460F008C396D /* Ap4AtomixAdapters.h */; };
 		CAEA9E990E17006D008C396D /* Ap4GrpiAtom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAEA9E970E17006D008C396D /* Ap4GrpiAtom.cpp */; };
@@ -538,12 +545,33 @@
 			remoteGlobalIDString = CA646AC50CE97C47009699D7;
 			remoteInfo = Apps;
 		};
+		CAB3CB750FCB35BE007C4260 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D2AAC045055464E500DB518D;
+			remoteInfo = Bento4;
+		};
 		CABB61FB0F02CD0600B53D31 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = D2AAC045055464E500DB518D;
 			remoteInfo = Bento4;
+		};
+		CAE7240A0FC3364E008F2905 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D2AAC045055464E500DB518D;
+			remoteInfo = Bento4;
+		};
+		CAE7240D0FC3365E008F2905 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CAE724050FC33645008F2905;
+			remoteInfo = LinearReaderTest;
 		};
 		CAEA9CFD0E144993008C396D /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -619,7 +647,7 @@
 		CA3EDA7E0D7E0B81007AE943 /* avcinfo */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = avcinfo; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA3EDA950D7E0D18007AE943 /* Ap4AvcParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4AvcParser.h; sourceTree = "<group>"; };
 		CA3EDA960D7E14D3007AE943 /* Ap4AvcParser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4AvcParser.cpp; sourceTree = "<group>"; };
-		CA40CB290F40DC100008649B /* basictest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = basictest; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA40CB290F40DC100008649B /* BasicTest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = BasicTest; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA40CB360F40DC580008649B /* BasicTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BasicTest.cpp; sourceTree = "<group>"; };
 		CA44C5250D46370B00173F5F /* Mp4DcfPackager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Mp4DcfPackager.cpp; path = Mp4DcfPackager/Mp4DcfPackager.cpp; sourceTree = "<group>"; };
 		CA44C52A0D46375F00173F5F /* mp4dcfpackager */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mp4dcfpackager; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -808,18 +836,24 @@
 		CA9367FB0B4383F00067D50B /* Ap4AdtsParser.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = Ap4AdtsParser.h; sourceTree = "<group>"; };
 		CA9367FC0B4383F00067D50B /* Ap4BitStream.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4BitStream.cpp; sourceTree = "<group>"; };
 		CA9367FD0B4383F00067D50B /* Ap4BitStream.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = Ap4BitStream.h; sourceTree = "<group>"; };
-		CA9A16D80ED4F42A00C60FDF /* passthroughwritertest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = passthroughwritertest; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA9A16D80ED4F42A00C60FDF /* PassthroughWriterTest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = PassthroughWriterTest; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA9A16E00ED4F44C00C60FDF /* PassthroughWriterTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PassthroughWriterTest.cpp; sourceTree = "<group>"; };
-		CA9CB9BC0F86ABB400063C70 /* Ap48bdlAtom.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Ap48bdlAtom.cpp; path = "../../../Source/C++/Core/Ap48bdlAtom.cpp"; sourceTree = SOURCE_ROOT; };
-		CA9CB9BD0F86ABB400063C70 /* Ap48bdlAtom.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Ap48bdlAtom.h; path = "../../../Source/C++/Core/Ap48bdlAtom.h"; sourceTree = SOURCE_ROOT; };
+		CA9CB9BC0F86ABB400063C70 /* Ap48bdlAtom.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap48bdlAtom.cpp; sourceTree = "<group>"; };
+		CA9CB9BD0F86ABB400063C70 /* Ap48bdlAtom.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap48bdlAtom.h; sourceTree = "<group>"; };
 		CAA0332B0DF7D3390086EC1C /* Ap4CommandFactory.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4CommandFactory.cpp; sourceTree = "<group>"; };
 		CAA0332C0DF7D3390086EC1C /* Ap4CommandFactory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4CommandFactory.h; sourceTree = "<group>"; };
 		CAA033310DF7D4CC0086EC1C /* Ap4Command.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4Command.h; sourceTree = "<group>"; };
 		CAA033660DF7E2FA0086EC1C /* Ap4Ipmp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4Ipmp.cpp; sourceTree = "<group>"; };
 		CAA033670DF7E2FA0086EC1C /* Ap4Ipmp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4Ipmp.h; sourceTree = "<group>"; };
+		CAB3CB6C0FCB35A8007C4260 /* BufferedStreamTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BufferedStreamTest.cpp; sourceTree = "<group>"; };
+		CAB3CB710FCB35B8007C4260 /* BufferedStreamTest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = BufferedStreamTest; sourceTree = BUILT_PRODUCTS_DIR; };
 		CABB61EF0F02B85900B53D31 /* TracksTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TracksTest.cpp; sourceTree = "<group>"; };
 		CABB61F30F02BABC00B53D31 /* TracksTest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = TracksTest; sourceTree = BUILT_PRODUCTS_DIR; };
 		CAD6A7C30F7AFFD800456513 /* Ap4DynamicCast.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4DynamicCast.h; sourceTree = "<group>"; };
+		CAE723FD0FC33618008F2905 /* Ap4LinearReader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4LinearReader.cpp; sourceTree = "<group>"; };
+		CAE723FE0FC33618008F2905 /* Ap4LinearReader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4LinearReader.h; sourceTree = "<group>"; };
+		CAE724020FC3362B008F2905 /* LinearReaderTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LinearReaderTest.cpp; sourceTree = "<group>"; };
+		CAE724060FC33645008F2905 /* LinearReaderTest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = LinearReaderTest; sourceTree = BUILT_PRODUCTS_DIR; };
 		CAEA9CDE0E14460F008C396D /* Ap4AtomixAdapters.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4AtomixAdapters.cpp; sourceTree = "<group>"; };
 		CAEA9CDF0E14460F008C396D /* Ap4AtomixAdapters.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4AtomixAdapters.h; sourceTree = "<group>"; };
 		CAEA9CE40E144664008C396D /* libBento4Atomix.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libBento4Atomix.a; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -832,14 +866,14 @@
 		CAEFE10D0FB6993D00AF6434 /* Ap4MehdAtom.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4MehdAtom.h; sourceTree = "<group>"; };
 		CAEFE1320FB69CF600AF6434 /* Ap4TrexAtom.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4TrexAtom.cpp; sourceTree = "<group>"; };
 		CAEFE1330FB69CF600AF6434 /* Ap4TrexAtom.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4TrexAtom.h; sourceTree = "<group>"; };
-		CAF4792B0F0951B8004073ED /* benchmarkstest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = benchmarkstest; sourceTree = BUILT_PRODUCTS_DIR; };
+		CAF4792B0F0951B8004073ED /* BenchmarksTest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = BenchmarksTest; sourceTree = BUILT_PRODUCTS_DIR; };
 		CAF479370F0951E7004073ED /* BenchmarksTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BenchmarksTest.cpp; sourceTree = "<group>"; };
 		D2AAC046055464E500DB518D /* libBento4.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libBento4.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		F98E8CBF0EA9AEC3000C8839 /* Bento4C.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Bento4C.cpp; path = "../../../Source/C++/CApi/Bento4C.cpp"; sourceTree = SOURCE_ROOT; };
 		F98E8CC00EA9AEC3000C8839 /* Bento4C.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Bento4C.h; path = "../../../Source/C++/CApi/Bento4C.h"; sourceTree = SOURCE_ROOT; };
 		F9B1F4F90B54AD91003F147E /* Ap4AvccAtom.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4AvccAtom.cpp; sourceTree = "<group>"; };
 		F9B1F4FA0B54AD91003F147E /* Ap4AvccAtom.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = Ap4AvccAtom.h; sourceTree = "<group>"; };
-		F9DBC7FD0E99AFE100913BF6 /* avctrackwritertest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = avctrackwritertest; sourceTree = BUILT_PRODUCTS_DIR; };
+		F9DBC7FD0E99AFE100913BF6 /* AvcTrackWriterTest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = AvcTrackWriterTest; sourceTree = BUILT_PRODUCTS_DIR; };
 		F9DBC8050E99B05000913BF6 /* AvcTrackWriterTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AvcTrackWriterTest.cpp; sourceTree = "<group>"; };
 		F9FDDA2E0EA798FF0061DCB2 /* libBento4C.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libBento4C.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -973,11 +1007,27 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		CAB3CB6F0FCB35B7007C4260 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CAB3CB770FCB35C4007C4260 /* libBento4.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		CABB61F10F02BABC00B53D31 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				CABB61FD0F02CD0B00B53D31 /* libBento4.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CAE724040FC33645008F2905 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CAE7240C0FC33654008F2905 /* libBento4.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1037,8 +1087,6 @@
 		08FB7795FE84155DC02AAC07 /* Runtime */ = {
 			isa = PBXGroup;
 			children = (
-				CA9CB9BC0F86ABB400063C70 /* Ap48bdlAtom.cpp */,
-				CA9CB9BD0F86ABB400063C70 /* Ap48bdlAtom.h */,
 				F95E912A0EA4017000D86755 /* CApi */,
 				CA93660F0B437D030067D50B /* Core */,
 				CA9367300B437D1D0067D50B /* Crypto */,
@@ -1068,13 +1116,15 @@
 				CA646B6A0CE97E82009699D7 /* cryptotest */,
 				CA3EDA7E0D7E0B81007AE943 /* avcinfo */,
 				CAEA9CE40E144664008C396D /* libBento4Atomix.a */,
-				F9DBC7FD0E99AFE100913BF6 /* avctrackwritertest */,
+				F9DBC7FD0E99AFE100913BF6 /* AvcTrackWriterTest */,
 				F9FDDA2E0EA798FF0061DCB2 /* libBento4C.dylib */,
-				CA9A16D80ED4F42A00C60FDF /* passthroughwritertest */,
+				CA9A16D80ED4F42A00C60FDF /* PassthroughWriterTest */,
 				CABB61F30F02BABC00B53D31 /* TracksTest */,
-				CAF4792B0F0951B8004073ED /* benchmarkstest */,
-				CA40CB290F40DC100008649B /* basictest */,
+				CAF4792B0F0951B8004073ED /* BenchmarksTest */,
+				CA40CB290F40DC100008649B /* BasicTest */,
 				CA7EECE50F720648009F85F9 /* CompareFilesTest */,
+				CAE724060FC33645008F2905 /* LinearReaderTest */,
+				CAB3CB710FCB35B8007C4260 /* BufferedStreamTest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1213,6 +1263,8 @@
 		CA646A9B0CE97B51009699D7 /* Test */ = {
 			isa = PBXGroup;
 			children = (
+				CAB3CB6B0FCB35A8007C4260 /* BufferedStream */,
+				CAE724010FC3362B008F2905 /* LinearReader */,
 				CA7EECE00F720627009F85F9 /* CompareFiles */,
 				CA40CB350F40DC580008649B /* Basic */,
 				CAF479360F0951E7004073ED /* Benchmarks */,
@@ -1244,6 +1296,10 @@
 		CA93660F0B437D030067D50B /* Core */ = {
 			isa = PBXGroup;
 			children = (
+				CA9CB9BC0F86ABB400063C70 /* Ap48bdlAtom.cpp */,
+				CA9CB9BD0F86ABB400063C70 /* Ap48bdlAtom.h */,
+				CAE723FD0FC33618008F2905 /* Ap4LinearReader.cpp */,
+				CAE723FE0FC33618008F2905 /* Ap4LinearReader.h */,
 				CAEFE1320FB69CF600AF6434 /* Ap4TrexAtom.cpp */,
 				CAEFE1330FB69CF600AF6434 /* Ap4TrexAtom.h */,
 				CAEFE10C0FB6993D00AF6434 /* Ap4MehdAtom.cpp */,
@@ -1480,12 +1536,28 @@
 			path = PassthroughWriter;
 			sourceTree = "<group>";
 		};
+		CAB3CB6B0FCB35A8007C4260 /* BufferedStream */ = {
+			isa = PBXGroup;
+			children = (
+				CAB3CB6C0FCB35A8007C4260 /* BufferedStreamTest.cpp */,
+			);
+			path = BufferedStream;
+			sourceTree = "<group>";
+		};
 		CABB61EE0F02B85900B53D31 /* Tracks */ = {
 			isa = PBXGroup;
 			children = (
 				CABB61EF0F02B85900B53D31 /* TracksTest.cpp */,
 			);
 			path = Tracks;
+			sourceTree = "<group>";
+		};
+		CAE724010FC3362B008F2905 /* LinearReader */ = {
+			isa = PBXGroup;
+			children = (
+				CAE724020FC3362B008F2905 /* LinearReaderTest.cpp */,
+			);
+			path = LinearReader;
 			sourceTree = "<group>";
 		};
 		CAEA9CDD0E14460F008C396D /* Adapters */ = {
@@ -1638,6 +1710,7 @@
 				CA9CB9BF0F86ABB400063C70 /* Ap48bdlAtom.h in Headers */,
 				CAEFE10F0FB6993D00AF6434 /* Ap4MehdAtom.h in Headers */,
 				CAEFE1350FB69CF600AF6434 /* Ap4TrexAtom.h in Headers */,
+				CAE724000FC33618008F2905 /* Ap4LinearReader.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1683,7 +1756,7 @@
 			);
 			name = BasicTest;
 			productName = BasicTest;
-			productReference = CA40CB290F40DC100008649B /* basictest */;
+			productReference = CA40CB290F40DC100008649B /* BasicTest */;
 			productType = "com.apple.product-type.tool";
 		};
 		CA44C5290D46375F00173F5F /* Mp4DcfPackager */ = {
@@ -1921,7 +1994,24 @@
 			);
 			name = PassthroughWriterTest;
 			productName = PassthroughWriterTest;
-			productReference = CA9A16D80ED4F42A00C60FDF /* passthroughwritertest */;
+			productReference = CA9A16D80ED4F42A00C60FDF /* PassthroughWriterTest */;
+			productType = "com.apple.product-type.tool";
+		};
+		CAB3CB700FCB35B7007C4260 /* BufferedStreamTest */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CAB3CB780FCB35E3007C4260 /* Build configuration list for PBXNativeTarget "BufferedStreamTest" */;
+			buildPhases = (
+				CAB3CB6E0FCB35B7007C4260 /* Sources */,
+				CAB3CB6F0FCB35B7007C4260 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CAB3CB760FCB35BE007C4260 /* PBXTargetDependency */,
+			);
+			name = BufferedStreamTest;
+			productName = BufferedStreamTest;
+			productReference = CAB3CB710FCB35B8007C4260 /* BufferedStreamTest */;
 			productType = "com.apple.product-type.tool";
 		};
 		CABB61F20F02BABC00B53D31 /* TracksTest */ = {
@@ -1939,6 +2029,23 @@
 			name = TracksTest;
 			productName = TracksTest;
 			productReference = CABB61F30F02BABC00B53D31 /* TracksTest */;
+			productType = "com.apple.product-type.tool";
+		};
+		CAE724050FC33645008F2905 /* LinearReaderTest */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CAE724220FC33682008F2905 /* Build configuration list for PBXNativeTarget "LinearReaderTest" */;
+			buildPhases = (
+				CAE724030FC33645008F2905 /* Sources */,
+				CAE724040FC33645008F2905 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CAE7240B0FC3364E008F2905 /* PBXTargetDependency */,
+			);
+			name = LinearReaderTest;
+			productName = LinearReaderTest;
+			productReference = CAE724060FC33645008F2905 /* LinearReaderTest */;
 			productType = "com.apple.product-type.tool";
 		};
 		CAEA9CE30E144664008C396D /* Bento4Atomix */ = {
@@ -1973,7 +2080,7 @@
 			);
 			name = BenchmarksTest;
 			productName = BenchmarksTest;
-			productReference = CAF4792B0F0951B8004073ED /* benchmarkstest */;
+			productReference = CAF4792B0F0951B8004073ED /* BenchmarksTest */;
 			productType = "com.apple.product-type.tool";
 		};
 		D2AAC045055464E500DB518D /* Bento4 */ = {
@@ -2007,7 +2114,7 @@
 			);
 			name = AvcTrackWriterTest;
 			productName = AvcTrackWriterTest;
-			productReference = F9DBC7FD0E99AFE100913BF6 /* avctrackwritertest */;
+			productReference = F9DBC7FD0E99AFE100913BF6 /* AvcTrackWriterTest */;
 			productType = "com.apple.product-type.tool";
 		};
 		F9FDDA2D0EA798FF0061DCB2 /* Bento4C */ = {
@@ -2065,6 +2172,8 @@
 				CAF4792A0F0951B8004073ED /* BenchmarksTest */,
 				CA40CB280F40DC100008649B /* BasicTest */,
 				CA7EECE40F720648009F85F9 /* CompareFilesTest */,
+				CAE724050FC33645008F2905 /* LinearReaderTest */,
+				CAB3CB700FCB35B7007C4260 /* BufferedStreamTest */,
 			);
 		};
 /* End PBXProject section */
@@ -2199,11 +2308,27 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		CAB3CB6E0FCB35B7007C4260 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CAB3CB790FCB35EC007C4260 /* BufferedStreamTest.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		CABB61F00F02BABC00B53D31 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				CABB61F70F02BADB00B53D31 /* TracksTest.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CAE724030FC33645008F2905 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CAE724290FC337C0008F2905 /* LinearReaderTest.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2318,6 +2443,7 @@
 				CA9CB9BE0F86ABB400063C70 /* Ap48bdlAtom.cpp in Sources */,
 				CAEFE10E0FB6993D00AF6434 /* Ap4MehdAtom.cpp in Sources */,
 				CAEFE1340FB69CF600AF6434 /* Ap4TrexAtom.cpp in Sources */,
+				CAE723FF0FC33618008F2905 /* Ap4LinearReader.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2510,10 +2636,25 @@
 			target = CA646AC50CE97C47009699D7 /* Apps */;
 			targetProxy = CAA97B3D0CF4D55500C01909 /* PBXContainerItemProxy */;
 		};
+		CAB3CB760FCB35BE007C4260 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D2AAC045055464E500DB518D /* Bento4 */;
+			targetProxy = CAB3CB750FCB35BE007C4260 /* PBXContainerItemProxy */;
+		};
 		CABB61FC0F02CD0600B53D31 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = D2AAC045055464E500DB518D /* Bento4 */;
 			targetProxy = CABB61FB0F02CD0600B53D31 /* PBXContainerItemProxy */;
+		};
+		CAE7240B0FC3364E008F2905 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D2AAC045055464E500DB518D /* Bento4 */;
+			targetProxy = CAE7240A0FC3364E008F2905 /* PBXContainerItemProxy */;
+		};
+		CAE7240E0FC3365E008F2905 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CAE724050FC33645008F2905 /* LinearReaderTest */;
+			targetProxy = CAE7240D0FC3365E008F2905 /* PBXContainerItemProxy */;
 		};
 		CAEA9CFE0E144993008C396D /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -2661,7 +2802,7 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				INSTALL_PATH = /usr/local/bin;
 				PREBINDING = NO;
-				PRODUCT_NAME = basictest;
+				PRODUCT_NAME = BasicTest;
 			};
 			name = Debug;
 		};
@@ -2675,7 +2816,7 @@
 				GCC_MODEL_TUNING = G5;
 				INSTALL_PATH = /usr/local/bin;
 				PREBINDING = NO;
-				PRODUCT_NAME = basictest;
+				PRODUCT_NAME = BasicTest;
 				ZERO_LINK = NO;
 			};
 			name = Release;
@@ -3113,7 +3254,7 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				INSTALL_PATH = /usr/local/bin;
 				PREBINDING = NO;
-				PRODUCT_NAME = passthroughwritertest;
+				PRODUCT_NAME = PassthroughWriterTest;
 			};
 			name = Debug;
 		};
@@ -3127,7 +3268,7 @@
 				GCC_MODEL_TUNING = G5;
 				INSTALL_PATH = /usr/local/bin;
 				PREBINDING = NO;
-				PRODUCT_NAME = passthroughwritertest;
+				PRODUCT_NAME = PassthroughWriterTest;
 				ZERO_LINK = NO;
 			};
 			name = Release;
@@ -3149,6 +3290,36 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				PRODUCT_NAME = All;
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
+		CAB3CB730FCB35B8007C4260 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				INSTALL_PATH = /usr/local/bin;
+				PREBINDING = NO;
+				PRODUCT_NAME = BufferedStreamTest;
+			};
+			name = Debug;
+		};
+		CAB3CB740FCB35B8007C4260 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_MODEL_TUNING = G5;
+				INSTALL_PATH = /usr/local/bin;
+				PREBINDING = NO;
+				PRODUCT_NAME = BufferedStreamTest;
 				ZERO_LINK = NO;
 			};
 			name = Release;
@@ -3179,6 +3350,36 @@
 				INSTALL_PATH = /usr/local/bin;
 				PREBINDING = NO;
 				PRODUCT_NAME = TracksTest;
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
+		CAE724080FC33646008F2905 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				INSTALL_PATH = /usr/local/bin;
+				PREBINDING = NO;
+				PRODUCT_NAME = LinearReaderTest;
+			};
+			name = Debug;
+		};
+		CAE724090FC33646008F2905 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_MODEL_TUNING = G5;
+				INSTALL_PATH = /usr/local/bin;
+				PREBINDING = NO;
+				PRODUCT_NAME = LinearReaderTest;
 				ZERO_LINK = NO;
 			};
 			name = Release;
@@ -3230,7 +3431,7 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				INSTALL_PATH = /usr/local/bin;
 				PREBINDING = NO;
-				PRODUCT_NAME = benchmarkstest;
+				PRODUCT_NAME = BenchmarksTest;
 			};
 			name = Debug;
 		};
@@ -3244,7 +3445,7 @@
 				GCC_MODEL_TUNING = G5;
 				INSTALL_PATH = /usr/local/bin;
 				PREBINDING = NO;
-				PRODUCT_NAME = benchmarkstest;
+				PRODUCT_NAME = BenchmarksTest;
 				ZERO_LINK = NO;
 			};
 			name = Release;
@@ -3260,7 +3461,7 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				INSTALL_PATH = /usr/local/bin;
 				PREBINDING = NO;
-				PRODUCT_NAME = avctrackwritertest;
+				PRODUCT_NAME = AvcTrackWriterTest;
 			};
 			name = Debug;
 		};
@@ -3274,7 +3475,7 @@
 				GCC_MODEL_TUNING = G5;
 				INSTALL_PATH = /usr/local/bin;
 				PREBINDING = NO;
-				PRODUCT_NAME = avctrackwritertest;
+				PRODUCT_NAME = AvcTrackWriterTest;
 				ZERO_LINK = NO;
 			};
 			name = Release;
@@ -3505,11 +3706,29 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		CAB3CB780FCB35E3007C4260 /* Build configuration list for PBXNativeTarget "BufferedStreamTest" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CAB3CB730FCB35B8007C4260 /* Debug */,
+				CAB3CB740FCB35B8007C4260 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		CABB61F80F02BAF900B53D31 /* Build configuration list for PBXNativeTarget "TracksTest" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				CABB61F50F02BABC00B53D31 /* Debug */,
 				CABB61F60F02BABC00B53D31 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CAE724220FC33682008F2905 /* Build configuration list for PBXNativeTarget "LinearReaderTest" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CAE724080FC33646008F2905 /* Debug */,
+				CAE724090FC33646008F2905 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

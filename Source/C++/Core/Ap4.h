@@ -286,5 +286,6 @@
 #include "Ap4Marlin.h"
 #include "Ap4GrpiAtom.h"
 #include "Ap48bdlAtom.h"
+#include "Ap4LinearReader.h"
 
 #endif // _AP4_H_
