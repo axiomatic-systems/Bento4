@@ -37,7 +37,7 @@
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-#define BANNER "MP4 File Info - Version 1.3\n"\
+#define BANNER "MP4 File Info - Version 1.3.1\n"\
                "(Bento4 Version " AP4_VERSION_STRING ")\n"\
                "(c) 2002-2009 Axiomatic Systems, LLC"
  
@@ -406,10 +406,12 @@ ShowTrackInfo(AP4_Track& track, bool show_samples, bool verbose)
                    (int)sample.GetSize(), 
                    (int)sample.GetDuration());
             if (verbose) {
-                printf(" offset=%10lld dts=%10lld cts=%10lld", 
+                printf(" offset=%10lld dts=%10lld (%10lld ms) cts=%10lld (%10lld ms)", 
                        sample.GetOffset(),
                        sample.GetDts(), 
-                       sample.GetCts());
+                       AP4_ConvertTime(sample.GetDts(), track.GetMediaTimeScale(), 1000),
+                       sample.GetCts(),
+                       AP4_ConvertTime(sample.GetCts(), track.GetMediaTimeScale(), 1000));
             }
             if (sample.IsSync()) {
                 printf(" [S] ");
@@ -554,6 +556,7 @@ ShowSampleLayout(AP4_List<AP4_Track>& tracks, bool /* verbose */)
     AP4_Sample  sample;
     AP4_UI64    sample_offset  = 0;
     AP4_UI32    sample_size    = 0;
+    AP4_UI64    sample_dts     = 0;
     bool        sample_is_sync = false;
     bool        indicator      = true;
     AP4_Track*  previous_track = NULL;
@@ -573,6 +576,7 @@ ShowSampleLayout(AP4_List<AP4_Track>& tracks, bool /* verbose */)
                     chosen_track   = track;
                     sample_offset  = sample.GetOffset();
                     sample_size    = sample.GetSize();
+                    sample_dts     = sample.GetDts();
                     sample_is_sync = sample.IsSync();
                     min_offset     = sample_offset;
                 }
@@ -602,14 +606,17 @@ ShowSampleLayout(AP4_List<AP4_Track>& tracks, bool /* verbose */)
             case AP4_Track::TYPE_SYSTEM: track_type = 'S'; break;
             default:                     track_type = ' '; break;
         }
-        printf("%c %08d [%c] (%d)%c size=%6d, offset=%8lld\n",
+        AP4_UI64 sample_dts_ms = AP4_ConvertTime(sample_dts, chosen_track->GetMediaTimeScale(), 1000);
+        printf("%c %08d [%c] (%d)%c size=%6d, offset=%8lld, dts=%lld (%lld ms)\n",
                indicator?'|':' ', 
                i, 
                track_type, 
                chosen_track->GetId(),
                sample_is_sync?'*':' ', 
                sample_size, 
-               sample_offset);
+               sample_offset,
+               sample_dts,
+               sample_dts_ms);
     }
 }
 
