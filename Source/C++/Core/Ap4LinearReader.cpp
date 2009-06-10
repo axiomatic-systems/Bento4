@@ -1,8 +1,8 @@
 /*****************************************************************
 |
-|    AP4 - File Writer
+|    AP4 - Linear Sample Reader
 |
-|    Copyright 2002-2008 Axiomatic Systems, LLC
+|    Copyright 2002-2009 Axiomatic Systems, LLC
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
