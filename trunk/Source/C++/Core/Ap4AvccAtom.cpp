@@ -154,14 +154,14 @@ AP4_AvccAtom::AP4_AvccAtom(AP4_UI32 size, const AP4_UI08* payload) :
     for (unsigned int i=0; i<num_seq_params; i++) {
         m_SequenceParameters.Append(AP4_DataBuffer());
         AP4_UI16 param_length = AP4_BytesToInt16BE(&payload[cursor]);
-        m_SequenceParameters[i].SetData(&payload[cursor], param_length);
+        m_SequenceParameters[i].SetData(&payload[cursor]+2, param_length);
         cursor += 2+param_length;
     }
     AP4_UI08 num_pic_params = payload[cursor++];
     for (unsigned int i=0; i<num_pic_params; i++) {
         m_PictureParameters.Append(AP4_DataBuffer());
         AP4_UI16 param_length = AP4_BytesToInt16BE(&payload[cursor]);
-        m_PictureParameters[i].SetData(&payload[cursor], param_length);
+        m_PictureParameters[i].SetData(&payload[cursor]+2, param_length);
         cursor += 2+param_length;
     }
 }
@@ -170,10 +170,10 @@ AP4_AvccAtom::AP4_AvccAtom(AP4_UI32 size, const AP4_UI08* payload) :
 /*----------------------------------------------------------------------
 |   AP4_AvccAtom::AP4_AvccAtom
 +---------------------------------------------------------------------*/
-AP4_AvccAtom::AP4_AvccAtom(AP4_UI08 profile, 
-                           AP4_UI08 level, 
-                           AP4_UI08 profile_compatibility, 
-                           AP4_UI08 length_size, 
+AP4_AvccAtom::AP4_AvccAtom(AP4_UI08                         profile, 
+                           AP4_UI08                         level, 
+                           AP4_UI08                         profile_compatibility, 
+                           AP4_UI08                         length_size, 
                            const AP4_Array<AP4_DataBuffer>& sequence_parameters, 
                            const AP4_Array<AP4_DataBuffer>& picture_parameters) :
     AP4_Atom(AP4_ATOM_TYPE_AVCC, AP4_ATOM_HEADER_SIZE),
