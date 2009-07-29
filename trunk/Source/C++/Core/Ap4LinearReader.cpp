@@ -48,6 +48,9 @@ AP4_LinearReader::AP4_LinearReader(AP4_Movie& movie, AP4_Size max_buffer) :
 +---------------------------------------------------------------------*/
 AP4_LinearReader::~AP4_LinearReader()
 {
+    for (unsigned int i=0; i<m_Trackers.ItemCount(); i++) {
+        delete m_Trackers[i];
+    }
 }
 
 /*----------------------------------------------------------------------
@@ -64,7 +67,7 @@ AP4_LinearReader::EnableTrack(AP4_UI32 track_id)
     if (track == NULL) return AP4_ERROR_NO_SUCH_ITEM;
     
     // create a new entry for the track
-    return m_Trackers.Append(Tracker(track));
+    return m_Trackers.Append(new Tracker(track));
 }
 
 /*----------------------------------------------------------------------
@@ -85,7 +88,13 @@ AP4_LinearReader::SetSampleIndex(AP4_UI32 track_id, AP4_UI32 sample_index)
     tracker->m_NextSampleIndex = sample_index;
     
     // empty any queued samples
-    tracker->m_Samples.DeleteReferences();
+    for (AP4_List<SampleBuffer>::Item* item = tracker->m_Samples.FirstItem();
+         item;
+         item = item->GetNext()) {
+        SampleBuffer* buffer = item->GetData();
+        m_BufferFullness -= buffer->m_Sample->GetSize();
+        delete buffer;
+    }
     tracker->m_Samples.Clear();
     
     return AP4_SUCCESS;
@@ -105,7 +114,7 @@ AP4_LinearReader::Advance()
     AP4_UI64 min_offset = (AP4_UI64)(-1);
     Tracker* next_tracker = NULL;
     for (unsigned int i=0; i<m_Trackers.ItemCount(); i++) {
-        Tracker* tracker = &m_Trackers[i];
+        Tracker* tracker = m_Trackers[i];
         if (tracker->m_Eos) continue;
         
         // get the next sample unless we have it already
@@ -134,13 +143,13 @@ AP4_LinearReader::Advance()
  
     if (next_tracker) {
         // read the sample into a buffer
+        assert(next_tracker->m_NextSample);
         SampleBuffer* buffer = new SampleBuffer(next_tracker->m_NextSample);
         AP4_Result result = buffer->m_Sample->ReadData(buffer->m_Data);
         if (AP4_FAILED(result)) return result;
         
         // add the buffer to the queue
         next_tracker->m_Samples.Add(buffer);
-        assert(next_tracker->m_NextSample);
         m_BufferFullness += next_tracker->m_NextSample->GetSize();
         if (m_BufferFullness > m_BufferFullnessPeak) {
             m_BufferFullnessPeak = m_BufferFullness;
@@ -221,7 +230,7 @@ AP4_LinearReader::ReadNextSample(AP4_Sample&     sample,
     Tracker* next_tracker = NULL;
     for (;;) {
         for (unsigned int i=0; i<m_Trackers.ItemCount(); i++) {
-            Tracker* tracker = &m_Trackers[i];
+            Tracker* tracker = m_Trackers[i];
             if (tracker->m_Eos) continue;
             
             AP4_List<SampleBuffer>::Item* item = tracker->m_Samples.FirstItem();
@@ -256,7 +265,7 @@ AP4_LinearReader::Tracker*
 AP4_LinearReader::FindTracker(AP4_UI32 track_id)
 {
     for (unsigned int i=0; i<m_Trackers.ItemCount(); i++) {
-        if (m_Trackers[i].m_Track->GetId() == track_id) return &m_Trackers[i];
+        if (m_Trackers[i]->m_Track->GetId() == track_id) return m_Trackers[i];
     }
     
     // not found

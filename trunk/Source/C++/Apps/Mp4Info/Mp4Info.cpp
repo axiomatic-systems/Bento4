@@ -364,12 +364,12 @@ ShowTrackInfo(AP4_Track& track, bool show_samples, bool verbose)
 	printf("  id:           %d\n", track.GetId());
     printf("  type:         ");
     switch (track.GetType()) {
-        case AP4_Track::TYPE_AUDIO:   printf("Audio\n"); break;
-        case AP4_Track::TYPE_VIDEO:   printf("Video\n"); break;
-        case AP4_Track::TYPE_HINT:    printf("Hint\n");  break;
-        case AP4_Track::TYPE_SYSTEM:  printf("System\n");  break;
-        case AP4_Track::TYPE_TEXT:    printf("Text\n");  break;
-        case AP4_Track::TYPE_JPEG:    printf("Jpeg\n");  break;
+        case AP4_Track::TYPE_AUDIO:   printf("Audio\n");  break;
+        case AP4_Track::TYPE_VIDEO:   printf("Video\n");  break;
+        case AP4_Track::TYPE_HINT:    printf("Hint\n");   break;
+        case AP4_Track::TYPE_SYSTEM:  printf("System\n"); break;
+        case AP4_Track::TYPE_TEXT:    printf("Text\n");   break;
+        case AP4_Track::TYPE_JPEG:    printf("Jpeg\n");   break;
         default: {
             char hdlr[5];
             AP4_FormatFourChars(hdlr, track.GetHandlerType());
@@ -386,7 +386,11 @@ ShowTrackInfo(AP4_Track& track, bool show_samples, bool verbose)
         printf("  display width:  %f\n", (float)track.GetWidth()/65536.0);
         printf("  display height: %f\n", (float)track.GetHeight()/65536.0);
     }
-
+    if (track.GetType() == AP4_Track::TYPE_VIDEO && track.GetSampleCount()) {
+        printf("  frame rate (computed): %.3f\n", (float)1000*track.GetSampleCount()/
+                                                  (float)track.GetDurationMs());
+    }
+    
     // show all sample descriptions
     for (unsigned int desc_index=0;
         AP4_SampleDescription* sample_desc = track.GetSampleDescription(desc_index);
@@ -421,10 +425,18 @@ ShowTrackInfo(AP4_Track& track, bool show_samples, bool verbose)
             
             sample.ReadData(sample_data);
             unsigned int show = sample_data.GetDataSize();
-            if (show > 12) show = 12; // max first 12 chars
+            if (!verbose) {
+                if (show > 12) show = 12; // max first 12 chars
+            }
             
             for (unsigned int i=0; i<show; i++) {
+                if (verbose) {
+                    if (i%16 == 0) {
+                        printf("\n%06d: ", i);
+                    }
+                }
                 printf("%02x", sample_data.GetData()[i]);
+                if (verbose) printf(" ");
             }
             if (show == sample_data.GetDataSize()) {
                 printf("\n");

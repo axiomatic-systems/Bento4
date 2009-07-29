@@ -1,8 +1,8 @@
 /*****************************************************************
 |
-|    AP4 - Atom Based Sample Table
+|    AP4 - Fragment Based Sample Table
 |
-|    Copyright 2002-2008 Axiomatic Systems, LLC
+|    Copyright 2002-2009 Axiomatic Systems, LLC
 |
 |
 |    This atom is part of AP4 (MP4 Audio Processing Library).
@@ -26,39 +26,37 @@
 |
  ****************************************************************/
 
-#ifndef _AP4_ATOM_SAMPLE_TABLE_H_
-#define _AP4_ATOM_SAMPLE_TABLE_H_
+#ifndef _AP4_FRAGMENT_SAMPLE_TABLE_H_
+#define _AP4_FRAGMENT_SAMPLE_TABLE_H_
 
 /*----------------------------------------------------------------------
 |   includes
 +---------------------------------------------------------------------*/
 #include "Ap4Types.h"
 #include "Ap4SampleTable.h"
+#include "Ap4Array.h"
 
 /*----------------------------------------------------------------------
 |   forward declarations
 +---------------------------------------------------------------------*/
 class AP4_Atom;
 class AP4_ByteStream;
-class AP4_StscAtom;
-class AP4_StcoAtom;
-class AP4_StszAtom;
-class AP4_SttsAtom;
-class AP4_CttsAtom;
-class AP4_StssAtom;
-class AP4_StsdAtom;
-class AP4_Co64Atom;
+class AP4_TrunAtom;
+class AP4_TrexAtom;
+class AP4_TfhdAtom;
 
 /*----------------------------------------------------------------------
-|   AP4_AtomSampleTable
+|   AP4_FragmentSampleTable
 +---------------------------------------------------------------------*/
-class AP4_AtomSampleTable : public AP4_SampleTable
+class AP4_FragmentSampleTable : public AP4_SampleTable
 {
  public:
     // methods
-             AP4_AtomSampleTable(AP4_ContainerAtom* stbl_atom, 
-                                 AP4_ByteStream&    sample_stream);
-    virtual ~AP4_AtomSampleTable();
+             AP4_FragmentSampleTable(AP4_ContainerAtom* traf, 
+                                     AP4_TrexAtom*      trex,
+                                     AP4_ByteStream*    sample_stream,
+                                     AP4_UI64           dts_origin=0);
+    virtual ~AP4_FragmentSampleTable();
 
     // AP4_SampleTable methods
     virtual AP4_Result   GetSample(AP4_Ordinal sample_index, AP4_Sample& sample);
@@ -71,26 +69,22 @@ class AP4_AtomSampleTable : public AP4_SampleTable
     virtual AP4_Result   GetSampleIndexForTimeStamp(AP4_UI64 ts, AP4_Ordinal& sample_index);
     virtual AP4_Ordinal  GetNearestSyncSampleIndex(AP4_Ordinal index, bool before=true);
 
-    // local methods
-    virtual AP4_Result GetChunkForSample(AP4_Ordinal   sample_index,
-                                         AP4_Ordinal&  chunk_index,
-                                         AP4_Ordinal&  position_in_chunk,
-                                         AP4_Ordinal&  sample_description_index);
-    virtual AP4_Result GetChunkOffset(AP4_Ordinal chunk_index, AP4_Position& offset);
-    virtual AP4_Result SetChunkOffset(AP4_Ordinal chunk_index, AP4_Position offset);
-    virtual AP4_Result SetSampleSize(AP4_Ordinal sample_index, AP4_Size size);
-
+    // methods
+    AP4_UI64 GetDuration() { return m_Duration; }
+    
 private:
     // members
-    AP4_ByteStream& m_SampleStream;
-    AP4_StscAtom*   m_StscAtom;
-    AP4_StcoAtom*   m_StcoAtom;
-    AP4_StszAtom*   m_StszAtom;
-    AP4_SttsAtom*   m_SttsAtom;
-    AP4_CttsAtom*   m_CttsAtom;
-    AP4_StsdAtom*   m_StsdAtom;
-    AP4_StssAtom*   m_StssAtom;
-    AP4_Co64Atom*   m_Co64Atom;
+    AP4_TrunAtom*         m_TrunAtom;
+    AP4_Array<AP4_Sample> m_Samples;
+    AP4_UI64              m_Duration;
+    
+    // methods
+    AP4_Result AddTrun(AP4_TrunAtom*   trun, 
+                       AP4_TfhdAtom*   tfhd, 
+                       AP4_TrexAtom*   trex, 
+                       AP4_ByteStream* sample_stream,
+                       AP4_UI64&       dts_origin);
+
 };
 
-#endif // _AP4_ATOM_SAMPLE_TABLE_H_
+#endif // _AP4_FRAGMENT_SAMPLE_TABLE_H_
