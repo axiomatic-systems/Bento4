@@ -112,11 +112,11 @@ private:
     bool       PopSample(Tracker* tracker, AP4_Sample& sample, AP4_DataBuffer& sample_data);
     
     // members
-    AP4_Movie&             m_Movie;
-    AP4_Array<Tracker>     m_Trackers;
-    AP4_Size               m_BufferFullness;
-    AP4_Size               m_BufferFullnessPeak;
-    AP4_Size               m_MaxBufferFullness;
+    AP4_Movie&          m_Movie;
+    AP4_Array<Tracker*> m_Trackers;
+    AP4_Size            m_BufferFullness;
+    AP4_Size            m_BufferFullnessPeak;
+    AP4_Size            m_MaxBufferFullness;
 };
 
 #endif // _AP4_LINEAR_READER_H_

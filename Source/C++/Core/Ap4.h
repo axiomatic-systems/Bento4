@@ -244,6 +244,7 @@
 #include "Ap4SampleTable.h"
 #include "Ap4SyntheticSampleTable.h"
 #include "Ap4AtomSampleTable.h"
+#include "Ap4FragmentSampleTable.h"
 #include "Ap4UrlAtom.h"
 #include "Ap4MoovAtom.h"
 #include "Ap4MvhdAtom.h"
@@ -286,6 +287,7 @@
 #include "Ap4Marlin.h"
 #include "Ap4GrpiAtom.h"
 #include "Ap48bdlAtom.h"
+#include "Ap4MovieFragment.h"
 #include "Ap4LinearReader.h"
 
 #endif // _AP4_H_

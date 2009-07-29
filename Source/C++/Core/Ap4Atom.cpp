@@ -353,7 +353,8 @@ AP4_UnknownAtom::AP4_UnknownAtom(Type            type,
     AP4_Atom(type, size),
     m_SourceStream(&stream)
 {
-    if (size <= AP4_UNKNOWN_ATOM_MAX_LOCAL_PAYLOAD_SIZE) {
+    if (size <= AP4_UNKNOWN_ATOM_MAX_LOCAL_PAYLOAD_SIZE &&
+        type != AP4_ATOM_TYPE_MDAT) {
         m_SourcePosition = 0;
         m_SourceStream   = NULL;
         AP4_UI32 payload_size = (AP4_UI32)size-GetHeaderSize();

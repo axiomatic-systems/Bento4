@@ -41,7 +41,7 @@
 +---------------------------------------------------------------------*/
 #define BANNER "AVC Bitstream Info - Version 1.0\n"\
                "(Bento4 Version " AP4_VERSION_STRING ")\n"\
-               "(c) 2002-2008 Axiomatic Systems, LLC"
+               "(c) 2002-2009 Axiomatic Systems, LLC"
  
 /*----------------------------------------------------------------------
 |   PrintUsageAndExit

@@ -70,6 +70,11 @@ public:
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
 
+    // accessors
+    AP4_SI32                GetDataOffset()       { return m_DataOffset;       }
+    AP4_UI32                GetFirstSampleFlags() { return m_FirstSampleFlags; }
+    const AP4_Array<Entry>& GetEntries()          { return m_Entries;          }
+    
 private:
     // methods
     AP4_TrunAtom(AP4_UI32        size, 

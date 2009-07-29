@@ -13,6 +13,7 @@
 			buildPhases = (
 			);
 			dependencies = (
+				CA00667F101539BF004C0D5F /* PBXTargetDependency */,
 				CA0D91AE0E258349005667F1 /* PBXTargetDependency */,
 				CA646AC90CE97C4E009699D7 /* PBXTargetDependency */,
 				CA646B710CE97EE1009699D7 /* PBXTargetDependency */,
@@ -39,10 +40,12 @@
 				CA52643C0F788AD8009D7E0D /* PBXTargetDependency */,
 				CAF479350F0951D5004073ED /* PBXTargetDependency */,
 				CAF479330F0951D0004073ED /* PBXTargetDependency */,
+				CA9C64460FE76C48004E5544 /* PBXTargetDependency */,
 				CA9A18D50ED54B2E00C60FDF /* PBXTargetDependency */,
 				CA646B860CE97EFC009699D7 /* PBXTargetDependency */,
 				F9DBC8030E99B01200913BF6 /* PBXTargetDependency */,
 				CA40CB340F40DC3E0008649B /* PBXTargetDependency */,
+				CAFC31C20FEB3E0A00EF80A0 /* PBXTargetDependency */,
 			);
 			name = Tests;
 			productName = Tests;
@@ -63,6 +66,8 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
+		CA00667910153960004C0D5F /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
+		CA00667D1015399A004C0D5F /* Mp42Ts.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA00667C1015399A004C0D5F /* Mp42Ts.cpp */; };
 		CA09F27F0DF62FC600C2B2DA /* Ap4Marlin.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA09F27D0DF62FC600C2B2DA /* Ap4Marlin.cpp */; };
 		CA09F2800DF62FC600C2B2DA /* Ap4Marlin.h in Headers */ = {isa = PBXBuildFile; fileRef = CA09F27E0DF62FC600C2B2DA /* Ap4Marlin.h */; };
 		CA0BBBA10F38D10A00DF01DD /* Ap4Results.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA0BBBA00F38D10A00DF01DD /* Ap4Results.cpp */; };
@@ -297,6 +302,12 @@
 		CAEFE1350FB69CF600AF6434 /* Ap4TrexAtom.h in Headers */ = {isa = PBXBuildFile; fileRef = CAEFE1330FB69CF600AF6434 /* Ap4TrexAtom.h */; };
 		CAF479310F0951C3004073ED /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
 		CAF479380F0951E7004073ED /* BenchmarksTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAF479370F0951E7004073ED /* BenchmarksTest.cpp */; };
+		CAFC31BF0FEB3DE900EF80A0 /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
+		CAFC31CE0FEB3E7C00EF80A0 /* FragmentParserTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAFC31CD0FEB3E7C00EF80A0 /* FragmentParserTest.cpp */; };
+		CAFC31D90FEB95F700EF80A0 /* Ap4MovieFragment.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAFC31D70FEB95F700EF80A0 /* Ap4MovieFragment.cpp */; };
+		CAFC31DA0FEB95F700EF80A0 /* Ap4MovieFragment.h in Headers */ = {isa = PBXBuildFile; fileRef = CAFC31D80FEB95F700EF80A0 /* Ap4MovieFragment.h */; };
+		CAFC31F00FEBAA9200EF80A0 /* Ap4FragmentSampleTable.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAFC31EE0FEBAA9200EF80A0 /* Ap4FragmentSampleTable.cpp */; };
+		CAFC31F10FEBAA9200EF80A0 /* Ap4FragmentSampleTable.h in Headers */ = {isa = PBXBuildFile; fileRef = CAFC31EF0FEBAA9200EF80A0 /* Ap4FragmentSampleTable.h */; };
 		F98E8CC10EA9AEC3000C8839 /* Bento4C.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F98E8CBF0EA9AEC3000C8839 /* Bento4C.cpp */; };
 		F98E8CC20EA9AEC3000C8839 /* Bento4C.h in Headers */ = {isa = PBXBuildFile; fileRef = F98E8CC00EA9AEC3000C8839 /* Bento4C.h */; };
 		F9B1F4FB0B54AD91003F147E /* Ap4AvccAtom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F9B1F4F90B54AD91003F147E /* Ap4AvccAtom.cpp */; };
@@ -307,6 +318,20 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		CA00667710153959004C0D5F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D2AAC045055464E500DB518D;
+			remoteInfo = Bento4;
+		};
+		CA00667E101539BF004C0D5F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CA00667210153951004C0D5F;
+			remoteInfo = Mp42Ts;
+		};
 		CA0D91A40E25830F005667F1 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
@@ -524,6 +549,13 @@
 			remoteGlobalIDString = CA9A16D70ED4F42A00C60FDF;
 			remoteInfo = PassthroughWriterTest;
 		};
+		CA9C64450FE76C48004E5544 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CAB3CB700FCB35B7007C4260;
+			remoteInfo = BufferedStreamTest;
+		};
 		CA9ED5D30EADBD81003CE43C /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
@@ -601,6 +633,20 @@
 			remoteGlobalIDString = CABB61F20F02BABC00B53D31;
 			remoteInfo = TracksTest;
 		};
+		CAFC31BD0FEB3DE400EF80A0 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D2AAC045055464E500DB518D;
+			remoteInfo = Bento4;
+		};
+		CAFC31C10FEB3E0A00EF80A0 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CAFC31B80FEB3DDD00EF80A0;
+			remoteInfo = FragmentParserTest;
+		};
 		F9DBC8020E99B01200913BF6 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
@@ -632,6 +678,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		CA00667310153951004C0D5F /* mp42ts */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mp42ts; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA00667C1015399A004C0D5F /* Mp42Ts.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Mp42Ts.cpp; sourceTree = "<group>"; };
 		CA09F27D0DF62FC600C2B2DA /* Ap4Marlin.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4Marlin.cpp; sourceTree = "<group>"; };
 		CA09F27E0DF62FC600C2B2DA /* Ap4Marlin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4Marlin.h; sourceTree = "<group>"; };
 		CA0BBBA00F38D10A00DF01DD /* Ap4Results.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4Results.cpp; sourceTree = "<group>"; };
@@ -868,6 +916,12 @@
 		CAEFE1330FB69CF600AF6434 /* Ap4TrexAtom.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4TrexAtom.h; sourceTree = "<group>"; };
 		CAF4792B0F0951B8004073ED /* BenchmarksTest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = BenchmarksTest; sourceTree = BUILT_PRODUCTS_DIR; };
 		CAF479370F0951E7004073ED /* BenchmarksTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BenchmarksTest.cpp; sourceTree = "<group>"; };
+		CAFC31B90FEB3DDD00EF80A0 /* FragmentParserTest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = FragmentParserTest; sourceTree = BUILT_PRODUCTS_DIR; };
+		CAFC31CD0FEB3E7C00EF80A0 /* FragmentParserTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FragmentParserTest.cpp; sourceTree = "<group>"; };
+		CAFC31D70FEB95F700EF80A0 /* Ap4MovieFragment.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4MovieFragment.cpp; sourceTree = "<group>"; };
+		CAFC31D80FEB95F700EF80A0 /* Ap4MovieFragment.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4MovieFragment.h; sourceTree = "<group>"; };
+		CAFC31EE0FEBAA9200EF80A0 /* Ap4FragmentSampleTable.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4FragmentSampleTable.cpp; sourceTree = "<group>"; };
+		CAFC31EF0FEBAA9200EF80A0 /* Ap4FragmentSampleTable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4FragmentSampleTable.h; sourceTree = "<group>"; };
 		D2AAC046055464E500DB518D /* libBento4.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libBento4.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		F98E8CBF0EA9AEC3000C8839 /* Bento4C.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Bento4C.cpp; path = "../../../Source/C++/CApi/Bento4C.cpp"; sourceTree = SOURCE_ROOT; };
 		F98E8CC00EA9AEC3000C8839 /* Bento4C.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Bento4C.h; path = "../../../Source/C++/CApi/Bento4C.h"; sourceTree = SOURCE_ROOT; };
@@ -879,6 +933,14 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		CA00667110153951004C0D5F /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CA00667910153960004C0D5F /* libBento4.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		CA3EDA7C0D7E0B81007AE943 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -1046,6 +1108,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		CAFC31B70FEB3DDD00EF80A0 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CAFC31BF0FEB3DE900EF80A0 /* libBento4.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		D289987405E68DCB004EDB86 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -1125,6 +1195,8 @@
 				CA7EECE50F720648009F85F9 /* CompareFilesTest */,
 				CAE724060FC33645008F2905 /* LinearReaderTest */,
 				CAB3CB710FCB35B8007C4260 /* BufferedStreamTest */,
+				CAFC31B90FEB3DDD00EF80A0 /* FragmentParserTest */,
+				CA00667310153951004C0D5F /* mp42ts */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1134,6 +1206,14 @@
 			children = (
 			);
 			name = Documentation;
+			sourceTree = "<group>";
+		};
+		CA00667B1015399A004C0D5F /* Mp42Ts */ = {
+			isa = PBXGroup;
+			children = (
+				CA00667C1015399A004C0D5F /* Mp42Ts.cpp */,
+			);
+			path = Mp42Ts;
 			sourceTree = "<group>";
 		};
 		CA3EDA780D7E0B6B007AE943 /* AvcInfo */ = {
@@ -1166,6 +1246,7 @@
 				CA3EDA780D7E0B6B007AE943 /* AvcInfo */,
 				CA646A870CE97B2D009699D7 /* Aac2Mp4 */,
 				CA646A890CE97B2D009699D7 /* Mp42Aac */,
+				CA00667B1015399A004C0D5F /* Mp42Ts */,
 				CA44C5260D46371C00173F5F /* Mp4DcfPackager */,
 				CA646A8B0CE97B2D009699D7 /* Mp4Decrypt */,
 				CA646A8D0CE97B2D009699D7 /* Mp4Dump */,
@@ -1263,6 +1344,7 @@
 		CA646A9B0CE97B51009699D7 /* Test */ = {
 			isa = PBXGroup;
 			children = (
+				CAFC31CC0FEB3E7C00EF80A0 /* FragmentParser */,
 				CAB3CB6B0FCB35A8007C4260 /* BufferedStream */,
 				CAE724010FC3362B008F2905 /* LinearReader */,
 				CA7EECE00F720627009F85F9 /* CompareFiles */,
@@ -1296,6 +1378,10 @@
 		CA93660F0B437D030067D50B /* Core */ = {
 			isa = PBXGroup;
 			children = (
+				CAFC31EE0FEBAA9200EF80A0 /* Ap4FragmentSampleTable.cpp */,
+				CAFC31EF0FEBAA9200EF80A0 /* Ap4FragmentSampleTable.h */,
+				CAFC31D70FEB95F700EF80A0 /* Ap4MovieFragment.cpp */,
+				CAFC31D80FEB95F700EF80A0 /* Ap4MovieFragment.h */,
 				CA9CB9BC0F86ABB400063C70 /* Ap48bdlAtom.cpp */,
 				CA9CB9BD0F86ABB400063C70 /* Ap48bdlAtom.h */,
 				CAE723FD0FC33618008F2905 /* Ap4LinearReader.cpp */,
@@ -1578,6 +1664,14 @@
 			path = Benchmarks;
 			sourceTree = "<group>";
 		};
+		CAFC31CC0FEB3E7C00EF80A0 /* FragmentParser */ = {
+			isa = PBXGroup;
+			children = (
+				CAFC31CD0FEB3E7C00EF80A0 /* FragmentParserTest.cpp */,
+			);
+			path = FragmentParser;
+			sourceTree = "<group>";
+		};
 		F95E912A0EA4017000D86755 /* CApi */ = {
 			isa = PBXGroup;
 			children = (
@@ -1711,6 +1805,8 @@
 				CAEFE10F0FB6993D00AF6434 /* Ap4MehdAtom.h in Headers */,
 				CAEFE1350FB69CF600AF6434 /* Ap4TrexAtom.h in Headers */,
 				CAE724000FC33618008F2905 /* Ap4LinearReader.h in Headers */,
+				CAFC31DA0FEB95F700EF80A0 /* Ap4MovieFragment.h in Headers */,
+				CAFC31F10FEBAA9200EF80A0 /* Ap4FragmentSampleTable.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1725,6 +1821,23 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
+		CA00667210153951004C0D5F /* Mp42Ts */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CA00667A10153994004C0D5F /* Build configuration list for PBXNativeTarget "Mp42Ts" */;
+			buildPhases = (
+				CA00667010153951004C0D5F /* Sources */,
+				CA00667110153951004C0D5F /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CA00667810153959004C0D5F /* PBXTargetDependency */,
+			);
+			name = Mp42Ts;
+			productName = Mp42Ts;
+			productReference = CA00667310153951004C0D5F /* mp42ts */;
+			productType = "com.apple.product-type.tool";
+		};
 		CA3EDA7D0D7E0B81007AE943 /* AvcInfo */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = CA3EDA870D7E0BBE007AE943 /* Build configuration list for PBXNativeTarget "AvcInfo" */;
@@ -2083,6 +2196,23 @@
 			productReference = CAF4792B0F0951B8004073ED /* BenchmarksTest */;
 			productType = "com.apple.product-type.tool";
 		};
+		CAFC31B80FEB3DDD00EF80A0 /* FragmentParserTest */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CAFC31C00FEB3E0800EF80A0 /* Build configuration list for PBXNativeTarget "FragmentParserTest" */;
+			buildPhases = (
+				CAFC31B60FEB3DDD00EF80A0 /* Sources */,
+				CAFC31B70FEB3DDD00EF80A0 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CAFC31BE0FEB3DE400EF80A0 /* PBXTargetDependency */,
+			);
+			name = FragmentParserTest;
+			productName = FragmentParserTest;
+			productReference = CAFC31B90FEB3DDD00EF80A0 /* FragmentParserTest */;
+			productType = "com.apple.product-type.tool";
+		};
 		D2AAC045055464E500DB518D /* Bento4 */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 1DEB91EB08733DB70010E9CD /* Build configuration list for PBXNativeTarget "Bento4" */;
@@ -2163,9 +2293,10 @@
 				CA646B200CE97DD1009699D7 /* Mp4Tag */,
 				CA646B300CE97DFD009699D7 /* Aac2Mp4 */,
 				CA646B400CE97E27009699D7 /* Mp42Aac */,
+				CA00667210153951004C0D5F /* Mp42Ts */,
 				CA646B500CE97E52009699D7 /* Mp4RtpHintInfo */,
-				CA646B600CE97E82009699D7 /* CryptoTest */,
 				CA3EDA7D0D7E0B81007AE943 /* AvcInfo */,
+				CA646B600CE97E82009699D7 /* CryptoTest */,
 				F9DBC7FC0E99AFE100913BF6 /* AvcTrackWriterTest */,
 				CA9A16D70ED4F42A00C60FDF /* PassthroughWriterTest */,
 				CABB61F20F02BABC00B53D31 /* TracksTest */,
@@ -2174,11 +2305,20 @@
 				CA7EECE40F720648009F85F9 /* CompareFilesTest */,
 				CAE724050FC33645008F2905 /* LinearReaderTest */,
 				CAB3CB700FCB35B7007C4260 /* BufferedStreamTest */,
+				CAFC31B80FEB3DDD00EF80A0 /* FragmentParserTest */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXSourcesBuildPhase section */
+		CA00667010153951004C0D5F /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CA00667D1015399A004C0D5F /* Mp42Ts.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		CA3EDA7B0D7E0B81007AE943 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -2348,6 +2488,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		CAFC31B60FEB3DDD00EF80A0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CAFC31CE0FEB3E7C00EF80A0 /* FragmentParserTest.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		D2AAC044055464E500DB518D /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -2444,6 +2592,8 @@
 				CAEFE10E0FB6993D00AF6434 /* Ap4MehdAtom.cpp in Sources */,
 				CAEFE1340FB69CF600AF6434 /* Ap4TrexAtom.cpp in Sources */,
 				CAE723FF0FC33618008F2905 /* Ap4LinearReader.cpp in Sources */,
+				CAFC31D90FEB95F700EF80A0 /* Ap4MovieFragment.cpp in Sources */,
+				CAFC31F00FEBAA9200EF80A0 /* Ap4FragmentSampleTable.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2466,6 +2616,16 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		CA00667810153959004C0D5F /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D2AAC045055464E500DB518D /* Bento4 */;
+			targetProxy = CA00667710153959004C0D5F /* PBXContainerItemProxy */;
+		};
+		CA00667F101539BF004C0D5F /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CA00667210153951004C0D5F /* Mp42Ts */;
+			targetProxy = CA00667E101539BF004C0D5F /* PBXContainerItemProxy */;
+		};
 		CA0D91A50E25830F005667F1 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = CA44C5290D46375F00173F5F /* Mp4DcfPackager */;
@@ -2621,6 +2781,11 @@
 			target = CA9A16D70ED4F42A00C60FDF /* PassthroughWriterTest */;
 			targetProxy = CA9A18D40ED54B2E00C60FDF /* PBXContainerItemProxy */;
 		};
+		CA9C64460FE76C48004E5544 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CAB3CB700FCB35B7007C4260 /* BufferedStreamTest */;
+			targetProxy = CA9C64450FE76C48004E5544 /* PBXContainerItemProxy */;
+		};
 		CA9ED5D40EADBD81003CE43C /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = F9FDDA2D0EA798FF0061DCB2 /* Bento4C */;
@@ -2675,6 +2840,16 @@
 			isa = PBXTargetDependency;
 			target = CABB61F20F02BABC00B53D31 /* TracksTest */;
 			targetProxy = CAF479340F0951D5004073ED /* PBXContainerItemProxy */;
+		};
+		CAFC31BE0FEB3DE400EF80A0 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D2AAC045055464E500DB518D /* Bento4 */;
+			targetProxy = CAFC31BD0FEB3DE400EF80A0 /* PBXContainerItemProxy */;
+		};
+		CAFC31C20FEB3E0A00EF80A0 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CAFC31B80FEB3DDD00EF80A0 /* FragmentParserTest */;
+			targetProxy = CAFC31C10FEB3E0A00EF80A0 /* PBXContainerItemProxy */;
 		};
 		F9DBC8030E99B01200913BF6 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -2768,6 +2943,36 @@
 				ONLY_ACTIVE_ARCH = NO;
 				PREBINDING = NO;
 				SDKROOT = "$(DEVELOPER_SDK_DIR)/MacOSX10.4u.sdk";
+			};
+			name = Release;
+		};
+		CA00667510153953004C0D5F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				INSTALL_PATH = /usr/local/bin;
+				PREBINDING = NO;
+				PRODUCT_NAME = mp42ts;
+			};
+			name = Debug;
+		};
+		CA00667610153953004C0D5F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_MODEL_TUNING = G5;
+				INSTALL_PATH = /usr/local/bin;
+				PREBINDING = NO;
+				PRODUCT_NAME = mp42ts;
+				ZERO_LINK = NO;
 			};
 			name = Release;
 		};
@@ -3459,6 +3664,36 @@
 			};
 			name = Release;
 		};
+		CAFC31BB0FEB3DDE00EF80A0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				INSTALL_PATH = /usr/local/bin;
+				PREBINDING = NO;
+				PRODUCT_NAME = FragmentParserTest;
+			};
+			name = Debug;
+		};
+		CAFC31BC0FEB3DDE00EF80A0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_MODEL_TUNING = G5;
+				INSTALL_PATH = /usr/local/bin;
+				PREBINDING = NO;
+				PRODUCT_NAME = FragmentParserTest;
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
 		F9DBC7FF0E99AFE200913BF6 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -3540,6 +3775,15 @@
 			buildConfigurations = (
 				1DEB91F008733DB70010E9CD /* Debug */,
 				1DEB91F108733DB70010E9CD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CA00667A10153994004C0D5F /* Build configuration list for PBXNativeTarget "Mp42Ts" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CA00667510153953004C0D5F /* Debug */,
+				CA00667610153953004C0D5F /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -3756,6 +4000,15 @@
 			buildConfigurations = (
 				CAF4792D0F0951B9004073ED /* Debug */,
 				CAF4792E0F0951B9004073ED /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CAFC31C00FEB3E0800EF80A0 /* Build configuration list for PBXNativeTarget "FragmentParserTest" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CAFC31BB0FEB3DDE00EF80A0 /* Debug */,
+				CAFC31BC0FEB3DDE00EF80A0 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
