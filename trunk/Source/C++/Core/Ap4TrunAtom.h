@@ -53,6 +53,7 @@ class AP4_TrunAtom : public AP4_Atom
 public:
     // types
     struct Entry {
+        Entry() : sample_duration(0), sample_size(0), sample_flags(0), sample_composition_time_offset(0) {}
         AP4_UI32 sample_duration;
         AP4_UI32 sample_size;
         AP4_UI32 sample_flags;
