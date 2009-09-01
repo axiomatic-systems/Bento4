@@ -387,6 +387,19 @@ AP4_UnknownAtom::AP4_UnknownAtom(Type            type,
 /*----------------------------------------------------------------------
 |   AP4_UnknownAtom::AP4_UnknownAtom
 +---------------------------------------------------------------------*/
+AP4_UnknownAtom::AP4_UnknownAtom(Type            type, 
+                                 const AP4_UI08* payload,
+                                 AP4_Size        payload_size) :
+    AP4_Atom(type, AP4_ATOM_HEADER_SIZE+payload_size, false),
+    m_SourcePosition(0),
+    m_SourceStream(NULL)
+{
+    m_Payload.SetData(payload, payload_size);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_UnknownAtom::AP4_UnknownAtom
++---------------------------------------------------------------------*/
 AP4_UnknownAtom::AP4_UnknownAtom(const AP4_UnknownAtom& other) :
     AP4_Atom(other.m_Type, (AP4_UI32)0),
     m_SourceStream(other.m_SourceStream),

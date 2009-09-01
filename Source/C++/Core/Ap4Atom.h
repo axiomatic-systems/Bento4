@@ -292,6 +292,7 @@ public:
     AP4_UnknownAtom(AP4_Atom::Type   type, 
                     AP4_UI64         size, 
                     AP4_ByteStream&  stream);
+    AP4_UnknownAtom(AP4_Atom::Type type, const AP4_UI08* payload, AP4_Size payload_size);
     AP4_UnknownAtom(const AP4_UnknownAtom& other);
     ~AP4_UnknownAtom();
 
@@ -423,6 +424,8 @@ const AP4_Atom::Type AP4_ATOM_TYPE_WIDE = AP4_ATOM_TYPE('w','i','d','e');
 const AP4_Atom::Type AP4_ATOM_TYPE_UUID = AP4_ATOM_TYPE('u','u','i','d');
 const AP4_Atom::Type AP4_ATOM_TYPE_8ID_ = AP4_ATOM_TYPE('8','i','d',' ');
 const AP4_Atom::Type AP4_ATOM_TYPE_8BDL = AP4_ATOM_TYPE('8','b','d','l');
+const AP4_Atom::Type AP4_ATOM_TYPE_AC_3 = AP4_ATOM_TYPE('a','c','-','3');
+const AP4_Atom::Type AP4_ATOM_TYPE_EC_3 = AP4_ATOM_TYPE('e','c','-','3');
 
 /*----------------------------------------------------------------------
 |   AP4_AtomListInspector

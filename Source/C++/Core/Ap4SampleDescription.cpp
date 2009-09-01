@@ -64,11 +64,11 @@ AP4_GetFormatName(AP4_UI32 format)
         case AP4_SAMPLE_FORMAT_AVC1: return "H.264";
         case AP4_SAMPLE_FORMAT_OVC1: return "VC-1";
         case AP4_SAMPLE_FORMAT_OWMA: return "WMA";
-        case AP4_SAMPLE_FORMAT_AC_3: return "AC-3";
+        case AP4_SAMPLE_FORMAT_AC_3: return "Dolby Digital (AC-3)";
+        case AP4_SAMPLE_FORMAT_EC_3: return "Dolby Digital Plus (Enhanced AC-3)";
         case AP4_SAMPLE_FORMAT_AVCP: return "Advanced Video Coding Parameters";
         case AP4_SAMPLE_FORMAT_DRAC: return "Dirac";
         case AP4_SAMPLE_FORMAT_DRA1: return "DRA Audio";
-        case AP4_SAMPLE_FORMAT_EC_3: return "Enhanced AC-3";
         case AP4_SAMPLE_FORMAT_G726: return "G726";
         case AP4_SAMPLE_FORMAT_MJP2: return "Motion JPEG 2000";
         case AP4_SAMPLE_FORMAT_OKSD: return "OMA Keys";
