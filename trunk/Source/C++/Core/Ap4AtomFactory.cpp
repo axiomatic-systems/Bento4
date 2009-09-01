@@ -233,7 +233,9 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
             break;
 
           case AP4_ATOM_TYPE_ALAC:
-            atom = new AP4_AudioSampleEntry(AP4_ATOM_TYPE_ALAC, size_32, stream, *this);
+          case AP4_ATOM_TYPE_AC_3:
+          case AP4_ATOM_TYPE_EC_3:
+            atom = new AP4_AudioSampleEntry(type, size_32, stream, *this);
             break;
 
           case AP4_ATOM_TYPE_RTP_:

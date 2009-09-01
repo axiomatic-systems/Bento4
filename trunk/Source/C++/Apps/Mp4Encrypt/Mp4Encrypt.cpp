@@ -51,11 +51,12 @@ PrintUsageAndExit()
         BANNER 
         "\n\n"
         "usage: mp4encrypt --method <method> [options] <input> <output>\n"
-        "  --method: <method> is OMA-PDCF-CBC, OMA-PDCF-CTR, MARLIN-IPMP or ISMA-IAEC\n"
+        "  --method: <method> is OMA-PDCF-CBC, OMA-PDCF-CTR, MARLIN-IPMP-ACBC,\n"
+        "     MARLIN-IPMP-ACGK or ISMA-IAEC\n"
         "  Options:\n"
         "  --show-progress: show progress details\n"
         "  --key <n>:<k>:<iv>\n"   
-        "      Specifies the key to use for a track.\n"
+        "      Specifies the key to use for a track (or group key).\n"
         "      <n> is a track ID, <k> a 128-bit key in hex (32 characters)\n"
         "      and <iv> a 64-bit IV or salting key in hex (16 characters)\n"
         "      (several --key options can be used, one for each track)\n"
@@ -75,6 +76,9 @@ PrintUsageAndExit()
         "    and all other properties are stored in the textual headers:\n"
         "      ContentId       -> the content ID for the track\n"
         "      RightsIssuerUrl -> the Rights Issuer URL\n"
+        "\n"
+        "    MARLIN-IPMP-ACGK: The group key is specified with --key where <n>\n"
+        "    is 0\n"
         );
     exit(1);
 }
@@ -86,7 +90,8 @@ enum Method {
     METHOD_NONE,
     METHOD_OMA_PDCF_CBC,
     METHOD_OMA_PDCF_CTR,
-    METHOD_MARLIN_IPMP,
+    METHOD_MARLIN_IPMP_ACBC,
+    METHOD_MARLIN_IPMP_ACGK,
     METHOD_ISMA_AES
 }; 
 
@@ -136,8 +141,10 @@ main(int argc, char** argv)
                 method = METHOD_OMA_PDCF_CBC;
             } else if (!strcmp(arg, "OMA-PDCF-CTR")) {
                 method = METHOD_OMA_PDCF_CTR;
-            } else if (!strcmp(arg, "MARLIN-IPMP")) {
-                method = METHOD_MARLIN_IPMP;
+            } else if (!strcmp(arg, "MARLIN-IPMP-ACBC")) {
+                method = METHOD_MARLIN_IPMP_ACBC;
+            } else if (!strcmp(arg, "MARLIN-IPMP-ACGK")) {
+                method = METHOD_MARLIN_IPMP_ACGK;
             } else if (!strcmp(arg, "ISMA-IAEC")) {
                 method = METHOD_ISMA_AES;
             } else {
@@ -194,7 +201,8 @@ main(int argc, char** argv)
             char* value = NULL;
             if (method != METHOD_OMA_PDCF_CBC && 
                 method != METHOD_OMA_PDCF_CTR &&
-                method != METHOD_MARLIN_IPMP) {
+                method != METHOD_MARLIN_IPMP_ACBC &&
+                method != METHOD_MARLIN_IPMP_ACGK) {
                 fprintf(stderr, "ERROR: this method does not use properties\n");
                 return 1;
             }
@@ -251,9 +259,18 @@ main(int argc, char** argv)
         AP4_IsmaEncryptingProcessor* isma_processor = new AP4_IsmaEncryptingProcessor(kms_uri);
         isma_processor->GetKeyMap().SetKeys(key_map);
         processor = isma_processor;
-    } else if (method == METHOD_MARLIN_IPMP) {
+    } else if (method == METHOD_MARLIN_IPMP_ACBC ||
+               method == METHOD_MARLIN_IPMP_ACGK) {
+        bool use_group_key = (method == METHOD_MARLIN_IPMP_ACGK);
+        if (use_group_key) {
+            // check that the group key is set
+            if (key_map.GetKey(0) == NULL) {
+                fprintf(stderr, "ERROR: method MARLIN-IPMP-ACGK requires a group key\n");
+                return 1;
+            }
+        }
         AP4_MarlinIpmpEncryptingProcessor* marlin_processor = 
-            new AP4_MarlinIpmpEncryptingProcessor();
+            new AP4_MarlinIpmpEncryptingProcessor(use_group_key);
         marlin_processor->GetKeyMap().SetKeys(key_map);
         marlin_processor->GetPropertyMap().SetProperties(property_map);
         processor = marlin_processor;

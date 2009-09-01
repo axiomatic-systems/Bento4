@@ -130,7 +130,7 @@ AP4_AtomSampleTable::GetSample(AP4_Ordinal index,
     } else {
         result = m_CttsAtom->GetCtsOffset(index, cts_offset); 
 	    if (AP4_FAILED(result)) return result;
-        sample.SetCts(dts + cts_offset);
+        sample.SetCtsDelta(cts_offset);
     }     
 
     // set the size

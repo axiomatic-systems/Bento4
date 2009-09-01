@@ -404,7 +404,7 @@ AP4_OmaDcfCtrSampleDecrypter::DecryptSampleData(AP4_DataBuffer& data_in,
     AP4_Size             in_size = data_in.GetDataSize();
 
     // default to 0 output 
-    data_out.SetDataSize(0);
+    AP4_CHECK(data_out.SetDataSize(0));
 
     // check the selective encryption flag
     if (m_SelectiveEncryption) {
@@ -419,7 +419,7 @@ AP4_OmaDcfCtrSampleDecrypter::DecryptSampleData(AP4_DataBuffer& data_in,
 
     // process the sample data
     AP4_Size payload_size = in_size-header_size;
-    data_out.Reserve(payload_size);
+    AP4_CHECK(data_out.Reserve(payload_size));
     unsigned char* out = data_out.UseData();
     if (is_encrypted) {
         // set the IV
@@ -430,8 +430,8 @@ AP4_OmaDcfCtrSampleDecrypter::DecryptSampleData(AP4_DataBuffer& data_in,
     } else {
         AP4_CopyMemory(out, in, payload_size);
     }
-    data_out.SetDataSize(payload_size);
-
+    AP4_CHECK(data_out.SetDataSize(payload_size));
+    
     return AP4_SUCCESS;
 }
 
@@ -492,7 +492,7 @@ AP4_OmaDcfCbcSampleDecrypter::DecryptSampleData(AP4_DataBuffer& data_in,
     AP4_Size             out_size;
 
     // default to 0 output 
-    data_out.SetDataSize(0);
+    AP4_CHECK(data_out.SetDataSize(0));
 
     // check the selective encryption flag
     if (m_SelectiveEncryption) {
@@ -522,7 +522,7 @@ AP4_OmaDcfCbcSampleDecrypter::DecryptSampleData(AP4_DataBuffer& data_in,
         out_size = payload_size;
     }
 
-    data_out.SetDataSize(out_size);
+    AP4_CHECK(data_out.SetDataSize(out_size));
 
     return AP4_SUCCESS;
 }
@@ -624,7 +624,7 @@ AP4_OmaDcfCtrSampleEncrypter::EncryptSampleData(AP4_DataBuffer& data_in,
 {
     // setup the buffers
     const unsigned char* in = data_in.GetData();
-    data_out.SetDataSize(data_in.GetDataSize()+AP4_CIPHER_BLOCK_SIZE+1);
+    AP4_CHECK(data_out.SetDataSize(data_in.GetDataSize()+AP4_CIPHER_BLOCK_SIZE+1));
     unsigned char* out = data_out.UseData();
 
     // selective encryption flag
@@ -703,7 +703,7 @@ AP4_OmaDcfCbcSampleEncrypter::EncryptSampleData(AP4_DataBuffer& data_in,
                             out+AP4_CIPHER_BLOCK_SIZE, 
                             &out_size,
                             true);
-    data_out.SetDataSize(out_size+AP4_CIPHER_BLOCK_SIZE+1);
+    AP4_CHECK(data_out.SetDataSize(out_size+AP4_CIPHER_BLOCK_SIZE+1));
 
     return AP4_SUCCESS;
 }

@@ -68,6 +68,8 @@
 /* Begin PBXBuildFile section */
 		CA00667910153960004C0D5F /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
 		CA00667D1015399A004C0D5F /* Mp42Ts.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA00667C1015399A004C0D5F /* Mp42Ts.cpp */; };
+		CA04DFDE1040921500AD5863 /* Ap4KeyWrap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA04DFDC1040921500AD5863 /* Ap4KeyWrap.cpp */; };
+		CA04DFDF1040921500AD5863 /* Ap4KeyWrap.h in Headers */ = {isa = PBXBuildFile; fileRef = CA04DFDD1040921500AD5863 /* Ap4KeyWrap.h */; };
 		CA09F27F0DF62FC600C2B2DA /* Ap4Marlin.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA09F27D0DF62FC600C2B2DA /* Ap4Marlin.cpp */; };
 		CA09F2800DF62FC600C2B2DA /* Ap4Marlin.h in Headers */ = {isa = PBXBuildFile; fileRef = CA09F27E0DF62FC600C2B2DA /* Ap4Marlin.h */; };
 		CA0BBBA10F38D10A00DF01DD /* Ap4Results.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA0BBBA00F38D10A00DF01DD /* Ap4Results.cpp */; };
@@ -285,6 +287,8 @@
 		CABB61F70F02BADB00B53D31 /* TracksTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CABB61EF0F02B85900B53D31 /* TracksTest.cpp */; };
 		CABB61FD0F02CD0B00B53D31 /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
 		CAD6A7C40F7AFFD800456513 /* Ap4DynamicCast.h in Headers */ = {isa = PBXBuildFile; fileRef = CAD6A7C30F7AFFD800456513 /* Ap4DynamicCast.h */; };
+		CAE03ABF1034AE0D006FAFD7 /* Ap4Hmac.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAE03ABD1034AE0D006FAFD7 /* Ap4Hmac.cpp */; };
+		CAE03AC01034AE0D006FAFD7 /* Ap4Hmac.h in Headers */ = {isa = PBXBuildFile; fileRef = CAE03ABE1034AE0D006FAFD7 /* Ap4Hmac.h */; };
 		CAE723FF0FC33618008F2905 /* Ap4LinearReader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAE723FD0FC33618008F2905 /* Ap4LinearReader.cpp */; };
 		CAE724000FC33618008F2905 /* Ap4LinearReader.h in Headers */ = {isa = PBXBuildFile; fileRef = CAE723FE0FC33618008F2905 /* Ap4LinearReader.h */; };
 		CAE7240C0FC33654008F2905 /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
@@ -680,6 +684,8 @@
 /* Begin PBXFileReference section */
 		CA00667310153951004C0D5F /* mp42ts */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mp42ts; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA00667C1015399A004C0D5F /* Mp42Ts.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Mp42Ts.cpp; sourceTree = "<group>"; };
+		CA04DFDC1040921500AD5863 /* Ap4KeyWrap.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4KeyWrap.cpp; sourceTree = "<group>"; };
+		CA04DFDD1040921500AD5863 /* Ap4KeyWrap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4KeyWrap.h; sourceTree = "<group>"; };
 		CA09F27D0DF62FC600C2B2DA /* Ap4Marlin.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4Marlin.cpp; sourceTree = "<group>"; };
 		CA09F27E0DF62FC600C2B2DA /* Ap4Marlin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4Marlin.h; sourceTree = "<group>"; };
 		CA0BBBA00F38D10A00DF01DD /* Ap4Results.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4Results.cpp; sourceTree = "<group>"; };
@@ -898,6 +904,8 @@
 		CABB61EF0F02B85900B53D31 /* TracksTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TracksTest.cpp; sourceTree = "<group>"; };
 		CABB61F30F02BABC00B53D31 /* TracksTest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = TracksTest; sourceTree = BUILT_PRODUCTS_DIR; };
 		CAD6A7C30F7AFFD800456513 /* Ap4DynamicCast.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4DynamicCast.h; sourceTree = "<group>"; };
+		CAE03ABD1034AE0D006FAFD7 /* Ap4Hmac.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4Hmac.cpp; sourceTree = "<group>"; };
+		CAE03ABE1034AE0D006FAFD7 /* Ap4Hmac.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4Hmac.h; sourceTree = "<group>"; };
 		CAE723FD0FC33618008F2905 /* Ap4LinearReader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4LinearReader.cpp; sourceTree = "<group>"; };
 		CAE723FE0FC33618008F2905 /* Ap4LinearReader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4LinearReader.h; sourceTree = "<group>"; };
 		CAE724020FC3362B008F2905 /* LinearReaderTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LinearReaderTest.cpp; sourceTree = "<group>"; };
@@ -1572,6 +1580,10 @@
 		CA9367300B437D1D0067D50B /* Crypto */ = {
 			isa = PBXGroup;
 			children = (
+				CA04DFDC1040921500AD5863 /* Ap4KeyWrap.cpp */,
+				CA04DFDD1040921500AD5863 /* Ap4KeyWrap.h */,
+				CAE03ABD1034AE0D006FAFD7 /* Ap4Hmac.cpp */,
+				CAE03ABE1034AE0D006FAFD7 /* Ap4Hmac.h */,
 				CA9367310B437D1D0067D50B /* Ap4AesBlockCipher.cpp */,
 				CA9367320B437D1D0067D50B /* Ap4AesBlockCipher.h */,
 				CA9367330B437D1D0067D50B /* Ap4StreamCipher.cpp */,
@@ -1807,6 +1819,8 @@
 				CAE724000FC33618008F2905 /* Ap4LinearReader.h in Headers */,
 				CAFC31DA0FEB95F700EF80A0 /* Ap4MovieFragment.h in Headers */,
 				CAFC31F10FEBAA9200EF80A0 /* Ap4FragmentSampleTable.h in Headers */,
+				CAE03AC01034AE0D006FAFD7 /* Ap4Hmac.h in Headers */,
+				CA04DFDF1040921500AD5863 /* Ap4KeyWrap.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2594,6 +2608,8 @@
 				CAE723FF0FC33618008F2905 /* Ap4LinearReader.cpp in Sources */,
 				CAFC31D90FEB95F700EF80A0 /* Ap4MovieFragment.cpp in Sources */,
 				CAFC31F00FEBAA9200EF80A0 /* Ap4FragmentSampleTable.cpp in Sources */,
+				CAE03ABF1034AE0D006FAFD7 /* Ap4Hmac.cpp in Sources */,
+				CA04DFDE1040921500AD5863 /* Ap4KeyWrap.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
