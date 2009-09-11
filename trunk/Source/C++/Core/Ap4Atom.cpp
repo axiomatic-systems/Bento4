@@ -391,8 +391,8 @@ AP4_UnknownAtom::AP4_UnknownAtom(Type            type,
                                  const AP4_UI08* payload,
                                  AP4_Size        payload_size) :
     AP4_Atom(type, AP4_ATOM_HEADER_SIZE+payload_size, false),
-    m_SourcePosition(0),
-    m_SourceStream(NULL)
+    m_SourceStream(NULL),
+    m_SourcePosition(0)
 {
     m_Payload.SetData(payload, payload_size);
 }
