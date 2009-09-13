@@ -53,7 +53,7 @@ PrintUsageAndExit()
             "Options:\n"
             "  --verbose:          show extended information when available\n"
             "  --show-layout:      show sample layout\n"
-            "  --show-samples:     show sample details\n",
+            "  --show-samples:     show sample details\n"
             "  --show-sample-data: show sample data\n");
     exit(1);
 }
@@ -463,7 +463,7 @@ ShowTrackInfo(AP4_Track& track, bool show_samples, bool show_sample_data, bool v
     printf("  media:\n");
     printf("    sample count: %d\n", track.GetSampleCount());
     printf("    timescale:    %d\n", track.GetMediaTimeScale());
-    printf("    duration:     %d (media timescale units)\n", track.GetMediaDuration());
+    printf("    duration:     %lld (media timescale units)\n", track.GetMediaDuration());
     printf("    duration:     %d (ms)\n", (AP4_UI32)AP4_ConvertTime(track.GetMediaDuration(), track.GetMediaTimeScale(), 1000));
     if (track.GetWidth()  || track.GetHeight()) {
         printf("  display width:  %f\n", (float)track.GetWidth()/65536.0);
