@@ -111,7 +111,9 @@ NPT_InputStream_To_AP4_ByteStream_Adapter::AddReference()
 void
 NPT_InputStream_To_AP4_ByteStream_Adapter::Release()
 {
-    --m_ReferenceCount;
+    if (--m_ReferenceCount == 0) {
+        delete this;
+    }
 }
 
 /*----------------------------------------------------------------------
