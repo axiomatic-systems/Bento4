@@ -59,8 +59,7 @@ public:
 protected:
     // members
     AP4_UI08        m_Uuid[16];
-    AP4_ByteStream* m_SourceStream;
-    AP4_Position    m_SourcePosition;
+    AP4_DataBuffer  m_Data;
 };
 
 #endif // _AP4_UUID_ATOM_H_

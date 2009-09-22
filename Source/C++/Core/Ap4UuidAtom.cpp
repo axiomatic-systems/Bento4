@@ -37,17 +37,14 @@
 |   AP4_UuidAtom::AP4_UuidAtom
 +---------------------------------------------------------------------*/
 AP4_UuidAtom::AP4_UuidAtom(AP4_UI64 size, AP4_ByteStream& stream) : 
-    AP4_Atom(AP4_ATOM_TYPE_UUID, size),
-    m_SourceStream(&stream)
+    AP4_Atom(AP4_ATOM_TYPE_UUID, size)
 {
     // read the uuid
     stream.Read(m_Uuid, 16);
     
-    // store source stream position
-    stream.Tell(m_SourcePosition);
-
-    // keep a reference to the source stream
-    m_SourceStream->AddReference();
+    // store the data
+    m_Data.SetDataSize((AP4_Size)size-16-GetHeaderSize());
+    stream.Read(m_Data.UseData(), m_Data.GetDataSize());
 }
 
 /*----------------------------------------------------------------------
@@ -55,10 +52,6 @@ AP4_UuidAtom::AP4_UuidAtom(AP4_UI64 size, AP4_ByteStream& stream) :
 +---------------------------------------------------------------------*/
 AP4_UuidAtom::~AP4_UuidAtom()
 {
-    // release the source stream reference
-    if (m_SourceStream) {
-        m_SourceStream->Release();
-    }
 }
 
 /*----------------------------------------------------------------------
@@ -101,32 +94,11 @@ AP4_UuidAtom::InspectFields(AP4_AtomInspector& inspector)
 AP4_Result
 AP4_UuidAtom::WriteFields(AP4_ByteStream& stream)
 {
-    AP4_Result result;
-
     // write uuid
     stream.Write(m_Uuid, 16);
     
-    // check that we have a source stream
-    // and a normal size
-    if (m_SourceStream == NULL || GetSize() < 8+16) {
-        return AP4_FAILURE;
-    }
-
-    // remember the source position
-    AP4_Position position;
-    m_SourceStream->Tell(position);
-
-    // seek into the source at the stored offset
-    result = m_SourceStream->Seek(m_SourcePosition);
-    if (AP4_FAILED(result)) return result;
-
-    // copy the source stream to the output
-    AP4_UI64 payload_size = GetSize()-GetHeaderSize()-16;
-    result = m_SourceStream->CopyTo(stream, payload_size);
-    if (AP4_FAILED(result)) return result;
-
-    // restore the original stream position
-    m_SourceStream->Seek(position);
+    // write the data
+    stream.Write(m_Data.GetData(), m_Data.GetDataSize());
 
     return AP4_SUCCESS;
 }
