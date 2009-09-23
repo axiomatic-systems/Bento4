@@ -330,7 +330,6 @@ class AP4_MpegSampleDescription : public AP4_SampleDescription
     AP4_UI32 GetMaxBitrate() const { return m_MaxBitrate; }
     AP4_UI32 GetAvgBitrate() const { return m_AvgBitrate; }
     const AP4_DataBuffer& GetDecoderInfo() const { return m_DecoderInfo; }
-    
 
     // methods
     AP4_EsDescriptor* CreateEsDescriptor() const;
