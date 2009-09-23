@@ -726,13 +726,10 @@ AP4_MarlinIpmpEncryptingProcessor::Initialize(
             // create and add the secure attributes (satr)
             if (track_type != AP4_Track::TYPE_UNKNOWN && key != NULL && key_size != 0) {
                 AP4_ContainerAtom* satr = new AP4_ContainerAtom(AP4_ATOM_TYPE_SATR);
-                switch (track_type) {
-                    case AP4_Track::TYPE_AUDIO:
-                        satr->AddChild(new AP4_NullTerminatedStringAtom(AP4_ATOM_TYPE_STYP, AP4_MARLIN_IPMP_STYP_AUDIO));
-                        break;
-                    case AP4_Track::TYPE_VIDEO:
-                        satr->AddChild(new AP4_NullTerminatedStringAtom(AP4_ATOM_TYPE_STYP, AP4_MARLIN_IPMP_STYP_VIDEO));
-                        break;
+                if (track_type == AP4_Track::TYPE_AUDIO) {
+                    satr->AddChild(new AP4_NullTerminatedStringAtom(AP4_ATOM_TYPE_STYP, AP4_MARLIN_IPMP_STYP_AUDIO));
+                } else if (track_type == AP4_Track::TYPE_VIDEO) {
+                    satr->AddChild(new AP4_NullTerminatedStringAtom(AP4_ATOM_TYPE_STYP, AP4_MARLIN_IPMP_STYP_VIDEO));
                 }
                 
                 // compute the hmac
