@@ -517,7 +517,7 @@ AP4_File_Create(AP4_Movie* movie)
 AP4_File*
 AP4_File_FromStream(AP4_ByteStream* stream, int moov_only)
 {
-    return new AP4_File(*stream, AP4_DefaultAtomFactory::Instance, moov_only); 
+    return new AP4_File(*stream, AP4_DefaultAtomFactory::Instance, moov_only?true:false); 
 }
 
 /*----------------------------------------------------------------------
@@ -674,7 +674,7 @@ AP4_Track_GetMediaTimeScale(AP4_Track* self)
     return self->GetMediaTimeScale();
 }
 
-AP4_UI32
+AP4_UI64
 AP4_Track_GetMediaDuration(AP4_Track* self)
 {
     return self->GetMediaDuration();
@@ -1109,26 +1109,26 @@ AP4_Sample_SetDescriptionIndex(AP4_Sample* self, AP4_Ordinal index)
     self->SetDescriptionIndex(index);
 }
 
-AP4_UI32
+AP4_UI64
 AP4_Sample_GetDts(AP4_Sample* self)
 {
     return self->GetDts();
 }
 
 void
-AP4_SampleSetDts(AP4_Sample* self, AP4_UI32 dts)
+AP4_SampleSetDts(AP4_Sample* self, AP4_UI64 dts)
 {
     self->SetDts(dts);
 }
 
-AP4_UI32
+AP4_UI64
 AP4_Sample_GetCts(AP4_Sample* self)
 {
     return self->GetCts();
 }
 
 void
-AP4_Sample_SetCts(AP4_Sample* self, AP4_UI32 cts)
+AP4_Sample_SetCts(AP4_Sample* self, AP4_UI64 cts)
 {
     self->SetCts(cts);
 }
@@ -1142,7 +1142,7 @@ AP4_Sample_IsSync(AP4_Sample* self)
 void
 AP4_Sample_SetSync(AP4_Sample* self, int is_sync)
 {
-    self->SetSync(is_sync);
+    self->SetSync(is_sync?true:false);
 }
 
 void 
@@ -1174,7 +1174,7 @@ AP4_Sample_Create(AP4_ByteStream* data_stream,
                           description_index,
                           dts,
                           cts_delta,
-                          is_sync);
+                          is_sync?true:false);
 }
                   
 AP4_Sample*
@@ -1211,7 +1211,7 @@ AP4_SyntheticSampleTable_AddSample(AP4_SyntheticSampleTable* self,
                            desc_index,
                            dts,
                            cts_delta,
-                           is_sync);
+                           is_sync?true:false);
 }
 
 void

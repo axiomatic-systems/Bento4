@@ -900,5 +900,5 @@ end:
     delete output;
     Options.commands.DeleteReferences();
 
-    return 0;
+    return result;
 }

@@ -33,6 +33,7 @@
 #include <stdlib.h>
 
 #include "Ap4.h"
+#include "Ap4BitStream.h"
 
 /*----------------------------------------------------------------------
 |   constants

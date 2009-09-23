@@ -30,7 +30,7 @@ end_element_proto = CFUNCTYPE(None,
 
 add_int_field_proto = CFUNCTYPE(None,
                                 POINTER(InspectorDelegate),
-                                c_char_p, Ap4UI32, c_int)
+                                c_char_p, Ap4UI64, c_int)
 
 add_float_field_proto = CFUNCTYPE(None,
                                   POINTER(InspectorDelegate),

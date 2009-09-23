@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8.00"
-	Name="Mp4Tag"
-	ProjectGUID="{73804182-47BC-4885-898D-939CA8672828}"
-	RootNamespace="Mp4Tag"
+	Name="Bento4CDll"
+	ProjectGUID="{505B443B-5C00-4CB1-BF00-76F41DECE37F}"
+	RootNamespace="Bento4CDll"
 	Keyword="Win32Proj"
 	>
 	<Platforms>
@@ -19,9 +19,8 @@
 			Name="Debug|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
-			ConfigurationType="1"
-			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
-			CharacterSet="2"
+			ConfigurationType="2"
+			CharacterSet="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -42,15 +41,15 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\..\..\..\Source\C++\Core,..\..\..\..\Source\C++\MetaData,,..\..\..\..\Source\C++\Config"
-				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;BENTO4CDLL_EXPORTS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
-				RuntimeTypeInfo="true"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="4"
+				DisableSpecificWarnings="4099"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -63,11 +62,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="$(OutDir)/mp4tag.exe"
 				LinkIncremental="2"
+				ModuleDefinitionFile="Bento4CDll.def"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile="$(OutDir)/Mp4Tag.pdb"
-				SubSystem="1"
+				SubSystem="2"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -99,9 +97,9 @@
 			Name="Release|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
-			ConfigurationType="1"
-			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
-			CharacterSet="2"
+			ConfigurationType="2"
+			CharacterSet="1"
+			WholeProgramOptimization="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -120,19 +118,14 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				Optimization="2"
-				InlineFunctionExpansion="1"
-				OmitFramePointers="false"
 				AdditionalIncludeDirectories="..\..\..\..\Source\C++\Core,..\..\..\..\Source\C++\MetaData,,..\..\..\..\Source\C++\Config"
-				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
-				StringPooling="true"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;BENTO4CDLL_EXPORTS"
 				RuntimeLibrary="0"
-				EnableFunctionLevelLinking="true"
-				RuntimeTypeInfo="true"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="3"
+				DisableSpecificWarnings="4099"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -145,10 +138,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="$(OutDir)/mp4tag.exe"
 				LinkIncremental="1"
-				GenerateDebugInformation="false"
-				SubSystem="1"
+				ModuleDefinitionFile="Bento4CDll.def"
+				GenerateDebugInformation="true"
+				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
 				TargetMachine="1"
@@ -183,13 +176,34 @@
 	</References>
 	<Files>
 		<Filter
-			Name="Source\C++ Files"
-			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm"
+			Name="Source Files"
+			Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
+			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath="..\..\..\..\Source\C++\Apps\Mp4Tag\Mp4Tag.cpp"
+				RelativePath="..\..\..\..\Source\C++\CApi\Bento4C.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\Bento4CDll.def"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="Header Files"
+			Filter="h;hpp;hxx;hm;inl;inc;xsd"
+			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
+			>
+			<File
+				RelativePath="..\..\..\..\Source\C++\CApi\Bento4C.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="Resource Files"
+			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
+			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
+			>
 		</Filter>
 	</Files>
 	<Globals>

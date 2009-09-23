@@ -289,6 +289,5 @@
 #include "Ap48bdlAtom.h"
 #include "Ap4MovieFragment.h"
 #include "Ap4LinearReader.h"
-#include "Ap4BitStream.h"
 
 #endif // _AP4_H_

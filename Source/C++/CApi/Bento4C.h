@@ -92,7 +92,7 @@ typedef struct AP4_AtomInspectorDelegate {
     
     void (*AddIntField)(struct AP4_AtomInspectorDelegate* self,
                         const char*                       name,
-                        AP4_UI32                          value,
+                        AP4_UI64                          value,
                         int                               hint);
                         
     void (*AddFloatField)(struct AP4_AtomInspectorDelegate* self,
@@ -540,7 +540,7 @@ AP4_Track_SetMovieTimeScale(AP4_Track* self, AP4_UI32 time_scale);
 AP4_UI32
 AP4_Track_GetMediaTimeScale(AP4_Track* self);
 
-AP4_UI32
+AP4_UI64
 AP4_Track_GetMediaDuration(AP4_Track* self); /* in the timescale of the media */
 
 const char* 
@@ -759,17 +759,17 @@ AP4_Sample_GetDescriptionIndex(AP4_Sample* self);
 void
 AP4_Sample_SetDescriptionIndex(AP4_Sample* self, AP4_Ordinal index);
 
-AP4_UI32
+AP4_UI64
 AP4_Sample_GetDts(AP4_Sample* self);
 
 void
-AP4_SampleSetDts(AP4_Sample* self, AP4_UI32 dts);
+AP4_SampleSetDts(AP4_Sample* self, AP4_UI64 dts);
 
-AP4_UI32
+AP4_UI64
 AP4_Sample_GetCts(AP4_Sample* self);
 
 void
-AP4_Sample_SetCts(AP4_Sample* self, AP4_UI32 cts);
+AP4_Sample_SetCts(AP4_Sample* self, AP4_UI64 cts);
 
 int
 AP4_Sample_IsSync(AP4_Sample* self);
