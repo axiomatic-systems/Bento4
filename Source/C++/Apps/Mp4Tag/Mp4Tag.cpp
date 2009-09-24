@@ -812,7 +812,7 @@ main(int argc, char** argv)
     AP4_Movie*      movie     = NULL;
     AP4_MoovAtom*   moov      = NULL;
     AP4_LargeSize   moov_size = 0;
-    AP4_Result      result;
+    AP4_Result      result    = AP4_SUCCESS;
     if (Options.need_input) {
         result =AP4_FileByteStream::Create(Options.input_filename, AP4_FileByteStream::STREAM_MODE_READ, input);
         if (AP4_FAILED(result)) {
