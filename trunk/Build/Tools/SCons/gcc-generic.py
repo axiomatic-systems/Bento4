@@ -1,10 +1,14 @@
 import os
-def generate(env, gcc_cross_prefix=None, gcc_strict=True, gcc_stop_on_warning=None):
+from SCons.Script import Split
+
+def generate(env, gcc_cross_prefix=None, gcc_strict=True, gcc_stop_on_warning=True,
+             gcc_extra_options=[]):
     if gcc_stop_on_warning == None: gcc_stop_on_warning = env['stop_on_warning']
 
     ### compiler flags
+    gcc_extra_options = Split(gcc_extra_options) # normalize
     if gcc_strict:
-        env.AppendUnique(CCFLAGS = ['-pedantic', '-Wall',  '-W',  '-Wundef', '-Wno-long-long', '-Werror'])
+        env.AppendUnique(CCFLAGS = ['-pedantic', '-Wall',  '-W',  '-Wundef', '-Wno-long-long'])
         env.AppendUnique(CFLAGS  = ['-Wmissing-prototypes', '-Wmissing-declarations'])
     else:
         env.AppendUnique(CCFLAGS = ['-Wall'])
@@ -29,3 +33,4 @@ def generate(env, gcc_cross_prefix=None, gcc_strict=True, gcc_stop_on_warning=No
         env['CXX']    = gcc_cross_prefix+'-g++'
         env['LINK']   = gcc_cross_prefix+'-g++'
 
+    env.Append(CCFLAGS = gcc_extra_options)
