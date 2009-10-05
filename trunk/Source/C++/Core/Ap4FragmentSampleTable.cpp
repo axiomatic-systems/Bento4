@@ -44,6 +44,7 @@
 AP4_FragmentSampleTable::AP4_FragmentSampleTable(AP4_ContainerAtom* traf, 
                                                  AP4_TrexAtom*      trex,
                                                  AP4_ByteStream*    sample_stream,
+                                                 AP4_Offset         mdat_payload_offset,
                                                  AP4_UI64           dts_origin)
 {
     AP4_TfhdAtom* tfhd = AP4_DYNAMIC_CAST(AP4_TfhdAtom, traf->GetChild(AP4_ATOM_TYPE_TFHD));
@@ -69,7 +70,13 @@ AP4_FragmentSampleTable::AP4_FragmentSampleTable(AP4_ContainerAtom* traf,
         AP4_Atom* atom = item->GetData();
         if (atom->GetType() == AP4_ATOM_TYPE_TRUN) {
             AP4_TrunAtom* trun = AP4_DYNAMIC_CAST(AP4_TrunAtom, atom);
-            AP4_Result result = AddTrun(trun, tfhd, trex, sample_stream, dts_origin);
+            /* FIXME: should have: previous_trun_data_offset, */
+            AP4_Result result = AddTrun(trun, 
+                                        tfhd, 
+                                        trex, 
+                                        sample_stream, 
+                                        mdat_payload_offset,
+                                        dts_origin);
             if (AP4_FAILED(result)) return;
         }
     }    
@@ -90,6 +97,7 @@ AP4_FragmentSampleTable::AddTrun(AP4_TrunAtom*   trun,
                                  AP4_TfhdAtom*   tfhd, 
                                  AP4_TrexAtom*   trex,
                                  AP4_ByteStream* sample_stream,
+                                 AP4_Offset&     payload_offset,
                                  AP4_UI64&       dts_origin)
 {
     AP4_Flags tfhd_flags = tfhd->GetFlags();
@@ -107,6 +115,10 @@ AP4_FragmentSampleTable::AddTrun(AP4_TrunAtom*   trun,
     if (trun_flags & AP4_TRUN_FLAG_DATA_OFFSET_PRESENT) {
         data_offset += trun->GetDataOffset();
     }         
+    // MS hack
+    if (data_offset == 0) {
+        data_offset = payload_offset;
+    }
         
     // sample description index
     AP4_UI32 sample_description_index = 0;
@@ -152,6 +164,7 @@ AP4_FragmentSampleTable::AddTrun(AP4_TrunAtom*   trun,
         } else {
             sample.SetSize(default_sample_size);
         }
+        payload_offset += sample.GetSize(); // update the payload offset
         
         // sample duration
         if (trun_flags & AP4_TRUN_FLAG_SAMPLE_DURATION_PRESENT) {

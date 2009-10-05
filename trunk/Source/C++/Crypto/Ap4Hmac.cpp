@@ -327,3 +327,4 @@ AP4_Hmac::Create(Algorithm       algorithm,
         default: hmac = NULL; return AP4_ERROR_NOT_SUPPORTED;
     }
 }
+

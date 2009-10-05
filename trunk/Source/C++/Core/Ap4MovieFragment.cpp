@@ -67,20 +67,49 @@ AP4_MovieFragment::GetSequenceNumber()
 }
 
 /*----------------------------------------------------------------------
+|   AP4_MovieFragment::GetTrackIds
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_MovieFragment::GetTrackIds(AP4_Array<AP4_UI32>& ids)
+{
+    ids.Clear();
+    ids.EnsureCapacity(m_MoofAtom->GetChildren().ItemCount());
+    
+    for (AP4_List<AP4_Atom>::Item* item = m_MoofAtom->GetChildren().FirstItem();
+                                   item;
+                                   item = item->GetNext()) {
+        AP4_Atom* atom = item->GetData();
+        if (atom->GetType() == AP4_ATOM_TYPE_TRAF) {
+            AP4_ContainerAtom* traf = AP4_DYNAMIC_CAST(AP4_ContainerAtom, atom);
+            if (traf) {
+                AP4_TfhdAtom* tfhd = AP4_DYNAMIC_CAST(AP4_TfhdAtom, traf->GetChild(AP4_ATOM_TYPE_TFHD));
+                if (tfhd) ids.Append(tfhd->GetTrackId());
+            }
+        }
+    }
+    
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
 |   AP4_MovieFragment::CreateSampleTable
 +---------------------------------------------------------------------*/
 AP4_Result         
 AP4_MovieFragment::CreateSampleTable(AP4_Movie*                movie,
                                      AP4_UI32                  track_id, 
                                      AP4_ByteStream*           sample_stream,
+                                     AP4_Offset                mdat_payload_offset,
                                      AP4_FragmentSampleTable*& sample_table)
 {
     // default value
     sample_table = NULL;
     
     // find a trex for this track, if any
-    AP4_ContainerAtom* mvex = AP4_DYNAMIC_CAST(AP4_ContainerAtom, movie->GetMoovAtom()->GetChild(AP4_ATOM_TYPE_MVEX));
+    AP4_ContainerAtom* mvex = NULL;
     AP4_TrexAtom*      trex = NULL;
+    if (movie) {
+        mvex = AP4_DYNAMIC_CAST(AP4_ContainerAtom, movie->GetMoovAtom()->GetChild(AP4_ATOM_TYPE_MVEX));
+    }
     if (mvex) {
         for (AP4_List<AP4_Atom>::Item* item = mvex->GetChildren().FirstItem();
                                        item;
@@ -102,7 +131,10 @@ AP4_MovieFragment::CreateSampleTable(AP4_Movie*                movie,
             if (traf) {
                 AP4_TfhdAtom* tfhd = AP4_DYNAMIC_CAST(AP4_TfhdAtom, traf->GetChild(AP4_ATOM_TYPE_TFHD));
                 if (tfhd && tfhd->GetTrackId() == track_id) {
-                    sample_table = new AP4_FragmentSampleTable(traf, trex, sample_stream);
+                    sample_table = new AP4_FragmentSampleTable(traf, 
+                                                               trex, 
+                                                               sample_stream,
+                                                               mdat_payload_offset);
                     return AP4_SUCCESS;
                 }
             }

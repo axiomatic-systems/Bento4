@@ -38,7 +38,7 @@
 |   macros
 +---------------------------------------------------------------------*/
 #define CHECK(x) do { \
-    if (!(x)) { fprintf(stderr, "ERROR line %d", __LINE__); return -1; }\
+    if (!(x)) { fprintf(stderr, "ERROR line %d\n", __LINE__); return -1; }\
 } while (0)
 
 /*----------------------------------------------------------------------
@@ -64,18 +64,16 @@ PrintUsageAndExit()
 |   ShowSample
 +---------------------------------------------------------------------*/
 static void
-ShowSample(AP4_Sample& sample, unsigned int index, unsigned int timescale)
+ShowSample(AP4_Sample& sample, unsigned int index)
 {
     printf("[%06d] size=%6d duration=%6d", 
            index, 
            (int)sample.GetSize(), 
            (int)sample.GetDuration());
-    printf(" offset=%10lld dts=%10lld (%10lld ms) cts=%10lld (%10lld ms)", 
+    printf(" offset=%10lld dts=%10lld cts=%10lld ", 
            sample.GetOffset(),
            sample.GetDts(), 
-           AP4_ConvertTime(sample.GetDts(), timescale, 1000),
-           sample.GetCts(),
-           AP4_ConvertTime(sample.GetCts(), timescale, 1000));
+           sample.GetCts());
     if (sample.IsSync()) {
         printf(" [S] ");
     } else {
@@ -101,14 +99,14 @@ ShowSample(AP4_Sample& sample, unsigned int index, unsigned int timescale)
 |   ProcessSamples
 +---------------------------------------------------------------------*/
 static int
-ProcessSamples(AP4_FragmentSampleTable* sample_table, unsigned int timescale)
+ProcessSamples(AP4_FragmentSampleTable* sample_table)
 {
     printf("found %d samples\n", sample_table->GetSampleCount());
     for (unsigned int i=0; i<sample_table->GetSampleCount(); i++) {
         AP4_Sample sample;
         AP4_Result result = sample_table->GetSample(i, sample);
         CHECK(AP4_SUCCEEDED(result));
-        ShowSample(sample, i, timescale);
+        ShowSample(sample, i);
     }
     
     return 0;
@@ -118,7 +116,7 @@ ProcessSamples(AP4_FragmentSampleTable* sample_table, unsigned int timescale)
 |   ProcessMoof
 +---------------------------------------------------------------------*/
 static int
-ProcessMoof(AP4_Movie* movie, AP4_ContainerAtom* moof, AP4_Track* audio_track, AP4_Track* video_track, AP4_ByteStream* sample_stream)
+ProcessMoof(AP4_Movie* movie, AP4_ContainerAtom* moof, AP4_ByteStream* sample_stream, AP4_Offset mdat_payload_offset)
 {
     AP4_Result result;
     
@@ -127,26 +125,25 @@ ProcessMoof(AP4_Movie* movie, AP4_ContainerAtom* moof, AP4_Track* audio_track, A
     
     AP4_FragmentSampleTable* sample_table = NULL;
     
-    // audio
-    printf("processing moof for audio track (id %d)\n", audio_track->GetId());
-    result = fragment->CreateSampleTable(movie, audio_track->GetId(), sample_stream, sample_table);
-    CHECK(result == AP4_SUCCESS || result == AP4_ERROR_NO_SUCH_ITEM);
-    if (AP4_SUCCEEDED(result)) {
-        ProcessSamples(sample_table, audio_track->GetMediaTimeScale());
-        delete sample_table;
-    } else {
-        printf("no sample table for this track\n");
+    // get all track IDs in this fragment
+    AP4_Array<AP4_UI32> ids;
+    fragment->GetTrackIds(ids);
+    printf("Found %d tracks in fragment: ", ids.ItemCount());
+    for (unsigned int i=0; i<ids.ItemCount(); i++) {
+        printf("%d ", ids[i]);
     }
-
-    // video
-    printf("processing moof for video track (id %d)\n", video_track->GetId());
-    result = fragment->CreateSampleTable(movie, video_track->GetId(), sample_stream, sample_table);
-    CHECK(result == AP4_SUCCESS || result == AP4_ERROR_NO_SUCH_ITEM);
-    if (AP4_SUCCEEDED(result)) {
-        ProcessSamples(sample_table, video_track->GetMediaTimeScale());
-        delete sample_table;
-    } else {
-        printf("no sample table for this track\n");
+    printf("\n");
+    
+    for (unsigned int i=0; i<ids.ItemCount(); i++) {
+        printf("processing moof for track id %d\n", ids[i]);
+        result = fragment->CreateSampleTable(movie, ids[i], sample_stream, mdat_payload_offset, sample_table);
+        CHECK(result == AP4_SUCCESS || result == AP4_ERROR_NO_SUCH_ITEM);
+        if (AP4_SUCCEEDED(result)) {
+            ProcessSamples(sample_table);
+            delete sample_table;
+        } else {
+            printf("no sample table for this track\n");
+        }
     }
     
     delete fragment;
@@ -175,12 +172,6 @@ main(int argc, char** argv)
     // get the movie
     AP4_File* file = new AP4_File(*input, AP4_DefaultAtomFactory::Instance, true);
     AP4_Movie* movie = file->GetMovie();
-    CHECK(movie != NULL);
-    
-    AP4_Track* video_track = movie->GetTrack(AP4_Track::TYPE_VIDEO);
-    CHECK(video_track != NULL);
-    AP4_Track* audio_track = movie->GetTrack(AP4_Track::TYPE_AUDIO);
-    CHECK(audio_track != NULL);
     
     AP4_Atom* atom = NULL;
     do {
@@ -196,7 +187,7 @@ main(int argc, char** argv)
                     input->Tell(position);
         
                     // process the movie fragment
-                    ProcessMoof(movie, moof, audio_track, video_track, input);
+                    ProcessMoof(movie, moof, input, position+8);
 
                     // go back to where we were before processing the fragment
                     input->Seek(position);

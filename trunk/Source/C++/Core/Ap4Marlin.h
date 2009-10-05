@@ -54,6 +54,7 @@ const AP4_UI32 AP4_PROTECTION_SCHEME_TYPE_MARLIN_ACGK = AP4_ATOM_TYPE('A','C','G
 const AP4_Atom::Type AP4_ATOM_TYPE_SATR = AP4_ATOM_TYPE('s','a','t','r');
 const AP4_Atom::Type AP4_ATOM_TYPE_STYP = AP4_ATOM_TYPE('s','t','y','p');
 const AP4_Atom::Type AP4_ATOM_TYPE_HMAC = AP4_ATOM_TYPE('h','m','a','c');
+const AP4_Atom::Type AP4_ATOM_TYPE_GKEY = AP4_ATOM_TYPE('g','k','e','y');
 
 const char* const AP4_MARLIN_IPMP_STYP_VIDEO = "urn:marlin:organization:sne:content-type:video";
 const char* const AP4_MARLIN_IPMP_STYP_AUDIO = "urn:marlin:organization:sne:content-type:audio";
