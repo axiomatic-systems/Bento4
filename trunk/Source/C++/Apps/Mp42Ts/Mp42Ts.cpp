@@ -116,11 +116,12 @@ AP4_BitWriter::Write(AP4_UI32 bits, unsigned int bit_count)
     while (bit_count) {
         unsigned int mask = bit_count==32 ? 0xFFFFFFFF : ((1<<bit_count)-1);
         if (bit_count <= space) {
-            *data = *data | ((bits&mask) << (space-bit_count));
+            *data |= ((bits&mask) << (space-bit_count));
             m_BitCount += bit_count;
             return;
         } else {
-            *data++ = *data | ((bits&mask) >> (bit_count-space));
+            *data |= ((bits&mask) >> (bit_count-space));
+            ++data;            
             m_BitCount += space;
             bit_count  -= space;
             space       = 8;
@@ -263,11 +264,11 @@ WritePacketHeader(unsigned int    pid,
     
     if (adaptation_field_size == 0) {
         // no adaptation field
-        header[3] = (1<<4) | (ContinuityCounter[cc_index]++)&0x0F;
+        header[3] = (1<<4) | ((ContinuityCounter[cc_index]++)&0x0F);
         output->Write(header, 4);
     } else {
         // adaptation field present
-        header[3] = (3<<4) | (ContinuityCounter[cc_index]++)&0x0F;
+        header[3] = (3<<4) | ((ContinuityCounter[cc_index]++)&0x0F);
         output->Write(header, 4);
         
         if (adaptation_field_size == 1) {
