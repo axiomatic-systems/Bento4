@@ -49,6 +49,7 @@
 #include "Ap4SyntheticSampleTable.h"
 #include "Ap4HdlrAtom.h"
 #include "Ap4Hmac.h"
+#include "Ap4KeyWrap.h"
 #include "Ap4ByteStream.h"
 
 /*----------------------------------------------------------------------
@@ -299,8 +300,10 @@ AP4_MarlinIpmpParser::Parse(AP4_AtomParent&      top_level,
             if (atom->GetType() == AP4_ATOM_TYPE_SINF) {
                 AP4_ContainerAtom* sinf = AP4_DYNAMIC_CAST(AP4_ContainerAtom, atom);
                 AP4_SchmAtom* schm = AP4_DYNAMIC_CAST(AP4_SchmAtom, sinf->FindChild("schm"));
-                if (schm->GetSchemeType()    == AP4_PROTECTION_SCHEME_TYPE_MARLIN_ACBC && 
-                    schm->GetSchemeVersion() == 0x0100) {
+                if ((schm->GetSchemeType()    == AP4_PROTECTION_SCHEME_TYPE_MARLIN_ACBC && 
+                     schm->GetSchemeVersion() == 0x0100) ||
+                    (schm->GetSchemeType()    == AP4_PROTECTION_SCHEME_TYPE_MARLIN_ACGK &&
+                     schm->GetSchemeVersion() == 0x0100)) {
                     // store the sinf in the entry for that track
                     sinf_entry->m_Sinf = sinf;
                     break;
@@ -393,9 +396,41 @@ AP4_MarlinIpmpDecryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
         }
     }
     if (sinf_entry == NULL) return NULL; // no matching entry
+    AP4_ContainerAtom* sinf = sinf_entry->m_Sinf;
+    
+    // check the scheme
+    bool use_group_key;
+    AP4_SchmAtom* schm = AP4_DYNAMIC_CAST(AP4_SchmAtom, sinf->GetChild(AP4_ATOM_TYPE_SCHM));
+    if (schm == NULL) return NULL; // no schm
+    if (schm->GetSchemeType()    == AP4_PROTECTION_SCHEME_TYPE_MARLIN_ACBC && 
+        schm->GetSchemeVersion() == 0x0100) {
+        use_group_key = false;
+    } else if (schm->GetSchemeType()    == AP4_PROTECTION_SCHEME_TYPE_MARLIN_ACGK &&
+               schm->GetSchemeVersion() == 0x0100) {
+        use_group_key = true;
+    } else {
+        // unsupported scheme
+        return NULL;
+    }
 
     // find the key
-    const AP4_UI08* key = m_KeyMap.GetKey(sinf_entry->m_TrackId);
+    const AP4_UI08* key = NULL;
+    AP4_DataBuffer  unwrapped_key;
+    if (use_group_key) {
+        const AP4_UI08* group_key = m_KeyMap.GetKey(0);
+        if (group_key == NULL) return NULL; // no group key
+        AP4_ContainerAtom* schi = AP4_DYNAMIC_CAST(AP4_ContainerAtom, sinf->GetChild(AP4_ATOM_TYPE_SCHI));
+        if (schi == NULL) return NULL; // no schi
+        AP4_Atom* gkey = schi->GetChild(AP4_ATOM_TYPE_GKEY);
+        if (gkey == NULL) return NULL; // no gkey
+        AP4_MemoryByteStream* gkey_data = new AP4_MemoryByteStream();
+        gkey->WriteFields(*gkey_data);
+        AP4_AesKeyUnwrap(group_key, gkey_data->GetData(), gkey_data->GetDataSize(), unwrapped_key);
+        key = unwrapped_key.GetData();
+        gkey_data->Release();        
+    } else {
+        key = m_KeyMap.GetKey(sinf_entry->m_TrackId);
+    }
     if (key == NULL) return NULL;
 
     // create the decrypter
@@ -682,74 +717,118 @@ AP4_MarlinIpmpEncryptingProcessor::Initialize(
                                         AP4_PROTECTION_SCHEME_TYPE_MARLIN_ACBC, 
                                         0x0100, NULL, true));
 
-        // setup the scheme info atom
-        const char*     content_id = m_PropertyMap.GetProperty(mpod->GetTrackIds()[i], "ContentId");
-        const AP4_UI08* key;
-        unsigned int    key_size = 0;
+        // create the 'schi' container
+        AP4_ContainerAtom* schi = new AP4_ContainerAtom(AP4_ATOM_TYPE_SCHI);
+
+        // add the content ID 
+        const char* content_id = m_PropertyMap.GetProperty(mpod->GetTrackIds()[i], "ContentId");
         if (content_id) {
-            AP4_ContainerAtom* schi = new AP4_ContainerAtom(AP4_ATOM_TYPE_SCHI);
-            
             // add the content ID (8id_)
             schi->AddChild(new AP4_NullTerminatedStringAtom(AP4_ATOM_TYPE_8ID_, content_id));
-            
-            // find what the track type is (necessary for the next step) and the key
-            AP4_Track::Type track_type = AP4_Track::TYPE_UNKNOWN;
-            for (AP4_List<AP4_TrakAtom>::Item* trak_item = moov->GetTrakAtoms().FirstItem();
-                                               trak_item;
-                                               trak_item = trak_item->GetNext()) {
-                AP4_TrakAtom* trak = trak_item->GetData();
-                if (trak->GetId() == mpod->GetTrackIds()[i]) {
-                    // find the handler type
-                    AP4_Atom* sub = trak->FindChild("mdia/hdlr");
-                    if (sub) {
-                        AP4_HdlrAtom* hdlr = AP4_DYNAMIC_CAST(AP4_HdlrAtom, sub);
-                        if (hdlr) {
-                            AP4_UI32 type = hdlr->GetHandlerType();
-                            if (type == AP4_HANDLER_TYPE_SOUN) {
-                                track_type = AP4_Track::TYPE_AUDIO;
-                            } else if (type == AP4_HANDLER_TYPE_VIDE) {
-                                track_type = AP4_Track::TYPE_VIDEO;
-                            }
-                        }
+        }
+        
+        // add the signed attributes, if any
+        const char* signed_attributes = m_PropertyMap.GetProperty(mpod->GetTrackIds()[i], "SignedAttributes");
+        if (signed_attributes) {
+            // decode the hex-encoded data
+            unsigned int size = AP4_StringLength(signed_attributes)/2;
+            AP4_DataBuffer attributes_atoms;
+            attributes_atoms.SetDataSize(size);
+            if (AP4_SUCCEEDED(AP4_ParseHex(signed_attributes, attributes_atoms.UseData(), size))) {
+                // parse all the atoms encoded in the data and add them to the 'schi' container
+                AP4_MemoryByteStream* mbs = new AP4_MemoryByteStream(attributes_atoms.GetData(), 
+                                                                     attributes_atoms.GetDataSize());
+                do {
+                    AP4_Atom* atom = NULL;
+                    result = AP4_DefaultAtomFactory::Instance.CreateAtomFromStream(*mbs, atom);
+                    if (AP4_SUCCEEDED(result) && atom) {
+                        schi->AddChild(atom);
                     }
-                    
-                    // find the key
-                    const AP4_UI08* iv = NULL;
-                    if (AP4_SUCCEEDED(m_KeyMap.GetKeyAndIv(trak->GetId(), key, iv))) {
-                        key_size = 16;
-                    }
-
-                    break;
-                }
-            }
-            
-            // create and add the secure attributes (satr)
-            if (track_type != AP4_Track::TYPE_UNKNOWN && key != NULL && key_size != 0) {
-                AP4_ContainerAtom* satr = new AP4_ContainerAtom(AP4_ATOM_TYPE_SATR);
-                if (track_type == AP4_Track::TYPE_AUDIO) {
-                    satr->AddChild(new AP4_NullTerminatedStringAtom(AP4_ATOM_TYPE_STYP, AP4_MARLIN_IPMP_STYP_AUDIO));
-                } else if (track_type == AP4_Track::TYPE_VIDEO) {
-                    satr->AddChild(new AP4_NullTerminatedStringAtom(AP4_ATOM_TYPE_STYP, AP4_MARLIN_IPMP_STYP_VIDEO));
-                }
-                
-                // compute the hmac
-                AP4_MemoryByteStream* mbs = new AP4_MemoryByteStream();
-                satr->Write(*mbs);
-                AP4_Hmac* digester = NULL;
-                AP4_Hmac::Create(AP4_Hmac::SHA256, key, key_size, digester);
-                digester->Update(mbs->GetData(), mbs->GetDataSize());
-                AP4_DataBuffer hmac_value;
-                digester->Final(hmac_value);
-                AP4_Atom* hmac = new AP4_UnknownAtom(AP4_ATOM_TYPE_HMAC, hmac_value.GetData(), hmac_value.GetDataSize());
-                
-                schi->AddChild(satr);
-                schi->AddChild(hmac);
-                
+                } while (AP4_SUCCEEDED(result));
                 mbs->Release();
             }
-            
-            sinf->AddChild(schi);
         }
+        
+        // find what the track type is (necessary for the next step) and the key
+        const AP4_UI08* key;
+        unsigned int    key_size = 0;
+        AP4_Track::Type track_type = AP4_Track::TYPE_UNKNOWN;
+        for (AP4_List<AP4_TrakAtom>::Item* trak_item = moov->GetTrakAtoms().FirstItem();
+                                           trak_item;
+                                           trak_item = trak_item->GetNext()) {
+            AP4_TrakAtom* trak = trak_item->GetData();
+            if (trak->GetId() == mpod->GetTrackIds()[i]) {
+                // find the handler type
+                AP4_Atom* sub = trak->FindChild("mdia/hdlr");
+                if (sub) {
+                    AP4_HdlrAtom* hdlr = AP4_DYNAMIC_CAST(AP4_HdlrAtom, sub);
+                    if (hdlr) {
+                        AP4_UI32 type = hdlr->GetHandlerType();
+                        if (type == AP4_HANDLER_TYPE_SOUN) {
+                            track_type = AP4_Track::TYPE_AUDIO;
+                        } else if (type == AP4_HANDLER_TYPE_VIDE) {
+                            track_type = AP4_Track::TYPE_VIDEO;
+                        }
+                    }
+                }
+                
+                // find the key
+                const AP4_UI08* iv = NULL;
+                if (AP4_SUCCEEDED(m_KeyMap.GetKeyAndIv(trak->GetId(), key, iv))) {
+                    key_size = 16;
+                }
+
+                break;
+            }
+        }
+        
+        // group key
+        if (m_UseGroupKey) {
+            // find the group key
+            const AP4_UI08* iv = NULL;
+            const AP4_UI08* group_key;
+            if (AP4_SUCCEEDED(m_KeyMap.GetKeyAndIv(0, group_key, iv))) {
+                AP4_DataBuffer wrapped_key;
+                result = AP4_AesKeyWrap(group_key, key, key_size, wrapped_key);
+                if (AP4_FAILED(result)) return result;
+                AP4_UnknownAtom* gkey = new AP4_UnknownAtom(AP4_ATOM_TYPE_GKEY, 
+                                                            wrapped_key.GetData(), 
+                                                            wrapped_key.GetDataSize());
+                schi->AddChild(gkey);
+            }
+        }
+                
+        // create and add the secure attributes (satr)
+        if (track_type != AP4_Track::TYPE_UNKNOWN && key != NULL && key_size != 0) {
+            AP4_ContainerAtom* satr = new AP4_ContainerAtom(AP4_ATOM_TYPE_SATR);
+            switch (track_type) {
+                case AP4_Track::TYPE_AUDIO:
+                    satr->AddChild(new AP4_NullTerminatedStringAtom(AP4_ATOM_TYPE_STYP, AP4_MARLIN_IPMP_STYP_AUDIO));
+                    break;
+                case AP4_Track::TYPE_VIDEO:
+                    satr->AddChild(new AP4_NullTerminatedStringAtom(AP4_ATOM_TYPE_STYP, AP4_MARLIN_IPMP_STYP_VIDEO));
+                    break;
+                default:
+                    break;
+            }
+            
+            // compute the hmac
+            AP4_MemoryByteStream* mbs = new AP4_MemoryByteStream();
+            satr->Write(*mbs);
+            AP4_Hmac* digester = NULL;
+            AP4_Hmac::Create(AP4_Hmac::SHA256, key, key_size, digester);
+            digester->Update(mbs->GetData(), mbs->GetDataSize());
+            AP4_DataBuffer hmac_value;
+            digester->Final(hmac_value);
+            AP4_Atom* hmac = new AP4_UnknownAtom(AP4_ATOM_TYPE_HMAC, hmac_value.GetData(), hmac_value.GetDataSize());
+            
+            schi->AddChild(satr);
+            schi->AddChild(hmac);
+            
+            mbs->Release();
+        }
+            
+        sinf->AddChild(schi);
          
         // serialize the sinf atom to a buffer and set it as the ipmp data
         AP4_MemoryByteStream* sinf_data = new AP4_MemoryByteStream((AP4_Size)sinf->GetSize());

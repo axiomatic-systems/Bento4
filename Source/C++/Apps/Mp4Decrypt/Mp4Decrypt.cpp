@@ -54,7 +54,8 @@ PrintUsageAndExit()
             "  --show-progress: show progress details\n"
             "  --key: <n> is a track index, <k> a 128-bit key in hex\n"
             "         (several --key options can be used, one for each track)\n"
-            "         note: for dcf files, use 1 as the track index\n");
+            "         note: for dcf files, use 1 as the track index\n"
+            "         note: for Marlin IPMP/ACGK, use 0 as the track index\n");
     exit(1);
 }
 

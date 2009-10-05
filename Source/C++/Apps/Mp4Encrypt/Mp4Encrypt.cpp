@@ -78,7 +78,8 @@ PrintUsageAndExit()
         "      RightsIssuerUrl -> the Rights Issuer URL\n"
         "\n"
         "    MARLIN-IPMP-ACGK: The group key is specified with --key where <n>\n"
-        "    is 0\n"
+        "    is 0. The <iv> part of the key must be present, but will be ignored;\n"
+        "    It should therefore be set to 0000000000000000\n"
         );
     exit(1);
 }

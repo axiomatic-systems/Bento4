@@ -175,8 +175,9 @@ ShowProtectionSchemeInfo(AP4_UI32 scheme_type, AP4_ContainerAtom& schi, bool ver
             ShowPayload(*iviv);
             printf("\n");
         }
-    } else if (scheme_type == AP4_PROTECTION_SCHEME_TYPE_MARLIN_ACBC) {
-        printf("      Marlin IPMP ACBC Scheme Info:\n");
+    } else if (scheme_type == AP4_PROTECTION_SCHEME_TYPE_MARLIN_ACBC ||
+               scheme_type == AP4_PROTECTION_SCHEME_TYPE_MARLIN_ACGK) {
+        printf("      Marlin IPMP ACBC/ACGK Scheme Info:\n");
         AP4_NullTerminatedStringAtom* octopus_id = AP4_DYNAMIC_CAST(AP4_NullTerminatedStringAtom, schi.FindChild("8id "));
         if (octopus_id) {
             printf("        Content ID: %s\n", octopus_id->GetValue().GetChars());
