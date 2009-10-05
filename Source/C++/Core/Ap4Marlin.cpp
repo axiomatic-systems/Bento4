@@ -148,8 +148,9 @@ AP4_MarlinIpmpParser::Parse(AP4_AtomParent&      top_level,
     AP4_MoovAtom* moov = AP4_DYNAMIC_CAST(AP4_MoovAtom, top_level.GetChild(AP4_ATOM_TYPE_MOOV));
     if (moov == NULL) return AP4_ERROR_INVALID_FORMAT;
     AP4_TrakAtom* od_trak = NULL;
-    AP4_List<AP4_TrakAtom>::Item* trak_item = moov->GetTrakAtoms().FirstItem();
-    while (trak_item) {
+    for (AP4_List<AP4_TrakAtom>::Item* trak_item = moov->GetTrakAtoms().FirstItem();
+                                       trak_item;
+                                       trak_item = trak_item->GetNext()) {
         AP4_TrakAtom* trak = trak_item->GetData();
         if (trak) {
             if (trak->GetId() == od_track_id) {
@@ -158,7 +159,6 @@ AP4_MarlinIpmpParser::Parse(AP4_AtomParent&      top_level,
                 sinf_entries.Add(new SinfEntry(trak->GetId(), NULL));
             }
         }
-        trak_item = trak_item->GetNext();
     }
 
     // check that we have found the OD track 
@@ -227,8 +227,8 @@ AP4_MarlinIpmpParser::Parse(AP4_AtomParent&      top_level,
         
     // process all the object descriptors in the od update
     for (AP4_List<AP4_Descriptor>::Item* od_item = od_update->GetDescriptors().FirstItem();
-         od_item;
-         od_item = od_item->GetNext()) {
+                                         od_item;
+                                         od_item = od_item->GetNext()) {
         od = AP4_DYNAMIC_CAST(AP4_ObjectDescriptor, od_item->GetData());
         if (od == NULL) continue;
 
@@ -243,8 +243,8 @@ AP4_MarlinIpmpParser::Parse(AP4_AtomParent&      top_level,
         AP4_UI32 track_id = track_references->GetTrackIds()[es_id_ref->GetRefIndex()-1];
         SinfEntry* sinf_entry = NULL;
         for (AP4_List<SinfEntry>::Item* sinf_entry_item = sinf_entries.FirstItem();
-             sinf_entry_item;
-             sinf_entry_item = sinf_entry_item->GetNext()) {
+                                        sinf_entry_item;
+                                        sinf_entry_item = sinf_entry_item->GetNext()) {
             sinf_entry = sinf_entry_item->GetData();
             if (sinf_entry->m_TrackId == track_id) {
                 break; // match
@@ -263,8 +263,8 @@ AP4_MarlinIpmpParser::Parse(AP4_AtomParent&      top_level,
         // find the ipmp descriptor referenced by the pointer
         AP4_IpmpDescriptor* ipmpd = NULL;
         for (AP4_List<AP4_Descriptor>::Item* ipmpd_item = ipmp_update->GetDescriptors().FirstItem();
-             ipmpd_item;
-             ipmpd_item = ipmpd_item->GetNext()) {
+                                             ipmpd_item;
+                                             ipmpd_item = ipmpd_item->GetNext()) {
             // check that this descriptor is of the right type
             ipmpd = AP4_DYNAMIC_CAST(AP4_IpmpDescriptor, ipmpd_item->GetData());
             if (ipmpd == NULL || ipmpd->GetIpmpsType() != AP4_MARLIN_IPMPS_TYPE_MGSV) continue;
@@ -315,15 +315,15 @@ AP4_MarlinIpmpParser::Parse(AP4_AtomParent&      top_level,
     }
     
     // get rid of entries that have no SINF
-    AP4_List<SinfEntry>::Item* sinf_entry_item = sinf_entries.FirstItem();
-    while (sinf_entry_item) {
+    for (AP4_List<SinfEntry>::Item* sinf_entry_item = sinf_entries.FirstItem();
+                                    sinf_entry_item;
+                                    sinf_entry_item = sinf_entry_item->GetNext()) {
         SinfEntry* sinf_entry = sinf_entry_item->GetData();
         if (sinf_entry->m_Sinf == NULL) {
             sinf_entries.Remove(sinf_entry);
             sinf_entry_item = sinf_entries.FirstItem();
             continue;
         }
-        sinf_entry_item = sinf_entry_item->GetNext();
     }
     
     // remove the iods atom and the OD track if required
@@ -386,8 +386,8 @@ AP4_MarlinIpmpDecryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
     // look for this track in the list of entries
     AP4_MarlinIpmpParser::SinfEntry* sinf_entry = NULL;
     for (AP4_List<AP4_MarlinIpmpParser::SinfEntry>::Item* sinf_entry_item = m_SinfEntries.FirstItem();
-         sinf_entry_item;
-         sinf_entry_item = sinf_entry_item->GetNext()) {
+                                                          sinf_entry_item;
+                                                          sinf_entry_item = sinf_entry_item->GetNext()) {
         sinf_entry = sinf_entry_item->GetData();
         if (sinf_entry->m_TrackId == trak->GetId()) {
             break; // match
@@ -621,8 +621,9 @@ AP4_MarlinIpmpEncryptingProcessor::Initialize(
     // look for an available track ID, starting at 1
     unsigned int od_track_id       = 0;
     unsigned int od_track_position = 0;
-    AP4_List<AP4_TrakAtom>::Item* trak_item = moov->GetTrakAtoms().FirstItem();
-    while (trak_item) {
+    for (AP4_List<AP4_TrakAtom>::Item* trak_item = moov->GetTrakAtoms().FirstItem();
+                                       trak_item;
+                                       trak_item = trak_item->GetNext()) {
         AP4_TrakAtom* trak = trak_item->GetData();
         if (trak) {
             od_track_position++;
@@ -636,8 +637,7 @@ AP4_MarlinIpmpEncryptingProcessor::Initialize(
             }
             
             //m_SinfEntries.Add(new SinfEntry(trak->GetId(), NULL));
-        }
-        trak_item = trak_item->GetNext();
+        }   
     }
     
     // check that there was at least one track in the file
@@ -665,11 +665,11 @@ AP4_MarlinIpmpEncryptingProcessor::Initialize(
     // add the iods atom to the moov atom (try to put it just after mvhd)
     int iods_position = 0;
     int item_position = 0;
-    for (AP4_List<AP4_Atom>::Item* item = moov->GetChildren().FirstItem();
-         item;
-         ++item) {
+    for (AP4_List<AP4_Atom>::Item* moov_item = moov->GetChildren().FirstItem();
+                                   moov_item;
+                                   moov_item = moov_item->GetNext()) {
          ++item_position;
-         if (item->GetData()->GetType() == AP4_ATOM_TYPE_MVHD) {
+         if (moov_item->GetData()->GetType() == AP4_ATOM_TYPE_MVHD) {
             iods_position = item_position;
             break;
          }
