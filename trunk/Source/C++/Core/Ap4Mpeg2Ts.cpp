@@ -342,7 +342,7 @@ private:
 AP4_Result 
 AP4_Mpeg2TsAudioSampleStream::Create(AP4_UI16                          pid, 
                                      AP4_UI32                          timescale, 
-                                     AP4_SampleDescription*            sample_description,
+                                     AP4_SampleDescription*            /*sample_description*/,
                                      AP4_Mpeg2TsWriter::SampleStream*& stream)
 {
     stream = new AP4_Mpeg2TsAudioSampleStream(pid, timescale);
