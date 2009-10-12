@@ -290,5 +290,7 @@
 #include "Ap4MovieFragment.h"
 #include "Ap4LinearReader.h"
 #include "Ap4TfhdAtom.h"
+#include "Ap4SampleSource.h"
+#include "Ap4Mpeg2Ts.h"
 
 #endif // _AP4_H_

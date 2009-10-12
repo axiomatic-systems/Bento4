@@ -94,6 +94,7 @@ CORE_SOURCES = 								\
     Ap4MehdAtom.cpp                         \
     Ap4TrexAtom.cpp                         \
     Ap4LinearReader.cpp			            \
+    Ap4Mpeg2Ts.cpp                          \
     Ap4Hmac.cpp                             \
     Ap4KeyWrap.cpp 
     

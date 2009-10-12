@@ -176,5 +176,32 @@ AP4_SplitArgs(char* arg, char*& arg0, char*& arg1, char*& arg2);
 AP4_Result
 AP4_SplitArgs(char* arg, char*& arg0, char*& arg1);
 
+/*----------------------------------------------------------------------
+|   AP4_BitWriter
++---------------------------------------------------------------------*/
+class AP4_BitWriter
+{
+public:
+    AP4_BitWriter(AP4_Size size) : m_DataSize(size), m_BitCount(0) {
+        if (size) {
+            m_Data = new unsigned char[size];
+            AP4_SetMemory(m_Data, 0, size);
+        } else {
+            m_Data = NULL;
+        }
+    }
+    ~AP4_BitWriter() { delete m_Data; }
+    
+    void Write(AP4_UI32 bits, unsigned int bit_count);
+    
+    unsigned int GetBitCount()     { return m_BitCount; }
+    const unsigned char* GetData() { return m_Data;     }
+    
+private:
+    unsigned char* m_Data;
+    unsigned int   m_DataSize;
+    unsigned int   m_BitCount;
+};
+
 
 #endif // _AP4_UTILS_H_
