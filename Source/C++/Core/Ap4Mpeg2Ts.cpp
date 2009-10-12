@@ -77,8 +77,8 @@ static unsigned char const StuffingBytes[AP4_MPEG2TS_PACKET_SIZE] =
 static void
 MakeAdtsHeader(unsigned char bits[7], 
                unsigned int frame_size,
-               unsigned int sampling_frequency_index,
-               unsigned int channel_configuration)
+               unsigned int /*sampling_frequency_index*/,
+               unsigned int /*channel_configuration*/)
 {
 	bits[0] = 0xFF;
 	bits[1] = 0xF1; // 0xF9 (MPEG2)
