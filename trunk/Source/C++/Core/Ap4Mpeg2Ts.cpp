@@ -257,7 +257,7 @@ AP4_Mpeg2TsWriter::SampleStream::WritePES(const unsigned char* data,
     
     pes_header.Write(0x000001, 24);    // packet_start_code_prefix
     pes_header.Write(m_StreamId, 8);   // stream_id
-    pes_header.Write(m_StreamId == AP4_MPEG2_TS_DEFAULT_STREAM_ID_AUDIO?0:(data_size+pes_header_size-6), 16); // PES_packet_length
+    pes_header.Write(m_StreamId == AP4_MPEG2_TS_DEFAULT_STREAM_ID_VIDEO?0:(data_size+pes_header_size-6), 16); // PES_packet_length
     pes_header.Write(2, 2);            // '01'
     pes_header.Write(0, 2);            // PES_scrambling_control
     pes_header.Write(0, 1);            // PES_priority
