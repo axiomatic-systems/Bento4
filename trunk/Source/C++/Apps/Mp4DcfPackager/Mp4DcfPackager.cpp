@@ -37,9 +37,9 @@
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-#define BANNER "MP4 DCF Packager - Version 1.0\n"\
+#define BANNER "MP4 DCF Packager - Version 1.0.1\n"\
                "(Bento4 Version " AP4_VERSION_STRING ")\n"\
-               "(c) 2002-2008 Axiomatic Systems, LLC"
+               "(c) 2002-2009 Axiomatic Systems, LLC"
 
 /*----------------------------------------------------------------------
 |   PrintUsageAndExit
@@ -93,7 +93,8 @@ main(int argc, char** argv)
     const char*    content_id               = "";
     const char*    rights_issuer_url        = "";
     AP4_LargeSize  plaintext_length         = 0;
-    AP4_DataBuffer textual_headers;
+    AP4_DataBuffer textual_headers_buffer;
+    AP4_TrackPropertyMap textual_headers;
 
     AP4_SetMemory(key, 0, sizeof(key));
     AP4_SetMemory(iv, 0, sizeof(iv));
@@ -176,7 +177,6 @@ main(int argc, char** argv)
         } else if (!strcmp(arg, "--textual-header")) {
             char* name = NULL;
             char* value = NULL;
-            AP4_TrackPropertyMap header_map;
             arg = *++argv;
             if (arg == NULL) {
                 fprintf(stderr, "ERROR: missing argument for --textual-header option\n");
@@ -188,15 +188,12 @@ main(int argc, char** argv)
             }
 
             // check that the property is not already set
-            if (header_map.GetProperty(0, name)) {
+            if (textual_headers.GetProperty(0, name)) {
                 fprintf(stderr, "ERROR: textual header %s already set\n", name);
                 return 1;
             }
             // set the property in the map
-            header_map.SetProperty(0, name, value);
-        
-            // convert to a textual headers buffer
-            header_map.GetTextualHeaders(0, textual_headers);
+            textual_headers.SetProperty(0, name, value);
         } else if (input_filename == NULL) {
             input_filename = arg;
         } else if (output_filename == NULL) {
@@ -224,6 +221,9 @@ main(int argc, char** argv)
         fprintf(stderr, "ERROR: missing output filename\n");
         return 1;
     }
+
+    // convert to a textual headers buffer
+    textual_headers.GetTextualHeaders(0, textual_headers_buffer);
 
     // create the input stream
     AP4_Result result;
@@ -273,8 +273,8 @@ main(int argc, char** argv)
                                           plaintext_length,
                                           content_id,
                                           rights_issuer_url,
-                                          textual_headers.GetData(),
-                                          textual_headers.GetDataSize());
+                                          textual_headers_buffer.GetData(),
+                                          textual_headers_buffer.GetDataSize());
 
     // create the odhe atom (the ownership is transfered)
     AP4_OdheAtom* odhe = new AP4_OdheAtom(content_type, ohdr);
