@@ -1,8 +1,8 @@
 /*****************************************************************
 |
-|    AP4 - MP4 to AAC File Converter
+|    AP4 - MP4 to AVC File Converter
 |
-|    Copyright 2002-2008 Axiomatic Systems, LLC
+|    Copyright 2002-2009 Axiomatic Systems, LLC
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -37,9 +37,9 @@
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-#define BANNER "MP4 To AAC File Converter - Version 1.0\n"\
+#define BANNER "MP4 To AVC File Converter - Version 1.0\n"\
                "(Bento4 Version " AP4_VERSION_STRING ")\n"\
-               "(c) 2002-2008 Axiomatic Systems, LLC"
+               "(c) 2002-2009 Axiomatic Systems, LLC"
  
 /*----------------------------------------------------------------------
 |   PrintUsageAndExit
@@ -49,79 +49,118 @@ PrintUsageAndExit()
 {
     fprintf(stderr, 
             BANNER 
-            "\n\nusage: mp42aac [options] <input> <output>\n"
+            "\n\nusage: mp42avc [options] <input> <output>\n"
             "  Options:\n"
             "  --key <hex>: 128-bit decryption key (in hex: 32 chars)\n");
     exit(1);
 }
 
 /*----------------------------------------------------------------------
- |   GetSamplingFrequencyIndex
- +---------------------------------------------------------------------*/
-static unsigned int
-GetSamplingFrequencyIndex(unsigned int sampling_frequency)
+|   WriteSample
++---------------------------------------------------------------------*/
+static void
+WriteSample(const AP4_DataBuffer& sample_data, 
+            AP4_DataBuffer&       prefix, 
+            unsigned int          nalu_length_size, 
+            AP4_ByteStream*       output)
 {
-    switch (sampling_frequency) {
-        case 96000: return 0;
-        case 88200: return 1;
-        case 64000: return 2;
-        case 48000: return 3;
-        case 44100: return 4;
-        case 32000: return 5;
-        case 24000: return 6;
-        case 22050: return 7;
-        case 16000: return 8;
-        case 12000: return 9;
-        case 11025: return 10;
-        case 8000:  return 11;
-        case 7350:  return 12;
-        default:    return 0;
-    }
+    // allocate a buffer for the PES packet
+    AP4_DataBuffer frame_data;
+    frame_data.SetDataSize(6+prefix.GetDataSize());
+    unsigned char* frame_buffer = frame_data.UseData();
+    
+    // start of access unit
+    frame_buffer[0] = 0;
+    frame_buffer[1] = 0;
+    frame_buffer[2] = 0;
+    frame_buffer[3] = 1;
+    frame_buffer[4] = 9;    // NAL type = Access Unit Delimiter;
+    frame_buffer[5] = 0xE0; // Slice types = ANY
+    
+    // copy the prefix
+    AP4_CopyMemory(frame_buffer+6, prefix.GetData(), prefix.GetDataSize());
+    
+    // write the NAL units
+    const unsigned char* data      = sample_data.GetData();
+    unsigned int         data_size = sample_data.GetDataSize();
+    
+    while (data_size) {
+        // sanity check
+        if (data_size < nalu_length_size) break;
+        
+        // get the next NAL unit
+        AP4_UI32 nalu_size;
+        if (nalu_length_size == 1) {
+            nalu_size = *data++;
+            data_size--;
+        } else if (nalu_length_size == 2) {
+            nalu_size = AP4_BytesToInt16BE(data);
+            data      += 2;
+            data_size -= 2;
+        } else if (nalu_length_size == 4) {
+            nalu_size = AP4_BytesToInt32BE(data);
+            data      += 4;
+            data_size -= 4;
+        } else {
+            break;
+        }
+        if (nalu_size > data_size) break;
+        
+        // add a start code before the NAL unit
+        unsigned int offset = frame_data.GetDataSize(); 
+        frame_data.SetDataSize(offset+3+nalu_size);
+        frame_buffer = frame_data.UseData()+offset;
+        frame_buffer[0] = 0;
+        frame_buffer[1] = 0;
+        frame_buffer[2] = 1;
+        AP4_CopyMemory(frame_buffer+3, data, nalu_size);
+        
+        // move to the next NAL unit
+        data      += nalu_size;
+        data_size -= nalu_size;
+    } 
+    
+    output->Write(frame_data.GetData(), frame_data.GetDataSize());
 }
 
 /*----------------------------------------------------------------------
-|   WriteAdtsHeader
+|   MakeFramePrefix
 +---------------------------------------------------------------------*/
 static AP4_Result
-WriteAdtsHeader(AP4_ByteStream* output, 
-                unsigned int    frame_size,
-                unsigned int    sampling_frequency_index,
-                unsigned int    channel_configuration)
+MakeFramePrefix(AP4_SampleDescription* sdesc, AP4_DataBuffer& prefix, unsigned int& nalu_length_size)
 {
-	unsigned char bits[7];
-
-	bits[0] = 0xFF;
-	bits[1] = 0xF1; // 0xF9 (MPEG2)
-    bits[2] = 0x40 | (sampling_frequency_index << 2) | (channel_configuration >> 2);
-    bits[3] = ((channel_configuration&0x3)<<6) | ((frame_size+7) >> 11);
-    bits[4] = ((frame_size+7) >> 3)&0xFF;
-	bits[5] = (((frame_size+7) << 5)&0xFF) | 0x1F;
-	bits[6] = 0xFC;
-
-	return output->Write(bits, 7);
-
-	/*
-        0:  syncword 12 always: '111111111111' 
-        12: ID 1 0: MPEG-4, 1: MPEG-2 
-        13: layer 2 always: '00' 
-        15: protection_absent 1  
-        16: profile 2  
-        18: sampling_frequency_index 4  
-        22: private_bit 1  
-        23: channel_configuration 3  
-        26: original/copy 1  
-        27: home 1  
-        28: emphasis 2 only if ID == 0 
-
-        ADTS Variable header: these can change from frame to frame 
-        28: copyright_identification_bit 1  
-        29: copyright_identification_start 1  
-        30: aac_frame_length 13 length of the frame including header (in bytes) 
-        43: adts_buffer_fullness 11 0x7FF indicates VBR 
-        54: no_raw_data_blocks_in_frame 2  
-        ADTS Error check 
-        crc_check 16 only if protection_absent == 0 
-   */
+    AP4_AvcSampleDescription* avc_desc = AP4_DYNAMIC_CAST(AP4_AvcSampleDescription, sdesc);
+    if (avc_desc == NULL) {
+        fprintf(stderr, "ERROR: track does not contain an AVC stream\n");
+        return AP4_FAILURE;
+    }
+    
+    // make the SPS/PPS prefix
+    nalu_length_size = avc_desc->GetNaluLengthSize();
+    for (unsigned int i=0; i<avc_desc->GetSequenceParameters().ItemCount(); i++) {
+        AP4_DataBuffer& buffer = avc_desc->GetSequenceParameters()[i];
+        unsigned int prefix_size = prefix.GetDataSize();
+        prefix.SetDataSize(prefix_size+4+buffer.GetDataSize());
+        unsigned char* p = prefix.UseData()+prefix_size;
+        *p++ = 0;
+        *p++ = 0;
+        *p++ = 0;
+        *p++ = 1;
+        AP4_CopyMemory(p, buffer.GetData(), buffer.GetDataSize());
+    }
+    for (unsigned int i=0; i<avc_desc->GetPictureParameters().ItemCount(); i++) {
+        AP4_DataBuffer& buffer = avc_desc->GetPictureParameters()[i];
+        unsigned int prefix_size = prefix.GetDataSize();
+        prefix.SetDataSize(prefix_size+4+buffer.GetDataSize());
+        unsigned char* p = prefix.UseData()+prefix_size;
+        *p++ = 0;
+        *p++ = 0;
+        *p++ = 0;
+        *p++ = 1;
+        AP4_CopyMemory(p, buffer.GetData(), buffer.GetDataSize());
+    }
+    
+    return AP4_SUCCESS;
 }
 
 /*----------------------------------------------------------------------
@@ -139,13 +178,13 @@ DecryptAndWriteSamples(AP4_Track*             track,
         return;
     }
     
-    AP4_AudioSampleDescription* audio_desc = AP4_DYNAMIC_CAST(AP4_AudioSampleDescription, pdesc->GetOriginalSampleDescription());
-    if (audio_desc == NULL) {
-        fprintf(stderr, "ERROR: sample description is not audio\n");
+    // get the original sample description and make the prefix
+    AP4_SampleDescription* orig_sdesc = pdesc->GetOriginalSampleDescription();
+    unsigned int   nalu_length_size = 0;
+    AP4_DataBuffer prefix;
+    if (AP4_FAILED(MakeFramePrefix(orig_sdesc, prefix, nalu_length_size))) {
         return;
     }
-    unsigned int sampling_frequency_index = GetSamplingFrequencyIndex(audio_desc->GetSampleRate());
-    unsigned int channel_configuration    = audio_desc->GetChannelCount();
     
     // create the decrypter
     AP4_SampleDecrypter* decrypter = AP4_SampleDecrypter::Create(pdesc, key, 16);
@@ -163,9 +202,7 @@ DecryptAndWriteSamples(AP4_Track*             track,
             fprintf(stderr, "ERROR: failed to decrypt sample\n");
             return;
         }
-
-	    WriteAdtsHeader(output, decrypted_data.GetDataSize(), sampling_frequency_index, channel_configuration);
-        output->Write(decrypted_data.GetData(), decrypted_data.GetDataSize());
+        WriteSample(decrypted_data, prefix, nalu_length_size, output);
 	    index++;
     }
 }
@@ -175,23 +212,21 @@ DecryptAndWriteSamples(AP4_Track*             track,
 +---------------------------------------------------------------------*/
 static void
 WriteSamples(AP4_Track*             track, 
-             AP4_SampleDescription* sdesc,
+             AP4_SampleDescription* sdesc, 
              AP4_ByteStream*        output)
 {
-    AP4_AudioSampleDescription* audio_desc = AP4_DYNAMIC_CAST(AP4_AudioSampleDescription, sdesc);
-    if (audio_desc == NULL) {
-        fprintf(stderr, "ERROR: sample description is not audio\n");
+    // make the frame prefix
+    unsigned int   nalu_length_size = 0;
+    AP4_DataBuffer prefix;
+    if (AP4_FAILED(MakeFramePrefix(sdesc, prefix, nalu_length_size))) {
         return;
     }
-    unsigned int sampling_frequency_index = GetSamplingFrequencyIndex(audio_desc->GetSampleRate());
-    unsigned int channel_configuration    = audio_desc->GetChannelCount();
 
     AP4_Sample     sample;
     AP4_DataBuffer data;
     AP4_Ordinal    index = 0;
     while (AP4_SUCCEEDED(track->ReadSample(index, sample, data))) {
-	    WriteAdtsHeader(output, sample.GetSize(), sampling_frequency_index, channel_configuration);
-        output->Write(data.GetData(), data.GetDataSize());
+        WriteSample(data, prefix, nalu_length_size, output);
 	    index++;
     }
 }
@@ -243,44 +278,43 @@ main(int argc, char** argv)
 
     // get the movie
     AP4_SampleDescription* sample_description;
-    AP4_Track* audio_track;
+    AP4_Track* video_track;
     AP4_Movie* movie = input_file->GetMovie();
     if (movie == NULL) {
         fprintf(stderr, "ERROR: no movie in file\n");
         goto end;
     }
 
-    // get the audio track
-    audio_track = movie->GetTrack(AP4_Track::TYPE_AUDIO);
-    if (audio_track == NULL) {
-        fprintf(stderr, "ERROR: no audio track found\n");
+    // get the video track
+    video_track = movie->GetTrack(AP4_Track::TYPE_VIDEO);
+    if (video_track == NULL) {
+        fprintf(stderr, "ERROR: no video track found\n");
         goto end;
     }
 
     // check that the track is of the right type
-    sample_description = audio_track->GetSampleDescription(0);
+    sample_description = video_track->GetSampleDescription(0);
     if (sample_description == NULL) {
         fprintf(stderr, "ERROR: unable to parse sample description\n");
         goto end;
     }
 
     // show info
-    AP4_Debug("Audio Track:\n");
-    AP4_Debug("  duration: %ld ms\n", audio_track->GetDurationMs());
-    AP4_Debug("  sample count: %ld\n", audio_track->GetSampleCount());
+    AP4_Debug("Video Track:\n");
+    AP4_Debug("  duration: %ld ms\n", video_track->GetDurationMs());
+    AP4_Debug("  sample count: %ld\n", video_track->GetSampleCount());
 
     switch (sample_description->GetType()) {
-        case AP4_SampleDescription::TYPE_MPEG: {
-            WriteSamples(audio_track, sample_description, output);
+        case AP4_SampleDescription::TYPE_AVC:
+            WriteSamples(video_track, sample_description, output);
             break;
-        }
 
         case AP4_SampleDescription::TYPE_PROTECTED: 
             if (!key_option) {
                 fprintf(stderr, "ERROR: encrypted tracks require a key\n");
                 goto end;
             }
-            DecryptAndWriteSamples(audio_track, sample_description, key, output);
+            DecryptAndWriteSamples(video_track, sample_description, key, output);
             break;
 
         default:

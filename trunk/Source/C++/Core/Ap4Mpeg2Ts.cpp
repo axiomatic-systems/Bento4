@@ -72,18 +72,42 @@ static unsigned char const StuffingBytes[AP4_MPEG2TS_PACKET_SIZE] =
 };
 
 /*----------------------------------------------------------------------
+|   GetSamplingFrequencyIndex
++---------------------------------------------------------------------*/
+static unsigned int
+GetSamplingFrequencyIndex(unsigned int sampling_frequency)
+{
+    switch (sampling_frequency) {
+        case 96000: return 0;
+        case 88200: return 1;
+        case 64000: return 2;
+        case 48000: return 3;
+        case 44100: return 4;
+        case 32000: return 5;
+        case 24000: return 6;
+        case 22050: return 7;
+        case 16000: return 8;
+        case 12000: return 9;
+        case 11025: return 10;
+        case 8000:  return 11;
+        case 7350:  return 12;
+        default:    return 0;
+    }
+}
+
+/*----------------------------------------------------------------------
 |   MakeAdtsHeader
 +---------------------------------------------------------------------*/
 static void
 MakeAdtsHeader(unsigned char bits[7], 
-               unsigned int frame_size,
-               unsigned int /*sampling_frequency_index*/,
-               unsigned int /*channel_configuration*/)
+               unsigned int  frame_size,
+               unsigned int  sampling_frequency_index,
+               unsigned int  channel_configuration)
 {
 	bits[0] = 0xFF;
 	bits[1] = 0xF1; // 0xF9 (MPEG2)
-	bits[2] = 0x50;
-	bits[3] = 0x80 | ((frame_size+7) >> 11);
+	bits[2] = 0x40 | (sampling_frequency_index << 2) | (channel_configuration >> 2);
+	bits[3] = ((channel_configuration&0x3)<<6) | ((frame_size+7) >> 11);
     bits[4] = ((frame_size+7) >> 3)&0xFF;
 	bits[5] = (((frame_size+7) << 5)&0xFF) | 0x1F;
 	bits[6] = 0xFC;
@@ -329,11 +353,19 @@ public:
                            AP4_ByteStream& output);
     
 private:
-    AP4_Mpeg2TsAudioSampleStream(AP4_UI16 pid, AP4_UI32 timescale) : 
-        AP4_Mpeg2TsWriter::SampleStream(pid, 
-                                        AP4_MPEG2_TS_DEFAULT_STREAM_ID_AUDIO, 
-                                        AP4_MPEG2_STREAM_TYPE_ISO_IEC_13818_7,
-                                        timescale) {}
+    AP4_Mpeg2TsAudioSampleStream(AP4_UI16     pid, 
+                                 AP4_UI32     timescale,
+                                 unsigned int sampling_frequency_index,
+                                 unsigned int channel_configuration) : 
+    AP4_Mpeg2TsWriter::SampleStream(pid, 
+                                    AP4_MPEG2_TS_DEFAULT_STREAM_ID_AUDIO, 
+                                    AP4_MPEG2_STREAM_TYPE_ISO_IEC_13818_7,
+                                    timescale),
+        m_SamplingFrequencyIndex(sampling_frequency_index),
+        m_ChannelConfiguration(channel_configuration) {}
+    
+    unsigned int m_SamplingFrequencyIndex;
+    unsigned int m_ChannelConfiguration;
 };
 
 /*----------------------------------------------------------------------
@@ -342,10 +374,20 @@ private:
 AP4_Result 
 AP4_Mpeg2TsAudioSampleStream::Create(AP4_UI16                          pid, 
                                      AP4_UI32                          timescale, 
-                                     AP4_SampleDescription*            /*sample_description*/,
+                                     AP4_SampleDescription*            sample_description,
                                      AP4_Mpeg2TsWriter::SampleStream*& stream)
 {
-    stream = new AP4_Mpeg2TsAudioSampleStream(pid, timescale);
+    // check the sample description
+    AP4_AudioSampleDescription* audio_desc = AP4_DYNAMIC_CAST(AP4_AudioSampleDescription, sample_description);
+    if (audio_desc == NULL) return AP4_ERROR_NOT_SUPPORTED;
+
+    unsigned int sampling_frequency_index = GetSamplingFrequencyIndex(audio_desc->GetSampleRate());
+    unsigned int channel_configuration = audio_desc->GetChannelCount();
+    
+    stream = new AP4_Mpeg2TsAudioSampleStream(pid, 
+                                              timescale, 
+                                              sampling_frequency_index, 
+                                              channel_configuration);
     return AP4_SUCCESS;
 }
                                                        
@@ -360,7 +402,7 @@ AP4_Mpeg2TsAudioSampleStream::WriteSample(AP4_Sample&     sample,
     AP4_DataBuffer data;
     if (AP4_SUCCEEDED(sample.ReadData(data))) {
         unsigned char* buffer = new unsigned char[7+sample.GetSize()];
-        MakeAdtsHeader(buffer, sample.GetSize(), 0, 0);
+        MakeAdtsHeader(buffer, sample.GetSize(), m_SamplingFrequencyIndex, m_ChannelConfiguration);
         AP4_CopyMemory(buffer+7, data.GetData(), data.GetDataSize());
         AP4_UI64 ts = AP4_ConvertTime(sample.GetDts(), m_TimeScale, 90000);
         WritePES(buffer, 7+sample.GetSize(), ts, false, ts, with_pcr, output);
