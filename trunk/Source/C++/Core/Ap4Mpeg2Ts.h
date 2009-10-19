@@ -99,9 +99,10 @@ public:
                                     AP4_UI64             pts, 
                                     bool                 with_pcr, 
                                     AP4_ByteStream&      output);
-        virtual AP4_Result WriteSample(AP4_Sample&     sample, 
-                                       bool            with_pcr, 
-                                       AP4_ByteStream& output) = 0;
+        virtual AP4_Result WriteSample(AP4_Sample&            sample, 
+                                       AP4_SampleDescription* sample_description,
+                                       bool                   with_pcr, 
+                                       AP4_ByteStream&        output) = 0;
         
         unsigned int m_StreamId;
         AP4_UI08     m_StreamType;
@@ -116,9 +117,8 @@ public:
     Stream* GetPMT() { return m_PMT; }
     AP4_Result WritePAT(AP4_ByteStream& output);
     AP4_Result WritePMT(AP4_ByteStream& output);
-    AP4_Result AddStream(AP4_SampleDescription* sample_description, 
-                         AP4_UI32               timescale,
-                         SampleStream*&         stream);
+    AP4_Result SetAudioStream(AP4_UI32 timescale, SampleStream*& stream);
+    AP4_Result SetVideoStream(AP4_UI32 timescale, SampleStream*& stream);
     
 private:
     Stream*       m_PAT;

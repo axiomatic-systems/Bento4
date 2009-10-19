@@ -158,6 +158,7 @@ AP4_AvccAtom::AP4_AvccAtom(AP4_UI32 size, const AP4_UI08* payload) :
         cursor += 2+param_length;
     }
     AP4_UI08 num_pic_params = payload[cursor++];
+    m_PictureParameters.EnsureCapacity(num_pic_params);
     for (unsigned int i=0; i<num_pic_params; i++) {
         m_PictureParameters.Append(AP4_DataBuffer());
         AP4_UI16 param_length = AP4_BytesToInt16BE(&payload[cursor]);
