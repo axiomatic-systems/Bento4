@@ -249,10 +249,10 @@ AP4_Mpeg2TsWriter::Stream::WritePacketHeader(bool            payload_start,
             if (with_pcr) {
                 pcr_size = AP4_MPEG2TS_PCR_ADAPTATION_SIZE;
                 AP4_UI64 pcr_base = pcr/300;
-                AP4_UI32 pcr_ext  = pcr%300;
+                AP4_UI32 pcr_ext  = (AP4_UI32)(pcr%300);
                 AP4_BitWriter writer(pcr_size);
-                writer.Write(pcr_base>>32, 1);
-                writer.Write(pcr_base, 32);
+                writer.Write((AP4_UI32)(pcr_base>>32), 1);
+                writer.Write((AP4_UI32)pcr_base, 32);
                 writer.Write(0x3F, 6);
                 writer.Write(pcr_ext, 9);
                 output.Write(writer.GetData(), pcr_size);
@@ -297,22 +297,22 @@ AP4_Mpeg2TsWriter::SampleStream::WritePES(const unsigned char* data,
     pes_header.Write(0, 1);            // PES_extension_flag
     pes_header.Write(pes_header_size-9, 8);// PES_header_data_length
     
-    pes_header.Write(with_dts?3:2, 4); // '0010' or '0011'
-    pes_header.Write(pts>>30, 3);      // PTS[32..30]
-    pes_header.Write(1, 1);            // marker_bit
-    pes_header.Write(pts>>15, 15);     // PTS[29..15]
-    pes_header.Write(1, 1);            // marker_bit
-    pes_header.Write(pts, 15);         // PTS[14..0]
-    pes_header.Write(1, 1);            // market_bit
+    pes_header.Write(with_dts?3:2, 4);         // '0010' or '0011'
+    pes_header.Write((AP4_UI32)(pts>>30), 3);  // PTS[32..30]
+    pes_header.Write(1, 1);                    // marker_bit
+    pes_header.Write((AP4_UI32)(pts>>15), 15); // PTS[29..15]
+    pes_header.Write(1, 1);                    // marker_bit
+    pes_header.Write((AP4_UI32)pts, 15);       // PTS[14..0]
+    pes_header.Write(1, 1);                    // market_bit
     
     if (with_dts) {
-        pes_header.Write(1, 4);            // '0001'
-        pes_header.Write(dts>>30, 3);      // DTS[32..30]
-        pes_header.Write(1, 1);            // marker_bit
-        pes_header.Write(dts>>15, 15);     // DTS[29..15]
-        pes_header.Write(1, 1);            // marker_bit
-        pes_header.Write(dts, 15);         // DTS[14..0]
-        pes_header.Write(1, 1);            // market_bit
+        pes_header.Write(1, 4);                    // '0001'
+        pes_header.Write((AP4_UI32)(dts>>30), 3);  // DTS[32..30]
+        pes_header.Write(1, 1);                    // marker_bit
+        pes_header.Write((AP4_UI32)(dts>>15), 15); // DTS[29..15]
+        pes_header.Write(1, 1);                    // marker_bit
+        pes_header.Write((AP4_UI32)dts, 15);       // DTS[14..0]
+        pes_header.Write(1, 1);                    // market_bit
     }
     
     bool first_packet = true;
