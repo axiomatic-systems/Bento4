@@ -499,13 +499,14 @@ ShowTrackInfo(AP4_Track& track, bool show_samples, bool show_sample_data, bool v
                    (int)sample.GetSize(), 
                    (int)sample.GetDuration());
             if (verbose) {
-                printf(" (%6d ms) offset=%10lld dts=%10lld (%10lld ms) cts=%10lld (%10lld ms)", 
+                printf(" (%6d ms) offset=%10lld dts=%10lld (%10lld ms) cts=%10lld (%10lld ms) [%d]", 
                        (int)AP4_ConvertTime(sample.GetDuration(), track.GetMediaTimeScale(), 1000),
                        sample.GetOffset(),
                        sample.GetDts(), 
                        AP4_ConvertTime(sample.GetDts(), track.GetMediaTimeScale(), 1000),
                        sample.GetCts(),
-                       AP4_ConvertTime(sample.GetCts(), track.GetMediaTimeScale(), 1000));
+                       AP4_ConvertTime(sample.GetCts(), track.GetMediaTimeScale(), 1000),
+                       sample.GetDescriptionIndex());
             }
             if (sample.IsSync()) {
                 printf(" [S] ");

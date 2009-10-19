@@ -90,10 +90,16 @@ WriteSamples(AP4_Track*                       audio_track,
         }
 
         if (chosen_track == audio_track) {
-            audio_stream->WriteSample(audio_sample, video_track==NULL, output);
+            audio_stream->WriteSample(audio_sample, 
+                                      audio_track->GetSampleDescription(audio_sample.GetDescriptionIndex()), 
+                                      video_track==NULL, 
+                                      output);
             audio_sample_index++;
         } else if (chosen_track == video_track) {
-            video_stream->WriteSample(video_sample, true, output);
+            video_stream->WriteSample(video_sample, 
+                                      video_track->GetSampleDescription(video_sample.GetDescriptionIndex()),
+                                      true, 
+                                      output);
             video_sample_index++;
         } else {
             break;
@@ -163,9 +169,8 @@ main(int argc, char** argv)
         AP4_Debug("Audio Track:\n");
         AP4_Debug("  duration: %ld ms\n", audio_track->GetDurationMs());
         AP4_Debug("  sample count: %ld\n", audio_track->GetSampleCount());
-        result = writer.AddStream(sample_description, 
-                                  audio_track->GetMediaTimeScale(),
-                                  audio_stream);
+        result = writer.SetAudioStream(audio_track->GetMediaTimeScale(),
+                                       audio_stream);
         if (AP4_FAILED(result)) {
             fprintf(stderr, "could not create audio stream (%d)\n", result);
             goto end;
@@ -182,9 +187,8 @@ main(int argc, char** argv)
         AP4_Debug("Video Track:\n");
         AP4_Debug("  duration: %ld ms\n", video_track->GetDurationMs());
         AP4_Debug("  sample count: %ld\n", video_track->GetSampleCount());
-        result = writer.AddStream(sample_description, 
-                                  video_track->GetMediaTimeScale(),
-                                  video_stream);
+        result = writer.SetVideoStream(video_track->GetMediaTimeScale(),
+                                       video_stream);
         if (AP4_FAILED(result)) {
             fprintf(stderr, "could not create video stream (%d)\n", result);
             goto end;
