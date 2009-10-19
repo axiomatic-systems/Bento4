@@ -731,7 +731,7 @@ AP4_MarlinIpmpEncryptingProcessor::Initialize(
         const char* signed_attributes = m_PropertyMap.GetProperty(mpod->GetTrackIds()[i], "SignedAttributes");
         if (signed_attributes) {
             // decode the hex-encoded data
-            unsigned int size = AP4_StringLength(signed_attributes)/2;
+            unsigned int size = (unsigned int)AP4_StringLength(signed_attributes)/2;
             AP4_DataBuffer attributes_atoms;
             attributes_atoms.SetDataSize(size);
             if (AP4_SUCCEEDED(AP4_ParseHex(signed_attributes, attributes_atoms.UseData(), size))) {
