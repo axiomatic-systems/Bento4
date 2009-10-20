@@ -686,6 +686,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\..\Source\C++\Core\Ap4FragmentSampleTable.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\Source\C++\Core\Ap4FrmaAtom.cpp"
 				>
 			</File>
@@ -1093,6 +1097,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\..\Source\C++\Core\Ap4FileWriter.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\Source\C++\Core\Ap4FragmentSampleTable.h"
 				>
 			</File>
 			<File
