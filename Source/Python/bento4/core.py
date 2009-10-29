@@ -338,7 +338,7 @@ class Sample(object):
     
     @property
     def is_sync(self):
-        v = lb4.AP4_Sample_GetIsSync(self.bt4sample)
+        v = lb4.AP4_Sample_IsSync(self.bt4sample)
         return False if v==0 else True
     
     
