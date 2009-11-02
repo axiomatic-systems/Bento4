@@ -626,15 +626,13 @@ AP4_PiffSampleDecrypter::Create(AP4_ProtectedSampleDescription* sample_descripti
     // create the block cipher needed to decrypt the samples
     AP4_UI32     algorithm_id;
     unsigned int iv_size;
-    if (track_encryption_atom) {
-        algorithm_id = track_encryption_atom->GetDefaultAlgorithmId();
-        iv_size      = track_encryption_atom->GetDefaultIvSize();
-    }
     if (sample_encryption_atom->GetFlags() & AP4_PIFF_SAMPLE_ENCRYPTION_FLAG_OVERRIDE_TRACK_ENCRYPTION_DEFAULTS) {
         algorithm_id = sample_encryption_atom->GetAlgorithmId();
         iv_size      = sample_encryption_atom->GetIvSize();
     } else {
         if (track_encryption_atom == NULL) return AP4_ERROR_INVALID_FORMAT;
+        algorithm_id = track_encryption_atom->GetDefaultAlgorithmId();
+        iv_size      = track_encryption_atom->GetDefaultIvSize();
     }
     switch (algorithm_id) {
         case AP4_PIFF_ALGORITHM_ID_NONE:
