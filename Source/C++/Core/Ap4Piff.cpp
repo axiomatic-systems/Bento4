@@ -67,8 +67,8 @@ AP4_PiffCtrSampleEncrypter::AP4_PiffCtrSampleEncrypter(AP4_BlockCipher* block_ci
 |   AP4_PiffCtrSampleEncrypter::EncryptSampleData
 +---------------------------------------------------------------------*/
 AP4_Result 
-AP4_PiffCtrSampleEncrypter::EncryptSampleData(AP4_DataBuffer& data_in,
-                                              AP4_DataBuffer& data_out)
+AP4_PiffCtrSampleEncrypter::EncryptSampleData(AP4_DataBuffer& /*data_in */,
+                                              AP4_DataBuffer& /*data_out*/)
 {
     return AP4_ERROR_NOT_SUPPORTED; // FIXME: not implemented yet
 }
@@ -85,8 +85,8 @@ AP4_PiffCtrSampleEncrypter::~AP4_PiffCtrSampleEncrypter()
 |   AP4_PiffAvcCtrSampleEncrypter::EncryptSampleData
 +---------------------------------------------------------------------*/
 AP4_Result 
-AP4_PiffAvcCtrSampleEncrypter::EncryptSampleData(AP4_DataBuffer& data_in,
-                                                 AP4_DataBuffer& data_out)
+AP4_PiffAvcCtrSampleEncrypter::EncryptSampleData(AP4_DataBuffer& /*data_in */,
+                                                 AP4_DataBuffer& /*data_out*/)
 {
     return AP4_ERROR_NOT_SUPPORTED; // FIXME: not implemented yet
 }
@@ -330,8 +330,8 @@ private:
 AP4_PiffFragmentEncrypter::AP4_PiffFragmentEncrypter(AP4_ContainerAtom*                      traf,
                                                      AP4_PiffEncryptingProcessor::Encrypter* encrypter) :
     m_Traf(traf),
-    m_Encrypter(encrypter),
     m_SampleEncryptionAtom(NULL),
+    m_Encrypter(encrypter),
     m_IvIndex(0)
 {
 }
