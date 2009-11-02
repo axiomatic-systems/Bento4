@@ -2,7 +2,7 @@
 #
 #    Bento4 Runtime Lib
 #
-#    (c) 2002-2008 Axiomatic Systems, LLC
+#    (c) 2002-2009 Axiomatic Systems, LLC
 #
 ##########################################################################
 all: libAP4.a
@@ -96,7 +96,10 @@ CORE_SOURCES = 								\
     Ap4LinearReader.cpp			            \
     Ap4Mpeg2Ts.cpp                          \
     Ap4Hmac.cpp                             \
-    Ap4KeyWrap.cpp 
+    Ap4KeyWrap.cpp 							\
+    Ap4MovieFragment.cpp                    \
+    Ap4FragmentSampleTable.cpp              \
+    Ap4Piff.cpp
     
 
 CORE_OBJECTS=$(CORE_SOURCES:.cpp=.o)
