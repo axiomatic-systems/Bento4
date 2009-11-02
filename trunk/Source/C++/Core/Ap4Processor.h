@@ -200,7 +200,7 @@ public:
      * @return A pointer to a track handler, or NULL if no handler 
      * needs to be created for that track.
      */
-    virtual TrackHandler* CreateTrackHandler(AP4_TrakAtom* trak) { return NULL; }
+    virtual TrackHandler* CreateTrackHandler(AP4_TrakAtom* /*trak*/) { return NULL; }
 
     /**
      * This method can be overridden by concrete subclasses.
@@ -210,7 +210,7 @@ public:
      * @return A pointer to a fragment handler, or NULL if no handler 
      * needs to be created for that fragment.
      */
-    virtual FragmentHandler* CreateFragmentHandler(AP4_ContainerAtom* traf) { return NULL; }
+    virtual FragmentHandler* CreateFragmentHandler(AP4_ContainerAtom* /*traf*/) { return NULL; }
     
 protected:
     class ExternalTrackData {
