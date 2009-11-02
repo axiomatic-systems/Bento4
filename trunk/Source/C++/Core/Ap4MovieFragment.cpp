@@ -38,6 +38,7 @@
 #include "Ap4ContainerAtom.h"
 #include "Ap4FragmentSampleTable.h"
 #include "Ap4Movie.h"
+#include "Ap4Sample.h"
 
 /*----------------------------------------------------------------------
 |   AP4_MovieFragment::AP4_MovieFragment
