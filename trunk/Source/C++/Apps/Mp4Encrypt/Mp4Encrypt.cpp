@@ -263,7 +263,7 @@ main(int argc, char** argv)
     }
 
     // create an encrypting processor
-    AP4_Processor* processor;
+    AP4_Processor* processor = NULL;
     if (method == METHOD_ISMA_AES) {
         if (kms_uri == NULL) {
             fprintf(stderr, "ERROR: method ISMA-IAEC requires --kms-uri\n");
