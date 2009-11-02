@@ -144,7 +144,8 @@ AP4_IsmaCipher::GetDecryptedSampleSize(AP4_Sample& sample)
 +---------------------------------------------------------------------*/
 AP4_Result 
 AP4_IsmaCipher::DecryptSampleData(AP4_DataBuffer& data_in,
-                                  AP4_DataBuffer& data_out)
+                                  AP4_DataBuffer& data_out,
+                                  const AP4_UI08* /*iv*/)
 {
     bool            is_encrypted = true;
     const AP4_UI08* in = data_in.GetData();

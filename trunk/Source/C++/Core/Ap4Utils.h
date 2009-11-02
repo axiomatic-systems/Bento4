@@ -163,14 +163,19 @@ extern int AP4_FormatStringVN(char *buffer, size_t count, const char *format, va
 #include <string.h>
 #define AP4_StringLength(x) strlen(x)
 #define AP4_CopyMemory(x,y,z) memcpy(x,y,z)
+#define AP4_CompareMemory(x, y, z) memcmp(x, y, z)
 #define AP4_SetMemory(x,y,z) memset(x,y,z)
 #define AP4_CompareStrings(x,y) strcmp(x,y)
 #endif
 
+unsigned char AP4_HexNibble(char c);
+char AP4_NibbleHex(unsigned int nibble);
 void AP4_FormatFourChars(char* str, AP4_UI32 value);
 void AP4_FormatFourCharsPrintable(char* str, AP4_UI32 value);
 AP4_Result
 AP4_ParseHex(const char* hex, unsigned char* bytes, unsigned int count);
+AP4_Result
+AP4_FormatHex(const AP4_UI08* data, unsigned int data_size, char* hex);
 AP4_Result
 AP4_SplitArgs(char* arg, char*& arg0, char*& arg1, char*& arg2);
 AP4_Result

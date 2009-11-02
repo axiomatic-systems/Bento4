@@ -55,7 +55,8 @@ class AP4_FragmentSampleTable : public AP4_SampleTable
              AP4_FragmentSampleTable(AP4_ContainerAtom* traf, 
                                      AP4_TrexAtom*      trex,
                                      AP4_ByteStream*    sample_stream,
-                                     AP4_Offset         mdat_payload_offset, // hack because MS doesn't implement the spec correctly
+                                     AP4_Position       moof_offset,
+                                     AP4_Position       mdat_payload_offset, // hack because MS doesn't implement the spec correctly
                                      AP4_UI64           dts_origin=0);
     virtual ~AP4_FragmentSampleTable();
 
@@ -84,7 +85,8 @@ private:
                        AP4_TfhdAtom*   tfhd, 
                        AP4_TrexAtom*   trex, 
                        AP4_ByteStream* sample_stream,
-                       AP4_Offset&     payload_offset,
+                       AP4_Position    moof_offset,
+                       AP4_Position&   payload_offset,
                        AP4_UI64&       dts_origin);
 
 };

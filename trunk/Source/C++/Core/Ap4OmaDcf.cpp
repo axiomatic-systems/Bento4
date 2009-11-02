@@ -397,7 +397,8 @@ AP4_OmaDcfCtrSampleDecrypter::~AP4_OmaDcfCtrSampleDecrypter()
 +---------------------------------------------------------------------*/
 AP4_Result 
 AP4_OmaDcfCtrSampleDecrypter::DecryptSampleData(AP4_DataBuffer& data_in,
-                                                AP4_DataBuffer& data_out)
+                                                AP4_DataBuffer& data_out,
+                                                const AP4_UI08* /*iv*/)
 {   
     bool                 is_encrypted = true;
     const unsigned char* in = data_in.GetData();
@@ -484,7 +485,8 @@ AP4_OmaDcfCbcSampleDecrypter::~AP4_OmaDcfCbcSampleDecrypter()
 +---------------------------------------------------------------------*/
 AP4_Result 
 AP4_OmaDcfCbcSampleDecrypter::DecryptSampleData(AP4_DataBuffer& data_in,
-                                                AP4_DataBuffer& data_out)
+                                                AP4_DataBuffer& data_out,
+                                                const AP4_UI08* /*iv*/)
 {   
     bool                 is_encrypted = true;
     const unsigned char* in = data_in.GetData();

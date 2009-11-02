@@ -126,6 +126,8 @@
 		CA8B6A810F66D82C00720A07 /* Ap4TfhdAtom.h in Headers */ = {isa = PBXBuildFile; fileRef = CA8B6A7F0F66D82C00720A07 /* Ap4TfhdAtom.h */; };
 		CA8B6AA10F66E2DC00720A07 /* Ap4TrunAtom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA8B6A9F0F66E2DC00720A07 /* Ap4TrunAtom.cpp */; };
 		CA8B6AA20F66E2DC00720A07 /* Ap4TrunAtom.h in Headers */ = {isa = PBXBuildFile; fileRef = CA8B6AA00F66E2DC00720A07 /* Ap4TrunAtom.h */; };
+		CA8E2B421092B71E0042A0AF /* Ap4Piff.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA8E2B401092B71E0042A0AF /* Ap4Piff.cpp */; };
+		CA8E2B431092B71E0042A0AF /* Ap4Piff.h in Headers */ = {isa = PBXBuildFile; fileRef = CA8E2B411092B71E0042A0AF /* Ap4Piff.h */; };
 		CA8FF65F1083E4500008965B /* Ap4SampleSource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA8FF65E1083E4500008965B /* Ap4SampleSource.cpp */; };
 		CA9366A00B437D040067D50B /* Ap4.h in Headers */ = {isa = PBXBuildFile; fileRef = CA9366100B437D030067D50B /* Ap4.h */; };
 		CA9366A10B437D040067D50B /* Ap4Array.h in Headers */ = {isa = PBXBuildFile; fileRef = CA9366110B437D030067D50B /* Ap4Array.h */; };
@@ -368,7 +370,7 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = CA2E6A3A1087E09200F837E2 /* Mp42Avc */;
+			remoteGlobalIDString = CA2E6A3A1087E09200F837E2;
 			remoteInfo = Mp42Avc;
 		};
 		CA40CB2D0F40DC160008649B /* PBXContainerItemProxy */ = {
@@ -763,6 +765,8 @@
 		CA8B6A7F0F66D82C00720A07 /* Ap4TfhdAtom.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4TfhdAtom.h; sourceTree = "<group>"; };
 		CA8B6A9F0F66E2DC00720A07 /* Ap4TrunAtom.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4TrunAtom.cpp; sourceTree = "<group>"; };
 		CA8B6AA00F66E2DC00720A07 /* Ap4TrunAtom.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4TrunAtom.h; sourceTree = "<group>"; };
+		CA8E2B401092B71E0042A0AF /* Ap4Piff.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4Piff.cpp; sourceTree = "<group>"; };
+		CA8E2B411092B71E0042A0AF /* Ap4Piff.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4Piff.h; sourceTree = "<group>"; };
 		CA8FF65E1083E4500008965B /* Ap4SampleSource.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4SampleSource.cpp; sourceTree = "<group>"; };
 		CA9366100B437D030067D50B /* Ap4.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = Ap4.h; sourceTree = "<group>"; };
 		CA9366110B437D030067D50B /* Ap4Array.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = Ap4Array.h; sourceTree = "<group>"; };
@@ -1431,6 +1435,8 @@
 		CA93660F0B437D030067D50B /* Core */ = {
 			isa = PBXGroup;
 			children = (
+				CA8E2B401092B71E0042A0AF /* Ap4Piff.cpp */,
+				CA8E2B411092B71E0042A0AF /* Ap4Piff.h */,
 				CA8FF65E1083E4500008965B /* Ap4SampleSource.cpp */,
 				CA2DBC7B108165330012E204 /* Ap4Mpeg2Ts.cpp */,
 				CA2DBC7C108165330012E204 /* Ap4Mpeg2Ts.h */,
@@ -1872,6 +1878,7 @@
 				CA04DFDF1040921500AD5863 /* Ap4KeyWrap.h in Headers */,
 				CA15CC33107DCEEF0085F329 /* Ap4SampleSource.h in Headers */,
 				CA2DBC7E108165330012E204 /* Ap4Mpeg2Ts.h in Headers */,
+				CA8E2B431092B71E0042A0AF /* Ap4Piff.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2689,6 +2696,7 @@
 				CA04DFDE1040921500AD5863 /* Ap4KeyWrap.cpp in Sources */,
 				CA2DBC7D108165330012E204 /* Ap4Mpeg2Ts.cpp in Sources */,
 				CA8FF65F1083E4500008965B /* Ap4SampleSource.cpp in Sources */,
+				CA8E2B421092B71E0042A0AF /* Ap4Piff.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

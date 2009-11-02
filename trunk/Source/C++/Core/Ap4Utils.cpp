@@ -171,7 +171,7 @@ AP4_SplitArgs(char* arg, char*& arg0, char*& arg1, char*& arg2)
 /*----------------------------------------------------------------------
 |   AP4_HexNibble
 +---------------------------------------------------------------------*/
-static unsigned char
+unsigned char
 AP4_HexNibble(char c)
 {
     switch (c) {
@@ -196,6 +196,21 @@ AP4_HexNibble(char c)
 }
 
 /*----------------------------------------------------------------------
+|   AP4_NibbleHex
++---------------------------------------------------------------------*/
+char
+AP4_NibbleHex(unsigned int nibble) 
+{
+    if (nibble < 10) {
+        return '0'+nibble;
+    } else if (nibble < 16) {
+        return 'A'+(nibble-10);
+    } else {
+        return ' ';
+    }
+}
+
+/*----------------------------------------------------------------------
 |   AP4_ParseHex
 +---------------------------------------------------------------------*/
 AP4_Result
@@ -205,6 +220,20 @@ AP4_ParseHex(const char* hex, unsigned char* bytes, unsigned int count)
     for (unsigned int i=0; i<count; i++) {
         bytes[i] = (AP4_HexNibble(hex[2*i]) << 4) | (AP4_HexNibble(hex[2*i+1]));
     }
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_FormatHex
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_FormatHex(const AP4_UI08* data, unsigned int data_size, char* hex)
+{
+    for (unsigned int i=0; i<data_size; i++) {
+        *hex++ = AP4_NibbleHex(data[i]>>4);
+        *hex++ = AP4_NibbleHex(data[i]&0x0F);
+    }
+    
     return AP4_SUCCESS;
 }
 

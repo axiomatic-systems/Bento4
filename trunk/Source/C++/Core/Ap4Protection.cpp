@@ -46,6 +46,7 @@
 #include "Ap4AesBlockCipher.h"
 #include "Ap4OmaDcf.h"
 #include "Ap4Marlin.h"
+#include "Ap4Piff.h"
 
 /*----------------------------------------------------------------------
 |   dynamic cast support
@@ -636,7 +637,56 @@ AP4_SampleDecrypter::Create(AP4_ProtectedSampleDescription* sample_description,
                                                                       decrypter);
             if (AP4_FAILED(result)) return NULL;
             return decrypter;
-       }
+        }
+
+        case AP4_PROTECTION_SCHEME_TYPE_PIFF: {
+            AP4_PiffSampleDecrypter* decrypter = NULL;
+            AP4_Result result = AP4_PiffSampleDecrypter::Create(sample_description, 
+                                                                NULL,
+                                                                key, 
+                                                                key_size, 
+                                                                block_cipher_factory, 
+                                                                decrypter);
+            if (AP4_FAILED(result)) return NULL;
+            return decrypter;
+        }
+        
+        default:
+            return NULL;
+    }
+
+    return NULL;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_SampleDecrypter:Create
++---------------------------------------------------------------------*/
+AP4_SampleDecrypter* 
+AP4_SampleDecrypter::Create(AP4_ProtectedSampleDescription* sample_description,
+                            AP4_ContainerAtom*              traf,
+                            const AP4_UI08*                 key,
+                            AP4_Size                        key_size,
+                            AP4_BlockCipherFactory*         block_cipher_factory)
+{
+    if (sample_description == NULL || traf == NULL || key == NULL) return NULL;
+
+    // select the block cipher factory
+    if (block_cipher_factory == NULL) {
+        block_cipher_factory = &AP4_DefaultBlockCipherFactory::Instance;
+    }
+
+    switch(sample_description->GetSchemeType()) {
+        case AP4_PROTECTION_SCHEME_TYPE_PIFF: {
+            AP4_PiffSampleDecrypter* decrypter = NULL;
+            AP4_Result result = AP4_PiffSampleDecrypter::Create(sample_description, 
+                                                                traf,
+                                                                key, 
+                                                                key_size, 
+                                                                block_cipher_factory, 
+                                                                decrypter);
+            if (AP4_FAILED(result)) return NULL;
+            return decrypter;
+        }
 
         default:
             return NULL;

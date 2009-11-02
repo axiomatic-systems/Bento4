@@ -44,7 +44,8 @@
 AP4_FragmentSampleTable::AP4_FragmentSampleTable(AP4_ContainerAtom* traf, 
                                                  AP4_TrexAtom*      trex,
                                                  AP4_ByteStream*    sample_stream,
-                                                 AP4_Offset         mdat_payload_offset,
+                                                 AP4_Position       moof_offset,
+                                                 AP4_Position       mdat_payload_offset,
                                                  AP4_UI64           dts_origin)
 {
     AP4_TfhdAtom* tfhd = AP4_DYNAMIC_CAST(AP4_TfhdAtom, traf->GetChild(AP4_ATOM_TYPE_TFHD));
@@ -70,11 +71,11 @@ AP4_FragmentSampleTable::AP4_FragmentSampleTable(AP4_ContainerAtom* traf,
         AP4_Atom* atom = item->GetData();
         if (atom->GetType() == AP4_ATOM_TYPE_TRUN) {
             AP4_TrunAtom* trun = AP4_DYNAMIC_CAST(AP4_TrunAtom, atom);
-            /* FIXME: should have: previous_trun_data_offset, */
             AP4_Result result = AddTrun(trun, 
                                         tfhd, 
                                         trex, 
                                         sample_stream, 
+                                        moof_offset,
                                         mdat_payload_offset,
                                         dts_origin);
             if (AP4_FAILED(result)) return;
@@ -97,7 +98,8 @@ AP4_FragmentSampleTable::AddTrun(AP4_TrunAtom*   trun,
                                  AP4_TfhdAtom*   tfhd, 
                                  AP4_TrexAtom*   trex,
                                  AP4_ByteStream* sample_stream,
-                                 AP4_Offset&     payload_offset,
+                                 AP4_Position    moof_offset,
+                                 AP4_Position&   payload_offset,
                                  AP4_UI64&       dts_origin)
 {
     AP4_Flags tfhd_flags = tfhd->GetFlags();
@@ -108,16 +110,20 @@ AP4_FragmentSampleTable::AddTrun(AP4_TrunAtom*   trun,
     m_Samples.SetItemCount(start + trun->GetEntries().ItemCount());
         
     // base data offset
-    AP4_UI64 data_offset = 0;
+    AP4_Position data_offset = 0;
     if (tfhd_flags & AP4_TFHD_FLAG_BASE_DATA_OFFSET_PRESENT) {
         data_offset = tfhd->GetBaseDataOffset();
-    }        
+    } else {
+        data_offset = moof_offset;
+    }
     if (trun_flags & AP4_TRUN_FLAG_DATA_OFFSET_PRESENT) {
         data_offset += trun->GetDataOffset();
     }         
     // MS hack
-    if (data_offset == 0) {
+    if (data_offset == moof_offset) {
         data_offset = payload_offset;
+    } else {
+        payload_offset = data_offset;
     }
         
     // sample description index

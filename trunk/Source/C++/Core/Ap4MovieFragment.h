@@ -43,6 +43,7 @@ class AP4_ByteStream;
 class AP4_ContainerAtom;
 class AP4_FragmentSampleTable;
 class AP4_Movie;
+class AP4_MoovAtom;
 
 /*----------------------------------------------------------------------
 |   constants
@@ -63,10 +64,18 @@ public:
     AP4_MfhdAtom*      GetMfhdAtom() { return m_MfhdAtom;}
     AP4_UI32           GetSequenceNumber();
     AP4_Result         GetTrackIds(AP4_Array<AP4_UI32>& ids);
+    AP4_Result         GetTrafAtom(AP4_UI32 track_id, AP4_ContainerAtom*& traf);
+    AP4_Result         CreateSampleTable(AP4_MoovAtom*             moov,
+                                         AP4_UI32                  track_id, 
+                                         AP4_ByteStream*           sample_stream,
+                                         AP4_Position              moof_offset,
+                                         AP4_Position              mdat_payload_offset, // hack because MS doesn't implement the spec properly
+                                         AP4_FragmentSampleTable*& sample_table);
     AP4_Result         CreateSampleTable(AP4_Movie*                movie,
                                          AP4_UI32                  track_id, 
                                          AP4_ByteStream*           sample_stream,
-                                         AP4_Offset                mdat_payload_offset, // hack because MS doesn't implement the spec properly
+                                         AP4_Position              moof_offset,
+                                         AP4_Position              mdat_payload_offset, // hack because MS doesn't implement the spec properly
                                          AP4_FragmentSampleTable*& sample_table);
     
 private:
