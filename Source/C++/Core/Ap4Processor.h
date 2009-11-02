@@ -45,7 +45,7 @@ class AP4_ContainerAtom;
 class AP4_ByteStream;
 class AP4_DataBuffer;
 class AP4_TrakAtom;
-class AP4_MoofLocator;
+struct AP4_MoofLocator;
 
 /*----------------------------------------------------------------------
 |   AP4_Processor

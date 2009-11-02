@@ -381,9 +381,9 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
               if (AP4_FAILED(result)) return result;
               
               if (AP4_CompareMemory(uuid, AP4_UUID_PIFF_TRACK_ENCRYPTION_ATOM, 16) == 0) {
-                  atom = AP4_PiffTrackEncryptionAtom::Create(size, stream);
+                  atom = AP4_PiffTrackEncryptionAtom::Create((AP4_Size)size, stream);
               } else if (AP4_CompareMemory(uuid, AP4_UUID_PIFF_SAMPLE_ENCRYPTION_ATOM, 16) == 0) {
-                  atom = AP4_PiffSampleEncryptionAtom::Create(size, stream);
+                  atom = AP4_PiffSampleEncryptionAtom::Create((AP4_Size)size, stream);
               } else {
                   atom = new AP4_UnknownUuidAtom(size, uuid, stream);
               }

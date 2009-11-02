@@ -1016,7 +1016,7 @@ AP4_PiffSampleEncryptionAtom::AP4_PiffSampleEncryptionAtom(AP4_UI32        size,
     AP4_Size payload_size = size-GetHeaderSize()-4;
     if ((flags & AP4_PIFF_SAMPLE_ENCRYPTION_FLAG_OVERRIDE_TRACK_ENCRYPTION_DEFAULTS) == 0) {
         if (m_IvCount) {
-            m_IvSize = payload_size/m_IvCount;
+            m_IvSize = (AP4_UI08)(payload_size/m_IvCount);
         }
     }
     m_Ivs.SetDataSize(payload_size);
