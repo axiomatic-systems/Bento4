@@ -92,13 +92,40 @@ AP4_MovieFragment::GetTrackIds(AP4_Array<AP4_UI32>& ids)
 }
 
 /*----------------------------------------------------------------------
+|   AP4_MovieFragment::GetTrafAtom
++---------------------------------------------------------------------*/
+AP4_Result         
+AP4_MovieFragment::GetTrafAtom(AP4_UI32 track_id, AP4_ContainerAtom*& traf)
+{
+    for (AP4_List<AP4_Atom>::Item* item = m_MoofAtom->GetChildren().FirstItem();
+                                   item;
+                                   item = item->GetNext()) {
+        AP4_Atom* atom = item->GetData();
+        if (atom->GetType() == AP4_ATOM_TYPE_TRAF) {
+            traf = AP4_DYNAMIC_CAST(AP4_ContainerAtom, atom);
+            if (traf) {
+                AP4_TfhdAtom* tfhd = AP4_DYNAMIC_CAST(AP4_TfhdAtom, traf->GetChild(AP4_ATOM_TYPE_TFHD));
+                if (tfhd && tfhd->GetTrackId() == track_id) {
+                    return AP4_SUCCESS;
+                }
+            }
+        }
+    }
+    
+    // not found
+    traf = NULL;
+    return AP4_ERROR_NO_SUCH_ITEM;
+}
+
+/*----------------------------------------------------------------------
 |   AP4_MovieFragment::CreateSampleTable
 +---------------------------------------------------------------------*/
 AP4_Result         
-AP4_MovieFragment::CreateSampleTable(AP4_Movie*                movie,
+AP4_MovieFragment::CreateSampleTable(AP4_MoovAtom*             moov,
                                      AP4_UI32                  track_id, 
                                      AP4_ByteStream*           sample_stream,
-                                     AP4_Offset                mdat_payload_offset,
+                                     AP4_Position              moof_offset,
+                                     AP4_Position              mdat_payload_offset,
                                      AP4_FragmentSampleTable*& sample_table)
 {
     // default value
@@ -107,8 +134,8 @@ AP4_MovieFragment::CreateSampleTable(AP4_Movie*                movie,
     // find a trex for this track, if any
     AP4_ContainerAtom* mvex = NULL;
     AP4_TrexAtom*      trex = NULL;
-    if (movie) {
-        mvex = AP4_DYNAMIC_CAST(AP4_ContainerAtom, movie->GetMoovAtom()->GetChild(AP4_ATOM_TYPE_MVEX));
+    if (moov) {
+        mvex = AP4_DYNAMIC_CAST(AP4_ContainerAtom, moov->GetChild(AP4_ATOM_TYPE_MVEX));
     }
     if (mvex) {
         for (AP4_List<AP4_Atom>::Item* item = mvex->GetChildren().FirstItem();
@@ -122,24 +149,30 @@ AP4_MovieFragment::CreateSampleTable(AP4_Movie*                movie,
             }
         }
     }
-    for (AP4_List<AP4_Atom>::Item* item = m_MoofAtom->GetChildren().FirstItem();
-                                   item;
-                                   item = item->GetNext()) {
-        AP4_Atom* atom = item->GetData();
-        if (atom->GetType() == AP4_ATOM_TYPE_TRAF) {
-            AP4_ContainerAtom* traf = AP4_DYNAMIC_CAST(AP4_ContainerAtom, atom);
-            if (traf) {
-                AP4_TfhdAtom* tfhd = AP4_DYNAMIC_CAST(AP4_TfhdAtom, traf->GetChild(AP4_ATOM_TYPE_TFHD));
-                if (tfhd && tfhd->GetTrackId() == track_id) {
-                    sample_table = new AP4_FragmentSampleTable(traf, 
-                                                               trex, 
-                                                               sample_stream,
-                                                               mdat_payload_offset);
-                    return AP4_SUCCESS;
-                }
-            }
-        }
+    AP4_ContainerAtom* traf = NULL;
+    if (AP4_SUCCEEDED(GetTrafAtom(track_id, traf))) {
+        sample_table = new AP4_FragmentSampleTable(traf, 
+                                                   trex, 
+                                                   sample_stream,
+                                                   moof_offset,
+                                                   mdat_payload_offset);
+        return AP4_SUCCESS;
     }
     
     return AP4_ERROR_NO_SUCH_ITEM;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_MovieFragment::CreateSampleTable
++---------------------------------------------------------------------*/
+AP4_Result         
+AP4_MovieFragment::CreateSampleTable(AP4_Movie*                movie,
+                                     AP4_UI32                  track_id, 
+                                     AP4_ByteStream*           sample_stream,
+                                     AP4_Position              moof_offset,
+                                     AP4_Position              mdat_payload_offset,
+                                     AP4_FragmentSampleTable*& sample_table)
+{
+    AP4_MoovAtom* moov = movie?movie->GetMoovAtom():NULL;
+    return CreateSampleTable(moov, track_id, sample_stream, moof_offset, mdat_payload_offset, sample_table);
 }

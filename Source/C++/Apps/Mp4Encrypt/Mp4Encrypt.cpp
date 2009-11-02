@@ -2,7 +2,7 @@
 |
 |    AP4 - MP4 Encrypter
 |
-|    Copyright 2002-2008 Axiomatic Systems, LLC
+|    Copyright 2002-2009 Axiomatic Systems, LLC
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -37,9 +37,9 @@
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-#define BANNER "MP4 Encrypter - Version 1.2\n"\
+#define BANNER "MP4 Encrypter - Version 1.3\n"\
                "(Bento4 Version " AP4_VERSION_STRING ")\n"\
-               "(c) 2002-2008 Axiomatic Systems, LLC"
+               "(c) 2002-2009 Axiomatic Systems, LLC"
 
 /*----------------------------------------------------------------------
 |   PrintUsageAndExit
@@ -52,7 +52,7 @@ PrintUsageAndExit()
         "\n\n"
         "usage: mp4encrypt --method <method> [options] <input> <output>\n"
         "  --method: <method> is OMA-PDCF-CBC, OMA-PDCF-CTR, MARLIN-IPMP-ACBC,\n"
-        "     MARLIN-IPMP-ACGK or ISMA-IAEC\n"
+        "     MARLIN-IPMP-ACGK, ISMA-IAEC, PIFF-CBC or PIFF-CTR\n"
         "  Options:\n"
         "  --show-progress: show progress details\n"
         "  --key <n>:<k>:<iv>\n"   
@@ -93,6 +93,8 @@ enum Method {
     METHOD_OMA_PDCF_CTR,
     METHOD_MARLIN_IPMP_ACBC,
     METHOD_MARLIN_IPMP_ACGK,
+    METHOD_PIFF_CBC,
+    METHOD_PIFF_CTR,
     METHOD_ISMA_AES
 }; 
 
@@ -146,6 +148,10 @@ main(int argc, char** argv)
                 method = METHOD_MARLIN_IPMP_ACBC;
             } else if (!strcmp(arg, "MARLIN-IPMP-ACGK")) {
                 method = METHOD_MARLIN_IPMP_ACGK;
+            } else if (!strcmp(arg, "PIFF-CBC")) {
+                method = METHOD_PIFF_CBC;
+            } else if (!strcmp(arg, "PIFF-CTR")) {
+                method = METHOD_PIFF_CTR;
             } else if (!strcmp(arg, "ISMA-IAEC")) {
                 method = METHOD_ISMA_AES;
             } else {
@@ -185,7 +191,11 @@ main(int argc, char** argv)
             if (AP4_ParseHex(key_ascii, key, 16)) {
                 fprintf(stderr, "ERROR: invalid hex format for key\n");
             }
-            if (AP4_ParseHex(iv_ascii, iv, 8)) {
+            unsigned int iv_size = 8;
+            if (method == METHOD_PIFF_CBC) {
+                iv_size = 16;
+            }
+            if (AP4_ParseHex(iv_ascii, iv, iv_size)) {
                 fprintf(stderr, "ERROR: invalid hex format for iv\n");
                 return 1;
             }
@@ -200,10 +210,12 @@ main(int argc, char** argv)
             char* track_ascii = NULL;
             char* name = NULL;
             char* value = NULL;
-            if (method != METHOD_OMA_PDCF_CBC && 
-                method != METHOD_OMA_PDCF_CTR &&
+            if (method != METHOD_OMA_PDCF_CBC     && 
+                method != METHOD_OMA_PDCF_CTR     &&
                 method != METHOD_MARLIN_IPMP_ACBC &&
-                method != METHOD_MARLIN_IPMP_ACGK) {
+                method != METHOD_MARLIN_IPMP_ACGK &&
+                method != METHOD_PIFF_CBC         &&
+                method != METHOD_PIFF_CTR) {
                 fprintf(stderr, "ERROR: this method does not use properties\n");
                 return 1;
             }
@@ -275,7 +287,8 @@ main(int argc, char** argv)
         marlin_processor->GetKeyMap().SetKeys(key_map);
         marlin_processor->GetPropertyMap().SetProperties(property_map);
         processor = marlin_processor;
-    } else {
+    } else if (method == METHOD_OMA_PDCF_CTR ||
+               method == METHOD_OMA_PDCF_CBC) {
         AP4_OmaDcfEncryptingProcessor* oma_processor = 
             new AP4_OmaDcfEncryptingProcessor(method == METHOD_OMA_PDCF_CTR?
                                               AP4_OMA_DCF_CIPHER_MODE_CTR :
@@ -283,8 +296,17 @@ main(int argc, char** argv)
         oma_processor->GetKeyMap().SetKeys(key_map);
         oma_processor->GetPropertyMap().SetProperties(property_map);
         processor = oma_processor;
+    } else if (method == METHOD_PIFF_CTR ||
+               method == METHOD_PIFF_CBC) {
+        AP4_PiffEncryptingProcessor* piff_processor = 
+        new AP4_PiffEncryptingProcessor(method == METHOD_PIFF_CTR?
+                                          AP4_PIFF_CIPHER_MODE_CTR :
+                                          AP4_PIFF_CIPHER_MODE_CBC);
+        piff_processor->GetKeyMap().SetKeys(key_map);
+        piff_processor->GetPropertyMap().SetProperties(property_map);
+        processor = piff_processor;
     }
-
+    
     // create the input stream
     AP4_Result result;
     AP4_ByteStream* input = NULL;

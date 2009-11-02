@@ -64,7 +64,7 @@ PrintUsageAndExit()
 |   ShowSample
 +---------------------------------------------------------------------*/
 static void
-ShowSample(AP4_Sample& sample, unsigned int index)
+ShowSample(AP4_Sample& sample, unsigned int index, AP4_SampleDecrypter* sample_decrypter)
 {
     printf("[%06d] size=%6d duration=%6d", 
            index, 
@@ -82,13 +82,21 @@ ShowSample(AP4_Sample& sample, unsigned int index)
 
     AP4_DataBuffer sample_data;
     sample.ReadData(sample_data);
-    unsigned int show = sample_data.GetDataSize();
+    AP4_DataBuffer* data = &sample_data;
+    
+    AP4_DataBuffer decrypted_sample_data;
+    if (sample_decrypter) {
+        sample_decrypter->DecryptSampleData(sample_data, decrypted_sample_data);
+        data = & decrypted_sample_data;
+    }
+    
+    unsigned int show = data->GetDataSize();
     if (show > 12) show = 12; // max first 12 chars
     
     for (unsigned int i=0; i<show; i++) {
-        printf("%02x", sample_data.GetData()[i]);
+        printf("%02x", data->GetData()[i]);
     }
-    if (show == sample_data.GetDataSize()) {
+    if (show == data->GetDataSize()) {
         printf("\n");
     } else {
         printf("...\n");
@@ -99,14 +107,40 @@ ShowSample(AP4_Sample& sample, unsigned int index)
 |   ProcessSamples
 +---------------------------------------------------------------------*/
 static int
-ProcessSamples(AP4_FragmentSampleTable* sample_table)
+ProcessSamples(AP4_Track*               track, 
+               AP4_ContainerAtom*       traf,
+               AP4_FragmentSampleTable* sample_table)
 {
+    // look at the first sample description
+    AP4_SampleDecrypter* sample_decrypter = NULL;
+    if (track) {
+        AP4_UI08 key_1[16] = {0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff};
+        AP4_UI08 key_2[16] = {0xAA, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff};
+        AP4_UI08* key = NULL;
+        AP4_Size key_size = 16;
+        if (track->GetId() == 1) {
+            key = key_1;
+        } else {
+            key = key_2;
+        }
+        AP4_SampleDescription* sample_description = track->GetSampleDescription(0);
+        if (sample_description->GetType() == AP4_SampleDescription::TYPE_PROTECTED) {
+            AP4_ProtectedSampleDescription* prot_desc = AP4_DYNAMIC_CAST(AP4_ProtectedSampleDescription, sample_description);
+            sample_decrypter = AP4_SampleDecrypter::Create(prot_desc,
+                                                           traf,
+                                                           key, 
+                                                           key_size,
+                                                           NULL);
+        }
+    }
+    
     printf("found %d samples\n", sample_table->GetSampleCount());
     for (unsigned int i=0; i<sample_table->GetSampleCount(); i++) {
         AP4_Sample sample;
         AP4_Result result = sample_table->GetSample(i, sample);
         CHECK(AP4_SUCCEEDED(result));
-        ShowSample(sample, i);
+        
+        ShowSample(sample, i, sample_decrypter);
     }
     
     return 0;
@@ -116,7 +150,11 @@ ProcessSamples(AP4_FragmentSampleTable* sample_table)
 |   ProcessMoof
 +---------------------------------------------------------------------*/
 static int
-ProcessMoof(AP4_Movie* movie, AP4_ContainerAtom* moof, AP4_ByteStream* sample_stream, AP4_Offset mdat_payload_offset)
+ProcessMoof(AP4_Movie*         movie, 
+            AP4_ContainerAtom* moof, 
+            AP4_ByteStream*    sample_stream, 
+            AP4_Position       moof_offset, 
+            AP4_Position       mdat_payload_offset)
 {
     AP4_Result result;
     
@@ -135,11 +173,18 @@ ProcessMoof(AP4_Movie* movie, AP4_ContainerAtom* moof, AP4_ByteStream* sample_st
     printf("\n");
     
     for (unsigned int i=0; i<ids.ItemCount(); i++) {
+        AP4_Track* track = NULL;
+        if (movie) {
+            track = movie->GetTrack(ids[i]);
+        }
+        AP4_ContainerAtom* traf = NULL;
+        fragment->GetTrafAtom(ids[i], traf);
+        
         printf("processing moof for track id %d\n", ids[i]);
-        result = fragment->CreateSampleTable(movie, ids[i], sample_stream, mdat_payload_offset, sample_table);
+        result = fragment->CreateSampleTable(movie, ids[i], sample_stream, moof_offset, mdat_payload_offset, sample_table);
         CHECK(result == AP4_SUCCESS || result == AP4_ERROR_NO_SUCH_ITEM);
-        if (AP4_SUCCEEDED(result)) {
-            ProcessSamples(sample_table);
+        if (AP4_SUCCEEDED(result) ) {
+            ProcessSamples(track, traf, sample_table);
             delete sample_table;
         } else {
             printf("no sample table for this track\n");
@@ -187,7 +232,7 @@ main(int argc, char** argv)
                     input->Tell(position);
         
                     // process the movie fragment
-                    ProcessMoof(movie, moof, input, position+8);
+                    ProcessMoof(movie, moof, input, position-atom->GetSize(), position+8);
 
                     // go back to where we were before processing the fragment
                     input->Seek(position);

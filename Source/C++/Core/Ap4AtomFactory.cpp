@@ -30,6 +30,7 @@
 |   includes
 +---------------------------------------------------------------------*/
 #include "Ap4Types.h"
+#include "Ap4Utils.h"
 #include "Ap4AtomFactory.h"
 #include "Ap4SampleEntry.h"
 #include "Ap4UuidAtom.h"
@@ -83,6 +84,7 @@
 #include "Ap4AvccAtom.h"
 #include "Ap4Marlin.h"
 #include "Ap48bdlAtom.h"
+#include "Ap4Piff.h"
 
 /*----------------------------------------------------------------------
 |   AP4_AtomFactory::~AP4_AtomFactory
@@ -373,9 +375,20 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
             break;
             
     #if !defined(AP4_CONFIG_MINI_BUILD)
-          case AP4_ATOM_TYPE_UUID:
-            atom = new AP4_UuidAtom(size, stream);
-            break;
+          case AP4_ATOM_TYPE_UUID: {
+              AP4_UI08 uuid[16];
+              result = stream.Read(uuid, 16);
+              if (AP4_FAILED(result)) return result;
+              
+              if (AP4_CompareMemory(uuid, AP4_UUID_PIFF_TRACK_ENCRYPTION_ATOM, 16) == 0) {
+                  atom = AP4_PiffTrackEncryptionAtom::Create(size, stream);
+              } else if (AP4_CompareMemory(uuid, AP4_UUID_PIFF_SAMPLE_ENCRYPTION_ATOM, 16) == 0) {
+                  atom = AP4_PiffSampleEncryptionAtom::Create(size, stream);
+              } else {
+                  atom = new AP4_UnknownUuidAtom(size, uuid, stream);
+              }
+              break;
+          }
             
           case AP4_ATOM_TYPE_8ID_:
             atom = new AP4_NullTerminatedStringAtom(type, size, stream);

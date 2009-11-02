@@ -150,7 +150,7 @@ private:
  * Abstract base class for all atom types.
  */
 class AP4_Atom {
- public:
+public:
      AP4_IMPLEMENT_DYNAMIC_CAST(AP4_Atom)
 
    // types
@@ -198,7 +198,7 @@ class AP4_Atom {
     void               SetFlags(AP4_UI32 flags) { m_Flags = flags; }
     Type               GetType() const { return m_Type; }
     void               SetType(Type type) { m_Type = type; }
-    AP4_Size           GetHeaderSize() const;
+    virtual AP4_Size   GetHeaderSize() const;
     AP4_UI64           GetSize() const { return m_Size32 == 1?m_Size64:m_Size32; }
     void               SetSize(AP4_UI64 size, bool force_64 = false);
     AP4_UI32           GetSize32() const { return m_Size32; }
@@ -261,6 +261,7 @@ public:
     virtual AP4_Result  RemoveChild(AP4_Atom* child);
     virtual AP4_Result  DeleteChild(AP4_Atom::Type type, AP4_Ordinal index = 0);
     virtual AP4_Atom*   GetChild(AP4_Atom::Type type, AP4_Ordinal index = 0) const;
+    virtual AP4_Atom*   GetChild(const AP4_UI08* uuid, AP4_Ordinal index = 0) const;
     virtual AP4_Atom*   FindChild(const char* path, 
                                   bool        auto_create = false,
                                   bool        auto_create_full = false);
@@ -426,6 +427,7 @@ const AP4_Atom::Type AP4_ATOM_TYPE_8ID_ = AP4_ATOM_TYPE('8','i','d',' ');
 const AP4_Atom::Type AP4_ATOM_TYPE_8BDL = AP4_ATOM_TYPE('8','b','d','l');
 const AP4_Atom::Type AP4_ATOM_TYPE_AC_3 = AP4_ATOM_TYPE('a','c','-','3');
 const AP4_Atom::Type AP4_ATOM_TYPE_EC_3 = AP4_ATOM_TYPE('e','c','-','3');
+const AP4_Atom::Type AP4_ATOM_TYPE_MFRA = AP4_ATOM_TYPE('m','f','r','a');
 
 /*----------------------------------------------------------------------
 |   AP4_AtomListInspector

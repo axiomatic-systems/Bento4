@@ -35,7 +35,11 @@
 #include "Ap4ContainerAtom.h"
 #include "Ap4AtomFactory.h"
 #include "Ap4Debug.h"
+#include "Ap4UuidAtom.h"
 
+/*----------------------------------------------------------------------
+|   constants
++---------------------------------------------------------------------*/
 static const unsigned int AP4_ATOM_MAX_CLONE_SIZE = 1048576; // 1 meg
 static const unsigned int AP4_UNKNOWN_ATOM_MAX_LOCAL_PAYLOAD_SIZE = 4096;
 
@@ -623,6 +627,27 @@ AP4_AtomParent::GetChild(AP4_Atom::Type type, AP4_Ordinal index /* = 0 */) const
     } else { 
         return NULL;
     }
+}
+
+/*----------------------------------------------------------------------
+|   AP4_AtomParent::GetChild
++---------------------------------------------------------------------*/
+AP4_Atom*
+AP4_AtomParent::GetChild(const AP4_UI08* uuid, AP4_Ordinal index /* = 0 */) const
+{
+    for (AP4_List<AP4_Atom>::Item* item = m_Children.FirstItem();
+                                   item;
+                                   item = item->GetNext()) {
+        AP4_Atom* atom = item->GetData();
+        if (atom->GetType() == AP4_ATOM_TYPE_UUID) {
+            AP4_UuidAtom* uuid_atom = AP4_DYNAMIC_CAST(AP4_UuidAtom, atom);
+            if (AP4_CompareMemory(uuid_atom->GetUuid(), uuid, 16) == 0) {
+                if (index == 0) return atom;
+                --index;
+            }
+        }
+    }
+    return NULL;
 }
 
 /*----------------------------------------------------------------------
