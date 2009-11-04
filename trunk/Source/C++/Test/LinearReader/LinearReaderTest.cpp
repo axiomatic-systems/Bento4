@@ -107,7 +107,7 @@ main(int argc, char** argv)
             CHECK(track_id == audio_track->GetId() || track_id == video_track->GetId());
             if (track_id == audio_track->GetId()) audio_sample_count++;
             if (track_id == video_track->GetId()) video_sample_count++;
-            printf("track_id=%d, size=%d, offset=%lld\n", track_id, sample.GetSize(), sample.GetOffset());
+            printf("track_id=%d, size=%d, offset=%lld\n", track_id, (int)sample.GetSize(), sample.GetOffset());
         } else {
             printf("track_id=%d, result=%d\n", track_id, result);
         }
@@ -128,7 +128,7 @@ main(int argc, char** argv)
             CHECK(offset < sample.GetOffset());
             offset = sample.GetOffset();
             audio_sample_count++;
-            printf("size=%d, offset=%lld\n", sample.GetSize(), sample.GetOffset());
+            printf("size=%d, offset=%lld\n", (int)sample.GetSize(), sample.GetOffset());
         } else {
             printf("result=%d\n", result);
         }
