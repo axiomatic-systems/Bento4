@@ -2990,7 +2990,6 @@
 		1DEB91EC08733DB70010E9CD /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = NO;
 				PRODUCT_NAME = Bento4;
 			};
 			name = Debug;
@@ -3127,9 +3126,6 @@
 		CA646AC60CE97C47009699D7 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = NO;
-				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_OPTIMIZATION_LEVEL = 0;
 				PRODUCT_NAME = Apps;
 			};
 			name = Debug;
@@ -3137,11 +3133,7 @@
 		CA646AC70CE97C47009699D7 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
-				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				PRODUCT_NAME = Apps;
-				ZERO_LINK = NO;
 			};
 			name = Release;
 		};
@@ -3288,9 +3280,6 @@
 		CA646B830CE97EF7009699D7 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = NO;
-				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_OPTIMIZATION_LEVEL = 0;
 				PRODUCT_NAME = Tests;
 			};
 			name = Debug;
@@ -3298,11 +3287,7 @@
 		CA646B840CE97EF7009699D7 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
-				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				PRODUCT_NAME = Tests;
-				ZERO_LINK = NO;
 			};
 			name = Release;
 		};
@@ -3346,9 +3331,6 @@
 		CAA97B390CF4D54E00C01909 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = NO;
-				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_OPTIMIZATION_LEVEL = 0;
 				PRODUCT_NAME = All;
 			};
 			name = Debug;
@@ -3356,11 +3338,7 @@
 		CAA97B3A0CF4D54E00C01909 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
-				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				PRODUCT_NAME = All;
-				ZERO_LINK = NO;
 			};
 			name = Release;
 		};
@@ -3421,7 +3399,6 @@
 				ATOMIX_HOME = "$(SRCROOT)/../../../../Atomix";
 				PRODUCT_NAME = Bento4Atomix;
 				USER_HEADER_SEARCH_PATHS = "$(ATOMIX_HOME)/**";
-				ZERO_LINK = NO;
 			};
 			name = Release;
 		};
@@ -3470,15 +3447,7 @@
 		F9FDDA2F0EA799000061DCB2 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
-				COPY_PHASE_STRIP = NO;
 				EXECUTABLE_PREFIX = lib;
-				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_ENABLE_FIX_AND_CONTINUE = YES;
-				GCC_MODEL_TUNING = G5;
-				GCC_OPTIMIZATION_LEVEL = 0;
-				INSTALL_PATH = /usr/local/lib;
-				PREBINDING = NO;
 				PRODUCT_NAME = Bento4C;
 			};
 			name = Debug;
@@ -3486,16 +3455,8 @@
 		F9FDDA300EA799000061DCB2 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
-				COPY_PHASE_STRIP = YES;
-				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				EXECUTABLE_PREFIX = lib;
-				GCC_ENABLE_FIX_AND_CONTINUE = NO;
-				GCC_MODEL_TUNING = G5;
-				INSTALL_PATH = /usr/local/lib;
-				PREBINDING = NO;
 				PRODUCT_NAME = Bento4C;
-				ZERO_LINK = NO;
 			};
 			name = Release;
 		};
