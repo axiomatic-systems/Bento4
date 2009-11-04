@@ -42,6 +42,7 @@
 #include "Ap4TrefTypeAtom.h"
 #include "Ap4ObjectDescriptor.h"
 #include "Ap4Command.h"
+#include "Ap4UuidAtom.h"
 
 /*----------------------------------------------------------------------
 |   constants

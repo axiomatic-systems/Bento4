@@ -159,7 +159,7 @@ main(int argc, char** argv)
                 if (nalu_type_name == NULL) nalu_type_name = "UNKNOWN";
                 printf("NALU %5d: size=%5d, type=%02d (%s)", 
                        nalu_count, 
-                       nalu->GetDataSize(),
+                       (int)nalu->GetDataSize(),
                        nalu_type,
                        nalu_type_name);
                 if (nalu_type == 9) {
