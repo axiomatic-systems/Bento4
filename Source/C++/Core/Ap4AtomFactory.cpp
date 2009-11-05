@@ -85,6 +85,8 @@
 #include "Ap4Marlin.h"
 #include "Ap48bdlAtom.h"
 #include "Ap4Piff.h"
+#include "Ap4TfraAtom.h"
+#include "Ap4MfroAtom.h"
 
 /*----------------------------------------------------------------------
 |   AP4_AtomFactory::~AP4_AtomFactory
@@ -314,6 +316,16 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
             atom = AP4_TrunAtom::Create(size_32, stream);
             break;
 
+          case AP4_ATOM_TYPE_TFRA:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_TfraAtom::Create(size_32, stream);
+            break;
+
+          case AP4_ATOM_TYPE_MFRO:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_MfroAtom::Create(size_32, stream);
+            break;
+
           case AP4_ATOM_TYPE_MDHD:
             if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
             atom = AP4_MdhdAtom::Create(size_32, stream);
@@ -530,6 +542,7 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
           case AP4_ATOM_TYPE_MVEX:
           case AP4_ATOM_TYPE_TRAF:
           case AP4_ATOM_TYPE_TREF:
+          case AP4_ATOM_TYPE_MFRA:
           case AP4_ATOM_TYPE_HNTI:
           case AP4_ATOM_TYPE_STBL:
           case AP4_ATOM_TYPE_MDIA:

@@ -231,11 +231,11 @@ AP4_Mpeg2TsWriter::Stream::WritePacketHeader(bool            payload_start,
     
     if (adaptation_field_size == 0) {
         // no adaptation field
-        header[3] = (1<<4) | (m_ContinuityCounter++)&0x0F;
+        header[3] = (1<<4) | ((m_ContinuityCounter++)&0x0F);
         output.Write(header, 4);
     } else {
         // adaptation field present
-        header[3] = (3<<4) | (m_ContinuityCounter++)&0x0F;
+        header[3] = (3<<4) | ((m_ContinuityCounter++)&0x0F);
         output.Write(header, 4);
         
         if (adaptation_field_size == 1) {

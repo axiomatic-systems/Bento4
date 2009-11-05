@@ -99,7 +99,9 @@ CORE_SOURCES = 								\
     Ap4KeyWrap.cpp 							\
     Ap4MovieFragment.cpp                    \
     Ap4FragmentSampleTable.cpp              \
-    Ap4Piff.cpp
+    Ap4Piff.cpp                             \
+    Ap4TfraAtom.cpp                         \
+    Ap4MfroAtom.cpp
     
 
 CORE_OBJECTS=$(CORE_SOURCES:.cpp=.o)
