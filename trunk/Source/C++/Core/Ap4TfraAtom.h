@@ -49,6 +49,7 @@ class AP4_TfraAtom : public AP4_Atom
 public:
     // types
     struct Entry {
+        Entry() : m_Time(0), m_MoofOffset(0), m_TrafNumber(0), m_TrunNumber(0), m_SampleNumber(0) {}
         AP4_UI64 m_Time;
         AP4_UI64 m_MoofOffset;
         AP4_UI32 m_TrafNumber;
