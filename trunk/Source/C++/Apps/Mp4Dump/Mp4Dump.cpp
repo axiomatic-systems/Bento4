@@ -272,12 +272,17 @@ main(int argc, char** argv)
             filename = arg;
             AP4_Result result = AP4_FileByteStream::Create(filename, AP4_FileByteStream::STREAM_MODE_READ, input);
             if (AP4_FAILED(result)) {
-                AP4_Debug("ERROR: cannot open input (%d)\n", result);
+                fprintf(stderr, "ERROR: cannot open input (%d)\n", result);
                 return 1;
             }
         }
     }
 
+    if (input == NULL) {
+        fprintf(stderr, "ERROR: no input specified\n");
+        return 1;
+    }
+    
     // open the output
     AP4_ByteStream* output = NULL;
     AP4_FileByteStream::Create("-stdout", AP4_FileByteStream::STREAM_MODE_WRITE, output);

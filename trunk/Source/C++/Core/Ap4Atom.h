@@ -428,6 +428,8 @@ const AP4_Atom::Type AP4_ATOM_TYPE_8BDL = AP4_ATOM_TYPE('8','b','d','l');
 const AP4_Atom::Type AP4_ATOM_TYPE_AC_3 = AP4_ATOM_TYPE('a','c','-','3');
 const AP4_Atom::Type AP4_ATOM_TYPE_EC_3 = AP4_ATOM_TYPE('e','c','-','3');
 const AP4_Atom::Type AP4_ATOM_TYPE_MFRA = AP4_ATOM_TYPE('m','f','r','a');
+const AP4_Atom::Type AP4_ATOM_TYPE_TFRA = AP4_ATOM_TYPE('t','f','r','a');
+const AP4_Atom::Type AP4_ATOM_TYPE_MFRO = AP4_ATOM_TYPE('m','f','r','o');
 
 /*----------------------------------------------------------------------
 |   AP4_AtomListInspector

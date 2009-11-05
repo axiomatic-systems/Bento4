@@ -143,7 +143,7 @@ AP4_TrunAtom::AP4_TrunAtom(AP4_UI32        size,
         }
     
         // skip unknown fields 
-        for (int i=0;i<record_fields_count; i++) {
+        for (int j=0;j<record_fields_count; j++) {
             AP4_UI32 discard;
             stream.ReadUI32(discard);
         }

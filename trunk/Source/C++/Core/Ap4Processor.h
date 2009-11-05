@@ -226,6 +226,7 @@ protected:
 
     AP4_Result ProcessFragments(AP4_MoovAtom*              moov, 
                                 AP4_List<AP4_MoofLocator>& moofs, 
+                                AP4_ContainerAtom*         mfra,
                                 AP4_ByteStream&            input, 
                                 AP4_ByteStream&            output);
     

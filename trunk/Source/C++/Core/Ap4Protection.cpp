@@ -480,7 +480,8 @@ AP4_TrackPropertyMap::GetTextualHeaders(AP4_UI32 track_id, AP4_DataBuffer& textu
         if (entry->m_TrackId == track_id) {
             const char* name = entry->m_Name.GetChars();
             if (AP4_CompareStrings(name, "ContentId")       != 0 &&
-                AP4_CompareStrings(name, "RightsIssuerUrl") != 0) {   
+                AP4_CompareStrings(name, "RightsIssuerUrl") != 0 &&   
+                AP4_CompareStrings(name, "KID")             != 0) {   
                 buffer_size += (entry->m_Name.GetLength()  + 
                                 entry->m_Value.GetLength() +
                                 2); // colon + nul 
@@ -506,7 +507,8 @@ AP4_TrackPropertyMap::GetTextualHeaders(AP4_UI32 track_id, AP4_DataBuffer& textu
             AP4_Size    value_len  = 0;
             
             if (AP4_CompareStrings(name, "ContentId")       != 0 &&
-                AP4_CompareStrings(name, "RightsIssuerUrl") != 0) {   
+                AP4_CompareStrings(name, "RightsIssuerUrl") != 0 &&
+                AP4_CompareStrings(name, "KID")             != 0) {   
                 name_len  = entry->m_Name.GetLength();
                 value     = entry->m_Value.GetChars();
                 value_len = entry->m_Value.GetLength();                
