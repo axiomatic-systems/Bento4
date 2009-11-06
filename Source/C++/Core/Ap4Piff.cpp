@@ -44,6 +44,7 @@
 #include "Ap4HdlrAtom.h"
 #include "Ap4TrunAtom.h"
 #include "Ap4TfhdAtom.h"
+#include "Ap4Marlin.h"
 
 /*----------------------------------------------------------------------
 |   constants
@@ -626,7 +627,8 @@ AP4_PiffSampleDecrypter::Create(AP4_ProtectedSampleDescription* sample_descripti
     // create the block cipher needed to decrypt the samples
     AP4_UI32     algorithm_id;
     unsigned int iv_size;
-    if (sample_encryption_atom->GetFlags() & AP4_PIFF_SAMPLE_ENCRYPTION_FLAG_OVERRIDE_TRACK_ENCRYPTION_DEFAULTS) {
+    if (sample_encryption_atom &&
+        sample_encryption_atom->GetFlags() & AP4_PIFF_SAMPLE_ENCRYPTION_FLAG_OVERRIDE_TRACK_ENCRYPTION_DEFAULTS) {
         algorithm_id = sample_encryption_atom->GetAlgorithmId();
         iv_size      = sample_encryption_atom->GetIvSize();
     } else {
