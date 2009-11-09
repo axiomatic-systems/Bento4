@@ -127,13 +127,21 @@ AP4_SampleDescription*
 AP4_EncaSampleEntry::ToTargetSampleDescription(AP4_UI32 format)
 {
     switch (format) {
-        case AP4_ATOM_TYPE_MP4A:
+        case AP4_ATOM_TYPE_MP4A: {
+            AP4_EsdsAtom* esds = AP4_DYNAMIC_CAST(AP4_EsdsAtom, GetChild(AP4_ATOM_TYPE_ESDS));
+            if (esds == NULL) {
+                // check if this is a quicktime style sample description
+                if (m_QtVersion > 0) {
+                    esds = AP4_DYNAMIC_CAST(AP4_EsdsAtom, FindChild("wave/esds"));
+                }
+            }
             return new AP4_MpegAudioSampleDescription(
                 GetSampleRate(),
                 GetSampleSize(),
                 GetChannelCount(),
-                AP4_DYNAMIC_CAST(AP4_EsdsAtom, GetChild(AP4_ATOM_TYPE_ESDS)));
-
+                esds);
+        }
+        
         default:
             return new AP4_GenericAudioSampleDescription(
                 format,
