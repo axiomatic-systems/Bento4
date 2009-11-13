@@ -52,7 +52,7 @@
 #if !defined(AP4_PLATFORM_BYTE_ORDER)
 #if defined(__ppc__)
 #define AP4_PLATFORM_BYTE_ORDER AP4_PLATFORM_BYTE_ORDER_BIG_ENDIAN
-#elif defined(__i386__) || defined(__x86_64__)
+#elif defined(__i386__) || defined(__x86_64__) || defined(__arm__)
 #define AP4_PLATFORM_BYTE_ORDER AP4_PLATFORM_BYTE_ORDER_LITTLE_ENDIAN
 #endif
 #endif
