@@ -577,22 +577,42 @@ const char*
 AP4_MpegAudioSampleDescription::GetMpeg4AudioObjectTypeString(Mpeg4AudioObjectType type)
 {
     switch (type) {
-        case AP4_MPEG4_AUDIO_OBJECT_TYPE_AAC_MAIN:        return "AAC Main Profile";
-        case AP4_MPEG4_AUDIO_OBJECT_TYPE_AAC_LC:          return "AAC Low Complexity";
-        case AP4_MPEG4_AUDIO_OBJECT_TYPE_AAC_SSR:         return "AAC Scalable Sample Rate";
-        case AP4_MPEG4_AUDIO_OBJECT_TYPE_AAC_LTP:         return "AAC Long Term Predictor";
-        case AP4_MPEG4_AUDIO_OBJECT_TYPE_SBR:             return "Spectral Band Replication";
-        case AP4_MPEG4_AUDIO_OBJECT_TYPE_AAC_SCALABLE:    return "AAC Scalable";
-        case AP4_MPEG4_AUDIO_OBJECT_TYPE_TWINVQ:          return "Twin VQ";
-        case AP4_MPEG4_AUDIO_OBJECT_TYPE_ER_AAC_LC:       return "Error Resilient AAC Low Complexity";
-        case AP4_MPEG4_AUDIO_OBJECT_TYPE_ER_AAC_LTP:      return "Error Resilient AAC Long Term Prediction";
-        case AP4_MPEG4_AUDIO_OBJECT_TYPE_ER_AAC_SCALABLE: return "Error Resilient AAC Scalable";
-        case AP4_MPEG4_AUDIO_OBJECT_TYPE_ER_TWINVQ:       return "Error Resilient Twin VQ";
-        case AP4_MPEG4_AUDIO_OBJECT_TYPE_ER_BSAC:         return "Error Resilient Bit Sliced Arithmetic Coding";
-        case AP4_MPEG4_AUDIO_OBJECT_TYPE_ER_AAC_LD:       return "Error Resilient AAC Low Delay";
-        case AP4_MPEG4_AUDIO_OBJECT_TYPE_LAYER_1:         return "MPEG Layer 1";
-        case AP4_MPEG4_AUDIO_OBJECT_TYPE_LAYER_2:         return "MPEG Layer 2";
-        case AP4_MPEG4_AUDIO_OBJECT_TYPE_LAYER_3:         return "MPEG Layer 3";
-        default:                                          return "UNKNOWN";
+        case AP4_MPEG4_AUDIO_OBJECT_TYPE_AAC_MAIN:                return "AAC Main Profile";
+        case AP4_MPEG4_AUDIO_OBJECT_TYPE_AAC_LC:                  return "AAC Low Complexity";
+        case AP4_MPEG4_AUDIO_OBJECT_TYPE_AAC_SSR:                 return "AAC Scalable Sample Rate";
+        case AP4_MPEG4_AUDIO_OBJECT_TYPE_AAC_LTP:                 return "AAC Long Term Predictor";
+        case AP4_MPEG4_AUDIO_OBJECT_TYPE_SBR:                     return "Spectral Band Replication";
+        case AP4_MPEG4_AUDIO_OBJECT_TYPE_AAC_SCALABLE:            return "AAC Scalable";
+        case AP4_MPEG4_AUDIO_OBJECT_TYPE_TWINVQ:                  return "Twin VQ";
+        case AP4_MPEG4_AUDIO_OBJECT_TYPE_CELP:                    return "CELP";
+        case AP4_MPEG4_AUDIO_OBJECT_TYPE_HVXC:                    return "HVXC";
+        case AP4_MPEG4_AUDIO_OBJECT_TYPE_TTSI:                    return "TTSI";
+        case AP4_MPEG4_AUDIO_OBJECT_TYPE_MAIN_SYNTHETIC:          return "Main Synthetic";
+        case AP4_MPEG4_AUDIO_OBJECT_TYPE_WAVETABLE_SYNTHESIS:     return "Wavetable Synthesis";
+        case AP4_MPEG4_AUDIO_OBJECT_TYPE_GENERAL_MIDI:            return "General MIDI";
+        case AP4_MPEG4_AUDIO_OBJECT_TYPE_ALGORITHMIC_SYNTHESIS:   return "Algorithmic Synthesis";
+        case AP4_MPEG4_AUDIO_OBJECT_TYPE_ER_AAC_LC:               return "Error Resilient AAC Low Complexity";
+        case AP4_MPEG4_AUDIO_OBJECT_TYPE_ER_AAC_LTP:              return "Error Resilient AAC Long Term Prediction";
+        case AP4_MPEG4_AUDIO_OBJECT_TYPE_ER_AAC_SCALABLE:         return "Error Resilient AAC Scalable";
+        case AP4_MPEG4_AUDIO_OBJECT_TYPE_ER_TWINVQ:               return "Error Resilient Twin VQ";
+        case AP4_MPEG4_AUDIO_OBJECT_TYPE_ER_BSAC:                 return "Error Resilient Bit Sliced Arithmetic Coding";
+        case AP4_MPEG4_AUDIO_OBJECT_TYPE_ER_AAC_LD:               return "Error Resilient AAC Low Delay";
+        case AP4_MPEG4_AUDIO_OBJECT_TYPE_ER_CELP:                 return "Error Resilient CELP";
+        case AP4_MPEG4_AUDIO_OBJECT_TYPE_ER_HVXC:                 return "Error Resilient HVXC";
+        case AP4_MPEG4_AUDIO_OBJECT_TYPE_ER_HILN:                 return "Error Resilient HILN";
+        case AP4_MPEG4_AUDIO_OBJECT_TYPE_ER_PARAMETRIC:           return "Error Resilient Parametric";
+        case AP4_MPEG4_AUDIO_OBJECT_TYPE_SSC:                     return "SSC";
+        case AP4_MPEG4_AUDIO_OBJECT_TYPE_MPEG_SURROUND:           return "MPEG Surround";
+        case AP4_MPEG4_AUDIO_OBJECT_TYPE_LAYER_1:                 return "MPEG Layer 1";
+        case AP4_MPEG4_AUDIO_OBJECT_TYPE_LAYER_2:                 return "MPEG Layer 2";
+        case AP4_MPEG4_AUDIO_OBJECT_TYPE_LAYER_3:                 return "MPEG Layer 3";
+        case AP4_MPEG4_AUDIO_OBJECT_TYPE_DST:                     return "Direct Stream Transfer";
+        case AP4_MPEG4_AUDIO_OBJECT_TYPE_ALS:                     return "ALS Lossless Coding";
+        case AP4_MPEG4_AUDIO_OBJECT_TYPE_SLS:                     return "SLS Scalable Lossless Coding";
+        case AP4_MPEG4_AUDIO_OBJECT_TYPE_SLS_NON_CORE:            return "SLS Scalable Lossless Coding (Non Core)";
+        case AP4_MPEG4_AUDIO_OBJECT_TYPE_ER_AAC_ELD:              return "Error Resilient AAC ELD";
+        case AP4_MPEG4_AUDIO_OBJECT_TYPE_SMR_SIMPLE:              return "SMR Simple";
+        case AP4_MPEG4_AUDIO_OBJECT_TYPE_SMR_MAIN:                return "SMR Main";
+        default:                                                  return "UNKNOWN";
     }
 }

@@ -34,6 +34,7 @@
 
 #include "Ap4.h"
 #include "Ap4BitStream.h"
+#include "Ap4Mp4AudioInfo.h"
 
 /*----------------------------------------------------------------------
 |   constants
@@ -229,6 +230,28 @@ ShowMpegAudioSampleDescription(AP4_MpegAudioSampleDescription& mpeg_audio_desc)
         mpeg_audio_desc.GetMpeg4AudioObjectType();
     const char* object_type_string = AP4_MpegAudioSampleDescription::GetMpeg4AudioObjectTypeString(object_type);
     printf("    MPEG-4 Audio Object Type: %s\n", object_type_string);
+    
+    // Decoder Specific Info
+    const AP4_DataBuffer& dsi = mpeg_audio_desc.GetDecoderInfo();
+    if (dsi.GetDataSize()) {
+        AP4_Mp4AudioDecoderConfig dec_config;
+        AP4_Result result = dec_config.Parse(dsi.GetData(), dsi.GetDataSize());
+        if (AP4_SUCCEEDED(result)) {
+            printf("    MPEG-4 Audio Decoder Config:\n");
+            printf("      Sampling Frequency: %d\n", dec_config.m_SamplingFrequency);
+            printf("      Channels: %d\n", dec_config.m_ChannelCount);
+            if (dec_config.m_Extension.m_ObjectType) {
+                object_type_string = AP4_MpegAudioSampleDescription::GetMpeg4AudioObjectTypeString(
+                    dec_config.m_Extension.m_ObjectType);
+
+                printf("      Extension:\n");
+                printf("        Object Type: %s\n", object_type_string);
+                printf("        SBR Present: %s\n", dec_config.m_Extension.m_SbrPresent?"yes":"no");
+                printf("        PS Present:  %s\n", dec_config.m_Extension.m_PsPresent?"yes":"no");
+                printf("        Sampling Frequency: %d\n", dec_config.m_Extension.m_SamplingFrequency);
+            }
+        }
+    }
 }
 
 /*----------------------------------------------------------------------
@@ -267,19 +290,6 @@ ShowSampleDescription(AP4_SampleDescription& description, bool verbose)
             if (mpeg_audio_desc) ShowMpegAudioSampleDescription(*mpeg_audio_desc);
         }
     }
-    if (desc->GetType() == AP4_SampleDescription::TYPE_AVC) {
-        // AVC Sample Description
-        AP4_AvcSampleDescription* avc_desc = AP4_DYNAMIC_CAST(AP4_AvcSampleDescription, desc);
-        const char* profile_name = AP4_AvccAtom::GetProfileName(avc_desc->GetProfile());
-        if (profile_name) {
-            printf("    AVC Profile:          %s\n", profile_name);
-        } else {
-            printf("    AVC Profile:          %d\n", avc_desc->GetProfile());
-        }
-        printf("    AVC Profile Compat:   %x\n", avc_desc->GetProfileCompatibility());
-        printf("    AVC Level:            %d\n", avc_desc->GetLevel());
-        printf("    AVC NALU Length Size: %d\n", avc_desc->GetNaluLengthSize());
-    }
     AP4_AudioSampleDescription* audio_desc = 
         AP4_DYNAMIC_CAST(AP4_AudioSampleDescription, desc);
     if (audio_desc) {
@@ -296,6 +306,21 @@ ShowSampleDescription(AP4_SampleDescription& description, bool verbose)
         printf("    Height:      %d\n", video_desc->GetHeight());
         printf("    Depth:       %d\n", video_desc->GetDepth());
     }
+
+    // AVC specifics
+    if (desc->GetType() == AP4_SampleDescription::TYPE_AVC) {
+        // AVC Sample Description
+        AP4_AvcSampleDescription* avc_desc = AP4_DYNAMIC_CAST(AP4_AvcSampleDescription, desc);
+        const char* profile_name = AP4_AvccAtom::GetProfileName(avc_desc->GetProfile());
+        if (profile_name) {
+            printf("    AVC Profile:          %s\n", profile_name);
+        } else {
+            printf("    AVC Profile:          %d\n", avc_desc->GetProfile());
+        }
+        printf("    AVC Profile Compat:   %x\n", avc_desc->GetProfileCompatibility());
+        printf("    AVC Level:            %d\n", avc_desc->GetLevel());
+        printf("    AVC NALU Length Size: %d\n", avc_desc->GetNaluLengthSize());
+    }    
 }
 
 /*----------------------------------------------------------------------
