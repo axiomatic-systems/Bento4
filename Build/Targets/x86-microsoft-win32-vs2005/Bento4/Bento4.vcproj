@@ -790,6 +790,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\..\Source\C++\Codecs\Ap4Mp4AudioInfo.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\Source\C++\Core\Ap4Mpeg2Ts.cpp"
 				>
 			</File>
@@ -1229,6 +1233,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\..\Source\C++\Core\Ap4MovieFragment.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\Source\C++\Codecs\Ap4Mp4AudioInfo.h"
 				>
 			</File>
 			<File

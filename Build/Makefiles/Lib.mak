@@ -101,7 +101,7 @@ CORE_SOURCES = 								\
     Ap4FragmentSampleTable.cpp              \
     Ap4Piff.cpp                             \
     Ap4TfraAtom.cpp                         \
-    Ap4MfroAtom.cpp
+    Ap4MfroAtom.cpp							
     
 
 CORE_OBJECTS=$(CORE_SOURCES:.cpp=.o)
@@ -115,7 +115,7 @@ METADATA_OBJECTS = $(METADATA_SOURCES:.cpp=.o)
 SYSTEM_SOURCES = $(FILE_BYTE_STREAM_IMPLEMENTATION).cpp
 SYSTEM_OBJECTS = $(SYSTEM_SOURCES:.cpp=.o)
 
-CODECS_SOURCES = Ap4AdtsParser.cpp Ap4BitStream.cpp
+CODECS_SOURCES = Ap4AdtsParser.cpp Ap4BitStream.cpp Ap4Mp4AudioInfo.cpp
 CODECS_OBJECTS = $(CODECS_SOURCES:.cpp=.o)
 
 TARGET_SOURCES = $(CORE_SOURCES) $(SYSTEM_SOURCES) $(METADATA_SOURCES) $(CRYPTO_SOURCES) $(CODECS_SOURCES)

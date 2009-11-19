@@ -295,6 +295,8 @@
 		CAA033320DF7D4CC0086EC1C /* Ap4Command.h in Headers */ = {isa = PBXBuildFile; fileRef = CAA033310DF7D4CC0086EC1C /* Ap4Command.h */; };
 		CAA033680DF7E2FA0086EC1C /* Ap4Ipmp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAA033660DF7E2FA0086EC1C /* Ap4Ipmp.cpp */; };
 		CAA033690DF7E2FA0086EC1C /* Ap4Ipmp.h in Headers */ = {isa = PBXBuildFile; fileRef = CAA033670DF7E2FA0086EC1C /* Ap4Ipmp.h */; };
+		CAA4FF2010B2CBB3009C8F5B /* Ap4Mp4AudioInfo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAA4FF1E10B2CBB3009C8F5B /* Ap4Mp4AudioInfo.cpp */; };
+		CAA4FF2110B2CBB3009C8F5B /* Ap4Mp4AudioInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = CAA4FF1F10B2CBB3009C8F5B /* Ap4Mp4AudioInfo.h */; };
 		CAA88EBB10A2069900178BE3 /* Ap4NeptuneAdapters.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAA88EB910A2069900178BE3 /* Ap4NeptuneAdapters.cpp */; };
 		CAA88EBC10A2069900178BE3 /* Ap4NeptuneAdapters.h in Headers */ = {isa = PBXBuildFile; fileRef = CAA88EBA10A2069900178BE3 /* Ap4NeptuneAdapters.h */; };
 		CAB3CB770FCB35C4007C4260 /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
@@ -940,6 +942,8 @@
 		CAA033310DF7D4CC0086EC1C /* Ap4Command.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4Command.h; sourceTree = "<group>"; };
 		CAA033660DF7E2FA0086EC1C /* Ap4Ipmp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4Ipmp.cpp; sourceTree = "<group>"; };
 		CAA033670DF7E2FA0086EC1C /* Ap4Ipmp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4Ipmp.h; sourceTree = "<group>"; };
+		CAA4FF1E10B2CBB3009C8F5B /* Ap4Mp4AudioInfo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4Mp4AudioInfo.cpp; sourceTree = "<group>"; };
+		CAA4FF1F10B2CBB3009C8F5B /* Ap4Mp4AudioInfo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4Mp4AudioInfo.h; sourceTree = "<group>"; };
 		CAA88EA910A2064500178BE3 /* libBento4Neptune.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libBento4Neptune.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		CAA88EB910A2069900178BE3 /* Ap4NeptuneAdapters.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4NeptuneAdapters.cpp; sourceTree = "<group>"; };
 		CAA88EBA10A2069900178BE3 /* Ap4NeptuneAdapters.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4NeptuneAdapters.h; sourceTree = "<group>"; };
@@ -1695,6 +1699,8 @@
 		CA9367F90B4383F00067D50B /* Codecs */ = {
 			isa = PBXGroup;
 			children = (
+				CAA4FF1E10B2CBB3009C8F5B /* Ap4Mp4AudioInfo.cpp */,
+				CAA4FF1F10B2CBB3009C8F5B /* Ap4Mp4AudioInfo.h */,
 				CA9367FA0B4383F00067D50B /* Ap4AdtsParser.cpp */,
 				CA9367FB0B4383F00067D50B /* Ap4AdtsParser.h */,
 				CA9367FC0B4383F00067D50B /* Ap4BitStream.cpp */,
@@ -1916,6 +1922,7 @@
 				CA8E2B431092B71E0042A0AF /* Ap4Piff.h in Headers */,
 				CA91A81310A24D38008618FE /* Ap4TfraAtom.h in Headers */,
 				CA91A84D10A29A56008618FE /* Ap4MfroAtom.h in Headers */,
+				CAA4FF2110B2CBB3009C8F5B /* Ap4Mp4AudioInfo.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2762,6 +2769,7 @@
 				CA8E2B421092B71E0042A0AF /* Ap4Piff.cpp in Sources */,
 				CA91A81210A24D38008618FE /* Ap4TfraAtom.cpp in Sources */,
 				CA91A84C10A29A56008618FE /* Ap4MfroAtom.cpp in Sources */,
+				CAA4FF2010B2CBB3009C8F5B /* Ap4Mp4AudioInfo.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
