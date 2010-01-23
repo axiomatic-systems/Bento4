@@ -1,96 +1,105 @@
 import os
 import re
 import sys
+import platform
 
-which_gcc_popen = os.popen('which arm-eabi-gcc')
-which_gcc = which_gcc_popen.readline().replace('\n','').replace('\r','')
-which_gcc_popen.close()
-m = re.match(r'(.+)/prebuilt/.+', which_gcc)
-if not m:
-    raise(Exception('incompatible or unavailable prebuilt gcc'))
-DROID_ROOT = m.group(1)
-DROID_TOOLCHAIN = which_gcc.replace('/bin/arm-eabi-gcc','')
-print DROID_TOOLCHAIN
-print 'DROID_ROOT =', DROID_ROOT
+ANDROID_NDK_ROOT=os.getenv('ANDROID_NDK_ROOT')
+if not ANDROID_NDK_ROOT:
+    raise Exception('ANDROID_NDK_ROOT environment variable not set')
 
-DROID_ALIB      = DROID_ROOT+'/out/target/product/generic/obj/lib'
+ANRDOID_NDK_OUT=ANDROID_NDK_ROOT+'/out'
+ANDROID_TOOLCHAIN='arm-eabi-4.2.1'
+if env.has_key('target_variant'):
+	ANDROID_PLATFORM=env['target_variant']
+else:
+	ANDROID_PLATFORM='android-3'
+print ANDROID_PLATFORM
 
-droid_includes = ['system/core/include',
-                  'hardware/libhardware/include',
-                   'hardware/ril/include',
-                   'dalvik/libnativehelper/include',
-                   'frameworks/base/include',
-                   'external/skia/include',
-                   'out/target/product/generic/obj/include',
-                   'bionic/libc/arch-arm/include',
-                   'bionic/libc/include',
-                   'bionic/libstdc++/include',
-                   'bionic/libc/kernel/common',
-                   'bionic/libc/kernel/arch-arm',
-                   'bionic/libm/include',
-                   'bionic/libm/include/arch/arm',
-                   'bionic/libthread_db/include',
-                   'bionic/libm/arm',
-                   'bionic/libm',
-                   'out/target/product/generic/obj/SHARED_LIBRARIES/libm_intermediates']
+### parse the host config file
+try:
+  host_config = open(ANRDOID_NDK_OUT+'/host/config.mk')
+except:
+  raise Exception('ANDROID NDK not configured, use host-setup.sh to configure it')
+  
+HOST_CONFIG={}
+for line in host_config.readlines():
+    pair = re.split('\s+:=\s+', line);
+    if len(pair) == 2:
+        HOST_CONFIG[pair[0]] = pair[1].rstrip()
+        
+host_config.close()
 
-droid_extras = ['-include', DROID_ROOT+'/system/core/include/arch/linux-arm/AndroidConfig.h',
-                '-march=armv5te',
-                 '-mtune=xscale',
-                 '-msoft-float',
-                 '-mthumb-interwork',
-                 '-fpic',
-                 '-ffunction-sections',
-                 '-funwind-tables',
-                 '-fstack-protector',
-                 '-fmessage-length=0',
-                 '-fno-short-enums']
+### check the android toolchain
+ANDROID_TOOLCHAIN_ROOT = ANDROID_NDK_ROOT+'/build/prebuilt/'+HOST_CONFIG['HOST_TAG']+'/'+ANDROID_TOOLCHAIN
+ANDROID_TOOLCHAIN_BIN  = ANDROID_TOOLCHAIN_ROOT+'/bin'
+if not os.path.exists(ANDROID_TOOLCHAIN_BIN):
+    raise Exception('ANDROID toolchain not found: '+ANDROID_TOOLCHAIN_BIN)
 
-droid_extras_cpp = ['-fno-exceptions',
-                    '-fno-rtti']
+ANDROID_PLATFORM_ROOT   = ANDROID_NDK_ROOT+'/build/platforms/'+ANDROID_PLATFORM
+ANDROID_PLATFORM_ARM    = ANDROID_PLATFORM_ROOT+'/arch-arm'
+ANDROID_PLATFORM_COMMON = ANDROID_PLATFORM_ROOT+'/common'
 
-droid_defines = ['-DANDROID',
-                 '-D__ARM_ARCH_5__',
-                 '-D__ARM_ARCH_5T__',
-                 '-D__ARM_ARCH_5E__',
-                 '-D__ARM_ARCH_5TE__']
+android_includes = ['usr/include']
+
+android_extras = ['-march=armv5te',
+                  '-mtune=xscale',
+                  '-msoft-float',
+                  '-fpic',
+                  '-mthumb-interwork',
+                  '-ffunction-sections',
+                  '-funwind-tables',
+                  '-fstack-protector',
+                  '-fno-short-enums']
+
+android_extras_cpp = ['-fno-exceptions',
+                      '-fno-rtti']
+
+android_defines = ['-DANDROID',
+                   '-DANDROID_NDK',
+                   '-D__ARM_ARCH_5__',
+                   '-D__ARM_ARCH_5T__',
+                   '-D__ARM_ARCH_5E__',
+                   '-D__ARM_ARCH_5TE__']
 
 
 if env['build_config'] == 'Release':
-    droid_optimize = ['-finline-functions',
-                   '-finline-limit=300',
-                   '-fno-inline-functions-called-once',
-                   '-fgcse-after-reload',
-                   '-frerun-cse-after-loop',
-                   '-frename-registers',
-                   '-fomit-frame-pointer',
-                   '-fstrict-aliasing',
-                   '-funswitch-loops']
+    android_optimize = ['-finline-functions',
+                        '-finline-limit=64',
+                        '-fno-inline-functions-called-once',
+                        '-fgcse-after-reload',
+                        '-frerun-cse-after-loop',
+                        '-frename-registers',
+                        '-fomit-frame-pointer',
+                        '-fstrict-aliasing',
+                        '-funswitch-loops']
 else:
-    droid_optimize = []
+    android_optimize = []
 
-droid_link = ['-Bdynamic',
-              '-Wl,-T,$DROID/build/core/armelf.x',
-              '-Wl,-dynamic-linker,/system/bin/linker',
-              '-Wl,--gc-sections',
-              '-Wl,-z,nocopyreloc',
-              '-Wl,--no-undefined',
-              '-Wl,-rpath-link=' + DROID_ALIB,
-              '-L' + DROID_ROOT,
-              '-L' + DROID_ALIB,
-              '-nostdlib',
-              DROID_TOOLCHAIN+'/lib/gcc/arm-eabi/4.2.1/interwork/libgcc.a',
-              '-lc',
-              '-lstdc++',
-              '-lm']
+android_link = ['-Bdynamic',
+                '-Wl,--no-undefined',
+                '-Wl,-rpath=/system/lib',
+                '-Wl,--dynamic-linker=/system/bin/linker',
+                '-Wl,-rpath-link=' + ANDROID_PLATFORM_ARM+'/usr/lib',
+                '-L' + ANDROID_PLATFORM_ARM+'/usr/lib',
+                '-nostdlib',
+                ANDROID_TOOLCHAIN_ROOT+'/lib/gcc/arm-eabi/4.2.1/interwork/libgcc.a',
+                ANDROID_PLATFORM_ARM+'/usr/lib/libc.so',
+                ANDROID_PLATFORM_ARM+'/usr/lib/libstdc++.so',
+                ANDROID_PLATFORM_ARM+'/usr/lib/libm.so',
+                '-ldl']
 
-env['AP4_EXTRA_EXECUTABLE_OBJECTS'] = [DROID_ALIB+'/crtbegin_dynamic.o', DROID_ALIB+'/crtend_android.o']
+env['AP4_EXTRA_EXECUTABLE_OBJECTS'] = [ANDROID_PLATFORM_ARM+'/usr/lib/crtbegin_static.o',
+                                       ANDROID_PLATFORM_ARM+'/usr/lib/crtend_android.o']
+
+### add the tools to the path
+env.PrependENVPath('PATH', ANDROID_TOOLCHAIN_BIN)
 
 ### Load the tools
 LoadTool('gcc-generic', env, gcc_cross_prefix='arm-eabi', gcc_strict=False)
 
 LoadTool('gcc-generic', env, gcc_cross_prefix='arm-eabi', gcc_strict=False)
 env.AppendUnique(CPPDEFINES = {'AP4_PLATFORM_BYTE_ORDER':'AP4_PLATFORM_BYTE_ORDER_LITTLE_ENDIAN'})
-env.AppendUnique(CCFLAGS = ['-I'+DROID_ROOT+'/'+x for x in droid_includes] + droid_extras + droid_defines + droid_optimize )
-env.AppendUnique(CPPFLAGS = droid_extras_cpp)
-env.AppendUnique(LINKFLAGS = droid_link)
+env.AppendUnique(CCFLAGS = ['-I'+ANDROID_PLATFORM_ARM+'/'+x for x in android_includes] + android_extras + android_defines + android_optimize )
+env.AppendUnique(CPPFLAGS = android_extras_cpp)
+env.AppendUnique(LINKFLAGS = android_link)
+

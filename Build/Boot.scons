@@ -66,6 +66,7 @@ options.AddVariables(
     EnumVariable('target', 'Build Target', DefaultTarget(), allowed_values=PLATFORM_TO_TARGET_MAP.values()+CROSS_PLATFORMS),
     BoolVariable('stop_on_warning', 'Stop the build on warnings', False),
     ListVariable('build_config', 'Build Configuration(s)', 'Debug', names=['Debug', 'Release']),
+    ('target_variant', 'Target Variant (Target-specific)', ''),
 )
 
 ### create the environment
