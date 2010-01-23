@@ -285,7 +285,9 @@ ShowSampleDescription(AP4_SampleDescription& description, bool verbose)
         printf("    Avg Bitrate: %d\n", mpeg_desc->GetAvgBitrate());
         printf("    Buffer Size: %d\n", mpeg_desc->GetBufferSize());
         
-        if (mpeg_desc->GetObjectTypeId() == AP4_OTI_MPEG4_AUDIO) {
+        if (mpeg_desc->GetObjectTypeId() == AP4_OTI_MPEG4_AUDIO          ||
+            mpeg_desc->GetObjectTypeId() == AP4_OTI_MPEG2_AAC_AUDIO_LC   ||
+            mpeg_desc->GetObjectTypeId() == AP4_OTI_MPEG2_AAC_AUDIO_MAIN) {
             AP4_MpegAudioSampleDescription* mpeg_audio_desc = AP4_DYNAMIC_CAST(AP4_MpegAudioSampleDescription, mpeg_desc);
             if (mpeg_audio_desc) ShowMpegAudioSampleDescription(*mpeg_audio_desc);
         }
