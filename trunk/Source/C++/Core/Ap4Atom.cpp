@@ -297,7 +297,7 @@ AP4_Atom::InspectHeader(AP4_AtomInspector& inspector)
         }
     }
     AP4_FormatString(header, sizeof(header), 
-                     "size=%ld+%lld%s", 
+                     "size=%d+%lld%s", 
                      GetHeaderSize(), 
                      GetSize()-GetHeaderSize(), 
                      extra);

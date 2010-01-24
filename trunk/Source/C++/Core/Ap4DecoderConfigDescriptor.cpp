@@ -132,7 +132,7 @@ AP4_Result
 AP4_DecoderConfigDescriptor::Inspect(AP4_AtomInspector& inspector)
 {
     char info[64];
-    AP4_FormatString(info, sizeof(info), "size=%ld+%ld", 
+    AP4_FormatString(info, sizeof(info), "size=%d+%d", 
         GetHeaderSize(),
         m_PayloadSize);
     inspector.StartElement("[DecoderConfig]", info);
