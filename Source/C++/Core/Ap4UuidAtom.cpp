@@ -154,7 +154,7 @@ AP4_UuidAtom::InspectHeader(AP4_AtomInspector& inspector)
         }
     }
     AP4_FormatString(header, sizeof(header), 
-                     "{%s} size=%ld+%lld%s", 
+                     "{%s} size=%d+%lld%s", 
                      uuid,
                      GetHeaderSize(), 
                      GetSize()-GetHeaderSize(), 
