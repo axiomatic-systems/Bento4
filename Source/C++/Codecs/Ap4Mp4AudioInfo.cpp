@@ -133,7 +133,7 @@ AP4_Mp4AudioDecoderConfig::ParseExtension(AP4_Mp4AudioDsiParser& parser)
         AP4_Result result = ParseAudioObjectType(parser, m_Extension.m_ObjectType);
         if (AP4_FAILED(result)) return result;
         if (m_Extension.m_ObjectType == AP4_MPEG4_AUDIO_OBJECT_TYPE_SBR) {
-            m_Extension.m_SbrPresent = parser.ReadBits(1);
+            m_Extension.m_SbrPresent = (parser.ReadBits(1) == 1);
             if (m_Extension.m_SbrPresent) {
                 result = ParseSamplingFrequency(parser, 
                                                 m_Extension.m_SamplingFrequencyIndex,
@@ -142,12 +142,12 @@ AP4_Mp4AudioDecoderConfig::ParseExtension(AP4_Mp4AudioDsiParser& parser)
                 if (parser.BitsLeft() >= 12) {
                     sync_extension_type = parser.ReadBits(11);
                     if (sync_extension_type == 0x548) {
-                        m_Extension.m_PsPresent = parser.ReadBits(1);
+                        m_Extension.m_PsPresent = (parser.ReadBits(1) == 1);
                     }
                 }
             }
         } else if (m_Extension.m_ObjectType == AP4_MPEG4_AUDIO_OBJECT_TYPE_ER_BSAC) {
-            m_Extension.m_SbrPresent = parser.ReadBits(1);
+            m_Extension.m_SbrPresent = (parser.ReadBits(1) == 1);
             if (m_Extension.m_SbrPresent) {
                 result = ParseSamplingFrequency(parser, 
                                                 m_Extension.m_SamplingFrequencyIndex,
