@@ -43,6 +43,12 @@
 #include "Ap4Atom.h"
 
 /*----------------------------------------------------------------------
+|   AP4_AtomSampleTable Dynamic Cast Anchor
++---------------------------------------------------------------------*/
+AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_AtomSampleTable)
+
+
+/*----------------------------------------------------------------------
 |   AP4_AtomSampleTable::AP4_AtomSampleTable
 +---------------------------------------------------------------------*/
 AP4_AtomSampleTable::AP4_AtomSampleTable(AP4_ContainerAtom* stbl, 
