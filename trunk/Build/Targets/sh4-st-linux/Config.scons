@@ -1,0 +1,2 @@
+LoadTool('gcc-generic', env, gcc_cross_prefix='sh4-linux')
+env.AppendUnique(CPPDEFINES = {'AP4_PLATFORM_BYTE_ORDER':'AP4_PLATFORM_BYTE_ORDER_LITTLE_ENDIAN'})
