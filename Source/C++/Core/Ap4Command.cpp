@@ -48,8 +48,8 @@ AP4_Command::Inspect(AP4_AtomInspector& inspector)
     AP4_FormatString(name, sizeof(name), "[Command:%02x]", m_ClassId);
     char info[64];
     AP4_FormatString(info, sizeof(info), "size=%d+%d",
-                     GetHeaderSize(),
-                     m_PayloadSize);
+                     (int)GetHeaderSize(),
+                     (int)m_PayloadSize);
     inspector.StartElement(name, info);
     inspector.EndElement();
 

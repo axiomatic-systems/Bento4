@@ -133,8 +133,8 @@ AP4_DecoderConfigDescriptor::Inspect(AP4_AtomInspector& inspector)
 {
     char info[64];
     AP4_FormatString(info, sizeof(info), "size=%d+%d", 
-        GetHeaderSize(),
-        m_PayloadSize);
+        (int)GetHeaderSize(),
+        (int)m_PayloadSize);
     inspector.StartElement("[DecoderConfig]", info);
     inspector.AddField("stream_type", m_StreamType);
     inspector.AddField("object_type", m_ObjectTypeIndication);
