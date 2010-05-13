@@ -6,12 +6,14 @@ Please visit the <a href="http://zebulon.bok.net/trac/Bento4">TRAC site</a> for 
 
 <h2>Introduction</h2>
 Bento4/AP4 is a C++ class library designed to read and write ISO-MP4 files. 
-This format is defined in ISO/IEC 14496-12, 14496-14 and 14496-15. 
+This format is defined in ISO/IEC 14496-12, 14496-14 and 14496-15.<br> 
 The format is a derivative of the Apple Quicktime file format. 
-Because of that, Bento4 can be used to read and write a number of Quicktime files as well, even though some Quicktime specific features are not supported. 
+Because of that, Bento4 can be used to read and write a number of Quicktime files as well, even though some Quicktime specific features are not supported.<br> 
+ISO-MP4 files are also used as part of the 3GPP family of standards(<a href="http://www.3gpp.org">http://www.3gpp.org</a>
 In addition, Bento4 supports a number of extensions as defined in various other specifications. 
 This includes some support for ISMA Encryption as defined in the ISMA E&amp;A specification (<a href="http://www.isma.tv">http://www.isma.tv</a>), 
-the OMA 2.0 and 2.1 DCF and PDCF specification (<a href="http://www.openmobilealliance.org">http://www.openmobilealliance.org</a>) and iTunes compatible metadata. 
+the OMA 2.0 and 2.1 DCF and PDCF specification (<a href="http://www.openmobilealliance.org">http://www.openmobilealliance.org</a>). The PIFF encrypted, fragmented MP4 format specified by Microsoft and used for encrypted HTTP Smooth Streaming is also supported (<a href="http://go.microsoft.com/?linkid=9682897">Protected Interoperable File Format (PIFF) specification</a>.<br>
+Bento4 also supports 3GPP and iTunes compatible metadata. <br>
 The SDK includes a number of command line tools, built using the class library, that serve as general purpose tools as well as examples of how to use the API.<p>
 
 The SDK is designed to be cross-platform. The code is very portable; it can be compiled with any sufficiently modern C++ compiler. The code does not rely on any external library; all the code necessary to compile the SDK and its tools is included in the standard distribution. The standard distribution contains makefiles for unix-like operating systems, including Linux, project files for Microsoft Visual Studio, and an XCode project for MacOS X.
