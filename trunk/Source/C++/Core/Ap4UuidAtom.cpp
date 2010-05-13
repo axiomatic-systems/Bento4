@@ -156,7 +156,7 @@ AP4_UuidAtom::InspectHeader(AP4_AtomInspector& inspector)
     AP4_FormatString(header, sizeof(header), 
                      "{%s} size=%d+%lld%s", 
                      uuid,
-                     GetHeaderSize(), 
+                     (int)GetHeaderSize(), 
                      GetSize()-GetHeaderSize(), 
                      extra);
     inspector.StartElement(name, header);

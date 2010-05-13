@@ -298,7 +298,7 @@ AP4_Atom::InspectHeader(AP4_AtomInspector& inspector)
     }
     AP4_FormatString(header, sizeof(header), 
                      "size=%d+%lld%s", 
-                     GetHeaderSize(), 
+                     (int)GetHeaderSize(), 
                      GetSize()-GetHeaderSize(), 
                      extra);
     inspector.StartElement(name, header);
