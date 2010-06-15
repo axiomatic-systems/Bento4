@@ -133,7 +133,8 @@ main(int argc, char** argv)
                     6144,                  // buffer size
                     128000,                // max bitrate
                     128000);               // average bitrate
-                sample_description_index = sample_table->AddSampleDescription(sample_description);
+                sample_description_index = sample_table->GetSampleDescriptionCount();
+                sample_table->AddSampleDescription(sample_description);
                 sample_rate = frame.m_Info.m_SamplingFrequency;
             }
 
@@ -199,7 +200,8 @@ main(int argc, char** argv)
     AP4_FileWriter::Write(*file, *output);
 
     delete file;
-    delete output;
+    input->Release();
+    output->Release();
     
     return 0;
 }
