@@ -449,6 +449,13 @@ AP4_MetaData::AP4_MetaData(AP4_File* file)
         AP4_MoovAtom* moov = movie->GetMoovAtom();
         if (moov == NULL) return;
         ParseMoov(moov);
+        AP4_Atom* udta = moov->GetChild(AP4_ATOM_TYPE_UDTA);
+        if (udta) {
+            AP4_ContainerAtom* udta_container = AP4_DYNAMIC_CAST(AP4_ContainerAtom, udta);
+            if (udta_container) {
+                ParseUdta(udta_container, "3gpp");
+            }
+        }
     } else {
         // if we don't have a movie, try to show metadata from a udta atom
         AP4_List<AP4_Atom>& top_level_atoms = file->GetTopLevelAtoms();
@@ -586,8 +593,8 @@ AP4_MetaData::AddIlstEntries(AP4_ContainerAtom* atom, const char* namespc)
 
         // get the value
         AP4_DataAtom* data_atom = static_cast<AP4_DataAtom*>(atom->GetChild(AP4_ATOM_TYPE_DATA));
+        if (data_atom == NULL) return AP4_ERROR_INVALID_FORMAT;
         value = new AP4_AtomMetaDataValue(data_atom, atom->GetType());
-        if (value == NULL) return AP4_ERROR_INVALID_FORMAT;
         
         return m_Entries.Add(new Entry(name->GetValue().GetChars(),
                                        mean->GetValue().GetChars(),
@@ -944,11 +951,20 @@ AP4_MetaData::Entry::RemoveFromFileIlst(AP4_File& file, AP4_Ordinal index)
     // remove the data atom in the entry
     AP4_Result result = existing->DeleteChild(AP4_ATOM_TYPE_DATA, index);
     if (AP4_FAILED(result)) return result;
-    
-    // if the entry is empty, remove it
-    if (existing->GetChildren().ItemCount() == 0) {
-        ilst->RemoveChild(existing);
-        delete existing;
+
+    // cleanup
+    if (existing->GetType() == AP4_ATOM_TYPE_dddd) {
+        // custom entry: if there are no more 'data' children, remove the entry
+        if (existing->GetChild(AP4_ATOM_TYPE_DATA) == NULL) {
+            ilst->RemoveChild(existing);
+            delete existing;
+        }
+    } else {
+        // normal entry: if the entry is empty, remove it
+        if (existing->GetChildren().ItemCount() == 0) {
+            ilst->RemoveChild(existing);
+            delete existing;
+        }
     }
     
     return AP4_SUCCESS;
@@ -984,8 +1000,8 @@ AP4_MetaData::Entry::RemoveFromFile(AP4_File& file, AP4_Ordinal index)
     } else if (m_Key.GetNamespace() == "dcf") {
         return RemoveFromFileDcf(file, index);
     } else {
-        // unsupported namespace
-        return AP4_ERROR_NOT_SUPPORTED;
+        // custom namespace
+        return RemoveFromFileIlst(file, index);
     }
 }
 
