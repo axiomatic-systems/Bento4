@@ -300,8 +300,8 @@ main(int argc, char** argv)
                method == METHOD_PIFF_CBC) {
         AP4_PiffEncryptingProcessor* piff_processor = 
         new AP4_PiffEncryptingProcessor(method == METHOD_PIFF_CTR?
-                                          AP4_PIFF_CIPHER_MODE_CTR :
-                                          AP4_PIFF_CIPHER_MODE_CBC);
+                                        AP4_PIFF_CIPHER_MODE_CTR :
+                                        AP4_PIFF_CIPHER_MODE_CBC);
         piff_processor->GetKeyMap().SetKeys(key_map);
         piff_processor->GetPropertyMap().SetProperties(property_map);
         processor = piff_processor;

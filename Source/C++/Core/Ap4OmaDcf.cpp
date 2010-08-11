@@ -664,7 +664,7 @@ AP4_OmaDcfCtrSampleEncrypter::GetEncryptedSampleSize(AP4_Sample& sample)
 |   AP4_OmaDcfCbcSampleEncrypter::AP4_OmaDcfCbcSampleEncrypter
 +---------------------------------------------------------------------*/
 AP4_OmaDcfCbcSampleEncrypter::AP4_OmaDcfCbcSampleEncrypter(AP4_BlockCipher* block_cipher,
-                                                           const AP4_UI08* salt) :
+                                                           const AP4_UI08*  salt) :
     AP4_OmaDcfSampleEncrypter(salt)    
 {
     m_Cipher = new AP4_CbcStreamCipher(block_cipher, AP4_CbcStreamCipher::ENCRYPT);

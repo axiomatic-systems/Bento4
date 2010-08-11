@@ -9,25 +9,27 @@ if not ANDROID_NDK_ROOT:
 
 ANRDOID_NDK_OUT=ANDROID_NDK_ROOT+'/out'
 ANDROID_TOOLCHAIN='arm-eabi-4.2.1'
-if env.has_key('target_variant'):
+if env.has_key('target_variant') and env['target_variant']:
 	ANDROID_PLATFORM=env['target_variant']
 else:
 	ANDROID_PLATFORM='android-3'
-print ANDROID_PLATFORM
+print 'Building for Android platform', ANDROID_PLATFORM
 
-### parse the host config file
+### figure out the host config
 try:
-  host_config = open(ANRDOID_NDK_OUT+'/host/config.mk')
+    host_config = open(ANRDOID_NDK_OUT+'/host/config.mk')
+    HOST_CONFIG={}
+    for line in host_config.readlines():
+        pair = re.split('\s+:=\s+', line);
+        if len(pair) == 2:
+            HOST_CONFIG[pair[0]] = pair[1].rstrip()
+            
+    host_config.close()
 except:
-  raise Exception('ANDROID NDK not configured, use host-setup.sh to configure it')
-  
-HOST_CONFIG={}
-for line in host_config.readlines():
-    pair = re.split('\s+:=\s+', line);
-    if len(pair) == 2:
-        HOST_CONFIG[pair[0]] = pair[1].rstrip()
-        
-host_config.close()
+    platform_map = {'linux2':'linux-x86', 'darwin':'darwin-x86', 'cygwin':'windows'}
+    if sys.platform not in platform_map:
+        raise Exception('Unrecognized host platform')
+    HOST_CONFIG={'HOST_TAG':platform_map[sys.platform]}
 
 ### check the android toolchain
 ANDROID_TOOLCHAIN_ROOT = ANDROID_NDK_ROOT+'/build/prebuilt/'+HOST_CONFIG['HOST_TAG']+'/'+ANDROID_TOOLCHAIN
