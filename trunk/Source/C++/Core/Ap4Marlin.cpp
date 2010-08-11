@@ -726,29 +726,7 @@ AP4_MarlinIpmpEncryptingProcessor::Initialize(
             // add the content ID (8id_)
             schi->AddChild(new AP4_NullTerminatedStringAtom(AP4_ATOM_TYPE_8ID_, content_id));
         }
-        
-        // add the signed attributes, if any
-        const char* signed_attributes = m_PropertyMap.GetProperty(mpod->GetTrackIds()[i], "SignedAttributes");
-        if (signed_attributes) {
-            // decode the hex-encoded data
-            unsigned int size = (unsigned int)AP4_StringLength(signed_attributes)/2;
-            AP4_DataBuffer attributes_atoms;
-            attributes_atoms.SetDataSize(size);
-            if (AP4_SUCCEEDED(AP4_ParseHex(signed_attributes, attributes_atoms.UseData(), size))) {
-                // parse all the atoms encoded in the data and add them to the 'schi' container
-                AP4_MemoryByteStream* mbs = new AP4_MemoryByteStream(attributes_atoms.GetData(), 
-                                                                     attributes_atoms.GetDataSize());
-                do {
-                    AP4_Atom* atom = NULL;
-                    result = AP4_DefaultAtomFactory::Instance.CreateAtomFromStream(*mbs, atom);
-                    if (AP4_SUCCEEDED(result) && atom) {
-                        schi->AddChild(atom);
-                    }
-                } while (AP4_SUCCEEDED(result));
-                mbs->Release();
-            }
-        }
-        
+                
         // find what the track type is (necessary for the next step) and the key
         const AP4_UI08* key;
         unsigned int    key_size = 0;
@@ -798,7 +776,7 @@ AP4_MarlinIpmpEncryptingProcessor::Initialize(
             }
         }
                 
-        // create and add the secure attributes (satr)
+        // create and add the security attributes (satr)
         if (track_type != AP4_Track::TYPE_UNKNOWN && key != NULL && key_size != 0) {
             AP4_ContainerAtom* satr = new AP4_ContainerAtom(AP4_ATOM_TYPE_SATR);
             switch (track_type) {
@@ -812,6 +790,28 @@ AP4_MarlinIpmpEncryptingProcessor::Initialize(
                     break;
             }
             
+            // add the signed attributes, if any
+            const char* signed_attributes = m_PropertyMap.GetProperty(mpod->GetTrackIds()[i], "SignedAttributes");
+            if (signed_attributes) {
+                // decode the hex-encoded data
+                unsigned int size = (unsigned int)AP4_StringLength(signed_attributes)/2;
+                AP4_DataBuffer attributes_atoms;
+                attributes_atoms.SetDataSize(size);
+                if (AP4_SUCCEEDED(AP4_ParseHex(signed_attributes, attributes_atoms.UseData(), size))) {
+                    // parse all the atoms encoded in the data and add them to the 'schi' container
+                    AP4_MemoryByteStream* mbs = new AP4_MemoryByteStream(attributes_atoms.GetData(), 
+                                                                         attributes_atoms.GetDataSize());
+                    do {
+                        AP4_Atom* atom = NULL;
+                        result = AP4_DefaultAtomFactory::Instance.CreateAtomFromStream(*mbs, atom);
+                        if (AP4_SUCCEEDED(result) && atom) {
+                            satr->AddChild(atom);
+                        }
+                    } while (AP4_SUCCEEDED(result));
+                    mbs->Release();
+                }
+            }
+
             // compute the hmac
             AP4_MemoryByteStream* mbs = new AP4_MemoryByteStream();
             satr->Write(*mbs);
