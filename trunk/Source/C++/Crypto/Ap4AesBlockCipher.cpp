@@ -38,6 +38,7 @@ Issue Date: 29/07/2002
 +---------------------------------------------------------------------*/
 #include "Ap4AesBlockCipher.h"
 #include "Ap4Results.h"
+#include "Ap4Utils.h"
 
 /*----------------------------------------------------------------------
 |   AES types
@@ -1826,18 +1827,179 @@ static aes_rval aes_dec_blk(const unsigned char in_blk[], unsigned char out_blk[
 #endif
 
 /*----------------------------------------------------------------------
-|   AP4_AesBlockCipher::AP4_AesBlockCipher
+|   AP4_AesCbcBlockCipher
 +---------------------------------------------------------------------*/
-AP4_AesBlockCipher::AP4_AesBlockCipher(const AP4_UI08* key,
-                                       CipherDirection direction) :
-    m_Direction(direction)
+class AP4_AesCbcBlockCipher : public AP4_AesBlockCipher
 {
-    m_Context = new aes_ctx;
-    if (direction == AP4_BlockCipher::ENCRYPT) {
-        aes_enc_key(key, AP4_AES_KEY_LENGTH, m_Context);
-    } else {
-        aes_dec_key(key, AP4_AES_KEY_LENGTH, m_Context);
+public:
+    AP4_AesCbcBlockCipher(CipherDirection direction,
+                          aes_ctx*        context) :
+        AP4_AesBlockCipher(direction, CBC, context) {}
+        
+    // AP4_BlockCipher methods
+    virtual AP4_Result Process(const AP4_UI08* input, 
+                               AP4_Size        input_size,
+                               AP4_UI08*       output,
+                               const AP4_UI08* iv);
+};
+
+/*----------------------------------------------------------------------
+|   AP4_AesCbcBlockCipher::Process
++---------------------------------------------------------------------*/
+AP4_Result 
+AP4_AesCbcBlockCipher::Process(const AP4_UI08* input, 
+                               AP4_Size        input_size,
+                               AP4_UI08*       output,
+                               const AP4_UI08* iv)
+{
+    // check the parameters
+    if (input_size%AP4_AES_BLOCK_SIZE) {
+        return AP4_ERROR_INVALID_PARAMETERS;
     }
+    
+    // setup the chaining block from the IV
+    AP4_UI08 chaining_block[AP4_AES_BLOCK_SIZE];
+    if (iv) {
+        AP4_CopyMemory(chaining_block, iv, AP4_AES_BLOCK_SIZE);
+    } else {
+        AP4_SetMemory(chaining_block, 0, AP4_AES_BLOCK_SIZE);
+    }
+    
+    // process all blocks
+    unsigned int block_count = input_size/AP4_AES_BLOCK_SIZE;
+    if (m_Direction == ENCRYPT) {
+        for (unsigned int i=0; i<block_count; i++) {
+            AP4_UI08 block[AP4_AES_BLOCK_SIZE];
+            for (unsigned int j=0; j<AP4_AES_BLOCK_SIZE; j++) {
+                block[j] = input[j] ^ chaining_block[j];
+            }
+            aes_enc_blk(block, output, m_Context);
+            AP4_CopyMemory(chaining_block, output, AP4_AES_BLOCK_SIZE);
+            input  += AP4_AES_BLOCK_SIZE;
+            output += AP4_AES_BLOCK_SIZE;
+        }
+    } else {        
+        for (unsigned int i=0; i<block_count; i++) {
+            aes_dec_blk(input, output, m_Context);
+            for (unsigned int j=0; j<AP4_AES_BLOCK_SIZE; j++) {
+                output[j] ^= chaining_block[j];
+            }
+            AP4_CopyMemory(chaining_block, input, AP4_AES_BLOCK_SIZE);
+            input  += AP4_AES_BLOCK_SIZE;
+            output += AP4_AES_BLOCK_SIZE;
+        }
+    }
+    
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_AesCtrBlockCipher
++---------------------------------------------------------------------*/
+class AP4_AesCtrBlockCipher : public AP4_AesBlockCipher
+{
+public:
+    AP4_AesCtrBlockCipher(CipherDirection direction,
+                          unsigned int    counter_size,
+                          aes_ctx*        context) :
+        AP4_AesBlockCipher(direction, CTR, context),
+        m_CounterSize(counter_size) {}
+        
+    // AP4_BlockCipher methods
+    virtual AP4_Result Process(const AP4_UI08* input, 
+                               AP4_Size        input_size,
+                               AP4_UI08*       output,
+                               const AP4_UI08* iv);
+
+private:
+    unsigned int m_CounterSize;
+};
+
+/*----------------------------------------------------------------------
+|   AP4_AesCtrBlockCipher::Process
++---------------------------------------------------------------------*/
+AP4_Result 
+AP4_AesCtrBlockCipher::Process(const AP4_UI08* input, 
+                               AP4_Size        input_size,
+                               AP4_UI08*       output,
+                               const AP4_UI08* iv)
+{
+    // copy the iv into the counter
+    AP4_UI08 counter[AP4_AES_BLOCK_SIZE];
+    if (iv) {
+        AP4_CopyMemory(counter, iv, AP4_AES_BLOCK_SIZE);
+    } else {
+        AP4_SetMemory(counter, 0, AP4_AES_BLOCK_SIZE);
+    }
+    
+    // process all blocks
+    while (input_size) {
+        AP4_UI08 block[AP4_AES_BLOCK_SIZE];
+        aes_enc_blk(counter, block, m_Context);
+        unsigned int chunk = input_size>=AP4_AES_BLOCK_SIZE?AP4_AES_BLOCK_SIZE:input_size;
+        for (unsigned int j=0; j<chunk; j++) {
+            output[j] = input[j]^block[j];
+        }
+        input_size -= chunk;
+        if (input_size) {
+            // increment the counter
+            for (int x=AP4_AES_BLOCK_SIZE-1; x; --x) {
+                if (counter[x] == 255) {
+                    counter[x] = 0;
+                    continue;
+                } else {
+                    ++counter[x];
+                    break;
+                }
+            }
+            
+            // move to the next block
+            input  += AP4_AES_BLOCK_SIZE;
+            output += AP4_AES_BLOCK_SIZE;
+        }
+    }
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_AesBlockCipher::Create
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_AesBlockCipher::Create(const AP4_UI08*      key, 
+                           CipherDirection      direction,
+                           CipherMode           mode,
+                           const void*          mode_params,
+                           AP4_AesBlockCipher*& cipher)
+{
+    cipher = NULL;
+
+    aes_ctx* context = new aes_ctx();
+    if (direction == AP4_BlockCipher::ENCRYPT) {
+        aes_enc_key(key, AP4_AES_KEY_LENGTH, context);
+    } else {
+        aes_dec_key(key, AP4_AES_KEY_LENGTH, context);
+    }
+    
+    switch (mode) {
+        case AP4_BlockCipher::CBC:
+            cipher = new AP4_AesCbcBlockCipher(direction, context);
+            break;
+            
+        case AP4_BlockCipher::CTR: {
+            AP4_BlockCipher::CtrParams* ctr_params = (AP4_BlockCipher::CtrParams*) mode_params;
+            unsigned int counter_size = 16;
+            if (ctr_params) {
+                counter_size = ctr_params->counter_size;
+            }
+            cipher = new AP4_AesCtrBlockCipher(direction, counter_size, context);
+            break;
+        }
+            
+        default:
+            return AP4_ERROR_INVALID_PARAMETERS;
+    }
+
+    return AP4_SUCCESS;
 }
 
 /*----------------------------------------------------------------------
@@ -1847,20 +2009,3 @@ AP4_AesBlockCipher::~AP4_AesBlockCipher()
 {
     delete m_Context;
 }
-
-/*----------------------------------------------------------------------
-|   AP4_AesBlockCipher::EncryptBlock
-+---------------------------------------------------------------------*/
-AP4_Result 
-AP4_AesBlockCipher::ProcessBlock(const AP4_UI08* block_in,
-                                 AP4_UI08*       block_out)
-{
-    aes_rval result;
-    if (m_Direction == AP4_BlockCipher::ENCRYPT) {
-        result = aes_enc_blk(block_in, block_out, m_Context);
-    } else {
-        result = aes_dec_blk(block_in, block_out, m_Context);
-    }
-    return result == aes_good ? AP4_SUCCESS : AP4_FAILURE;
-}
-

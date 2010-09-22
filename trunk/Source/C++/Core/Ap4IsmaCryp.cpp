@@ -61,11 +61,15 @@ AP4_IsmaCipher::CreateSampleDecrypter(AP4_ProtectedSampleDescription* sample_des
 
     // create the cipher
     AP4_BlockCipher* block_cipher = NULL;
-    AP4_Result result = block_cipher_factory->Create(AP4_BlockCipher::AES_128,
-                                                     AP4_BlockCipher::ENCRYPT,
-                                                     key,
-                                                     key_size,
-                                                     block_cipher);
+    AP4_BlockCipher::CtrParams ctr_params;
+    ctr_params.counter_size = 8;
+    AP4_Result result = block_cipher_factory->CreateCipher(AP4_BlockCipher::AES_128,
+                                                           AP4_BlockCipher::DECRYPT,
+                                                           AP4_BlockCipher::CTR,
+                                                           &ctr_params,
+                                                           key,
+                                                           key_size,
+                                                           block_cipher);
     if (AP4_FAILED(result)) return result;
 
     // get the scheme info atom
@@ -102,20 +106,15 @@ AP4_IsmaCipher::AP4_IsmaCipher(AP4_BlockCipher* block_cipher,
 {
     // NOTE: we do not handle key indicators yet, so there is only one key.
 
-    // left-align the salt
-    unsigned char salt_128[AP4_CIPHER_BLOCK_SIZE];
-    unsigned int i=0;
+    // copy the salt
     if (salt) {
-        for (; i<8; i++) {
-            salt_128[i] = salt[i];
-        }
-    }
-    for (; i<AP4_CIPHER_BLOCK_SIZE; i++) {
-        salt_128[i] = 0;
+        AP4_CopyMemory(m_Salt, salt, 8);
+    } else {
+        AP4_SetMemory(m_Salt, 0, 8);
     }
     
     // create a cipher
-    m_Cipher = new AP4_CtrStreamCipher(block_cipher, salt_128, iv_length);
+    m_Cipher = new AP4_CtrStreamCipher(block_cipher, iv_length);
 }
 
 /*----------------------------------------------------------------------
@@ -173,7 +172,7 @@ AP4_IsmaCipher::DecryptSampleData(AP4_DataBuffer& data_in,
     AP4_UI08* out = data_out.UseData();
     if (is_encrypted) {
         // get the IV
-        const AP4_UI08* iv = in;
+        const AP4_UI08* iv_start = in;
         in += m_IvLength;
 
         // get the key indicator (we only support up to 32 bits)
@@ -193,8 +192,38 @@ AP4_IsmaCipher::DecryptSampleData(AP4_DataBuffer& data_in,
             return AP4_ERROR_NOT_SUPPORTED;
         }
 
-        m_Cipher->SetIV(iv);
-        m_Cipher->ProcessBuffer(in, payload_size, out);
+        {
+            AP4_UI08 iv[16];
+            AP4_CopyMemory(iv, m_Salt, 8);
+            AP4_UI08 bso_bytes[8] = {0,0,0,0,0,0,0,0};
+            if (m_IvLength <= 8) {
+                AP4_CopyMemory(&bso_bytes[8-m_IvLength], iv_start, m_IvLength);
+            }
+            AP4_UI64 bso = AP4_BytesToUInt64BE(bso_bytes);
+            if (bso%16) {
+                // not block-aligned
+                AP4_BytesFromUInt64BE(&iv[8], bso/16);
+                m_Cipher->SetIV(iv);
+                AP4_UI08 zero[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+                AP4_UI08 zero_enc[16];
+                m_Cipher->ProcessBuffer(zero, 16, zero_enc);
+                unsigned int offset = (unsigned int)(bso%16); 
+                unsigned int chunk = offset;
+                if (chunk > payload_size) chunk = payload_size;
+                for (unsigned int i=0; i<chunk; i++) {
+                    out[i] = zero_enc[offset+i]^in[i];
+                }
+                out          += chunk;
+                in           += chunk;
+                bso          += chunk;
+                payload_size -= chunk;
+            }
+            if (payload_size) {
+                AP4_BytesFromUInt64BE(&iv[8], bso/16);
+                m_Cipher->SetIV(iv);
+                m_Cipher->ProcessBuffer(in, payload_size, out);
+            }
+        }
     } else {
         AP4_CopyMemory(out, in, payload_size);
     }
@@ -208,20 +237,23 @@ AP4_IsmaCipher::DecryptSampleData(AP4_DataBuffer& data_in,
 AP4_Result 
 AP4_IsmaCipher::EncryptSampleData(AP4_DataBuffer& data_in,
                                   AP4_DataBuffer& data_out,
-                                  AP4_UI32        iv)
+                                  AP4_UI32        block_counter)
 {
     // setup the buffers
     const unsigned char* in = data_in.GetData();
-    data_out.SetDataSize(data_in.GetDataSize()+4);
+    data_out.SetDataSize(data_in.GetDataSize()+8);
     unsigned char* out = data_out.UseData();
 
-    // IV on 4 bytes
-    AP4_BytesFromUInt32BE(out, iv);
+    // IV on 8 bytes (the IV is a Byte Stream Offset, not the block counter)
+    AP4_BytesFromUInt64BE(out, block_counter*16);
 
     // encrypt the payload
-    m_Cipher->SetIV(out);
+    AP4_UI08 iv[16];
+    AP4_CopyMemory(iv, m_Salt, 8);
+    AP4_BytesFromUInt64BE(&iv[8], block_counter);
+    m_Cipher->SetIV(iv);
     AP4_Size data_size = data_in.GetDataSize();
-    m_Cipher->ProcessBuffer(in, data_size, out+4);
+    m_Cipher->ProcessBuffer(in, data_size, out+8);
 
     return AP4_SUCCESS;
 }
@@ -329,7 +361,7 @@ private:
     AP4_IsmaCipher*  m_Cipher;
     AP4_SampleEntry* m_SampleEntry;
     AP4_UI32         m_Format;
-    AP4_UI32         m_Counter;
+    AP4_UI32         m_BlockCounter;
 };
 
 /*----------------------------------------------------------------------
@@ -344,10 +376,10 @@ AP4_IsmaTrackEncrypter::AP4_IsmaTrackEncrypter(
     m_KmsUri(kms_uri),
     m_SampleEntry(sample_entry),
     m_Format(format),
-    m_Counter(0)
+    m_BlockCounter(0)
 {
     // instantiate the cipher (fixed params for now)
-    m_Cipher = new AP4_IsmaCipher(block_cipher, salt, 4, 0, false);
+    m_Cipher = new AP4_IsmaCipher(block_cipher, salt, 8, 0, false);
 }
 
 /*----------------------------------------------------------------------
@@ -364,7 +396,7 @@ AP4_IsmaTrackEncrypter::~AP4_IsmaTrackEncrypter()
 AP4_Size   
 AP4_IsmaTrackEncrypter::GetProcessedSampleSize(AP4_Sample& sample)
 {
-    return sample.GetSize()+4; //fixed header size for now
+    return sample.GetSize()+8; //fixed header size for now
 }
 
 /*----------------------------------------------------------------------
@@ -388,7 +420,7 @@ AP4_IsmaTrackEncrypter::ProcessTrack()
     AP4_IsfmAtom*      isfm = new AP4_IsfmAtom(m_Cipher->GetSelectiveEncryption(), 
                                                m_Cipher->GetKeyIndicatorLength(), 
                                                m_Cipher->GetIvLength());
-    AP4_IsltAtom*      islt = new AP4_IsltAtom(m_Cipher->GetCipher()->GetIV());
+    AP4_IsltAtom*      islt = new AP4_IsltAtom(m_Cipher->GetSalt());
 
     // populate the schi container
     schi->AddChild(ikms);
@@ -416,10 +448,10 @@ AP4_Result
 AP4_IsmaTrackEncrypter::ProcessSample(AP4_DataBuffer& data_in,
                                       AP4_DataBuffer& data_out)
 {
-    AP4_Result result = m_Cipher->EncryptSampleData(data_in, data_out, m_Counter);
+    AP4_Result result = m_Cipher->EncryptSampleData(data_in, data_out, m_BlockCounter);
     if (AP4_FAILED(result)) return result;
 
-    m_Counter += (data_in.GetDataSize()+AP4_CIPHER_BLOCK_SIZE-1)/AP4_CIPHER_BLOCK_SIZE;
+    m_BlockCounter += (data_in.GetDataSize()+AP4_CIPHER_BLOCK_SIZE-1)/AP4_CIPHER_BLOCK_SIZE;
     return AP4_SUCCESS;
 }
 
@@ -489,11 +521,15 @@ AP4_IsmaEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
         if (format) {
             // create the block cipher
             AP4_BlockCipher* block_cipher = NULL;
-            AP4_Result result = m_BlockCipherFactory->Create(AP4_BlockCipher::AES_128, 
-                                                             AP4_BlockCipher::ENCRYPT, 
-                                                             key, 
-                                                             AP4_CIPHER_BLOCK_SIZE, 
-                                                             block_cipher);
+            AP4_BlockCipher::CtrParams ctr_params;
+            ctr_params.counter_size = 8;
+            AP4_Result result = m_BlockCipherFactory->CreateCipher(AP4_BlockCipher::AES_128, 
+                                                                   AP4_BlockCipher::ENCRYPT, 
+                                                                   AP4_BlockCipher::CTR,
+                                                                   &ctr_params,
+                                                                   key, 
+                                                                   AP4_CIPHER_BLOCK_SIZE, 
+                                                                   block_cipher);
             if (AP4_FAILED(result)) return NULL;
 
             // create the encrypter

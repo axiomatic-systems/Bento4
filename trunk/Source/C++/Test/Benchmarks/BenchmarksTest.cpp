@@ -49,6 +49,7 @@
 #define TIME_SPAN 30.0  /* seconds */
 #define ENC_IN_BUFFER_SIZE (1024*128)
 #define ENC_OUT_BUFFER_SIZE (ENC_IN_BUFFER_SIZE+32)
+#define SCALE_MB (1024.0f*1024.0f)
 
 /*----------------------------------------------------------------------
 |   macros
@@ -63,12 +64,12 @@ if (_select) {                          \
     unsigned int i;                     \
     for (i=0; (i<max_iterations) && ((after=GetTime())-before)<max_time; i++) { 
 
-#define BENCH_END                                         \
+#define BENCH_END(_unit, _scale)                          \
     }                                                     \
     double time_diff = after-before;                      \
-    double mb = total/(1024.0f*1024.0f);                  \
-    double mbps = (mb/time_diff);                         \
-    printf(" %f MB/s (%f MB in %f seconds, %d iterations)\n", mbps, mb, time_diff, i); \
+    double st = total/(_scale);                           \
+    double stps = (st/time_diff);                         \
+    printf(" %f " _unit "/s (%f " _unit " in %f seconds, %d iterations)\n", stps, st, time_diff, i); \
 }
 
 #if defined(WIN32)
@@ -113,7 +114,7 @@ PrintUsage()
            "options:\n"
            "  --iterations=<n>: run each test for <n> iterations instead of a fixed run time.\n"
            "  --test-file-read=<filename> (any file for read tests)\n"
-           "  --test-file-mp4=<filename> (MP4 file for parse-file and read-samples)\n"
+           "  --test-file-mp4=<filename> (MP4 file for parse-file, parse-samples and read-samples)\n"
            "  --test-file-dcf-cbc=<filename> (DCF/CBC file for read-samples-dcf-cbc)\n"
            "  --test-file-dcf-ctr=<filename> (DCF/CTR file for read-samples-dcf-ctr)\n"
            "  --test-file-pdcf-cbc=<filename> (PDCF/CBC file for read-samples-pdcf-cbc)\n"
@@ -122,13 +123,15 @@ PrintUsage()
            "valid test names are:\n"
            "all: run all tests\n"
            "or one or more of the following tests:\n"
-           "aes-block-decrypt\n"
-           "aes-block-encrypt\n"
+           "aes-cbc-block-decrypt\n"
+           "aes-cbc-block-encrypt\n"
+           "aes-ctr-block\n"
            "aes-cbc-stream-encrypt\n"
            "aes-cbc-stream-decrypt\n"
            "aes-ctr-stream\n"
            "parse-file\n"
            "parse-file-buffered\n"
+           "parse-samples\n"
            "read-file-seq-1\n"
            "read-file-seq-16\n"
            "read-file-seq-256\n"
@@ -244,6 +247,55 @@ LoadSamples(AP4_Track* track, unsigned int repeats)
     }
     
     return total_size;
+}
+
+/*----------------------------------------------------------------------
+|   ParseSamples
++---------------------------------------------------------------------*/
+static unsigned int
+ParseSamples(AP4_Track* track, unsigned int repeats)
+{
+    unsigned int total_count = 0;
+    while (repeats--) {
+        AP4_Sample  sample;
+        AP4_Ordinal index = 0;
+        while (AP4_SUCCEEDED(track->GetSample(index, sample))) {
+            ++total_count;
+            ++index;
+        }
+    }
+    
+    return total_count;
+}
+
+/*----------------------------------------------------------------------
+|   ParseAllSamples
++---------------------------------------------------------------------*/
+static unsigned int
+ParseAllSamples(const char* filename, unsigned int repeats)
+{
+    // open the input
+    AP4_ByteStream* input = NULL;
+    AP4_Result result = AP4_FileByteStream::Create(filename, AP4_FileByteStream::STREAM_MODE_READ, input);
+    if (AP4_FAILED(result)) {
+        fprintf(stderr, "ERROR: cannot open input file (%s)\n", filename);
+        return 0;
+    }
+        
+    // parse the file
+    AP4_File* mp4_file = new AP4_File(*input);
+    
+    // parse all the tracks that need to be parsed
+    unsigned int total_count = 0;
+    for (AP4_List<AP4_Track>::Item* item = mp4_file->GetMovie()->GetTracks().FirstItem(); item; item=item->GetNext()) {
+        AP4_Track* track = item->GetData();
+        total_count += ParseSamples(track, repeats);
+    }
+
+    delete mp4_file;
+    input->Release();
+    
+    return total_count;
 }
 
 /*----------------------------------------------------------------------
@@ -382,8 +434,9 @@ main(int argc, char** argv)
         return 1;
     }
     
-    bool do_aes_block_decrypt      = false;
-    bool do_aes_block_encrypt      = false;
+    bool do_aes_cbc_block_decrypt  = false;
+    bool do_aes_cbc_block_encrypt  = false;
+    bool do_aes_ctr_block          = false;
     bool do_aes_cbc_stream_encrypt = false;
     bool do_aes_cbc_stream_decrypt = false;
     bool do_aes_ctr_stream         = false;
@@ -397,25 +450,28 @@ main(int argc, char** argv)
     bool do_read_file_rnd_4096     = false;
     bool do_parse_file             = false;
     bool do_parse_file_buffered    = false;
+    bool do_parse_samples          = false;
     bool do_read_samples           = false;
     bool do_read_samples_dcf_cbc   = false;
     bool do_read_samples_dcf_ctr   = false;
     bool do_read_samples_pdcf_cbc  = false;
     bool do_read_samples_pdcf_ctr  = false;
-    const char* test_file_read        = "test-bench.mp4";
-    const char* test_file_mp4         = "test-bench.mp4";
-    const char* test_file_dcf_cbc     = "test-bench.mp4.cbc.odf";
-    const char* test_file_dcf_ctr     = "test-bench.mp4.ctr.odf";
-    const char* test_file_pdcf_cbc    = "test-bench.cbc.pdcf.mp4";
-    const char* test_file_pdcf_ctr    = "test-bench.ctr.pdcf.mp4";
+    const char* test_file_read     = "test-bench.mp4";
+    const char* test_file_mp4      = "test-bench.mp4";
+    const char* test_file_dcf_cbc  = "test-bench.mp4.cbc.odf";
+    const char* test_file_dcf_ctr  = "test-bench.mp4.ctr.odf";
+    const char* test_file_pdcf_cbc = "test-bench.cbc.pdcf.mp4";
+    const char* test_file_pdcf_ctr = "test-bench.ctr.pdcf.mp4";
     float max_time = TIME_SPAN;
     unsigned int max_iterations = 0xFFFFFFFF;
     
     while (const char* arg = *(++argv)) {
-        if (!strcmp(arg, "aes-block-decrypt")) {
-            do_aes_block_decrypt = true;
-        } else if (!strcmp(arg, "aes-block-encrypt")) {
-            do_aes_block_encrypt = true;
+        if (!strcmp(arg, "aes-cbc-block-decrypt")) {
+            do_aes_cbc_block_decrypt = true;
+        } else if (!strcmp(arg, "aes-cbc-block-encrypt")) {
+            do_aes_cbc_block_encrypt = true;
+        } else if (!strcmp(arg, "aes-ctr-block")) {
+            do_aes_ctr_block = true;
         } else if (!strcmp(arg, "aes-cbc-stream-encrypt")) {
             do_aes_cbc_stream_encrypt = true;
         } else if (!strcmp(arg, "aes-cbc-stream-decrypt")) {
@@ -442,6 +498,8 @@ main(int argc, char** argv)
             do_parse_file = true;
         } else if (!strcmp(arg, "parse-file-buffered")) {
             do_parse_file_buffered = true;
+        } else if (!strcmp(arg, "parse-samples")) {
+            do_parse_samples = true;
         } else if (!strcmp(arg, "read-samples")) {
             do_read_samples = true;
         } else if (!strcmp(arg, "read-samples-dcf-cbc")) {
@@ -467,8 +525,9 @@ main(int argc, char** argv)
         } else if (!strncmp(arg, "--iterations=", 13)) {
             max_iterations = strtoul(arg+13, NULL, 10);
         } else if (!strcmp(arg, "all")) {
-            do_aes_block_decrypt      = true;
-            do_aes_block_encrypt      = true;
+            do_aes_cbc_block_decrypt  = true;
+            do_aes_cbc_block_encrypt  = true;
+            do_aes_ctr_block          = true;
             do_aes_cbc_stream_encrypt = true;
             do_aes_cbc_stream_decrypt = true;
             do_aes_ctr_stream         = true;
@@ -482,6 +541,7 @@ main(int argc, char** argv)
             do_read_file_rnd_4096     = true;
             do_parse_file             = true;
             do_parse_file_buffered    = true;
+            do_parse_samples          = true;
             do_read_samples           = true;
             do_read_samples_dcf_cbc   = true;
             do_read_samples_dcf_ctr   = true;
@@ -498,116 +558,128 @@ main(int argc, char** argv)
       0x08, 0xbf, 0x3e, 0xbd
     };
     
-    unsigned char block_in[16];
-    AP4_SetMemory(block_in, 0, sizeof(block_in));
-    unsigned char block_out[16];
+    const int blocks_size = 32768;
+    unsigned char blocks_in[blocks_size];
+    AP4_SetMemory(blocks_in, 0, sizeof(blocks_in));
+    unsigned char blocks_out[blocks_size];
     unsigned char* megabyte_in = new unsigned char[ENC_IN_BUFFER_SIZE];
     AP4_SetMemory(megabyte_in, 0, sizeof(megabyte_in));
     unsigned char* megabyte_out = new unsigned char[ENC_OUT_BUFFER_SIZE];
     
-    AP4_BlockCipher* e_block_cipher;
-    AP4_DefaultBlockCipherFactory::Instance.Create(AP4_BlockCipher::AES_128, AP4_BlockCipher::ENCRYPT, key, 16, e_block_cipher);
-    AP4_BlockCipher* d_block_cipher;
-    AP4_DefaultBlockCipherFactory::Instance.Create(AP4_BlockCipher::AES_128, AP4_BlockCipher::DECRYPT, key, 16, d_block_cipher);
-    AP4_BlockCipher* g_block_cipher;
-    AP4_DefaultBlockCipherFactory::Instance.Create(AP4_BlockCipher::AES_128, AP4_BlockCipher::DECRYPT, key, 16, g_block_cipher);
+    AP4_BlockCipher* e_cbc_block_cipher;
+    AP4_DefaultBlockCipherFactory::Instance.CreateCipher(AP4_BlockCipher::AES_128, AP4_BlockCipher::ENCRYPT, AP4_BlockCipher::CBC, NULL, key, 16, e_cbc_block_cipher);
+    AP4_BlockCipher* d_cbc_block_cipher;
+    AP4_DefaultBlockCipherFactory::Instance.CreateCipher(AP4_BlockCipher::AES_128, AP4_BlockCipher::DECRYPT, AP4_BlockCipher::CBC, NULL, key, 16, d_cbc_block_cipher);
+    AP4_BlockCipher* ctr_block_cipher;
+    AP4_DefaultBlockCipherFactory::Instance.CreateCipher(AP4_BlockCipher::AES_128, AP4_BlockCipher::ENCRYPT, AP4_BlockCipher::CTR, NULL, key, 16, ctr_block_cipher);
 
-    AP4_CbcStreamCipher cbc_e_cipher(e_block_cipher, AP4_CbcStreamCipher::ENCRYPT);
-    AP4_CbcStreamCipher cbc_d_cipher(d_block_cipher, AP4_CtrStreamCipher::DECRYPT);
-    AP4_CtrStreamCipher ctr_cipher(g_block_cipher, NULL, 16);
+    AP4_CbcStreamCipher e_cbc_stream_cipher(e_cbc_block_cipher);
+    AP4_CbcStreamCipher d_cbc_stream_cipher(d_cbc_block_cipher);
+    AP4_CtrStreamCipher ctr_stream_cipher(ctr_block_cipher, 16);
 
-    BENCH_START("AES Block Encryption", do_aes_block_encrypt)
-    for (unsigned b=0; b<16384; b++) {
-        e_block_cipher->ProcessBlock(block_in, block_out);
+    BENCH_START("AES CBC Block Encryption", do_aes_cbc_block_encrypt)
+    for (unsigned b=0; b<256; b++) {
+        e_cbc_block_cipher->Process(blocks_in, blocks_size, blocks_out, NULL);
     }
-    total += 16384*16;
-    BENCH_END
+    total += 256*blocks_size;
+    BENCH_END("MB", SCALE_MB)
     
-    BENCH_START("AES Block Decryption", do_aes_block_decrypt)
-    for (unsigned b=0; b<16384; b++) {
-        d_block_cipher->ProcessBlock(block_in, block_out);
+    BENCH_START("AES CBC Block Decryption", do_aes_cbc_block_decrypt)
+    for (unsigned b=0; b<256; b++) {
+        d_cbc_block_cipher->Process(blocks_in, blocks_size, blocks_out, NULL);
     }
-    total += 16384*16;
-    BENCH_END
+    total += 256*blocks_size;
+    BENCH_END("MB", SCALE_MB)
          
+    BENCH_START("AES CTR Block Encryption/Decryption", do_aes_ctr_block)
+    for (unsigned b=0; b<256; b++) {
+        ctr_block_cipher->Process(blocks_in, blocks_size, blocks_out, NULL);
+    }
+    total += 256*blocks_size;
+    BENCH_END("MB", SCALE_MB)
+
     BENCH_START("AES CBC Stream Encryption", do_aes_cbc_stream_encrypt)
     AP4_Size out_size = ENC_OUT_BUFFER_SIZE;
-    AP4_Result result = cbc_e_cipher.ProcessBuffer(megabyte_in, ENC_IN_BUFFER_SIZE, megabyte_out, &out_size, false);
+    AP4_Result result = e_cbc_stream_cipher.ProcessBuffer(megabyte_in, ENC_IN_BUFFER_SIZE, megabyte_out, &out_size, false);
     if (AP4_FAILED(result)) fprintf(stderr, "ERROR\n");
     total += ENC_IN_BUFFER_SIZE;
-    BENCH_END
+    BENCH_END("MB", SCALE_MB)
 
     BENCH_START("AES CBC Stream Decryption", do_aes_cbc_stream_decrypt)
     AP4_Size out_size = ENC_OUT_BUFFER_SIZE;
-    cbc_d_cipher.ProcessBuffer(megabyte_in,ENC_IN_BUFFER_SIZE, megabyte_out, &out_size, false);
+    d_cbc_stream_cipher.ProcessBuffer(megabyte_in,ENC_IN_BUFFER_SIZE, megabyte_out, &out_size, false);
     total += ENC_IN_BUFFER_SIZE;
-    BENCH_END
+    BENCH_END("MB", SCALE_MB)
 
     BENCH_START("AES CTR Stream", do_aes_ctr_stream)
     AP4_Size out_size = ENC_OUT_BUFFER_SIZE;
-    ctr_cipher.ProcessBuffer(megabyte_in, ENC_IN_BUFFER_SIZE, megabyte_out, &out_size, false);
+    ctr_stream_cipher.ProcessBuffer(megabyte_in, ENC_IN_BUFFER_SIZE, megabyte_out, &out_size, false);
     total += ENC_IN_BUFFER_SIZE;
-    BENCH_END
+    BENCH_END("MB", SCALE_MB)
 
     BENCH_START("Read File Sequential (1 Byte Blocks)", do_read_file_seq_1)
     total += ReadFile(test_file_read, 1, true);
-    BENCH_END
+    BENCH_END("MB", SCALE_MB)
 
     BENCH_START("Read File Sequential (16 Byte Blocks)", do_read_file_seq_16)
     total += ReadFile(test_file_read, 16, true);
-    BENCH_END
+    BENCH_END("MB", SCALE_MB)
 
     BENCH_START("Read File Sequential (256 Byte Blocks)", do_read_file_seq_256)
     total += ReadFile(test_file_read, 256, true);
-    BENCH_END
+    BENCH_END("MB", SCALE_MB)
 
     BENCH_START("Read File Sequential (4096 Byte Blocks)", do_read_file_seq_4096)
     total += ReadFile(test_file_read, 4096, true);
-    BENCH_END
+    BENCH_END("MB", SCALE_MB)
 
     BENCH_START("Read File Random (1 Byte Blocks)", do_read_file_rnd_1)
     total += ReadFile(test_file_read, 1, false);
-    BENCH_END
+    BENCH_END("MB", SCALE_MB)
 
     BENCH_START("Read File Random (16 Byte Blocks)", do_read_file_rnd_16)
     total += ReadFile(test_file_read, 16, false);
-    BENCH_END
+    BENCH_END("MB", SCALE_MB)
 
     BENCH_START("Read File Random (256 Byte Blocks)", do_read_file_rnd_256)
     total += ReadFile(test_file_read, 256, false);
-    BENCH_END
+    BENCH_END("MB", SCALE_MB)
 
     BENCH_START("Read File Random (4096 Byte Blocks)", do_read_file_rnd_4096)
     total += ReadFile(test_file_read, 4096, false);
-    BENCH_END
+    BENCH_END("MB", SCALE_MB)
 
     BENCH_START("Parse File", do_parse_file)
     total += ParseFile(test_file_mp4, 10, false);
-    BENCH_END
+    BENCH_END("files", 1)
 
     BENCH_START("Parse File Buffered", do_parse_file_buffered)
     total += ParseFile(test_file_mp4, 10, true);
-    BENCH_END
+    BENCH_END("MB", SCALE_MB)
+
+    BENCH_START("Parse Samples", do_parse_samples)
+    total += ParseAllSamples(test_file_mp4, 10);
+    BENCH_END("samples", 1)
 
     BENCH_START("Read Samples", do_read_samples)
     total += LoadAllSamples(test_file_mp4, 16);
-    BENCH_END
+    BENCH_END("MB", SCALE_MB)
 
     BENCH_START("Read Samples DCF CBC", do_read_samples_dcf_cbc)
     total += LoadAllSamples(test_file_dcf_cbc, 16);
-    BENCH_END
+    BENCH_END("MB", SCALE_MB)
 
     BENCH_START("Read Samples DCF CTR", do_read_samples_dcf_ctr)
     total += LoadAllSamples(test_file_dcf_ctr, 16);
-    BENCH_END
+    BENCH_END("MB", SCALE_MB)
 
     BENCH_START("Read Samples PDCF CBC", do_read_samples_pdcf_cbc)
     total += LoadAllSamples(test_file_pdcf_cbc, 16);
-    BENCH_END
+    BENCH_END("MB", SCALE_MB)
 
     BENCH_START("Read Samples PDCF CTR", do_read_samples_pdcf_ctr)
     total += LoadAllSamples(test_file_pdcf_ctr, 16);
-    BENCH_END
+    BENCH_END("MB", SCALE_MB)
 
     return 1;
 }

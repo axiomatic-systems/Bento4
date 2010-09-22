@@ -61,7 +61,7 @@ AP4_UI08 const AP4_UUID_PIFF_SAMPLE_ENCRYPTION_ATOM[16] = {
 +---------------------------------------------------------------------*/
 AP4_PiffCtrSampleEncrypter::AP4_PiffCtrSampleEncrypter(AP4_BlockCipher* block_cipher)
 {
-    m_Cipher = new AP4_CtrStreamCipher(block_cipher, NULL, 0);
+    m_Cipher = new AP4_CtrStreamCipher(block_cipher, 16);
 }
 
 /*----------------------------------------------------------------------
@@ -97,7 +97,7 @@ AP4_PiffAvcCtrSampleEncrypter::EncryptSampleData(AP4_DataBuffer& /*data_in */,
 +---------------------------------------------------------------------*/
 AP4_PiffCbcSampleEncrypter::AP4_PiffCbcSampleEncrypter(AP4_BlockCipher* block_cipher)
 {
-    m_Cipher = new AP4_CbcStreamCipher(block_cipher, AP4_StreamCipher::ENCRYPT);
+    m_Cipher = new AP4_CbcStreamCipher(block_cipher);
 }
 
 /*----------------------------------------------------------------------
@@ -518,18 +518,36 @@ AP4_PiffEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
     // create the encrypter
     AP4_Processor::TrackHandler* track_encrypter;
     track_encrypter = new AP4_PiffTrackEncrypter(m_CipherMode == AP4_PIFF_CIPHER_MODE_CBC?AP4_PIFF_ALGORITHM_ID_CBC:AP4_PIFF_ALGORITHM_ID_CTR, 
-                                                16,
-                                                kid,
-                                                entry, 
-                                                format);
+                                                 16,
+                                                 kid,
+                                                 entry, 
+                                                 format);
         
     // create a block cipher
-    AP4_BlockCipher* block_cipher = NULL;
-    AP4_Result result = m_BlockCipherFactory->Create(AP4_BlockCipher::AES_128, 
-                                                     AP4_BlockCipher::ENCRYPT, 
-                                                     key, 
-                                                     16, 
-                                                     block_cipher);
+    AP4_BlockCipher*            block_cipher = NULL;
+    AP4_BlockCipher::CipherMode mode;
+    AP4_BlockCipher::CtrParams  ctr_params;
+    const void*                 mode_params = NULL;
+    switch (m_CipherMode) {
+        case AP4_PIFF_CIPHER_MODE_CBC:
+            mode = AP4_BlockCipher::CBC;
+            break;
+            
+        case AP4_PIFF_CIPHER_MODE_CTR:
+            mode = AP4_BlockCipher::CTR;
+            ctr_params.counter_size = 8;
+            mode_params = &ctr_params;
+            break;
+            
+        default: return NULL;
+    }
+    AP4_Result result = m_BlockCipherFactory->CreateCipher(AP4_BlockCipher::AES_128, 
+                                                           AP4_BlockCipher::ENCRYPT, 
+                                                           mode,
+                                                           mode_params,
+                                                           key, 
+                                                           16, 
+                                                           block_cipher);
     if (AP4_FAILED(result)) return NULL;
     
     // add a new cipher state for this track
@@ -647,11 +665,15 @@ AP4_PiffSampleDecrypter::Create(AP4_ProtectedSampleDescription* sample_descripti
             } else {
                 // create the block cipher
                 AP4_BlockCipher* block_cipher = NULL;
-                AP4_Result result = block_cipher_factory->Create(AP4_BlockCipher::AES_128, 
-                                                                 AP4_BlockCipher::ENCRYPT, 
-                                                                 key, 
-                                                                 key_size, 
-                                                                 block_cipher);
+                AP4_BlockCipher::CtrParams ctr_params;
+                ctr_params.counter_size = 8;
+                AP4_Result result = block_cipher_factory->CreateCipher(AP4_BlockCipher::AES_128, 
+                                                                       AP4_BlockCipher::DECRYPT, 
+                                                                       AP4_BlockCipher::CTR,
+                                                                       &ctr_params,
+                                                                       key, 
+                                                                       key_size, 
+                                                                       block_cipher);
                 if (AP4_FAILED(result)) return result;
                 
                 // create the decrypter
@@ -677,11 +699,13 @@ AP4_PiffSampleDecrypter::Create(AP4_ProtectedSampleDescription* sample_descripti
             } else {
                 // create the block cipher
                 AP4_BlockCipher* block_cipher = NULL;
-                AP4_Result result = block_cipher_factory->Create(AP4_BlockCipher::AES_128, 
-                                                                 AP4_BlockCipher::DECRYPT, 
-                                                                 key, 
-                                                                 key_size, 
-                                                                 block_cipher);
+                AP4_Result result = block_cipher_factory->CreateCipher(AP4_BlockCipher::AES_128, 
+                                                                       AP4_BlockCipher::DECRYPT, 
+                                                                       AP4_BlockCipher::CBC,
+                                                                       NULL,
+                                                                       key, 
+                                                                       key_size, 
+                                                                       block_cipher);
                 if (AP4_FAILED(result)) return result;
 
                 // create the decrypter
@@ -731,7 +755,7 @@ AP4_PiffCtrSampleDecrypter::AP4_PiffCtrSampleDecrypter(
     AP4_PiffSampleDecrypter(sample_encryption_atom),
     m_IvSize(iv_size)
 {
-    m_Cipher = new AP4_CtrStreamCipher(block_cipher, NULL, iv_size);
+    m_Cipher = new AP4_CtrStreamCipher(block_cipher, iv_size);
 }
 
 /*----------------------------------------------------------------------
@@ -772,7 +796,7 @@ AP4_PiffCbcSampleDecrypter::AP4_PiffCbcSampleDecrypter(
     AP4_PiffSampleEncryptionAtom* sample_encryption_atom) :
     AP4_PiffSampleDecrypter(sample_encryption_atom)
 {
-    m_Cipher = new AP4_CbcStreamCipher(block_cipher, AP4_CbcStreamCipher::DECRYPT);
+    m_Cipher = new AP4_CbcStreamCipher(block_cipher);
 }
 
 /*----------------------------------------------------------------------

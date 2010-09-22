@@ -269,11 +269,24 @@ public:
         AES_128
     } CipherType;
 
+    typedef enum {
+        CBC,
+        CTR
+    } CipherMode;
+    
+    struct CtrParams {
+        AP4_Size counter_size;
+    };
+    
     // constructor and destructor
     virtual ~AP4_BlockCipher() {}
     
     // methods
-    virtual AP4_Result ProcessBlock(const AP4_UI08* block_in, AP4_UI08* block_out) = 0;
+    virtual CipherDirection GetDirection() = 0;
+    virtual AP4_Result Process(const AP4_UI08* input, 
+                               AP4_Size        input_size,
+                               AP4_UI08*       output,
+                               const AP4_UI08* iv) = 0;
 };
 
 /*----------------------------------------------------------------------
@@ -282,13 +295,20 @@ public:
 class AP4_BlockCipherFactory
 {
 public:
+    // types
+    struct CtrParams {
+        AP4_Size counter_size;
+    };
+    
     // methods
     virtual ~AP4_BlockCipherFactory() {}
-    virtual AP4_Result Create(AP4_BlockCipher::CipherType      type,
-                              AP4_BlockCipher::CipherDirection direction,
-                              const AP4_UI08*                  key,
-                              AP4_Size                         key_size,
-                              AP4_BlockCipher*&                cipher) = 0;
+    virtual AP4_Result CreateCipher(AP4_BlockCipher::CipherType      type,
+                                    AP4_BlockCipher::CipherDirection direction,
+                                    AP4_BlockCipher::CipherMode      mode,
+                                    const void*                      params,
+                                    const AP4_UI08*                  key,
+                                    AP4_Size                         key_size,
+                                    AP4_BlockCipher*&                cipher) = 0;
 };
 
 /*----------------------------------------------------------------------
@@ -301,11 +321,13 @@ public:
     static AP4_DefaultBlockCipherFactory Instance;
 
     // methods
-    virtual AP4_Result Create(AP4_BlockCipher::CipherType      type,
-                              AP4_BlockCipher::CipherDirection direction,
-                              const AP4_UI08*                  key,
-                              AP4_Size                         key_size,
-                              AP4_BlockCipher*&                cipher);
+    virtual AP4_Result CreateCipher(AP4_BlockCipher::CipherType      type,
+                                    AP4_BlockCipher::CipherDirection direction,
+                                    AP4_BlockCipher::CipherMode      mode,
+                                    const void*                      params,
+                                    const AP4_UI08*                  key,
+                                    AP4_Size                         key_size,
+                                    AP4_BlockCipher*&                cipher);
 };
 
 /*----------------------------------------------------------------------
@@ -373,20 +395,15 @@ private:
 class AP4_DecryptingStream : public AP4_ByteStream 
 {
 public:
-    typedef enum {
-        CIPHER_MODE_CTR,
-        CIPHER_MODE_CBC
-    } CipherMode;
-
-    static AP4_Result Create(CipherMode              mode,
-                             AP4_ByteStream&         encrypted_stream,
-                             AP4_LargeSize           cleartext_size,
-                             const AP4_UI08*         iv,
-                             AP4_Size                iv_size,
-                             const AP4_UI08*         key,
-                             AP4_Size                key_size,
-                             AP4_BlockCipherFactory* block_cipher_factory,
-                             AP4_ByteStream*&        stream);
+    static AP4_Result Create(AP4_BlockCipher::CipherMode mode,
+                             AP4_ByteStream&             encrypted_stream,
+                             AP4_LargeSize               cleartext_size,
+                             const AP4_UI08*             iv,
+                             AP4_Size                    iv_size,
+                             const AP4_UI08*             key,
+                             AP4_Size                    key_size,
+                             AP4_BlockCipherFactory*     block_cipher_factory,
+                             AP4_ByteStream*&            stream);
 
     // AP4_ByteStream methods
     virtual AP4_Result ReadPartial(void*     buffer, 
@@ -409,17 +426,17 @@ private:
     ~AP4_DecryptingStream();
 
     // members
-    CipherMode        m_Mode;
-    AP4_LargeSize     m_CleartextSize;
-    AP4_Position      m_CleartextPosition;
-    AP4_ByteStream*   m_EncryptedStream;
-    AP4_LargeSize     m_EncryptedSize;
-    AP4_Position      m_EncryptedPosition;
-    AP4_StreamCipher* m_StreamCipher;
-    AP4_UI08          m_Buffer[16];
-    AP4_Size          m_BufferFullness;
-    AP4_Size          m_BufferOffset;
-    AP4_Cardinal      m_ReferenceCount;
+    AP4_BlockCipher::CipherMode m_Mode;
+    AP4_LargeSize               m_CleartextSize;
+    AP4_Position                m_CleartextPosition;
+    AP4_ByteStream*             m_EncryptedStream;
+    AP4_LargeSize               m_EncryptedSize;
+    AP4_Position                m_EncryptedPosition;
+    AP4_StreamCipher*           m_StreamCipher;
+    AP4_UI08                    m_Buffer[1024];
+    AP4_Size                    m_BufferFullness;
+    AP4_Size                    m_BufferOffset;
+    AP4_Cardinal                m_ReferenceCount;
 };
 
 /*----------------------------------------------------------------------
@@ -428,20 +445,15 @@ private:
 class AP4_EncryptingStream : public AP4_ByteStream 
 {
 public:
-    typedef enum {
-        CIPHER_MODE_CTR,
-        CIPHER_MODE_CBC
-    } CipherMode;
-
-    static AP4_Result Create(CipherMode              mode,
-                             AP4_ByteStream&         cleartext_stream,
-                             const AP4_UI08*         iv,
-                             AP4_Size                iv_size,
-                             const AP4_UI08*         key,
-                             AP4_Size                key_size,
-                             bool                    prepend_iv,
-                             AP4_BlockCipherFactory* block_cipher_factory,
-                             AP4_ByteStream*&        stream);
+    static AP4_Result Create(AP4_BlockCipher::CipherMode mode,
+                             AP4_ByteStream&             cleartext_stream,
+                             const AP4_UI08*             iv,
+                             AP4_Size                    iv_size,
+                             const AP4_UI08*             key,
+                             AP4_Size                    key_size,
+                             bool                        prepend_iv,
+                             AP4_BlockCipherFactory*     block_cipher_factory,
+                             AP4_ByteStream*&            stream);
 
     // AP4_ByteStream methods
     virtual AP4_Result ReadPartial(void*     buffer, 
@@ -464,17 +476,17 @@ private:
     ~AP4_EncryptingStream();
 
     // members
-    CipherMode        m_Mode;
-    AP4_LargeSize     m_CleartextSize;
-    AP4_Position      m_CleartextPosition;
-    AP4_ByteStream*   m_CleartextStream;
-    AP4_LargeSize     m_EncryptedSize;
-    AP4_Position      m_EncryptedPosition;
-    AP4_StreamCipher* m_StreamCipher;
-    AP4_UI08          m_Buffer[32]; // one cipher block plus one block padding
-    AP4_Size          m_BufferFullness;
-    AP4_Size          m_BufferOffset;
-    AP4_Cardinal      m_ReferenceCount;
+    AP4_BlockCipher::CipherMode m_Mode;
+    AP4_LargeSize               m_CleartextSize;
+    AP4_Position                m_CleartextPosition;
+    AP4_ByteStream*             m_CleartextStream;
+    AP4_LargeSize               m_EncryptedSize;
+    AP4_Position                m_EncryptedPosition;
+    AP4_StreamCipher*           m_StreamCipher;
+    AP4_UI08                    m_Buffer[1024+16];
+    AP4_Size                    m_BufferFullness;
+    AP4_Size                    m_BufferOffset;
+    AP4_Cardinal                m_ReferenceCount;
 };
 
 #endif // _AP4_PROTECTION_H_

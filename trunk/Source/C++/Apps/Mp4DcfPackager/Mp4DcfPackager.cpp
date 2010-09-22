@@ -88,7 +88,7 @@ main(int argc, char** argv)
     bool           key_is_set               = false;
     unsigned char  key[16];
     unsigned char  iv[16];
-    AP4_EncryptingStream::CipherMode cipher_mode = AP4_EncryptingStream::CIPHER_MODE_CBC;
+    AP4_BlockCipher::CipherMode cipher_mode = AP4_BlockCipher::CBC;
     const char*    content_type             = "";
     const char*    content_id               = "";
     const char*    rights_issuer_url        = "";
@@ -108,12 +108,12 @@ main(int argc, char** argv)
                 encryption_method = AP4_OMA_DCF_ENCRYPTION_METHOD_AES_CBC;
                 encryption_method_is_set = true;
                 padding_scheme = AP4_OMA_DCF_PADDING_SCHEME_RFC_2630;
-                cipher_mode = AP4_EncryptingStream::CIPHER_MODE_CBC;
+                cipher_mode = AP4_BlockCipher::CBC;
             } else if (!strcmp(arg, "CTR")) {
                 encryption_method = AP4_OMA_DCF_ENCRYPTION_METHOD_AES_CTR;
                 encryption_method_is_set = true;
                 padding_scheme = AP4_OMA_DCF_PADDING_SCHEME_NONE;
-                cipher_mode = AP4_EncryptingStream::CIPHER_MODE_CTR;
+                cipher_mode = AP4_BlockCipher::CTR;
             } else if (!strcmp(arg, "NULL")) {
                 encryption_method = AP4_OMA_DCF_ENCRYPTION_METHOD_NULL;
                 encryption_method_is_set = true;

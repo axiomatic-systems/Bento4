@@ -36,24 +36,16 @@
 |   AP4_CtrStreamCipher::AP4_CtrStreamCipher
 +---------------------------------------------------------------------*/
 AP4_CtrStreamCipher::AP4_CtrStreamCipher(AP4_BlockCipher* block_cipher,
-                                         const AP4_UI08*  salt,
                                          AP4_Size         counter_size) :
     m_StreamOffset(0),
     m_CounterSize(counter_size),
+    m_CacheValid(false),
     m_BlockCipher(block_cipher)
 {
     if (m_CounterSize > 16) m_CounterSize = 16;
 
-    // use the salt to initialize the base counter
-    if (salt) {
-        // initialize the base counter with a salting key
-        AP4_CopyMemory(m_BaseCounter, salt, AP4_CIPHER_BLOCK_SIZE);
-    } else {
-        // initialize the base counter with zeros
-        AP4_SetMemory(m_BaseCounter, 0, AP4_CIPHER_BLOCK_SIZE);
-    }
-
     // reset the stream offset
+    AP4_SetMemory(m_IV, 0, AP4_CIPHER_BLOCK_SIZE);
     SetStreamOffset(0);
     SetIV(NULL);
 }
@@ -70,17 +62,16 @@ AP4_CtrStreamCipher::~AP4_CtrStreamCipher()
 |   AP4_CtrStreamCipher::SetIV
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_CtrStreamCipher::SetIV(const AP4_UI08* counter)
+AP4_CtrStreamCipher::SetIV(const AP4_UI08* iv)
 {
-    if (counter) {
-        AP4_CopyMemory(&m_BaseCounter[AP4_CIPHER_BLOCK_SIZE-m_CounterSize],
-                       counter, m_CounterSize);
+    if (iv) {
+        AP4_CopyMemory(m_IV, iv, AP4_CIPHER_BLOCK_SIZE);
     } else {
-        AP4_SetMemory(&m_BaseCounter[AP4_CIPHER_BLOCK_SIZE-m_CounterSize],
-                      0, m_CounterSize);
+        AP4_SetMemory(m_IV, 0, AP4_CIPHER_BLOCK_SIZE);
     }
 
     // for the stream offset back to 0
+    m_CacheValid = false;
     return SetStreamOffset(0);
 }
 
@@ -95,35 +86,32 @@ AP4_CtrStreamCipher::SetStreamOffset(AP4_UI64      offset,
     if (offset == m_StreamOffset) return AP4_SUCCESS;
 
     // update the offset
+    m_CacheValid = false;
     m_StreamOffset = offset;
 
-    // update the key stream if necessary
-    if (m_StreamOffset & 0xF) {
-        UpdateKeyStream();
-    }
-    
+    // no preroll in CTR mode
     if (preroll != NULL) *preroll = 0;
     
     return AP4_SUCCESS;
 }
 
 /*----------------------------------------------------------------------
-|   AP4_CtrStreamCipher::UpdateKeyStream
+|   AP4_CtrStreamCipher::ComputeCounter
 +---------------------------------------------------------------------*/
 void
-AP4_CtrStreamCipher::UpdateKeyStream()
+AP4_CtrStreamCipher::ComputeCounter(AP4_UI64 stream_offset, 
+                                    AP4_UI08 counter_block[AP4_CIPHER_BLOCK_SIZE])
 {
     // setup counter offset bytes
-    AP4_UI64 counter_offset = m_StreamOffset/AP4_CIPHER_BLOCK_SIZE;
+    AP4_UI64 counter_offset = stream_offset/AP4_CIPHER_BLOCK_SIZE;
     AP4_UI08 counter_offset_bytes[8];
     AP4_BytesFromUInt64BE(counter_offset_bytes, counter_offset);
     
     // compute the new counter
-    AP4_UI08 counter_block[AP4_CIPHER_BLOCK_SIZE];
     unsigned int carry = 0;
     for (unsigned int i=0; i<m_CounterSize; i++) {
         unsigned int o = AP4_CIPHER_BLOCK_SIZE-1-i;
-        unsigned int x = m_BaseCounter[o];
+        unsigned int x = m_IV[o];
         unsigned int y = (i<8)?counter_offset_bytes[7-i]:0;
         unsigned int sum = x+y+carry;
         counter_block[o] = (AP4_UI08)(sum&0xFF);
@@ -131,11 +119,8 @@ AP4_CtrStreamCipher::UpdateKeyStream()
     }
     for (unsigned int i=m_CounterSize; i<AP4_CIPHER_BLOCK_SIZE; i++) {
         unsigned int o = AP4_CIPHER_BLOCK_SIZE-1-i;
-        counter_block[o] = m_BaseCounter[o];
+        counter_block[o] = m_IV[o];
     }
-
-    // compute the key block (x) from the counter block (c)
-    m_BlockCipher->ProcessBlock(counter_block, m_XBlock);
 }
 
 /*----------------------------------------------------------------------
@@ -151,37 +136,58 @@ AP4_CtrStreamCipher::ProcessBuffer(const AP4_UI08* in,
     if (m_BlockCipher == NULL) return AP4_ERROR_INVALID_STATE;
     
     if (out_size != NULL && *out_size < in_size) {
+        *out_size = in_size;
         return AP4_ERROR_BUFFER_TOO_SMALL;
     }
 
     // in CTR mode, the output is the same size as the input 
     if (out_size != NULL) *out_size = in_size;
 
-    // process all the bytes in the buffer
-    while (in_size) {
-        // compute the number of bytes available in this chunk
-        AP4_UI32 index = (AP4_UI32)(m_StreamOffset & (AP4_CIPHER_BLOCK_SIZE-1));
-        AP4_UI32 chunk;
-
-        // update the key stream if we are on a boundary
-        if (index == 0) {
-            UpdateKeyStream();
-            chunk = AP4_CIPHER_BLOCK_SIZE;
+    // deal with inputs not aligned on block boundaries
+    if (m_StreamOffset%AP4_CIPHER_BLOCK_SIZE) {
+        unsigned int cache_offset = m_StreamOffset%AP4_CIPHER_BLOCK_SIZE;
+        if (!m_CacheValid) {
+            // fill the cache
+            AP4_UI08 block[AP4_CIPHER_BLOCK_SIZE] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+            AP4_UI08 counter_block[AP4_CIPHER_BLOCK_SIZE];
+            ComputeCounter(m_StreamOffset-cache_offset, counter_block);
+            AP4_Result result = m_BlockCipher->Process(block, AP4_CIPHER_BLOCK_SIZE, m_CacheBlock, counter_block);
+            if (AP4_FAILED(result)) {
+                if (out_size) *out_size = 0;
+                return result;
+            }
+            m_CacheValid = true;
+        }
+        unsigned int partial = AP4_CIPHER_BLOCK_SIZE-cache_offset;
+        if (partial > in_size) partial = in_size;
+        for (unsigned int i=0; i<partial; i++) {
+            out[i] = in[i]^m_CacheBlock[i+cache_offset];
         }
 
-        // compute the number of bytes remaining in the chunk
-        chunk = AP4_CIPHER_BLOCK_SIZE - index;
-        if (chunk > in_size) chunk = in_size;
+        // advance to the end of the partial block
+        m_StreamOffset += partial;
+        in             += partial;
+        out            += partial;
+        in_size        -= partial;
+    }
+    
+    // process all the remaining bytes in the buffer
+    if (in_size) {
+        // the cache won't be valid anymore
+        m_CacheValid = false;
 
-        // encrypt/decrypt the chunk
-        AP4_UI08* x = &m_XBlock[index];
-        for (AP4_UI32 i = 0; i < chunk; i++) {
-            *out++ = *in++ ^ *x++;
+        // compute the counter
+        AP4_UI08 counter_block[AP4_CIPHER_BLOCK_SIZE];
+        ComputeCounter(m_StreamOffset, counter_block);
+        
+        // process the data
+        AP4_Result result = m_BlockCipher->Process(in, in_size, out, counter_block);
+        if (AP4_FAILED(result)) {
+            if (out_size) *out_size = 0;
+            return result;
         }
-
-        // update offset and size
-        m_StreamOffset += chunk;
-        in_size -= chunk;
+        m_StreamOffset += in_size;
+        return result;
     }
     
     return AP4_SUCCESS;
@@ -190,17 +196,16 @@ AP4_CtrStreamCipher::ProcessBuffer(const AP4_UI08* in,
 /*----------------------------------------------------------------------
 |   AP4_CbcStreamCipher::AP4_CbcStreamCipher
 +---------------------------------------------------------------------*/
-AP4_CbcStreamCipher::AP4_CbcStreamCipher(AP4_BlockCipher* block_cipher,
-                                         CipherDirection  direction) :
-    m_Direction(direction),
+AP4_CbcStreamCipher::AP4_CbcStreamCipher(AP4_BlockCipher* block_cipher) :
     m_StreamOffset(0),
     m_OutputSkip(0),
+    m_InBlockFullness(0),
+    m_ChainBlockFullness(AP4_CIPHER_BLOCK_SIZE),
     m_BlockCipher(block_cipher),
-    m_Eos(false),
-    m_PrerollByteCount(0)
+    m_Eos(false)
 {
     AP4_SetMemory(m_Iv, 0, AP4_CIPHER_BLOCK_SIZE);
-    AP4_SetMemory(m_OutBlockCache, 0, AP4_CIPHER_BLOCK_SIZE);
+    AP4_SetMemory(m_ChainBlock, 0, AP4_CIPHER_BLOCK_SIZE);
 }
 
 /*----------------------------------------------------------------------
@@ -219,10 +224,11 @@ AP4_CbcStreamCipher::SetIV(const AP4_UI08* iv)
 {
     AP4_CopyMemory(m_Iv, iv, AP4_CIPHER_BLOCK_SIZE);
     m_StreamOffset = 0;
-    m_OutputSkip = 0;
     m_Eos = false;
-    AP4_CopyMemory(m_OutBlockCache, m_Iv, AP4_CIPHER_BLOCK_SIZE);
-    m_PrerollByteCount = 0;
+    AP4_CopyMemory(m_ChainBlock, m_Iv, AP4_CIPHER_BLOCK_SIZE);
+    m_ChainBlockFullness = AP4_CIPHER_BLOCK_SIZE;
+    m_InBlockFullness = 0;
+    m_OutputSkip = 0;
     return AP4_SUCCESS;
 }
 
@@ -234,7 +240,9 @@ AP4_CbcStreamCipher::SetStreamOffset(AP4_UI64       offset,
                                      AP4_Cardinal*  preroll)
 {
     // does not make sense for encryption
-    if (m_Direction == AP4_StreamCipher::ENCRYPT) return AP4_ERROR_NOT_SUPPORTED;
+    if (m_BlockCipher->GetDirection() == AP4_BlockCipher::ENCRYPT) {
+        return AP4_ERROR_NOT_SUPPORTED;
+    }
     
     // check params
     if (preroll == NULL) return AP4_ERROR_INVALID_PARAMETERS;
@@ -242,33 +250,248 @@ AP4_CbcStreamCipher::SetStreamOffset(AP4_UI64       offset,
     // reset the end of stream flag
     m_Eos = false;
     
-    // special cases
-    if (offset == 0) {
-        *preroll = 0;
-        return SetIV(m_Iv);
-    }
-    if (offset == m_StreamOffset) {
-        *preroll = m_PrerollByteCount;
-        m_OutputSkip = (AP4_Size)(offset%AP4_CIPHER_BLOCK_SIZE);
-        return AP4_SUCCESS;
-    }
-
-    // other cases
+    // invalidate the chain block
+    m_ChainBlockFullness = 0;
+    
+    // flush cached data
+    m_InBlockFullness = 0;
+    
+    // compute the preroll
     if (offset < AP4_CIPHER_BLOCK_SIZE) {
-        // reset the IV to the output block cache
-        AP4_CopyMemory(m_OutBlockCache, m_Iv, AP4_CIPHER_BLOCK_SIZE);
-        m_PrerollByteCount = (AP4_Cardinal) offset;
+        AP4_CopyMemory(m_ChainBlock, m_Iv, AP4_CIPHER_BLOCK_SIZE);
+        m_ChainBlockFullness = AP4_CIPHER_BLOCK_SIZE;
+        *preroll = (AP4_Cardinal)offset;
     } else {
-        m_PrerollByteCount = (AP4_Cardinal) ((offset%AP4_CIPHER_BLOCK_SIZE) 
-                                             + AP4_CIPHER_BLOCK_SIZE);
+        *preroll = (AP4_Cardinal) ((offset%AP4_CIPHER_BLOCK_SIZE) + AP4_CIPHER_BLOCK_SIZE);
     }
     
-    *preroll = m_PrerollByteCount;
-    m_StreamOffset = offset;
-    m_OutputSkip = (AP4_Size)(offset%AP4_CIPHER_BLOCK_SIZE);
+    m_StreamOffset = offset-*preroll;
+    m_OutputSkip   = (AP4_Size)(offset%AP4_CIPHER_BLOCK_SIZE);
     return AP4_SUCCESS;
 }
 
+
+/*----------------------------------------------------------------------
+|   AP4_CbcStreamCipher::EncryptBuffer
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_CbcStreamCipher::EncryptBuffer(const AP4_UI08* in, 
+                                   AP4_Size        in_size,
+                                   AP4_UI08*       out, 
+                                   AP4_Size*       out_size,
+                                   bool            is_last_buffer)
+{
+    // we don't do much checking here because this method is only called
+    // from ProcessBuffer(), which does all the parameter checking
+    
+    // compute how many blocks we span
+    AP4_UI64 start_block   = (m_StreamOffset-m_InBlockFullness)/AP4_CIPHER_BLOCK_SIZE;
+    AP4_UI64 end_block     = (m_StreamOffset+in_size)/AP4_CIPHER_BLOCK_SIZE;
+    AP4_UI32 blocks_needed = (AP4_UI32)(end_block-start_block);
+ 
+    // compute how many blocks we will need to produce
+    if (is_last_buffer) {
+        ++blocks_needed;
+    }
+    if (*out_size < blocks_needed*AP4_CIPHER_BLOCK_SIZE) {
+        *out_size = blocks_needed*AP4_CIPHER_BLOCK_SIZE;
+        return AP4_ERROR_BUFFER_TOO_SMALL;
+    }
+    *out_size = blocks_needed*AP4_CIPHER_BLOCK_SIZE;
+
+    // finish any incomplete block from a previous call
+    unsigned int offset = (unsigned int)(m_StreamOffset%AP4_CIPHER_BLOCK_SIZE);
+    AP4_ASSERT(m_InBlockFullness == offset);
+    if (offset) {
+        unsigned int chunk = AP4_CIPHER_BLOCK_SIZE-offset;
+        if (chunk > in_size) chunk = in_size;
+        for (unsigned int x=0; x<chunk; x++) {
+            m_InBlock[x+offset] = in[x];
+        }
+        in                += chunk;
+        in_size           -= chunk;
+        m_StreamOffset    += chunk;        
+        m_InBlockFullness += chunk;
+        if (offset+chunk == AP4_CIPHER_BLOCK_SIZE) {
+            // we have filled the input block, encrypt it
+            AP4_Result result = m_BlockCipher->Process(m_InBlock, AP4_CIPHER_BLOCK_SIZE, out, m_ChainBlock);
+            AP4_CopyMemory(m_ChainBlock, out, AP4_CIPHER_BLOCK_SIZE);
+            m_InBlockFullness = 0;
+            if (AP4_FAILED(result)) {
+                *out_size = 0;
+                return result;
+            }
+            out += AP4_CIPHER_BLOCK_SIZE;
+        }
+    }
+    
+    // encrypt the whole blocks
+    unsigned int block_count = in_size/AP4_CIPHER_BLOCK_SIZE;
+    if (block_count) {
+        AP4_ASSERT(m_InBlockFullness == 0);
+        AP4_UI32 blocks_size = block_count*AP4_CIPHER_BLOCK_SIZE;
+        AP4_Result result = m_BlockCipher->Process(in, blocks_size, out, m_ChainBlock);
+        AP4_CopyMemory(m_ChainBlock, out+blocks_size-AP4_CIPHER_BLOCK_SIZE, AP4_CIPHER_BLOCK_SIZE);
+        if (AP4_FAILED(result)) {
+            *out_size = 0;
+            return result;
+        }
+        in             += blocks_size;
+        out            += blocks_size;
+        in_size        -= blocks_size;
+        m_StreamOffset += blocks_size;
+    }
+    
+    // deal with what's left
+    if (in_size) {
+        AP4_ASSERT(in_size < AP4_CIPHER_BLOCK_SIZE);
+        for (unsigned int x=0; x<in_size; x++) {
+            m_InBlock[x+m_InBlockFullness] = in[x];
+        }
+        m_InBlockFullness += in_size;
+        m_StreamOffset    += in_size;
+    }
+    
+    // pad if needed 
+    if (is_last_buffer) {
+        AP4_ASSERT(m_InBlockFullness == m_StreamOffset%AP4_CIPHER_BLOCK_SIZE);
+        AP4_UI08 pad_byte = AP4_CIPHER_BLOCK_SIZE-(AP4_UI08)(m_StreamOffset%AP4_CIPHER_BLOCK_SIZE);
+        for (unsigned int x=AP4_CIPHER_BLOCK_SIZE-pad_byte; x<AP4_CIPHER_BLOCK_SIZE; x++) {
+            m_InBlock[x] = pad_byte;
+        }
+        AP4_Result result = m_BlockCipher->Process(m_InBlock, AP4_CIPHER_BLOCK_SIZE, out, m_ChainBlock);
+        AP4_CopyMemory(m_ChainBlock, out, AP4_CIPHER_BLOCK_SIZE);
+        m_InBlockFullness = 0;
+        if (AP4_FAILED(result)) {
+            *out_size = 0;
+            return result;
+        }
+    }
+    
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_CbcStreamCipher::DecryptBuffer
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_CbcStreamCipher::DecryptBuffer(const AP4_UI08* in, 
+                                   AP4_Size        in_size,
+                                   AP4_UI08*       out, 
+                                   AP4_Size*       out_size,
+                                   bool            is_last_buffer)
+{
+    // we don't do much checking here because this method is only called
+    // from ProcessBuffer(), which does all the parameter checking
+    
+    // deal chain-block buffering
+    if (m_ChainBlockFullness != AP4_CIPHER_BLOCK_SIZE) {
+        unsigned int needed = AP4_CIPHER_BLOCK_SIZE-m_ChainBlockFullness;
+        unsigned int chunk = (in_size > needed) ? needed : in_size;
+        AP4_CopyMemory(&m_ChainBlock[m_ChainBlockFullness], in, chunk);
+        in_size              -= chunk;
+        in                   += chunk;
+        m_ChainBlockFullness += chunk;
+        m_StreamOffset       += chunk;
+        if (m_ChainBlockFullness != AP4_CIPHER_BLOCK_SIZE) {
+            // not enough to continue
+            *out_size = 0;
+            return AP4_SUCCESS;
+        }
+    }
+    AP4_ASSERT(m_ChainBlockFullness == AP4_CIPHER_BLOCK_SIZE);
+        
+    // compute how many blocks we span
+    AP4_UI64 start_block   = (m_StreamOffset-m_InBlockFullness)/AP4_CIPHER_BLOCK_SIZE;
+    AP4_UI64 end_block     = (m_StreamOffset+in_size)/AP4_CIPHER_BLOCK_SIZE;
+    AP4_UI32 blocks_needed = (AP4_UI32)(end_block-start_block);
+
+    // compute how many blocks we will need to produce
+    if (*out_size < blocks_needed*AP4_CIPHER_BLOCK_SIZE) {
+        *out_size = blocks_needed*AP4_CIPHER_BLOCK_SIZE;
+        return AP4_ERROR_BUFFER_TOO_SMALL;
+    }
+    *out_size = blocks_needed*AP4_CIPHER_BLOCK_SIZE;
+    if (blocks_needed && m_OutputSkip) *out_size -= m_OutputSkip;
+
+    // shortcut
+    if (in_size == 0) return AP4_SUCCESS;
+    
+    // deal with in-block buffering
+    // NOTE: if we have bytes to skip on output, always use the in-block buffer for
+    // the first block, even if we're aligned, this makes the code simpler
+    AP4_ASSERT(m_InBlockFullness < AP4_CIPHER_BLOCK_SIZE);
+    if (m_OutputSkip || m_InBlockFullness) {
+        unsigned int needed = AP4_CIPHER_BLOCK_SIZE-m_InBlockFullness;
+        unsigned int chunk = (in_size > needed) ? needed : in_size;
+        AP4_CopyMemory(&m_InBlock[m_InBlockFullness], in, chunk);
+        in_size           -= chunk;
+        in                += chunk;
+        m_InBlockFullness += chunk;
+        m_StreamOffset    += chunk;
+        if (m_InBlockFullness != AP4_CIPHER_BLOCK_SIZE) {
+            // not enough to continue
+            *out_size = 0;
+            return AP4_SUCCESS;
+        }
+        AP4_UI08 out_block[AP4_CIPHER_BLOCK_SIZE];
+        AP4_Result result = m_BlockCipher->Process(m_InBlock, AP4_CIPHER_BLOCK_SIZE, out_block, m_ChainBlock);
+        m_InBlockFullness = 0;
+        if (AP4_FAILED(result)) {
+            *out_size = 0;
+            return result;
+        }
+        AP4_CopyMemory(m_ChainBlock, m_InBlock, AP4_CIPHER_BLOCK_SIZE);
+        if (m_OutputSkip) {
+            AP4_ASSERT(m_OutputSkip < AP4_CIPHER_BLOCK_SIZE);
+            AP4_CopyMemory(out, &out_block[m_OutputSkip], AP4_CIPHER_BLOCK_SIZE-m_OutputSkip);
+            out += AP4_CIPHER_BLOCK_SIZE-m_OutputSkip;
+            m_OutputSkip = 0;
+        } else {
+            AP4_CopyMemory(out, out_block, AP4_CIPHER_BLOCK_SIZE);
+            out += AP4_CIPHER_BLOCK_SIZE;
+        }
+    }
+    AP4_ASSERT(m_InBlockFullness == 0);
+    AP4_ASSERT(m_OutputSkip == 0);
+    
+    // process full blocks
+    unsigned int block_count = in_size/AP4_CIPHER_BLOCK_SIZE;
+    if (block_count) {
+        AP4_UI32 blocks_size = block_count*AP4_CIPHER_BLOCK_SIZE;
+        AP4_Result result = m_BlockCipher->Process(in, blocks_size, out, m_ChainBlock);
+        AP4_CopyMemory(m_ChainBlock, in+blocks_size-AP4_CIPHER_BLOCK_SIZE, AP4_CIPHER_BLOCK_SIZE);
+        if (AP4_FAILED(result)) {
+            *out_size = 0;
+            return result;
+        }
+        in             += blocks_size;
+        out            += blocks_size;
+        in_size        -= blocks_size;
+        m_StreamOffset += blocks_size;
+    }
+
+    // buffer partial block leftovers
+    if (in_size) {
+        AP4_ASSERT(in_size < AP4_CIPHER_BLOCK_SIZE);
+        AP4_CopyMemory(m_InBlock, in, in_size);
+        m_InBlockFullness = in_size;
+        m_StreamOffset   += in_size;
+    }
+    
+    // deal with padding
+    if (is_last_buffer) {
+        AP4_UI08 pad_byte = *(out-1);
+        if (pad_byte > AP4_CIPHER_BLOCK_SIZE ||
+            *out_size < pad_byte) {
+            *out_size = 0;
+            return AP4_ERROR_INVALID_FORMAT;
+        }
+        *out_size -= pad_byte;
+    }
+    
+    return AP4_SUCCESS;
+}
 
 /*----------------------------------------------------------------------
 |   AP4_CbcStreamCipher::ProcessBuffer
@@ -278,7 +501,7 @@ AP4_CbcStreamCipher::ProcessBuffer(const AP4_UI08* in,
                                    AP4_Size        in_size,
                                    AP4_UI08*       out, 
                                    AP4_Size*       out_size,
-                                   bool            is_last_buffer /* = false */)
+                                   bool            is_last_buffer)
 {
     // check the parameters
     if (out_size == NULL) return AP4_ERROR_INVALID_PARAMETERS; 
@@ -290,121 +513,9 @@ AP4_CbcStreamCipher::ProcessBuffer(const AP4_UI08* in,
     }
     if (is_last_buffer) m_Eos = true;
     
-    // if there was a previous call to SetStreamOffset that set m_PrerollByteCount,
-    // we require that this call provides the at least entire preroll data 
-    if (m_PrerollByteCount) {
-        if (in_size < m_PrerollByteCount) {
-            *out_size = 0;
-            return AP4_ERROR_NOT_ENOUGH_DATA;
-        }
-    }
-
-    // compute how many blocks we span
-    AP4_UI64 start_block = m_StreamOffset/AP4_CIPHER_BLOCK_SIZE;
-    AP4_UI64 end_block   = (m_StreamOffset+in_size-m_PrerollByteCount)/AP4_CIPHER_BLOCK_SIZE;
-    AP4_UI32 blocks_needed = (AP4_UI32)(end_block-start_block);
-
-    if (m_Direction == ENCRYPT) {
-        // compute how many blocks we will need to produce
-        unsigned int padded_in_size = in_size;
-        AP4_UI08     pad_byte = 0;
-        if (is_last_buffer) {
-            ++blocks_needed;
-            pad_byte = AP4_CIPHER_BLOCK_SIZE-(AP4_UI08)((m_StreamOffset+in_size)%AP4_CIPHER_BLOCK_SIZE);
-            padded_in_size += pad_byte;
-        }
-        if (*out_size < blocks_needed*AP4_CIPHER_BLOCK_SIZE) {
-            *out_size = blocks_needed*AP4_CIPHER_BLOCK_SIZE;
-            return AP4_ERROR_BUFFER_TOO_SMALL;
-        }
-        *out_size = blocks_needed*AP4_CIPHER_BLOCK_SIZE;
-
-        unsigned int position = (unsigned int)(m_StreamOffset%AP4_CIPHER_BLOCK_SIZE);
-        m_StreamOffset += in_size;
-        for (unsigned int x=0; x<padded_in_size; x++) {
-            if (x < in_size) {
-                m_InBlockCache[position] = in[x] ^ m_OutBlockCache[position];
-            } else {
-                m_InBlockCache[position] = pad_byte ^ m_OutBlockCache[position]; 
-            }
-            if (++position == AP4_CIPHER_BLOCK_SIZE) {
-                // encrypt and emit a block
-                m_BlockCipher->ProcessBlock(m_InBlockCache, m_OutBlockCache);
-                AP4_CopyMemory(out, m_OutBlockCache, AP4_CIPHER_BLOCK_SIZE);
-                out += AP4_CIPHER_BLOCK_SIZE;
-                position = 0;
-            }
-        }
+    if (m_BlockCipher->GetDirection() == AP4_BlockCipher::ENCRYPT) {
+        return EncryptBuffer(in, in_size, out, out_size, is_last_buffer);
     } else {
-        // compute how many blocks we may produce
-        AP4_Size bytes_produced = blocks_needed*AP4_CIPHER_BLOCK_SIZE;
-        if (bytes_produced > m_OutputSkip) {
-            bytes_produced -= m_OutputSkip;
-        }
-        if (*out_size < bytes_produced) {
-            *out_size = bytes_produced;
-            return AP4_ERROR_BUFFER_TOO_SMALL;
-        }
-        *out_size = bytes_produced;
-        
-        // if we've just been seeked (SetStreamOffset), 
-        if (m_PrerollByteCount > 0) {
-            if (m_PrerollByteCount >= AP4_CIPHER_BLOCK_SIZE) {
-                // fill the outblock cache with the first 16 bytes
-                AP4_CopyMemory(m_OutBlockCache, in, AP4_CIPHER_BLOCK_SIZE);
-                in += AP4_CIPHER_BLOCK_SIZE;
-                m_PrerollByteCount -= AP4_CIPHER_BLOCK_SIZE;
-                in_size -= AP4_CIPHER_BLOCK_SIZE;
-            }
-
-            AP4_ASSERT(m_PrerollByteCount < 16);
-            
-            // fill m_InBlockCache with the input for the remaining m_PrerollByteCount
-            if (m_PrerollByteCount) {
-                AP4_CopyMemory(m_InBlockCache, in, m_PrerollByteCount);
-                in += m_PrerollByteCount;
-                in_size -= m_PrerollByteCount;
-                m_PrerollByteCount = 0;
-            }
-        }
-
-        unsigned int position = (unsigned int)(m_StreamOffset%AP4_CIPHER_BLOCK_SIZE);
-        m_StreamOffset += in_size;
-        for (unsigned int x=0; x<in_size; x++) {
-            m_InBlockCache[position] = in[x];
-            if (++position == AP4_CIPHER_BLOCK_SIZE) {
-                // decrypt a block
-                AP4_UI08 out_block[AP4_CIPHER_BLOCK_SIZE];
-                m_BlockCipher->ProcessBlock(m_InBlockCache, out_block);
-                for (unsigned int y=0; y<AP4_CIPHER_BLOCK_SIZE; y++) {
-                    out_block[y] ^= m_OutBlockCache[y];
-                }
-                AP4_CopyMemory(m_OutBlockCache, m_InBlockCache, AP4_CIPHER_BLOCK_SIZE);
-                                    
-                // emit the block (or partial block) to the out buffer
-                unsigned int out_chunk = AP4_CIPHER_BLOCK_SIZE-m_OutputSkip;
-                AP4_CopyMemory(out, out_block+m_OutputSkip, out_chunk);
-                out += out_chunk;
-                position = 0;
-                m_OutputSkip = 0;
-            }
-        }
-        if (is_last_buffer && m_Direction == DECRYPT) {
-            // check that we have fed an integral number of blocks
-            if (m_StreamOffset%AP4_CIPHER_BLOCK_SIZE != 0) {
-                *out_size = 0;
-                return AP4_ERROR_INVALID_PARAMETERS;
-            }
-
-            // remove the padding
-            AP4_UI08 pad_byte = out[-1];
-            if (pad_byte == 0 || pad_byte > AP4_CIPHER_BLOCK_SIZE) {
-                *out_size = 0;
-                return AP4_ERROR_INVALID_FORMAT;
-            }
-            *out_size -= pad_byte;
-        }
+        return DecryptBuffer(in, in_size, out, out_size, is_last_buffer);
     }
-    
-    return AP4_SUCCESS;
 }
