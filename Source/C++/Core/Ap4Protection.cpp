@@ -813,15 +813,15 @@ AP4_StandardDecryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
 |   AP4_DecryptingStream::AP4_DecryptingStream
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_DecryptingStream::Create(CipherMode              mode,
-                             AP4_ByteStream&         encrypted_stream,
-                             AP4_LargeSize           cleartext_size,
-                             const AP4_UI08*         iv,
-                             AP4_Size                iv_size,
-                             const AP4_UI08*         key,
-                             AP4_Size                key_size,
-                             AP4_BlockCipherFactory* block_cipher_factory,
-                             AP4_ByteStream*&        stream)
+AP4_DecryptingStream::Create(AP4_BlockCipher::CipherMode mode,
+                             AP4_ByteStream&             encrypted_stream,
+                             AP4_LargeSize               cleartext_size,
+                             const AP4_UI08*             iv,
+                             AP4_Size                    iv_size,
+                             const AP4_UI08*             key,
+                             AP4_Size                    key_size,
+                             AP4_BlockCipherFactory*     block_cipher_factory,
+                             AP4_ByteStream*&            stream)
 {
     // default return value
     stream = NULL;
@@ -840,21 +840,30 @@ AP4_DecryptingStream::Create(CipherMode              mode,
     if (iv == NULL || iv_size != 16) return AP4_ERROR_INVALID_PARAMETERS;
     
     // check that the encrypted size is consistent with the cipher mode
-    if (mode == CIPHER_MODE_CBC) {
+    AP4_BlockCipher::CtrParams ctr_params;
+    const void*                mode_params = NULL;
+    if (mode == AP4_BlockCipher::CBC) {
         // we need at least 32 bytes of data+padding
         // we also need a multiple of the block size
         if (encrypted_size < 32 || ((encrypted_size % 16) != 0)) {
             return AP4_ERROR_INVALID_FORMAT;
         }
+    } else if (mode == AP4_BlockCipher::CTR) {
+        ctr_params.counter_size = 16;
+        mode_params = &ctr_params;
+    } else {
+        return AP4_ERROR_NOT_SUPPORTED;
     }
         
     // create the stream cipher
     AP4_BlockCipher* block_cipher;
-    result = block_cipher_factory->Create(AP4_BlockCipher::AES_128,
-                                          (mode == CIPHER_MODE_CTR ? 
-                                           AP4_BlockCipher::ENCRYPT :
-                                           AP4_BlockCipher::DECRYPT),
-                                          key, key_size, block_cipher);
+    result = block_cipher_factory->CreateCipher(AP4_BlockCipher::AES_128,
+                                                AP4_BlockCipher::DECRYPT,
+                                                mode,
+                                                mode_params,
+                                                key, 
+                                                key_size, 
+                                                block_cipher);
     if (AP4_FAILED(result)) return result;
     
     // keep a reference to the source stream
@@ -875,18 +884,16 @@ AP4_DecryptingStream::Create(CipherMode              mode,
     
     // create the cipher according to the mode
     switch (mode) {
-        case CIPHER_MODE_CBC:
-            dec_stream->m_StreamCipher = new AP4_CbcStreamCipher(block_cipher, 
-                                                                 AP4_StreamCipher::DECRYPT);
+        case AP4_BlockCipher::CBC:
+            dec_stream->m_StreamCipher = new AP4_CbcStreamCipher(block_cipher);
             break;
-        case CIPHER_MODE_CTR:
+        case AP4_BlockCipher::CTR:
             dec_stream->m_StreamCipher = new AP4_CtrStreamCipher(block_cipher,
-                                                                 NULL,
                                                                  AP4_CIPHER_BLOCK_SIZE);
             break;
         default:
             // should never occur
-            AP4_ASSERT(0);
+            return AP4_ERROR_NOT_SUPPORTED;
     }
     
     // set the IV
@@ -948,11 +955,11 @@ AP4_DecryptingStream::ReadPartial(void*     buffer,
         AP4_CopyMemory(buffer, &m_Buffer[m_BufferOffset], chunk);
         buffer = (char*)buffer+chunk;
         m_CleartextPosition += chunk;
-        available -= chunk;
-        bytes_to_read -= chunk;
-        m_BufferFullness -= chunk;
-        m_BufferOffset += chunk;
-        bytes_read += chunk;
+        available           -= chunk;
+        bytes_to_read       -= chunk;
+        m_BufferFullness    -= chunk;
+        m_BufferOffset      += chunk;
+        bytes_read          += chunk;
     }
 
     // seek to the right place in the input
@@ -960,9 +967,9 @@ AP4_DecryptingStream::ReadPartial(void*     buffer,
 
     while (bytes_to_read) {
         // read from the source
-        AP4_UI08 encrypted[16];
+        AP4_UI08 encrypted[1024];
         AP4_Size encrypted_read = 0;
-        AP4_Result result = m_EncryptedStream->ReadPartial(encrypted, 16, encrypted_read);
+        AP4_Result result = m_EncryptedStream->ReadPartial(encrypted, sizeof(encrypted), encrypted_read);
         if (result == AP4_ERROR_EOS) {
             if (bytes_read == 0) {
                 return AP4_ERROR_EOS;
@@ -975,25 +982,25 @@ AP4_DecryptingStream::ReadPartial(void*     buffer,
             m_EncryptedPosition += encrypted_read;
         }
         bool is_last_buffer = (m_EncryptedPosition >= m_EncryptedSize);
-        AP4_Size buffer_size = 16;
+        AP4_Size buffer_size = sizeof(m_Buffer);
         result = m_StreamCipher->ProcessBuffer(encrypted, 
                                                encrypted_read, 
                                                m_Buffer, 
                                                &buffer_size,
                                                is_last_buffer);
-        m_BufferOffset = 0;
+        m_BufferOffset   = 0;
         m_BufferFullness = buffer_size;
 
         AP4_Size chunk = bytes_to_read;
         if (chunk > m_BufferFullness) chunk = m_BufferFullness;
-        AP4_CopyMemory(buffer, &m_Buffer[m_BufferOffset], chunk);
+        if (chunk) AP4_CopyMemory(buffer, &m_Buffer[m_BufferOffset], chunk);
         buffer = (char*)buffer+chunk;
         m_CleartextPosition += chunk;
-        available -= chunk;
-        bytes_to_read -= chunk;
-        m_BufferFullness -= chunk;
-        m_BufferOffset += chunk;
-        bytes_read += chunk;
+        available           -= chunk;
+        bytes_to_read       -= chunk;
+        m_BufferFullness    -= chunk;
+        m_BufferOffset      += chunk;
+        bytes_read          += chunk;
     }
 
     return AP4_SUCCESS;
@@ -1072,15 +1079,15 @@ AP4_DecryptingStream::GetSize(AP4_LargeSize& size)
 |   AP4_EncryptingStream::AP4_EncryptingStream
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_EncryptingStream::Create(CipherMode              mode,
-                             AP4_ByteStream&         cleartext_stream,
-                             const AP4_UI08*         iv,
-                             AP4_Size                iv_size,
-                             const AP4_UI08*         key,
-                             AP4_Size                key_size,
-                             bool                    prepend_iv,
-                             AP4_BlockCipherFactory* block_cipher_factory,
-                             AP4_ByteStream*&        stream)
+AP4_EncryptingStream::Create(AP4_BlockCipher::CipherMode mode,
+                             AP4_ByteStream&             cleartext_stream,
+                             const AP4_UI08*             iv,
+                             AP4_Size                    iv_size,
+                             const AP4_UI08*             key,
+                             AP4_Size                    key_size,
+                             bool                        prepend_iv,
+                             AP4_BlockCipherFactory*     block_cipher_factory,
+                             AP4_ByteStream*&            stream)
 {
     // default return value
     stream = NULL;
@@ -1093,17 +1100,26 @@ AP4_EncryptingStream::Create(CipherMode              mode,
     // check IV
     if (iv == NULL || iv_size != 16) return AP4_ERROR_INVALID_PARAMETERS;
     
-    // compute the encrypted size
-    AP4_LargeSize encrypted_size = cleartext_size;
-    if (mode == CIPHER_MODE_CBC) {
+    // compute the encrypted size and set cipher params
+    AP4_LargeSize              encrypted_size = cleartext_size;
+    const void*                mode_params = NULL;
+    AP4_BlockCipher::CtrParams ctr_params;
+    if (mode == AP4_BlockCipher::CBC) {
         encrypted_size += (16-(cleartext_size%16)); // with padding
+    } else {
+        ctr_params.counter_size = 16;
+        mode_params = &ctr_params;
     }
     
     // create the stream cipher
     AP4_BlockCipher* block_cipher;
-    result = block_cipher_factory->Create(AP4_BlockCipher::AES_128,
-                                          AP4_BlockCipher::ENCRYPT,
-                                          key, key_size, block_cipher);
+    result = block_cipher_factory->CreateCipher(AP4_BlockCipher::AES_128,
+                                                AP4_BlockCipher::ENCRYPT,
+                                                mode,
+                                                mode_params,
+                                                key, 
+                                                key_size, 
+                                                block_cipher);
     if (AP4_FAILED(result)) return result;
     
     // keep a reference to the source stream
@@ -1131,13 +1147,11 @@ AP4_EncryptingStream::Create(CipherMode              mode,
     
     // create the cipher according to the mode
     switch (mode) {
-        case CIPHER_MODE_CBC:
-            enc_stream->m_StreamCipher = new AP4_CbcStreamCipher(block_cipher, 
-                                                                 AP4_StreamCipher::ENCRYPT);
+        case AP4_BlockCipher::CBC:
+            enc_stream->m_StreamCipher = new AP4_CbcStreamCipher(block_cipher);
             break;
-        case CIPHER_MODE_CTR:
+        case AP4_BlockCipher::CTR:
             enc_stream->m_StreamCipher = new AP4_CtrStreamCipher(block_cipher,
-                                                                 NULL,
                                                                  AP4_CIPHER_BLOCK_SIZE);
             break;
         default:
@@ -1202,11 +1216,11 @@ AP4_EncryptingStream::ReadPartial(void*     buffer,
         AP4_CopyMemory(buffer, &m_Buffer[m_BufferOffset], chunk);
         buffer = (char*)buffer+chunk;
         m_EncryptedPosition += chunk;
-        available -= chunk;
-        bytes_to_read -= chunk;
-        m_BufferFullness -= chunk;
-        m_BufferOffset += chunk;
-        bytes_read += chunk;
+        available           -= chunk;
+        bytes_to_read       -= chunk;
+        m_BufferFullness    -= chunk;
+        m_BufferOffset      += chunk;
+        bytes_read          += chunk;
     }
 
     // seek to the right place in the input
@@ -1214,9 +1228,9 @@ AP4_EncryptingStream::ReadPartial(void*     buffer,
 
     while (bytes_to_read) {
         // read from the source
-        AP4_UI08 cleartext[16];
+        AP4_UI08 cleartext[1024];
         AP4_Size cleartext_read = 0;
-        AP4_Result result = m_CleartextStream->ReadPartial(cleartext, 16, cleartext_read);
+        AP4_Result result = m_CleartextStream->ReadPartial(cleartext, sizeof(cleartext), cleartext_read);
         if (result == AP4_ERROR_EOS) {
             if (bytes_read == 0) {
                 return AP4_ERROR_EOS;
@@ -1229,13 +1243,13 @@ AP4_EncryptingStream::ReadPartial(void*     buffer,
             m_CleartextPosition += cleartext_read;
         }
         bool is_last_buffer = (m_CleartextPosition >= m_CleartextSize);
-        AP4_Size buffer_size = 32; // enough for one block plus one block padding
+        AP4_Size buffer_size = sizeof(m_Buffer);
         result = m_StreamCipher->ProcessBuffer(cleartext, 
                                                cleartext_read, 
                                                m_Buffer, 
                                                &buffer_size,
                                                is_last_buffer);
-        m_BufferOffset = 0;
+        m_BufferOffset   = 0;
         m_BufferFullness = buffer_size;
 
         AP4_Size chunk = bytes_to_read;
@@ -1244,11 +1258,11 @@ AP4_EncryptingStream::ReadPartial(void*     buffer,
             AP4_CopyMemory(buffer, &m_Buffer[m_BufferOffset], chunk);
             buffer = (char*)buffer+chunk;
             m_EncryptedPosition += chunk;
-            available -= chunk;
-            bytes_to_read -= chunk;
-            m_BufferFullness -= chunk;
-            m_BufferOffset += chunk;
-            bytes_read += chunk;
+            available           -= chunk;
+            bytes_to_read       -= chunk;
+            m_BufferFullness    -= chunk;
+            m_BufferOffset      += chunk;
+            bytes_read          += chunk;
         }
     }
 
@@ -1308,11 +1322,13 @@ AP4_DefaultBlockCipherFactory AP4_DefaultBlockCipherFactory::Instance;
 |   AP4_DefaultBlockCipherFactory
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_DefaultBlockCipherFactory::Create(AP4_BlockCipher::CipherType      type,
-                                      AP4_BlockCipher::CipherDirection direction,
-                                      const AP4_UI08*                  key,
-                                      AP4_Size                         key_size,
-                                      AP4_BlockCipher*&                cipher)
+AP4_DefaultBlockCipherFactory::CreateCipher(AP4_BlockCipher::CipherType      type,
+                                            AP4_BlockCipher::CipherDirection direction,
+                                            AP4_BlockCipher::CipherMode      mode,
+                                            const void*                      mode_params,
+                                            const AP4_UI08*                  key,
+                                            AP4_Size                         key_size,
+                                            AP4_BlockCipher*&                cipher)
 {
     // setup default return vaule
     cipher = NULL;
@@ -1325,8 +1341,13 @@ AP4_DefaultBlockCipherFactory::Create(AP4_BlockCipher::CipherType      type,
             }
 
             // create the cipher
-            cipher = new AP4_AesBlockCipher(key, direction);
-            return AP4_SUCCESS;
+            {
+                AP4_AesBlockCipher* aes_cipher = NULL;
+                AP4_Result result =  AP4_AesBlockCipher::Create(key, direction, mode, mode_params, aes_cipher);
+                if (AP4_FAILED(result)) return result;
+                cipher = aes_cipher;
+                return AP4_SUCCESS;
+            }
 
         default:
             // not supported

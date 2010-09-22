@@ -78,7 +78,13 @@ AP4_AesKeyWrap(const AP4_UI08* kek,
     //         B = AES(K, A | R[i])
     //         A = MSB(64, B) ^ t where t = (n*j)+i
     //         R[i] = LSB(64, B)    
-    AP4_AesBlockCipher block_cipher(kek, AP4_BlockCipher::ENCRYPT);
+    AP4_AesBlockCipher* block_cipher = NULL;
+    AP4_Result result =  AP4_AesBlockCipher::Create(kek, 
+                                                    AP4_BlockCipher::ENCRYPT, 
+                                                    AP4_BlockCipher::CBC,
+                                                    NULL,
+                                                    block_cipher);
+    if (AP4_FAILED(result)) return result;
 	for (unsigned int j=0; j <= 5; j++) {
 		r = a + 8;
 		for (unsigned int i=1; i<=n; i++) {
@@ -86,13 +92,14 @@ AP4_AesKeyWrap(const AP4_UI08* kek,
             AP4_UI08 b[16];
             AP4_CopyMemory(workspace, a, 8);
             AP4_CopyMemory(&workspace[8], r, 8);
-            block_cipher.ProcessBlock(workspace, b);
+            block_cipher->Process(workspace, 16, b, NULL);
             AP4_CopyMemory(a, b, 8);
             a[7] ^= n*j+i;
             AP4_CopyMemory(r, &b[8], 8);
             r += 8;
 		}
 	}
+    delete block_cipher;
     
     // Step 3. Output the results.
     // (Nothing to do here since we've worked in-place 
@@ -133,7 +140,13 @@ AP4_AesKeyUnwrap(const AP4_UI08* kek,
     //     B = AES-1(K, (A ^ t) | R[i]) where t = n*j+i
     //     A = MSB(64, B)
     //     R[i] = LSB(64, B)
-    AP4_AesBlockCipher block_cipher(kek, AP4_BlockCipher::DECRYPT);
+    AP4_AesBlockCipher* block_cipher = NULL;
+    AP4_Result result = AP4_AesBlockCipher::Create(kek, 
+                                                   AP4_BlockCipher::DECRYPT,
+                                                   AP4_BlockCipher::CBC,
+                                                   NULL,
+                                                   block_cipher);
+    if (AP4_FAILED(result)) return result;
     for (int j=5; j>=0; j--) {
         r = (AP4_UI08*)cleartext_key.UseData()+(n-1)*8;
         for (int i=n; i>=1; i--) {
@@ -142,12 +155,13 @@ AP4_AesKeyUnwrap(const AP4_UI08* kek,
             AP4_CopyMemory(workspace, a, 8);
             workspace[7] ^= (n*j)+i;
             AP4_CopyMemory(&workspace[8], r, 8);
-            block_cipher.ProcessBlock(workspace, b);
+            block_cipher->Process(workspace, 16, b, NULL);
             AP4_CopyMemory(a, b, 8);
             AP4_CopyMemory(r, &b[8], 8);
             r -= 8;
         }
     }
+    delete block_cipher;
     
     // Step 3. Output results.
     // If A is an appropriate initial value (see 2.2.3),

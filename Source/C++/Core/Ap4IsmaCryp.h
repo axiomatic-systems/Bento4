@@ -73,11 +73,12 @@ public:
    ~AP4_IsmaCipher();
     AP4_Result EncryptSampleData(AP4_DataBuffer& data_in,
                                  AP4_DataBuffer& data_out,
-                                 AP4_UI32        offset);
+                                 AP4_UI32        block_counter);
     AP4_Result DecryptSampleData(AP4_DataBuffer& data_in,
                                  AP4_DataBuffer& data_out,
                                  const AP4_UI08* iv = NULL);
     AP4_Size   GetDecryptedSampleSize(AP4_Sample& sample);
+    const AP4_UI08*      GetSalt()     { return m_Salt;     }
     AP4_CtrStreamCipher* GetCipher()   { return m_Cipher;   }
     AP4_UI08             GetIvLength() { return m_IvLength; }
     AP4_UI08             GetKeyIndicatorLength() { return m_KeyIndicatorLength; }
@@ -86,6 +87,7 @@ public:
 private:
     // members
     AP4_CtrStreamCipher* m_Cipher;
+    AP4_UI08             m_Salt[8];
     AP4_UI08             m_IvLength;
     AP4_UI08             m_KeyIndicatorLength;
     bool                 m_SelectiveEncryption;

@@ -455,15 +455,17 @@ AP4_MarlinIpmpTrackDecrypter::Create(AP4_BlockCipherFactory&        cipher_facto
     
     // create a block cipher for the decrypter
     AP4_BlockCipher* block_cipher = NULL;
-    AP4_Result result = cipher_factory.Create(AP4_BlockCipher::AES_128,
-                                              AP4_BlockCipher::DECRYPT,
-                                              key,
-                                              AP4_AES_BLOCK_SIZE,
-                                              block_cipher);
+    AP4_Result result = cipher_factory.CreateCipher(AP4_BlockCipher::AES_128,
+                                                    AP4_BlockCipher::DECRYPT,
+                                                    AP4_BlockCipher::CBC,
+                                                    NULL,
+                                                    key,
+                                                    AP4_AES_BLOCK_SIZE,
+                                                    block_cipher);
     if (AP4_FAILED(result)) return result;
     
     // create a CBC cipher
-    AP4_CbcStreamCipher* cbc_cipher = new AP4_CbcStreamCipher(block_cipher, AP4_StreamCipher::DECRYPT);
+    AP4_CbcStreamCipher* cbc_cipher = new AP4_CbcStreamCipher(block_cipher);
     
     // create the track decrypter
     decrypter = new AP4_MarlinIpmpTrackDecrypter(cbc_cipher);
@@ -906,15 +908,17 @@ AP4_MarlinIpmpTrackEncrypter::Create(AP4_BlockCipherFactory&        cipher_facto
     
     // create a block cipher
     AP4_BlockCipher* block_cipher = NULL;
-    AP4_Result result = cipher_factory.Create(AP4_BlockCipher::AES_128, 
-                                              AP4_BlockCipher::ENCRYPT, 
-                                              key, 
-                                              AP4_AES_BLOCK_SIZE, 
-                                              block_cipher);
+    AP4_Result result = cipher_factory.CreateCipher(AP4_BlockCipher::AES_128, 
+                                                    AP4_BlockCipher::ENCRYPT, 
+                                                    AP4_BlockCipher::CBC,
+                                                    NULL,
+                                                    key, 
+                                                    AP4_AES_BLOCK_SIZE, 
+                                                    block_cipher);
     if (AP4_FAILED(result)) return result;
 
     // create a CBC cipher
-    AP4_CbcStreamCipher* cbc_cipher = new AP4_CbcStreamCipher(block_cipher, AP4_StreamCipher::ENCRYPT);
+    AP4_CbcStreamCipher* cbc_cipher = new AP4_CbcStreamCipher(block_cipher);
     
     // create the track encrypter
     encrypter = new AP4_MarlinIpmpTrackEncrypter(cbc_cipher, iv);
