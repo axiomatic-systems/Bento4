@@ -76,7 +76,7 @@ AP4_OmaDcfAtomDecrypter::DecryptAtoms(AP4_AtomParent&                  atoms,
         if (atom->GetType() != AP4_ATOM_TYPE_ODRM) continue;
 
         // check that we have the key
-        const AP4_UI08* key = key_map.GetKey(index++);
+        const AP4_DataBuffer* key = key_map.GetKey(index++);
         if (key == NULL) return AP4_ERROR_INVALID_PARAMETERS;
         
         // check that we have all the atoms we need
@@ -97,8 +97,8 @@ AP4_OmaDcfAtomDecrypter::DecryptAtoms(AP4_AtomParent&                  atoms,
         // create the byte stream
         AP4_ByteStream* cipher_stream = NULL;
         AP4_Result result = CreateDecryptingStream(*odrm, 
-                                                   key, 
-                                                   16, 
+                                                   key->GetData(), 
+                                                   key->GetDataSize(), 
                                                    block_cipher_factory, 
                                                    cipher_stream);
         if (AP4_SUCCEEDED(result)) {
@@ -1114,9 +1114,9 @@ AP4_OmaDcfEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
         
     // create a handler for this track if we have a key for it and we know
     // how to map the type
-    const AP4_UI08* key;
-    const AP4_UI08* iv;
-    AP4_UI32        format = 0;
+    const AP4_DataBuffer* key;
+    const AP4_DataBuffer* iv;
+    AP4_UI32              format = 0;
     if (AP4_SUCCEEDED(m_KeyMap.GetKeyAndIv(trak->GetId(), key, iv))) {
         switch (entry->GetType()) {
             case AP4_ATOM_TYPE_MP4A:
@@ -1170,13 +1170,13 @@ AP4_OmaDcfEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
                                                         AP4_BlockCipher::ENCRYPT, 
                                                         cipher_mode,
                                                         cipher_params,
-                                                        key, 
-                                                        AP4_CIPHER_BLOCK_SIZE, 
+                                                        key->GetData(), 
+                                                        key->GetDataSize(), 
                                                         block_cipher);
             if (AP4_FAILED(result)) return NULL;
             return new AP4_OmaDcfTrackEncrypter(m_CipherMode, 
                                                 block_cipher, 
-                                                iv, 
+                                                iv->GetData(), 
                                                 entry, 
                                                 format, 
                                                 content_id, 

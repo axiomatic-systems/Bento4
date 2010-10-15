@@ -119,6 +119,7 @@ static void
 DecryptAndDumpSamples(AP4_Track*             track, 
                       AP4_SampleDescription* sample_desc,
                       const AP4_UI08*        key,
+                      AP4_Size               key_size,
                       AP4_ByteStream*        dump)
 {
     AP4_ProtectedSampleDescription* pdesc = 
@@ -129,7 +130,7 @@ DecryptAndDumpSamples(AP4_Track*             track,
     }
 
     // create the decrypter
-    AP4_SampleDecrypter* decrypter = AP4_SampleDecrypter::Create(pdesc, key, 16);
+    AP4_SampleDecrypter* decrypter = AP4_SampleDecrypter::Create(pdesc, key, key_size);
     if (decrypter == NULL) {
         fprintf(stderr, "ERROR: unable to create decrypter\n");
         return;
@@ -192,7 +193,7 @@ DumpTrackData(const char*                   mp4_filename,
                AP4_SampleDescription::TYPE_UNKNOWN) {
             case AP4_SampleDescription::TYPE_PROTECTED:
                 {
-                    const AP4_UI08* key = key_map.GetKey(track_id);
+                    const AP4_DataBuffer* key = key_map.GetKey(track_id);
                     if (key == NULL) {
                         fprintf(stderr, 
                                 "WARNING: No key found for encrypted track %d... "
@@ -200,7 +201,7 @@ DumpTrackData(const char*                   mp4_filename,
                                 track_id);
                         DumpSamples(track, dump);
                     } else {
-                        DecryptAndDumpSamples(track, sample_description, key, dump);
+                        DecryptAndDumpSamples(track, sample_description, key->GetData(), key->GetDataSize(), dump);
                     }
                 }
                 break;
@@ -259,7 +260,7 @@ main(int argc, char** argv)
                     return 1;
                 }
                 // set the key in the map
-                key_map.SetKey(track_id, key);
+                key_map.SetKey(track_id, key, 16);
             }
         } else if (!strcmp(arg, "--verbosity")) {
             arg = *argv++;

@@ -205,7 +205,7 @@ main(int argc, char** argv)
                 return 1;
             }
             // set the key in the map
-            key_map.SetKey(track, key, iv);
+            key_map.SetKey(track, key, 16, iv, 16);
         } else if (!strcmp(arg, "--property")) {
             char* track_ascii = NULL;
             char* name = NULL;

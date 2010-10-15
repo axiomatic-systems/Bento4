@@ -472,8 +472,8 @@ AP4_PiffEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
         
     // create a handler for this track if we have a key for it and we know
     // how to map the type
-    const AP4_UI08* key;
-    const AP4_UI08* iv;
+    const AP4_DataBuffer* key;
+    const AP4_DataBuffer* iv;
     if (AP4_FAILED(m_KeyMap.GetKeyAndIv(trak->GetId(), key, iv))) {
         return NULL;
     }
@@ -545,8 +545,8 @@ AP4_PiffEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
                                                            AP4_BlockCipher::ENCRYPT, 
                                                            mode,
                                                            mode_params,
-                                                           key, 
-                                                           16, 
+                                                           key->GetData(), 
+                                                           key->GetDataSize(), 
                                                            block_cipher);
     if (AP4_FAILED(result)) return NULL;
     
@@ -573,7 +573,7 @@ AP4_PiffEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
             }
             break;
     }
-    sample_encrypter->SetIv(iv);
+    sample_encrypter->SetIv(iv->GetData());
     m_Encrypters.Add(new Encrypter(trak->GetId(), sample_encrypter));
 
     return track_encrypter;

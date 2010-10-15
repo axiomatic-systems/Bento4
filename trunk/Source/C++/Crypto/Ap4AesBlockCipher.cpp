@@ -1974,18 +1974,19 @@ AP4_AesBlockCipher::Create(const AP4_UI08*      key,
     cipher = NULL;
 
     aes_ctx* context = new aes_ctx();
-    if (direction == AP4_BlockCipher::ENCRYPT) {
-        aes_enc_key(key, AP4_AES_KEY_LENGTH, context);
-    } else {
-        aes_dec_key(key, AP4_AES_KEY_LENGTH, context);
-    }
     
     switch (mode) {
         case AP4_BlockCipher::CBC:
+            if (direction == AP4_BlockCipher::ENCRYPT) {
+                aes_enc_key(key, AP4_AES_KEY_LENGTH, context);
+            } else {
+                aes_dec_key(key, AP4_AES_KEY_LENGTH, context);
+            }
             cipher = new AP4_AesCbcBlockCipher(direction, context);
             break;
             
         case AP4_BlockCipher::CTR: {
+            aes_enc_key(key, AP4_AES_KEY_LENGTH, context);
             AP4_BlockCipher::CtrParams* ctr_params = (AP4_BlockCipher::CtrParams*) mode_params;
             unsigned int counter_size = 16;
             if (ctr_params) {

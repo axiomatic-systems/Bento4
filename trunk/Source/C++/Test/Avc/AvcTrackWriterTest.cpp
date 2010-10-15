@@ -215,14 +215,14 @@ CheckProtection(AP4_SampleDescription*& sample_description,
             
         printf("INFO: track %d is encrypted\n", track_id);
         // check that we have a key
-        const AP4_UI08* key = key_map.GetKey(track_id);
+        const AP4_DataBuffer* key = key_map.GetKey(track_id);
         if (key == NULL) {
             fprintf(stderr, "ERROR: no key given for track %d\n", track_id);
             return false;
         }
         
         // create the decrypter
-        decrypter = AP4_SampleDecrypter::Create(prot_desc, key, 16);
+        decrypter = AP4_SampleDecrypter::Create(prot_desc, key->GetData(), key->GetDataSize());
         if (decrypter == NULL) {
             fprintf(stderr, "ERROR: unable to create decrypter\n");
             return false;
@@ -277,7 +277,7 @@ main(int argc, char** argv)
                     return 1;
                 }
                 // set the key in the map
-                key_map.SetKey(track_id, key);
+                key_map.SetKey(track_id, key, 16);
             }
         } else if (input_filename == NULL) {
             input_filename = arg;
