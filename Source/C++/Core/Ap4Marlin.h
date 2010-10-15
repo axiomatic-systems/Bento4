@@ -123,6 +123,7 @@ public:
     // class methods
     static AP4_Result Create(AP4_BlockCipherFactory&        cipher_factory,
                              const AP4_UI08*                key,
+                             AP4_Size                       key_size,
                              AP4_MarlinIpmpTrackDecrypter*& decrypter);
                              
     // destructor
@@ -180,7 +181,9 @@ public:
     // class methods
     static AP4_Result Create(AP4_BlockCipherFactory&        cipher_factory,
                              const AP4_UI08*                key,
+                             AP4_Size                       key_size,
                              const AP4_UI08*                iv,
+                             AP4_Size                       iv_size,
                              AP4_MarlinIpmpTrackEncrypter*& encrypter);
                              
     // destructor

@@ -487,8 +487,8 @@ AP4_IsmaEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
         
     // create a handler for this track if we have a key for it and we know
     // how to map the type
-    const AP4_UI08* key;
-    const AP4_UI08* salt;
+    const AP4_DataBuffer* key;
+    const AP4_DataBuffer* salt;
     AP4_UI32        format = 0;
     if (AP4_SUCCEEDED(m_KeyMap.GetKeyAndIv(trak->GetId(), key, salt))) {
         switch (entry->GetType()) {
@@ -527,15 +527,15 @@ AP4_IsmaEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
                                                                    AP4_BlockCipher::ENCRYPT, 
                                                                    AP4_BlockCipher::CTR,
                                                                    &ctr_params,
-                                                                   key, 
-                                                                   AP4_CIPHER_BLOCK_SIZE, 
+                                                                   key->GetData(), 
+                                                                   key->GetDataSize(), 
                                                                    block_cipher);
             if (AP4_FAILED(result)) return NULL;
 
             // create the encrypter
             return new AP4_IsmaTrackEncrypter(m_KmsUri.GetChars(), 
                                               block_cipher, 
-                                              salt, 
+                                              salt->GetData(), 
                                               entry,
                                               format);
         }

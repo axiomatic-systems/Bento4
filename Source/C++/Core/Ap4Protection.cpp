@@ -313,13 +313,17 @@ AP4_ProtectionKeyMap::~AP4_ProtectionKeyMap()
 |   AP4_ProtectionKeyMap::SetKey
 +---------------------------------------------------------------------*/
 AP4_Result 
-AP4_ProtectionKeyMap::SetKey(AP4_UI32 track_id, const AP4_UI08* key, const AP4_UI08* iv)
+AP4_ProtectionKeyMap::SetKey(AP4_UI32        track_id, 
+                             const AP4_UI08* key, 
+                             AP4_Size        key_size,
+                             const AP4_UI08* iv,
+                             AP4_Size        iv_size)
 {
     KeyEntry* entry = GetEntry(track_id);
     if (entry == NULL) {
-        m_KeyEntries.Add(new KeyEntry(track_id, key, iv));
+        m_KeyEntries.Add(new KeyEntry(track_id, key, key_size, iv, iv_size));
     } else {
-        entry->SetKey(key, iv);
+        entry->SetKey(key, key_size, iv, iv_size);
     }
 
     return AP4_SUCCESS;
@@ -335,8 +339,10 @@ AP4_ProtectionKeyMap::SetKeys(const AP4_ProtectionKeyMap& key_map)
     while (item) {
         KeyEntry* entry = item->GetData();
         m_KeyEntries.Add(new KeyEntry(entry->m_TrackId,
-                                      entry->m_Key,
-                                      entry->m_IV));
+                                      entry->m_Key.GetData(),
+                                      entry->m_Key.GetDataSize(),
+                                      entry->m_IV.GetData(),
+                                      entry->m_IV.GetDataSize()));
         item = item->GetNext();
     }
     return AP4_SUCCESS;
@@ -346,16 +352,18 @@ AP4_ProtectionKeyMap::SetKeys(const AP4_ProtectionKeyMap& key_map)
 |   AP4_ProtectionKeyMap::GetKeyIv
 +---------------------------------------------------------------------*/
 AP4_Result 
-AP4_ProtectionKeyMap::GetKeyAndIv(AP4_UI32         track_id, 
-                                  const AP4_UI08*& key, 
-                                  const AP4_UI08*& iv)
+AP4_ProtectionKeyMap::GetKeyAndIv(AP4_UI32               track_id, 
+                                  const AP4_DataBuffer*& key, 
+                                  const AP4_DataBuffer*& iv)
 {
     KeyEntry* entry = GetEntry(track_id);
     if (entry) {
-        key = entry->m_Key;
-        iv = entry->m_IV;
+        key = &entry->m_Key;
+        iv = &entry->m_IV;
         return AP4_SUCCESS;
     } else {
+        key = NULL;
+        iv = NULL;
         return AP4_ERROR_NO_SUCH_ITEM;
     }
 }
@@ -363,12 +371,12 @@ AP4_ProtectionKeyMap::GetKeyAndIv(AP4_UI32         track_id,
 /*----------------------------------------------------------------------
 |   AP4_ProtectionKeyMap::GetKey
 +---------------------------------------------------------------------*/
-const AP4_UI08* 
+const AP4_DataBuffer* 
 AP4_ProtectionKeyMap::GetKey(AP4_UI32 track_id) const
 {
     KeyEntry* entry = GetEntry(track_id);
     if (entry) {
-        return entry->m_Key;
+        return &entry->m_Key;
     } else {
         return NULL;
     }
@@ -395,23 +403,29 @@ AP4_ProtectionKeyMap::GetEntry(AP4_UI32 track_id) const
 +---------------------------------------------------------------------*/
 AP4_ProtectionKeyMap::KeyEntry::KeyEntry(AP4_UI32        track_id, 
                                          const AP4_UI08* key, 
-                                         const AP4_UI08* iv /* = NULL */) :
+                                         AP4_Size        key_size,
+                                         const AP4_UI08* iv,
+                                         AP4_Size        iv_size) :
     m_TrackId(track_id)
 {
-    SetKey(key, iv);
+    SetKey(key, key_size, iv, iv_size);
 }
 
 /*----------------------------------------------------------------------
 |   AP4_ProtectionKeyMap::KeyEntry::SetKey
 +---------------------------------------------------------------------*/
 void
-AP4_ProtectionKeyMap::KeyEntry::SetKey(const AP4_UI08* key, const AP4_UI08* iv)
+AP4_ProtectionKeyMap::KeyEntry::SetKey(const AP4_UI08* key, AP4_Size key_size, 
+                                       const AP4_UI08* iv,  AP4_Size iv_size)
 {
-    AP4_CopyMemory(m_Key, key, sizeof(m_Key));
+    if (key) {
+        m_Key.SetData(key, key_size);
+    }
     if (iv) {
-        AP4_CopyMemory(m_IV, iv, sizeof(m_IV));
+        m_IV.SetData(iv, iv_size);
     } else {
-        AP4_SetMemory(m_IV, 0, sizeof(m_IV));
+        m_IV.SetDataSize(16);
+        AP4_SetMemory(m_IV.UseData(), 0, 16);
     }
 }
 
@@ -778,11 +792,11 @@ AP4_StandardDecryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
         AP4_ProtectedSampleDescription* protected_desc = 
             static_cast<AP4_ProtectedSampleDescription*>(desc);
         if (protected_desc->GetSchemeType() == AP4_PROTECTION_SCHEME_TYPE_OMA) {
-            const AP4_UI08* key = m_KeyMap.GetKey(trak->GetId());
+            const AP4_DataBuffer* key = m_KeyMap.GetKey(trak->GetId());
             if (key) {
                 AP4_OmaDcfTrackDecrypter* handler = NULL;
-                AP4_Result result = AP4_OmaDcfTrackDecrypter::Create(key, 
-                                                                     AP4_CIPHER_BLOCK_SIZE, 
+                AP4_Result result = AP4_OmaDcfTrackDecrypter::Create(key->GetData(), 
+                                                                     key->GetDataSize(), 
                                                                      protected_desc, 
                                                                      entry, 
                                                                      m_BlockCipherFactory, 
@@ -791,11 +805,11 @@ AP4_StandardDecryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
                 return handler;
             }
         } else if (protected_desc->GetSchemeType() == AP4_PROTECTION_SCHEME_TYPE_IAEC) {
-            const AP4_UI08* key = m_KeyMap.GetKey(trak->GetId());
+            const AP4_DataBuffer* key = m_KeyMap.GetKey(trak->GetId());
             if (key) {
                 AP4_IsmaTrackDecrypter* handler = NULL;
-                AP4_Result result = AP4_IsmaTrackDecrypter::Create(key, 
-                                                                   AP4_CIPHER_BLOCK_SIZE, 
+                AP4_Result result = AP4_IsmaTrackDecrypter::Create(key->GetData(), 
+                                                                   key->GetDataSize(), 
                                                                    protected_desc, 
                                                                    entry, 
                                                                    m_BlockCipherFactory, 

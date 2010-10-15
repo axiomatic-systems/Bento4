@@ -137,20 +137,29 @@ public:
     ~AP4_ProtectionKeyMap();
 
     // methods
-    AP4_Result      SetKey(AP4_UI32 track_id, const AP4_UI08* key, const AP4_UI08* iv = NULL);
+    AP4_Result      SetKey(AP4_UI32 track_id, 
+                           const AP4_UI08* key, 
+                           AP4_Size        key_size,
+                           const AP4_UI08* iv = NULL,
+                           AP4_Size        iv_size = 0);
     AP4_Result      SetKeys(const AP4_ProtectionKeyMap& key_map);
-    AP4_Result      GetKeyAndIv(AP4_UI32 track_id, const AP4_UI08*& key, const AP4_UI08*& iv);
-    const AP4_UI08* GetKey(AP4_UI32 track_id) const;
+    AP4_Result      GetKeyAndIv(AP4_UI32 track_id, const AP4_DataBuffer*& key, const AP4_DataBuffer*& iv);
+    const AP4_DataBuffer* GetKey(AP4_UI32 track_id) const;
 
 private:
     // types
     class KeyEntry {
     public:
-        KeyEntry(AP4_UI32 track_id, const AP4_UI08* key, const AP4_UI08* iv = NULL);
-        void SetKey(const AP4_UI08* key, const AP4_UI08* iv);
-        AP4_Ordinal m_TrackId;
-        AP4_UI08    m_Key[AP4_PROTECTION_KEY_LENGTH];
-        AP4_UI08    m_IV[AP4_PROTECTION_KEY_LENGTH];
+        KeyEntry(AP4_UI32 track_id, 
+                const AP4_UI08* key, 
+                AP4_Size        key_size,
+                const AP4_UI08* iv = NULL,
+                AP4_Size        iv_size = 0);
+        void SetKey(const AP4_UI08* key, AP4_Size key_size,
+                    const AP4_UI08* iv,  AP4_Size iv_size);
+        AP4_Ordinal    m_TrackId;
+        AP4_DataBuffer m_Key;
+        AP4_DataBuffer m_IV;
     };
 
     // methods

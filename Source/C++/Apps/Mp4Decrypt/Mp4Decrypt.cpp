@@ -114,7 +114,7 @@ main(int argc, char** argv)
                 return 1;
             }
             // set the key in the map
-            key_map.SetKey(track, key);
+            key_map.SetKey(track, key, 16);
         } else if (!strcmp(arg, "--show-progress")) {
             show_progress = true;
         } else if (input_filename == NULL) {

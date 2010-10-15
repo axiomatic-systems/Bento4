@@ -414,10 +414,10 @@ AP4_MarlinIpmpDecryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
     }
 
     // find the key
-    const AP4_UI08* key = NULL;
-    AP4_DataBuffer  unwrapped_key;
+    const AP4_DataBuffer* key = NULL;
+    AP4_DataBuffer        unwrapped_key;
     if (use_group_key) {
-        const AP4_UI08* group_key = m_KeyMap.GetKey(0);
+        const AP4_DataBuffer* group_key = m_KeyMap.GetKey(0);
         if (group_key == NULL) return NULL; // no group key
         AP4_ContainerAtom* schi = AP4_DYNAMIC_CAST(AP4_ContainerAtom, sinf->GetChild(AP4_ATOM_TYPE_SCHI));
         if (schi == NULL) return NULL; // no schi
@@ -425,8 +425,8 @@ AP4_MarlinIpmpDecryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
         if (gkey == NULL) return NULL; // no gkey
         AP4_MemoryByteStream* gkey_data = new AP4_MemoryByteStream();
         gkey->WriteFields(*gkey_data);
-        AP4_AesKeyUnwrap(group_key, gkey_data->GetData(), gkey_data->GetDataSize(), unwrapped_key);
-        key = unwrapped_key.GetData();
+        AP4_AesKeyUnwrap(group_key->GetData(), gkey_data->GetData(), gkey_data->GetDataSize(), unwrapped_key);
+        key = &unwrapped_key;
         gkey_data->Release();        
     } else {
         key = m_KeyMap.GetKey(sinf_entry->m_TrackId);
@@ -436,7 +436,9 @@ AP4_MarlinIpmpDecryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
     // create the decrypter
     AP4_MarlinIpmpTrackDecrypter* decrypter = NULL;
     AP4_Result result = AP4_MarlinIpmpTrackDecrypter::Create(*m_BlockCipherFactory,
-                                                             key, decrypter);
+                                                             key->GetData(), 
+                                                             key->GetDataSize(),
+                                                             decrypter);
     if (AP4_FAILED(result)) return NULL;
     
     return decrypter;
@@ -448,6 +450,7 @@ AP4_MarlinIpmpDecryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
 AP4_Result
 AP4_MarlinIpmpTrackDecrypter::Create(AP4_BlockCipherFactory&        cipher_factory,
                                      const AP4_UI08*                key,
+                                     AP4_Size                       key_size,
                                      AP4_MarlinIpmpTrackDecrypter*& decrypter)
 {
     // default value
@@ -460,7 +463,7 @@ AP4_MarlinIpmpTrackDecrypter::Create(AP4_BlockCipherFactory&        cipher_facto
                                                     AP4_BlockCipher::CBC,
                                                     NULL,
                                                     key,
-                                                    AP4_AES_BLOCK_SIZE,
+                                                    key_size,
                                                     block_cipher);
     if (AP4_FAILED(result)) return result;
     
@@ -730,8 +733,7 @@ AP4_MarlinIpmpEncryptingProcessor::Initialize(
         }
                 
         // find what the track type is (necessary for the next step) and the key
-        const AP4_UI08* key;
-        unsigned int    key_size = 0;
+        const AP4_DataBuffer* key = NULL;
         AP4_Track::Type track_type = AP4_Track::TYPE_UNKNOWN;
         for (AP4_List<AP4_TrakAtom>::Item* trak_item = moov->GetTrakAtoms().FirstItem();
                                            trak_item;
@@ -753,23 +755,18 @@ AP4_MarlinIpmpEncryptingProcessor::Initialize(
                 }
                 
                 // find the key
-                const AP4_UI08* iv = NULL;
-                if (AP4_SUCCEEDED(m_KeyMap.GetKeyAndIv(trak->GetId(), key, iv))) {
-                    key_size = 16;
-                }
-
+                key = m_KeyMap.GetKey(trak->GetId());
                 break;
             }
         }
         
         // group key
-        if (m_UseGroupKey) {
+        if (m_UseGroupKey && key) {
             // find the group key
-            const AP4_UI08* iv = NULL;
-            const AP4_UI08* group_key;
-            if (AP4_SUCCEEDED(m_KeyMap.GetKeyAndIv(0, group_key, iv))) {
+            const AP4_DataBuffer* group_key = m_KeyMap.GetKey(0);
+            if (group_key) {
                 AP4_DataBuffer wrapped_key;
-                result = AP4_AesKeyWrap(group_key, key, key_size, wrapped_key);
+                result = AP4_AesKeyWrap(group_key->GetData(), key->GetData(), key->GetDataSize(), wrapped_key);
                 if (AP4_FAILED(result)) return result;
                 AP4_UnknownAtom* gkey = new AP4_UnknownAtom(AP4_ATOM_TYPE_GKEY, 
                                                             wrapped_key.GetData(), 
@@ -779,7 +776,7 @@ AP4_MarlinIpmpEncryptingProcessor::Initialize(
         }
                 
         // create and add the security attributes (satr)
-        if (track_type != AP4_Track::TYPE_UNKNOWN && key != NULL && key_size != 0) {
+        if (track_type != AP4_Track::TYPE_UNKNOWN && key != NULL && key != NULL) {
             AP4_ContainerAtom* satr = new AP4_ContainerAtom(AP4_ATOM_TYPE_SATR);
             switch (track_type) {
                 case AP4_Track::TYPE_AUDIO:
@@ -818,7 +815,7 @@ AP4_MarlinIpmpEncryptingProcessor::Initialize(
             AP4_MemoryByteStream* mbs = new AP4_MemoryByteStream();
             satr->Write(*mbs);
             AP4_Hmac* digester = NULL;
-            AP4_Hmac::Create(AP4_Hmac::SHA256, key, key_size, digester);
+            AP4_Hmac::Create(AP4_Hmac::SHA256, key->GetData(), key->GetDataSize(), digester);
             digester->Update(mbs->GetData(), mbs->GetDataSize());
             AP4_DataBuffer hmac_value;
             digester->Final(hmac_value);
@@ -880,12 +877,17 @@ AP4_Processor::TrackHandler*
 AP4_MarlinIpmpEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
 {
     // create a handler for this track if we have a key for it
-    const AP4_UI08* key;
-    const AP4_UI08* iv;
+    const AP4_DataBuffer* key;
+    const AP4_DataBuffer* iv;
     if (AP4_SUCCEEDED(m_KeyMap.GetKeyAndIv(trak->GetId(), key, iv))) {
         // create the track handler
         AP4_MarlinIpmpTrackEncrypter* handler = NULL;
-        AP4_Result result = AP4_MarlinIpmpTrackEncrypter::Create(*m_BlockCipherFactory, key, iv, handler);
+        AP4_Result result = AP4_MarlinIpmpTrackEncrypter::Create(*m_BlockCipherFactory, 
+                                                                 key->GetData(), 
+                                                                 key->GetDataSize(), 
+                                                                 iv->GetData(), 
+                                                                 iv->GetDataSize(),
+                                                                 handler);
         if (AP4_FAILED(result)) return NULL;
         return handler;
     }
@@ -900,11 +902,18 @@ AP4_MarlinIpmpEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
 AP4_Result
 AP4_MarlinIpmpTrackEncrypter::Create(AP4_BlockCipherFactory&        cipher_factory,
                                      const AP4_UI08*                key,
+                                     AP4_Size                       key_size,
                                      const AP4_UI08*                iv,
+                                     AP4_Size                       iv_size,
                                      AP4_MarlinIpmpTrackEncrypter*& encrypter)
 {
     // default value
     encrypter = NULL;
+    
+    // check args
+    if (iv != NULL && iv_size != 16) {
+        return AP4_ERROR_INVALID_PARAMETERS;
+    }
     
     // create a block cipher
     AP4_BlockCipher* block_cipher = NULL;
@@ -913,7 +922,7 @@ AP4_MarlinIpmpTrackEncrypter::Create(AP4_BlockCipherFactory&        cipher_facto
                                                     AP4_BlockCipher::CBC,
                                                     NULL,
                                                     key, 
-                                                    AP4_AES_BLOCK_SIZE, 
+                                                    key_size, 
                                                     block_cipher);
     if (AP4_FAILED(result)) return result;
 
