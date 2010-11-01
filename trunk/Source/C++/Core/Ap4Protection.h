@@ -38,6 +38,7 @@
 #include "Ap4AtomFactory.h"
 #include "Ap4SampleDescription.h"
 #include "Ap4Processor.h"
+#include "Ap4Utils.h"
 
 /*----------------------------------------------------------------------
 |   classes
@@ -430,8 +431,25 @@ public:
     virtual void Release();
 
 private:
-    // methods
-    AP4_DecryptingStream() {} // private constructor, use the factory instead
+    // private constructor, use the factory instead
+    AP4_DecryptingStream(AP4_BlockCipher::CipherMode mode,
+                         AP4_LargeSize               cleartext_size,
+                         AP4_ByteStream*             encrypted_stream,
+                         AP4_LargeSize               encrypted_size,
+                         AP4_StreamCipher*           stream_cipher) :
+        m_Mode(mode),
+        m_CleartextSize(cleartext_size),
+        m_CleartextPosition(0),
+        m_EncryptedStream(encrypted_stream),
+        m_EncryptedSize(encrypted_size),
+        m_EncryptedPosition(0),
+        m_StreamCipher(stream_cipher),
+        m_BufferFullness(0),
+        m_BufferOffset(0),
+        m_ReferenceCount(1)
+        { 
+            AP4_SetMemory(m_Buffer, 0, sizeof(m_Buffer)); 
+        } 
     ~AP4_DecryptingStream();
 
     // members
@@ -480,8 +498,25 @@ public:
     virtual void Release();
 
 private:
-    // methods
-    AP4_EncryptingStream() {} // private constructor, use the factory instead
+    // private constructor, use the factory instead
+    AP4_EncryptingStream(AP4_BlockCipher::CipherMode mode,
+                         AP4_LargeSize               cleartext_size,
+                         AP4_ByteStream*             cleartext_stream,
+                         AP4_LargeSize               encrypted_size,
+                         AP4_StreamCipher*           stream_cipher) :
+        m_Mode(mode),
+        m_CleartextSize(cleartext_size),
+        m_CleartextPosition(0),
+        m_CleartextStream(cleartext_stream),
+        m_EncryptedSize(encrypted_size),
+        m_EncryptedPosition(0),
+        m_StreamCipher(stream_cipher),
+        m_BufferFullness(0),
+        m_BufferOffset(0),
+        m_ReferenceCount(1)
+        {
+            AP4_SetMemory(m_Buffer, 0, sizeof(m_Buffer));
+        }
     ~AP4_EncryptingStream();
 
     // members

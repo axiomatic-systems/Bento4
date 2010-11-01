@@ -70,7 +70,9 @@ AP4_IsfmAtom::AP4_IsfmAtom(AP4_UI32        size,
                            AP4_UI32        version,
                            AP4_UI32        flags,
                            AP4_ByteStream& stream) :
-    AP4_Atom(AP4_ATOM_TYPE_ISFM, size, version, flags)
+    AP4_Atom(AP4_ATOM_TYPE_ISFM, size, version, flags),
+    m_KeyIndicatorLength(0),
+    m_IvLength(0)
 {
     AP4_UI08 s;
     stream.ReadUI08(s);

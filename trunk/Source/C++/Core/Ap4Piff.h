@@ -181,7 +181,7 @@ public:
         Encrypter(AP4_UI32 track_id, AP4_PiffSampleEncrypter* sample_encrypter) :
             m_TrackId(track_id),
             m_SampleEncrypter(sample_encrypter) {}
-        Encrypter() { delete m_SampleEncrypter; }
+        ~Encrypter() { delete m_SampleEncrypter; }
         AP4_UI32                 m_TrackId;
         AP4_PiffSampleEncrypter* m_SampleEncrypter;
     };

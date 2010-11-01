@@ -123,6 +123,7 @@ AP4_DigestSha256::AP4_DigestSha256() :
 	m_State[5] = 0x9B05688CUL;
 	m_State[6] = 0x1F83D9ABUL;
 	m_State[7] = 0x5BE0CD19UL;
+    AP4_SetMemory(m_Buffer, 0, sizeof(m_Buffer));
 }
 
 /*----------------------------------------------------------------------
@@ -266,10 +267,10 @@ AP4_HmacSha256::AP4_HmacSha256(const AP4_UI08* key, AP4_Size key_size)
 	AP4_UI08 workspace[AP4_SHA256_BLOCK_SIZE];
     
     /* if the key is larger than the block size, use a digest of the key */
-    AP4_DataBuffer hk;
     if (key_size > AP4_SHA256_BLOCK_SIZE) {
         AP4_DigestSha256 kdigest;
         kdigest.Update(key, key_size);
+        AP4_DataBuffer hk;
         kdigest.Final(hk);
         key = hk.GetData();
         key_size = hk.GetDataSize();

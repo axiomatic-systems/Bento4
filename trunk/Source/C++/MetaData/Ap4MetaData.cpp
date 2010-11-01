@@ -1506,6 +1506,7 @@ AP4_DataAtom::LoadInteger(long& value)
 +---------------------------------------------------------------------*/
 AP4_MetaDataStringAtom::AP4_MetaDataStringAtom(Type type, const char* value) :
     AP4_Atom(type, AP4_ATOM_HEADER_SIZE),
+    m_Reserved(0),
     m_Value(value)
 {
     m_Size32 += 4+m_Value.GetLength();
@@ -1516,6 +1517,7 @@ AP4_MetaDataStringAtom::AP4_MetaDataStringAtom(Type type, const char* value) :
 +---------------------------------------------------------------------*/
 AP4_MetaDataStringAtom::AP4_MetaDataStringAtom(Type type, AP4_UI32 size, AP4_ByteStream& stream) :
     AP4_Atom(type, size),
+    m_Reserved(0),
     m_Value((AP4_Size)(size-AP4_ATOM_HEADER_SIZE-4))
 {
     stream.ReadUI32(m_Reserved);
@@ -1717,7 +1719,8 @@ AP4_DcfdAtom::Create(AP4_UI32 size, AP4_ByteStream& stream)
 AP4_DcfdAtom::AP4_DcfdAtom(AP4_UI32        version,
                            AP4_UI32        flags,
                            AP4_ByteStream& stream) :
-    AP4_Atom(AP4_ATOM_TYPE_DCFD, AP4_FULL_ATOM_HEADER_SIZE+4, version, flags)
+    AP4_Atom(AP4_ATOM_TYPE_DCFD, AP4_FULL_ATOM_HEADER_SIZE+4, version, flags),
+    m_Duration(0)
 {
     stream.ReadUI32(m_Duration);
 }

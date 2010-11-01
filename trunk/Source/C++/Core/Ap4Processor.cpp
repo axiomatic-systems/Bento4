@@ -239,7 +239,7 @@ AP4_Processor::Process(AP4_ByteStream&   input,
         if (atom->GetType() == AP4_ATOM_TYPE_MDAT) {
             continue;
         } else if (atom->GetType() == AP4_ATOM_TYPE_MOOV) {
-            moov = (AP4_MoovAtom*)atom;
+            moov = AP4_DYNAMIC_CAST(AP4_MoovAtom, atom);
         } else if (atom->GetType() == AP4_ATOM_TYPE_MOOF) {
             AP4_ContainerAtom* moof = AP4_DYNAMIC_CAST(AP4_ContainerAtom, atom);
             if (moof) {

@@ -45,7 +45,9 @@ AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_IpmpDescriptorPointer)
 +---------------------------------------------------------------------*/
 AP4_IpmpDescriptorPointer::AP4_IpmpDescriptorPointer(AP4_UI08 descriptor_id) :
     AP4_Descriptor(AP4_DESCRIPTOR_TAG_IPMP_DESCRIPTOR_POINTER, 2, 1),
-    m_DescriptorId(descriptor_id)
+    m_DescriptorId(descriptor_id),
+    m_DescriptorIdEx(0), 
+    m_EsId(0) 
 {
 }
 

@@ -149,9 +149,9 @@ main(int argc, char** argv)
 
         // read some data and feed the parser
         AP4_UI08 input_buffer[4096];
-        AP4_Size bytes_read = 0;
         AP4_Size to_read = parser.GetBytesFree();
         if (to_read) {
+            AP4_Size bytes_read = 0;
             if (to_read > sizeof(input_buffer)) to_read = sizeof(input_buffer);
             result = input->ReadPartial(input_buffer, to_read, bytes_read);
             if (AP4_SUCCEEDED(result)) {
@@ -169,6 +169,9 @@ main(int argc, char** argv)
         }
    }
 
+    // create a movie
+    AP4_Movie* movie = new AP4_Movie();
+
     // create an audio track
     AP4_Track* track = new AP4_Track(AP4_Track::TYPE_AUDIO, 
                                      sample_table, 
@@ -179,9 +182,6 @@ main(int argc, char** argv)
                                      sample_count*1024, // media duration
                                      "eng", // language
                                      0, 0); // width, height
-
-    // create a movie
-    AP4_Movie* movie = new AP4_Movie();
 
     // add the track to the movie
     movie->AddTrack(track);

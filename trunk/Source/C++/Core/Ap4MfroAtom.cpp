@@ -63,7 +63,8 @@ AP4_MfroAtom::AP4_MfroAtom(AP4_UI32        size,
                            AP4_UI32        version, 
                            AP4_UI32        flags, 
                            AP4_ByteStream& stream) :
-    AP4_Atom(AP4_ATOM_TYPE_MFRO, size, version, flags)
+    AP4_Atom(AP4_ATOM_TYPE_MFRO, size, version, flags),
+    m_MfraSize(0)
 {
     stream.ReadUI32(m_MfraSize);
 }

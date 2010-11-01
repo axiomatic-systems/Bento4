@@ -121,7 +121,8 @@ AP4_AdtsHeader::Check()
 /*----------------------------------------------------------------------+
 |    AP4_AdtsParser::AP4_AdtsParser
 +----------------------------------------------------------------------*/
-AP4_AdtsParser::AP4_AdtsParser()
+AP4_AdtsParser::AP4_AdtsParser() :
+    m_FrameCount(0)
 {
 }
 

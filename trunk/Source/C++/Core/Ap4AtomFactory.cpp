@@ -243,9 +243,8 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
                                       AP4_UI64        size_64,
                                       AP4_Atom*&      atom)
 {
-    AP4_Result result;
-    bool       atom_is_large = (size_32 == 1);
-    bool       force_64 = (size_32==1 && ((size_64>>32) == 0));
+    bool atom_is_large = (size_32 == 1);
+    bool force_64 = (size_32==1 && ((size_64>>32) == 0));
     
     // create the atom
     if (GetContext() == AP4_ATOM_TYPE_STSD) {
@@ -437,7 +436,7 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
     #if !defined(AP4_CONFIG_MINI_BUILD)
           case AP4_ATOM_TYPE_UUID: {
               AP4_UI08 uuid[16];
-              result = stream.Read(uuid, 16);
+              AP4_Result result = stream.Read(uuid, 16);
               if (AP4_FAILED(result)) return result;
               
               if (AP4_CompareMemory(uuid, AP4_UUID_PIFF_TRACK_ENCRYPTION_ATOM, 16) == 0) {

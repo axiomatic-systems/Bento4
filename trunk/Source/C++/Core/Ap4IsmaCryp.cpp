@@ -405,9 +405,6 @@ AP4_IsmaTrackEncrypter::GetProcessedSampleSize(AP4_Sample& sample)
 AP4_Result   
 AP4_IsmaTrackEncrypter::ProcessTrack()
 {
-    // sinf container
-    AP4_ContainerAtom* sinf = new AP4_ContainerAtom(AP4_ATOM_TYPE_SINF);
-
     // original format
     AP4_FrmaAtom* frma = new AP4_FrmaAtom(m_SampleEntry->GetType());
     
@@ -415,7 +412,6 @@ AP4_IsmaTrackEncrypter::ProcessTrack()
     AP4_SchmAtom* schm = new AP4_SchmAtom(AP4_PROTECTION_SCHEME_TYPE_IAEC, 1);
     
     // scheme info
-    AP4_ContainerAtom* schi = new AP4_ContainerAtom(AP4_ATOM_TYPE_SCHI);
     AP4_IkmsAtom*      ikms = new AP4_IkmsAtom(m_KmsUri.GetChars());
     AP4_IsfmAtom*      isfm = new AP4_IsfmAtom(m_Cipher->GetSelectiveEncryption(), 
                                                m_Cipher->GetKeyIndicatorLength(), 
@@ -423,11 +419,13 @@ AP4_IsmaTrackEncrypter::ProcessTrack()
     AP4_IsltAtom*      islt = new AP4_IsltAtom(m_Cipher->GetSalt());
 
     // populate the schi container
+    AP4_ContainerAtom* schi = new AP4_ContainerAtom(AP4_ATOM_TYPE_SCHI);
     schi->AddChild(ikms);
     schi->AddChild(isfm);
     schi->AddChild(islt);
 
     // populate the sinf container
+    AP4_ContainerAtom* sinf = new AP4_ContainerAtom(AP4_ATOM_TYPE_SINF);
     sinf->AddChild(frma);
     sinf->AddChild(schm);
     sinf->AddChild(schi);

@@ -126,7 +126,8 @@ public:
                              AP4_Size                       key_size,
                              AP4_MarlinIpmpTrackDecrypter*& decrypter);
                              
-    // destructor
+    // constructor and destructor
+     AP4_MarlinIpmpTrackDecrypter() : m_Cipher(NULL) {};
     ~AP4_MarlinIpmpTrackDecrypter();
     
     // AP4_Processor::TrackHandler methods
