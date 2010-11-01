@@ -51,7 +51,8 @@ AP4_FrmaAtom::AP4_FrmaAtom(AP4_UI32 original_format) :
 |   AP4_FrmaAtom::AP4_FrmaAtom
 +---------------------------------------------------------------------*/
 AP4_FrmaAtom::AP4_FrmaAtom(AP4_UI32 size, AP4_ByteStream& stream) :
-    AP4_Atom(AP4_ATOM_TYPE_FRMA, size)
+    AP4_Atom(AP4_ATOM_TYPE_FRMA, size),
+    m_OriginalFormat(0)
 {
     stream.ReadUI32(m_OriginalFormat);
 }

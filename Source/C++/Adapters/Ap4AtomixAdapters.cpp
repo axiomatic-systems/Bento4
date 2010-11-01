@@ -257,7 +257,7 @@ ATX_BEGIN_INTERFACE_MAP(AP4_ByteStream_To_ATX_InputStream_Adapter, ATX_InputStre
     AP4_ByteStream_To_ATX_InputStream_Adapter_Tell,
     AP4_ByteStream_To_ATX_InputStream_Adapter_GetSize,
     AP4_ByteStream_To_ATX_InputStream_Adapter_GetAvailable
-};
+ATX_END_INTERFACE_MAP
 
 /*----------------------------------------------------------------------
 |   ATX_Referenceable interface

@@ -171,7 +171,7 @@ AP4_LinearReader::PopSample(Tracker*        tracker,
                             AP4_DataBuffer& sample_data)
 {
     SampleBuffer* head = NULL;
-    if (AP4_SUCCEEDED(tracker->m_Samples.PopHead(head))) {
+    if (AP4_SUCCEEDED(tracker->m_Samples.PopHead(head)) && head) {
         assert(head->m_Sample);
         sample = *head->m_Sample;
         sample_data.SetData(head->m_Data.GetData(), head->m_Data.GetDataSize());

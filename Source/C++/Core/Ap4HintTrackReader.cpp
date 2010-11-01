@@ -63,7 +63,7 @@ AP4_HintTrackReader::AP4_HintTrackReader(AP4_Track& hint_track,
     AP4_TrakAtom* hint_trak_atom = hint_track.GetTrakAtom();
     AP4_Atom* atom = hint_trak_atom->FindChild("tref/hint");
     if (atom != NULL) {
-        AP4_UI32 media_track_id = ((AP4_TrefTypeAtom*) atom)->GetTrackIds()[0];
+        AP4_UI32 media_track_id = AP4_DYNAMIC_CAST(AP4_TrefTypeAtom, atom)->GetTrackIds()[0];
         m_MediaTrack = movie.GetTrack(media_track_id);
 
         // get the media time scale
@@ -82,7 +82,7 @@ AP4_HintTrackReader::AP4_HintTrackReader(AP4_Track& hint_track,
     // rtp time scale
     atom = hint_trak_atom->FindChild("mdia/minf/stbl/rtp /tims");
     if (atom) {
-        AP4_TimsAtom* tims = (AP4_TimsAtom*)atom;
+        AP4_TimsAtom* tims = AP4_DYNAMIC_CAST(AP4_TimsAtom, atom);
         m_RtpTimeScale = tims->GetTimeScale();
     }
 
@@ -183,7 +183,7 @@ AP4_HintTrackReader::GetSdpText(AP4_String& sdp_text)
     if (sdp_atom == NULL) return AP4_FAILURE;
 
     // C cast is OK because we know the type of the atom
-    sdp_text = ((AP4_SdpAtom*) sdp_atom)->GetSdpText(); 
+    sdp_text = AP4_DYNAMIC_CAST(AP4_SdpAtom, sdp_atom)->GetSdpText(); 
     return AP4_SUCCESS;
 }
 
@@ -273,12 +273,12 @@ AP4_HintTrackReader::BuildRtpPacket(AP4_RtpPacket*  packet,
                 break;
             case AP4_RTP_CONSTRUCTOR_TYPE_IMMEDIATE:
                 result = WriteImmediateRtpData(
-                    (AP4_ImmediateRtpConstructor*) constructor, stream);
+                    static_cast<AP4_ImmediateRtpConstructor*>(constructor), stream);
                 if (AP4_FAILED(result)) return result;
                 break;
             case AP4_RTP_CONSTRUCTOR_TYPE_SAMPLE:
                 result = WriteSampleRtpData(
-                    (AP4_SampleRtpConstructor*) constructor, stream);
+                    static_cast<AP4_SampleRtpConstructor*>(constructor), stream);
                 if (AP4_FAILED(result)) return result;
                 break;
             case AP4_RTP_CONSTRUCTOR_TYPE_SAMPLE_DESC:

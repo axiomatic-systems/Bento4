@@ -71,6 +71,8 @@ AP4_8bdlAtom::Create(AP4_Size size, AP4_ByteStream& stream)
 AP4_8bdlAtom::AP4_8bdlAtom(AP4_Size        size,
                            AP4_ByteStream& stream) :
     AP4_Atom(AP4_ATOM_TYPE_8BDL, (AP4_UI32)(size)),
+    m_Encoding(AP4_8BDL_XML_DATA_ENCODING),
+    m_EncodingVersion(0),
     m_BundleData(size-AP4_ATOM_HEADER_SIZE-8)
 {
     stream.ReadUI32(m_Encoding);

@@ -81,14 +81,14 @@ AP4_SampleDescription*
 AP4_EncaSampleEntry::ToSampleDescription()
 {
     // get the original sample format
-    AP4_FrmaAtom* frma = (AP4_FrmaAtom*)FindChild("sinf/frma");
+    AP4_FrmaAtom* frma = static_cast<AP4_FrmaAtom*>(FindChild("sinf/frma"));
 
     // get the schi atom
     AP4_ContainerAtom* schi;
     schi = static_cast<AP4_ContainerAtom*>(FindChild("sinf/schi"));
 
     // get the scheme info
-    AP4_SchmAtom* schm = (AP4_SchmAtom*)FindChild("sinf/schm");
+    AP4_SchmAtom* schm = static_cast<AP4_SchmAtom*>(FindChild("sinf/schm"));
     AP4_UI32 original_format = frma?frma->GetOriginalFormat():AP4_ATOM_TYPE_MP4A;
     if (schm) {
         // create the original sample description
@@ -180,14 +180,14 @@ AP4_SampleDescription*
 AP4_EncvSampleEntry::ToSampleDescription()
 {
     // get the original sample format
-    AP4_FrmaAtom* frma = (AP4_FrmaAtom*)FindChild("sinf/frma");
+    AP4_FrmaAtom* frma = static_cast<AP4_FrmaAtom*>(FindChild("sinf/frma"));
 
     // get the schi atom
     AP4_ContainerAtom* schi;
     schi = static_cast<AP4_ContainerAtom*>(FindChild("sinf/schi"));
 
     // get the scheme info
-    AP4_SchmAtom* schm = (AP4_SchmAtom*)FindChild("sinf/schm");
+    AP4_SchmAtom* schm = static_cast<AP4_SchmAtom*>(FindChild("sinf/schm"));
     AP4_UI32 original_format = frma?frma->GetOriginalFormat():AP4_ATOM_TYPE_MP4V;
     if (schm) {
         // create the sample description
@@ -288,7 +288,7 @@ AP4_ProtectionSchemeInfo::~AP4_ProtectionSchemeInfo()
 AP4_ProtectionSchemeInfo::AP4_ProtectionSchemeInfo(AP4_ContainerAtom* schi)
 {
     if (schi) {
-        m_SchiAtom = (AP4_ContainerAtom*)schi->Clone();
+        m_SchiAtom = static_cast<AP4_ContainerAtom*>(schi->Clone());
     } else {
         m_SchiAtom = NULL;
     }
@@ -390,7 +390,7 @@ AP4_ProtectionKeyMap::GetEntry(AP4_UI32 track_id) const
 {
     AP4_List<KeyEntry>::Item* item = m_KeyEntries.FirstItem();
     while (item) {
-        KeyEntry* entry = (KeyEntry*)item->GetData();
+        KeyEntry* entry = item->GetData();
         if (entry->m_TrackId == track_id) return entry;
         item = item->GetNext();
     }
@@ -883,27 +883,14 @@ AP4_DecryptingStream::Create(AP4_BlockCipher::CipherMode mode,
     // keep a reference to the source stream
     encrypted_stream.AddReference();
 
-    // create the stream
-    AP4_DecryptingStream* dec_stream = new AP4_DecryptingStream();
-    stream = dec_stream;
-    dec_stream->m_Mode              = mode;
-    dec_stream->m_CleartextSize     = cleartext_size;
-    dec_stream->m_CleartextPosition = 0;
-    dec_stream->m_EncryptedSize     = encrypted_size;
-    dec_stream->m_EncryptedStream   = &encrypted_stream;
-    dec_stream->m_EncryptedPosition = 0;
-    dec_stream->m_BufferFullness    = 0;
-    dec_stream->m_BufferOffset      = 0;
-    dec_stream->m_ReferenceCount    = 1;
-    
     // create the cipher according to the mode
+    AP4_StreamCipher* stream_cipher = NULL;
     switch (mode) {
         case AP4_BlockCipher::CBC:
-            dec_stream->m_StreamCipher = new AP4_CbcStreamCipher(block_cipher);
+            stream_cipher = new AP4_CbcStreamCipher(block_cipher);
             break;
         case AP4_BlockCipher::CTR:
-            dec_stream->m_StreamCipher = new AP4_CtrStreamCipher(block_cipher,
-                                                                 AP4_CIPHER_BLOCK_SIZE);
+            stream_cipher = new AP4_CtrStreamCipher(block_cipher, AP4_CIPHER_BLOCK_SIZE);
             break;
         default:
             // should never occur
@@ -911,8 +898,15 @@ AP4_DecryptingStream::Create(AP4_BlockCipher::CipherMode mode,
     }
     
     // set the IV
-    dec_stream->m_StreamCipher->SetIV(iv);
+    stream_cipher->SetIV(iv);
 
+    // create the stream
+    stream = new AP4_DecryptingStream(mode, 
+                                      cleartext_size, 
+                                      &encrypted_stream,
+                                      encrypted_size,
+                                      stream_cipher);
+    
     return AP4_SUCCESS;
 }
 
@@ -975,7 +969,8 @@ AP4_DecryptingStream::ReadPartial(void*     buffer,
         m_BufferOffset      += chunk;
         bytes_read          += chunk;
     }
-
+    if (bytes_read == 0) return AP4_SUCCESS;
+    
     // seek to the right place in the input
     m_EncryptedStream->Seek(m_EncryptedPosition);
 
@@ -1139,18 +1134,30 @@ AP4_EncryptingStream::Create(AP4_BlockCipher::CipherMode mode,
     // keep a reference to the source stream
     cleartext_stream.AddReference();
 
+    // create the cipher according to the mode
+    AP4_StreamCipher* stream_cipher = NULL;
+    switch (mode) {
+        case AP4_BlockCipher::CBC:
+            stream_cipher = new AP4_CbcStreamCipher(block_cipher);
+            break;
+        case AP4_BlockCipher::CTR:
+            stream_cipher = new AP4_CtrStreamCipher(block_cipher, AP4_CIPHER_BLOCK_SIZE);
+            break;
+        default:
+            // should never occur
+            AP4_ASSERT(0);
+    }
+    
+    // set the IV
+    stream_cipher->SetIV(iv);
+
     // create the stream
-    AP4_EncryptingStream* enc_stream = new AP4_EncryptingStream();
+    AP4_EncryptingStream* enc_stream = new AP4_EncryptingStream(mode, 
+                                                                cleartext_size,
+                                                                &cleartext_stream,
+                                                                encrypted_size, 
+                                                                stream_cipher);
     stream = enc_stream;
-    enc_stream->m_Mode              = mode;
-    enc_stream->m_CleartextStream   = &cleartext_stream;
-    enc_stream->m_CleartextSize     = cleartext_size;
-    enc_stream->m_CleartextPosition = 0;
-    enc_stream->m_EncryptedSize     = encrypted_size;
-    enc_stream->m_EncryptedPosition = 0;
-    enc_stream->m_BufferFullness    = 0;
-    enc_stream->m_BufferOffset      = 0;
-    enc_stream->m_ReferenceCount    = 1;
 
     // deal with the prepended IV if required
     if (prepend_iv) {
@@ -1159,23 +1166,6 @@ AP4_EncryptingStream::Create(AP4_BlockCipher::CipherMode mode,
         AP4_CopyMemory(enc_stream->m_Buffer, iv, 16);
     }
     
-    // create the cipher according to the mode
-    switch (mode) {
-        case AP4_BlockCipher::CBC:
-            enc_stream->m_StreamCipher = new AP4_CbcStreamCipher(block_cipher);
-            break;
-        case AP4_BlockCipher::CTR:
-            enc_stream->m_StreamCipher = new AP4_CtrStreamCipher(block_cipher,
-                                                                 AP4_CIPHER_BLOCK_SIZE);
-            break;
-        default:
-            // should never occur
-            AP4_ASSERT(0);
-    }
-    
-    // set the IV
-    enc_stream->m_StreamCipher->SetIV(iv);
-
     return AP4_SUCCESS;
 }
 

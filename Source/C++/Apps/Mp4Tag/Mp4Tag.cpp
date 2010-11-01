@@ -454,11 +454,10 @@ ParseKeySpec(AP4_String&  key,
         }
     }
     
-    AP4_Result result;
     if (processed_key.Find('/') != -1) {
         // the key is in the form namespace/name
         AP4_List<AP4_String> key_components;
-        result = SplitString(processed_key, '/', key_components, 2);
+        SplitString(processed_key, '/', key_components, 2);
         key_components.Get(0, key_namespace);
         key_components.Get(1, key_name);
     } else {

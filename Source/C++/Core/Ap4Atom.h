@@ -84,7 +84,7 @@ public:
     } FormatHint;
 
     // constructor and destructor
-    AP4_AtomInspector() {}
+    AP4_AtomInspector() : m_Verbosity(0) {}
     virtual ~AP4_AtomInspector() {}
 
     // methods

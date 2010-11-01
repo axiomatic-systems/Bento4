@@ -47,6 +47,7 @@ AP4_ObjectDescriptor::AP4_ObjectDescriptor(AP4_UI08 tag,
                                            AP4_Size header_size,
                                            AP4_Size payload_size) :
     AP4_Descriptor(tag, header_size, payload_size),
+    m_ObjectDescriptorId(0),
     m_UrlFlag(false)
 {
 }

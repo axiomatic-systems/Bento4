@@ -262,23 +262,23 @@ AP4_PiffTrackEncrypter::AP4_PiffTrackEncrypter(
 AP4_Result   
 AP4_PiffTrackEncrypter::ProcessTrack()
 {
-    // sinf container
-    AP4_ContainerAtom* sinf = new AP4_ContainerAtom(AP4_ATOM_TYPE_SINF);
-
     // original format
     AP4_FrmaAtom* frma = new AP4_FrmaAtom(m_SampleEntry->GetType());
     
     // scheme info
-    AP4_ContainerAtom* schi = new AP4_ContainerAtom(AP4_ATOM_TYPE_SCHI);
-    AP4_SchmAtom*      schm = new AP4_SchmAtom(AP4_PROTECTION_SCHEME_TYPE_PIFF, 
-                                               AP4_PROTECTION_SCHEME_VERSION_PIFF_10);
+    AP4_SchmAtom* schm = new AP4_SchmAtom(AP4_PROTECTION_SCHEME_TYPE_PIFF, 
+                                          AP4_PROTECTION_SCHEME_VERSION_PIFF_10);
+
+    // populate the schi container
     AP4_PiffTrackEncryptionAtom* piff_enc = 
         new AP4_PiffTrackEncryptionAtom(m_DefaultAlgorithmId, 
                                         m_DefaultIvSize, 
                                         m_DefaultKid);
+    AP4_ContainerAtom* schi = new AP4_ContainerAtom(AP4_ATOM_TYPE_SCHI);
     schi->AddChild(piff_enc);
         
     // populate the sinf container
+    AP4_ContainerAtom* sinf = new AP4_ContainerAtom(AP4_ATOM_TYPE_SINF);
     sinf->AddChild(frma);
     sinf->AddChild(schm);
     sinf->AddChild(schi);
@@ -952,10 +952,13 @@ AP4_PiffTrackEncryptionAtom::AP4_PiffTrackEncryptionAtom(AP4_UI32        size,
                                                          AP4_UI32        version,
                                                          AP4_UI32        flags,
                                                          AP4_ByteStream& stream) :
-    AP4_UuidAtom(size, AP4_UUID_PIFF_TRACK_ENCRYPTION_ATOM, version, flags)
+    AP4_UuidAtom(size, AP4_UUID_PIFF_TRACK_ENCRYPTION_ATOM, version, flags),
+    m_DefaultAlgorithmId(0),
+    m_DefaultIvSize(0)
 {
     stream.ReadUI24(m_DefaultAlgorithmId);
     stream.ReadUI08(m_DefaultIvSize);
+    AP4_SetMemory(m_DefaultKid, 0, 16);
     stream.Read    (m_DefaultKid, 16);
 }
 

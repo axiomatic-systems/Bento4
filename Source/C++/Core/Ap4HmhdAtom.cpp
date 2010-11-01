@@ -53,7 +53,12 @@ AP4_HmhdAtom::AP4_HmhdAtom(AP4_UI32        size,
                            AP4_UI32        version,
                            AP4_UI32        flags,
                            AP4_ByteStream& stream) :
-    AP4_Atom(AP4_ATOM_TYPE_HMHD, size, version, flags)
+    AP4_Atom(AP4_ATOM_TYPE_HMHD, size, version, flags),
+    m_MaxPduSize(0),
+    m_AvgPduSize(0),
+    m_MaxBitrate(0),
+    m_AvgBitrate(0),
+    m_Reserved(0)
 {
     stream.ReadUI16(m_MaxPduSize);
     stream.ReadUI16(m_AvgPduSize);

@@ -227,7 +227,8 @@ AP4_EsIdIncDescriptor::AP4_EsIdIncDescriptor(AP4_UI32 track_id) :
 AP4_EsIdIncDescriptor::AP4_EsIdIncDescriptor(AP4_ByteStream& stream, 
                                              AP4_Size        header_size,
                                              AP4_Size        payload_size) :
-    AP4_Descriptor(AP4_DESCRIPTOR_TAG_ES_ID_INC, header_size, payload_size)
+    AP4_Descriptor(AP4_DESCRIPTOR_TAG_ES_ID_INC, header_size, payload_size),
+    m_TrackId(0)
 {
     // read the track id
     stream.ReadUI32(m_TrackId);
@@ -274,7 +275,8 @@ AP4_EsIdRefDescriptor::AP4_EsIdRefDescriptor(AP4_UI16 ref_index) :
 AP4_EsIdRefDescriptor::AP4_EsIdRefDescriptor(AP4_ByteStream& stream, 
                                              AP4_Size        header_size,
                                              AP4_Size        payload_size) :
-    AP4_Descriptor(AP4_DESCRIPTOR_TAG_ES_ID_REF, header_size, payload_size)
+    AP4_Descriptor(AP4_DESCRIPTOR_TAG_ES_ID_REF, header_size, payload_size),
+    m_RefIndex(0)
 {
     // read the ref index
     stream.ReadUI16(m_RefIndex);

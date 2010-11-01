@@ -945,32 +945,32 @@ AP4_OmaDcfTrackEncrypter::GetProcessedSampleSize(AP4_Sample& sample)
 AP4_Result   
 AP4_OmaDcfTrackEncrypter::ProcessTrack()
 {
-    // sinf container
-    AP4_ContainerAtom* sinf = new AP4_ContainerAtom(AP4_ATOM_TYPE_SINF);
-
     // original format
     AP4_FrmaAtom* frma = new AP4_FrmaAtom(m_SampleEntry->GetType());
     
     // scheme info
-    AP4_ContainerAtom* schi = new AP4_ContainerAtom(AP4_ATOM_TYPE_SCHI);
-    AP4_OdafAtom*      odaf = new AP4_OdafAtom(true, 0, AP4_CIPHER_BLOCK_SIZE);
-    AP4_OhdrAtom*      ohdr = new AP4_OhdrAtom(m_CipherMode,
-                                               m_CipherPadding,
-                                               0,
-                                               m_ContentId.GetChars(),
-                                               m_RightsIssuerUrl.GetChars(),
-                                               m_TextualHeaders.GetData(),
-                                               m_TextualHeaders.GetDataSize());
+    AP4_OdafAtom* odaf = new AP4_OdafAtom(true, 0, AP4_CIPHER_BLOCK_SIZE);
+    AP4_OhdrAtom* ohdr = new AP4_OhdrAtom(m_CipherMode,
+                                          m_CipherPadding,
+                                          0,
+                                          m_ContentId.GetChars(),
+                                          m_RightsIssuerUrl.GetChars(),
+                                          m_TextualHeaders.GetData(),
+                                          m_TextualHeaders.GetDataSize());
+    AP4_SchmAtom* schm = new AP4_SchmAtom(AP4_PROTECTION_SCHEME_TYPE_OMA, 
+                                          AP4_PROTECTION_SCHEME_VERSION_OMA_20);
+
+    // populate the odkm container
     AP4_ContainerAtom* odkm = new AP4_ContainerAtom(AP4_ATOM_TYPE_ODKM, (AP4_UI32)0, (AP4_UI32)0);
-    AP4_SchmAtom*      schm = new AP4_SchmAtom(AP4_PROTECTION_SCHEME_TYPE_OMA, 
-                                               AP4_PROTECTION_SCHEME_VERSION_OMA_20);
     odkm->AddChild(odaf);
     odkm->AddChild(ohdr);
 
     // populate the schi container
+    AP4_ContainerAtom* schi = new AP4_ContainerAtom(AP4_ATOM_TYPE_SCHI);
     schi->AddChild(odkm);
 
     // populate the sinf container
+    AP4_ContainerAtom* sinf = new AP4_ContainerAtom(AP4_ATOM_TYPE_SINF);
     sinf->AddChild(frma);
     sinf->AddChild(schm);
     sinf->AddChild(schi);

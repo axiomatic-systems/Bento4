@@ -195,7 +195,7 @@ public:
             m_Data = NULL;
         }
     }
-    ~AP4_BitWriter() { delete m_Data; }
+    ~AP4_BitWriter() { delete[] m_Data; }
     
     void Write(AP4_UI32 bits, unsigned int bit_count);
     

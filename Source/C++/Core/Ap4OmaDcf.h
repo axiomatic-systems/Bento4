@@ -111,6 +111,7 @@ public:
     AP4_OmaDcfSampleDecrypter(AP4_Size iv_length,
                               bool     selective_encryption) :
         m_IvLength(iv_length),
+        m_KeyIndicatorLength(0),
         m_SelectiveEncryption(selective_encryption) {}
 
 protected:

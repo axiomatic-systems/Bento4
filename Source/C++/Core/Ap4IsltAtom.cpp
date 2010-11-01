@@ -54,6 +54,7 @@ AP4_IsltAtom::AP4_IsltAtom(const AP4_UI08* salt) :
 AP4_IsltAtom::AP4_IsltAtom(AP4_UI32 size, AP4_ByteStream& stream) :
     AP4_Atom(AP4_ATOM_TYPE_ISLT, size)
 {
+    AP4_SetMemory(m_Salt, 0, sizeof(m_Salt));
     stream.Read((void*)m_Salt, 8);
 }
 
