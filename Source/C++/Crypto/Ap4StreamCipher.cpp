@@ -145,7 +145,7 @@ AP4_CtrStreamCipher::ProcessBuffer(const AP4_UI08* in,
 
     // deal with inputs not aligned on block boundaries
     if (m_StreamOffset%AP4_CIPHER_BLOCK_SIZE) {
-        unsigned int cache_offset = m_StreamOffset%AP4_CIPHER_BLOCK_SIZE;
+        unsigned int cache_offset = (unsigned int)(m_StreamOffset%AP4_CIPHER_BLOCK_SIZE);
         if (!m_CacheValid) {
             // fill the cache
             AP4_UI08 block[AP4_CIPHER_BLOCK_SIZE] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
