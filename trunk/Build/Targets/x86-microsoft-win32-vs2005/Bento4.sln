@@ -82,6 +82,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Bento4CDll", "Bento4CDll\Be
 		{A714AA1C-45A9-403D-A6E1-020E520119A2} = {A714AA1C-45A9-403D-A6E1-020E520119A2}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Mp42Ts", "Mp42Ts\Mp42Ts.vcproj", "{BBE07007-0498-42CF-B77C-844B8A61C78B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -156,6 +158,10 @@ Global
 		{505B443B-5C00-4CB1-BF00-76F41DECE37F}.Debug|Win32.Build.0 = Debug|Win32
 		{505B443B-5C00-4CB1-BF00-76F41DECE37F}.Release|Win32.ActiveCfg = Release|Win32
 		{505B443B-5C00-4CB1-BF00-76F41DECE37F}.Release|Win32.Build.0 = Release|Win32
+		{BBE07007-0498-42CF-B77C-844B8A61C78B}.Debug|Win32.ActiveCfg = Debug|Win32
+		{BBE07007-0498-42CF-B77C-844B8A61C78B}.Debug|Win32.Build.0 = Debug|Win32
+		{BBE07007-0498-42CF-B77C-844B8A61C78B}.Release|Win32.ActiveCfg = Release|Win32
+		{BBE07007-0498-42CF-B77C-844B8A61C78B}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
