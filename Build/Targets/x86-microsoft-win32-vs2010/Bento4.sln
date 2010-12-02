@@ -79,6 +79,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FixAacSampleDescription", "
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Bento4CDll", "Bento4CDll\Bento4CDll.vcxproj", "{505B443B-5C00-4CB1-BF00-76F41DECE37F}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Mp42Ts", "Mp42Ts\Mp42Ts.vcxproj", "{1AD35806-EE60-4AF7-9401-A3F7BDDB9FDE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -153,6 +155,10 @@ Global
 		{505B443B-5C00-4CB1-BF00-76F41DECE37F}.Debug|Win32.Build.0 = Debug|Win32
 		{505B443B-5C00-4CB1-BF00-76F41DECE37F}.Release|Win32.ActiveCfg = Release|Win32
 		{505B443B-5C00-4CB1-BF00-76F41DECE37F}.Release|Win32.Build.0 = Release|Win32
+		{1AD35806-EE60-4AF7-9401-A3F7BDDB9FDE}.Debug|Win32.ActiveCfg = Debug|Win32
+		{1AD35806-EE60-4AF7-9401-A3F7BDDB9FDE}.Debug|Win32.Build.0 = Debug|Win32
+		{1AD35806-EE60-4AF7-9401-A3F7BDDB9FDE}.Release|Win32.ActiveCfg = Release|Win32
+		{1AD35806-EE60-4AF7-9401-A3F7BDDB9FDE}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
