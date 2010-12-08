@@ -237,6 +237,7 @@ AP4_Processor::Process(AP4_ByteStream&   input,
         AP4_SUCCEEDED(atom_factory.CreateAtomFromStream(input, atom));
         input.Tell(stream_offset)) {
         if (atom->GetType() == AP4_ATOM_TYPE_MDAT) {
+            delete atom;
             continue;
         } else if (atom->GetType() == AP4_ATOM_TYPE_MOOV) {
             moov = AP4_DYNAMIC_CAST(AP4_MoovAtom, atom);
