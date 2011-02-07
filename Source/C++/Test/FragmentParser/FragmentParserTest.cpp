@@ -181,7 +181,7 @@ ProcessMoof(AP4_Movie*         movie,
         fragment->GetTrafAtom(ids[i], traf);
         
         printf("processing moof for track id %d\n", ids[i]);
-        result = fragment->CreateSampleTable(movie, ids[i], sample_stream, moof_offset, mdat_payload_offset, sample_table);
+        result = fragment->CreateSampleTable(movie, ids[i], sample_stream, moof_offset, mdat_payload_offset, 0, sample_table);
         CHECK(result == AP4_SUCCESS || result == AP4_ERROR_NO_SUCH_ITEM);
         if (AP4_SUCCEEDED(result) ) {
             ProcessSamples(track, traf, sample_table);

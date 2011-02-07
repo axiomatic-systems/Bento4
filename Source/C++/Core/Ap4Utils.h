@@ -142,6 +142,12 @@ AP4_UI64 AP4_ConvertTime(AP4_UI64 time_value,
                          AP4_UI32 to_time_scale);
 
 /*----------------------------------------------------------------------
+|   random numbers
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_System_GenerateRandomBytes(AP4_UI08* buffer, AP4_Size buffer_size);
+
+/*----------------------------------------------------------------------
 |   string utils
 +---------------------------------------------------------------------*/
 #if defined (AP4_CONFIG_HAVE_STDIO_H)

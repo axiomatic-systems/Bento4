@@ -3,7 +3,7 @@ from SCons.Script import Split
 
 def generate(env, gcc_cross_prefix=None, gcc_strict=True, gcc_stop_on_warning=True,
              gcc_extra_options=[]):
-    if gcc_stop_on_warning == None: gcc_stop_on_warning = env['stop_on_warning']
+    if env.has_key('stop_on_warning'): gcc_stop_on_warning = env['stop_on_warning']
 
     ### compiler flags
     gcc_extra_options = Split(gcc_extra_options) # normalize

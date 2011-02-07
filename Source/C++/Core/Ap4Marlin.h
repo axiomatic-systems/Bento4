@@ -87,6 +87,44 @@ private:
 };
 
 /*----------------------------------------------------------------------
+|   AP4_MarlinIpmpSampleDecrypter
++---------------------------------------------------------------------*/
+class AP4_MarlinIpmpSampleDecrypter : public AP4_SampleDecrypter
+{
+public:
+    /**
+     * Create a sample decrypter given the top-level atoms, the track ID, and the key
+     */
+    static AP4_Result Create(AP4_AtomParent&                 top_level,
+                             const AP4_UI08*                 key,
+                             AP4_Size                        key_size,
+                             AP4_BlockCipherFactory*         block_cipher_factory,
+                             AP4_MarlinIpmpSampleDecrypter*& sample_decrypter);
+
+    /**
+     * Create a sample decrypter given the key (can't be used with group keys, since the group
+     * key info needs to be parsed from the top level atoms)
+     */
+    static AP4_Result Create(const AP4_UI08*                 key,
+                             AP4_Size                        key_size,
+                             AP4_BlockCipherFactory*         block_cipher_factory,
+                             AP4_MarlinIpmpSampleDecrypter*& sample_decrypter);
+
+    ~AP4_MarlinIpmpSampleDecrypter();
+    
+    // AP4_SampleDecrypter methods
+    AP4_Size   GetDecryptedSampleSize(AP4_Sample& sample);
+    AP4_Result DecryptSampleData(AP4_DataBuffer&    data_in,
+                                 AP4_DataBuffer&    data_out,
+                                 const AP4_UI08*    iv = NULL);
+                                 
+private:
+    AP4_MarlinIpmpSampleDecrypter(AP4_StreamCipher* cipher) : m_Cipher(cipher) {}
+    
+    AP4_StreamCipher* m_Cipher;
+};
+
+/*----------------------------------------------------------------------
 |   AP4_MarlinIpmpDecryptingProcessor
 +---------------------------------------------------------------------*/
 class AP4_MarlinIpmpDecryptingProcessor : public AP4_Processor
@@ -127,7 +165,7 @@ public:
                              AP4_MarlinIpmpTrackDecrypter*& decrypter);
                              
     // constructor and destructor
-     AP4_MarlinIpmpTrackDecrypter() : m_Cipher(NULL) {};
+     AP4_MarlinIpmpTrackDecrypter() : m_SampleDecrypter(NULL) {};
     ~AP4_MarlinIpmpTrackDecrypter();
     
     // AP4_Processor::TrackHandler methods
@@ -138,10 +176,11 @@ public:
 
 private:
     // constructor
-    AP4_MarlinIpmpTrackDecrypter(AP4_StreamCipher* cipher) : m_Cipher(cipher) {}
+    AP4_MarlinIpmpTrackDecrypter(AP4_SampleDecrypter* sample_decrypter) : 
+        m_SampleDecrypter(sample_decrypter) {}
 
     // members
-    AP4_StreamCipher* m_Cipher;
+    AP4_SampleDecrypter* m_SampleDecrypter;
 };
 
 /*----------------------------------------------------------------------

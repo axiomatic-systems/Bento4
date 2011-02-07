@@ -235,3 +235,17 @@ AP4_Movie::GetDurationMs()
         return 0;
     }
 }
+
+/*----------------------------------------------------------------------
+|   AP4_Movie::HasFragments
++---------------------------------------------------------------------*/
+bool
+AP4_Movie::HasFragments()
+{
+    if (m_MoovAtom == NULL) return false;
+    if (m_MoovAtom->GetChild(AP4_ATOM_TYPE_MVEX)) {
+        return true;
+    } else {
+        return false;
+    }
+}

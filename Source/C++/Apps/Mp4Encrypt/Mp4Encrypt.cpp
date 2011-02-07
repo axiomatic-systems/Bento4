@@ -39,7 +39,7 @@
 +---------------------------------------------------------------------*/
 #define BANNER "MP4 Encrypter - Version 1.3\n"\
                "(Bento4 Version " AP4_VERSION_STRING ")\n"\
-               "(c) 2002-2009 Axiomatic Systems, LLC"
+               "(c) 2002-2010 Axiomatic Systems, LLC"
 
 /*----------------------------------------------------------------------
 |   PrintUsageAndExit
@@ -58,7 +58,11 @@ PrintUsageAndExit()
         "  --key <n>:<k>:<iv>\n"   
         "      Specifies the key to use for a track (or group key).\n"
         "      <n> is a track ID, <k> a 128-bit key in hex (32 characters)\n"
-        "      and <iv> a 64-bit IV or salting key in hex (16 characters)\n"
+        "      and <iv> a 64-bit or 128-bit IV or salting key in hex\n"
+        "      (16 or 32 characters) depending on the cipher mode\n"
+        "      The key and IV values can also be specified with the keyword 'random'\n"
+        "      instead of a hex-encoded value, in which case a randomly generated value\n"
+        "      will be used.\n"
         "      (several --key options can be used, one for each track)\n"
         "  --property <n>:<name>:<value>\n"
         "      Specifies a named string property for a track\n"
@@ -69,8 +73,13 @@ PrintUsageAndExit()
         "      Specifies the KMS URI for the ISMA-IAEC method\n"
         "\n"
         "  Method Specifics:\n"
-        "    OMA-PDCF-CBC, OMA-PDCF-CTR, MARLIN-IPMP, ISMA-IAEC: the <iv> must be a 64-bit\n"
-        "    hex string.\n"
+        "    OMA-PDCF-CBC, MARLIN-IPMP-ACBC, MARLIN-IPMP-ACGK, PIFF-CBC: \n"
+        "    the <iv> can be 64-bit or 128-bit\n"
+        "    If the IV is specified as a 64-bit value, it will be padded with zeros.\n"
+        "\n"
+        "    OMA-PDCF-CTR, ISMA-IAEC, PIFF-CTR: the <iv> should be a 64-bit\n"
+        "    hex string. If a 128-bit value is supplied, it will be truncated\n"
+        "    to 64-bit.\n"
         "\n"
         "    OMA-PDCF-CBC, OMA-PDCF-CTR: The following properties are defined,\n"
         "    and all other properties are stored in the textual headers:\n"
@@ -130,6 +139,7 @@ main(int argc, char** argv)
     AP4_ProtectionKeyMap key_map;
     AP4_TrackPropertyMap property_map;
     bool                 show_progress = false;
+    AP4_Result           result;
 
     // parse the command line arguments
     char* arg;
@@ -183,27 +193,63 @@ main(int argc, char** argv)
                 fprintf(stderr, "ERROR: invalid argument for --key option\n");
                 return 1;
             }
-            unsigned char key[16];
-            unsigned char iv[16];
             unsigned int track = strtoul(track_ascii, NULL, 10);
+
+            
+            // parse the key value
+            unsigned char key[16];
             AP4_SetMemory(key, 0, sizeof(key));
+            if (AP4_CompareStrings(key_ascii, "random") == 0) {
+                result = AP4_System_GenerateRandomBytes(key, 16);
+                if (AP4_FAILED(result)) {
+                    fprintf(stderr, "ERROR: failed to generate random key (%d)\n", result);
+                    return 1;
+                }
+                char key_hex[32+1];
+                key_hex[32] = '\0';
+                AP4_FormatHex(key, 16, key_hex);
+                printf("KEY.%d=%s\n", track, key_hex);
+            } else {
+                if (AP4_ParseHex(key_ascii, key, 16)) {
+                    fprintf(stderr, "ERROR: invalid hex format for key\n");
+                    return 1;
+                }
+            }
+            
+            // parse the iv
+            unsigned char iv[16];
             AP4_SetMemory(iv, 0, sizeof(iv));
-            if (AP4_ParseHex(key_ascii, key, 16)) {
-                fprintf(stderr, "ERROR: invalid hex format for key\n");
+            if (AP4_CompareStrings(key_ascii, "random") == 0) {
+                result = AP4_System_GenerateRandomBytes(iv, 16);
+                if (AP4_FAILED(result)) {
+                    fprintf(stderr, "ERROR: failed to generate random key (%d)\n", result);
+                    return 1;
+                }
+            } else {
+                unsigned int iv_size = AP4_StringLength(iv_ascii)/2;
+                if (AP4_ParseHex(iv_ascii, iv, iv_size)) {
+                    fprintf(stderr, "ERROR: invalid hex format for iv\n");
+                    return 1;
+                }
             }
-            unsigned int iv_size = 8;
-            if (method == METHOD_PIFF_CBC) {
-                iv_size = 16;
+            switch (method) {
+                case METHOD_OMA_PDCF_CTR:
+                case METHOD_ISMA_AES:
+                case METHOD_PIFF_CTR:
+                    // truncate the IV
+                    AP4_SetMemory(&iv[8], 0, 8);
+                    break;
+                    
+                default:
+                    break;
             }
-            if (AP4_ParseHex(iv_ascii, iv, iv_size)) {
-                fprintf(stderr, "ERROR: invalid hex format for iv\n");
-                return 1;
-            }
+            
             // check that the key is not already there
             if (key_map.GetKey(track)) {
                 fprintf(stderr, "ERROR: key already set for track %d\n", track);
                 return 1;
             }
+            
             // set the key in the map
             key_map.SetKey(track, key, 16, iv, 16);
         } else if (!strcmp(arg, "--property")) {
@@ -308,7 +354,6 @@ main(int argc, char** argv)
     }
     
     // create the input stream
-    AP4_Result result;
     AP4_ByteStream* input = NULL;
     result = AP4_FileByteStream::Create(input_filename, AP4_FileByteStream::STREAM_MODE_READ, input);
     if (AP4_FAILED(result)) {

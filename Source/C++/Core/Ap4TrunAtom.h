@@ -75,10 +75,13 @@ public:
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
 
     // accessors
-    AP4_SI32                GetDataOffset()       { return m_DataOffset;       }
-    AP4_UI32                GetFirstSampleFlags() { return m_FirstSampleFlags; }
-    const AP4_Array<Entry>& GetEntries()          { return m_Entries;          }
-    
+    AP4_SI32                GetDataOffset()                { return m_DataOffset;       }
+    void                    SetDataOffset(AP4_SI32 offset) { m_DataOffset = offset;     }
+    AP4_UI32                GetFirstSampleFlags()          { return m_FirstSampleFlags; }
+    const AP4_Array<Entry>& GetEntries()                   { return m_Entries;          }
+    AP4_Array<Entry>&       UseEntries()                   { return m_Entries;          }
+    AP4_Result              SetEntries(const AP4_Array<Entry>& entries);
+                                     
 private:
     // methods
     AP4_TrunAtom(AP4_UI32        size, 

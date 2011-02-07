@@ -159,7 +159,7 @@ AP4_SampleTable::GenerateStblAtom(AP4_ContainerAtom*& stbl)
     }
 
     // finish the stts table
-    stts->AddEntry(current_duration_run, current_duration);
+    if (sample_count) stts->AddEntry(current_duration_run, current_duration);
 
     // finish the ctts table if we have one
     if (ctts) {
