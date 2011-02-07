@@ -226,7 +226,7 @@ main(int argc, char** argv)
                     return 1;
                 }
             } else {
-                unsigned int iv_size = AP4_StringLength(iv_ascii)/2;
+                unsigned int iv_size = (unsigned int)AP4_StringLength(iv_ascii)/2;
                 if (AP4_ParseHex(iv_ascii, iv, iv_size)) {
                     fprintf(stderr, "ERROR: invalid hex format for iv\n");
                     return 1;
