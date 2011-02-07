@@ -180,6 +180,10 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath="..\..\..\..\Source\C++\System\Win32\Ap4Win32Random.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\Source\C++\Apps\Mp4Encrypt\Mp4Encrypt.cpp"
 				>
 			</File>
