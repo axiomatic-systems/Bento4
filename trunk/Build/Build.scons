@@ -141,7 +141,7 @@ if os.path.exists(target_config_file):
 # modules
 #######################################################
 LibraryModule(name               = 'Bento4', 
-              build_source_dirs  = ['C++/'+dir for dir in ['Core', 'Crypto', 'MetaData', 'System/StdC', 'Codecs']],
+              build_source_dirs  = ['C++/'+dir for dir in ['Core', 'Crypto', 'MetaData', 'System/StdC', 'System/Posix', 'Codecs']],
               included_modules   = 'Config')
            
 for name in ['Mp4Dump', 'Mp4Info', 'Mp4Edit', 'Mp4Encrypt', 'Mp4Decrypt', 'Mp4Tag', 'Mp4Extract', 'Mp4RtpHintInfo', 'Mp42Aac', 'Mp42Ts', 'Mp4DcfPackager']:       

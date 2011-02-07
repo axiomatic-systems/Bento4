@@ -80,7 +80,7 @@ main(int argc, char** argv)
     }
         
     // get the movie
-    AP4_File* file = new AP4_File(*input);
+    AP4_File* file = new AP4_File(*input, AP4_DefaultAtomFactory::Instance, true);
     AP4_Movie* movie = file->GetMovie();
     CHECK(movie != NULL);
     
@@ -89,7 +89,7 @@ main(int argc, char** argv)
     AP4_Track* audio_track = movie->GetTrack(AP4_Track::TYPE_AUDIO);
     CHECK(video_track != NULL);
     
-    AP4_LinearReader reader(*movie);
+    AP4_LinearReader reader(*movie, input);
     AP4_Sample sample;
     AP4_DataBuffer sample_data;
     reader.EnableTrack(audio_track->GetId());
@@ -107,7 +107,7 @@ main(int argc, char** argv)
             CHECK(track_id == audio_track->GetId() || track_id == video_track->GetId());
             if (track_id == audio_track->GetId()) audio_sample_count++;
             if (track_id == video_track->GetId()) video_sample_count++;
-            printf("track_id=%d, size=%d, offset=%lld\n", track_id, (int)sample.GetSize(), sample.GetOffset());
+            printf("track_id=%d, size=%d, offset=%lld, dts=%lld\n", track_id, (int)sample.GetSize(), sample.GetOffset(), sample.GetDts());
         } else {
             printf("track_id=%d, result=%d\n", track_id, result);
         }

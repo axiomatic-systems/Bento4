@@ -296,5 +296,6 @@
 #include "Ap4SampleSource.h"
 #include "Ap4Mpeg2Ts.h"
 #include "Ap4Piff.h"
+#include "Ap4TrunAtom.h"
 
 #endif // _AP4_H_

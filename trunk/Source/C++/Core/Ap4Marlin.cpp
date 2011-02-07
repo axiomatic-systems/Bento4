@@ -341,6 +341,129 @@ AP4_MarlinIpmpParser::Parse(AP4_AtomParent&      top_level,
 }
 
 /*----------------------------------------------------------------------
+|   AP4_MarlinIpmpSampleDecrypter::Create
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_MarlinIpmpSampleDecrypter::Create(AP4_AtomParent&                 top_level,
+                                      const AP4_UI08*                 key,
+                                      AP4_Size                        key_size,
+                                      AP4_BlockCipherFactory*         block_cipher_factory,
+                                      AP4_MarlinIpmpSampleDecrypter*& sample_decrypter)
+{
+    // FIXME: need to parse group key info
+    return Create(key, key_size, block_cipher_factory, sample_decrypter);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_MarlinIpmpSampleDecrypter::Create
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_MarlinIpmpSampleDecrypter::Create(const AP4_UI08*                 key,
+                                      AP4_Size                        key_size,
+                                      AP4_BlockCipherFactory*         block_cipher_factory,
+                                      AP4_MarlinIpmpSampleDecrypter*& sample_decrypter)
+{
+    // default value
+    sample_decrypter = NULL;
+    if (block_cipher_factory == NULL) block_cipher_factory = &AP4_DefaultBlockCipherFactory::Instance;
+    
+    // create a block cipher for the decrypter
+    AP4_BlockCipher* block_cipher = NULL;
+    AP4_Result result = block_cipher_factory->CreateCipher(AP4_BlockCipher::AES_128,
+                                                           AP4_BlockCipher::DECRYPT,
+                                                           AP4_BlockCipher::CBC,
+                                                           NULL,
+                                                           key,
+                                                           key_size,
+                                                           block_cipher);
+    if (AP4_FAILED(result)) return result;
+    
+    // create a CBC cipher
+    AP4_CbcStreamCipher* cbc_cipher = new AP4_CbcStreamCipher(block_cipher);
+    sample_decrypter = new AP4_MarlinIpmpSampleDecrypter(cbc_cipher);
+    
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_MarlinIpmpSampleDecrypter::~AP4_MarlinIpmpSampleDecrypter
++---------------------------------------------------------------------*/
+AP4_MarlinIpmpSampleDecrypter::~AP4_MarlinIpmpSampleDecrypter()
+{
+    delete m_Cipher;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_MarlinIpmpSampleDecrypter::GetDecryptedSampleSize
++---------------------------------------------------------------------*/
+AP4_Size   
+AP4_MarlinIpmpSampleDecrypter::GetDecryptedSampleSize(AP4_Sample& sample)
+{
+    // with CBC, we need to decrypt the last block to know what the padding was
+    AP4_Size       encrypted_size = sample.GetSize()-AP4_AES_BLOCK_SIZE;
+    AP4_DataBuffer encrypted;
+    AP4_DataBuffer decrypted;
+    AP4_Size       decrypted_size = AP4_CIPHER_BLOCK_SIZE;
+    if (sample.GetSize() < 2*AP4_CIPHER_BLOCK_SIZE) {
+        return 0;
+    }
+    AP4_Size offset = sample.GetSize()-2*AP4_CIPHER_BLOCK_SIZE;
+    if (AP4_FAILED(sample.ReadData(encrypted, 2*AP4_CIPHER_BLOCK_SIZE, offset))) {
+        return 0;
+    }
+    decrypted.Reserve(decrypted_size);
+    m_Cipher->SetIV(encrypted.GetData());
+    if (AP4_FAILED(m_Cipher->ProcessBuffer(encrypted.GetData()+AP4_CIPHER_BLOCK_SIZE, 
+                                           AP4_CIPHER_BLOCK_SIZE,
+                                           decrypted.UseData(), 
+                                           &decrypted_size, 
+                                           true))) {
+        return 0;
+    }
+    unsigned int padding_size = AP4_CIPHER_BLOCK_SIZE-decrypted_size;
+    return encrypted_size-padding_size;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_MarlinIpmpSampleDecrypter::DecryptSampleData
++---------------------------------------------------------------------*/
+AP4_Result 
+AP4_MarlinIpmpSampleDecrypter::DecryptSampleData(AP4_DataBuffer&    data_in,
+                                                 AP4_DataBuffer&    data_out,
+                                                 const AP4_UI08*    /*iv*/)
+{
+    AP4_Result result;
+    
+    const AP4_UI08* in = data_in.GetData();
+    AP4_Size        in_size = data_in.GetDataSize();
+
+    // default to 0 output 
+    data_out.SetDataSize(0);
+
+    // check that we have at least the minimum size
+    if (in_size < 2*AP4_AES_BLOCK_SIZE) return AP4_ERROR_INVALID_FORMAT;
+
+    // process the sample data
+    AP4_Size out_size = in_size-AP4_AES_BLOCK_SIZE; // worst case
+    data_out.SetDataSize(out_size);
+    AP4_UI08* out = data_out.UseData();
+
+    // decrypt the data
+    m_Cipher->SetIV(in);
+    result = m_Cipher->ProcessBuffer(in+AP4_AES_BLOCK_SIZE, 
+                                     in_size-AP4_AES_BLOCK_SIZE, 
+                                     out,
+                                     &out_size,
+                                     true);
+    if (AP4_FAILED(result)) return result;
+    
+    // update the payload size
+    data_out.SetDataSize(out_size);
+    
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
 |   AP4_MarlinIpmpDecryptingProcessor:AP4_MarlinIpmpDecryptingProcessor
 +---------------------------------------------------------------------*/
 AP4_MarlinIpmpDecryptingProcessor::AP4_MarlinIpmpDecryptingProcessor(
@@ -374,7 +497,21 @@ AP4_MarlinIpmpDecryptingProcessor::Initialize(AP4_AtomParent&   top_level,
                                               AP4_ByteStream&   stream,
                                               ProgressListener* /*listener*/)
 {
-    return AP4_MarlinIpmpParser::Parse(top_level, stream, m_SinfEntries, true);
+    AP4_Result result = AP4_MarlinIpmpParser::Parse(top_level, stream, m_SinfEntries, true);
+    if (AP4_FAILED(result)) return result;
+
+    // update the file type
+    AP4_FtypAtom* ftyp = AP4_DYNAMIC_CAST(AP4_FtypAtom, top_level.GetChild(AP4_ATOM_TYPE_FTYP));
+    if (ftyp) {
+        ftyp->SetMajorBrandAndVersion(AP4_FTYP_BRAND_MP42, 1);
+        for (unsigned int i=0; i<ftyp->GetCompatibleBrands().ItemCount(); i++) {
+            if (ftyp->GetCompatibleBrands()[i] == AP4_MARLIN_BRAND_MGSV) {
+                ftyp->GetCompatibleBrands()[i] = AP4_FTYP_BRAND_MP42;
+            }
+        }
+    }    
+    
+    return AP4_SUCCESS;
 }
 
 /*----------------------------------------------------------------------
@@ -453,25 +590,15 @@ AP4_MarlinIpmpTrackDecrypter::Create(AP4_BlockCipherFactory&        cipher_facto
                                      AP4_Size                       key_size,
                                      AP4_MarlinIpmpTrackDecrypter*& decrypter)
 {
-    // default value
     decrypter = NULL;
     
-    // create a block cipher for the decrypter
-    AP4_BlockCipher* block_cipher = NULL;
-    AP4_Result result = cipher_factory.CreateCipher(AP4_BlockCipher::AES_128,
-                                                    AP4_BlockCipher::DECRYPT,
-                                                    AP4_BlockCipher::CBC,
-                                                    NULL,
-                                                    key,
-                                                    key_size,
-                                                    block_cipher);
+    // create a sample decrypter
+    AP4_MarlinIpmpSampleDecrypter* sample_decrypter = NULL;
+    AP4_Result result = AP4_MarlinIpmpSampleDecrypter::Create(key, key_size, &cipher_factory, sample_decrypter);
     if (AP4_FAILED(result)) return result;
     
-    // create a CBC cipher
-    AP4_CbcStreamCipher* cbc_cipher = new AP4_CbcStreamCipher(block_cipher);
-    
     // create the track decrypter
-    decrypter = new AP4_MarlinIpmpTrackDecrypter(cbc_cipher);
+    decrypter = new AP4_MarlinIpmpTrackDecrypter(sample_decrypter);
     
     return AP4_SUCCESS;
 }
@@ -481,7 +608,7 @@ AP4_MarlinIpmpTrackDecrypter::Create(AP4_BlockCipherFactory&        cipher_facto
 +---------------------------------------------------------------------*/
 AP4_MarlinIpmpTrackDecrypter::~AP4_MarlinIpmpTrackDecrypter()
 {
-    delete m_Cipher;
+    delete m_SampleDecrypter;
 }
 
 /*----------------------------------------------------------------------
@@ -490,67 +617,17 @@ AP4_MarlinIpmpTrackDecrypter::~AP4_MarlinIpmpTrackDecrypter()
 AP4_Size 
 AP4_MarlinIpmpTrackDecrypter::GetProcessedSampleSize(AP4_Sample& sample)
 {
-    // with CBC, we need to decrypt the last block to know what the padding was
-    AP4_Size       encrypted_size = sample.GetSize()-AP4_AES_BLOCK_SIZE;
-    AP4_DataBuffer encrypted;
-    AP4_DataBuffer decrypted;
-    AP4_Size       decrypted_size = AP4_CIPHER_BLOCK_SIZE;
-    if (sample.GetSize() < 2*AP4_CIPHER_BLOCK_SIZE) {
-        return 0;
-    }
-    AP4_Size offset = sample.GetSize()-2*AP4_CIPHER_BLOCK_SIZE;
-    if (AP4_FAILED(sample.ReadData(encrypted, 2*AP4_CIPHER_BLOCK_SIZE, offset))) {
-        return 0;
-    }
-    decrypted.Reserve(decrypted_size);
-    m_Cipher->SetIV(encrypted.GetData());
-    if (AP4_FAILED(m_Cipher->ProcessBuffer(encrypted.GetData()+AP4_CIPHER_BLOCK_SIZE, 
-                                           AP4_CIPHER_BLOCK_SIZE,
-                                           decrypted.UseData(), 
-                                           &decrypted_size, 
-                                           true))) {
-        return 0;
-    }
-    unsigned int padding_size = AP4_CIPHER_BLOCK_SIZE-decrypted_size;
-    return encrypted_size-padding_size;
+    return m_SampleDecrypter->GetDecryptedSampleSize(sample);
 }
 
 /*----------------------------------------------------------------------
-|   AP4_MarlinIpmpTrackDecrypter:ProcessSample
+|   AP4_MarlinIpmpTrackDecrypter::ProcessSample
 +---------------------------------------------------------------------*/
 AP4_Result 
 AP4_MarlinIpmpTrackDecrypter::ProcessSample(AP4_DataBuffer& data_in,
                                             AP4_DataBuffer& data_out)
 {
-    AP4_Result result;
-    
-    const AP4_UI08* in = data_in.GetData();
-    AP4_Size        in_size = data_in.GetDataSize();
-
-    // default to 0 output 
-    data_out.SetDataSize(0);
-
-    // check that we have at least the minimum size
-    if (in_size < 2*AP4_AES_BLOCK_SIZE) return AP4_ERROR_INVALID_FORMAT;
-
-    // process the sample data
-    AP4_Size out_size = in_size-AP4_AES_BLOCK_SIZE; // worst case
-    data_out.SetDataSize(out_size);
-    AP4_UI08* out = data_out.UseData();
-
-    // decrypt the data
-    m_Cipher->SetIV(in);
-    result = m_Cipher->ProcessBuffer(in+AP4_AES_BLOCK_SIZE, 
-                                     in_size-AP4_AES_BLOCK_SIZE, 
-                                     out,
-                                     &out_size,
-                                     true);
-    if (AP4_FAILED(result)) return result;
-    
-    // update the payload size
-    data_out.SetDataSize(out_size);
-    
-    return AP4_SUCCESS;
+    return m_SampleDecrypter->DecryptSampleData(data_in, data_out);
 }
 
 /*----------------------------------------------------------------------

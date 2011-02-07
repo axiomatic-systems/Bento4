@@ -104,6 +104,8 @@ public:
                                        bool                   with_pcr, 
                                        AP4_ByteStream&        output) = 0;
         
+        void SetType(AP4_UI08 type) {m_StreamType = type;}
+
         unsigned int m_StreamId;
         AP4_UI08     m_StreamType;
         AP4_UI32     m_TimeScale;

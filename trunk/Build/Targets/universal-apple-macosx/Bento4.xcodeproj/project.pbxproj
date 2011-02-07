@@ -13,6 +13,7 @@
 			buildPhases = (
 			);
 			dependencies = (
+				CA6103E812859C960039C7E6 /* PBXTargetDependency */,
 				CA399CA410A3488B0085284B /* PBXTargetDependency */,
 				CA3185611087EED3002B38A8 /* PBXTargetDependency */,
 				CA00667F101539BF004C0D5F /* PBXTargetDependency */,
@@ -98,6 +99,8 @@
 		CA44C5340D46383A00173F5F /* Mp4DcfPackager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA44C5250D46370B00173F5F /* Mp4DcfPackager.cpp */; };
 		CA504D5D0C5E8A8A0060E6FE /* Ap4ElstAtom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA504D5B0C5E8A8A0060E6FE /* Ap4ElstAtom.cpp */; };
 		CA504D5E0C5E8A8A0060E6FE /* Ap4ElstAtom.h in Headers */ = {isa = PBXBuildFile; fileRef = CA504D5C0C5E8A8A0060E6FE /* Ap4ElstAtom.h */; };
+		CA6103DC128598AF0039C7E6 /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
+		CA6103E4128599C20039C7E6 /* Mp4Fragment.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA6103E3128599C20039C7E6 /* Mp4Fragment.cpp */; };
 		CA646ABF0CE97C0C009699D7 /* Mp4Dump.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA646A8E0CE97B2D009699D7 /* Mp4Dump.cpp */; };
 		CA646AC00CE97C17009699D7 /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
 		CA646AD10CE97C80009699D7 /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
@@ -303,6 +306,7 @@
 		CAB3CB790FCB35EC007C4260 /* BufferedStreamTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAB3CB6C0FCB35A8007C4260 /* BufferedStreamTest.cpp */; };
 		CABB61F70F02BADB00B53D31 /* TracksTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CABB61EF0F02B85900B53D31 /* TracksTest.cpp */; };
 		CABB61FD0F02CD0B00B53D31 /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
+		CAC51D76129708CB00AE5CF9 /* Ap4PosixRandom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAC51D75129708CB00AE5CF9 /* Ap4PosixRandom.cpp */; };
 		CAD6A7C40F7AFFD800456513 /* Ap4DynamicCast.h in Headers */ = {isa = PBXBuildFile; fileRef = CAD6A7C30F7AFFD800456513 /* Ap4DynamicCast.h */; };
 		CAE03ABF1034AE0D006FAFD7 /* Ap4Hmac.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAE03ABD1034AE0D006FAFD7 /* Ap4Hmac.cpp */; };
 		CAE03AC01034AE0D006FAFD7 /* Ap4Hmac.h in Headers */ = {isa = PBXBuildFile; fileRef = CAE03ABE1034AE0D006FAFD7 /* Ap4Hmac.h */; };
@@ -422,6 +426,20 @@
 			proxyType = 1;
 			remoteGlobalIDString = CA7EECE40F720648009F85F9;
 			remoteInfo = CompareFilesTest;
+		};
+		CA6103DA128598A50039C7E6 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D2AAC045055464E500DB518D;
+			remoteInfo = Bento4;
+		};
+		CA6103E712859C960039C7E6 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CA6103D51285988E0039C7E6;
+			remoteInfo = Mp4Fragment;
 		};
 		CA646AC80CE97C4E009699D7 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -744,6 +762,8 @@
 		CA44C52A0D46375F00173F5F /* mp4dcfpackager */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mp4dcfpackager; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA504D5B0C5E8A8A0060E6FE /* Ap4ElstAtom.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4ElstAtom.cpp; sourceTree = "<group>"; };
 		CA504D5C0C5E8A8A0060E6FE /* Ap4ElstAtom.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = Ap4ElstAtom.h; sourceTree = "<group>"; };
+		CA6103D61285988E0039C7E6 /* mp4fragment */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mp4fragment; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA6103E3128599C20039C7E6 /* Mp4Fragment.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Mp4Fragment.cpp; sourceTree = "<group>"; };
 		CA646A880CE97B2D009699D7 /* Aac2Mp4.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Aac2Mp4.cpp; sourceTree = "<group>"; };
 		CA646A8A0CE97B2D009699D7 /* Mp42Aac.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Mp42Aac.cpp; sourceTree = "<group>"; };
 		CA646A8C0CE97B2D009699D7 /* Mp4Decrypt.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Mp4Decrypt.cpp; sourceTree = "<group>"; };
@@ -951,6 +971,7 @@
 		CAB3CB710FCB35B8007C4260 /* BufferedStreamTest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = BufferedStreamTest; sourceTree = BUILT_PRODUCTS_DIR; };
 		CABB61EF0F02B85900B53D31 /* TracksTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TracksTest.cpp; sourceTree = "<group>"; };
 		CABB61F30F02BABC00B53D31 /* TracksTest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = TracksTest; sourceTree = BUILT_PRODUCTS_DIR; };
+		CAC51D75129708CB00AE5CF9 /* Ap4PosixRandom.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4PosixRandom.cpp; sourceTree = "<group>"; };
 		CAD6A7C30F7AFFD800456513 /* Ap4DynamicCast.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4DynamicCast.h; sourceTree = "<group>"; };
 		CAE03ABD1034AE0D006FAFD7 /* Ap4Hmac.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4Hmac.cpp; sourceTree = "<group>"; };
 		CAE03ABE1034AE0D006FAFD7 /* Ap4Hmac.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4Hmac.h; sourceTree = "<group>"; };
@@ -1034,6 +1055,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				CA44C5310D46379100173F5F /* libBento4.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CA6103D41285988E0039C7E6 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CA6103DC128598AF0039C7E6 /* libBento4.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1234,6 +1263,7 @@
 				CA9367F90B4383F00067D50B /* Codecs */,
 				CA9367390B437D390067D50B /* MetaData */,
 				CA93673E0B437D4D0067D50B /* StdC */,
+				CAC51D74129708CB00AE5CF9 /* Posix */,
 				CAEA9CDD0E14460F008C396D /* Adapters */,
 			);
 			name = Runtime;
@@ -1270,6 +1300,7 @@
 				CA2E6A3B1087E09200F837E2 /* mp42avc */,
 				CAA88EA910A2064500178BE3 /* libBento4Neptune.a */,
 				CA399C9810A3475E0085284B /* aac2mp4 */,
+				CA6103D61285988E0039C7E6 /* mp4fragment */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1321,6 +1352,14 @@
 			name = Mp4DcfPackager;
 			sourceTree = "<group>";
 		};
+		CA6103E2128599C20039C7E6 /* Mp4Fragment */ = {
+			isa = PBXGroup;
+			children = (
+				CA6103E3128599C20039C7E6 /* Mp4Fragment.cpp */,
+			);
+			path = Mp4Fragment;
+			sourceTree = "<group>";
+		};
 		CA646A860CE97B2D009699D7 /* Apps */ = {
 			isa = PBXGroup;
 			children = (
@@ -1335,6 +1374,7 @@
 				CA646A8F0CE97B2D009699D7 /* Mp4Edit */,
 				CA646A910CE97B2D009699D7 /* Mp4Encrypt */,
 				CA646A930CE97B2D009699D7 /* Mp4Extract */,
+				CA6103E2128599C20039C7E6 /* Mp4Fragment */,
 				CA646A950CE97B2D009699D7 /* Mp4Info */,
 				CA646A970CE97B2D009699D7 /* Mp4RtpHintInfo */,
 				CA646A990CE97B2D009699D7 /* Mp4Tag */,
@@ -1736,6 +1776,15 @@
 			path = Tracks;
 			sourceTree = "<group>";
 		};
+		CAC51D74129708CB00AE5CF9 /* Posix */ = {
+			isa = PBXGroup;
+			children = (
+				CAC51D75129708CB00AE5CF9 /* Ap4PosixRandom.cpp */,
+			);
+			name = Posix;
+			path = "../../../Source/C++/System/Posix";
+			sourceTree = SOURCE_ROOT;
+		};
 		CAE724010FC3362B008F2905 /* LinearReader */ = {
 			isa = PBXGroup;
 			children = (
@@ -2037,6 +2086,23 @@
 			name = Mp4DcfPackager;
 			productName = Mp4DcfPackager;
 			productReference = CA44C52A0D46375F00173F5F /* mp4dcfpackager */;
+			productType = "com.apple.product-type.tool";
+		};
+		CA6103D51285988E0039C7E6 /* Mp4Fragment */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CA6103E1128598C20039C7E6 /* Build configuration list for PBXNativeTarget "Mp4Fragment" */;
+			buildPhases = (
+				CA6103D31285988E0039C7E6 /* Sources */,
+				CA6103D41285988E0039C7E6 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CA6103DB128598A50039C7E6 /* PBXTargetDependency */,
+			);
+			name = Mp4Fragment;
+			productName = Mp4Fragment;
+			productReference = CA6103D61285988E0039C7E6 /* mp4fragment */;
 			productType = "com.apple.product-type.tool";
 		};
 		CA646ABA0CE97BFD009699D7 /* Mp4Dump */ = {
@@ -2449,6 +2515,7 @@
 				CA646B000CE97D6E009699D7 /* Mp4Edit */,
 				CA646B100CE97D9C009699D7 /* Mp4Extract */,
 				CA646B200CE97DD1009699D7 /* Mp4Tag */,
+				CA6103D51285988E0039C7E6 /* Mp4Fragment */,
 				CA646B400CE97E27009699D7 /* Mp42Aac */,
 				CA2E6A3A1087E09200F837E2 /* Mp42Avc */,
 				CA00667210153951004C0D5F /* Mp42Ts */,
@@ -2516,6 +2583,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				CA44C5340D46383A00173F5F /* Mp4DcfPackager.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CA6103D31285988E0039C7E6 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CA6103E4128599C20039C7E6 /* Mp4Fragment.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2777,6 +2852,7 @@
 				CA91A81210A24D38008618FE /* Ap4TfraAtom.cpp in Sources */,
 				CA91A84C10A29A56008618FE /* Ap4MfroAtom.cpp in Sources */,
 				CAA4FF2010B2CBB3009C8F5B /* Ap4Mp4AudioInfo.cpp in Sources */,
+				CAC51D76129708CB00AE5CF9 /* Ap4PosixRandom.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2858,6 +2934,16 @@
 			isa = PBXTargetDependency;
 			target = CA7EECE40F720648009F85F9 /* CompareFilesTest */;
 			targetProxy = CA52643B0F788AD8009D7E0D /* PBXContainerItemProxy */;
+		};
+		CA6103DB128598A50039C7E6 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D2AAC045055464E500DB518D /* Bento4 */;
+			targetProxy = CA6103DA128598A50039C7E6 /* PBXContainerItemProxy */;
+		};
+		CA6103E812859C960039C7E6 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CA6103D51285988E0039C7E6 /* Mp4Fragment */;
+			targetProxy = CA6103E712859C960039C7E6 /* PBXContainerItemProxy */;
 		};
 		CA646AC90CE97C4E009699D7 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -3224,6 +3310,48 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				PRODUCT_NAME = mp4dcfpackager;
+			};
+			name = Release;
+		};
+		CA6103D81285988F0039C7E6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				INSTALL_PATH = /usr/local/bin;
+				OTHER_LDFLAGS = (
+					"-framework",
+					Foundation,
+					"-framework",
+					AppKit,
+				);
+				PREBINDING = NO;
+				PRODUCT_NAME = mp4fragment;
+			};
+			name = Debug;
+		};
+		CA6103D91285988F0039C7E6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_MODEL_TUNING = G5;
+				INSTALL_PATH = /usr/local/bin;
+				OTHER_LDFLAGS = (
+					"-framework",
+					Foundation,
+					"-framework",
+					AppKit,
+				);
+				PREBINDING = NO;
+				PRODUCT_NAME = mp4fragment;
+				ZERO_LINK = NO;
 			};
 			name = Release;
 		};
@@ -3673,6 +3801,15 @@
 			buildConfigurations = (
 				CA44C52C0D46375F00173F5F /* Debug */,
 				CA44C52D0D46375F00173F5F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CA6103E1128598C20039C7E6 /* Build configuration list for PBXNativeTarget "Mp4Fragment" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CA6103D81285988F0039C7E6 /* Debug */,
+				CA6103D91285988F0039C7E6 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

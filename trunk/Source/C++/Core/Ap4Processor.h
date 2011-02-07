@@ -210,7 +210,7 @@ public:
      * @return A pointer to a fragment handler, or NULL if no handler 
      * needs to be created for that fragment.
      */
-    virtual FragmentHandler* CreateFragmentHandler(AP4_ContainerAtom* /*traf*/) { return NULL; }
+    virtual FragmentHandler* CreateFragmentHandler(AP4_ContainerAtom* traf);
     
 protected:
     class ExternalTrackData {
@@ -232,6 +232,8 @@ protected:
     
     
     AP4_List<ExternalTrackData> m_ExternalTrackData;
+    AP4_Array<AP4_UI32>         m_TrackIds;
+    AP4_Array<TrackHandler*>    m_TrackHandlers;
 };
 
 #endif // _AP4_PROCESSOR_H_

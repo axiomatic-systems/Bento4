@@ -41,6 +41,7 @@
 |   class references
 +---------------------------------------------------------------------*/
 class AP4_Track;
+class AP4_MovieFragment;
 
 /*----------------------------------------------------------------------
 |   constants
@@ -48,14 +49,14 @@ class AP4_Track;
 const unsigned int AP4_LINEAR_READER_INITIALIZED = 1;
 const unsigned int AP4_LINEAR_READER_FLAG_EOS    = 2;
 
-const unsigned int AP4_LINEAR_READER_DEFAULT_BUFFER_SIZE = 4096*1024;
+const unsigned int AP4_LINEAR_READER_DEFAULT_BUFFER_SIZE = 16*1024*1024;
 
 /*----------------------------------------------------------------------
 |   AP4_LinearReader
 +---------------------------------------------------------------------*/
 class AP4_LinearReader {
 public:
-    AP4_LinearReader(AP4_Movie& movie, AP4_Size max_buffer=AP4_LINEAR_READER_DEFAULT_BUFFER_SIZE);
+    AP4_LinearReader(AP4_Movie& movie, AP4_ByteStream* fragment_stream = NULL, AP4_Size max_buffer=AP4_LINEAR_READER_DEFAULT_BUFFER_SIZE);
    ~AP4_LinearReader();
     
     AP4_Result EnableTrack(AP4_UI32 track_id);
@@ -90,29 +91,47 @@ private:
     public:
         Tracker(AP4_Track* track) :
             m_Eos(false),
-            m_Track(track), 
+            m_TrackId(track->GetId()),
+            m_SampleTable(NULL), 
+            m_SampleTableIsOwned(false),
             m_NextSample(NULL),
-            m_NextSampleIndex(0) {}
+            m_NextSampleIndex(0),
+            m_NextDts(0) {}
         Tracker(const Tracker& other) : 
             m_Eos(other.m_Eos),
-            m_Track(other.m_Track),
+            m_TrackId(other.m_TrackId),
+            m_SampleTable(other.m_SampleTable),
+            m_SampleTableIsOwned(false),
             m_NextSample(NULL),
-            m_NextSampleIndex(other.m_NextSampleIndex) {} // don't copy samples
-       ~Tracker() { m_Samples.DeleteReferences(); }
+            m_NextSampleIndex(other.m_NextSampleIndex),
+            m_NextDts(other.m_NextDts) {} // don't copy samples
+       ~Tracker();
         bool                   m_Eos;
-        AP4_Track*             m_Track;
+        AP4_UI32               m_TrackId;
+        AP4_SampleTable*       m_SampleTable;
+        bool                   m_SampleTableIsOwned;
+        bool                   m_HasFragments;
         AP4_Sample*            m_NextSample;
         AP4_Ordinal            m_NextSampleIndex;
+        AP4_UI64               m_NextDts;
         AP4_List<SampleBuffer> m_Samples;
     };
     
     // methods
     Tracker*   FindTracker(AP4_UI32 track_id);
     AP4_Result Advance();
+    AP4_Result AdvanceFragment();
+    AP4_Result ProcessMoof(AP4_ContainerAtom* moof, 
+                           AP4_Position       moof_offset, 
+                           AP4_Position       mdat_payload_offset);
     bool       PopSample(Tracker* tracker, AP4_Sample& sample, AP4_DataBuffer& sample_data);
     
     // members
     AP4_Movie&          m_Movie;
+    bool                m_HasFragments;
+    AP4_MovieFragment*  m_Fragment;
+    AP4_ByteStream*     m_FragmentStream;
+    AP4_Position        m_NextFragmentPosition;
     AP4_Array<Tracker*> m_Trackers;
     AP4_Size            m_BufferFullness;
     AP4_Size            m_BufferFullnessPeak;

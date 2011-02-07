@@ -151,6 +151,31 @@ AP4_TrunAtom::AP4_TrunAtom(AP4_UI32        size,
 }
 
 /*----------------------------------------------------------------------
+|   AP4_TrunAtom::SetEntries
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_TrunAtom::SetEntries(const AP4_Array<Entry>& entries)
+{
+    // resize the entry array
+    m_Entries.SetItemCount(entries.ItemCount());
+    
+    // copy entries
+    AP4_Cardinal entry_count = entries.ItemCount();
+    for (unsigned int i=0; i<entry_count; i++) {
+        m_Entries[i] = entries[i];
+    }
+    
+    // update the atom size
+    unsigned int record_fields_count = ComputeRecordFieldsCount(m_Flags);
+    m_Size32 += entries.ItemCount()*record_fields_count*4;
+    
+    // notify the parent
+    if (m_Parent) m_Parent->OnChildChanged(this);
+    
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
 |   AP4_TrunAtom::WriteFields
 +---------------------------------------------------------------------*/
 AP4_Result

@@ -193,7 +193,9 @@ AP4_FragmentSampleTable::AddTrun(AP4_TrunAtom*   trun,
         }
         
         // sample description index
-        sample.SetDescriptionIndex(sample_description_index);
+        if (sample_description_index >= 1) {
+            sample.SetDescriptionIndex(sample_description_index-1);
+        }
         
         // data stream
         if (sample_stream) sample.SetDataStream(*sample_stream);

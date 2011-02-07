@@ -65,6 +65,7 @@ public:
     AP4_UI32     GetTimeScale();
     AP4_UI64     GetDuration();
     AP4_UI32     GetDurationMs();
+    bool         HasFragments();
     
 private:
     // members
