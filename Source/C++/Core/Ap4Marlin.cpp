@@ -344,7 +344,7 @@ AP4_MarlinIpmpParser::Parse(AP4_AtomParent&      top_level,
 |   AP4_MarlinIpmpSampleDecrypter::Create
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_MarlinIpmpSampleDecrypter::Create(AP4_AtomParent&                 top_level,
+AP4_MarlinIpmpSampleDecrypter::Create(AP4_AtomParent&                 /*top_level*/,
                                       const AP4_UI08*                 key,
                                       AP4_Size                        key_size,
                                       AP4_BlockCipherFactory*         block_cipher_factory,
