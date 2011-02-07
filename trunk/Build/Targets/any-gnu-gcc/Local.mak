@@ -60,6 +60,7 @@ LIBRARIES_CPP =
 #    module selection
 #######################################################################
 FILE_BYTE_STREAM_IMPLEMENTATION = Ap4StdCFileByteStream
+RANDOM_IMPLEMENTATION = Ap4PosixRandom
 
 #######################################################################
 #    includes

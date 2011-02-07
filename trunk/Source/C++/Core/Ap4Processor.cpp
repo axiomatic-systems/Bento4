@@ -177,10 +177,10 @@ AP4_Processor::ProcessFragments(AP4_MoovAtom*              moov,
 
             // build a list of all trun atoms
             AP4_Array<AP4_TrunAtom*> truns;
-            for (AP4_List<AP4_Atom>::Item* item = traf->GetChildren().FirstItem();
-                                           item;
-                                           item = item->GetNext()) {
-                AP4_Atom* atom = item->GetData();
+            for (AP4_List<AP4_Atom>::Item* traf_item = traf->GetChildren().FirstItem();
+                                           traf_item;
+                                           traf_item = traf_item->GetNext()) {
+                AP4_Atom* atom = traf_item->GetData();
                 if (atom->GetType() == AP4_ATOM_TYPE_TRUN) {
                     AP4_TrunAtom* trun = AP4_DYNAMIC_CAST(AP4_TrunAtom, atom);
                     truns.Append(trun);
