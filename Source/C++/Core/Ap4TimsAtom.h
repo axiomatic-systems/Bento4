@@ -40,6 +40,8 @@
 class AP4_TimsAtom : public AP4_Atom
 {
 public:
+    AP4_IMPLEMENT_DYNAMIC_CAST_D(AP4_TimsAtom, AP4_Atom)
+
     // class methods
     static AP4_TimsAtom* Create(AP4_Size size, AP4_ByteStream& stream) {
         return new AP4_TimsAtom(size, stream);
