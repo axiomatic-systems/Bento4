@@ -1084,7 +1084,7 @@ AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_PiffTrackDecrypter)
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_PiffTrackDecrypter::Create(const unsigned char*            key,
-                               AP4_Size                        key_size,
+                               AP4_Size                        /* key_size */,
                                AP4_ProtectedSampleDescription* sample_description,
                                AP4_SampleEntry*                sample_entry,
                                AP4_PiffTrackDecrypter*&        decrypter)
