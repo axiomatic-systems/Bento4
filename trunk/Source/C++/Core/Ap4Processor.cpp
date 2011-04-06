@@ -104,6 +104,7 @@ AP4_DefaultFragmentHandler::GetProcessedSampleSize(AP4_Sample& sample)
 AP4_Result 
 AP4_DefaultFragmentHandler::ProcessSample(AP4_DataBuffer& data_in, AP4_DataBuffer& data_out)
 {
+    if (m_TrackHandler == NULL) return AP4_SUCCESS;
     return m_TrackHandler->ProcessSample(data_in, data_out);
 }
 
@@ -297,7 +298,7 @@ AP4_Processor::CreateFragmentHandler(AP4_ContainerAtom* traf)
     // find the matching track handler
     for (unsigned int i=0; i<m_TrackIds.ItemCount(); i++) {
         AP4_TfhdAtom* tfhd = AP4_DYNAMIC_CAST(AP4_TfhdAtom, traf->GetChild(AP4_ATOM_TYPE_TFHD));
-        if (m_TrackIds[i] == tfhd->GetTrackId()) {
+        if (tfhd && m_TrackIds[i] == tfhd->GetTrackId()) {
             return new AP4_DefaultFragmentHandler(m_TrackHandlers[i]);
         }
     }
@@ -589,3 +590,8 @@ AP4_Processor::Finalize(AP4_AtomParent&   /* top_level */,
     // default implementation: do nothing
     return AP4_SUCCESS;
 }
+
+/*----------------------------------------------------------------------
+|   AP4_Processor::TrackHandler Dynamic Cast Anchor
++---------------------------------------------------------------------*/
+AP4_DEFINE_DYNAMIC_CAST_ANCHOR_S(AP4_Processor::TrackHandler, TrackHandler)

@@ -37,7 +37,7 @@
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-#define BANNER "MP4 Fragmenter - Version 1.0\n"\
+#define BANNER "MP4 Fragmenter - Version 1.1\n"\
                "(Bento4 Version " AP4_VERSION_STRING ")\n"\
                "(c) 2002-2010 Axiomatic Systems, LLC"
 

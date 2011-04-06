@@ -36,6 +36,7 @@
 #include "Ap4Array.h"
 #include "Ap4Movie.h"
 #include "Ap4Sample.h"
+#include "Ap4Protection.h"
 
 /*----------------------------------------------------------------------
 |   class references
@@ -57,9 +58,10 @@ const unsigned int AP4_LINEAR_READER_DEFAULT_BUFFER_SIZE = 16*1024*1024;
 class AP4_LinearReader {
 public:
     AP4_LinearReader(AP4_Movie& movie, AP4_ByteStream* fragment_stream = NULL, AP4_Size max_buffer=AP4_LINEAR_READER_DEFAULT_BUFFER_SIZE);
-   ~AP4_LinearReader();
+    virtual ~AP4_LinearReader();
     
     AP4_Result EnableTrack(AP4_UI32 track_id);
+    
     /**
      * Read the next sample in storage order, from any track.
      * track_id is updated to reflect the track from which the sample was read.
@@ -67,6 +69,7 @@ public:
     AP4_Result ReadNextSample(AP4_Sample&     sample, 
                               AP4_DataBuffer& sample_data,
                               AP4_UI32&       track_id);
+                              
     /**
      * Read the next sample in storage order from a specific track.
      */
@@ -79,7 +82,14 @@ public:
     // accessors
     AP4_Size GetBufferFullness() { return m_BufferFullness; }
     
-private:
+    // classes
+    class SampleReader {
+    public:
+        virtual ~SampleReader() {}
+        virtual AP4_Result ReadSampleData(AP4_Sample& sample, AP4_DataBuffer& sample_data) = 0;
+    };
+
+protected:
     class SampleBuffer {
     public:
         SampleBuffer(AP4_Sample* sample) : m_Sample(sample) {}
@@ -87,27 +97,30 @@ private:
         AP4_Sample*    m_Sample;
         AP4_DataBuffer m_Data;
     };
+        
     class Tracker {
     public:
         Tracker(AP4_Track* track) :
             m_Eos(false),
-            m_TrackId(track->GetId()),
+            m_Track(track),
             m_SampleTable(NULL), 
             m_SampleTableIsOwned(false),
             m_NextSample(NULL),
             m_NextSampleIndex(0),
-            m_NextDts(0) {}
+            m_NextDts(0),
+            m_Reader(NULL) {}
         Tracker(const Tracker& other) : 
             m_Eos(other.m_Eos),
-            m_TrackId(other.m_TrackId),
+            m_Track(other.m_Track),
             m_SampleTable(other.m_SampleTable),
             m_SampleTableIsOwned(false),
             m_NextSample(NULL),
             m_NextSampleIndex(other.m_NextSampleIndex),
-            m_NextDts(other.m_NextDts) {} // don't copy samples
+            m_NextDts(other.m_NextDts),
+            m_Reader(other.m_Reader) {} // don't copy samples
        ~Tracker();
         bool                   m_Eos;
-        AP4_UI32               m_TrackId;
+        AP4_Track*             m_Track;
         AP4_SampleTable*       m_SampleTable;
         bool                   m_SampleTableIsOwned;
         bool                   m_HasFragments;
@@ -115,17 +128,21 @@ private:
         AP4_Ordinal            m_NextSampleIndex;
         AP4_UI64               m_NextDts;
         AP4_List<SampleBuffer> m_Samples;
+        SampleReader*          m_Reader;
     };
+    
+    // methods that can be overridden
+    virtual AP4_Result ProcessTrack(AP4_Track* track);
+    virtual AP4_Result ProcessMoof(AP4_ContainerAtom* moof, 
+                                   AP4_Position       moof_offset, 
+                                   AP4_Position       mdat_payload_offset);
     
     // methods
     Tracker*   FindTracker(AP4_UI32 track_id);
     AP4_Result Advance();
     AP4_Result AdvanceFragment();
-    AP4_Result ProcessMoof(AP4_ContainerAtom* moof, 
-                           AP4_Position       moof_offset, 
-                           AP4_Position       mdat_payload_offset);
     bool       PopSample(Tracker* tracker, AP4_Sample& sample, AP4_DataBuffer& sample_data);
-    
+
     // members
     AP4_Movie&          m_Movie;
     bool                m_HasFragments;
@@ -137,5 +154,25 @@ private:
     AP4_Size            m_BufferFullnessPeak;
     AP4_Size            m_MaxBufferFullness;
 };
+
+/*----------------------------------------------------------------------
+|   AP4_DecryptingSampleReader
++---------------------------------------------------------------------*/
+class AP4_DecryptingSampleReader : public AP4_LinearReader::SampleReader
+{
+public:
+    AP4_DecryptingSampleReader(AP4_SampleDecrypter* decrypter, bool transfer_ownership) :
+        m_DecrypterIsOwned(transfer_ownership),
+        m_Decrypter(decrypter) {}
+    virtual ~AP4_DecryptingSampleReader() { 
+        if (m_DecrypterIsOwned) delete m_Decrypter; 
+    }
+    virtual AP4_Result ReadSampleData(AP4_Sample& sample, AP4_DataBuffer& sample_data);
+    
+    bool                 m_DecrypterIsOwned;
+    AP4_DataBuffer       m_DataBuffer;
+    AP4_SampleDecrypter* m_Decrypter;
+};
+
 
 #endif // _AP4_LINEAR_READER_H_

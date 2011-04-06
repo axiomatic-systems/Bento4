@@ -91,7 +91,8 @@ public:
     AP4_Result      ReadData(AP4_DataBuffer& data, 
                              AP4_Size        size, 
                              AP4_Size        offset = 0);
-
+    void            Detach();
+    
     // sample properties accessors
     AP4_ByteStream* GetDataStream();
     void            SetDataStream(AP4_ByteStream& stream);

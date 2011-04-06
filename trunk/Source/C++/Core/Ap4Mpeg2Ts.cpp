@@ -558,12 +558,12 @@ AP4_Mpeg2TsVideoSampleStream::WriteSample(AP4_Sample&            sample,
 /*----------------------------------------------------------------------
 |   AP4_Mpeg2TsWriter::AP4_Mpeg2TsWriter
 +---------------------------------------------------------------------*/
-AP4_Mpeg2TsWriter::AP4_Mpeg2TsWriter() :
+AP4_Mpeg2TsWriter::AP4_Mpeg2TsWriter(unsigned int pmt_pid) :
     m_Audio(NULL),
     m_Video(NULL)
 {
     m_PAT = new Stream(0);
-    m_PMT = new Stream(AP4_MPEG2_TS_DEFAULT_PID_PMT);
+    m_PMT = new Stream(pmt_pid);
 }
 
 /*----------------------------------------------------------------------
@@ -684,12 +684,14 @@ AP4_Mpeg2TsWriter::WritePMT(AP4_ByteStream& output)
 |   AP4_Mpeg2TsWriter::SetAudioStream
 +---------------------------------------------------------------------*/
 AP4_Result 
-AP4_Mpeg2TsWriter::SetAudioStream(AP4_UI32 timescale, SampleStream*& stream)
+AP4_Mpeg2TsWriter::SetAudioStream(AP4_UI32       timescale, 
+                                  SampleStream*& stream, 
+                                  unsigned int   pid)
 {
     // default
     stream = NULL;
     
-    AP4_Result result = AP4_Mpeg2TsAudioSampleStream::Create(AP4_MPEG2_TS_DEFAULT_PID_AUDIO,
+    AP4_Result result = AP4_Mpeg2TsAudioSampleStream::Create(pid,
                                                              timescale,
                                                              m_Audio);
     if (AP4_FAILED(result)) return result;
@@ -701,14 +703,16 @@ AP4_Mpeg2TsWriter::SetAudioStream(AP4_UI32 timescale, SampleStream*& stream)
 |   AP4_Mpeg2TsWriter::SetVideoStream
 +---------------------------------------------------------------------*/
 AP4_Result 
-AP4_Mpeg2TsWriter::SetVideoStream(AP4_UI32 timescale, SampleStream*& stream)
+AP4_Mpeg2TsWriter::SetVideoStream(AP4_UI32       timescale, 
+                                  SampleStream*& stream,
+                                  unsigned int   pid)
 {
     // default
     stream = NULL;
     
-    AP4_Result result = AP4_Mpeg2TsVideoSampleStream::Create(AP4_MPEG2_TS_DEFAULT_PID_VIDEO, 
-                                                  timescale,
-                                                  m_Video);
+    AP4_Result result = AP4_Mpeg2TsVideoSampleStream::Create(pid, 
+                                                             timescale,
+                                                             m_Video);
     if (AP4_FAILED(result)) return result;
     stream = m_Video;
     return AP4_SUCCESS;

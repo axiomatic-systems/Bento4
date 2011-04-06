@@ -83,11 +83,11 @@ AP4_PiffCtrSampleEncrypter::~AP4_PiffCtrSampleEncrypter()
 }
 
 /*----------------------------------------------------------------------
-|   AP4_PiffAvcCtrSampleEncrypter::EncryptSampleData
+|   AP4_PiffSubSampleCtrSampleEncrypter::EncryptSampleData
 +---------------------------------------------------------------------*/
 AP4_Result 
-AP4_PiffAvcCtrSampleEncrypter::EncryptSampleData(AP4_DataBuffer& /*data_in */,
-                                                 AP4_DataBuffer& /*data_out*/)
+AP4_PiffSubSampleCtrSampleEncrypter::EncryptSampleData(AP4_DataBuffer& /*data_in */,
+                                                       AP4_DataBuffer& /*data_out*/)
 {
     return AP4_ERROR_NOT_SUPPORTED; // FIXME: not implemented yet
 }
@@ -147,11 +147,11 @@ AP4_PiffCbcSampleEncrypter::~AP4_PiffCbcSampleEncrypter()
 }
 
 /*----------------------------------------------------------------------
-|   AP4_PiffAvcCbcSampleEncrypter::EncryptSampleData
+|   AP4_PiffSubSampleCbcSampleEncrypter::EncryptSampleData
 +---------------------------------------------------------------------*/
 AP4_Result 
-AP4_PiffAvcCbcSampleEncrypter::EncryptSampleData(AP4_DataBuffer& data_in,
-                                                 AP4_DataBuffer& data_out)
+AP4_PiffSubSampleCbcSampleEncrypter::EncryptSampleData(AP4_DataBuffer& data_in,
+                                                       AP4_DataBuffer& data_out)
 {  
     // the output has the same size as the input
     data_out.SetDataSize(data_in.GetDataSize());
@@ -267,7 +267,7 @@ AP4_PiffTrackEncrypter::ProcessTrack()
     
     // scheme info
     AP4_SchmAtom* schm = new AP4_SchmAtom(AP4_PROTECTION_SCHEME_TYPE_PIFF, 
-                                          AP4_PROTECTION_SCHEME_VERSION_PIFF_10);
+                                          AP4_PROTECTION_SCHEME_VERSION_PIFF_11);
 
     // populate the schi container
     AP4_PiffTrackEncryptionAtom* piff_enc = 
@@ -359,7 +359,12 @@ AP4_PiffFragmentEncrypter::ProcessFragment()
     
     // create a sample encryption atom
     m_SampleEncryptionAtom = new AP4_PiffSampleEncryptionAtom(sample_count);
-
+    if (m_Encrypter->m_SampleEncrypter->UseSubSamples()) {
+        m_SampleEncryptionAtom->SetFlags(
+            m_SampleEncryptionAtom->GetFlags() |
+            AP4_PIFF_SAMPLE_ENCRYPTION_FLAG_USE_SUB_SAMPLE_ENCRYPTION);
+    }
+    
     // add the atom to the traf container
     m_Traf->AddChild(m_SampleEncryptionAtom);
     
@@ -433,7 +438,7 @@ AP4_PiffEncryptingProcessor::Initialize(AP4_AtomParent&                  top_lev
             compatible_brands.Append(ftyp->GetCompatibleBrands()[i]);
         }
         
-        // add the OMA compatible brand if it is not already there
+        // add the PIFF compatible brand if it is not already there
         if (!ftyp->HasCompatibleBrand(AP4_PIFF_BRAND)) {
             compatible_brands.Append(AP4_PIFF_BRAND);
         }
@@ -557,7 +562,7 @@ AP4_PiffEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
             if (entry->GetType() == AP4_ATOM_TYPE_AVC1) {
                 AP4_AvccAtom* avcc = AP4_DYNAMIC_CAST(AP4_AvccAtom, entry->GetChild(AP4_ATOM_TYPE_AVCC));
                 if (avcc == NULL) return NULL;
-                sample_encrypter = new AP4_PiffAvcCbcSampleEncrypter(block_cipher, avcc->GetNaluLengthSize());
+                sample_encrypter = new AP4_PiffSubSampleCbcSampleEncrypter(block_cipher, avcc->GetNaluLengthSize());
             } else {
                 sample_encrypter = new AP4_PiffCbcSampleEncrypter(block_cipher);
             }
@@ -567,7 +572,7 @@ AP4_PiffEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
             if (entry->GetType() == AP4_ATOM_TYPE_AVC1) {
                 AP4_AvccAtom* avcc = AP4_DYNAMIC_CAST(AP4_AvccAtom, entry->GetChild(AP4_ATOM_TYPE_AVCC));
                 if (avcc == NULL) return NULL;
-                sample_encrypter = new AP4_PiffAvcCtrSampleEncrypter(block_cipher, avcc->GetNaluLengthSize());
+                sample_encrypter = new AP4_PiffSubSampleCtrSampleEncrypter(block_cipher, avcc->GetNaluLengthSize());
             } else {
                 sample_encrypter = new AP4_PiffCtrSampleEncrypter(block_cipher);
             }
@@ -615,16 +620,23 @@ AP4_PiffSampleDecrypter::Create(AP4_ProtectedSampleDescription* sample_descripti
                                 AP4_PiffSampleDecrypter*&       decrypter)
 {
     // check the parameters
-    if (key == NULL || block_cipher_factory == NULL) {
+    if (key == NULL) {
         return AP4_ERROR_INVALID_PARAMETERS;
     }
 
+    // use the default cipher factory if  none was passed
+    if (block_cipher_factory == NULL) block_cipher_factory = &AP4_DefaultBlockCipherFactory::Instance;
+    
     // default return value
     decrypter = NULL;
     
-    // check the sample description 
+    // check the scheme
     if (sample_description->GetSchemeType() != AP4_PROTECTION_SCHEME_TYPE_PIFF) {
         return AP4_ERROR_INVALID_PARAMETERS;
+    }
+    if (sample_description->GetSchemeVersion() != AP4_PROTECTION_SCHEME_VERSION_PIFF_10 &&
+        sample_description->GetSchemeVersion() != AP4_PROTECTION_SCHEME_VERSION_PIFF_11) {
+        return AP4_ERROR_NOT_SUPPORTED;
     }
     
     // get the scheme info atom
@@ -666,7 +678,7 @@ AP4_PiffSampleDecrypter::Create(AP4_ProtectedSampleDescription* sample_descripti
                 // create the block cipher
                 AP4_BlockCipher* block_cipher = NULL;
                 AP4_BlockCipher::CtrParams ctr_params;
-                ctr_params.counter_size = 8;
+                ctr_params.counter_size = iv_size;
                 AP4_Result result = block_cipher_factory->CreateCipher(AP4_BlockCipher::AES_128, 
                                                                        AP4_BlockCipher::DECRYPT, 
                                                                        AP4_BlockCipher::CTR,
@@ -678,16 +690,20 @@ AP4_PiffSampleDecrypter::Create(AP4_ProtectedSampleDescription* sample_descripti
                 
                 // create the decrypter
                 if (sample_description->GetOriginalFormat() == AP4_ATOM_TYPE_AVC1) {
-                    AP4_AvcSampleDescription* avc_desc = AP4_DYNAMIC_CAST(AP4_AvcSampleDescription, sample_description->GetOriginalSampleDescription());
+                    AP4_AvcSampleDescription* avc_desc = 
+                        AP4_DYNAMIC_CAST(AP4_AvcSampleDescription, 
+                                         sample_description->GetOriginalSampleDescription());
                     if (avc_desc == NULL) {
                         return AP4_ERROR_INVALID_FORMAT;
                     }
-                    decrypter = new AP4_PiffAvcCbcSampleDecrypter(block_cipher, 
-                                                                  sample_encryption_atom,
-                                                                  avc_desc->GetNaluLengthSize());
+                    decrypter = new AP4_PiffSubSampleCtrSampleDecrypter(block_cipher, 
+                                                                        iv_size,
+                                                                        sample_encryption_atom,
+                                                                        avc_desc->GetNaluLengthSize());
                     
                 } else {
-                    decrypter = new AP4_PiffCbcSampleDecrypter(block_cipher, 
+                    decrypter = new AP4_PiffCtrSampleDecrypter(block_cipher, 
+                                                               iv_size,
                                                                sample_encryption_atom);
                 }
             }
@@ -710,13 +726,15 @@ AP4_PiffSampleDecrypter::Create(AP4_ProtectedSampleDescription* sample_descripti
 
                 // create the decrypter
                 if (sample_description->GetOriginalFormat() == AP4_ATOM_TYPE_AVC1) {
-                    AP4_AvcSampleDescription* avc_desc = AP4_DYNAMIC_CAST(AP4_AvcSampleDescription, sample_description->GetOriginalSampleDescription());
+                    AP4_AvcSampleDescription* avc_desc = 
+                        AP4_DYNAMIC_CAST(AP4_AvcSampleDescription, 
+                                         sample_description->GetOriginalSampleDescription());
                     if (avc_desc == NULL) {
                         return AP4_ERROR_INVALID_FORMAT;
                     }
-                    decrypter = new AP4_PiffAvcCbcSampleDecrypter(block_cipher, 
-                                                                  sample_encryption_atom,
-                                                                  avc_desc->GetNaluLengthSize());
+                    decrypter = new AP4_PiffSubSampleCbcSampleDecrypter(block_cipher, 
+                                                                        sample_encryption_atom,
+                                                                        avc_desc->GetNaluLengthSize());
                 } else {
                     decrypter = new AP4_PiffCbcSampleDecrypter(block_cipher, 
                                                                sample_encryption_atom);
@@ -728,6 +746,9 @@ AP4_PiffSampleDecrypter::Create(AP4_ProtectedSampleDescription* sample_descripti
             return AP4_ERROR_NOT_SUPPORTED;
     }
 
+    // setup the sample info walker
+    if (sample_encryption_atom) sample_encryption_atom->GetSampleInfoWalker(iv_size, decrypter->m_SampleInfoWalker);    
+
     return AP4_SUCCESS;
 }
        
@@ -737,12 +758,7 @@ AP4_PiffSampleDecrypter::Create(AP4_ProtectedSampleDescription* sample_descripti
 AP4_Result 
 AP4_PiffSampleDecrypter::SetSampleIndex(AP4_Ordinal sample_index)
 {
-    if (sample_index < m_SampleEncryptionAtom->GetIvCount()) {
-        return AP4_ERROR_OUT_OF_RANGE;
-    }
-    m_SampleIndex = sample_index;
-    
-    return AP4_SUCCESS;
+    return m_SampleInfoWalker.SetSampleIndex(sample_index);
 }
 
 /*----------------------------------------------------------------------
@@ -770,22 +786,122 @@ AP4_PiffCtrSampleDecrypter::~AP4_PiffCtrSampleDecrypter()
 |   AP4_PiffCtrSampleDecrypter::DecryptSampleData
 +---------------------------------------------------------------------*/
 AP4_Result 
-AP4_PiffCtrSampleDecrypter::DecryptSampleData(AP4_DataBuffer& /*data_in */,
-                                              AP4_DataBuffer& /*data_out*/,
-                                              const AP4_UI08* /*iv      */)
+AP4_PiffCtrSampleDecrypter::DecryptSampleData(AP4_DataBuffer& data_in,
+                                              AP4_DataBuffer& data_out,
+                                              const AP4_UI08* iv)
 {
-    return AP4_ERROR_NOT_SUPPORTED; // FIXME: not implemented yet
+    // setup the IV
+    unsigned char iv_block[16];
+    if (iv == NULL) {
+        AP4_Result result = m_SampleInfoWalker.Next(iv_block);
+        if (AP4_FAILED(result)) return result;
+    } else {
+        AP4_CopyMemory(iv_block, iv, m_IvSize);
+        if (m_IvSize != 16) AP4_SetMemory(&iv_block[m_IvSize], 0, 16-m_IvSize);
+    }
+    m_Cipher->SetIV(iv_block);
+
+    data_out.SetDataSize(data_in.GetDataSize());
+    AP4_Size data_out_size = data_out.GetDataSize();
+    return m_Cipher->ProcessBuffer(data_in.GetData(), 
+                                   data_in.GetDataSize(), 
+                                   data_out.UseData(), 
+                                   &data_out_size, 
+                                   true);
 }
 
 /*----------------------------------------------------------------------
-|   AP4_PiffAvcCtrSampleDecrypter::DecryptSampleData
+|   AP4_PiffSubSampleCtrSampleDecrypter::DecryptSampleData
 +---------------------------------------------------------------------*/
 AP4_Result 
-AP4_PiffAvcCtrSampleDecrypter::DecryptSampleData(AP4_DataBuffer& /*data_in */,
-                                                 AP4_DataBuffer& /*data_out*/,
-                                                 const AP4_UI08* /*iv      */)
+AP4_PiffSubSampleCtrSampleDecrypter::DecryptSampleData(AP4_DataBuffer& data_in,
+                                                       AP4_DataBuffer& data_out,
+                                                       const AP4_UI08* iv)
 {
-    return AP4_ERROR_NOT_SUPPORTED; // FIXME: not implemented yet
+    // the output has the same size as the input
+    data_out.SetDataSize(data_in.GetDataSize());
+
+    // setup direct pointers to the buffers
+    const AP4_UI08* in  = data_in.GetData();
+    AP4_UI08*       out = data_out.UseData();
+
+    // setup the IV
+    AP4_PiffSubSampleInfoWalker walker;
+    unsigned char iv_block[16];
+    AP4_Result result;
+    if (m_SampleEncryptionAtom->GetFlags() & AP4_PIFF_SAMPLE_ENCRYPTION_FLAG_USE_SUB_SAMPLE_ENCRYPTION) {
+        result = m_SampleInfoWalker.Next(iv_block, walker);
+    } else {
+        result = m_SampleInfoWalker.Next(iv_block);
+    }
+    if (AP4_FAILED(result)) return result;
+    if (iv) {
+        AP4_CopyMemory(iv_block, iv, m_IvSize);
+        if (m_IvSize != 16) AP4_SetMemory(&iv_block[m_IvSize], 0, 16-m_IvSize);
+    }
+    m_Cipher->SetIV(iv_block);
+
+    if (m_SampleEncryptionAtom->GetFlags() & AP4_PIFF_SAMPLE_ENCRYPTION_FLAG_USE_SUB_SAMPLE_ENCRYPTION) {
+        // process the sample data, one sub-sample at a time
+        const AP4_UI08* in_end = data_in.GetData()+data_in.GetDataSize();
+        unsigned int cleartext_size, encrypted_size;
+        while (AP4_SUCCEEDED(walker.Next(cleartext_size, encrypted_size)) &&
+               (unsigned int)(in_end-in) >= cleartext_size+encrypted_size) {
+            // copy the cleartext portion
+            if (cleartext_size) {
+                AP4_CopyMemory(out, in, cleartext_size);
+            }
+            
+            // decrypt the rest
+            if (encrypted_size) {
+                m_Cipher->ProcessBuffer(in+cleartext_size, encrypted_size, out+cleartext_size, &encrypted_size, false);
+            }
+            
+            // move the pointers
+            in  += cleartext_size+encrypted_size;
+            out += cleartext_size+encrypted_size;
+        }
+    } else {
+        // process the sample data, one NALU at a time
+        const AP4_UI08* in_end = data_in.GetData()+data_in.GetDataSize();
+        while ((AP4_Size)(in_end-in) > 1+m_NaluLengthSize) {
+            unsigned int nalu_length;
+            switch (m_NaluLengthSize) {
+                case 1:
+                    nalu_length = *in;
+                    break;
+                    
+                case 2:
+                    nalu_length = AP4_BytesToUInt16BE(in);
+                    break;
+                    
+                case 4:
+                    nalu_length = AP4_BytesToUInt32BE(in);
+                    break;
+                    
+                default:
+                    return AP4_ERROR_INVALID_FORMAT;
+            }
+
+            unsigned int chunk_size     = m_NaluLengthSize+nalu_length;
+            unsigned int cleartext_size = m_NaluLengthSize+1;
+            
+            // copy the cleartext portion
+            AP4_CopyMemory(out, in, cleartext_size);
+            
+            // decrypt the rest
+            if (chunk_size > cleartext_size) {
+                AP4_Size encrypted_size = chunk_size-cleartext_size;
+                m_Cipher->ProcessBuffer(in+cleartext_size, encrypted_size, out+cleartext_size, &encrypted_size, false);
+            }
+            
+            // move the pointers
+            in += chunk_size;
+            out += chunk_size;
+        }
+    }
+    
+    return AP4_SUCCESS;
 }
 
 /*----------------------------------------------------------------------
@@ -823,10 +939,11 @@ AP4_PiffCbcSampleDecrypter::DecryptSampleData(AP4_DataBuffer& data_in,
     AP4_UI08*       out = data_out.UseData();
 
     // setup the IV
+    unsigned char iv_block[16];
     if (iv == NULL) {
-        if (m_SampleEncryptionAtom == NULL) return AP4_ERROR_INVALID_PARAMETERS; 
-        iv = m_SampleEncryptionAtom->GetIv(m_SampleIndex);
-        if (iv == NULL) return AP4_ERROR_INVALID_FORMAT;
+        AP4_Result result = m_SampleInfoWalker.Next(iv_block);
+        if (AP4_FAILED(result)) return result;
+        iv = iv_block;
     }
     m_Cipher->SetIV(iv);
     
@@ -847,19 +964,16 @@ AP4_PiffCbcSampleDecrypter::DecryptSampleData(AP4_DataBuffer& data_in,
         AP4_CopyMemory(out, in, partial);
     }
     
-    // move on to the next sample
-    ++m_SampleIndex;
-    
     return AP4_SUCCESS;
 }
 
 /*----------------------------------------------------------------------
-|   AP4_PiffAvcCbcSampleDecrypter::DecryptSampleData
+|   AP4_PiffSubSampleCbcSampleDecrypter::DecryptSampleData
 +---------------------------------------------------------------------*/
 AP4_Result 
-AP4_PiffAvcCbcSampleDecrypter::DecryptSampleData(AP4_DataBuffer& data_in,
-                                                 AP4_DataBuffer& data_out,
-                                                 const AP4_UI08* iv)
+AP4_PiffSubSampleCbcSampleDecrypter::DecryptSampleData(AP4_DataBuffer& data_in,
+                                                       AP4_DataBuffer& data_out,
+                                                       const AP4_UI08* iv)
 {
     // the output has the same size as the input
     data_out.SetDataSize(data_in.GetDataSize());
@@ -869,10 +983,11 @@ AP4_PiffAvcCbcSampleDecrypter::DecryptSampleData(AP4_DataBuffer& data_in,
     AP4_UI08*       out = data_out.UseData();
 
     // setup the IV
+    unsigned char iv_block[16];
     if (iv == NULL) {
-        if (m_SampleEncryptionAtom == NULL) return AP4_ERROR_INVALID_PARAMETERS;
-        iv = m_SampleEncryptionAtom->GetIv(m_SampleIndex);
-        if (iv == NULL) return AP4_ERROR_INVALID_FORMAT;
+        AP4_Result result = m_SampleInfoWalker.Next(iv_block);
+        if (AP4_FAILED(result)) return result;
+        iv = iv_block;
     }
     m_Cipher->SetIV(iv);
 
@@ -920,12 +1035,283 @@ AP4_PiffAvcCbcSampleDecrypter::DecryptSampleData(AP4_DataBuffer& data_in,
         out += chunk_size;
     }
     
-    // move on to the next sample
-    ++m_SampleIndex;
-    
     return AP4_SUCCESS;
 }
 
+/*----------------------------------------------------------------------
+|   AP4_PiffTrackDecrypter
++---------------------------------------------------------------------*/
+class AP4_PiffTrackDecrypter : public AP4_Processor::TrackHandler {
+public:
+    AP4_IMPLEMENT_DYNAMIC_CAST(AP4_PiffTrackDecrypter)
+
+    // constructor
+    static AP4_Result Create(const unsigned char*            key,
+                             AP4_Size                        key_size,
+                             AP4_ProtectedSampleDescription* sample_description,
+                             AP4_SampleEntry*                sample_entry,
+                             AP4_PiffTrackDecrypter*&        decrypter);
+
+    // methods
+    virtual AP4_Result ProcessSample(AP4_DataBuffer& data_in,
+                                     AP4_DataBuffer& data_out);
+    virtual AP4_Result ProcessTrack();
+
+    // accessors
+    AP4_ProtectedSampleDescription* GetSampleDescription() {
+        return m_SampleDescription;
+    }
+    
+private:
+    // constructor
+    AP4_PiffTrackDecrypter(AP4_ProtectedSampleDescription* sample_description,
+                           AP4_SampleEntry*                sample_entry,
+                           AP4_UI32                        original_format);
+
+    // members
+    AP4_ProtectedSampleDescription* m_SampleDescription;
+    AP4_SampleEntry*                m_SampleEntry;
+    AP4_UI32                        m_OriginalFormat;
+};
+
+/*----------------------------------------------------------------------
+|   AP4_PiffTrackDecrypter Dynamic Cast Anchor
++---------------------------------------------------------------------*/
+AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_PiffTrackDecrypter)
+
+/*----------------------------------------------------------------------
+|   AP4_PiffTrackDecrypter::Create
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_PiffTrackDecrypter::Create(const unsigned char*            key,
+                               AP4_Size                        key_size,
+                               AP4_ProtectedSampleDescription* sample_description,
+                               AP4_SampleEntry*                sample_entry,
+                               AP4_PiffTrackDecrypter*&        decrypter)
+{
+    decrypter = NULL;
+
+    // check and set defaults
+    if (key == NULL) {
+        return AP4_ERROR_INVALID_PARAMETERS;
+    }
+
+    // instantiate the object
+    decrypter = new AP4_PiffTrackDecrypter(sample_description,
+                                           sample_entry, 
+                                           sample_description->GetOriginalFormat());
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_PiffTrackDecrypter::AP4_PiffTrackDecrypter
++---------------------------------------------------------------------*/
+AP4_PiffTrackDecrypter::AP4_PiffTrackDecrypter(AP4_ProtectedSampleDescription* sample_description,
+                                               AP4_SampleEntry*                sample_entry,
+                                               AP4_UI32                        original_format) :
+    m_SampleDescription(sample_description),
+    m_SampleEntry(sample_entry),
+    m_OriginalFormat(original_format)
+{
+}
+
+/*----------------------------------------------------------------------
+|   AP4_PiffTrackDecrypter::ProcessSample
++---------------------------------------------------------------------*/
+AP4_Result 
+AP4_PiffTrackDecrypter::ProcessSample(AP4_DataBuffer& data_in,
+                                      AP4_DataBuffer& data_out)
+{
+    data_out.SetData(data_in.GetData(), data_in.GetDataSize());
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_PiffTrackDecrypter::ProcessTrack
++---------------------------------------------------------------------*/
+AP4_Result   
+AP4_PiffTrackDecrypter::ProcessTrack()
+{
+    m_SampleEntry->SetType(m_OriginalFormat);
+    m_SampleEntry->DeleteChild(AP4_ATOM_TYPE_SINF);
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_PiffFragmentDecrypter
++---------------------------------------------------------------------*/
+class AP4_PiffFragmentDecrypter : public AP4_Processor::FragmentHandler {
+public:
+    // constructor
+    AP4_PiffFragmentDecrypter(AP4_PiffSampleDecrypter* sample_decrypter);
+
+    // methods
+    virtual AP4_Result ProcessFragment();
+    virtual AP4_Result FinishFragment();
+    virtual AP4_Result ProcessSample(AP4_DataBuffer& data_in,
+                                     AP4_DataBuffer& data_out);
+
+private:
+    // members
+    AP4_PiffSampleDecrypter* m_SampleDecrypter;
+    AP4_Ordinal              m_IvIndex;
+};
+
+/*----------------------------------------------------------------------
+|   AP4_PiffFragmentDecrypter::AP4_PiffFragmentDecrypter
++---------------------------------------------------------------------*/
+AP4_PiffFragmentDecrypter::AP4_PiffFragmentDecrypter(AP4_PiffSampleDecrypter* sample_decrypter) :
+    m_SampleDecrypter(sample_decrypter),
+    m_IvIndex(0)
+{
+}
+
+/*----------------------------------------------------------------------
+|   AP4_PiffFragmentDecrypter::ProcessFragment
++---------------------------------------------------------------------*/
+AP4_Result   
+AP4_PiffFragmentDecrypter::ProcessFragment()
+{
+    // detach the sample encryption atom
+    if (m_SampleDecrypter) {
+        AP4_PiffSampleEncryptionAtom* atom = m_SampleDecrypter->GetSampleEncryptionAtom();
+        atom->Detach();
+    }
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_PiffFragmentDecrypter::FinishFragment
++---------------------------------------------------------------------*/
+AP4_Result   
+AP4_PiffFragmentDecrypter::FinishFragment()
+{
+    AP4_PiffSampleEncryptionAtom* atom = m_SampleDecrypter->GetSampleEncryptionAtom();
+    m_SampleDecrypter->SetSampleEncryptionAtom(NULL);
+    delete atom;
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_PiffFragmentDecrypter::ProcessSample
++---------------------------------------------------------------------*/
+AP4_Result 
+AP4_PiffFragmentDecrypter::ProcessSample(AP4_DataBuffer& data_in,
+                                         AP4_DataBuffer& data_out)
+{
+    // decrypt the sample
+    return m_SampleDecrypter->DecryptSampleData(data_in, data_out, NULL);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_PiffDecryptingProcessor::AP4_PiffDecryptingProcessor
++---------------------------------------------------------------------*/
+AP4_PiffDecryptingProcessor::AP4_PiffDecryptingProcessor(const AP4_ProtectionKeyMap* key_map, 
+                                                         AP4_BlockCipherFactory*     block_cipher_factory) :
+    m_KeyMap(key_map)
+{
+    if (block_cipher_factory) {
+        m_BlockCipherFactory = block_cipher_factory;
+    } else {
+        m_BlockCipherFactory = &AP4_DefaultBlockCipherFactory::Instance;
+    }
+}
+
+/*----------------------------------------------------------------------
+|   AP4_PiffDecryptingProcessor::~AP4_PiffDecryptingProcessor
++---------------------------------------------------------------------*/
+AP4_PiffDecryptingProcessor::~AP4_PiffDecryptingProcessor()
+{
+}
+
+/*----------------------------------------------------------------------
+|   AP4_PiffDecryptingProcessor::Initialize
++---------------------------------------------------------------------*/
+AP4_Result 
+AP4_PiffDecryptingProcessor::Initialize(AP4_AtomParent&                  /*top_level*/,
+                                        AP4_ByteStream&                  /*stream*/,
+                                        AP4_Processor::ProgressListener* /*listener*/)
+{
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_PiffDecryptingProcessor:CreateTrackHandler
++---------------------------------------------------------------------*/
+AP4_Processor::TrackHandler* 
+AP4_PiffDecryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
+{
+    // find the stsd atom
+    AP4_StsdAtom* stsd = AP4_DYNAMIC_CAST(AP4_StsdAtom, trak->FindChild("mdia/minf/stbl/stsd"));
+
+    // avoid tracks with no stsd atom (should not happen)
+    if (stsd == NULL) return NULL;
+
+    // we only look at the first sample description
+    AP4_SampleDescription* desc = stsd->GetSampleDescription(0);
+    AP4_SampleEntry* entry = stsd->GetSampleEntry(0);
+    if (desc == NULL || entry == NULL) return NULL;
+    if (m_KeyMap == NULL) return NULL;
+    if (desc->GetType() == AP4_SampleDescription::TYPE_PROTECTED) {
+        // create a handler for this track
+        AP4_ProtectedSampleDescription* protected_desc = 
+            static_cast<AP4_ProtectedSampleDescription*>(desc);
+        if (protected_desc->GetSchemeType() == AP4_PROTECTION_SCHEME_TYPE_PIFF) {
+            const AP4_DataBuffer* key = m_KeyMap->GetKey(trak->GetId());
+            if (key) {
+                AP4_PiffTrackDecrypter* handler = NULL;
+                AP4_Result result = AP4_PiffTrackDecrypter::Create(key->GetData(), 
+                                                                   key->GetDataSize(), 
+                                                                   protected_desc, 
+                                                                   entry, 
+                                                                   handler);
+                if (AP4_FAILED(result)) return NULL;
+                return handler;
+            }
+        }
+    }
+
+    return NULL;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_PiffDecryptingProcessor::CreateFragmentHandler
++---------------------------------------------------------------------*/
+AP4_Processor::FragmentHandler* 
+AP4_PiffDecryptingProcessor::CreateFragmentHandler(AP4_ContainerAtom* traf)
+{
+    // find the matching track handler to get to the track sample description
+    const AP4_DataBuffer* key = NULL;
+    AP4_ProtectedSampleDescription* sample_description = NULL;
+    for (unsigned int i=0; i<m_TrackIds.ItemCount(); i++) {
+        AP4_TfhdAtom* tfhd = AP4_DYNAMIC_CAST(AP4_TfhdAtom, traf->GetChild(AP4_ATOM_TYPE_TFHD));
+        if (tfhd && m_TrackIds[i] == tfhd->GetTrackId()) {
+            // look for the Track Encryption Box
+            AP4_PiffTrackDecrypter* track_decrypter = 
+                AP4_DYNAMIC_CAST(AP4_PiffTrackDecrypter, m_TrackHandlers[i]);
+            if (track_decrypter) {
+                sample_description = track_decrypter->GetSampleDescription();
+            }
+            
+            // get the matching key
+            key = m_KeyMap->GetKey(tfhd->GetTrackId());
+        }
+    }
+
+    // create the sample decrypter for the fragment
+    AP4_PiffSampleDecrypter* sample_decrypter = NULL;
+    AP4_Result result = AP4_PiffSampleDecrypter::Create(
+        sample_description, 
+        traf, 
+        key->GetData(), 
+        key->GetDataSize(), 
+        NULL, 
+        sample_decrypter);
+    if (AP4_FAILED(result)) return NULL;
+    
+    return new AP4_PiffFragmentDecrypter(sample_decrypter);
+}
+    
 /*----------------------------------------------------------------------
 |   AP4_PiffTrackEncryptionAtom Dynamic Cast Anchor
 +---------------------------------------------------------------------*/
@@ -959,7 +1345,7 @@ AP4_PiffTrackEncryptionAtom::AP4_PiffTrackEncryptionAtom(AP4_UI32        size,
     stream.ReadUI24(m_DefaultAlgorithmId);
     stream.ReadUI08(m_DefaultIvSize);
     AP4_SetMemory(m_DefaultKid, 0, 16);
-    stream.Read    (m_DefaultKid, 16);
+    stream.Read(m_DefaultKid, 16);
 }
 
 /*----------------------------------------------------------------------
@@ -1045,19 +1431,11 @@ AP4_PiffSampleEncryptionAtom::AP4_PiffSampleEncryptionAtom(AP4_UI32        size,
         AP4_SetMemory(m_Kid, 0, 16);
     }
     
-    stream.ReadUI32(m_IvCount);
+    stream.ReadUI32(m_SampleInfoCount);
 
-    // NOTE: the problem here is that we don't know the IV size when flags==0
-    // So what we do is read the whole atom and assume that there's nothing
-    // else after the table.
     AP4_Size payload_size = size-GetHeaderSize()-4;
-    if ((flags & AP4_PIFF_SAMPLE_ENCRYPTION_FLAG_OVERRIDE_TRACK_ENCRYPTION_DEFAULTS) == 0) {
-        if (m_IvCount) {
-            m_IvSize = (AP4_UI08)(payload_size/m_IvCount);
-        }
-    }
-    m_Ivs.SetDataSize(payload_size);
-    stream.Read(m_Ivs.UseData(), payload_size);
+    m_SampleInfos.SetDataSize(payload_size);
+    stream.Read(m_SampleInfos.UseData(), payload_size);
 }
 
 /*----------------------------------------------------------------------
@@ -1067,13 +1445,13 @@ AP4_PiffSampleEncryptionAtom::AP4_PiffSampleEncryptionAtom(AP4_Cardinal sample_c
     AP4_UuidAtom(AP4_FULL_UUID_ATOM_HEADER_SIZE+4+sample_count*16, AP4_UUID_PIFF_SAMPLE_ENCRYPTION_ATOM, 0, 0),
     m_AlgorithmId(0),
     m_IvSize(16),
-    m_IvCount(sample_count)
+    m_SampleInfoCount(sample_count)
 {
     AP4_SetMemory(m_Kid, 0, 16);
 
     // initialize the IVs to 0s
-    m_Ivs.SetDataSize(sample_count*m_IvSize);
-    AP4_SetMemory(m_Ivs.UseData(), 0, m_Ivs.GetDataSize());
+    m_SampleInfos.SetDataSize(sample_count*m_IvSize);
+    AP4_SetMemory(m_SampleInfos.UseData(), 0, m_SampleInfos.GetDataSize());
 }
 
 /*----------------------------------------------------------------------
@@ -1087,25 +1465,13 @@ AP4_PiffSampleEncryptionAtom::AP4_PiffSampleEncryptionAtom(AP4_UI32        algor
                  AP4_PIFF_SAMPLE_ENCRYPTION_FLAG_OVERRIDE_TRACK_ENCRYPTION_DEFAULTS),
     m_AlgorithmId(algorithm_id),
     m_IvSize(iv_size),
-    m_IvCount(sample_count)
+    m_SampleInfoCount(sample_count)
 {
     AP4_CopyMemory(m_Kid, kid, 16);
 
     // initialize the IVs to 0s
-    m_Ivs.SetDataSize(sample_count*m_IvSize);
-    AP4_SetMemory(m_Ivs.UseData(), 0, m_Ivs.GetDataSize());
-}
-
-/*----------------------------------------------------------------------
-|   AP4_PiffSampleEncryptionAtom::GetIv
-+---------------------------------------------------------------------*/
-const AP4_UI08*
-AP4_PiffSampleEncryptionAtom::GetIv(AP4_Ordinal indx)
-{
-    if (m_IvSize == 0) return NULL;
-    unsigned int offset = indx*m_IvSize;
-    if (offset+m_IvSize > m_Ivs.GetDataSize()) return NULL;
-    return m_Ivs.GetData()+offset;
+    m_SampleInfos.SetDataSize(sample_count*m_IvSize);
+    AP4_SetMemory(m_SampleInfos.UseData(), 0, m_SampleInfos.GetDataSize());
 }
 
 /*----------------------------------------------------------------------
@@ -1115,10 +1481,116 @@ AP4_Result
 AP4_PiffSampleEncryptionAtom::SetIv(AP4_Ordinal indx, const AP4_UI08* iv)
 {
     if (m_IvSize == 0) return AP4_ERROR_INVALID_STATE;
-    if (indx >= m_IvCount) {
+    if (indx >= m_SampleInfoCount) {
         return AP4_ERROR_OUT_OF_RANGE;
     }
-    AP4_CopyMemory(m_Ivs.UseData()+indx*m_IvSize, iv, m_IvSize);
+    AP4_CopyMemory(m_SampleInfos.UseData()+indx*m_IvSize, iv, m_IvSize);
+    
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_PiffSubSampleInfoWalker::Next
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_PiffSubSampleInfoWalker::Next(unsigned int& cleartext_size, 
+                                  unsigned int& encrypted_size)
+{   
+    cleartext_size = 0;
+    encrypted_size = 0;
+    if (m_SubSampleIndex >= m_EntryCount) return AP4_ERROR_OUT_OF_RANGE;
+    cleartext_size = AP4_BytesToUInt16BE(m_Cursor);
+    encrypted_size = AP4_BytesToUInt32BE(m_Cursor+2);
+    m_Cursor += 6;
+    ++m_SubSampleIndex;
+    
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_PiffSampleInfoWalker::Next
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_PiffSampleInfoWalker::Next(unsigned char* iv)
+{
+    if (m_Data == NULL || m_IvSize == 0) return AP4_ERROR_INVALID_STATE;
+    if (m_SampleIndex >= m_EntryCount || m_Cursor >= m_Data+m_DataSize) {
+        return AP4_ERROR_OUT_OF_RANGE;
+    }
+    AP4_CopyMemory(iv, m_Cursor, m_IvSize);
+    m_Cursor += m_IvSize;
+    if (m_IvSize != 16) AP4_SetMemory(iv+m_IvSize, 0, 16-m_IvSize);
+    if (m_HasSubSamples) {
+        AP4_UI16 entry_count = AP4_BytesToInt16BE(m_Cursor);
+        m_Cursor += 2+entry_count*6;
+    }
+    m_SampleIndex++;
+    
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_PiffSampleInfoWalker::Next
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_PiffSampleInfoWalker::Next(unsigned char*               iv,
+                               AP4_PiffSubSampleInfoWalker& walker)
+{
+    if (m_Data == NULL || m_IvSize == 0) return AP4_ERROR_INVALID_STATE;
+    if (m_SampleIndex >= m_EntryCount || m_Cursor >= m_Data+m_DataSize) {
+        return AP4_ERROR_OUT_OF_RANGE;
+    }
+    AP4_CopyMemory(iv, m_Cursor, m_IvSize);
+    m_Cursor += m_IvSize;
+    if (m_IvSize != 16) AP4_SetMemory(iv+m_IvSize, 0, 16-m_IvSize);
+    if (m_HasSubSamples) {
+        AP4_UI16 entry_count = AP4_BytesToInt16BE(m_Cursor);
+        walker.Init(entry_count, m_Cursor+2);
+        m_Cursor += 2+entry_count*6;
+    }
+    m_SampleIndex++;
+    
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_PiffSampleInfoWalker::SetSampleIndex
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_PiffSampleInfoWalker::SetSampleIndex(AP4_Ordinal indx)
+{
+    if (m_Data == NULL || m_IvSize == 0) return AP4_ERROR_INVALID_STATE;
+    if (indx >= m_EntryCount) return AP4_ERROR_OUT_OF_RANGE;
+    if (m_HasSubSamples) {
+        m_Cursor = m_Data;
+        for (unsigned int i=0; i<indx; i++) {
+            m_Cursor += m_IvSize;
+            AP4_UI16 entry_count = AP4_BytesToInt16BE(m_Cursor);
+            m_Cursor += 2+entry_count*6;
+        }
+    } else {
+        m_Cursor = m_Data+m_IvSize*indx;
+    }
+    
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_PiffSampleEncryptionAtom::GetSampleInfoWalker
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_PiffSampleEncryptionAtom::GetSampleInfoWalker(AP4_Size                  default_iv_size,
+                                                  AP4_PiffSampleInfoWalker& walker)
+{
+    AP4_Size iv_size = default_iv_size;
+    if (m_Flags & AP4_PIFF_SAMPLE_ENCRYPTION_FLAG_OVERRIDE_TRACK_ENCRYPTION_DEFAULTS) {
+        iv_size = m_IvSize;
+    } 
+    bool has_subsamples = false;
+    if (m_Flags & AP4_PIFF_SAMPLE_ENCRYPTION_FLAG_USE_SUB_SAMPLE_ENCRYPTION) {
+        has_subsamples = true;
+    }
+    walker.Init(m_SampleInfoCount, m_SampleInfos.GetData(), m_SampleInfos.GetDataSize(), iv_size, has_subsamples);
     
     return AP4_SUCCESS;
 }
@@ -1135,17 +1607,8 @@ AP4_PiffSampleEncryptionAtom::InspectFields(AP4_AtomInspector& inspector)
         inspector.AddField("KID",         m_Kid, 16);
     }
     
-    if (m_IvSize > 0 && m_IvSize <= 16 && inspector.GetVerbosity() >= 1) {
-        unsigned int sample_count = m_Ivs.GetDataSize()/m_IvSize;
-        for (unsigned int i=0; i<sample_count; i++) {
-            char header[32];
-            char hex[33];
-            hex[32] = '\0';
-            AP4_FormatString(header, sizeof(header), "IV %4d", i);  
-            AP4_FormatHex(m_Ivs.GetData()+i*m_IvSize, m_IvSize, hex);
-            inspector.AddField(header, hex);
-        }
-    }
+    // NOTE: we can't print the sample infos here because we don't know the IV size
+    // (it can only be known in the context of a track)
     
     return AP4_SUCCESS;
 }
@@ -1169,10 +1632,10 @@ AP4_PiffSampleEncryptionAtom::WriteFields(AP4_ByteStream& stream)
     }
     
     // IVs
-    result = stream.WriteUI32(m_IvCount);
+    result = stream.WriteUI32(m_SampleInfoCount);
     if (AP4_FAILED(result)) return result;
-    if (m_Ivs.GetDataSize()) {
-        stream.Write(m_Ivs.GetData(), m_Ivs.GetDataSize());
+    if (m_SampleInfos.GetDataSize()) {
+        stream.Write(m_SampleInfos.GetData(), m_SampleInfos.GetDataSize());
         if (AP4_FAILED(result)) return result;
     }
     

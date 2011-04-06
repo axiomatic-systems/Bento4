@@ -112,15 +112,15 @@ public:
     };
     
     // constructor
-    AP4_Mpeg2TsWriter();
+    AP4_Mpeg2TsWriter(unsigned int pmt_pid = AP4_MPEG2_TS_DEFAULT_PID_PMT);
     ~AP4_Mpeg2TsWriter();
     
     Stream* GetPAT() { return m_PAT; }
     Stream* GetPMT() { return m_PMT; }
     AP4_Result WritePAT(AP4_ByteStream& output);
     AP4_Result WritePMT(AP4_ByteStream& output);
-    AP4_Result SetAudioStream(AP4_UI32 timescale, SampleStream*& stream);
-    AP4_Result SetVideoStream(AP4_UI32 timescale, SampleStream*& stream);
+    AP4_Result SetAudioStream(AP4_UI32 timescale, SampleStream*& stream, unsigned int pid = AP4_MPEG2_TS_DEFAULT_PID_AUDIO);
+    AP4_Result SetVideoStream(AP4_UI32 timescale, SampleStream*& stream, unsigned int pid = AP4_MPEG2_TS_DEFAULT_PID_VIDEO);
     
 private:
     Stream*       m_PAT;

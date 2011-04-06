@@ -47,8 +47,14 @@ typedef struct AP4_VideoSampleDescription AP4_VideoSampleDescription;
 typedef struct AP4_AvcSampleDescription AP4_AvcSampleDescription;
 typedef struct AP4_MpegSampleDescription AP4_MpegSampleDescription;
 typedef struct AP4_MpegAudioSampleDescription AP4_MpegAudioSampleDescription;
+typedef struct AP4_ProtectedSampleDescription AP4_ProtectedSampleDescription;
 typedef struct AP4_SyntheticSampleTable AP4_SyntheticSampleTable;
 typedef struct AP4_AtomInspector AP4_AtomInspector;
+
+typedef enum {
+    AP4_FALSE = 0,
+    AP4_TRUE = 1
+} AP4_Boolean;
 
 /*----------------------------------------------------------------------
 |   Delegate types: allow to provide an implementation
@@ -525,6 +531,11 @@ AP4_Track_GetSampleIndexForTimeStampMs(AP4_Track*   self,
                                        AP4_UI32     ts,
                                        AP4_Ordinal* index);
                                        
+AP4_Ordinal
+AP4_Track_GetNearestSyncSampleIndex(AP4_Track*  self,
+                                    AP4_Ordinal index,
+                                    AP4_Boolean before);
+
 AP4_SampleDescription*
 AP4_Track_GetSampleDescription(AP4_Track* self, AP4_Ordinal index);
 
@@ -590,6 +601,9 @@ AP4_SampleDescription_AsMpeg(AP4_SampleDescription* self);
 
 AP4_MpegAudioSampleDescription*
 AP4_SampleDescription_AsMpegAudio(AP4_SampleDescription* self);
+
+AP4_ProtectedSampleDescription*
+AP4_SampleDescription_AsProtected(AP4_SampleDescription* self);
 
 AP4_UI32
 AP4_AudioSampleDescription_GetSampleRate(AP4_AudioSampleDescription* self);
@@ -670,6 +684,21 @@ AP4_MpegAudioSampleDescription_GetMpeg4AudioObjectType(AP4_MpegAudioSampleDescri
 
 const char*
 AP4_MpegAudioSampleDescription_GetMpegAudioObjectTypeString(AP4_UI08 type); /* class method */
+
+AP4_SampleDescription*
+AP4_ProtectedSampleDescription_GetOriginalSampleDescription(AP4_ProtectedSampleDescription* self);
+
+AP4_UI32
+AP4_ProtectedSampleDescription_GetOriginalFormat(AP4_ProtectedSampleDescription* self);
+
+AP4_UI32
+AP4_ProtectedSampleDescription_GetSchemeType(AP4_ProtectedSampleDescription* self);
+
+AP4_UI32
+AP4_ProtectedSampleDescription_GetSchemeVersion(AP4_ProtectedSampleDescription* self);
+
+const char*
+AP4_ProtectedSampleDescription_GetSchemeUri(AP4_ProtectedSampleDescription* self);
 
 void AP4_SampleDescription_Destroy(AP4_SampleDescription* self);
 
@@ -770,6 +799,12 @@ AP4_Sample_GetCts(AP4_Sample* self);
 
 void
 AP4_Sample_SetCts(AP4_Sample* self, AP4_UI64 cts);
+
+AP4_UI32
+AP4_Sample_GetDuration(AP4_Sample* self);
+
+void
+AP4_Sample_SetDuration(AP4_Sample* self, AP4_UI32 duration);
 
 int
 AP4_Sample_IsSync(AP4_Sample* self);

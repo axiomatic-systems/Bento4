@@ -52,6 +52,10 @@ const int AP4_ATOM_INSPECTOR_HINT_NONE    = AP4_AtomInspector::HINT_NONE;
 const int AP4_ATOM_INSPECTOR_HINT_HEX     = AP4_AtomInspector::HINT_HEX;
 const int AP4_ATOM_INSPECTOR_HINT_BOOLEAN = AP4_AtomInspector::HINT_BOOLEAN;
 
+const int AP4_SAMPLE_DESCRIPTION_TYPE_UNKNOWN   = AP4_SampleDescription::TYPE_UNKNOWN;
+const int AP4_SAMPLE_DESCRIPTION_TYPE_MPEG      = AP4_SampleDescription::TYPE_MPEG;
+const int AP4_SAMPLE_DESCRIPTION_TYPE_PROTECTED = AP4_SampleDescription::TYPE_PROTECTED;
+const int AP4_SAMPLE_DESCRIPTION_TYPE_AVC       = AP4_SampleDescription::TYPE_AVC;
 
 /*----------------------------------------------------------------------
 |   AP4_DelegatorByteStream
@@ -643,7 +647,13 @@ AP4_Track_GetSampleIndexForTimeStampMs(AP4_Track*   self,
 {
     return self->GetSampleIndexForTimeStampMs(ts, *index);
 }
-                                       
+                
+AP4_Ordinal
+AP4_Track_GetNearestSyncSampleIndex(AP4_Track* self, AP4_Ordinal index, AP4_Boolean before)
+{
+    return self->GetNearestSyncSampleIndex(index, before==AP4_TRUE);
+}
+
 AP4_SampleDescription*
 AP4_Track_GetSampleDescription(AP4_Track* self, AP4_Ordinal index)
 {
@@ -936,6 +946,36 @@ AP4_MpegAudioSampleDescription_GetMpegAudioObjectTypeString(AP4_UI08 type)
     return AP4_MpegAudioSampleDescription::GetMpeg4AudioObjectTypeString(type);
 }
 
+AP4_SampleDescription*
+AP4_ProtectedSampleDescription_GetOriginalSampleDescription(AP4_ProtectedSampleDescription* self)
+{
+    return self->GetOriginalSampleDescription();
+}
+
+AP4_UI32
+AP4_ProtectedSampleDescription_GetOriginalFormat(AP4_ProtectedSampleDescription* self)
+{
+    return self->GetOriginalFormat();
+}
+
+AP4_UI32
+AP4_ProtectedSampleDescription_GetSchemeType(AP4_ProtectedSampleDescription* self)
+{
+    return self->GetSchemeType();
+}
+
+AP4_UI32
+AP4_ProtectedSampleDescription_GetSchemeVersion(AP4_ProtectedSampleDescription* self)
+{
+    return self->GetSchemeVersion();
+}
+
+const char*
+AP4_ProtectedSampleDescription_GetSchemeUri(AP4_ProtectedSampleDescription* self)
+{
+    return self->GetSchemeUri().GetChars();
+}
+
 void
 AP4_SampleDescription_Destroy(AP4_SampleDescription* self)
 {
@@ -1131,6 +1171,18 @@ void
 AP4_Sample_SetCts(AP4_Sample* self, AP4_UI64 cts)
 {
     self->SetCts(cts);
+}
+
+AP4_UI32
+AP4_Sample_GetDuration(AP4_Sample* self)
+{
+    return self->GetDuration();
+}
+
+void
+AP4_Sample_SetDuration(AP4_Sample* self, AP4_UI32 duration)
+{
+    self->SetDuration(duration);
 }
 
 int

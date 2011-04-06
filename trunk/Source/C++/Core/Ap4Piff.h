@@ -53,7 +53,8 @@ class AP4_PiffSampleEncryptionAtom;
 |   constants
 +---------------------------------------------------------------------*/
 const AP4_UI32 AP4_PROTECTION_SCHEME_TYPE_PIFF = AP4_ATOM_TYPE('p','i','f','f');
-const AP4_UI32 AP4_PROTECTION_SCHEME_VERSION_PIFF_10 =  0x00010000;
+const AP4_UI32 AP4_PROTECTION_SCHEME_VERSION_PIFF_10 = 0x00010000;
+const AP4_UI32 AP4_PROTECTION_SCHEME_VERSION_PIFF_11 = 0x00010001;
 const AP4_UI32 AP4_PIFF_BRAND = AP4_ATOM_TYPE('p','i','f','f');
 const AP4_UI32 AP4_PIFF_ALGORITHM_ID_NONE = 0; 
 const AP4_UI32 AP4_PIFF_ALGORITHM_ID_CTR  = 1; 
@@ -63,12 +64,161 @@ extern AP4_UI08 const AP4_UUID_PIFF_TRACK_ENCRYPTION_ATOM[16];
 extern AP4_UI08 const AP4_UUID_PIFF_SAMPLE_ENCRYPTION_ATOM[16];
 
 const unsigned int AP4_PIFF_SAMPLE_ENCRYPTION_FLAG_OVERRIDE_TRACK_ENCRYPTION_DEFAULTS = 1;
+const unsigned int AP4_PIFF_SAMPLE_ENCRYPTION_FLAG_USE_SUB_SAMPLE_ENCRYPTION          = 2;
 
 typedef enum {
     AP4_PIFF_CIPHER_MODE_CTR,
     AP4_PIFF_CIPHER_MODE_CBC
 } AP4_PiffCipherMode;
                   
+/*----------------------------------------------------------------------
+|   AP4_PiffTrackEncryptionAtom
++---------------------------------------------------------------------*/
+class AP4_PiffTrackEncryptionAtom : public AP4_UuidAtom
+{
+public:
+    AP4_IMPLEMENT_DYNAMIC_CAST_D(AP4_PiffTrackEncryptionAtom, AP4_UuidAtom)
+
+    // class methods
+    static AP4_PiffTrackEncryptionAtom* Create(AP4_Size        size, 
+                                               AP4_ByteStream& stream);
+
+    // constructors
+    AP4_PiffTrackEncryptionAtom(AP4_UI32        default_algorithm_id,
+                                AP4_UI08        default_iv_size,
+                                const AP4_UI08* default_kid);
+
+    // methods
+    virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
+    virtual AP4_Result WriteFields(AP4_ByteStream& stream);
+
+    // accessors
+    AP4_UI32        GetDefaultAlgorithmId() { return m_DefaultAlgorithmId; }
+    AP4_UI08        GetDefaultIvSize()      { return m_DefaultIvSize;      }
+    const AP4_UI08* GetDefaultKid()         { return m_DefaultKid;         }
+
+private:
+    // methods
+    AP4_PiffTrackEncryptionAtom(AP4_UI32        size, 
+                                AP4_UI32        version,
+                                AP4_UI32        flags,
+                                AP4_ByteStream& stream);
+
+    // members
+    AP4_UI32 m_DefaultAlgorithmId;
+    AP4_UI08 m_DefaultIvSize;
+    AP4_UI08 m_DefaultKid[16];
+};
+
+/*----------------------------------------------------------------------
+|   AP4_PiffSubSampleInfoWalker
++---------------------------------------------------------------------*/
+class AP4_PiffSubSampleInfoWalker {
+public:
+    AP4_PiffSubSampleInfoWalker() : m_EntryCount(0), m_SubSampleIndex(0), m_Cursor(NULL) {};
+    void Init(AP4_Cardinal entry_count, const unsigned char* data) {
+        m_EntryCount     = entry_count;
+        m_Cursor         = data;
+    }
+    AP4_Result Next(unsigned int& cleartext_bytes,
+                    unsigned int& encrypted_bytes);
+    
+protected:
+    AP4_Cardinal         m_EntryCount;
+    AP4_Ordinal          m_SubSampleIndex;
+    const unsigned char* m_Cursor;
+};
+
+/*----------------------------------------------------------------------
+|   AP4_PiffSampleInfoWalker
++---------------------------------------------------------------------*/
+class AP4_PiffSampleInfoWalker {
+public:
+    AP4_PiffSampleInfoWalker() : m_SampleIndex(0), 
+                                 m_EntryCount(0), 
+                                 m_Cursor(NULL),
+                                 m_Data(NULL), 
+                                 m_DataSize(0), 
+                                 m_IvSize(0),
+                                 m_HasSubSamples(false) {}
+    void Init(AP4_Cardinal         entry_count,
+              const unsigned char* data,
+              AP4_Size             data_size,
+              AP4_Size             iv_size,
+              bool                 has_subsamples) {
+        m_SampleIndex   = 0;
+        m_EntryCount    = entry_count;
+        m_Cursor        = data;
+        m_Data          = data;
+        m_DataSize      = data_size;
+        m_IvSize        = iv_size;
+        m_HasSubSamples = has_subsamples;
+    }
+    AP4_Result Next(unsigned char* iv); // always pass a 16 byte buffer
+    AP4_Result Next(unsigned char*               iv,  // always pass a 16 byte buffer
+                    AP4_PiffSubSampleInfoWalker& walker);            
+    AP4_Result SetSampleIndex(AP4_Ordinal indx);
+    
+protected:
+    AP4_Ordinal          m_SampleIndex;
+    AP4_Ordinal          m_EntryCount;
+    const unsigned char* m_Cursor;
+    const unsigned char* m_Data;
+    AP4_Size             m_DataSize;
+    AP4_Size             m_IvSize;
+    bool                 m_HasSubSamples;
+};
+    
+
+/*----------------------------------------------------------------------
+|   AP4_PiffSampleEncryptionAtom
++---------------------------------------------------------------------*/
+class AP4_PiffSampleEncryptionAtom : public AP4_UuidAtom
+{
+public:
+    AP4_IMPLEMENT_DYNAMIC_CAST_D(AP4_PiffSampleEncryptionAtom, AP4_UuidAtom)
+
+    // class methods
+    static AP4_PiffSampleEncryptionAtom* Create(AP4_Size        size, 
+                                                AP4_ByteStream& stream);
+
+    // constructors
+    AP4_PiffSampleEncryptionAtom(AP4_Cardinal sample_count);
+    AP4_PiffSampleEncryptionAtom(AP4_UI32        algorithm_id,
+                                 AP4_UI08        iv_size,
+                                 const AP4_UI08* kid,
+                                 AP4_Cardinal    sample_count);
+
+    // methods
+    virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
+    virtual AP4_Result WriteFields(AP4_ByteStream& stream);
+
+    // accessors
+    AP4_UI32        GetAlgorithmId()        { return m_AlgorithmId;     }
+    AP4_UI08        GetIvSize()             { return m_IvSize;          }
+    AP4_Result      SetIvSize(AP4_UI08 iv_size);
+    const AP4_UI08* GetKid()                { return m_Kid;             }
+    AP4_Cardinal    GetSampleInfoCount()    { return m_SampleInfoCount; }
+    AP4_Result      SetIv(AP4_Ordinal indx, const AP4_UI08* iv);
+
+    AP4_Result      GetSampleInfoWalker(AP4_Size                  default_iv_size,
+                                        AP4_PiffSampleInfoWalker& walker);
+    
+private:
+    // methods
+    AP4_PiffSampleEncryptionAtom(AP4_UI32        size, 
+                                 AP4_UI32        version,
+                                 AP4_UI32        flags,
+                                 AP4_ByteStream& stream);
+
+    // members
+    AP4_UI32       m_AlgorithmId;
+    AP4_UI08       m_IvSize;
+    AP4_UI08       m_Kid[16];
+    AP4_Cardinal   m_SampleInfoCount;
+    AP4_DataBuffer m_SampleInfos;
+};
+
 /*----------------------------------------------------------------------
 |   AP4_PiffSampleEncrypter
 +---------------------------------------------------------------------*/
@@ -85,6 +235,7 @@ public:
 
     void            SetIv(const AP4_UI08* iv) { AP4_CopyMemory(m_Iv, iv, 16); }
     const AP4_UI08* GetIv()                   { return m_Iv;                  }
+    virtual bool    UseSubSamples()           { return false;                 }
     
 protected:
     AP4_UI08 m_Iv[16];
@@ -110,20 +261,21 @@ protected:
 };
 
 /*----------------------------------------------------------------------
-|   AP4_PiffAvcCtrSampleEncrypter
+|   AP4_PiffSubSampleCtrSampleEncrypter
 +---------------------------------------------------------------------*/
-class AP4_PiffAvcCtrSampleEncrypter : public AP4_PiffCtrSampleEncrypter
+class AP4_PiffSubSampleCtrSampleEncrypter : public AP4_PiffCtrSampleEncrypter
 {
 public:
     // constructor and destructor
-    AP4_PiffAvcCtrSampleEncrypter(AP4_BlockCipher* block_cipher,
-                                  AP4_Size         nalu_length_size) :
+    AP4_PiffSubSampleCtrSampleEncrypter(AP4_BlockCipher* block_cipher,
+                                        AP4_Size         nalu_length_size) :
         AP4_PiffCtrSampleEncrypter(block_cipher),
         m_NaluLengthSize(nalu_length_size) {}
 
     // methods
     virtual AP4_Result EncryptSampleData(AP4_DataBuffer& data_in,
                                          AP4_DataBuffer& data_out);
+    virtual bool       UseSubSamples() { return true;}
     
 private:
     // members
@@ -150,20 +302,21 @@ protected:
 };
 
 /*----------------------------------------------------------------------
-|   AP4_PiffAvcCbcSampleEncrypter
+|   AP4_PiffSubSampleCbcSampleEncrypter
 +---------------------------------------------------------------------*/
-class AP4_PiffAvcCbcSampleEncrypter : public AP4_PiffCbcSampleEncrypter
+class AP4_PiffSubSampleCbcSampleEncrypter : public AP4_PiffCbcSampleEncrypter
 {
 public:
     // constructor and destructor
-    AP4_PiffAvcCbcSampleEncrypter(AP4_BlockCipher* block_cipher,
-                                  AP4_Size         nalu_length_size) :
+    AP4_PiffSubSampleCbcSampleEncrypter(AP4_BlockCipher* block_cipher,
+                                        AP4_Size         nalu_length_size) :
         AP4_PiffCbcSampleEncrypter(block_cipher),
         m_NaluLengthSize(nalu_length_size) {}
 
     // methods
     virtual AP4_Result EncryptSampleData(AP4_DataBuffer& data_in,
                                          AP4_DataBuffer& data_out);
+    virtual bool       UseSubSamples() { return true;}
 
 private:
     // members
@@ -212,6 +365,30 @@ protected:
 };
 
 /*----------------------------------------------------------------------
+|   AP4_PiffDecryptingProcessor
++---------------------------------------------------------------------*/
+class AP4_PiffDecryptingProcessor : public AP4_Processor
+{
+public:
+    // constructor
+    AP4_PiffDecryptingProcessor(const AP4_ProtectionKeyMap* key_map, 
+                                AP4_BlockCipherFactory*     block_cipher_factory = NULL);
+    ~AP4_PiffDecryptingProcessor();
+
+    // AP4_Processor methods
+    virtual AP4_Result Initialize(AP4_AtomParent&   top_level,
+                                  AP4_ByteStream&   stream,
+                                  AP4_Processor::ProgressListener* listener = NULL);
+    virtual AP4_Processor::TrackHandler*    CreateTrackHandler(AP4_TrakAtom* trak);
+    virtual AP4_Processor::FragmentHandler* CreateFragmentHandler(AP4_ContainerAtom* traf);
+    
+protected:    
+    // members
+    AP4_BlockCipherFactory*     m_BlockCipherFactory;
+    const AP4_ProtectionKeyMap* m_KeyMap;
+};
+
+/*----------------------------------------------------------------------
 |   AP4_PiffSampleDecrypter
 +---------------------------------------------------------------------*/
 class AP4_PiffSampleDecrypter : public AP4_SampleDecrypter
@@ -227,13 +404,16 @@ public:
 
     // methods
     virtual AP4_Result SetSampleIndex(AP4_Ordinal sample_index);
-
+    
+    // accessors
+    AP4_PiffSampleEncryptionAtom* GetSampleEncryptionAtom()          { return m_SampleEncryptionAtom; }
+    void SetSampleEncryptionAtom(AP4_PiffSampleEncryptionAtom* atom) { m_SampleEncryptionAtom = atom; }
+    
 protected:
     AP4_PiffSampleDecrypter(AP4_PiffSampleEncryptionAtom* sample_encryption_atom) :
-        m_SampleEncryptionAtom(sample_encryption_atom),
-        m_SampleIndex(0) {}
+        m_SampleEncryptionAtom(sample_encryption_atom) {}
     AP4_PiffSampleEncryptionAtom* m_SampleEncryptionAtom;
-    AP4_Ordinal                   m_SampleIndex;
+    AP4_PiffSampleInfoWalker      m_SampleInfoWalker;
 };
 
 /*----------------------------------------------------------------------
@@ -271,23 +451,23 @@ public:
                                          AP4_DataBuffer& data_out,
                                          const AP4_UI08* iv = NULL);
 
-private:
+protected:
     // members
     AP4_CtrStreamCipher* m_Cipher;
     AP4_Size             m_IvSize;
 };
 
 /*----------------------------------------------------------------------
-|   AP4_PiffAvcCtrSampleDecrypter
+|   AP4_PiffSubSampleCtrSampleDecrypter
 +---------------------------------------------------------------------*/
-class AP4_PiffAvcCtrSampleDecrypter : public AP4_PiffCtrSampleDecrypter
+class AP4_PiffSubSampleCtrSampleDecrypter : public AP4_PiffCtrSampleDecrypter
 {
 public:
     // constructor and destructor
-    AP4_PiffAvcCtrSampleDecrypter(AP4_BlockCipher*              block_cipher,
-                                  AP4_Size                      iv_size,
-                                  AP4_PiffSampleEncryptionAtom* sample_encryption_atom,
-                                  AP4_Size                      nalu_length_size) :
+    AP4_PiffSubSampleCtrSampleDecrypter(AP4_BlockCipher*              block_cipher,
+                                        AP4_Size                      iv_size,
+                                        AP4_PiffSampleEncryptionAtom* sample_encryption_atom,
+                                        AP4_Size                      nalu_length_size) :
         AP4_PiffCtrSampleDecrypter(block_cipher, iv_size, sample_encryption_atom),
         m_NaluLengthSize(nalu_length_size) {}
 
@@ -323,15 +503,15 @@ protected:
 };
 
 /*----------------------------------------------------------------------
-|   AP4_PiffAvcCbcSampleDecrypter
+|   AP4_PiffSubSampleCbcSampleDecrypter
 +---------------------------------------------------------------------*/
-class AP4_PiffAvcCbcSampleDecrypter : public AP4_PiffCbcSampleDecrypter
+class AP4_PiffSubSampleCbcSampleDecrypter : public AP4_PiffCbcSampleDecrypter
 {
 public:
     // constructor and destructor
-    AP4_PiffAvcCbcSampleDecrypter(AP4_BlockCipher*              block_cipher,
-                                  AP4_PiffSampleEncryptionAtom* sample_encryption_atom,
-                                  AP4_Size                      nalu_length_size) :
+    AP4_PiffSubSampleCbcSampleDecrypter(AP4_BlockCipher*              block_cipher,
+                                        AP4_PiffSampleEncryptionAtom* sample_encryption_atom,
+                                        AP4_Size                      nalu_length_size) :
         AP4_PiffCbcSampleDecrypter(block_cipher, sample_encryption_atom),
         m_NaluLengthSize(nalu_length_size) {}
 
@@ -343,92 +523,6 @@ public:
 private:
     // members
     AP4_Size m_NaluLengthSize;
-};
-
-/*----------------------------------------------------------------------
-|   AP4_PiffTrackEncryptionAtom
-+---------------------------------------------------------------------*/
-class AP4_PiffTrackEncryptionAtom : public AP4_UuidAtom
-{
-public:
-    AP4_IMPLEMENT_DYNAMIC_CAST_D(AP4_PiffTrackEncryptionAtom, AP4_UuidAtom)
-
-    // class methods
-    static AP4_PiffTrackEncryptionAtom* Create(AP4_Size        size, 
-                                               AP4_ByteStream& stream);
-
-    // constructors
-    AP4_PiffTrackEncryptionAtom(AP4_UI32        default_algorithm_id,
-                                AP4_UI08        default_iv_size,
-                                const AP4_UI08* default_kid);
-
-    // methods
-    virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
-    virtual AP4_Result WriteFields(AP4_ByteStream& stream);
-
-    // accessors
-    AP4_UI32        GetDefaultAlgorithmId() { return m_DefaultAlgorithmId; }
-    AP4_UI08        GetDefaultIvSize()      { return m_DefaultIvSize;      }
-    const AP4_UI08* GetDefaultKid()         { return m_DefaultKid;         }
-
-private:
-    // methods
-    AP4_PiffTrackEncryptionAtom(AP4_UI32        size, 
-                                AP4_UI32        version,
-                                AP4_UI32        flags,
-                                AP4_ByteStream& stream);
-
-    // members
-    AP4_UI32 m_DefaultAlgorithmId;
-    AP4_UI08 m_DefaultIvSize;
-    AP4_UI08 m_DefaultKid[16];
-};
-
-/*----------------------------------------------------------------------
-|   AP4_PiffSampleEncryptionAtom
-+---------------------------------------------------------------------*/
-class AP4_PiffSampleEncryptionAtom : public AP4_UuidAtom
-{
-public:
-    AP4_IMPLEMENT_DYNAMIC_CAST_D(AP4_PiffSampleEncryptionAtom, AP4_UuidAtom)
-
-    // class methods
-    static AP4_PiffSampleEncryptionAtom* Create(AP4_Size        size, 
-                                                AP4_ByteStream& stream);
-
-    // constructors
-    AP4_PiffSampleEncryptionAtom(AP4_Cardinal sample_count);
-    AP4_PiffSampleEncryptionAtom(AP4_UI32        algorithm_id,
-                                 AP4_UI08        iv_size,
-                                 const AP4_UI08* kid,
-                                 AP4_Cardinal    sample_count);
-
-    // methods
-    virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
-    virtual AP4_Result WriteFields(AP4_ByteStream& stream);
-
-    // accessors
-    AP4_UI32        GetAlgorithmId()        { return m_AlgorithmId; }
-    AP4_UI08        GetIvSize()             { return m_IvSize;      }
-    AP4_Result      SetIvSize(AP4_UI08 iv_size);
-    const AP4_UI08* GetKid()                { return m_Kid;         }
-    AP4_Cardinal    GetIvCount()            { return m_IvCount;     }
-    const AP4_UI08* GetIv(AP4_Ordinal indx);
-    AP4_Result      SetIv(AP4_Ordinal indx, const AP4_UI08* iv);
-
-private:
-    // methods
-    AP4_PiffSampleEncryptionAtom(AP4_UI32        size, 
-                                 AP4_UI32        version,
-                                 AP4_UI32        flags,
-                                 AP4_ByteStream& stream);
-
-    // members
-    AP4_UI32       m_AlgorithmId;
-    AP4_UI08       m_IvSize;
-    AP4_UI08       m_Kid[16];
-    AP4_Cardinal   m_IvCount;
-    AP4_DataBuffer m_Ivs;
 };
 
 #endif // _AP4_PIFF_H_

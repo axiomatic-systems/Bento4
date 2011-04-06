@@ -163,6 +163,8 @@ main(int argc, char** argv)
             processor = new AP4_OmaDcfDecryptingProcessor(&key_map);
         } else if (ftyp->GetMajorBrand() == AP4_MARLIN_BRAND_MGSV || ftyp->HasCompatibleBrand(AP4_MARLIN_BRAND_MGSV)) {
             processor = new AP4_MarlinIpmpDecryptingProcessor(&key_map);
+        } else if (ftyp->GetMajorBrand() == AP4_PIFF_BRAND || ftyp->HasCompatibleBrand(AP4_PIFF_BRAND)) {
+            processor = new AP4_PiffDecryptingProcessor(&key_map);
         }
     }
     if (processor == NULL) {
