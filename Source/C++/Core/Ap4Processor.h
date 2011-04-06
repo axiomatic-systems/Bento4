@@ -82,6 +82,8 @@ public:
      */
     class TrackHandler {
     public:
+        AP4_IMPLEMENT_DYNAMIC_CAST(TrackHandler)
+
         /**
          * Default destructor.
          */

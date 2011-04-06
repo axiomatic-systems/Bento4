@@ -7,101 +7,82 @@ ANDROID_NDK_ROOT=os.getenv('ANDROID_NDK_ROOT')
 if not ANDROID_NDK_ROOT:
     raise Exception('ANDROID_NDK_ROOT environment variable not set')
 
-ANRDOID_NDK_OUT=ANDROID_NDK_ROOT+'/out'
-ANDROID_TOOLCHAIN='arm-eabi-4.2.1'
-if env.has_key('target_variant') and env['target_variant']:
-	ANDROID_PLATFORM=env['target_variant']
+if ARGUMENTS.get('android_toolchain'):
+    ANDROID_TOOLCHAIN=ARGUMENTS.get('android_toolchain')
 else:
-	ANDROID_PLATFORM='android-3'
-print 'Building for Android platform', ANDROID_PLATFORM
+    ANDROID_TOOLCHAIN='arm-eabi-4.4.0'
 
-### figure out the host config
-try:
-    host_config = open(ANRDOID_NDK_OUT+'/host/config.mk')
-    HOST_CONFIG={}
-    for line in host_config.readlines():
-        pair = re.split('\s+:=\s+', line);
-        if len(pair) == 2:
-            HOST_CONFIG[pair[0]] = pair[1].rstrip()
-            
-    host_config.close()
-except:
-    platform_map = {'linux2':'linux-x86', 'darwin':'darwin-x86', 'cygwin':'windows'}
-    if sys.platform not in platform_map:
-        raise Exception('Unrecognized host platform')
-    HOST_CONFIG={'HOST_TAG':platform_map[sys.platform]}
-
-### check the android toolchain
-ANDROID_TOOLCHAIN_ROOT = ANDROID_NDK_ROOT+'/build/prebuilt/'+HOST_CONFIG['HOST_TAG']+'/'+ANDROID_TOOLCHAIN
-ANDROID_TOOLCHAIN_BIN  = ANDROID_TOOLCHAIN_ROOT+'/bin'
-if not os.path.exists(ANDROID_TOOLCHAIN_BIN):
-    raise Exception('ANDROID toolchain not found: '+ANDROID_TOOLCHAIN_BIN)
-
-ANDROID_PLATFORM_ROOT   = ANDROID_NDK_ROOT+'/build/platforms/'+ANDROID_PLATFORM
-ANDROID_PLATFORM_ARM    = ANDROID_PLATFORM_ROOT+'/arch-arm'
-ANDROID_PLATFORM_COMMON = ANDROID_PLATFORM_ROOT+'/common'
-
-android_includes = ['usr/include']
-
-android_extras = ['-march=armv5te',
-                  '-mtune=xscale',
-                  '-msoft-float',
-                  '-fpic',
-                  '-mthumb-interwork',
-                  '-ffunction-sections',
-                  '-funwind-tables',
-                  '-fstack-protector',
-                  '-fno-short-enums']
-
-android_extras_cpp = ['-fno-exceptions',
-                      '-fno-rtti']
-
-android_defines = ['-DANDROID',
-                   '-DANDROID_NDK',
-                   '-D__ARM_ARCH_5__',
-                   '-D__ARM_ARCH_5T__',
-                   '-D__ARM_ARCH_5E__',
-                   '-D__ARM_ARCH_5TE__']
-
-
-if env['build_config'] == 'Release':
-    android_optimize = ['-finline-functions',
-                        '-finline-limit=64',
-                        '-fno-inline-functions-called-once',
-                        '-fgcse-after-reload',
-                        '-frerun-cse-after-loop',
-                        '-frename-registers',
-                        '-fomit-frame-pointer',
-                        '-fstrict-aliasing',
-                        '-funswitch-loops']
+if ARGUMENTS.get('android_cross_prefix'):
+    ANDROID_CROSS_PREFIX=ARGUMENTS.get('android_cross_prefix')
 else:
-    android_optimize = []
+    ANDROID_CROSS_PREFIX='arm-eabi'
 
-android_link = ['-Bdynamic',
-                '-Wl,--no-undefined',
-                '-Wl,-rpath=/system/lib',
-                '-Wl,--dynamic-linker=/system/bin/linker',
-                '-Wl,-rpath-link=' + ANDROID_PLATFORM_ARM+'/usr/lib',
-                '-L' + ANDROID_PLATFORM_ARM+'/usr/lib',
-                '-nostdlib',
-                ANDROID_TOOLCHAIN_ROOT+'/lib/gcc/arm-eabi/4.2.1/interwork/libgcc.a',
-                ANDROID_PLATFORM_ARM+'/usr/lib/libc.so',
-                ANDROID_PLATFORM_ARM+'/usr/lib/libstdc++.so',
-                ANDROID_PLATFORM_ARM+'/usr/lib/libm.so',
-                '-ldl']
+if ARGUMENTS.get('android_platform'):
+    ANDROID_PLATFORM=ARGUMENTS.get('android_platform')
+else:
+    ANDROID_PLATFORM='android-3'
 
-env['AP4_EXTRA_EXECUTABLE_OBJECTS'] = [ANDROID_PLATFORM_ARM+'/usr/lib/crtbegin_static.o',
-                                       ANDROID_PLATFORM_ARM+'/usr/lib/crtend_android.o']
+if ARGUMENTS.get('android_arch'):
+    ANDROID_ARCH=ARGUMENTS.get('android_arch')
+else:
+    ANDROID_ARCH='arm'
+
+if env.has_key('android_host_system') and env['android_host_system']:
+	ANDROID_HOST_SYSTEM = env['android_host_system']
+else:
+	PLATFORM_TO_TARGET_MAP = { 
+    	'linux-i386' : 'linux-x86',
+    	'linux2'     : 'linux-x86',
+    	'win32'      : 'windows',
+    	'cygwin'     : 'windows',
+    	'darwin'     : 'darwin-x86'
+	}
+	if sys.platform in PLATFORM_TO_TARGET_MAP:
+		ANDROID_HOST_SYSTEM = PLATFORM_TO_TARGET_MAP[sys.platform]
+	else:
+		raise Exception('Android Host Platform cannot be determined')
+		
+print 'Building for Android: '
+print 'ANDROID_HOST_SYSTEM =', ANDROID_HOST_SYSTEM
+print 'ANDROID_TOOLCHAIN   =', ANDROID_TOOLCHAIN
+print 'ANDROID_PLATFORM    =', ANDROID_PLATFORM
+print 'ANDROID_ARCH        =', ANDROID_ARCH
+
+ANDROID_TOOLCHAIN_BIN = ANDROID_NDK_ROOT+'/toolchains/'+ANDROID_TOOLCHAIN+'/prebuilt/'+ANDROID_HOST_SYSTEM+'/bin'
+ANDROID_SYSROOT = ANDROID_NDK_ROOT+'/platforms/'+ANDROID_PLATFORM+'/arch-'+ANDROID_ARCH
 
 ### add the tools to the path
 env.PrependENVPath('PATH', ANDROID_TOOLCHAIN_BIN)
 
-### Load the tools
-LoadTool('gcc-generic', env, gcc_cross_prefix='arm-eabi', gcc_strict=False)
+### special C Runtime startup for executables
+env['AP4_EXTRA_EXECUTABLE_OBJECTS'] = [ANDROID_SYSROOT+'/usr/lib/crtbegin_static.o',
+                                       ANDROID_SYSROOT+'/usr/lib/crtend_android.o']
 
-LoadTool('gcc-generic', env, gcc_cross_prefix='arm-eabi', gcc_strict=False)
-env.AppendUnique(CPPDEFINES = {'AP4_PLATFORM_BYTE_ORDER':'AP4_PLATFORM_BYTE_ORDER_LITTLE_ENDIAN'})
-env.AppendUnique(CCFLAGS = ['-I'+ANDROID_PLATFORM_ARM+'/'+x for x in android_includes] + android_extras + android_defines + android_optimize )
-env.AppendUnique(CPPFLAGS = android_extras_cpp)
-env.AppendUnique(LINKFLAGS = android_link)
+
+### Load the tools
+LoadTool('gcc-generic', env, gcc_cross_prefix=ANDROID_CROSS_PREFIX, gcc_strict=False)
+env.AppendUnique(CCFLAGS = ['-I'+ANDROID_NDK_ROOT+'/sources/cxx-stl/system/include' , 
+                            '--sysroot', ANDROID_SYSROOT,
+                            '-msoft-float',
+                            '-fpic',
+                            '-mthumb-interwork',
+                            '-ffunction-sections',
+                            '-funwind-tables',
+                            '-fstack-protector',
+                            '-fno-short-enums'])
+env.AppendUnique(CXXFLAGS = ['-fno-exceptions', '-fno-rtti'])
+env.AppendUnique(CPPDEFINES = ['ANDROID', 'NPT_CONFIG_HAVE_SYSTEM_LOG_CONFIG'])
+env.AppendUnique(LINKFLAGS = ['-Bdynamic',
+                			  '-Wl,--no-undefined', 
+                			  '-Wl,-rpath=/system/lib',
+                              '-Wl,--dynamic-linker=/system/bin/linker',
+                              '-Wl,-rpath-link=' + ANDROID_SYSROOT + '/usr/lib',
+                              '-nostdlib', 
+                			  '-L'+ANDROID_SYSROOT+'/usr/lib', 
+                			  '-lc', 
+                			  '-lstdc++', 
+                			  '-lm', 
+                			  '-llog', 
+                			  '-ldl'])
+
 

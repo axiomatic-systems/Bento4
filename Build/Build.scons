@@ -82,7 +82,7 @@ class LibraryModule(Module):
         cpp_path = GetIncludeDirs(Split(build_include_dirs) + Split(build_source_dirs) + Split(included_modules))
 
         # calculate our preprocessor defines for this module
-        cpp_defines={}
+        cpp_defines=[]
         
         # the product is a library
         self.env.AppendUnique(CPPDEFINES=cpp_defines)

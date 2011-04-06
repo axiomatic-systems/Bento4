@@ -54,8 +54,8 @@ public:
 
     // methods
     virtual AP4_Result   GenerateStblAtom(AP4_ContainerAtom*& stbl);
-    virtual AP4_Result   GetSample(AP4_Ordinal sample_index, AP4_Sample& sample) = 0;
     virtual AP4_Cardinal GetSampleCount() = 0;
+    virtual AP4_Result   GetSample(AP4_Ordinal sample_index, AP4_Sample& sample) = 0;
     virtual AP4_Result   GetSampleChunkPosition(AP4_Ordinal  sample_index, 
                                                 AP4_Ordinal& chunk_index,
                                                 AP4_Ordinal& position_in_chunk) = 0;

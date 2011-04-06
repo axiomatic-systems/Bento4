@@ -82,10 +82,8 @@ AP4_LinearReader::EnableTrack(AP4_UI32 track_id)
     AP4_Track* track = m_Movie.GetTrack(track_id);
     if (track == NULL) return AP4_ERROR_NO_SUCH_ITEM;
     
-    // create a new entry for the track
-    Tracker* tracker = new Tracker(track);
-    tracker->m_SampleTable = track->GetSampleTable();
-    return m_Trackers.Append(tracker);
+    // process this track
+    return ProcessTrack(track);
 }
 
 /*----------------------------------------------------------------------
@@ -110,12 +108,24 @@ AP4_LinearReader::SetSampleIndex(AP4_UI32 track_id, AP4_UI32 sample_index)
          item;
          item = item->GetNext()) {
         SampleBuffer* buffer = item->GetData();
-        m_BufferFullness -= buffer->m_Sample->GetSize();
+        m_BufferFullness -= buffer->m_Data.GetDataSize();
         delete buffer;
     }
     tracker->m_Samples.Clear();
     
     return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_LinearReader::ProcessTrack
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_LinearReader::ProcessTrack(AP4_Track* track) 
+{
+    // create a new entry for the track
+    Tracker* tracker = new Tracker(track);
+    tracker->m_SampleTable = track->GetSampleTable();
+    return m_Trackers.Append(tracker);
 }
 
 /*----------------------------------------------------------------------
@@ -141,7 +151,7 @@ AP4_LinearReader::ProcessMoof(AP4_ContainerAtom* moof,
         tracker->m_SampleTable = NULL;
         tracker->m_NextSampleIndex = 0;
         for (unsigned int i=0; i<ids.ItemCount(); i++) {
-            if (ids[i] == tracker->m_TrackId) {
+            if (ids[i] == tracker->m_Track->GetId()) {
                 AP4_FragmentSampleTable* sample_table = NULL;
                 result = m_Fragment->CreateSampleTable(&m_Movie, 
                                                        ids[i], 
@@ -280,12 +290,20 @@ AP4_LinearReader::Advance()
         // read the sample into a buffer
         assert(next_tracker->m_NextSample);
         SampleBuffer* buffer = new SampleBuffer(next_tracker->m_NextSample);
-        AP4_Result result = buffer->m_Sample->ReadData(buffer->m_Data);
+        AP4_Result result;
+        if (next_tracker->m_Reader) {
+            result = next_tracker->m_Reader->ReadSampleData(*buffer->m_Sample, buffer->m_Data);
+        } else {
+            result = buffer->m_Sample->ReadData(buffer->m_Data);
+        }
         if (AP4_FAILED(result)) return result;
+        
+        // detach the sample from its source now that we've read its data
+        buffer->m_Sample->Detach();
         
         // add the buffer to the queue
         next_tracker->m_Samples.Add(buffer);
-        m_BufferFullness += next_tracker->m_NextSample->GetSize();
+        m_BufferFullness += buffer->m_Data.GetDataSize();
         if (m_BufferFullness > m_BufferFullnessPeak) {
             m_BufferFullnessPeak = m_BufferFullness;
         }
@@ -310,8 +328,8 @@ AP4_LinearReader::PopSample(Tracker*        tracker,
         assert(head->m_Sample);
         sample = *head->m_Sample;
         sample_data.SetData(head->m_Data.GetData(), head->m_Data.GetDataSize());
-        assert(m_BufferFullness >= sample.GetSize());
-        m_BufferFullness -= sample.GetSize();
+        assert(m_BufferFullness >= head->m_Data.GetDataSize());
+        m_BufferFullness -= head->m_Data.GetDataSize();
         delete head;
         return true;
     }
@@ -381,7 +399,7 @@ AP4_LinearReader::ReadNextSample(AP4_Sample&     sample,
         // return the sample if we have found a tracker
         if (next_tracker) {
             PopSample(next_tracker, sample, sample_data);
-            track_id = next_tracker->m_TrackId;
+            track_id = next_tracker->m_Track->GetId();
             return AP4_SUCCESS;
         }
         
@@ -400,7 +418,7 @@ AP4_LinearReader::Tracker*
 AP4_LinearReader::FindTracker(AP4_UI32 track_id)
 {
     for (unsigned int i=0; i<m_Trackers.ItemCount(); i++) {
-        if (m_Trackers[i]->m_TrackId == track_id) return m_Trackers[i];
+        if (m_Trackers[i]->m_Track->GetId() == track_id) return m_Trackers[i];
     }
     
     // not found
@@ -413,4 +431,18 @@ AP4_LinearReader::FindTracker(AP4_UI32 track_id)
 AP4_LinearReader::Tracker::~Tracker()
 {
     if (m_SampleTableIsOwned) delete m_SampleTable;
+    delete m_Reader;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_DecryptingSampleReader::ReadSampleData
++---------------------------------------------------------------------*/
+AP4_Result 
+AP4_DecryptingSampleReader::ReadSampleData(AP4_Sample&     sample, 
+                                           AP4_DataBuffer& sample_data)
+{
+    AP4_Result result = sample.ReadData(m_DataBuffer);
+    if (AP4_FAILED(result)) return result;
+
+    return m_Decrypter->DecryptSampleData(m_DataBuffer, sample_data);
 }

@@ -33,7 +33,7 @@ COMPILE_CPP  = $(GCC_CROSS_PREFIX)g++
 LINK_CPP = $(GCC_CROSS_PREFIX)g++ -L.
 
 # optimization flags
-OPTIMIZE_CPP = -Os -ffunction-sections -fdata-sections
+OPTIMIZE_CPP = -O3 -ffunction-sections -fdata-sections
 
 # debug flags
 DEBUG_CPP = -g

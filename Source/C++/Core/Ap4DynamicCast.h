@@ -72,6 +72,7 @@ virtual void* DynamicCast(const void* class_anchor) {       \
     }                                                       \
 }
 #define AP4_DEFINE_DYNAMIC_CAST_ANCHOR(_class) int _class::_class_##_class = 0;
+#define AP4_DEFINE_DYNAMIC_CAST_ANCHOR_S(_class,_subclass) int _class::_class_##_subclass = 0;
 
 #else
 
@@ -80,6 +81,7 @@ virtual void* DynamicCast(const void* class_anchor) {       \
 #define AP4_IMPLEMENT_DYNAMIC_CAST_D(_class,_superclass)
 #define AP4_IMPLEMENT_DYNAMIC_CAST_D2(_class,_superclass,_mixin)
 #define AP4_DEFINE_DYNAMIC_CAST_ANCHOR(_class)
+#define AP4_DEFINE_DYNAMIC_CAST_ANCHOR_S(_class, _subclass)
 
 #endif
 

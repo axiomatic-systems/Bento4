@@ -118,7 +118,10 @@ SYSTEM_OBJECTS = $(SYSTEM_SOURCES:.cpp=.o)
 CODECS_SOURCES = Ap4AdtsParser.cpp Ap4BitStream.cpp Ap4Mp4AudioInfo.cpp
 CODECS_OBJECTS = $(CODECS_SOURCES:.cpp=.o)
 
-TARGET_SOURCES = $(CORE_SOURCES) $(SYSTEM_SOURCES) $(METADATA_SOURCES) $(CRYPTO_SOURCES) $(CODECS_SOURCES)
+CAPI_SOURCES = Bento4C.cpp bento4c_extn.cpp
+CAPI_OBJECTS = $(CAPI_SOURCES:.cpp=.o)
+
+TARGET_SOURCES = $(CORE_SOURCES) $(SYSTEM_SOURCES) $(METADATA_SOURCES) $(CRYPTO_SOURCES) $(CODECS_SOURCES) $(CAPI_SOURCES)
 
 ##########################################################################
 # search path
@@ -129,6 +132,7 @@ VPATH += $(SOURCE_ROOT)/System/StdC
 VPATH += $(SOURCE_ROOT)/System/Posix
 VPATH += $(SOURCE_ROOT)/Codecs
 VPATH += $(SOURCE_ROOT)/MetaData
+VPATH += $(SOURCE_ROOT)/CApi
 		
 ##########################################################################
 # includes
@@ -143,5 +147,5 @@ include $(BUILD_ROOT)/Makefiles/Rules.mak
 ##########################################################################
 # rules
 ##########################################################################
-libAP4.a: $(CORE_OBJECTS) $(SYSTEM_OBJECTS) $(CRYPTO_OBJECTS) $(METADATA_OBJECTS) $(CODECS_OBJECTS)
+libAP4.a: $(CORE_OBJECTS) $(SYSTEM_OBJECTS) $(CRYPTO_OBJECTS) $(METADATA_OBJECTS) $(CODECS_OBJECTS) $(CAPI_OBJECTS)
 

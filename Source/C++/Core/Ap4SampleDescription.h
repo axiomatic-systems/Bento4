@@ -49,36 +49,36 @@ class AP4_DataBuffer;
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-#define AP4_SAMPLE_FORMAT_MP4A AP4_ATOM_TYPE('m','p','4','a')
-#define AP4_SAMPLE_FORMAT_MP4V AP4_ATOM_TYPE('m','p','4','v')
-#define AP4_SAMPLE_FORMAT_MP4S AP4_ATOM_TYPE('m','p','4','s')
-#define AP4_SAMPLE_FORMAT_AVC1 AP4_ATOM_TYPE('a','v','c','1')
-#define AP4_SAMPLE_FORMAT_ALAC AP4_ATOM_TYPE('a','l','a','c')
-#define AP4_SAMPLE_FORMAT_OWMA AP4_ATOM_TYPE('o','w','m','a')
-#define AP4_SAMPLE_FORMAT_OVC1 AP4_ATOM_TYPE('o','v','c','1')
-#define AP4_SAMPLE_FORMAT_AVCP AP4_ATOM_TYPE('a','v','c','p')
-#define AP4_SAMPLE_FORMAT_DRAC AP4_ATOM_TYPE('d','r','a','c')
-#define AP4_SAMPLE_FORMAT_DRA1 AP4_ATOM_TYPE('d','r','a','1')
-#define AP4_SAMPLE_FORMAT_AC_3 AP4_ATOM_TYPE('a','c','-','3')
-#define AP4_SAMPLE_FORMAT_EC_3 AP4_ATOM_TYPE('e','c','-','3')
-#define AP4_SAMPLE_FORMAT_G726 AP4_ATOM_TYPE('g','7','2','6')
-#define AP4_SAMPLE_FORMAT_MJP2 AP4_ATOM_TYPE('m','j','p','2')
-#define AP4_SAMPLE_FORMAT_OKSD AP4_ATOM_TYPE('o','k','s','d')
-#define AP4_SAMPLE_FORMAT_RAW_ AP4_ATOM_TYPE('r','a','w',' ')
-#define AP4_SAMPLE_FORMAT_RTP_ AP4_ATOM_TYPE('r','t','p',' ')
-#define AP4_SAMPLE_FORMAT_S263 AP4_ATOM_TYPE('s','2','6','3')
-#define AP4_SAMPLE_FORMAT_SAMR AP4_ATOM_TYPE('s','a','m','r')
-#define AP4_SAMPLE_FORMAT_SAWB AP4_ATOM_TYPE('s','a','w','b')
-#define AP4_SAMPLE_FORMAT_SAWP AP4_ATOM_TYPE('s','a','w','p')
-#define AP4_SAMPLE_FORMAT_SEVC AP4_ATOM_TYPE('s','e','v','c')
-#define AP4_SAMPLE_FORMAT_SQCP AP4_ATOM_TYPE('s','q','c','p')
-#define AP4_SAMPLE_FORMAT_SRTP AP4_ATOM_TYPE('s','r','t','p')
-#define AP4_SAMPLE_FORMAT_SSMV AP4_ATOM_TYPE('s','s','m','v')
-#define AP4_SAMPLE_FORMAT_TEXT AP4_ATOM_TYPE('t','e','t','x')
-#define AP4_SAMPLE_FORMAT_TWOS AP4_ATOM_TYPE('t','w','o','s')
-#define AP4_SAMPLE_FORMAT_TX3G AP4_ATOM_TYPE('t','x','3','g')
-#define AP4_SAMPLE_FORMAT_VC_1 AP4_ATOM_TYPE('v','c','-','1')
-#define AP4_SAMPLE_FORMAT_XML_ AP4_ATOM_TYPE('x','m','l',' ')
+const AP4_UI32 AP4_SAMPLE_FORMAT_MP4A = AP4_ATOM_TYPE('m','p','4','a');
+const AP4_UI32 AP4_SAMPLE_FORMAT_MP4V = AP4_ATOM_TYPE('m','p','4','v');
+const AP4_UI32 AP4_SAMPLE_FORMAT_MP4S = AP4_ATOM_TYPE('m','p','4','s');
+const AP4_UI32 AP4_SAMPLE_FORMAT_AVC1 = AP4_ATOM_TYPE('a','v','c','1');
+const AP4_UI32 AP4_SAMPLE_FORMAT_ALAC = AP4_ATOM_TYPE('a','l','a','c');
+const AP4_UI32 AP4_SAMPLE_FORMAT_OWMA = AP4_ATOM_TYPE('o','w','m','a');
+const AP4_UI32 AP4_SAMPLE_FORMAT_OVC1 = AP4_ATOM_TYPE('o','v','c','1');
+const AP4_UI32 AP4_SAMPLE_FORMAT_AVCP = AP4_ATOM_TYPE('a','v','c','p');
+const AP4_UI32 AP4_SAMPLE_FORMAT_DRAC = AP4_ATOM_TYPE('d','r','a','c');
+const AP4_UI32 AP4_SAMPLE_FORMAT_DRA1 = AP4_ATOM_TYPE('d','r','a','1');
+const AP4_UI32 AP4_SAMPLE_FORMAT_AC_3 = AP4_ATOM_TYPE('a','c','-','3');
+const AP4_UI32 AP4_SAMPLE_FORMAT_EC_3 = AP4_ATOM_TYPE('e','c','-','3');
+const AP4_UI32 AP4_SAMPLE_FORMAT_G726 = AP4_ATOM_TYPE('g','7','2','6');
+const AP4_UI32 AP4_SAMPLE_FORMAT_MJP2 = AP4_ATOM_TYPE('m','j','p','2');
+const AP4_UI32 AP4_SAMPLE_FORMAT_OKSD = AP4_ATOM_TYPE('o','k','s','d');
+const AP4_UI32 AP4_SAMPLE_FORMAT_RAW_ = AP4_ATOM_TYPE('r','a','w',' ');
+const AP4_UI32 AP4_SAMPLE_FORMAT_RTP_ = AP4_ATOM_TYPE('r','t','p',' ');
+const AP4_UI32 AP4_SAMPLE_FORMAT_S263 = AP4_ATOM_TYPE('s','2','6','3');
+const AP4_UI32 AP4_SAMPLE_FORMAT_SAMR = AP4_ATOM_TYPE('s','a','m','r');
+const AP4_UI32 AP4_SAMPLE_FORMAT_SAWB = AP4_ATOM_TYPE('s','a','w','b');
+const AP4_UI32 AP4_SAMPLE_FORMAT_SAWP = AP4_ATOM_TYPE('s','a','w','p');
+const AP4_UI32 AP4_SAMPLE_FORMAT_SEVC = AP4_ATOM_TYPE('s','e','v','c');
+const AP4_UI32 AP4_SAMPLE_FORMAT_SQCP = AP4_ATOM_TYPE('s','q','c','p');
+const AP4_UI32 AP4_SAMPLE_FORMAT_SRTP = AP4_ATOM_TYPE('s','r','t','p');
+const AP4_UI32 AP4_SAMPLE_FORMAT_SSMV = AP4_ATOM_TYPE('s','s','m','v');
+const AP4_UI32 AP4_SAMPLE_FORMAT_TEXT = AP4_ATOM_TYPE('t','e','t','x');
+const AP4_UI32 AP4_SAMPLE_FORMAT_TWOS = AP4_ATOM_TYPE('t','w','o','s');
+const AP4_UI32 AP4_SAMPLE_FORMAT_TX3G = AP4_ATOM_TYPE('t','x','3','g');
+const AP4_UI32 AP4_SAMPLE_FORMAT_VC_1 = AP4_ATOM_TYPE('v','c','-','1');
+const AP4_UI32 AP4_SAMPLE_FORMAT_XML_ = AP4_ATOM_TYPE('x','m','l',' ');
 
 const char*
 AP4_GetFormatName(AP4_UI32 format);
