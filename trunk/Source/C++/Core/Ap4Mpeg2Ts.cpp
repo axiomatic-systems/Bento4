@@ -347,7 +347,8 @@ public:
     static AP4_Result Create(AP4_UI16                          pid, 
                              AP4_UI32                          timescale, 
                              AP4_Mpeg2TsWriter::SampleStream*& stream);
-    AP4_Result WriteSample(AP4_Sample&            sample, 
+    AP4_Result WriteSample(AP4_Sample&            sample,
+                           AP4_DataBuffer&        sample_data, 
                            AP4_SampleDescription* sample_description,
                            bool                   with_pcr, 
                            AP4_ByteStream&        output);
@@ -376,7 +377,8 @@ AP4_Mpeg2TsAudioSampleStream::Create(AP4_UI16                          pid,
 |   AP4_Mpeg2TsAudioSampleStream::WriteSample
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_Mpeg2TsAudioSampleStream::WriteSample(AP4_Sample&            sample, 
+AP4_Mpeg2TsAudioSampleStream::WriteSample(AP4_Sample&            sample,
+                                          AP4_DataBuffer&        sample_data,
                                           AP4_SampleDescription* sample_description,
                                           bool                   with_pcr, 
                                           AP4_ByteStream&        output)
@@ -389,15 +391,12 @@ AP4_Mpeg2TsAudioSampleStream::WriteSample(AP4_Sample&            sample,
     unsigned int sampling_frequency_index = GetSamplingFrequencyIndex(audio_desc->GetSampleRate());
     unsigned int channel_configuration = audio_desc->GetChannelCount();
 
-    AP4_DataBuffer data;
-    if (AP4_SUCCEEDED(sample.ReadData(data))) {
-        unsigned char* buffer = new unsigned char[7+sample.GetSize()];
-        MakeAdtsHeader(buffer, sample.GetSize(), sampling_frequency_index, channel_configuration);
-        AP4_CopyMemory(buffer+7, data.GetData(), data.GetDataSize());
-        AP4_UI64 ts = AP4_ConvertTime(sample.GetDts(), m_TimeScale, 90000);
-        WritePES(buffer, 7+sample.GetSize(), ts, false, ts, with_pcr, output);
-        delete[] buffer;
-    }
+    unsigned char* buffer = new unsigned char[7+sample_data.GetDataSize()];
+    MakeAdtsHeader(buffer, sample_data.GetDataSize(), sampling_frequency_index, channel_configuration);
+    AP4_CopyMemory(buffer+7, sample_data.GetData(), sample_data.GetDataSize());
+    AP4_UI64 ts = AP4_ConvertTime(sample.GetDts(), m_TimeScale, 90000);
+    WritePES(buffer, 7+sample.GetSize(), ts, false, ts, with_pcr, output);
+    delete[] buffer;
     
     return AP4_SUCCESS;
 }
@@ -412,6 +411,7 @@ public:
                              AP4_UI32                          timescale, 
                              AP4_Mpeg2TsWriter::SampleStream*& stream);
     AP4_Result WriteSample(AP4_Sample&            sample, 
+                           AP4_DataBuffer&        sample_data,
                            AP4_SampleDescription* sample_description,
                            bool                   with_pcr, 
                            AP4_ByteStream&        output);
@@ -447,7 +447,8 @@ AP4_Mpeg2TsVideoSampleStream::Create(AP4_UI16                          pid,
 |   AP4_Mpeg2TsVideoSampleStream::WriteSample
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_Mpeg2TsVideoSampleStream::WriteSample(AP4_Sample&            sample, 
+AP4_Mpeg2TsVideoSampleStream::WriteSample(AP4_Sample&            sample,
+                                          AP4_DataBuffer&        sample_data, 
                                           AP4_SampleDescription* sample_description,
                                           bool                   with_pcr, 
                                           AP4_ByteStream&        output)
@@ -457,7 +458,7 @@ AP4_Mpeg2TsVideoSampleStream::WriteSample(AP4_Sample&            sample,
     if (avc_desc == NULL) return AP4_ERROR_NOT_SUPPORTED;
     
     if ((int)sample.GetDescriptionIndex() != m_SampleDescriptionIndex) {
-        m_SampleDescriptionIndex = sample.GetDescriptionIndex();
+        m_SampleDescriptionIndex = (int)sample.GetDescriptionIndex();
 
         // make the SPS/PPS prefix
         m_NaluLengthSize = avc_desc->GetNaluLengthSize();
@@ -486,13 +487,15 @@ AP4_Mpeg2TsVideoSampleStream::WriteSample(AP4_Sample&            sample,
         }
     }
     
-    // read the sample data
-    AP4_DataBuffer sample_data;
-    AP4_CHECK(sample.ReadData(sample_data));
-    
+    // decide if we need to emit the prefix
+    bool emit_prefix = false;
+    if (sample.IsSync()) {
+        emit_prefix = true;
+    }
+        
     // allocate a buffer for the PES packet
     AP4_DataBuffer pes_data;
-    pes_data.SetDataSize(6+m_Prefix.GetDataSize());
+    pes_data.SetDataSize(6+(emit_prefix?m_Prefix.GetDataSize():0));
     unsigned char* pes_buffer = pes_data.UseData();
     
     // start of access unit
@@ -503,8 +506,10 @@ AP4_Mpeg2TsVideoSampleStream::WriteSample(AP4_Sample&            sample,
     pes_buffer[4] = 9;    // NAL type = Access Unit Delimiter;
     pes_buffer[5] = 0xE0; // Slice types = ANY
     
-    // copy the prefix
-    AP4_CopyMemory(pes_buffer+6, m_Prefix.GetData(), m_Prefix.GetDataSize());
+    // copy the prefix if needed
+    if (emit_prefix) {
+        AP4_CopyMemory(pes_buffer+6, m_Prefix.GetData(), m_Prefix.GetDataSize());
+    }
     
     // write the NAL units
     const unsigned char* data      = sample_data.GetData();
@@ -717,4 +722,24 @@ AP4_Mpeg2TsWriter::SetVideoStream(AP4_UI32       timescale,
     stream = m_Video;
     return AP4_SUCCESS;
 }
+
+/*----------------------------------------------------------------------
+|   AP4_Mpeg2TsWriter::SampleStream::WriteSample
++---------------------------------------------------------------------*/
+AP4_Result 
+AP4_Mpeg2TsWriter::SampleStream::WriteSample(AP4_Sample&            sample, 
+                                             AP4_SampleDescription* sample_description,
+                                             bool                   with_pcr, 
+                                             AP4_ByteStream&        output)
+{
+    AP4_DataBuffer sample_data;
+    AP4_Result result = sample.ReadData(sample_data);
+    if (AP4_FAILED(result)) return result;
+    return WriteSample(sample,
+                       sample_data,
+                       sample_description,
+                       with_pcr,
+                       output);
+}
+
 

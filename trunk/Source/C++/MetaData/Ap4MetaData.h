@@ -240,7 +240,7 @@ public:
 
     // class members
     static AP4_Array<KeyInfo> KeyInfos;
-
+    
     // constructor
     AP4_MetaData(AP4_File* file);
     
@@ -262,6 +262,11 @@ public:
     AP4_Result AddDcfdEntry(AP4_DcfdAtom* atom, const char* namespc);
     
 private:
+    friend class AP4;
+    static AP4_Result Initialize(); // don't call this directly. See AP4::Initialize for details
+    static AP4_Result Initialized(); 
+    static AP4_Result UnInitialize();
+
     // members
     AP4_List<Entry> m_Entries;
 };

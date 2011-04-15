@@ -40,6 +40,7 @@
 class AP4_ByteStream;
 class AP4_Sample;
 class AP4_SampleDescription;
+class AP4_DataBuffer;
 
 /*----------------------------------------------------------------------
 |   constants
@@ -99,10 +100,17 @@ public:
                                     AP4_UI64             pts, 
                                     bool                 with_pcr, 
                                     AP4_ByteStream&      output);
-        virtual AP4_Result WriteSample(AP4_Sample&            sample, 
+
+        virtual AP4_Result WriteSample(AP4_Sample&            sample,
+                                       AP4_DataBuffer&        sample_data,
                                        AP4_SampleDescription* sample_description,
                                        bool                   with_pcr, 
                                        AP4_ByteStream&        output) = 0;
+
+        AP4_Result WriteSample(AP4_Sample&            sample, 
+                               AP4_SampleDescription* sample_description,
+                               bool                   with_pcr, 
+                               AP4_ByteStream&        output);
         
         void SetType(AP4_UI08 type) {m_StreamType = type;}
 

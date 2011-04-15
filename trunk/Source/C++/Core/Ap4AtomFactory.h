@@ -100,9 +100,14 @@ class AP4_DefaultAtomFactory : public AP4_AtomFactory {
 public:
     // class members
     static AP4_DefaultAtomFactory Instance;
-
+    
     // constructor
     AP4_DefaultAtomFactory();
+
+    // this member is used to detect the situation where the 
+    // platform's code loader does not construct static C++ objects
+    bool m_Initialized;    
+    AP4_Result Initialize();
 };
 
 #endif // _AP4_ATOM_FACTORY_H_

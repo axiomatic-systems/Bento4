@@ -298,4 +298,37 @@
 #include "Ap4Piff.h"
 #include "Ap4TrunAtom.h"
 
+/*----------------------------------------------------------------------
+|   global functions
++---------------------------------------------------------------------*/
+class AP4 {
+public:
+    /**
+     * Global initializer
+     * 
+     * NOTE: only call this on platforms and systems where the code loader
+     * is not able to properly construct static C++ objects.
+     *
+     * Call this to construct the globally shared objects used by the
+     * Bento4 runtime.
+     *
+     */
+    static AP4_Result Initialize();
+
+    /**
+     * Global termination
+     * 
+     * NOTE: only call this on platforms and systems where the code loader
+     * is not able to properly destruct static C++ objects.
+     *
+     * Call this to destruct the globally shared objects used by the
+     * Bento4 runtime.
+     *
+     */
+    static AP4_Result Terminate();
+
+    AP4();
+    bool m_ConstructedByLoader; // used to detect faulty platform loaders
+};
+
 #endif // _AP4_H_

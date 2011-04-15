@@ -716,6 +716,17 @@ AP4_DefaultAtomFactory AP4_DefaultAtomFactory::Instance;
 +---------------------------------------------------------------------*/
 AP4_DefaultAtomFactory::AP4_DefaultAtomFactory()
 {
+    Initialize();
+}
+
+/*----------------------------------------------------------------------
+|   AP4_DefaultAtomFactory::Initialize
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_DefaultAtomFactory::Initialize()
+{
     // register built-in type handlers
-    AddTypeHandler(new AP4_MetaDataAtomTypeHandler(this));
+    AP4_Result result = AddTypeHandler(new AP4_MetaDataAtomTypeHandler(this));
+    if (AP4_SUCCEEDED(result)) m_Initialized = true;
+    return result;
 }
