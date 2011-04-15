@@ -147,14 +147,16 @@ AP4_LinearReader::ProcessMoof(AP4_ContainerAtom* moof,
     m_Fragment->GetTrackIds(ids);
     for (unsigned int i=0; i<m_Trackers.ItemCount(); i++) {
         Tracker* tracker = m_Trackers[i];
-        delete tracker->m_SampleTable;
+        if (tracker->m_SampleTableIsOwned) {
+            delete tracker->m_SampleTable;
+        }
         tracker->m_SampleTable = NULL;
         tracker->m_NextSampleIndex = 0;
-        for (unsigned int i=0; i<ids.ItemCount(); i++) {
-            if (ids[i] == tracker->m_Track->GetId()) {
+        for (unsigned int j=0; j<ids.ItemCount(); j++) {
+            if (ids[j] == tracker->m_Track->GetId()) {
                 AP4_FragmentSampleTable* sample_table = NULL;
                 result = m_Fragment->CreateSampleTable(&m_Movie, 
-                                                       ids[i], 
+                                                       ids[j], 
                                                        m_FragmentStream, 
                                                        moof_offset, 
                                                        mdat_payload_offset, 
@@ -164,6 +166,7 @@ AP4_LinearReader::ProcessMoof(AP4_ContainerAtom* moof,
                 tracker->m_SampleTable = sample_table;
                 tracker->m_SampleTableIsOwned = true;
                 tracker->m_Eos = false;
+                break;
             }
         }
     }
@@ -255,6 +258,7 @@ AP4_LinearReader::Advance()
             if (tracker->m_NextSample == NULL) {
                 if (tracker->m_NextSampleIndex >= tracker->m_SampleTable->GetSampleCount()) {
                     if (!m_HasFragments) tracker->m_Eos = true;
+                    if (tracker->m_SampleTableIsOwned) delete tracker->m_SampleTable;
                     tracker->m_SampleTable = NULL;
                     continue;
                 }

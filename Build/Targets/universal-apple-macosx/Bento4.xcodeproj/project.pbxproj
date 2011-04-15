@@ -99,6 +99,7 @@
 		CA44C5340D46383A00173F5F /* Mp4DcfPackager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA44C5250D46370B00173F5F /* Mp4DcfPackager.cpp */; };
 		CA504D5D0C5E8A8A0060E6FE /* Ap4ElstAtom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA504D5B0C5E8A8A0060E6FE /* Ap4ElstAtom.cpp */; };
 		CA504D5E0C5E8A8A0060E6FE /* Ap4ElstAtom.h in Headers */ = {isa = PBXBuildFile; fileRef = CA504D5C0C5E8A8A0060E6FE /* Ap4ElstAtom.h */; };
+		CA5A8F8C13541628007C6EFC /* Ap4.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA5A8F8B13541628007C6EFC /* Ap4.cpp */; };
 		CA6103DC128598AF0039C7E6 /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
 		CA6103E4128599C20039C7E6 /* Mp4Fragment.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA6103E3128599C20039C7E6 /* Mp4Fragment.cpp */; };
 		CA646ABF0CE97C0C009699D7 /* Mp4Dump.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA646A8E0CE97B2D009699D7 /* Mp4Dump.cpp */; };
@@ -762,6 +763,7 @@
 		CA44C52A0D46375F00173F5F /* mp4dcfpackager */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mp4dcfpackager; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA504D5B0C5E8A8A0060E6FE /* Ap4ElstAtom.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4ElstAtom.cpp; sourceTree = "<group>"; };
 		CA504D5C0C5E8A8A0060E6FE /* Ap4ElstAtom.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = Ap4ElstAtom.h; sourceTree = "<group>"; };
+		CA5A8F8B13541628007C6EFC /* Ap4.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4.cpp; sourceTree = "<group>"; };
 		CA6103D61285988E0039C7E6 /* mp4fragment */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mp4fragment; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA6103E3128599C20039C7E6 /* Mp4Fragment.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Mp4Fragment.cpp; sourceTree = "<group>"; };
 		CA646A880CE97B2D009699D7 /* Aac2Mp4.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Aac2Mp4.cpp; sourceTree = "<group>"; };
@@ -1554,6 +1556,7 @@
 				CA504D5C0C5E8A8A0060E6FE /* Ap4ElstAtom.h */,
 				F9B1F4F90B54AD91003F147E /* Ap4AvccAtom.cpp */,
 				F9B1F4FA0B54AD91003F147E /* Ap4AvccAtom.h */,
+				CA5A8F8B13541628007C6EFC /* Ap4.cpp */,
 				CA9366100B437D030067D50B /* Ap4.h */,
 				CA9366110B437D030067D50B /* Ap4Array.h */,
 				CA9366120B437D030067D50B /* Ap4Atom.cpp */,
@@ -2853,6 +2856,7 @@
 				CA91A84C10A29A56008618FE /* Ap4MfroAtom.cpp in Sources */,
 				CAA4FF2010B2CBB3009C8F5B /* Ap4Mp4AudioInfo.cpp in Sources */,
 				CAC51D76129708CB00AE5CF9 /* Ap4PosixRandom.cpp in Sources */,
+				CA5A8F8C13541628007C6EFC /* Ap4.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

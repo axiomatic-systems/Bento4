@@ -330,6 +330,12 @@ public:
     // class variables
     static AP4_DefaultBlockCipherFactory Instance;
 
+    // this member is used to detect the situation where the 
+    // platform's code loader does not construct static C++ objects
+    AP4_DefaultBlockCipherFactory();
+    bool m_Initialized;    
+    AP4_Result Initialize();
+
     // methods
     virtual AP4_Result CreateCipher(AP4_BlockCipher::CipherType      type,
                                     AP4_BlockCipher::CipherDirection direction,

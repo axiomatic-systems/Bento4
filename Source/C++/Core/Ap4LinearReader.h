@@ -142,7 +142,7 @@ protected:
     AP4_Result Advance();
     AP4_Result AdvanceFragment();
     bool       PopSample(Tracker* tracker, AP4_Sample& sample, AP4_DataBuffer& sample_data);
-
+    
     // members
     AP4_Movie&          m_Movie;
     bool                m_HasFragments;

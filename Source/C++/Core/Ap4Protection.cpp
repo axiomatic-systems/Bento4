@@ -1358,3 +1358,21 @@ AP4_DefaultBlockCipherFactory::CreateCipher(AP4_BlockCipher::CipherType      typ
             return AP4_ERROR_NOT_SUPPORTED;
     }
 }
+
+/*----------------------------------------------------------------------
+|   AP4_DefaultBlockCipherFactory::AP4_DefaultBlockCipherFactory
++---------------------------------------------------------------------*/
+AP4_DefaultBlockCipherFactory::AP4_DefaultBlockCipherFactory() : 
+    m_Initialized(true)
+{
+}
+
+/*----------------------------------------------------------------------
+|   AP4_DefaultBlockCipherFactory::Initialize
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_DefaultBlockCipherFactory::Initialize()
+{
+    m_Initialized = true;
+    return AP4_SUCCESS;
+}
