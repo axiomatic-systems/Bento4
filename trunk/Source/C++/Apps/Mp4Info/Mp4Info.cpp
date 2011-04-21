@@ -67,7 +67,7 @@ PrintUsageAndExit()
             "Options:\n"
             "  --verbose:          show extended information when available\n"
             "  --format <format>:  display the information in this format.\n"
-            "                      <formats> is: text (default) or json\n"
+            "                      <format> is: text (default) or json\n"
             "  --show-layout:      show sample layout\n"
             "  --show-samples:     show sample details\n"
             "  --show-sample-data: show sample data\n");
