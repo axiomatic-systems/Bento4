@@ -66,8 +66,6 @@ PrintUsageAndExit()
 int
 main(int argc, char** argv)
 {
-    AP4::Initialize();
-    
     if (argc != 2) {
         PrintUsageAndExit();
     }
@@ -141,8 +139,6 @@ main(int argc, char** argv)
     // cleanup
     delete file;
     input->Release();
-
-    AP4::Terminate();
 
     return 0;                                            
 }

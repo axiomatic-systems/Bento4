@@ -602,6 +602,7 @@ AP4_MpegAudioSampleDescription::GetMpeg4AudioObjectTypeString(Mpeg4AudioObjectTy
         case AP4_MPEG4_AUDIO_OBJECT_TYPE_ER_HILN:                 return "Error Resilient HILN";
         case AP4_MPEG4_AUDIO_OBJECT_TYPE_ER_PARAMETRIC:           return "Error Resilient Parametric";
         case AP4_MPEG4_AUDIO_OBJECT_TYPE_SSC:                     return "SSC";
+        case AP4_MPEG4_AUDIO_OBJECT_TYPE_PS:                      return "Parametric Stereo";
         case AP4_MPEG4_AUDIO_OBJECT_TYPE_MPEG_SURROUND:           return "MPEG Surround";
         case AP4_MPEG4_AUDIO_OBJECT_TYPE_LAYER_1:                 return "MPEG Layer 1";
         case AP4_MPEG4_AUDIO_OBJECT_TYPE_LAYER_2:                 return "MPEG Layer 2";
