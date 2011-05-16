@@ -969,7 +969,7 @@ AP4_DecryptingStream::ReadPartial(void*     buffer,
         m_BufferOffset      += chunk;
         bytes_read          += chunk;
     }
-    if (bytes_read == 0) return AP4_SUCCESS;
+    if (bytes_to_read == 0) return AP4_SUCCESS;
     
     // seek to the right place in the input
     m_EncryptedStream->Seek(m_EncryptedPosition);
