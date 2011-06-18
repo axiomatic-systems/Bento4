@@ -54,6 +54,7 @@
 #include "Ap4StcoAtom.h"
 #include "Ap4Co64Atom.h"
 #include "Ap4StszAtom.h"
+#include "Ap4Stz2Atom.h"
 #include "Ap4IodsAtom.h"
 #include "Ap4EsdsAtom.h"
 #include "Ap4SttsAtom.h"
@@ -401,6 +402,11 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
           case AP4_ATOM_TYPE_STSZ:
             if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
             atom = AP4_StszAtom::Create(size_32, stream);
+            break;
+
+          case AP4_ATOM_TYPE_STZ2:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_Stz2Atom::Create(size_32, stream);
             break;
 
           case AP4_ATOM_TYPE_STTS:

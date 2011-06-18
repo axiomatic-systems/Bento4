@@ -44,9 +44,17 @@
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-const unsigned int AP4_FRAGMENTER_AUDIO_TRACK_ID            = 1;
-const unsigned int AP4_FRAGMENTER_VIDEO_TRACK_ID            = 2;
-const unsigned int AP4_FRAGMENTER_DEFAULT_FRAGMENT_DURATION = 2;
+const unsigned int AP4_FRAGMENTER_AUDIO_TRACK_ID              = 1;
+const unsigned int AP4_FRAGMENTER_VIDEO_TRACK_ID              = 2;
+const unsigned int AP4_FRAGMENTER_DEFAULT_FRAGMENT_DURATION   = 2000; // ms
+const unsigned int AP4_FRAGMENTER_FRAGMENT_DURATION_TOLERANCE = 100;
+
+/*----------------------------------------------------------------------
+|   options
++---------------------------------------------------------------------*/
+struct _Options {
+    unsigned int verbosity;
+} Options;
 
 /*----------------------------------------------------------------------
 |   PrintUsageAndExit
@@ -59,6 +67,7 @@ PrintUsageAndExit()
             "\n\nusage: mp4fragment [options] <input> <output>\n"
             "options are:\n"
             "  --verbosity <n> sets the verbosity (details) level to <n> (between 0 and 3)\n"
+            "  --fragment-duration <milliseconds> (default = automatic)\n"
             );
     exit(1);
 }
@@ -77,6 +86,7 @@ public:
     AP4_Ordinal  m_SampleIndex;
     AP4_Sample   m_Sample;
     bool         m_Eos;
+    AP4_UI64     m_TargetDuration;
 };
 
 /*----------------------------------------------------------------------
@@ -86,7 +96,8 @@ TrackCursor::TrackCursor() :
     m_Track(NULL), 
     m_TrackId(0),
     m_SampleIndex(0),
-    m_Eos(false)
+    m_Eos(false),
+    m_TargetDuration(0)
 {
 }
 
@@ -104,7 +115,7 @@ TrackCursor::SetTrack(AP4_Track* track)
 |   Fragment
 +---------------------------------------------------------------------*/
 static void
-Fragment(AP4_File& input_file, AP4_ByteStream& output_stream)
+Fragment(AP4_File& input_file, AP4_ByteStream& output_stream, unsigned int fragment_duration)
 {
     AP4_Result result;
     
@@ -182,8 +193,18 @@ Fragment(AP4_File& input_file, AP4_ByteStream& output_stream)
     // count how many tracks we have
     TrackCursor* cursors[2] = {NULL, NULL};
     unsigned int track_count = 0;
-    if (video_cursor) cursors[track_count++] = video_cursor;
-    if (audio_cursor) cursors[track_count++] = audio_cursor;
+    if (video_cursor) {
+        cursors[track_count++] = video_cursor;
+        video_cursor->m_TargetDuration = AP4_ConvertTime(fragment_duration-AP4_FRAGMENTER_FRAGMENT_DURATION_TOLERANCE, 
+                                                         1000, 
+                                                         video_cursor->m_Track->GetMediaTimeScale());
+    }
+    if (audio_cursor) {
+        cursors[track_count++] = audio_cursor;
+        audio_cursor->m_TargetDuration = AP4_ConvertTime(fragment_duration, 
+                                                         1000, 
+                                                         audio_cursor->m_Track->GetMediaTimeScale());
+    }
     if (track_count == 0) {
         fprintf(stderr, "ERROR: no audio or video track found\n");
         return;
@@ -205,34 +226,42 @@ Fragment(AP4_File& input_file, AP4_ByteStream& output_stream)
     output_movie->GetMoovAtom()->Write(output_stream);
     
     // write all the fragments
-    TrackCursor* cursor             = NULL;
-    AP4_UI64     target_duration_ms = AP4_FRAGMENTER_DEFAULT_FRAGMENT_DURATION*1000;
-    unsigned int sequence_number    = 1;
-    while ((cursors[0] == NULL || !cursors[0]->m_Eos) && 
-           (cursors[1] == NULL || !cursors[1]->m_Eos)) {
-        // select the next track to  read from
+    TrackCursor* cursor          = NULL;
+    unsigned int sequence_number = 1;
+    for(;;) {
+        // select the next track to read from
+        bool next_dts = true;
+        AP4_UI64 max_dts = 0;
         if (track_count == 1) {
+            if (cursors[0]->m_Eos) break;
             cursor = cursors[0];
         } else {
+            if (cursors[0]->m_Eos && cursors[1]->m_Eos) break;
             if (cursor == NULL || cursor == audio_cursor) {
                 cursor = video_cursor;
+                if (cursor->m_Eos) {
+                    cursor = audio_cursor;
+                } 
             } else {
                 cursor = audio_cursor;
+                if (cursor->m_Eos) {
+                    cursor = video_cursor;
+                } else {
+                    next_dts = false;
+                    max_dts = AP4_ConvertTime(video_cursor->m_Sample.GetDts(),
+                                              video_cursor->m_Track->GetMediaTimeScale(),
+                                              audio_cursor->m_Track->GetMediaTimeScale());
+                }
             }
+        }
+        if (next_dts) {
+            max_dts = cursor->m_Sample.GetDts()+cursor->m_TargetDuration;
         }
         
         // emit a fragment for the selected track
-        printf("Frag: %s (%d) ", cursor==audio_cursor?"audio":"video", cursor->m_Track->GetId());
-        if (cursor == video_cursor && target_duration_ms >= 1000) {
-            // for video tracks, allow the fragment to be 'close' to the target
-            // duration without being exactly equal or larger
-            target_duration_ms -= 100;
+        if (Options.verbosity > 0) {
+            printf("fragment: %s (%d) ", cursor==audio_cursor?"audio":"video", cursor->m_Track->GetId());
         }
-        AP4_UI64 max_duration = AP4_ConvertTime(target_duration_ms, 
-                                                1000, 
-                                                cursor->m_Track->GetMediaTimeScale());
-        AP4_UI64 start_dts = cursor->m_Sample.GetDts(); 
-        AP4_UI64 max_dts   =  start_dts + max_duration;
         unsigned int sample_count = 0;
 
         // setup the moof structure
@@ -284,18 +313,15 @@ Fragment(AP4_File& input_file, AP4_ByteStream& output_stream)
                 break;
             }
             if (cursor->m_Sample.IsSync()) {
-                if (cursor->m_Sample.GetDts() >= max_dts) {
+                AP4_UI64 dts = cursor->m_Sample.GetDts();
+                if (dts >= max_dts) {
                     break;
                 }
             }
         }
-        if (cursor == video_cursor) {
-            AP4_UI64 fragment_duration = cursor->m_Sample.GetDts()-start_dts;
-            target_duration_ms = AP4_ConvertTime(fragment_duration, cursor->m_Track->GetMediaTimeScale(), 1000);
-        } else {
-            target_duration_ms = AP4_FRAGMENTER_DEFAULT_FRAGMENT_DURATION*1000;
+        if (Options.verbosity) {
+            printf(" %d samples\n", sample_count);
         }
-        printf(" %d samples\n", sample_count);
                 
         // update moof and children
         trun->SetEntries(trun_entries);
@@ -333,6 +359,58 @@ Fragment(AP4_File& input_file, AP4_ByteStream& output_stream)
 }
 
 /*----------------------------------------------------------------------
+|   AutoDetectFragmentDuration
++---------------------------------------------------------------------*/
+static unsigned int 
+AutoDetectFragmentDuration(AP4_Track* track)
+{
+    AP4_Sample   sample;
+    unsigned int sample_count = track->GetSampleCount();
+    
+    // get the first sample as the starting point
+    AP4_Result result = track->GetSample(0, sample);
+    if (AP4_FAILED(result)) {
+        fprintf(stderr, "ERROR: failed to read first sample\n");
+        return 0;
+    }
+    if (!sample.IsSync()) {
+        fprintf(stderr, "ERROR: first sample is not an I frame\n");
+        return 0;
+    }
+    
+    for (unsigned int interval = 1; interval < sample_count; interval++) {
+        bool irregular = false;
+        unsigned int sync_count = 0;
+        unsigned int i;
+        for (i = 0; i < sample_count; i += interval) {
+            result = track->GetSample(i, sample);
+            if (AP4_FAILED(result)) {
+                fprintf(stderr, "ERROR: failed to read sample %d\n", i);
+                return 0;
+            }
+            if (!sample.IsSync()) {
+                irregular = true;
+                break;
+            }
+            ++sync_count;
+        }
+        if (sync_count < 1) continue;
+        if (!irregular) {
+            // found a pattern
+            AP4_UI64 duration = sample.GetDts();
+            double fps = (double)(interval*(sync_count-1))/((double)duration/(double)track->GetMediaTimeScale());
+            if (Options.verbosity > 0) {
+                printf("found regular I-frame interval: %d frames (at %.3f frames per second)\n",
+                       interval, (float)fps);
+            }
+            return (unsigned int)(1000.0*(double)interval/fps);
+        }
+    }
+    
+    return 0;
+}
+
+/*----------------------------------------------------------------------
 |   main
 +---------------------------------------------------------------------*/
 int
@@ -345,8 +423,10 @@ main(int argc, char** argv)
     // init the variables
     const char*             input_filename  = NULL;
     const char*             output_filename = NULL;
-    AP4_Ordinal             verbosity = 0;
+    unsigned int            fragment_duration = 0;
     AP4_Result              result;
+
+    Options.verbosity = 0;
     
     // parse the command line
     argv++;
@@ -358,7 +438,14 @@ main(int argc, char** argv)
                 fprintf(stderr, "ERROR: missing argument after --verbosity option\n");
                 return 1;
             }
-            verbosity = strtoul(arg, NULL, 10);
+            Options.verbosity = strtoul(arg, NULL, 10);
+        } else if (!strcmp(arg, "--fragment-duration")) {
+            arg = *argv++;
+            if (arg == NULL) {
+                fprintf(stderr, "ERROR: missing argument after --fragment-duration option\n");
+                return 1;
+            }
+            fragment_duration = strtoul(arg, NULL, 10);
         } else {
             if (input_filename == NULL) {
                 input_filename = arg;
@@ -399,8 +486,49 @@ main(int argc, char** argv)
     // parse the input MP4 file (moov only)
     AP4_File input_file(*input_stream, AP4_DefaultAtomFactory::Instance, true);
     
+    // check the file for basic properties
+    if (input_file.GetMovie() == NULL) {
+        fprintf(stderr, "ERROR: no movie found in the file\n", result);
+        return 1;
+    }
+    if (input_file.GetMovie()->HasFragments()) {
+        fprintf(stderr, "ERROR: file is already fragmented\n");
+        return 1;
+    }
+    AP4_Track* audio_track = input_file.GetMovie()->GetTrack(AP4_Track::TYPE_AUDIO);
+    AP4_Track* video_track = input_file.GetMovie()->GetTrack(AP4_Track::TYPE_VIDEO);
+    if (audio_track == NULL && video_track == NULL) {
+        fprintf(stderr, "ERROR: no audio or video track in the file\n");
+        return 1;
+    }
+    if (audio_track && audio_track->GetSampleCount() == 0) {
+        fprintf(stderr, "ERROR: audio track has no samples\n");
+        return 1;
+    }
+    if (video_track && video_track->GetSampleCount() == 0) {
+        fprintf(stderr, "ERROR: video track has no samples\n");
+        return 1;
+    }
+    
+    // auto-detect the fragment duration if needed
+    if (fragment_duration == 0) {
+        if (video_track) {
+            fragment_duration = AutoDetectFragmentDuration(video_track);
+        } else {
+            if (Options.verbosity > 0) {
+                printf("no video track, cannot autodetect fragment duration\n");
+            }
+        }
+        if (fragment_duration == 0) {
+            if (Options.verbosity > 0) {
+                printf("unable to detect fragment duration, using default\n");
+            }
+            fragment_duration = AP4_FRAGMENTER_DEFAULT_FRAGMENT_DURATION;
+        }
+    }
+    
     // fragment the file
-    Fragment(input_file, *output_stream);
+    Fragment(input_file, *output_stream, fragment_duration);
     
     // cleanup and exit
     if (input_stream)  input_stream->Release();
