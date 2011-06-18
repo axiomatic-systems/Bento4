@@ -321,6 +321,9 @@
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4VmhdAtom.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4Stz2Atom.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4.h">
@@ -654,6 +657,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4VmhdAtom.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4Stz2Atom.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
