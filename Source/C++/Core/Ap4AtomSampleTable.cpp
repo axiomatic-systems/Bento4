@@ -36,6 +36,7 @@
 #include "Ap4StcoAtom.h"
 #include "Ap4Co64Atom.h"
 #include "Ap4StszAtom.h"
+#include "Ap4Stz2Atom.h"
 #include "Ap4SttsAtom.h"
 #include "Ap4CttsAtom.h"
 #include "Ap4StssAtom.h"
@@ -58,6 +59,7 @@ AP4_AtomSampleTable::AP4_AtomSampleTable(AP4_ContainerAtom* stbl,
     m_StscAtom = AP4_DYNAMIC_CAST(AP4_StscAtom, stbl->GetChild(AP4_ATOM_TYPE_STSC));
     m_StcoAtom = AP4_DYNAMIC_CAST(AP4_StcoAtom, stbl->GetChild(AP4_ATOM_TYPE_STCO));
     m_StszAtom = AP4_DYNAMIC_CAST(AP4_StszAtom, stbl->GetChild(AP4_ATOM_TYPE_STSZ));
+    m_Stz2Atom = AP4_DYNAMIC_CAST(AP4_Stz2Atom, stbl->GetChild(AP4_ATOM_TYPE_STZ2));
     m_CttsAtom = AP4_DYNAMIC_CAST(AP4_CttsAtom, stbl->GetChild(AP4_ATOM_TYPE_CTTS));
     m_SttsAtom = AP4_DYNAMIC_CAST(AP4_SttsAtom, stbl->GetChild(AP4_ATOM_TYPE_STTS));
     m_StssAtom = AP4_DYNAMIC_CAST(AP4_StssAtom, stbl->GetChild(AP4_ATOM_TYPE_STSS));
@@ -114,8 +116,14 @@ AP4_AtomSampleTable::GetSample(AP4_Ordinal index,
     
     // compute the additional offset inside the chunk
     for (unsigned int i = index-skip; i < index; i++) {
-        AP4_Size size;
-        result = m_StszAtom->GetSampleSize(i, size); 
+        AP4_Size size = 0;
+        if (m_StszAtom) {
+            result = m_StszAtom->GetSampleSize(i, size); 
+        } else if (m_Stz2Atom) {
+            result = m_Stz2Atom->GetSampleSize(i, size); 
+        } else {
+            result = AP4_ERROR_INVALID_FORMAT;
+        }
         if (AP4_FAILED(result)) return result;
         offset += size;
     }
@@ -140,8 +148,14 @@ AP4_AtomSampleTable::GetSample(AP4_Ordinal index,
     }     
 
     // set the size
-    AP4_Size sample_size;
-    result = m_StszAtom->GetSampleSize(index, sample_size);
+    AP4_Size sample_size = 0;
+    if (m_StszAtom) {
+        result = m_StszAtom->GetSampleSize(index, sample_size); 
+    } else if (m_Stz2Atom) {
+        result = m_Stz2Atom->GetSampleSize(index, sample_size); 
+    } else {
+        result = AP4_ERROR_INVALID_FORMAT;
+    }
     if (AP4_FAILED(result)) return result;
     sample.SetSize(sample_size);
 
@@ -168,7 +182,13 @@ AP4_AtomSampleTable::GetSample(AP4_Ordinal index,
 AP4_Cardinal
 AP4_AtomSampleTable::GetSampleCount()
 {
-    return m_StszAtom ? m_StszAtom->GetSampleCount() : 0;
+    if (m_StszAtom) {
+        return m_StszAtom->GetSampleCount();
+    } else if (m_Stz2Atom) {
+        return m_Stz2Atom->GetSampleCount();
+    } else {
+        return 0;
+    }
 }
 
 /*----------------------------------------------------------------------
@@ -287,7 +307,13 @@ AP4_AtomSampleTable::SetChunkOffset(AP4_Ordinal  chunk_index,
 AP4_Result 
 AP4_AtomSampleTable::SetSampleSize(AP4_Ordinal sample_index, AP4_Size size)
 {
-    return m_StszAtom ? m_StszAtom->SetSampleSize(sample_index+1, size) : AP4_FAILURE;
+    if (m_StszAtom) {
+        return m_StszAtom->SetSampleSize(sample_index+1, size);
+    } else if (m_Stz2Atom) {
+        return m_Stz2Atom->SetSampleSize(sample_index+1, size);
+    } else {    
+        return AP4_FAILURE;
+    }
 }
 
 /*----------------------------------------------------------------------

@@ -67,6 +67,7 @@ CORE_SOURCES = 								\
     Ap4StsdAtom.cpp                         \
     Ap4StssAtom.cpp                         \
     Ap4StszAtom.cpp                         \
+    Ap4Stz2Atom.cpp							\
     Ap4SttsAtom.cpp                         \
     Ap4SyntheticSampleTable.cpp             \
     Ap4TimsAtom.cpp                         \

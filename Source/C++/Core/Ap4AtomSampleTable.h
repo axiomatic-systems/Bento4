@@ -43,6 +43,7 @@ class AP4_ByteStream;
 class AP4_StscAtom;
 class AP4_StcoAtom;
 class AP4_StszAtom;
+class AP4_Stz2Atom;
 class AP4_SttsAtom;
 class AP4_CttsAtom;
 class AP4_StssAtom;
@@ -88,6 +89,7 @@ private:
     AP4_StscAtom*   m_StscAtom;
     AP4_StcoAtom*   m_StcoAtom;
     AP4_StszAtom*   m_StszAtom;
+    AP4_Stz2Atom*   m_Stz2Atom;
     AP4_SttsAtom*   m_SttsAtom;
     AP4_CttsAtom*   m_CttsAtom;
     AP4_StsdAtom*   m_StsdAtom;

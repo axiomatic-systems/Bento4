@@ -348,6 +348,7 @@ const AP4_Atom::Type AP4_ATOM_TYPE_TFHD = AP4_ATOM_TYPE('t','f','h','d');
 const AP4_Atom::Type AP4_ATOM_TYPE_TRUN = AP4_ATOM_TYPE('t','r','u','n');
 const AP4_Atom::Type AP4_ATOM_TYPE_STTS = AP4_ATOM_TYPE('s','t','t','s');
 const AP4_Atom::Type AP4_ATOM_TYPE_STSZ = AP4_ATOM_TYPE('s','t','s','z');
+const AP4_Atom::Type AP4_ATOM_TYPE_STZ2 = AP4_ATOM_TYPE('s','t','z','2');
 const AP4_Atom::Type AP4_ATOM_TYPE_STSS = AP4_ATOM_TYPE('s','t','s','s');
 const AP4_Atom::Type AP4_ATOM_TYPE_STSD = AP4_ATOM_TYPE('s','t','s','d');
 const AP4_Atom::Type AP4_ATOM_TYPE_STSC = AP4_ATOM_TYPE('s','t','s','c');
