@@ -53,12 +53,13 @@ struct Options {
     const char*  playlist;
     const char*  input;
     const char*  output;
+    unsigned int segment_duration_threshold;
 } Options;
 
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-static const unsigned int SegmentDurationThreshold = 50; // milliseconds
+static const unsigned int DefaultSegmentDurationThreshold = 50; // milliseconds
 
 /*----------------------------------------------------------------------
 |   PrintUsageAndExit
@@ -75,6 +76,8 @@ PrintUsageAndExit()
             "  --video-pid <pid> (default: 0x102)\n"
             "  --segment <segment-duration-in-seconds>\n"
             "    [the <output> name must be a 'printf' template]\n"
+            "  --segment-duration-threshold in ms (default = 50)\n"
+            "    [only used with the --segment option]\n"
             "  --verbose\n"
             "  --playlist <filename>\n");
     exit(1);
@@ -191,7 +194,8 @@ WriteSamples(AP4_Mpeg2TsWriter&               writer,
              AP4_Mpeg2TsWriter::SampleStream* audio_stream,
              AP4_Track*                       video_track,
              SampleReader*                    video_reader, 
-             AP4_Mpeg2TsWriter::SampleStream* video_stream)
+             AP4_Mpeg2TsWriter::SampleStream* video_stream,
+             unsigned int                     segment_duration_threshold)
 {
     AP4_Sample      audio_sample;
     AP4_DataBuffer  audio_sample_data;
@@ -250,7 +254,7 @@ WriteSamples(AP4_Mpeg2TsWriter&               writer,
             } else {
                 segment_duration = audio_ts - last_ts;
             }
-            if (segment_duration >= (AP4_UI64)Options.segment*1000 - SegmentDurationThreshold) {
+            if (segment_duration >= (AP4_UI64)Options.segment*1000 - segment_duration_threshold) {
                 if (video_track) {
                     last_ts = video_ts;
                 } else {
@@ -371,14 +375,15 @@ main(int argc, char** argv)
     }
     
     // default options
-    Options.segment   = 0;
-    Options.pmt_pid   = 0x100;
-    Options.audio_pid = 0x101;
-    Options.video_pid = 0x102;
-    Options.verbose   = false;
-    Options.playlist  = NULL;
-    Options.input     = NULL;
-    Options.output    = NULL;
+    Options.segment                    = 0;
+    Options.pmt_pid                    = 0x100;
+    Options.audio_pid                  = 0x101;
+    Options.video_pid                  = 0x102;
+    Options.verbose                    = false;
+    Options.playlist                   = NULL;
+    Options.input                      = NULL;
+    Options.output                     = NULL;
+    Options.segment_duration_threshold = DefaultSegmentDurationThreshold;
     
     // parse command line
     AP4_Result result;
@@ -390,6 +395,12 @@ main(int argc, char** argv)
                 return 1;
             }
             Options.segment = strtoul(*args++, NULL, 10);
+        } else if (!strcmp(arg, "--segment-duration-threshold")) {
+            if (*args == NULL) {
+                fprintf(stderr, "ERROR: --segment-duration-threshold requires a number\n");
+                return 1;
+            }
+            Options.segment_duration_threshold = strtoul(*args++, NULL, 10);
         } else if (!strcmp(arg, "--verbose")) {
             Options.verbose = true;
         } else if (!strcmp(arg, "--pmt-pid")) {
@@ -529,7 +540,8 @@ main(int argc, char** argv)
     
     result = WriteSamples(writer,
                           audio_track, audio_reader, audio_stream,
-                          video_track, video_reader, video_stream);
+                          video_track, video_reader, video_stream,
+                          Options.segment_duration_threshold);
     if (AP4_FAILED(result)) {
         fprintf(stderr, "ERROR: failed to write samples (%d)\n", result);
     }
