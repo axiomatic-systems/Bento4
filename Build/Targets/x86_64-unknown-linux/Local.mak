@@ -1,7 +1,7 @@
 #######################################################################
 #
-#   Makefile for x86-unknown-cygwin
+#   Makefile for x86_64-unknown-cygwin
 #
 #######################################################################
-TARGET = x86-unknown-linux
+TARGET = x86-_64-unknown-linux
 include ../../any-gnu-gcc/Local.mak
