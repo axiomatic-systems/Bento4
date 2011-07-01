@@ -24,7 +24,7 @@ def GetDirPath(dir):
     return '#'+SOURCE_ROOT+'/'+dir
     
 def DeclareBuildDir(dir):
-    env.BuildDir(dir, GetDirPath(dir), duplicate=0)
+    env.VariantDir(dir, GetDirPath(dir), duplicate=0)
 
 def GetModule(name):
     return Modules[name]

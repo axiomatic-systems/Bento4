@@ -431,6 +431,11 @@ const AP4_Atom::Type AP4_ATOM_TYPE_EC_3 = AP4_ATOM_TYPE('e','c','-','3');
 const AP4_Atom::Type AP4_ATOM_TYPE_MFRA = AP4_ATOM_TYPE('m','f','r','a');
 const AP4_Atom::Type AP4_ATOM_TYPE_TFRA = AP4_ATOM_TYPE('t','f','r','a');
 const AP4_Atom::Type AP4_ATOM_TYPE_MFRO = AP4_ATOM_TYPE('m','f','r','o');
+const AP4_Atom::Type AP4_ATOM_TYPE_TFDT = AP4_ATOM_TYPE('t','f','d','t');
+const AP4_Atom::Type AP4_ATOM_TYPE_TENC = AP4_ATOM_TYPE('t','e','n','c');
+const AP4_Atom::Type AP4_ATOM_TYPE_SENC = AP4_ATOM_TYPE('s','e','n','c');
+const AP4_Atom::Type AP4_ATOM_TYPE_SAIO = AP4_ATOM_TYPE('s','a','i','o');
+const AP4_Atom::Type AP4_ATOM_TYPE_SAIZ = AP4_ATOM_TYPE('s','a','i','z');
 
 /*----------------------------------------------------------------------
 |   AP4_AtomListInspector

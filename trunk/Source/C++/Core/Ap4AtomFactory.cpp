@@ -88,6 +88,11 @@
 #include "Ap4Piff.h"
 #include "Ap4TfraAtom.h"
 #include "Ap4MfroAtom.h"
+#include "Ap4TfdtAtom.h"
+#include "Ap4TencAtom.h"
+#include "Ap4SencAtom.h"
+#include "Ap4SaioAtom.h"
+#include "Ap4SaizAtom.h"
 
 /*----------------------------------------------------------------------
 |   AP4_AtomFactory::~AP4_AtomFactory
@@ -571,6 +576,31 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
           case AP4_ATOM_TYPE_RTP_:
             if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
             atom = AP4_RtpAtom::Create(size_32, stream);
+            break;
+
+          case AP4_ATOM_TYPE_TFDT:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_TfdtAtom::Create(size_32, stream);
+            break;
+
+          case AP4_ATOM_TYPE_TENC:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_TencAtom::Create(size_32, stream);
+            break;
+
+          case AP4_ATOM_TYPE_SENC:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_SencAtom::Create(size_32, stream);
+            break;
+
+          case AP4_ATOM_TYPE_SAIZ:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_SaizAtom::Create(size_32, stream);
+            break;
+
+          case AP4_ATOM_TYPE_SAIO:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_SaioAtom::Create(size_32, stream);
             break;
 
           // track ref types

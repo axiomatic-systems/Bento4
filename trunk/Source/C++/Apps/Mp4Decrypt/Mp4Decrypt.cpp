@@ -164,13 +164,38 @@ main(int argc, char** argv)
         } else if (ftyp->GetMajorBrand() == AP4_MARLIN_BRAND_MGSV || ftyp->HasCompatibleBrand(AP4_MARLIN_BRAND_MGSV)) {
             processor = new AP4_MarlinIpmpDecryptingProcessor(&key_map);
         } else if (ftyp->GetMajorBrand() == AP4_PIFF_BRAND || ftyp->HasCompatibleBrand(AP4_PIFF_BRAND)) {
-            processor = new AP4_PiffDecryptingProcessor(&key_map);
+            processor = new AP4_CencDecryptingProcessor(&key_map);
         }
     }
     if (processor == NULL) {
-        // by default, try a standard decrypting processor
+        // no ftyp, look at the sample description of the tracks first
+        AP4_Movie* movie = input_file->GetMovie();
+        if (movie) {
+            AP4_List<AP4_Track>& tracks = movie->GetTracks();
+            for (unsigned int i=0; i<tracks.ItemCount(); i++) {
+                AP4_Track* track = NULL;
+                tracks.Get(i, track);
+                if (track) {
+                    AP4_SampleDescription* sdesc = track->GetSampleDescription(0);
+                    if (sdesc && sdesc->GetType() == AP4_SampleDescription::TYPE_PROTECTED) {
+                        AP4_ProtectedSampleDescription* psdesc = AP4_DYNAMIC_CAST(AP4_ProtectedSampleDescription, sdesc);
+                        if (psdesc) {
+                            if (psdesc->GetSchemeType() == AP4_PROTECTION_SCHEME_TYPE_CENC) {
+                                processor = new AP4_CencDecryptingProcessor(&key_map);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+        
+    // by default, try a standard decrypting processor
+    if (processor == NULL) {
         processor = new AP4_StandardDecryptingProcessor(&key_map);
     }
+    
     delete input_file;
     input_file = NULL;
     input->Seek(0);

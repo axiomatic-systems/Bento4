@@ -262,7 +262,6 @@ Fragment(AP4_File& input_file, AP4_ByteStream& output_stream, unsigned int fragm
         if (Options.verbosity > 0) {
             printf("fragment: %s (%d) ", cursor==audio_cursor?"audio":"video", cursor->m_Track->GetId());
         }
-        unsigned int sample_count = 0;
 
         // setup the moof structure
         AP4_ContainerAtom* moof = new AP4_ContainerAtom(AP4_ATOM_TYPE_MOOF);
@@ -277,6 +276,8 @@ Fragment(AP4_File& input_file, AP4_ByteStream& output_stream, unsigned int fragm
                                               0,
                                               0);
         traf->AddChild(tfhd);
+        AP4_TfdtAtom* tfdt = new AP4_TfdtAtom(1, cursor->m_Sample.GetDts());
+        traf->AddChild(tfdt);
         AP4_TrunAtom* trun = new AP4_TrunAtom(AP4_TRUN_FLAG_DATA_OFFSET_PRESENT     |
                                               AP4_TRUN_FLAG_SAMPLE_DURATION_PRESENT |
                                               AP4_TRUN_FLAG_SAMPLE_SIZE_PRESENT,
@@ -286,6 +287,7 @@ Fragment(AP4_File& input_file, AP4_ByteStream& output_stream, unsigned int fragm
             
         // decide which samples go in this fragment
         AP4_Array<AP4_UI32>            sample_indexes;
+        unsigned int                   sample_count = 0;
         AP4_Array<AP4_TrunAtom::Entry> trun_entries;
         AP4_UI32                       mdat_size = AP4_ATOM_HEADER_SIZE;
         for (;;) {

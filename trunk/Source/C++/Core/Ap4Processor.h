@@ -45,6 +45,7 @@ class AP4_ContainerAtom;
 class AP4_ByteStream;
 class AP4_DataBuffer;
 class AP4_TrakAtom;
+class AP4_FragmentSampleTable;
 struct AP4_MoofLocator;
 
 /*----------------------------------------------------------------------
@@ -131,18 +132,19 @@ public:
         virtual AP4_Result ProcessFragment() { return AP4_SUCCESS; }
 
         /**
+         * A fragment handler may override this method if it needs to inspect
+         * the samples before they are written out.
+         */
+        virtual AP4_Result PrepareForSamples(AP4_FragmentSampleTable* /* sample_table */) { 
+            return AP4_SUCCESS; 
+        }
+
+        /**
          * A fragment handler may override this method if it needs to modify
          * the fragment atoms after processing the fragment samples.
          * NOTE: this method MUST NOT change the size of any of the atoms.
          */
-        virtual AP4_Result FinishFragment() { return AP4_ERROR_NOT_SUPPORTED; }
-
-        /**
-         * Returns the size of a sample after processing.
-         * @param sample Sample of which the processed size is requested.
-         * @return Size of the sample data after processing.
-         */
-        virtual AP4_Size   GetProcessedSampleSize(AP4_Sample& sample) { return sample.GetSize(); }
+        virtual AP4_Result FinishFragment() { return AP4_SUCCESS; }
 
         /**
          * Process the data of one sample.

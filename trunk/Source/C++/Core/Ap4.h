@@ -297,6 +297,7 @@
 #include "Ap4Mpeg2Ts.h"
 #include "Ap4Piff.h"
 #include "Ap4TrunAtom.h"
+#include "Ap4TfdtAtom.h"
 
 /*----------------------------------------------------------------------
 |   global functions
