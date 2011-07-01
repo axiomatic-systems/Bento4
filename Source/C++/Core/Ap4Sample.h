@@ -160,7 +160,7 @@ public:
      */
     void            Reset();
 
-protected:
+private:
     AP4_ByteStream* m_DataStream;
     AP4_Position    m_Offset;
     AP4_Size        m_Size;

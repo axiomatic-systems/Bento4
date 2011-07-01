@@ -50,6 +50,12 @@ class AP4_MetaData;
 +---------------------------------------------------------------------*/
 const AP4_UI32 AP4_FILE_BRAND_QT__ = AP4_ATOM_TYPE('q','t',' ',' ');
 const AP4_UI32 AP4_FILE_BRAND_ISOM = AP4_ATOM_TYPE('i','s','o','m');
+const AP4_UI32 AP4_FILE_BRAND_ISO1 = AP4_ATOM_TYPE('i','s','o','1');
+const AP4_UI32 AP4_FILE_BRAND_ISO2 = AP4_ATOM_TYPE('i','s','o','2');
+const AP4_UI32 AP4_FILE_BRAND_ISO3 = AP4_ATOM_TYPE('i','s','o','3');
+const AP4_UI32 AP4_FILE_BRAND_ISO4 = AP4_ATOM_TYPE('i','s','o','4');
+const AP4_UI32 AP4_FILE_BRAND_ISO5 = AP4_ATOM_TYPE('i','s','o','5');
+const AP4_UI32 AP4_FILE_BRAND_ISO6 = AP4_ATOM_TYPE('i','s','o','6');
 const AP4_UI32 AP4_FILE_BRAND_MP41 = AP4_ATOM_TYPE('m','p','4','1');
 const AP4_UI32 AP4_FILE_BRAND_MP42 = AP4_ATOM_TYPE('m','p','4','2');
 const AP4_UI32 AP4_FILE_BRAND_3GP1 = AP4_ATOM_TYPE('3','g','p','1');

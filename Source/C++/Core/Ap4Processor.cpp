@@ -81,22 +81,12 @@ class AP4_DefaultFragmentHandler: public AP4_Processor::FragmentHandler {
 public:
     AP4_DefaultFragmentHandler(AP4_Processor::TrackHandler* track_handler) :
         m_TrackHandler(track_handler) {}
-    AP4_Size GetProcessedSampleSize(AP4_Sample& sample);
     AP4_Result ProcessSample(AP4_DataBuffer& data_in,
                              AP4_DataBuffer& data_out);
                              
 private:
     AP4_Processor::TrackHandler* m_TrackHandler;
 };
-
-/*----------------------------------------------------------------------
-|   AP4_DefaultFragmentHandler::GetProcessedSampleSize
-+---------------------------------------------------------------------*/
-AP4_Size 
-AP4_DefaultFragmentHandler::GetProcessedSampleSize(AP4_Sample& sample)
-{
-    return m_TrackHandler->GetProcessedSampleSize(sample);
-}
 
 /*----------------------------------------------------------------------
 |   AP4_DefaultFragmentHandler::ProcessSample
@@ -118,8 +108,6 @@ AP4_Processor::ProcessFragments(AP4_MoovAtom*              moov,
                                 AP4_ByteStream&            input, 
                                 AP4_ByteStream&            output)
 {
-    // FIXME: this only works for non-changing moofs 
- 
     for (AP4_List<AP4_MoofLocator>::Item* item = moofs.FirstItem();
                                           item;
                                           item = item->GetNext()) {
@@ -135,11 +123,30 @@ AP4_Processor::ProcessFragments(AP4_MoovAtom*              moov,
     
         // process all the traf atoms
         AP4_Array<AP4_Processor::FragmentHandler*> handlers;
+        AP4_Array<AP4_FragmentSampleTable*> sample_tables;
         for (;AP4_Atom* atom = moof->GetChild(AP4_ATOM_TYPE_TRAF, handlers.ItemCount());) {
             AP4_ContainerAtom* traf = AP4_DYNAMIC_CAST(AP4_ContainerAtom, atom);
+            AP4_TfhdAtom* tfhd = AP4_DYNAMIC_CAST(AP4_TfhdAtom, traf->GetChild(AP4_ATOM_TYPE_TFHD));
+            
+            // create the handler for this traf
             AP4_Processor::FragmentHandler* handler = CreateFragmentHandler(traf);
-            if (handler) result = handler->ProcessFragment();
+            if (handler) {
+                result = handler->ProcessFragment();
+            } else {
+                result = AP4_ERROR_NOT_SUPPORTED;
+            }
+            if (AP4_FAILED(result)) return result;
             handlers.Append(handler);
+            
+            // create a sample table object so we can read the sample data
+            AP4_FragmentSampleTable* sample_table = NULL;
+            result = fragment->CreateSampleTable(moov, tfhd->GetTrackId(), &input, moof_offset, mdat_payload_offset, 0, sample_table);
+            if (AP4_FAILED(result)) return result;
+            sample_tables.Append(sample_table);
+            
+            // let the handler look at the samples before we process them
+            if (handler) result = handler->PrepareForSamples(sample_table);
+            if (AP4_FAILED(result)) return result;
         }
              
         // write the moof
@@ -156,7 +163,6 @@ AP4_Processor::ProcessFragments(AP4_MoovAtom*              moov,
 
         // process all track runs
         for (unsigned int i=0; i<handlers.ItemCount(); i++) {
-            AP4_FragmentSampleTable* sample_table = NULL;
             AP4_Processor::FragmentHandler* handler = handlers[i];
 
             // get the track ID
@@ -172,10 +178,6 @@ AP4_Processor::ProcessFragments(AP4_MoovAtom*              moov,
                 base_data_offset = moof_out_start;
             }
             
-            // create a sample table object so we can read the sample data
-            result = fragment->CreateSampleTable(moov, tfhd->GetTrackId(), &input, moof_offset, mdat_payload_offset, 0, sample_table);
-            if (AP4_FAILED(result)) return result;
-
             // build a list of all trun atoms
             AP4_Array<AP4_TrunAtom*> truns;
             for (AP4_List<AP4_Atom>::Item* traf_item = traf->GetChildren().FirstItem();
@@ -193,7 +195,7 @@ AP4_Processor::ProcessFragments(AP4_MoovAtom*              moov,
             trun->SetDataOffset((AP4_SI32)((mdat_out_start+mdat_size)-base_data_offset));
             
             // write the mdat
-            for (unsigned int j=0; j<sample_table->GetSampleCount(); j++, trun_sample_index++) {
+            for (unsigned int j=0; j<sample_tables[i]->GetSampleCount(); j++, trun_sample_index++) {
                 // advance the trun index if necessary
                 if (trun_sample_index >= trun->GetEntries().ItemCount()) {
                     trun = truns[++trun_index];
@@ -202,7 +204,7 @@ AP4_Processor::ProcessFragments(AP4_MoovAtom*              moov,
                 }
                 
                 // get the next sample
-                result = sample_table->GetSample(j, sample);
+                result = sample_tables[i]->GetSample(j, sample);
                 if (AP4_FAILED(result)) return result;
                 sample.ReadData(sample_data_in);
                 
@@ -242,8 +244,6 @@ AP4_Processor::ProcessFragments(AP4_MoovAtom*              moov,
                 // give the handler a chance to update the atoms
                 handler->FinishFragment();
             }
-            
-            delete sample_table;
         }
 
         // update the mdat header
@@ -283,6 +283,9 @@ AP4_Processor::ProcessFragments(AP4_MoovAtom*              moov,
         
         for (unsigned int i=0; i<handlers.ItemCount(); i++) {
             delete handlers[i];
+        }
+        for (unsigned int i=0; i<sample_tables.ItemCount(); i++) {
+            delete sample_tables[i];
         }
     }
      

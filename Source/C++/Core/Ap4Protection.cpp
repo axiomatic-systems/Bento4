@@ -47,6 +47,7 @@
 #include "Ap4OmaDcf.h"
 #include "Ap4Marlin.h"
 #include "Ap4Piff.h"
+#include "Ap4CommonEncryption.h"
 
 /*----------------------------------------------------------------------
 |   dynamic cast support
@@ -663,10 +664,11 @@ AP4_SampleDecrypter::Create(AP4_ProtectedSampleDescription* sample_description,
             return decrypter;
         }
 
-        case AP4_PROTECTION_SCHEME_TYPE_PIFF: {
-            AP4_PiffSampleDecrypter* decrypter = NULL;
-            AP4_Result result = AP4_PiffSampleDecrypter::Create(sample_description, 
-                                                                NULL,
+        case AP4_PROTECTION_SCHEME_TYPE_PIFF:
+        case AP4_PROTECTION_SCHEME_TYPE_CENC: {
+            AP4_CencSampleDecrypter* decrypter = NULL;
+            AP4_Result result = AP4_CencSampleDecrypter::Create(sample_description, 
+                                                                0,
                                                                 key, 
                                                                 key_size, 
                                                                 block_cipher_factory, 
@@ -700,9 +702,10 @@ AP4_SampleDecrypter::Create(AP4_ProtectedSampleDescription* sample_description,
     }
 
     switch(sample_description->GetSchemeType()) {
-        case AP4_PROTECTION_SCHEME_TYPE_PIFF: {
-            AP4_PiffSampleDecrypter* decrypter = NULL;
-            AP4_Result result = AP4_PiffSampleDecrypter::Create(sample_description, 
+        case AP4_PROTECTION_SCHEME_TYPE_PIFF: 
+        case AP4_PROTECTION_SCHEME_TYPE_CENC: {
+            AP4_CencSampleDecrypter* decrypter = NULL;
+            AP4_Result result = AP4_CencSampleDecrypter::Create(sample_description, 
                                                                 traf,
                                                                 key, 
                                                                 key_size, 

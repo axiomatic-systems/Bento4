@@ -52,7 +52,7 @@ PrintUsageAndExit()
         "\n\n"
         "usage: mp4encrypt --method <method> [options] <input> <output>\n"
         "  --method: <method> is OMA-PDCF-CBC, OMA-PDCF-CTR, MARLIN-IPMP-ACBC,\n"
-        "     MARLIN-IPMP-ACGK, ISMA-IAEC, PIFF-CBC or PIFF-CTR\n"
+        "     MARLIN-IPMP-ACGK, ISMA-IAEC, PIFF-CBC, PIFF-CTR, or MPEG-CENC\n"
         "  Options:\n"
         "  --show-progress: show progress details\n"
         "  --key <n>:<k>:<iv>\n"   
@@ -77,7 +77,7 @@ PrintUsageAndExit()
         "    the <iv> can be 64-bit or 128-bit\n"
         "    If the IV is specified as a 64-bit value, it will be padded with zeros.\n"
         "\n"
-        "    OMA-PDCF-CTR, ISMA-IAEC, PIFF-CTR: the <iv> should be a 64-bit\n"
+        "    OMA-PDCF-CTR, ISMA-IAEC, PIFF-CTR, MPEG-CENC: the <iv> should be a 64-bit\n"
         "    hex string. If a 128-bit value is supplied, it will be truncated\n"
         "    to 64-bit.\n"
         "\n"
@@ -86,9 +86,15 @@ PrintUsageAndExit()
         "      ContentId       -> the content ID for the track\n"
         "      RightsIssuerUrl -> the Rights Issuer URL\n"
         "\n"
+        "    MARLIN-IPMP-ACBC, MARLIN-IPMP-ACGK: The following properties are defined:\n"
+        "      ContentId -> the content ID for the track\n"
+        "\n"
         "    MARLIN-IPMP-ACGK: The group key is specified with --key where <n>\n"
         "    is 0. The <iv> part of the key must be present, but will be ignored;\n"
         "    It should therefore be set to 0000000000000000\n"
+        "\n"
+        "    MPEG-CENC, PIFF-CTR, PIFF-CBC: The following properties are defined:\n"
+        "    KID -> the value of KID, 16 bytes, in hexadecimal (32 characters)\n"
         );
     exit(1);
 }
@@ -104,6 +110,7 @@ enum Method {
     METHOD_MARLIN_IPMP_ACGK,
     METHOD_PIFF_CBC,
     METHOD_PIFF_CTR,
+    METHOD_MPEG_CENC,
     METHOD_ISMA_AES
 }; 
 
@@ -162,6 +169,8 @@ main(int argc, char** argv)
                 method = METHOD_PIFF_CBC;
             } else if (!strcmp(arg, "PIFF-CTR")) {
                 method = METHOD_PIFF_CTR;
+            } else if (!strcmp(arg, "MPEG-CENC")) {
+                method = METHOD_MPEG_CENC;
             } else if (!strcmp(arg, "ISMA-IAEC")) {
                 method = METHOD_ISMA_AES;
             } else {
@@ -236,6 +245,7 @@ main(int argc, char** argv)
                 case METHOD_OMA_PDCF_CTR:
                 case METHOD_ISMA_AES:
                 case METHOD_PIFF_CTR:
+                case METHOD_MPEG_CENC:
                     // truncate the IV
                     AP4_SetMemory(&iv[8], 0, 8);
                     break;
@@ -261,7 +271,8 @@ main(int argc, char** argv)
                 method != METHOD_MARLIN_IPMP_ACBC &&
                 method != METHOD_MARLIN_IPMP_ACGK &&
                 method != METHOD_PIFF_CBC         &&
-                method != METHOD_PIFF_CTR) {
+                method != METHOD_PIFF_CTR         &&
+                method != METHOD_MPEG_CENC) {
                 fprintf(stderr, "ERROR: this method does not use properties\n");
                 return 1;
             }
@@ -343,14 +354,29 @@ main(int argc, char** argv)
         oma_processor->GetPropertyMap().SetProperties(property_map);
         processor = oma_processor;
     } else if (method == METHOD_PIFF_CTR ||
-               method == METHOD_PIFF_CBC) {
-        AP4_PiffEncryptingProcessor* piff_processor = 
-        new AP4_PiffEncryptingProcessor(method == METHOD_PIFF_CTR?
-                                        AP4_PIFF_CIPHER_MODE_CTR :
-                                        AP4_PIFF_CIPHER_MODE_CBC);
-        piff_processor->GetKeyMap().SetKeys(key_map);
-        piff_processor->GetPropertyMap().SetProperties(property_map);
-        processor = piff_processor;
+               method == METHOD_PIFF_CBC ||
+               method == METHOD_MPEG_CENC) {
+        AP4_CencVariant variant = AP4_CENC_VARIANT_MPEG;
+        switch (method) {
+            case METHOD_PIFF_CBC:
+                variant = AP4_CENC_VARIANT_PIFF_CBC;
+                break;
+                
+            case METHOD_PIFF_CTR:
+                variant = AP4_CENC_VARIANT_PIFF_CTR;
+                break;
+                
+            case METHOD_MPEG_CENC:
+                variant = AP4_CENC_VARIANT_MPEG;
+                break;
+                
+            default:
+                break;
+        }
+        AP4_CencEncryptingProcessor* cenc_processor = new AP4_CencEncryptingProcessor(variant);
+        cenc_processor->GetKeyMap().SetKeys(key_map);
+        cenc_processor->GetPropertyMap().SetProperties(property_map);
+        processor = cenc_processor;
     }
     
     // create the input stream

@@ -102,7 +102,14 @@ CORE_SOURCES = 								\
     Ap4FragmentSampleTable.cpp              \
     Ap4Piff.cpp                             \
     Ap4TfraAtom.cpp                         \
-    Ap4MfroAtom.cpp							
+    Ap4MfroAtom.cpp							\
+    Ap4TfdtAtom.cpp							\
+    Ap4CommonEncryption.cpp					\
+    Ap4SaioAtom.cpp							\
+    Ap4SaizAtom.cpp							\
+    Ap4SencAtom.cpp							\
+    Ap4TencAtom.cpp							\
+    Ap4TfdtAtom.cpp
     
 
 CORE_OBJECTS=$(CORE_SOURCES:.cpp=.o)

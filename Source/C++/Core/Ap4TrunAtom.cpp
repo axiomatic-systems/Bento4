@@ -230,7 +230,7 @@ AP4_TrunAtom::InspectFields(AP4_AtomInspector& inspector)
         inspector.AddField("first sample flags", m_FirstSampleFlags, AP4_AtomInspector::HINT_HEX);
     }
     if (inspector.GetVerbosity() >= 1) {
-    AP4_UI32 sample_count = m_Entries.ItemCount();
+        AP4_UI32 sample_count = m_Entries.ItemCount();
         for (unsigned int i=0; i<sample_count; i++) {
             char header[32];
             AP4_FormatString(header, sizeof(header), "entry %04d", i);
