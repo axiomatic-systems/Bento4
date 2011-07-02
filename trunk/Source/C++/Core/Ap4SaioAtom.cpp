@@ -122,7 +122,7 @@ AP4_SaioAtom::WriteFields(AP4_ByteStream& stream)
     if (AP4_FAILED(result)) return result;
     for (unsigned int i=0; i<m_Entries.ItemCount(); i++) {
         if (m_Version == 0) {
-            result = stream.WriteUI32(m_Entries[i]);
+            result = stream.WriteUI32((AP4_UI32)m_Entries[i]);
             if (AP4_FAILED(result)) return result;
         } else {
             result = stream.WriteUI64(m_Entries[i]);
