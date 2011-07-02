@@ -37,7 +37,6 @@
 #include "Ap4Utils.h"
 #include "Ap4Processor.h"
 #include "Ap4Protection.h"
-#include "Ap4StreamCipher.h"
 
 /*----------------------------------------------------------------------
 |   class declarations
@@ -170,7 +169,7 @@ protected:
                              AP4_UI08        iv_size,
                              const AP4_UI08* kid);
     
-private:
+protected:
     // members
     AP4_Atom&      m_Outer;
     AP4_UI32       m_AlgorithmId;
@@ -390,10 +389,7 @@ public:
         m_SampleEncryptionAtom(sample_encryption_atom),
         m_SampleInfoTable(sample_info_table),
         m_SampleCursor(0) {}
-    virtual ~AP4_CencSampleDecrypter() {
-        delete m_Cipher;
-        delete m_SampleInfoTable;
-    }
+    virtual ~AP4_CencSampleDecrypter();
     virtual AP4_Result SetSampleIndex(AP4_Ordinal sample_index);
     virtual AP4_Result DecryptSampleData(AP4_DataBuffer& data_in,
                                          AP4_DataBuffer& data_out,

@@ -87,7 +87,7 @@ AP4_TfdtAtom::WriteFields(AP4_ByteStream& stream)
     AP4_Result result;
     
     if (m_Version == 0) {
-        result = stream.WriteUI32(m_BaseMediaDecodeTime);
+        result = stream.WriteUI32((AP4_UI32)m_BaseMediaDecodeTime);
     } else if (m_Version == 1) {
         result = stream.WriteUI64(m_BaseMediaDecodeTime);
     } else {

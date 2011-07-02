@@ -574,6 +574,10 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath="..\..\..\..\Source\C++\Core\Ap4.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\Source\C++\Core\Ap48bdlAtom.cpp"
 				>
 			</File>
@@ -619,6 +623,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\..\Source\C++\Core\Ap4CommandFactory.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\Source\C++\Core\Ap4CommonEncryption.cpp"
 				>
 			</File>
 			<File
@@ -854,6 +862,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\..\Source\C++\Core\Ap4SaioAtom.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\Source\C++\Core\Ap4SaizAtom.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\Source\C++\Core\Ap4Sample.cpp"
 				>
 			</File>
@@ -879,6 +895,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\..\Source\C++\Core\Ap4SdpAtom.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\Source\C++\Core\Ap4SencAtom.cpp"
 				>
 			</File>
 			<File
@@ -931,6 +951,14 @@
 			</File>
 			<File
 				RelativePath="..\..\..\..\Source\C++\Core\Ap4SyntheticSampleTable.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\Source\C++\Core\Ap4TencAtom.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\Source\C++\Core\Ap4TfdtAtom.cpp"
 				>
 			</File>
 			<File
@@ -1045,6 +1073,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\..\Source\C++\Core\Ap4CommandFactory.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\Source\C++\Core\Ap4CommonEncryption.h"
 				>
 			</File>
 			<File
@@ -1304,6 +1336,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\..\Source\C++\Core\Ap4SaioAtom.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\Source\C++\Core\Ap4SaizAtom.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\Source\C++\Core\Ap4Sample.h"
 				>
 			</File>
@@ -1329,6 +1369,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\..\Source\C++\Core\Ap4SdpAtom.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\Source\C++\Core\Ap4SencAtom.h"
 				>
 			</File>
 			<File
@@ -1372,7 +1416,19 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\..\Source\C++\Core\Ap4Stz2Atom.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\Source\C++\Core\Ap4SyntheticSampleTable.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\Source\C++\Core\Ap4TencAtom.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\Source\C++\Core\Ap4TfdtAtom.h"
 				>
 			</File>
 			<File

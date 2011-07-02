@@ -205,9 +205,8 @@ public:
         AP4_String m_Language;
     };
     
-    class KeyInfo {
-    public:
-        // members
+    struct KeyInfo {
+		// members
         const char* name;
         const char* description;
         AP4_UI32    four_cc;

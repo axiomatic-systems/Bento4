@@ -44,6 +44,7 @@
 #include "Ap4SaizAtom.h"
 #include "Ap4SaioAtom.h"
 #include "Ap4Piff.h"
+#include "Ap4StreamCipher.h"
 
 /*----------------------------------------------------------------------
 |   AP4_CencSampleEncrypter::~AP4_CencSampleEncrypter
@@ -1040,7 +1041,17 @@ AP4_CencSampleDecrypter::Create(AP4_ProtectedSampleDescription* sample_descripti
 
     return AP4_SUCCESS;
 }
-       
+
+/*----------------------------------------------------------------------
+|   AP4_CencSampleDecrypter::~AP4_CencSampleDecrypter
++---------------------------------------------------------------------*/
+AP4_CencSampleDecrypter::~AP4_CencSampleDecrypter()
+{
+	delete m_SampleEncryptionAtom;
+	delete m_SampleInfoTable;
+	delete m_Cipher;
+}
+
 /*----------------------------------------------------------------------
 |   AP4_CencSampleDecrypter::SetSampleIndex
 +---------------------------------------------------------------------*/
@@ -1118,8 +1129,6 @@ AP4_CencSampleDecrypter::DecryptSampleData(AP4_DataBuffer& data_in,
     
     return AP4_SUCCESS;
 }
-
-
 
 /*----------------------------------------------------------------------
 |   AP4_CencTrackDecrypter
