@@ -315,14 +315,12 @@ AP4_MarlinIpmpParser::Parse(AP4_AtomParent&      top_level,
     }
     
     // get rid of entries that have no SINF
-    for (AP4_List<SinfEntry>::Item* sinf_entry_item = sinf_entries.FirstItem();
-                                    sinf_entry_item;
-                                    sinf_entry_item = sinf_entry_item->GetNext()) {
+    AP4_List<SinfEntry>::Item* sinf_entry_item = sinf_entries.FirstItem();
+    while (sinf_entry_item) {
         SinfEntry* sinf_entry = sinf_entry_item->GetData();
+        sinf_entry_item = sinf_entry_item->GetNext();
         if (sinf_entry->m_Sinf == NULL) {
             sinf_entries.Remove(sinf_entry);
-            sinf_entry_item = sinf_entries.FirstItem();
-            continue;
         }
     }
     
