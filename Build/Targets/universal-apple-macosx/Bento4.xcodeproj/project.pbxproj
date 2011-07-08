@@ -3277,6 +3277,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				PRODUCT_NAME = Bento4;
+				SUPPORTED_PLATFORMS = "macosx iphoneos iphonesimulator";
 			};
 			name = Debug;
 		};
@@ -3284,6 +3285,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				PRODUCT_NAME = Bento4;
+				SUPPORTED_PLATFORMS = "macosx iphoneos iphonesimulator";
 			};
 			name = Release;
 		};
@@ -3307,6 +3309,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				ONLY_ACTIVE_ARCH = NO;
 				PREBINDING = NO;
+				SUPPORTED_PLATFORMS = "macosx iphoneos iphonesimulator";
 				VALID_ARCHS = "i386 ppc x86_64 armv6 armv7";
 			};
 			name = Debug;
@@ -3327,6 +3330,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				ONLY_ACTIVE_ARCH = NO;
 				PREBINDING = NO;
+				SUPPORTED_PLATFORMS = "macosx iphoneos iphonesimulator";
 				VALID_ARCHS = "i386 ppc x86_64 armv6 armv7";
 			};
 			name = Release;
@@ -3865,6 +3869,7 @@
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				PRODUCT_NAME = Bento4C;
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Debug;
 		};
@@ -3875,6 +3880,7 @@
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				PRODUCT_NAME = Bento4C;
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Release;
 		};
