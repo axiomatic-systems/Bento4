@@ -1251,7 +1251,7 @@ main(int argc, char** argv)
             printf("Found %d Tracks\n", tracks.ItemCount());
         }
 
-        if (ftyp->GetMajorBrand() == AP4_MARLIN_BRAND_MGSV) {
+        if (ftyp && ftyp->GetMajorBrand() == AP4_MARLIN_BRAND_MGSV) {
             ShowMarlinTracks(*file, *input, tracks, show_samples, show_sample_data, verbose);
         } else {
             ShowTracks(tracks, show_samples, show_sample_data, verbose);
