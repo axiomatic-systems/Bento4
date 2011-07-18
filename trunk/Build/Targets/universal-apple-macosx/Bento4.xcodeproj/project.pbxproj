@@ -13,7 +13,6 @@
 			buildPhases = (
 			);
 			dependencies = (
-				CA6103E812859C960039C7E6 /* PBXTargetDependency */,
 				CA399CA410A3488B0085284B /* PBXTargetDependency */,
 				CA3185611087EED3002B38A8 /* PBXTargetDependency */,
 				CA00667F101539BF004C0D5F /* PBXTargetDependency */,
@@ -21,6 +20,7 @@
 				CA646AC90CE97C4E009699D7 /* PBXTargetDependency */,
 				CA646B710CE97EE1009699D7 /* PBXTargetDependency */,
 				CA646B730CE97EE1009699D7 /* PBXTargetDependency */,
+				CA6103E812859C960039C7E6 /* PBXTargetDependency */,
 				CA0D91A50E25830F005667F1 /* PBXTargetDependency */,
 				CA646B750CE97EE1009699D7 /* PBXTargetDependency */,
 				CA646B770CE97EE1009699D7 /* PBXTargetDependency */,

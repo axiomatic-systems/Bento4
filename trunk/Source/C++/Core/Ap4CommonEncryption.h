@@ -383,9 +383,11 @@ public:
 
     // methods
     AP4_CencSampleDecrypter(AP4_StreamCipher*         cipher,
+                            bool                      full_blocks_only,
                             AP4_CencSampleEncryption* sample_encryption_atom,
                             AP4_CencSampleInfoTable*  sample_info_table) :
         m_Cipher(cipher),
+        m_FullBlocksOnly(full_blocks_only),
         m_SampleEncryptionAtom(sample_encryption_atom),
         m_SampleInfoTable(sample_info_table),
         m_SampleCursor(0) {}
@@ -402,6 +404,7 @@ public:
     
 protected:
     AP4_StreamCipher*         m_Cipher;    
+    bool                      m_FullBlocksOnly;
     AP4_CencSampleEncryption* m_SampleEncryptionAtom;
     AP4_CencSampleInfoTable*  m_SampleInfoTable;
     AP4_Ordinal               m_SampleCursor;
