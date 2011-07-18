@@ -910,7 +910,6 @@ AP4_CencSampleDecrypter::Create(AP4_ProtectedSampleDescription* sample_descripti
 {
     // check the parameters
     if (key == NULL) return AP4_ERROR_INVALID_PARAMETERS;
-    if (traf == NULL) return AP4_ERROR_NOT_SUPPORTED;
     
     // use the default cipher factory if  none was passed
     if (block_cipher_factory == NULL) block_cipher_factory = &AP4_DefaultBlockCipherFactory::Instance;
@@ -948,11 +947,13 @@ AP4_CencSampleDecrypter::Create(AP4_ProtectedSampleDescription* sample_descripti
     AP4_CencSampleEncryption* sample_encryption_atom = NULL;
     
     // look for a sample encryption atom
-    sample_encryption_atom = AP4_DYNAMIC_CAST(AP4_SencAtom, traf->GetChild(AP4_ATOM_TYPE_SENC));
-    if (sample_encryption_atom == NULL) {
-        sample_encryption_atom = AP4_DYNAMIC_CAST(AP4_PiffSampleEncryptionAtom, traf->GetChild(AP4_UUID_PIFF_SAMPLE_ENCRYPTION_ATOM));
+    if (traf) {
+        sample_encryption_atom = AP4_DYNAMIC_CAST(AP4_SencAtom, traf->GetChild(AP4_ATOM_TYPE_SENC));
+        if (sample_encryption_atom == NULL) {
+            sample_encryption_atom = AP4_DYNAMIC_CAST(AP4_PiffSampleEncryptionAtom, traf->GetChild(AP4_UUID_PIFF_SAMPLE_ENCRYPTION_ATOM));
+        }
     }
-
+    
     // create the block cipher needed to decrypt the samples
     AP4_UI32     algorithm_id;
     unsigned int iv_size;
@@ -967,14 +968,16 @@ AP4_CencSampleDecrypter::Create(AP4_ProtectedSampleDescription* sample_descripti
     }
 
     // try to create a sample info table from saio/saiz
-    AP4_SaioAtom* saio = AP4_DYNAMIC_CAST(AP4_SaioAtom, traf->GetChild(AP4_ATOM_TYPE_SAIO));
-    AP4_SaizAtom* saiz = AP4_DYNAMIC_CAST(AP4_SaizAtom, traf->GetChild(AP4_ATOM_TYPE_SAIZ));
-    if (saio && saiz) {
-        //AP4_Result result = AP4_CencSampleInfoTable::Create(iv_size, 
-        //                                                    *saio, 
-        //                                                    *saiz, 
-        //                                                    sample_info_table);
-        //if (AP4_FAILED(result)) return result;
+    if (traf) {
+        AP4_SaioAtom* saio = AP4_DYNAMIC_CAST(AP4_SaioAtom, traf->GetChild(AP4_ATOM_TYPE_SAIO));
+        AP4_SaizAtom* saiz = AP4_DYNAMIC_CAST(AP4_SaizAtom, traf->GetChild(AP4_ATOM_TYPE_SAIZ));
+        if (saio && saiz) {
+            //AP4_Result result = AP4_CencSampleInfoTable::Create(iv_size, 
+            //                                                    *saio, 
+            //                                                    *saiz, 
+            //                                                    sample_info_table);
+            //if (AP4_FAILED(result)) return result;
+        }
     }
     
     if (sample_info_table == NULL && sample_encryption_atom) {
@@ -982,8 +985,9 @@ AP4_CencSampleDecrypter::Create(AP4_ProtectedSampleDescription* sample_descripti
         if (AP4_FAILED(result)) return result;
     }
 
-    if (sample_info_table == NULL) return AP4_ERROR_INVALID_FORMAT;
+    //if (sample_info_table == NULL) return AP4_ERROR_INVALID_FORMAT;
     AP4_StreamCipher* stream_cipher = NULL;
+    bool              full_blocks_only = false;
     switch (algorithm_id) {
         case AP4_CENC_ALGORITHM_ID_NONE:
             break;
@@ -1027,6 +1031,9 @@ AP4_CencSampleDecrypter::Create(AP4_ProtectedSampleDescription* sample_descripti
 
                 // create the stream cipher
                 stream_cipher = new AP4_CbcStreamCipher(block_cipher);
+                
+                // with CBC, we only use full blocks
+                full_blocks_only = true;
             }
             break;
             
@@ -1036,6 +1043,7 @@ AP4_CencSampleDecrypter::Create(AP4_ProtectedSampleDescription* sample_descripti
 
     // create the decrypter
     decrypter = new AP4_CencSampleDecrypter(stream_cipher, 
+                                            full_blocks_only,
                                             sample_encryption_atom,
                                             sample_info_table);                    
 
@@ -1047,7 +1055,6 @@ AP4_CencSampleDecrypter::Create(AP4_ProtectedSampleDescription* sample_descripti
 +---------------------------------------------------------------------*/
 AP4_CencSampleDecrypter::~AP4_CencSampleDecrypter()
 {
-	delete m_SampleEncryptionAtom;
 	delete m_SampleInfoTable;
 	delete m_Cipher;
 }
@@ -1122,9 +1129,27 @@ AP4_CencSampleDecrypter::DecryptSampleData(AP4_DataBuffer& data_in,
             out += cleartext_size+encrypted_size;
         }
     } else {
-        // process the entire sample data at once
-        AP4_Size encrypted_size = data_in.GetDataSize();
-        m_Cipher->ProcessBuffer(in, encrypted_size, out, &encrypted_size, false);
+        if (m_FullBlocksOnly) {
+            unsigned int block_count = data_in.GetDataSize()/16;
+            if (block_count) {
+                AP4_Size out_size = data_out.GetDataSize();
+                AP4_Result result = m_Cipher->ProcessBuffer(in, block_count*16, out, &out_size, false);
+                if (AP4_FAILED(result)) return result;
+                AP4_ASSERT(out_size == block_count*16);
+                in  += block_count*16;
+                out += block_count*16;
+            }
+            
+            // any partial block at the end remains in the clear
+            unsigned int partial = data_in.GetDataSize()%16;
+            if (partial) {
+                AP4_CopyMemory(out, in, partial);
+            }        
+        } else {
+            // process the entire sample data at once
+            AP4_Size encrypted_size = data_in.GetDataSize();
+            m_Cipher->ProcessBuffer(in, encrypted_size, out, &encrypted_size, false);
+        }
     }
     
     return AP4_SUCCESS;
