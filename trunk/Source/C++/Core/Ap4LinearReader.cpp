@@ -357,10 +357,11 @@ AP4_LinearReader::ReadNextSample(AP4_UI32        track_id,
     Tracker* tracker = FindTracker(track_id);
     if (tracker == NULL) return AP4_ERROR_INVALID_PARAMETERS;
     for(;;) {
-        if (tracker->m_Eos) return AP4_ERROR_EOS;
-
         // pop a sample if we can
         if (PopSample(tracker, sample, sample_data)) return AP4_SUCCESS;
+
+        // don't continue if we've reached the end of that tracker
+        if (tracker->m_Eos) return AP4_ERROR_EOS;
 
         AP4_Result result = Advance();
         if (AP4_FAILED(result)) return result;

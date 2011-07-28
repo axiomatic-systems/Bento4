@@ -262,6 +262,7 @@
 #include "Ap4StscAtom.h"
 #include "Ap4StcoAtom.h"
 #include "Ap4StszAtom.h"
+#include "Ap4Stz2Atom.h"
 #include "Ap4EsdsAtom.h"
 #include "Ap4SttsAtom.h"
 #include "Ap4CttsAtom.h"
