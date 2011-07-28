@@ -70,6 +70,8 @@
 /* Begin PBXBuildFile section */
 		CA00667910153960004C0D5F /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
 		CA00667D1015399A004C0D5F /* Mp42Ts.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA00667C1015399A004C0D5F /* Mp42Ts.cpp */; };
+		CA00CB8713D9F1EC00C1A140 /* Mp4Compact.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA00CB8613D9F1EC00C1A140 /* Mp4Compact.cpp */; };
+		CA00CB8A13D9F29E00C1A140 /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
 		CA04DFDE1040921500AD5863 /* Ap4KeyWrap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA04DFDC1040921500AD5863 /* Ap4KeyWrap.cpp */; };
 		CA04DFDF1040921500AD5863 /* Ap4KeyWrap.h in Headers */ = {isa = PBXBuildFile; fileRef = CA04DFDD1040921500AD5863 /* Ap4KeyWrap.h */; };
 		CA09F27F0DF62FC600C2B2DA /* Ap4Marlin.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA09F27D0DF62FC600C2B2DA /* Ap4Marlin.cpp */; };
@@ -373,6 +375,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = CA00667210153951004C0D5F;
 			remoteInfo = Mp42Ts;
+		};
+		CA00CB8813D9F29100C1A140 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D2AAC045055464E500DB518D;
+			remoteInfo = Bento4;
 		};
 		CA0D91A40E25830F005667F1 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -754,9 +763,25 @@
 		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		CA00CB7A13D9F13B00C1A140 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		CA00667310153951004C0D5F /* mp42ts */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mp42ts; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA00667C1015399A004C0D5F /* Mp42Ts.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Mp42Ts.cpp; sourceTree = "<group>"; };
+		CA00CB7C13D9F13B00C1A140 /* Mp4Compact */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Mp4Compact; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA00CB7F13D9F13B00C1A140 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		CA00CB8113D9F13B00C1A140 /* Mp4Compact.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = Mp4Compact.1; sourceTree = "<group>"; };
+		CA00CB8613D9F1EC00C1A140 /* Mp4Compact.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Mp4Compact.cpp; sourceTree = "<group>"; };
 		CA04DFDC1040921500AD5863 /* Ap4KeyWrap.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4KeyWrap.cpp; sourceTree = "<group>"; };
 		CA04DFDD1040921500AD5863 /* Ap4KeyWrap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4KeyWrap.h; sourceTree = "<group>"; };
 		CA09F27D0DF62FC600C2B2DA /* Ap4Marlin.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4Marlin.cpp; sourceTree = "<group>"; };
@@ -1059,6 +1084,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		CA00CB7913D9F13B00C1A140 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CA00CB8A13D9F29E00C1A140 /* libBento4.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		CA2E6A391087E09200F837E2 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -1294,10 +1327,12 @@
 		08FB7794FE84155DC02AAC07 /* Bento4 */ = {
 			isa = PBXGroup;
 			children = (
+				D2AAC046055464E500DB518D /* libBento4.a */,
 				08FB7795FE84155DC02AAC07 /* Runtime */,
 				CA646A860CE97B2D009699D7 /* Apps */,
 				CA646A9B0CE97B51009699D7 /* Test */,
 				C6A0FF2B0290797F04C91782 /* Documentation */,
+				CA00CB7E13D9F13B00C1A140 /* Mp4Compact */,
 				1AB674ADFE9D54B511CA2CBB /* Products */,
 			);
 			name = Bento4;
@@ -1321,7 +1356,6 @@
 		1AB674ADFE9D54B511CA2CBB /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				D2AAC046055464E500DB518D /* libBento4.a */,
 				CA646ABB0CE97BFD009699D7 /* mp4dump */,
 				CA646AD50CE97C80009699D7 /* mp4info */,
 				CA646AEA0CE97CD2009699D7 /* mp4encrypt */,
@@ -1351,6 +1385,7 @@
 				CA399C9810A3475E0085284B /* aac2mp4 */,
 				CA6103D61285988E0039C7E6 /* mp4fragment */,
 				CAC02A0C139DBA350034427F /* mp4split */,
+				CA00CB7C13D9F13B00C1A140 /* Mp4Compact */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1368,6 +1403,23 @@
 				CA00667C1015399A004C0D5F /* Mp42Ts.cpp */,
 			);
 			path = Mp42Ts;
+			sourceTree = "<group>";
+		};
+		CA00CB7E13D9F13B00C1A140 /* Mp4Compact */ = {
+			isa = PBXGroup;
+			children = (
+				CA00CB7F13D9F13B00C1A140 /* main.cpp */,
+				CA00CB8113D9F13B00C1A140 /* Mp4Compact.1 */,
+			);
+			path = Mp4Compact;
+			sourceTree = "<group>";
+		};
+		CA00CB8513D9F1EC00C1A140 /* Mp4Compact */ = {
+			isa = PBXGroup;
+			children = (
+				CA00CB8613D9F1EC00C1A140 /* Mp4Compact.cpp */,
+			);
+			path = Mp4Compact;
 			sourceTree = "<group>";
 		};
 		CA2E6A361087E07C00F837E2 /* Mp42Avc */ = {
@@ -1413,7 +1465,6 @@
 		CA646A860CE97B2D009699D7 /* Apps */ = {
 			isa = PBXGroup;
 			children = (
-				CAC02A17139DBA6F0034427F /* Mp4Split */,
 				CA3EDA780D7E0B6B007AE943 /* AvcInfo */,
 				CA646A870CE97B2D009699D7 /* Aac2Mp4 */,
 				CA646A890CE97B2D009699D7 /* Mp42Aac */,
@@ -1429,6 +1480,8 @@
 				CA646A950CE97B2D009699D7 /* Mp4Info */,
 				CA646A970CE97B2D009699D7 /* Mp4RtpHintInfo */,
 				CA646A990CE97B2D009699D7 /* Mp4Tag */,
+				CAC02A17139DBA6F0034427F /* Mp4Split */,
+				CA00CB8513D9F1EC00C1A140 /* Mp4Compact */,
 			);
 			name = Apps;
 			path = "../../../Source/C++/Apps";
@@ -2084,6 +2137,24 @@
 			productReference = CA00667310153951004C0D5F /* mp42ts */;
 			productType = "com.apple.product-type.tool";
 		};
+		CA00CB7B13D9F13B00C1A140 /* Mp4Compact */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CA00CB8213D9F13B00C1A140 /* Build configuration list for PBXNativeTarget "Mp4Compact" */;
+			buildPhases = (
+				CA00CB7813D9F13B00C1A140 /* Sources */,
+				CA00CB7913D9F13B00C1A140 /* Frameworks */,
+				CA00CB7A13D9F13B00C1A140 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CA00CB8913D9F29100C1A140 /* PBXTargetDependency */,
+			);
+			name = Mp4Compact;
+			productName = Mp4Compact;
+			productReference = CA00CB7C13D9F13B00C1A140 /* Mp4Compact */;
+			productType = "com.apple.product-type.tool";
+		};
 		CA2E6A3A1087E09200F837E2 /* Mp42Avc */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = CA2E6A441087E0DB00F837E2 /* Build configuration list for PBXNativeTarget "Mp42Avc" */;
@@ -2615,6 +2686,7 @@
 				CA646B200CE97DD1009699D7 /* Mp4Tag */,
 				CA6103D51285988E0039C7E6 /* Mp4Fragment */,
 				CAC02A0B139DBA350034427F /* Mp4Split */,
+				CA00CB7B13D9F13B00C1A140 /* Mp4Compact */,
 				CA646B400CE97E27009699D7 /* Mp42Aac */,
 				CA2E6A3A1087E09200F837E2 /* Mp42Avc */,
 				CA00667210153951004C0D5F /* Mp42Ts */,
@@ -2641,6 +2713,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				CA00667D1015399A004C0D5F /* Mp42Ts.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CA00CB7813D9F13B00C1A140 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CA00CB8713D9F1EC00C1A140 /* Mp4Compact.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3000,6 +3080,11 @@
 			target = CA00667210153951004C0D5F /* Mp42Ts */;
 			targetProxy = CA00667E101539BF004C0D5F /* PBXContainerItemProxy */;
 		};
+		CA00CB8913D9F29100C1A140 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D2AAC045055464E500DB518D /* Bento4 */;
+			targetProxy = CA00CB8813D9F29100C1A140 /* PBXContainerItemProxy */;
+		};
 		CA0D91A50E25830F005667F1 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = CA44C5290D46375F00173F5F /* Mp4DcfPackager */;
@@ -3346,6 +3431,34 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				PRODUCT_NAME = mp42ts;
+			};
+			name = Release;
+		};
+		CA00CB8313D9F13B00C1A140 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COPY_PHASE_STRIP = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = DEBUG;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = mp4compact;
+			};
+			name = Debug;
+		};
+		CA00CB8413D9F13B00C1A140 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				PRODUCT_NAME = mp4compact;
 			};
 			name = Release;
 		};
@@ -3913,6 +4026,14 @@
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
+		};
+		CA00CB8213D9F13B00C1A140 /* Build configuration list for PBXNativeTarget "Mp4Compact" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CA00CB8313D9F13B00C1A140 /* Debug */,
+				CA00CB8413D9F13B00C1A140 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
 		};
 		CA2E6A441087E0DB00F837E2 /* Build configuration list for PBXNativeTarget "Mp42Avc" */ = {
 			isa = XCConfigurationList;
