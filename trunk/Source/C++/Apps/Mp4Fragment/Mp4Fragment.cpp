@@ -490,7 +490,7 @@ main(int argc, char** argv)
     
     // check the file for basic properties
     if (input_file.GetMovie() == NULL) {
-        fprintf(stderr, "ERROR: no movie found in the file\n", result);
+        fprintf(stderr, "ERROR: no movie found in the file\n");
         return 1;
     }
     if (input_file.GetMovie()->HasFragments()) {
