@@ -327,7 +327,7 @@ Fragment(AP4_File& input_file, AP4_ByteStream& output_stream, unsigned int fragm
                 
         // update moof and children
         trun->SetEntries(trun_entries);
-        trun->SetDataOffset(moof->GetSize()+AP4_ATOM_HEADER_SIZE);
+        trun->SetDataOffset((AP4_UI32)moof->GetSize()+AP4_ATOM_HEADER_SIZE);
         
         // write moof
         moof->Write(output_stream);
