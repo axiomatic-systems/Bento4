@@ -69,6 +69,8 @@ typedef enum {
 +---------------------------------------------------------------------*/
 class AP4_CencTrackEncryption {
 public:
+    AP4_IMPLEMENT_DYNAMIC_CAST(AP4_CencTrackEncryption)
+    
     virtual ~AP4_CencTrackEncryption() {}
     
     // methods
@@ -142,6 +144,8 @@ private:
 +---------------------------------------------------------------------*/
 class AP4_CencSampleEncryption {
 public:
+    AP4_IMPLEMENT_DYNAMIC_CAST(AP4_CencSampleEncryption)
+
     virtual ~AP4_CencSampleEncryption() {}
 
     // methods
