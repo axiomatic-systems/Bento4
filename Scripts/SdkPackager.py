@@ -6,7 +6,7 @@
 #
 #      Original author:  Gilles Boccon-Gibod
 #
-#      Copyright (c) 2009 by Axiomatic Systems, LLC. All rights reserved.
+#      Copyright (c) 2009-2011 by Axiomatic Systems, LLC. All rights reserved.
 #
 #######################################################################
 
@@ -158,6 +158,9 @@ multi_config_files = [
     (SDK_TARGET_DIR,'mp4edit','bin'),
     (SDK_TARGET_DIR,'mp4encrypt','bin'),
     (SDK_TARGET_DIR,'mp4extract','bin'),
+    (SDK_TARGET_DIR,'mp4fragment','bin'),
+    (SDK_TARGET_DIR,'mp4split','bin'),
+    (SDK_TARGET_DIR,'mp4compact','bin'),
     (SDK_TARGET_DIR,'mp4info','bin'),
     (SDK_TARGET_DIR,'mp4rtphintinfo','bin'),
     (SDK_TARGET_DIR,'mp4tag','bin'),
