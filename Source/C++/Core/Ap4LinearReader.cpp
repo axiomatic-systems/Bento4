@@ -258,8 +258,6 @@ AP4_LinearReader::Advance()
             if (tracker->m_NextSample == NULL) {
                 if (tracker->m_NextSampleIndex >= tracker->m_SampleTable->GetSampleCount()) {
                     if (!m_HasFragments) tracker->m_Eos = true;
-                    if (tracker->m_SampleTableIsOwned) delete tracker->m_SampleTable;
-                    tracker->m_SampleTable = NULL;
                     continue;
                 }
                 tracker->m_NextSample = new AP4_Sample();

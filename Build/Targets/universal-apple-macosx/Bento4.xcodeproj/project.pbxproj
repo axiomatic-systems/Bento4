@@ -778,7 +778,7 @@
 /* Begin PBXFileReference section */
 		CA00667310153951004C0D5F /* mp42ts */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mp42ts; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA00667C1015399A004C0D5F /* Mp42Ts.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Mp42Ts.cpp; sourceTree = "<group>"; };
-		CA00CB7C13D9F13B00C1A140 /* Mp4Compact */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Mp4Compact; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA00CB7C13D9F13B00C1A140 /* mp4compact */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mp4compact; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA00CB7F13D9F13B00C1A140 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		CA00CB8113D9F13B00C1A140 /* Mp4Compact.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = Mp4Compact.1; sourceTree = "<group>"; };
 		CA00CB8613D9F1EC00C1A140 /* Mp4Compact.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Mp4Compact.cpp; sourceTree = "<group>"; };
@@ -1385,7 +1385,7 @@
 				CA399C9810A3475E0085284B /* aac2mp4 */,
 				CA6103D61285988E0039C7E6 /* mp4fragment */,
 				CAC02A0C139DBA350034427F /* mp4split */,
-				CA00CB7C13D9F13B00C1A140 /* Mp4Compact */,
+				CA00CB7C13D9F13B00C1A140 /* mp4compact */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -2152,7 +2152,7 @@
 			);
 			name = Mp4Compact;
 			productName = Mp4Compact;
-			productReference = CA00CB7C13D9F13B00C1A140 /* Mp4Compact */;
+			productReference = CA00CB7C13D9F13B00C1A140 /* mp4compact */;
 			productType = "com.apple.product-type.tool";
 		};
 		CA2E6A3A1087E09200F837E2 /* Mp42Avc */ = {
@@ -4034,6 +4034,7 @@
 				CA00CB8413D9F13B00C1A140 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		CA2E6A441087E0DB00F837E2 /* Build configuration list for PBXNativeTarget "Mp42Avc" */ = {
 			isa = XCConfigurationList;
