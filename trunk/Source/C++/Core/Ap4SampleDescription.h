@@ -150,14 +150,15 @@ class AP4_AudioSampleDescription
 public:
     AP4_IMPLEMENT_DYNAMIC_CAST(AP4_AudioSampleDescription)
 
-    // constructor
+    // constructor and destructor
     AP4_AudioSampleDescription(unsigned int sample_rate,
                                unsigned int sample_size,
                                unsigned int channel_count) :
     m_SampleRate(sample_rate),
     m_SampleSize(sample_size),
     m_ChannelCount(channel_count) {}
-
+    virtual ~AP4_AudioSampleDescription() {}
+    
     // accessors
     AP4_UI32 GetSampleRate()   { return m_SampleRate;   }
     AP4_UI16 GetSampleSize()   { return m_SampleSize;   }
@@ -178,7 +179,7 @@ class AP4_VideoSampleDescription
 public:
     AP4_IMPLEMENT_DYNAMIC_CAST(AP4_VideoSampleDescription)
 
-    // constructor
+    // constructor and destructor
     AP4_VideoSampleDescription(AP4_UI16    width,
                                AP4_UI16    height,
                                AP4_UI16    depth,
@@ -187,6 +188,7 @@ public:
     m_Height(height),
     m_Depth(depth),
     m_CompressorName(compressor_name) {}
+    virtual ~AP4_VideoSampleDescription() {}
 
     // accessors
     AP4_UI16    GetWidth()          { return m_Width;  }
