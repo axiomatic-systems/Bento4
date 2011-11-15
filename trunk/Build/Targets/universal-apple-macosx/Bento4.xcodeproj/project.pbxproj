@@ -82,6 +82,8 @@
 		CA1221CF0CA7192B000BEEF6 /* Ap4FileCopier.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA1221CD0CA7192B000BEEF6 /* Ap4FileCopier.cpp */; };
 		CA1221D00CA7192B000BEEF6 /* Ap4FileCopier.h in Headers */ = {isa = PBXBuildFile; fileRef = CA1221CE0CA7192B000BEEF6 /* Ap4FileCopier.h */; };
 		CA15CC33107DCEEF0085F329 /* Ap4SampleSource.h in Headers */ = {isa = PBXBuildFile; fileRef = CA15CC32107DCEEF0085F329 /* Ap4SampleSource.h */; };
+		CA15E16D1467D01A00D4EC8B /* Ap4PdinAtom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA15E16B1467D01A00D4EC8B /* Ap4PdinAtom.cpp */; };
+		CA15E16E1467D01A00D4EC8B /* Ap4PdinAtom.h in Headers */ = {isa = PBXBuildFile; fileRef = CA15E16C1467D01A00D4EC8B /* Ap4PdinAtom.h */; };
 		CA28981A0D87DA81006A758B /* Ap4UuidAtom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA2898180D87DA81006A758B /* Ap4UuidAtom.cpp */; };
 		CA28981B0D87DA81006A758B /* Ap4UuidAtom.h in Headers */ = {isa = PBXBuildFile; fileRef = CA2898190D87DA81006A758B /* Ap4UuidAtom.h */; };
 		CA2898860D8979B0006A758B /* Ap4ObjectDescriptor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA2898840D8979B0006A758B /* Ap4ObjectDescriptor.cpp */; };
@@ -795,8 +797,6 @@
 		CA00667310153951004C0D5F /* mp42ts */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mp42ts; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA00667C1015399A004C0D5F /* Mp42Ts.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Mp42Ts.cpp; sourceTree = "<group>"; };
 		CA00CB7C13D9F13B00C1A140 /* mp4compact */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mp4compact; sourceTree = BUILT_PRODUCTS_DIR; };
-		CA00CB7F13D9F13B00C1A140 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
-		CA00CB8113D9F13B00C1A140 /* Mp4Compact.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = Mp4Compact.1; sourceTree = "<group>"; };
 		CA00CB8613D9F1EC00C1A140 /* Mp4Compact.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Mp4Compact.cpp; sourceTree = "<group>"; };
 		CA04DFDC1040921500AD5863 /* Ap4KeyWrap.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4KeyWrap.cpp; sourceTree = "<group>"; };
 		CA04DFDD1040921500AD5863 /* Ap4KeyWrap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4KeyWrap.h; sourceTree = "<group>"; };
@@ -806,6 +806,8 @@
 		CA1221CD0CA7192B000BEEF6 /* Ap4FileCopier.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4FileCopier.cpp; sourceTree = "<group>"; };
 		CA1221CE0CA7192B000BEEF6 /* Ap4FileCopier.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = Ap4FileCopier.h; sourceTree = "<group>"; };
 		CA15CC32107DCEEF0085F329 /* Ap4SampleSource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4SampleSource.h; sourceTree = "<group>"; };
+		CA15E16B1467D01A00D4EC8B /* Ap4PdinAtom.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4PdinAtom.cpp; sourceTree = "<group>"; };
+		CA15E16C1467D01A00D4EC8B /* Ap4PdinAtom.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4PdinAtom.h; sourceTree = "<group>"; };
 		CA2898180D87DA81006A758B /* Ap4UuidAtom.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4UuidAtom.cpp; sourceTree = "<group>"; };
 		CA2898190D87DA81006A758B /* Ap4UuidAtom.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4UuidAtom.h; sourceTree = "<group>"; };
 		CA2898840D8979B0006A758B /* Ap4ObjectDescriptor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4ObjectDescriptor.cpp; sourceTree = "<group>"; };
@@ -1348,7 +1350,6 @@
 				CA646A860CE97B2D009699D7 /* Apps */,
 				CA646A9B0CE97B51009699D7 /* Test */,
 				C6A0FF2B0290797F04C91782 /* Documentation */,
-				CA00CB7E13D9F13B00C1A140 /* Mp4Compact */,
 				1AB674ADFE9D54B511CA2CBB /* Products */,
 			);
 			name = Bento4;
@@ -1419,15 +1420,6 @@
 				CA00667C1015399A004C0D5F /* Mp42Ts.cpp */,
 			);
 			path = Mp42Ts;
-			sourceTree = "<group>";
-		};
-		CA00CB7E13D9F13B00C1A140 /* Mp4Compact */ = {
-			isa = PBXGroup;
-			children = (
-				CA00CB7F13D9F13B00C1A140 /* main.cpp */,
-				CA00CB8113D9F13B00C1A140 /* Mp4Compact.1 */,
-			);
-			path = Mp4Compact;
 			sourceTree = "<group>";
 		};
 		CA00CB8513D9F1EC00C1A140 /* Mp4Compact */ = {
@@ -1620,6 +1612,8 @@
 		CA93660F0B437D030067D50B /* Core */ = {
 			isa = PBXGroup;
 			children = (
+				CA15E16B1467D01A00D4EC8B /* Ap4PdinAtom.cpp */,
+				CA15E16C1467D01A00D4EC8B /* Ap4PdinAtom.h */,
 				CA5734FB13B5DCFA00953446 /* Ap4SencAtom.cpp */,
 				CA5734FC13B5DCFA00953446 /* Ap4SencAtom.h */,
 				CA5734E813B5DBB100953446 /* Ap4SaioAtom.cpp */,
@@ -2122,6 +2116,7 @@
 				CA5734ED13B5DBB100953446 /* Ap4SaioAtom.h in Headers */,
 				CA5734EF13B5DBB100953446 /* Ap4SaizAtom.h in Headers */,
 				CA5734FE13B5DCFA00953446 /* Ap4SencAtom.h in Headers */,
+				CA15E16E1467D01A00D4EC8B /* Ap4PdinAtom.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2672,7 +2667,7 @@
 		08FB7793FE84155DC02AAC07 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0410;
+				LastUpgradeCheck = 0420;
 			};
 			buildConfigurationList = 1DEB91EF08733DB70010E9CD /* Build configuration list for PBXProject "Bento4" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -3067,6 +3062,7 @@
 				CA5734EC13B5DBB100953446 /* Ap4SaioAtom.cpp in Sources */,
 				CA5734EE13B5DBB100953446 /* Ap4SaizAtom.cpp in Sources */,
 				CA5734FD13B5DCFA00953446 /* Ap4SencAtom.cpp in Sources */,
+				CA15E16D1467D01A00D4EC8B /* Ap4PdinAtom.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

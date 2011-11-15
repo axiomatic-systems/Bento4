@@ -543,6 +543,12 @@ AP4_CencFragmentEncrypter::ProcessFragment()
     if (m_Saio) m_Traf->AddChild(m_Saio);
     m_Traf->AddChild(&m_SampleEncryptionAtom->GetOuter());
     
+    // set the default-base-is-moof flag
+    AP4_TfhdAtom* tfhd = AP4_DYNAMIC_CAST(AP4_TfhdAtom, m_Traf->GetChild(AP4_ATOM_TYPE_TFHD));
+    if (tfhd) {
+        tfhd->SetFlags(tfhd->GetFlags() | AP4_TFHD_FLAG_DEFAULT_BASE_IS_MOOF);
+    }
+    
     return AP4_SUCCESS;
 }
 

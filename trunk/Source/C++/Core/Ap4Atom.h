@@ -2,7 +2,7 @@
 |
 |    AP4 - Atoms 
 |
-|    Copyright 2002-2008 Axiomatic Systems, LLC
+|    Copyright 2002-2011 Axiomatic Systems, LLC
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -42,6 +42,7 @@
 #include "Ap4String.h"
 #include "Ap4Debug.h"
 #include "Ap4DynamicCast.h"
+#include "Ap4Array.h"
 
 /*----------------------------------------------------------------------
 |   macros
@@ -92,9 +93,16 @@ public:
     AP4_Ordinal GetVerbosity()                      { return m_Verbosity;      }
     
     // virtual methods
-    virtual void StartElement(const char* /* name */, 
-                              const char* /* extra = NULL */) {}
-    virtual void EndElement() {}
+    virtual void StartAtom(const char* /* name        */,
+                           AP4_UI32    /* version     */,
+                           AP4_UI32    /* flags       */,
+                           AP4_Size    /* header_size */,
+                           AP4_UI64    /*size         */) {}
+    virtual void EndAtom() {}
+    virtual void StartDescriptor(const char* /* name        */,
+                                 AP4_Size    /* header_size */,
+                                 AP4_UI64    /*size         */) {}
+    virtual void EndDescriptor() {}
     virtual void AddField(const char* /* name */, 
                           AP4_UI64    /* value */, 
                           FormatHint  hint = HINT_NONE) {
@@ -130,8 +138,16 @@ public:
     ~AP4_PrintInspector();
 
     // methods
-    void StartElement(const char* name, const char* info);
-    void EndElement();
+    void StartAtom(const char* name,
+                   AP4_UI32    version,
+                   AP4_UI32    flags,
+                   AP4_Size    header_size,
+                   AP4_UI64    size);
+    void EndAtom();
+    void StartDescriptor(const char* name,
+                         AP4_Size    header_size,
+                         AP4_UI64    size);
+    void EndDescriptor();
     void AddField(const char* name, AP4_UI64 value, FormatHint hint);
     void AddFieldF(const char* name, float value, FormatHint hint);
     void AddField(const char* name, const char* value, FormatHint hint);
@@ -141,6 +157,37 @@ private:
     // members
     AP4_ByteStream* m_Stream;
     AP4_Cardinal    m_Indent;
+};
+
+/*----------------------------------------------------------------------
+|   AP4_JsonInspector
++---------------------------------------------------------------------*/
+class AP4_JsonInspector : public AP4_AtomInspector {
+public:
+    AP4_JsonInspector(AP4_ByteStream& stream);
+    ~AP4_JsonInspector();
+
+    // methods
+    void StartAtom(const char* name,
+                   AP4_UI32    version,
+                   AP4_UI32    flags,
+                   AP4_Size    header_size,
+                   AP4_UI64    size);
+    void EndAtom();
+    void StartDescriptor(const char* name,
+                         AP4_Size    header_size,
+                         AP4_UI64    size);
+    void EndDescriptor();
+    void AddField(const char* name, AP4_UI64 value, FormatHint hint);
+    void AddFieldF(const char* name, float value, FormatHint hint);
+    void AddField(const char* name, const char* value, FormatHint hint);
+    void AddField(const char* name, const unsigned char* bytes, AP4_Size size, FormatHint hint);
+
+private:
+    // members
+    AP4_ByteStream*         m_Stream;
+    AP4_Cardinal            m_Depth;
+    AP4_Array<AP4_Cardinal> m_Items;
 };
 
 /*----------------------------------------------------------------------
@@ -436,6 +483,7 @@ const AP4_Atom::Type AP4_ATOM_TYPE_TENC = AP4_ATOM_TYPE('t','e','n','c');
 const AP4_Atom::Type AP4_ATOM_TYPE_SENC = AP4_ATOM_TYPE('s','e','n','c');
 const AP4_Atom::Type AP4_ATOM_TYPE_SAIO = AP4_ATOM_TYPE('s','a','i','o');
 const AP4_Atom::Type AP4_ATOM_TYPE_SAIZ = AP4_ATOM_TYPE('s','a','i','z');
+const AP4_Atom::Type AP4_ATOM_TYPE_PDIN = AP4_ATOM_TYPE('p','d','i','n');
 
 /*----------------------------------------------------------------------
 |   AP4_AtomListInspector

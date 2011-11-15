@@ -129,37 +129,11 @@ AP4_UuidAtom::InspectHeader(AP4_AtomInspector& inspector)
         if (i == 5 || i == 7 || i == 9 || i == 11) *dst++ = '-';
     }
     
-    // write atom name
-    char name[7];
-    name[0] = '[';
-    AP4_FormatFourCharsPrintable(&name[1], m_Type);
-    name[5] = ']';
-    name[6] = '\0';
-    char header[128];
-    char extra[32] = "";
-    if (m_IsFull) {
-        if (m_Version && m_Flags) {
-            AP4_FormatString(extra, sizeof(extra), 
-                             ", version=%d, flags=%x",
-                             m_Version,
-                             m_Flags);
-        } else if (m_Version) {
-            AP4_FormatString(extra, sizeof(extra), 
-                             ", version=%d",
-                             m_Version);
-        } else if (m_Flags) {
-            AP4_FormatString(extra, sizeof(extra), 
-                             ", flags=%x",
-                             m_Flags);
-        }
-    }
-    AP4_FormatString(header, sizeof(header), 
-                     "{%s} size=%d+%lld%s", 
-                     uuid,
-                     (int)GetHeaderSize(), 
-                     GetSize()-GetHeaderSize(), 
-                     extra);
-    inspector.StartElement(name, header);
+    inspector.StartAtom(uuid, 
+                        m_Version,
+                        m_Flags,
+                        GetHeaderSize(),
+                        GetSize());
 
     return AP4_SUCCESS;
 }

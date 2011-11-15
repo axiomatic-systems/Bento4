@@ -37,9 +37,9 @@
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-#define BANNER "MP4 File Dumper - Version 1.1\n"\
+#define BANNER "MP4 File Dumper - Version 1.2\n"\
                "(Bento4 Version " AP4_VERSION_STRING ")\n"\
-               "(c) 2002-2009 Axiomatic Systems, LLC"
+               "(c) 2002-2011 Axiomatic Systems, LLC"
 
 /*----------------------------------------------------------------------
 |   PrintUsageAndExit
@@ -51,13 +51,18 @@ PrintUsageAndExit()
             BANNER 
             "\n\nusage: mp4dump [options] <input>\n"
             "options are:\n"
-            "  --verbosity <n> sets the verbosity (details) level to <n> (between 0 and 3)\n"
-            "  --track <track_id>[:<key>] writes the track data into a file\n"
-            "                             (<mp4filename>.<track_id>) and optionally\n"
-            "                             tries to decrypt it with the key (128-bit in hex)\n"
-            "           (several --track options can be used, one for each track)\n"
-            "           Each sample is written preceded by its size encoded as a 32-bit\n"
-            "           value in big-endian byte order\n");
+            "  --verbosity <n>\n"
+            "      sets the verbosity (details) level to <n> (between 0 and 3)\n"
+            "  --track <track_id>[:<key>]\n"
+            "      writes the track data into a file\n"
+            "      (<mp4filename>.<track_id>) and optionally\n"
+            "      tries to decrypt it with the key (128-bit in hex)\n"
+            "      (several --track options can be used, one for each track)\n"
+            "      Each sample is written preceded by its size encoded as a 32-bit\n"
+            "      value in big-endian byte order\n"
+            "  --format <format>\n"
+            "      format to use for the output, where <format> is either \n"
+            "      'text' (default) or 'json'\n");
     exit(1);
 }
 
@@ -228,7 +233,8 @@ main(int argc, char** argv)
     const char*             filename    = NULL;
     AP4_ProtectionKeyMap    key_map;
     AP4_Array<AP4_Ordinal>  tracks_to_dump;
-    AP4_Ordinal             verbosity = 0;
+    AP4_Ordinal             verbosity   = 0;
+    bool                    json_format = false;
 
     // parse the command line
     argv++;
@@ -269,6 +275,18 @@ main(int argc, char** argv)
                 return 1;
             }
             verbosity = strtoul(arg, NULL, 10);
+        } else if (!strcmp(arg, "--format")) {
+            arg = *argv++;
+            if (arg == NULL) {
+                fprintf(stderr, "ERROR: missing argument after --format option\n");
+                return 1;
+            }
+            if (strcmp(arg, "json") == 0) {
+                json_format = true;
+            } else if (strcmp(arg, "text")) {
+                fprintf(stderr, "ERROR: unknown output format\n");
+                return 1;
+            }
         } else {
             filename = arg;
             AP4_Result result = AP4_FileByteStream::Create(filename, AP4_FileByteStream::STREAM_MODE_READ, input);
@@ -289,8 +307,13 @@ main(int argc, char** argv)
     AP4_FileByteStream::Create("-stdout", AP4_FileByteStream::STREAM_MODE_WRITE, output);
     
     // create an inspector
-    AP4_PrintInspector inspector(*output);
-    inspector.SetVerbosity(verbosity);
+    AP4_AtomInspector* inspector = NULL;
+    if (json_format) {
+        inspector = new AP4_JsonInspector(*output);
+    } else {
+        inspector = new AP4_PrintInspector(*output);
+    }
+    inspector->SetVerbosity(verbosity);
 
     // inspect the atoms one by one
     AP4_Atom* atom;
@@ -303,7 +326,7 @@ main(int argc, char** argv)
         input->Tell(position);
 
         // inspect the atom
-        atom->Inspect(inspector);
+        atom->Inspect(*inspector);
 
         // restore the previous stream position
         input->Seek(position);
@@ -324,6 +347,7 @@ main(int argc, char** argv)
     }
 
     if (input) input->Release();
-
+    delete inspector;
+    
     return 0;
 }

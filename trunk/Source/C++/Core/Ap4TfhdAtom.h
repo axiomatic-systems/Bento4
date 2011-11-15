@@ -43,6 +43,7 @@ const AP4_UI32 AP4_TFHD_FLAG_DEFAULT_SAMPLE_DURATION_PRESENT  = 0x00008;
 const AP4_UI32 AP4_TFHD_FLAG_DEFAULT_SAMPLE_SIZE_PRESENT      = 0x00010;
 const AP4_UI32 AP4_TFHD_FLAG_DEFAULT_SAMPLE_FLAGS_PRESENT     = 0x00020;
 const AP4_UI32 AP4_TFHD_FLAG_DURATION_IS_EMPTY                = 0x10000;
+const AP4_UI32 AP4_TFHD_FLAG_DEFAULT_BASE_IS_MOOF             = 0x20000;
 
 /*----------------------------------------------------------------------
 |   AP4_TfhdAtom

@@ -213,111 +213,9 @@ ShowProtectionSchemeInfo_Text(AP4_UI32 scheme_type, AP4_ContainerAtom& schi, boo
 |   ShowProtectionSchemeInfo_Json
 +---------------------------------------------------------------------*/
 static void
-ShowProtectionSchemeInfo_Json(AP4_UI32 scheme_type, AP4_ContainerAtom& schi, bool verbose)
+ShowProtectionSchemeInfo_Json(AP4_UI32 /* scheme_type */, AP4_ContainerAtom& /* schi */, bool /* verbose */)
 {
-    if (scheme_type == AP4_PROTECTION_SCHEME_TYPE_IAEC) {
-        printf("      iAEC Scheme Info:\n");
-        AP4_IkmsAtom* ikms = AP4_DYNAMIC_CAST(AP4_IkmsAtom, schi.FindChild("iKMS"));
-        if (ikms) {
-            printf("        KMS URI:              %s\n", ikms->GetKmsUri().GetChars());
-        }
-        AP4_IsfmAtom* isfm = AP4_DYNAMIC_CAST(AP4_IsfmAtom, schi.FindChild("iSFM"));
-        if (isfm) {
-            printf("        Selective Encryption: %s\n", isfm->GetSelectiveEncryption()?"yes":"no");
-            printf("        Key Indicator Length: %d\n", isfm->GetKeyIndicatorLength());
-            printf("        IV Length:            %d\n", isfm->GetIvLength());
-        }
-        AP4_IsltAtom* islt = AP4_DYNAMIC_CAST(AP4_IsltAtom, schi.FindChild("iSLT"));
-        if (islt) {
-            printf("        Salt:                 ");
-            for (unsigned int i=0; i<8; i++) {
-                printf("%02x",islt->GetSalt()[i]);
-            }
-            printf("\n");
-        }
-    } else if (scheme_type == AP4_PROTECTION_SCHEME_TYPE_OMA) {
-        printf("      odkm Scheme Info:\n");
-        AP4_OdafAtom* odaf = AP4_DYNAMIC_CAST(AP4_OdafAtom, schi.FindChild("odkm/odaf"));
-        if (odaf) {
-            printf("        Selective Encryption: %s\n", odaf->GetSelectiveEncryption()?"yes":"no");
-            printf("        Key Indicator Length: %d\n", odaf->GetKeyIndicatorLength());
-            printf("        IV Length:            %d\n", odaf->GetIvLength());
-        }
-        AP4_OhdrAtom* ohdr = AP4_DYNAMIC_CAST(AP4_OhdrAtom, schi.FindChild("odkm/ohdr"));
-        if (ohdr) {
-            const char* encryption_method = "";
-            switch (ohdr->GetEncryptionMethod()) {
-                case AP4_OMA_DCF_ENCRYPTION_METHOD_NULL:    encryption_method = "NULL";    break;
-                case AP4_OMA_DCF_ENCRYPTION_METHOD_AES_CTR: encryption_method = "AES-CTR"; break;
-                case AP4_OMA_DCF_ENCRYPTION_METHOD_AES_CBC: encryption_method = "AES-CBC"; break;
-                default:                                    encryption_method = "UNKNOWN"; break;
-            }
-            printf("        Encryption Method: %s\n", encryption_method);
-            printf("        Content ID:        %s\n", ohdr->GetContentId().GetChars());
-            printf("        Rights Issuer URL: %s\n", ohdr->GetRightsIssuerUrl().GetChars());
-            
-            const AP4_DataBuffer& headers = ohdr->GetTextualHeaders();
-            AP4_Size              data_len    = headers.GetDataSize();
-            if (data_len) {
-                AP4_Byte*      textual_headers_string;
-                AP4_Byte*      curr;
-                AP4_DataBuffer output_buffer;
-                output_buffer.SetDataSize(data_len+1);
-                AP4_CopyMemory(output_buffer.UseData(), headers.GetData(), data_len);
-                curr = textual_headers_string = output_buffer.UseData();
-                textual_headers_string[data_len] = '\0';
-                while(curr < textual_headers_string+data_len) {
-                    if ('\0' == *curr) {
-                        *curr = '\n';
-                    }
-                    curr++;
-                }
-                printf("        Textual Headers: \n%s\n", (const char*)textual_headers_string);
-            }
-        }
-    } else if (scheme_type == AP4_PROTECTION_SCHEME_TYPE_ITUNES) {
-        printf("      itun Scheme Info:\n");
-        AP4_Atom* name = schi.FindChild("name");
-        if (name) {
-            printf("        Name:    ");
-            ShowPayload(*name, true);
-            printf("\n");
-        }
-        AP4_Atom* user = schi.FindChild("user");
-        if (user) {
-            printf("        User ID: ");
-            ShowPayload(*user);
-            printf("\n");
-        }
-        AP4_Atom* key = schi.FindChild("key ");
-        if (key) {
-            printf("        Key ID:  ");
-            ShowPayload(*key);
-            printf("\n");
-        }
-        AP4_Atom* iviv = schi.FindChild("iviv");
-        if (iviv) {
-            printf("        IV:      ");
-            ShowPayload(*iviv);
-            printf("\n");
-        }
-    } else if (scheme_type == AP4_PROTECTION_SCHEME_TYPE_MARLIN_ACBC ||
-               scheme_type == AP4_PROTECTION_SCHEME_TYPE_MARLIN_ACGK) {
-        printf("      Marlin IPMP ACBC/ACGK Scheme Info:\n");
-        AP4_NullTerminatedStringAtom* octopus_id = AP4_DYNAMIC_CAST(AP4_NullTerminatedStringAtom, schi.FindChild("8id "));
-        if (octopus_id) {
-            printf("        Content ID: %s\n", octopus_id->GetValue().GetChars());
-        }
-    }
-    
-    if (verbose) {
-        printf("    Protection System Details:\n");
-        AP4_ByteStream* output = NULL;
-        AP4_FileByteStream::Create("-stdout", AP4_FileByteStream::STREAM_MODE_WRITE, output);
-        AP4_PrintInspector inspector(*output, 4);
-        schi.Inspect(inspector);
-        output->Release();
-    }
+    // not implemented yet
 }
 
 /*----------------------------------------------------------------------
@@ -367,11 +265,10 @@ ShowProtectedSampleDescription_Json(AP4_ProtectedSampleDescription& desc, bool v
     if (scheme_info) {
         AP4_ContainerAtom* schi = scheme_info->GetSchiAtom();
         if (schi) {
-            printf(",\n");
             ShowProtectionSchemeInfo_Json(desc.GetSchemeType(), *schi, verbose);
         }
     }
-    printf("};\n");
+    printf("},\n");
 }
 
 /*----------------------------------------------------------------------
@@ -389,7 +286,7 @@ ShowMpegAudioSampleDescription(AP4_MpegAudioSampleDescription& mpeg_audio_desc)
             break;
 
         case JSON_FORMAT:
-            printf("\"mpeg_4_audio_object_type\":\"%s\",\n", object_type_string);
+            printf("\"mpeg_4_audio_object_type\":\"%s\"", object_type_string);
             break;
     }
     
@@ -417,6 +314,7 @@ ShowMpegAudioSampleDescription(AP4_MpegAudioSampleDescription& mpeg_audio_desc)
                     break;
     
                 case JSON_FORMAT:
+                    printf(",\n");
                     printf("\"mpeg_4_audio_decoder_config\":{\n");
                     printf("  \"sampling_frequency\":%d,\n", dec_config.m_SamplingFrequency);
                     printf("  \"channels\":%d\n", dec_config.m_ChannelCount);
@@ -428,11 +326,11 @@ ShowMpegAudioSampleDescription(AP4_MpegAudioSampleDescription& mpeg_audio_desc)
                         printf("  \"extension\":{\n");
                         printf("    \"object_type\":\"%s\",\n", object_type_string);
                         printf("    \"sbr_present\":%s,\n", dec_config.m_Extension.m_SbrPresent?"true":"false");
-                        printf("    \"ps_present\":%s\n",   dec_config.m_Extension.m_PsPresent?"true":"false");
+                        printf("    \"ps_present\":%s,\n",   dec_config.m_Extension.m_PsPresent?"true":"false");
                         printf("    \"sampling_frequency\":%d\n", dec_config.m_Extension.m_SamplingFrequency);
                         printf("  }\n");
                     }
-                    printf("},\n");
+                    printf("}");
                     break;
             }
         }
@@ -548,7 +446,10 @@ ShowSampleDescription_Json(AP4_SampleDescription& description, bool verbose)
             mpeg_desc->GetObjectTypeId() == AP4_OTI_MPEG2_AAC_AUDIO_LC   ||
             mpeg_desc->GetObjectTypeId() == AP4_OTI_MPEG2_AAC_AUDIO_MAIN) {
             AP4_MpegAudioSampleDescription* mpeg_audio_desc = AP4_DYNAMIC_CAST(AP4_MpegAudioSampleDescription, mpeg_desc);
-            if (mpeg_audio_desc) ShowMpegAudioSampleDescription(*mpeg_audio_desc);
+            if (mpeg_audio_desc) {
+                printf(",\n");
+                ShowMpegAudioSampleDescription(*mpeg_audio_desc);
+            }
         }
     }
     AP4_AudioSampleDescription* audio_desc = AP4_DYNAMIC_CAST(AP4_AudioSampleDescription, desc);
@@ -981,8 +882,8 @@ ShowFileInfo(AP4_File& file)
             
         case JSON_FORMAT:
             printf("\"file\":{\n");
-            printf("  \"major_brand\":\"%s\"\n", four_cc);
-            printf("  \"minor_version\":%d\n", file_type->GetMinorVersion());
+            printf("  \"major_brand\":\"%s\",\n", four_cc);
+            printf("  \"minor_version\":%d,\n", file_type->GetMinorVersion());
             break;
     }
     

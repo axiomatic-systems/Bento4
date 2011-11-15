@@ -261,7 +261,7 @@ AP4_Atom::Inspect(AP4_AtomInspector& inspector)
 {
     InspectHeader(inspector);
     InspectFields(inspector);
-    inspector.EndElement();
+    inspector.EndAtom();
 
     return AP4_SUCCESS;
 }
@@ -272,36 +272,14 @@ AP4_Atom::Inspect(AP4_AtomInspector& inspector)
 AP4_Result
 AP4_Atom::InspectHeader(AP4_AtomInspector& inspector)
 {
-    // write atom name
-    char name[7];
-    name[0] = '[';
-    AP4_FormatFourCharsPrintable(&name[1], m_Type);
-    name[5] = ']';
-    name[6] = '\0';
-    char header[128];
-    char extra[32] = "";
-    if (m_IsFull) {
-        if (m_Version && m_Flags) {
-            AP4_FormatString(extra, sizeof(extra), 
-                             ", version=%d, flags=%x",
-                             m_Version,
-                             m_Flags);
-        } else if (m_Version) {
-            AP4_FormatString(extra, sizeof(extra), 
-                             ", version=%d",
-                             m_Version);
-        } else if (m_Flags) {
-            AP4_FormatString(extra, sizeof(extra), 
-                             ", flags=%x",
-                             m_Flags);
-        }
-    }
-    AP4_FormatString(header, sizeof(header), 
-                     "size=%d+%lld%s", 
-                     (int)GetHeaderSize(), 
-                     GetSize()-GetHeaderSize(), 
-                     extra);
-    inspector.StartElement(name, header);
+    char name[5];
+    AP4_FormatFourCharsPrintable(name, m_Type);
+    name[4] = '\0';
+    inspector.StartAtom(name, 
+                        m_Version,
+                        m_Flags,
+                        GetHeaderSize(),
+                        GetSize());
 
     return AP4_SUCCESS;
 }
@@ -789,29 +767,93 @@ AP4_PrintInspector::~AP4_PrintInspector()
 }
 
 /*----------------------------------------------------------------------
-|   AP4_PrintInspector::StartElement
+|   AP4_PrintInspector::StartAtom
 +---------------------------------------------------------------------*/
 void
-AP4_PrintInspector::StartElement(const char* name, const char* info)
+AP4_PrintInspector::StartAtom(const char* name,
+                              AP4_UI32    version,
+                              AP4_UI32    flags,
+                              AP4_Size    header_size,
+                              AP4_UI64    size)
 {
+    // write atom name
+    char info[128];
+    char extra[32] = "";
+    if (header_size == 12 || header_size == 20) {
+        if (version && flags) {
+            AP4_FormatString(extra, sizeof(extra), 
+                             ", version=%d, flags=%x",
+                             version,
+                             flags);
+        } else if (version) {
+            AP4_FormatString(extra, sizeof(extra), 
+                             ", version=%d",
+                             version);
+        } else if (flags) {
+            AP4_FormatString(extra, sizeof(extra), 
+                             ", flags=%x",
+                             flags);
+        }
+    }
+    AP4_FormatString(info, sizeof(info), 
+                     "size=%d+%lld%s", 
+                     header_size, 
+                     size-header_size, 
+                     extra);
+
     char prefix[256];
     AP4_MakePrefixString(m_Indent, prefix, sizeof(prefix));
     m_Stream->WriteString(prefix);
+    m_Stream->WriteString("[");
     m_Stream->WriteString(name);
-    if (info) {
-        m_Stream->Write(" ", 1);
-        m_Stream->WriteString(info);
-    }
+    m_Stream->Write("] ", 2);
+    m_Stream->WriteString(info);
     m_Stream->Write("\n", 1);
 
     m_Indent += 2;
 }
 
 /*----------------------------------------------------------------------
-|   AP4_PrintInspector::EndElement
+|   AP4_PrintInspector::EndAtom
 +---------------------------------------------------------------------*/
 void
-AP4_PrintInspector::EndElement()
+AP4_PrintInspector::EndAtom()
+{
+    m_Indent -= 2;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_PrintInspector::StartDescriptor
++---------------------------------------------------------------------*/
+void
+AP4_PrintInspector::StartDescriptor(const char* name,
+                                    AP4_Size    header_size,
+                                    AP4_UI64    size)
+{
+    // write atom name
+    char info[128];
+    AP4_FormatString(info, sizeof(info), 
+                     "size=%d+%lld", 
+                     header_size, 
+                     size-header_size);
+
+    char prefix[256];
+    AP4_MakePrefixString(m_Indent, prefix, sizeof(prefix));
+    m_Stream->WriteString(prefix);
+    m_Stream->Write("[", 1);
+    m_Stream->WriteString(name);
+    m_Stream->Write("] ", 2);
+    m_Stream->WriteString(info);
+    m_Stream->Write("\n", 1);
+
+    m_Indent += 2;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_PrintInspector::EndDescriptor
++---------------------------------------------------------------------*/
+void
+AP4_PrintInspector::EndDescriptor()
 {
     m_Indent -= 2;
 }
@@ -896,4 +938,198 @@ AP4_PrintInspector::AddField(const char*          name,
     }
     m_Stream->Write("]\n", 2);
 }
+
+/*----------------------------------------------------------------------
+|   AP4_JsonInspector::AP4_JsonInspector
++---------------------------------------------------------------------*/
+AP4_JsonInspector::AP4_JsonInspector(AP4_ByteStream& stream) :
+    m_Stream(&stream),
+    m_Depth(0)
+{
+    m_Items.SetItemCount(1);
+    m_Items[0] = 0;
+    m_Stream->AddReference();
+    m_Stream->WriteString("[\n");
+}
+
+/*----------------------------------------------------------------------
+|   AP4_JsonInspector::~AP4_JsonInspector
++---------------------------------------------------------------------*/
+AP4_JsonInspector::~AP4_JsonInspector()
+{
+    m_Stream->WriteString("\n]\n");
+    m_Stream->Release();
+}
+
+/*----------------------------------------------------------------------
+|   AP4_JsonInspector::StartAtom
++---------------------------------------------------------------------*/
+void
+AP4_JsonInspector::StartAtom(const char* name,
+                             AP4_UI32    /*version*/,
+                             AP4_UI32    /*flags*/,
+                             AP4_Size    header_size,
+                             AP4_UI64    size)
+{
+    char prefix[256];
+    AP4_MakePrefixString(m_Depth*2, prefix, sizeof(prefix));
+
+    if (m_Items[m_Depth]) {
+        m_Stream->WriteString(",\n");
+    } else {
+        if (m_Depth != 0 || m_Items[0] != 0) {
+            m_Stream->WriteString(",\n");
+            m_Stream->WriteString(prefix);
+            m_Stream->WriteString("\"children\":[\n");
+        }
+    }
+    m_Stream->WriteString(prefix);
+    m_Stream->WriteString("{\n");
+    m_Stream->WriteString(prefix);
+    m_Stream->WriteString("  \"name\":\"");
+    m_Stream->WriteString(name);
+    m_Stream->Write("\"", 1);
+    m_Stream->WriteString(",\n");
+    m_Stream->WriteString(prefix);
+    m_Stream->WriteString("  \"header_size\":");
+    char val[32];
+    AP4_FormatString(val, sizeof(val), "%d", header_size);
+    m_Stream->WriteString(val);
+    m_Stream->WriteString(",\n");
+    m_Stream->WriteString(prefix);
+    m_Stream->WriteString("  \"size\":");
+    AP4_FormatString(val, sizeof(val), "%lld", size);
+    m_Stream->WriteString(val);
+    
+    ++m_Depth;
+    m_Items.SetItemCount(m_Depth+1);
+    m_Items[m_Depth] = 0;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_JsonInspector::EndAtom
++---------------------------------------------------------------------*/
+void
+AP4_JsonInspector::EndAtom()
+{
+    if (m_Items[m_Depth]) {
+        m_Stream->Write("]",1);
+    }
+    --m_Depth;
+    ++m_Items[m_Depth];
+    char prefix[256];
+    AP4_MakePrefixString(m_Depth*2, prefix, sizeof(prefix));
+    m_Stream->WriteString("\n");
+    m_Stream->WriteString(prefix);
+    m_Stream->WriteString("}");
+}
+
+/*----------------------------------------------------------------------
+|   AP4_JsonInspector::StartDescriptor
++---------------------------------------------------------------------*/
+void
+AP4_JsonInspector::StartDescriptor(const char* name,
+                                   AP4_Size    header_size,
+                                   AP4_UI64    size)
+{
+    StartAtom(name, 0, 0, header_size, size);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_JsonInspector::EndDescriptor
++---------------------------------------------------------------------*/
+void
+AP4_JsonInspector::EndDescriptor()
+{
+    EndAtom();
+}
+
+/*----------------------------------------------------------------------
+|   AP4_JsonInspector::AddField
++---------------------------------------------------------------------*/
+void
+AP4_JsonInspector::AddField(const char* name, const char* value, FormatHint)
+{
+    char prefix[256];
+    AP4_MakePrefixString(m_Depth*2, prefix, sizeof(prefix));
+    m_Stream->WriteString(",\n");
+    m_Stream->WriteString(prefix);
+    m_Stream->Write("\"", 1);
+    m_Stream->WriteString(name);
+    m_Stream->Write("\":\"", 3);
+    m_Stream->WriteString(value);
+    m_Stream->Write("\"", 1);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_JsonInspector::AddField
++---------------------------------------------------------------------*/
+void
+AP4_JsonInspector::AddField(const char* name, AP4_UI64 value, FormatHint /* hint */)
+{
+    char prefix[256];
+    AP4_MakePrefixString(m_Depth*2, prefix, sizeof(prefix));
+    m_Stream->WriteString(",\n");
+    m_Stream->WriteString(prefix);
+
+    char str[32];
+    AP4_FormatString(str, sizeof(str), 
+                     "%lld", 
+                     value);
+    m_Stream->Write("\"", 1);
+    m_Stream->WriteString(name);
+    m_Stream->Write("\":", 2);
+    m_Stream->WriteString(str);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_JsonInspector::AddFieldF
++---------------------------------------------------------------------*/
+void
+AP4_JsonInspector::AddFieldF(const char* name, float value, FormatHint /*hint*/)
+{
+    char prefix[256];
+    AP4_MakePrefixString(m_Depth*2, prefix, sizeof(prefix));
+    m_Stream->WriteString(",\n");
+    m_Stream->WriteString(prefix);
+
+    char str[32];
+    AP4_FormatString(str, sizeof(str), 
+                     "%f", 
+                     value);
+    m_Stream->Write("\"", 1);
+    m_Stream->WriteString(name);
+    m_Stream->Write("\":", 2);
+    m_Stream->WriteString(str);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_JsonInspector::AddField
++---------------------------------------------------------------------*/
+void
+AP4_JsonInspector::AddField(const char*          name, 
+                            const unsigned char* bytes, 
+                            AP4_Size             byte_count,
+                            FormatHint           /* hint */)
+{
+    char prefix[256];
+    AP4_MakePrefixString(m_Depth*2, prefix, sizeof(prefix));
+    m_Stream->WriteString(",\n");
+    m_Stream->WriteString(prefix);
+
+    m_Stream->Write("\"", 1);
+    m_Stream->WriteString(name);
+    m_Stream->Write("\":\"", 3);
+    m_Stream->WriteString("[");
+    unsigned int offset = 1;
+    char byte[4];
+    for (unsigned int i=0; i<byte_count; i++) {
+        AP4_FormatString(byte, 4, " %02x", bytes[i]);
+        m_Stream->Write(&byte[offset], 3-offset);
+        offset = 0;
+    }
+    m_Stream->Write("]", 1);
+    m_Stream->Write("\"", 1);
+}
+
 
