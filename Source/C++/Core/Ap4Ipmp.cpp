@@ -86,17 +86,14 @@ AP4_IpmpDescriptorPointer::WriteFields(AP4_ByteStream& stream)
 AP4_Result
 AP4_IpmpDescriptorPointer::Inspect(AP4_AtomInspector& inspector)
 {
-    char info[64];
-    AP4_FormatString(info, sizeof(info), "size=%d+%d", 
-                     (int)GetHeaderSize(),(int)m_PayloadSize);
-    inspector.StartElement("[IPMP_DescriptorPointer]", info);
+    inspector.StartDescriptor("IPMP_DescriptorPointer", GetHeaderSize(), GetSize());
     inspector.AddField("IPMP_DescriptorID", m_DescriptorId);
     if (m_DescriptorId == 0xFF) {
         inspector.AddField("IPMP_DescriptorIDEx", m_DescriptorIdEx);
         inspector.AddField("IPMP_ES_ID",          m_EsId);
     }
 
-    inspector.EndElement();
+    inspector.EndDescriptor();
 
     return AP4_SUCCESS;
 }
@@ -202,10 +199,7 @@ AP4_IpmpDescriptor::WriteFields(AP4_ByteStream& stream)
 AP4_Result
 AP4_IpmpDescriptor::Inspect(AP4_AtomInspector& inspector)
 {
-    char info[64];
-    AP4_FormatString(info, sizeof(info), "size=%d+%d", 
-                     (int)GetHeaderSize(),(int)m_PayloadSize);
-    inspector.StartElement("[IPMP_Descriptor]", info);
+    inspector.StartDescriptor("IPMP_Descriptor", GetHeaderSize(), GetSize());
     inspector.AddField("IPMP_DescriptorID", m_DescriptorId);
     inspector.AddField("IPMPS_Type", m_IpmpsType, AP4_AtomInspector::HINT_HEX);
     if (m_DescriptorId == 0xFF && m_IpmpsType == 0xFFFF) {
@@ -221,7 +215,7 @@ AP4_IpmpDescriptor::Inspect(AP4_AtomInspector& inspector)
         inspector.AddField("data size", m_Data.GetDataSize());
     }
 
-    inspector.EndElement();
+    inspector.EndDescriptor();
 
     return AP4_SUCCESS;
 }

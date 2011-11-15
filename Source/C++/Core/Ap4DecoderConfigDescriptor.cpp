@@ -131,11 +131,7 @@ AP4_DecoderConfigDescriptor::WriteFields(AP4_ByteStream& stream)
 AP4_Result
 AP4_DecoderConfigDescriptor::Inspect(AP4_AtomInspector& inspector)
 {
-    char info[64];
-    AP4_FormatString(info, sizeof(info), "size=%d+%d", 
-        (int)GetHeaderSize(),
-        (int)m_PayloadSize);
-    inspector.StartElement("[DecoderConfig]", info);
+    inspector.StartDescriptor("DecoderConfig", GetHeaderSize(), GetSize());
     inspector.AddField("stream_type", m_StreamType);
     inspector.AddField("object_type", m_ObjectTypeIndication);
     inspector.AddField("up_stream", m_UpStream);
@@ -146,7 +142,7 @@ AP4_DecoderConfigDescriptor::Inspect(AP4_AtomInspector& inspector)
     // inspect children
     m_SubDescriptors.Apply(AP4_DescriptorListInspector(inspector));
 
-    inspector.EndElement();
+    inspector.EndDescriptor();
 
     return AP4_SUCCESS;
 }

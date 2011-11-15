@@ -155,10 +155,7 @@ AP4_ObjectDescriptor::WriteFields(AP4_ByteStream& stream)
 AP4_Result
 AP4_ObjectDescriptor::Inspect(AP4_AtomInspector& inspector)
 {
-    char info[64];
-    AP4_FormatString(info, sizeof(info), "size=%d+%d", 
-                     (int)GetHeaderSize(),(int)m_PayloadSize);
-    inspector.StartElement("[ObjectDescriptor]", info);
+    inspector.StartDescriptor("ObjectDescriptor", GetHeaderSize(), GetSize());
     inspector.AddField("id", m_ObjectDescriptorId);
     if (m_UrlFlag) {
         inspector.AddField("url", m_Url.GetChars());
@@ -167,7 +164,7 @@ AP4_ObjectDescriptor::Inspect(AP4_AtomInspector& inspector)
     // inspect children
     m_SubDescriptors.Apply(AP4_DescriptorListInspector(inspector));
 
-    inspector.EndElement();
+    inspector.EndDescriptor();
 
     return AP4_SUCCESS;
 }
@@ -305,10 +302,7 @@ AP4_InitialObjectDescriptor::WriteFields(AP4_ByteStream& stream)
 AP4_Result
 AP4_InitialObjectDescriptor::Inspect(AP4_AtomInspector& inspector)
 {
-    char info[64];
-    AP4_FormatString(info, sizeof(info), "size=%d+%d", 
-                     (int)GetHeaderSize(),(int)m_PayloadSize);
-    inspector.StartElement("[InitialObjectDescriptor]", info);
+    inspector.StartDescriptor("InitialObjectDescriptor", GetHeaderSize(), GetSize());
     inspector.AddField("id", m_ObjectDescriptorId);
     if (m_UrlFlag) {
         inspector.AddField("url", m_Url.GetChars());
@@ -326,7 +320,7 @@ AP4_InitialObjectDescriptor::Inspect(AP4_AtomInspector& inspector)
     // inspect children
     m_SubDescriptors.Apply(AP4_DescriptorListInspector(inspector));
 
-    inspector.EndElement();
+    inspector.EndDescriptor();
 
     return AP4_SUCCESS;
 }
@@ -387,27 +381,24 @@ AP4_DescriptorUpdateCommand::WriteFields(AP4_ByteStream& stream)
 AP4_Result
 AP4_DescriptorUpdateCommand::Inspect(AP4_AtomInspector& inspector)
 {
-    char info[64];
-    AP4_FormatString(info, sizeof(info), "size=%d+%d", 
-                     (int)GetHeaderSize(),(int)m_PayloadSize);
     switch (GetTag()) {
         case AP4_COMMAND_TAG_OBJECT_DESCRIPTOR_UPDATE:
-            inspector.StartElement("[ObjectDescriptorUpdate]", info);
+            inspector.StartDescriptor("ObjectDescriptorUpdate", GetHeaderSize(), GetSize());
             break;
 
         case AP4_COMMAND_TAG_IPMP_DESCRIPTOR_UPDATE:
-            inspector.StartElement("[IPMP_DescriptorUpdate]", info);
+            inspector.StartDescriptor("IPMP_DescriptorUpdate", GetHeaderSize(), GetSize());
             break;
 
         default:
-            inspector.StartElement("[DescriptorUpdate]", info);
+            inspector.StartDescriptor("DescriptorUpdate", GetHeaderSize(), GetSize());
             break;
     }
     
     // inspect children
     m_Descriptors.Apply(AP4_DescriptorListInspector(inspector));
 
-    inspector.EndElement();
+    inspector.EndDescriptor();
 
     return AP4_SUCCESS;
 }

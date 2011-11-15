@@ -93,6 +93,7 @@
 #include "Ap4SencAtom.h"
 #include "Ap4SaioAtom.h"
 #include "Ap4SaizAtom.h"
+#include "Ap4PdinAtom.h"
 
 /*----------------------------------------------------------------------
 |   AP4_AtomFactory::~AP4_AtomFactory
@@ -601,6 +602,11 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
           case AP4_ATOM_TYPE_SAIO:
             if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
             atom = AP4_SaioAtom::Create(size_32, stream);
+            break;
+
+          case AP4_ATOM_TYPE_PDIN:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_PdinAtom::Create(size_32, stream);
             break;
 
           // track ref types

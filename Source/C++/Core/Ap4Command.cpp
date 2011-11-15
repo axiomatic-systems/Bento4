@@ -44,14 +44,10 @@ AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_Command)
 AP4_Result
 AP4_Command::Inspect(AP4_AtomInspector& inspector)
 {
-    char name[6];
-    AP4_FormatString(name, sizeof(name), "[Command:%02x]", m_ClassId);
-    char info[64];
-    AP4_FormatString(info, sizeof(info), "size=%d+%d",
-                     (int)GetHeaderSize(),
-                     (int)m_PayloadSize);
-    inspector.StartElement(name, info);
-    inspector.EndElement();
+    char name[64];
+    AP4_FormatString(name, sizeof(name), "Command:%02x", m_ClassId);
+    inspector.StartDescriptor(name, GetHeaderSize(), GetSize());
+    inspector.EndDescriptor();
 
     return AP4_SUCCESS;
 }

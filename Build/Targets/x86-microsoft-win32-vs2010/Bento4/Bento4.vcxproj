@@ -147,6 +147,7 @@
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4OdheAtom.cpp" />
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4OhdrAtom.cpp" />
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4OmaDcf.cpp" />
+    <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4PdinAtom.cpp" />
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4Piff.cpp" />
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4Processor.cpp" />
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4Protection.cpp" />
@@ -266,6 +267,7 @@
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4OdheAtom.h" />
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4OhdrAtom.h" />
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4OmaDcf.h" />
+    <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4PdinAtom.h" />
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4Piff.h" />
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4Processor.h" />
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4Protection.h" />
