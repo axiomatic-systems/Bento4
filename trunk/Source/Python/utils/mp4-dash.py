@@ -317,7 +317,7 @@ def main():
     parser.add_option('', "--marlin",
                       dest="marlin", action="store_true", default=False,
                       help="Add Marlin signaling to the MPD")
-    parser.add_option('', "--exec-dir",
+    parser.add_option('', "--exec-dir", metavar="<exec_dir>",
                       dest="exec_dir", default=path.join(SCRIPT_PATH, 'bin', sys.platform),
                       help="Directory where the Bento4 executables are located")
     (options, args) = parser.parse_args()

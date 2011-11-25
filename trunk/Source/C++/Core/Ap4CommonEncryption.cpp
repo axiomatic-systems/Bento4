@@ -45,6 +45,9 @@
 #include "Ap4SaioAtom.h"
 #include "Ap4Piff.h"
 #include "Ap4StreamCipher.h"
+#include "Ap4SaioAtom.h"
+#include "Ap4SaizAtom.h"
+#include "Ap4TrunAtom.h"
 
 /*----------------------------------------------------------------------
 |   AP4_CencSampleEncrypter::~AP4_CencSampleEncrypter
@@ -883,7 +886,9 @@ AP4_CencEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
 |   AP4_CencEncryptingProcessor:CreateFragmentHandler
 +---------------------------------------------------------------------*/
 AP4_Processor::FragmentHandler* 
-AP4_CencEncryptingProcessor::CreateFragmentHandler(AP4_ContainerAtom* traf)
+AP4_CencEncryptingProcessor::CreateFragmentHandler(AP4_ContainerAtom* traf,
+                                                   AP4_ByteStream&    /* moof_data   */,
+                                                   AP4_Position       /* moof_offset */)
 {
     // get the traf header (tfhd) for this track fragment so we can get the track ID
     AP4_TfhdAtom* tfhd = AP4_DYNAMIC_CAST(AP4_TfhdAtom, traf->GetChild(AP4_ATOM_TYPE_TFHD));
@@ -909,6 +914,8 @@ AP4_CencEncryptingProcessor::CreateFragmentHandler(AP4_ContainerAtom* traf)
 AP4_Result 
 AP4_CencSampleDecrypter::Create(AP4_ProtectedSampleDescription* sample_description, 
                                 AP4_ContainerAtom*              traf,
+                                AP4_ByteStream&                 aux_info_data,
+                                AP4_Position                    aux_info_data_offset,
                                 const AP4_UI08*                 key, 
                                 AP4_Size                        key_size,
                                 AP4_BlockCipherFactory*         block_cipher_factory,
@@ -973,25 +980,44 @@ AP4_CencSampleDecrypter::Create(AP4_ProtectedSampleDescription* sample_descripti
         iv_size      = track_encryption_atom->GetDefaultIvSize();
     }
 
-    // try to create a sample info table from saio/saiz
-    if (traf) {
-        AP4_SaioAtom* saio = AP4_DYNAMIC_CAST(AP4_SaioAtom, traf->GetChild(AP4_ATOM_TYPE_SAIO));
-        AP4_SaizAtom* saiz = AP4_DYNAMIC_CAST(AP4_SaizAtom, traf->GetChild(AP4_ATOM_TYPE_SAIZ));
-        if (saio && saiz) {
-            //AP4_Result result = AP4_CencSampleInfoTable::Create(iv_size, 
-            //                                                    *saio, 
-            //                                                    *saiz, 
-            //                                                    sample_info_table);
-            //if (AP4_FAILED(result)) return result;
-        }
-    }
-    
+    // try to create a sample info table from senc
     if (sample_info_table == NULL && sample_encryption_atom) {
         AP4_Result result = sample_encryption_atom->CreateSampleInfoTable(iv_size, sample_info_table);
         if (AP4_FAILED(result)) return result;
     }
 
-    //if (sample_info_table == NULL) return AP4_ERROR_INVALID_FORMAT;
+    // try to create a sample info table from saio/saiz
+    AP4_SaioAtom* saio = NULL;
+    AP4_SaizAtom* saiz = NULL;
+    if (traf) {
+        for (AP4_List<AP4_Atom>::Item* child = traf->GetChildren().FirstItem();
+                                       child;
+                                       child = child->GetNext()) {
+            if (child->GetData()->GetType() == AP4_ATOM_TYPE_SAIO) {
+                saio = AP4_DYNAMIC_CAST(AP4_SaioAtom, child->GetData());
+                if (saio->GetAuxInfoType() != 0 && saio->GetAuxInfoType() != AP4_PROTECTION_SCHEME_TYPE_CENC) {
+                    saio = NULL;
+                }
+            } else if (child->GetData()->GetType() == AP4_ATOM_TYPE_SAIZ) {
+                saiz = AP4_DYNAMIC_CAST(AP4_SaizAtom, child->GetData());
+                if (saiz->GetAuxInfoType() != 0 && saiz->GetAuxInfoType() != AP4_PROTECTION_SCHEME_TYPE_CENC) {
+                    saiz = NULL;
+                }
+            }
+        }
+        if (sample_info_table == NULL && saio && saiz) {
+            AP4_Result result = AP4_CencSampleInfoTable::Create(iv_size, 
+                                                                *traf,
+                                                                *saio, 
+                                                                *saiz,
+                                                                aux_info_data,
+                                                                aux_info_data_offset, 
+                                                                sample_info_table);
+            if (AP4_FAILED(result)) return result;
+        }
+    }
+    
+    if (sample_info_table == NULL) return AP4_ERROR_INVALID_FORMAT;
     AP4_StreamCipher* stream_cipher = NULL;
     bool              full_blocks_only = false;
     switch (algorithm_id) {
@@ -1051,6 +1077,8 @@ AP4_CencSampleDecrypter::Create(AP4_ProtectedSampleDescription* sample_descripti
     decrypter = new AP4_CencSampleDecrypter(stream_cipher, 
                                             full_blocks_only,
                                             sample_encryption_atom,
+                                            saio,
+                                            saiz,
                                             sample_info_table);                    
 
     return AP4_SUCCESS;
@@ -1297,6 +1325,10 @@ AP4_CencFragmentDecrypter::ProcessFragment()
     if (m_SampleDecrypter) {
         AP4_CencSampleEncryption* atom = m_SampleDecrypter->GetSampleEncryptionAtom();
         if (atom) atom->GetOuter().Detach();
+        AP4_SaioAtom* saio = m_SampleDecrypter->GetSaioAtom();
+        if (saio) saio->Detach();
+        AP4_SaizAtom* saiz = m_SampleDecrypter->GetSaizAtom();
+        if (saiz) saiz->Detach();
     }
     return AP4_SUCCESS;
 }
@@ -1307,9 +1339,14 @@ AP4_CencFragmentDecrypter::ProcessFragment()
 AP4_Result   
 AP4_CencFragmentDecrypter::FinishFragment()
 {
-    AP4_CencSampleEncryption* atom = m_SampleDecrypter->GetSampleEncryptionAtom();
-    m_SampleDecrypter->SetSampleEncryptionAtom(NULL);
-    delete atom;
+    if (m_SampleDecrypter) {
+        delete m_SampleDecrypter->GetSampleEncryptionAtom();
+        m_SampleDecrypter->SetSampleEncryptionAtom(NULL);
+        delete m_SampleDecrypter->GetSaioAtom();
+        m_SampleDecrypter->SetSaioAtom(NULL);
+        delete m_SampleDecrypter->GetSaizAtom();
+        m_SampleDecrypter->SetSaizAtom(NULL);
+    }
     return AP4_SUCCESS;
 }
 
@@ -1400,7 +1437,9 @@ AP4_CencDecryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
 |   AP4_CencDecryptingProcessor::CreateFragmentHandler
 +---------------------------------------------------------------------*/
 AP4_Processor::FragmentHandler* 
-AP4_CencDecryptingProcessor::CreateFragmentHandler(AP4_ContainerAtom* traf)
+AP4_CencDecryptingProcessor::CreateFragmentHandler(AP4_ContainerAtom* traf,
+                                                   AP4_ByteStream&    moof_data,
+                                                   AP4_Position       moof_offset)
 {
     // find the matching track handler to get to the track sample description
     const AP4_DataBuffer* key = NULL;
@@ -1428,6 +1467,8 @@ AP4_CencDecryptingProcessor::CreateFragmentHandler(AP4_ContainerAtom* traf)
     AP4_Result result = AP4_CencSampleDecrypter::Create(
         sample_description, 
         traf, 
+        moof_data,
+        moof_offset,
         key->GetData(), 
         key->GetDataSize(), 
         NULL, 
@@ -1511,6 +1552,100 @@ AP4_CencTrackEncryption::DoWriteFields(AP4_ByteStream& stream)
 |   AP4_CencSampleEncryption Dynamic Cast Anchor
 +---------------------------------------------------------------------*/
 AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_CencSampleEncryption)
+
+/*----------------------------------------------------------------------
+|   AP4_CencSampleInfoTable::Create
++---------------------------------------------------------------------*/
+AP4_Result 
+AP4_CencSampleInfoTable::Create(unsigned int              iv_size, 
+                                AP4_ContainerAtom&        traf,
+                                AP4_SaioAtom&             saio, 
+                                AP4_SaizAtom&             saiz, 
+                                AP4_ByteStream&           aux_info_data,
+                                AP4_Position              aux_info_data_offset,
+                                AP4_CencSampleInfoTable*& sample_info_table)
+{
+    AP4_Result result = AP4_SUCCESS;
+    
+    // remember where we are in the data stream so that we can return to that point
+    // before returning
+    AP4_Position position_before = 0;
+    aux_info_data.Tell(position_before);
+    
+    // count the samples
+    unsigned int sample_info_count = 0;
+    for (AP4_List<AP4_Atom>::Item* item = traf.GetChildren().FirstItem();
+                                   item;
+                                   item = item->GetNext()) {
+        AP4_Atom* atom = item->GetData();
+        if (atom->GetType() == AP4_ATOM_TYPE_TRUN) {
+            AP4_TrunAtom* trun = AP4_DYNAMIC_CAST(AP4_TrunAtom, atom);
+            sample_info_count += trun->GetEntries().ItemCount();
+        }
+    }
+    
+    // create the table
+    AP4_CencSampleInfoTable* table = new AP4_CencSampleInfoTable(sample_info_count, iv_size);
+    
+    // process each sample's auxiliary info
+    AP4_Ordinal    saio_index  = 0;
+    AP4_Ordinal    saiz_index  = 0;
+    AP4_DataBuffer info;
+    for (AP4_List<AP4_Atom>::Item* item = traf.GetChildren().FirstItem();
+                                   item;
+                                   item = item->GetNext()) {
+        AP4_Atom* atom = item->GetData();
+        if (atom->GetType() == AP4_ATOM_TYPE_TRUN) {
+            AP4_TrunAtom* trun = AP4_DYNAMIC_CAST(AP4_TrunAtom, atom);
+
+            if (saio_index == 0) {
+                aux_info_data.Seek(aux_info_data_offset+saio.GetEntries()[0]);
+            } else {
+                if (saio.GetEntries().ItemCount() > 1) {
+                    if (saio_index >= saio.GetEntries().ItemCount()) {
+                        result = AP4_ERROR_INVALID_FORMAT;
+                        goto end;
+                    }
+                    aux_info_data.Seek(aux_info_data_offset+saio.GetEntries()[saio_index]);
+                }
+            }
+            ++saio_index;
+            
+            for (unsigned int i=0; i<trun->GetEntries().ItemCount(); i++) {
+                AP4_UI08 info_size = 0;
+                result = saiz.GetSampleInfoSize(saiz_index, info_size);
+                if (AP4_FAILED(result)) goto end;
+
+                info.SetDataSize(info_size);
+                result = aux_info_data.Read(info.UseData(), info_size);
+                if (AP4_FAILED(result)) goto end;
+
+                const AP4_UI08* info_data = info.GetData();
+                table->SetIv(saiz_index, info_data);
+                if (info_size > iv_size+2) {
+                    AP4_UI16 subsample_count = AP4_BytesToUInt16BE(info_data+iv_size);
+                    if (info_size < iv_size+2+subsample_count*6) {
+                        // not enough data
+                        goto end;
+                    }
+                    table->AddSubSampleData(subsample_count, info_data+iv_size+2);
+                }
+                saiz_index++;
+            }
+        }
+    }    
+    result = AP4_SUCCESS;
+    
+end:
+    if (AP4_SUCCEEDED(result)) {
+        sample_info_table = table;
+    } else {
+        delete table;
+        sample_info_table = NULL;
+    }
+    aux_info_data.Seek(position_before);    
+    return result;
+}
 
 /*----------------------------------------------------------------------
 |   AP4_CencSampleInfoTable::AP4_CencSampleInfoTable

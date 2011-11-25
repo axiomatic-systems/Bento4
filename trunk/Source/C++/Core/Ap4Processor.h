@@ -46,7 +46,7 @@ class AP4_ByteStream;
 class AP4_DataBuffer;
 class AP4_TrakAtom;
 class AP4_FragmentSampleTable;
-struct AP4_MoofLocator;
+struct AP4_AtomLocator;
 
 /*----------------------------------------------------------------------
 |   AP4_Processor
@@ -214,7 +214,9 @@ public:
      * @return A pointer to a fragment handler, or NULL if no handler 
      * needs to be created for that fragment.
      */
-    virtual FragmentHandler* CreateFragmentHandler(AP4_ContainerAtom* traf);
+    virtual FragmentHandler* CreateFragmentHandler(AP4_ContainerAtom* traf,
+                                                   AP4_ByteStream&    moof_data,
+                                                   AP4_Position       moof_offset);
     
 protected:
     class ExternalTrackData {
@@ -229,7 +231,7 @@ protected:
     };
 
     AP4_Result ProcessFragments(AP4_MoovAtom*              moov, 
-                                AP4_List<AP4_MoofLocator>& moofs, 
+                                AP4_List<AP4_AtomLocator>& atoms, 
                                 AP4_ContainerAtom*         mfra,
                                 AP4_ByteStream&            input, 
                                 AP4_ByteStream&            output);

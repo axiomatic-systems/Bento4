@@ -102,6 +102,15 @@ private:
 +---------------------------------------------------------------------*/
 class AP4_CencSampleInfoTable {
 public:
+    // class methods
+    static AP4_Result Create(unsigned int              iv_size, 
+                             AP4_ContainerAtom&        traf,
+                             AP4_SaioAtom&             saio, 
+                             AP4_SaizAtom&             saiz,
+                             AP4_ByteStream&           aux_info_data,
+                             AP4_Position              aux_info_data_offset, 
+                             AP4_CencSampleInfoTable*& sample_info_table);
+                                                          
     // constructor
     AP4_CencSampleInfoTable(AP4_UI32 sample_count,
                             AP4_UI08 iv_size);
@@ -336,7 +345,9 @@ public:
                                   AP4_ByteStream&   stream,
                                   AP4_Processor::ProgressListener* listener = NULL);
     virtual AP4_Processor::TrackHandler*    CreateTrackHandler(AP4_TrakAtom* trak);
-    virtual AP4_Processor::FragmentHandler* CreateFragmentHandler(AP4_ContainerAtom* traf);
+    virtual AP4_Processor::FragmentHandler* CreateFragmentHandler(AP4_ContainerAtom* traf,
+                                                                  AP4_ByteStream&    moof_data,
+                                                                  AP4_Position       moof_offset);
     
 protected:    
     // members
@@ -363,7 +374,9 @@ public:
                                   AP4_ByteStream&   stream,
                                   AP4_Processor::ProgressListener* listener = NULL);
     virtual AP4_Processor::TrackHandler*    CreateTrackHandler(AP4_TrakAtom* trak);
-    virtual AP4_Processor::FragmentHandler* CreateFragmentHandler(AP4_ContainerAtom* traf);
+    virtual AP4_Processor::FragmentHandler* CreateFragmentHandler(AP4_ContainerAtom* traf,
+                                                                  AP4_ByteStream&    moof_data,
+                                                                  AP4_Position       moof_offset);
     
 protected:    
     // members
@@ -380,6 +393,8 @@ public:
     // factory
     static AP4_Result Create(AP4_ProtectedSampleDescription* sample_description, 
                              AP4_ContainerAtom*              traf,
+                             AP4_ByteStream&                 moof_data,
+                             AP4_Position                    moof_offset,
                              const AP4_UI08*                 key, 
                              AP4_Size                        key_size,
                              AP4_BlockCipherFactory*         block_cipher_factory,
@@ -389,10 +404,14 @@ public:
     AP4_CencSampleDecrypter(AP4_StreamCipher*         cipher,
                             bool                      full_blocks_only,
                             AP4_CencSampleEncryption* sample_encryption_atom,
+                            AP4_SaioAtom*             saio_atom,
+                            AP4_SaizAtom*             saiz_atom,
                             AP4_CencSampleInfoTable*  sample_info_table) :
         m_Cipher(cipher),
         m_FullBlocksOnly(full_blocks_only),
         m_SampleEncryptionAtom(sample_encryption_atom),
+        m_SaioAtom(saio_atom),
+        m_SaizAtom(saiz_atom),
         m_SampleInfoTable(sample_info_table),
         m_SampleCursor(0) {}
     virtual ~AP4_CencSampleDecrypter();
@@ -404,12 +423,18 @@ public:
     // accessors
     AP4_CencSampleEncryption* GetSampleEncryptionAtom()          { return m_SampleEncryptionAtom; }
     void SetSampleEncryptionAtom(AP4_CencSampleEncryption* atom) { m_SampleEncryptionAtom = atom; }
+    AP4_SaioAtom* GetSaioAtom()                                  { return m_SaioAtom; }
+    void          SetSaioAtom(AP4_SaioAtom* atom)                { m_SaioAtom = atom; }
+    AP4_SaizAtom* GetSaizAtom()                                  { return m_SaizAtom; }
+    void          SetSaizAtom(AP4_SaizAtom* atom)                { m_SaizAtom = atom; }
     AP4_CencSampleInfoTable* GetSampleInfoTable()                { return m_SampleInfoTable; }
     
 protected:
     AP4_StreamCipher*         m_Cipher;    
     bool                      m_FullBlocksOnly;
     AP4_CencSampleEncryption* m_SampleEncryptionAtom;
+    AP4_SaioAtom*             m_SaioAtom;
+    AP4_SaizAtom*             m_SaizAtom;
     AP4_CencSampleInfoTable*  m_SampleInfoTable;
     AP4_Ordinal               m_SampleCursor;
 };

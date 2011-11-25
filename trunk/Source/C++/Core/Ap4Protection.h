@@ -365,6 +365,8 @@ public:
      */
     static AP4_SampleDecrypter* Create(AP4_ProtectedSampleDescription* sample_description,
                                        AP4_ContainerAtom*              traf,
+                                       AP4_ByteStream&                 aux_info_data,
+                                       AP4_Position                    aux_info_data_offset,
                                        const AP4_UI08*                 key,
                                        AP4_Size                        key_size,
                                        AP4_BlockCipherFactory*         block_cipher_factory = NULL);
