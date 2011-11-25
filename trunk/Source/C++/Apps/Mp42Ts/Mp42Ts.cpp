@@ -70,12 +70,12 @@ PrintUsageAndExit()
     fprintf(stderr, 
             BANNER 
             "\n\nusage: mp42ts [options] <input> <output>\n"
+            "    [the <output> name must be a 'printf' template, like \"seg-\%d.ts\"]\n"
             "Options:\n"
             "  --pmt-pid <pid>   (default: 0x100)\n"
             "  --audio-pid <pid> (default: 0x101)\n"
             "  --video-pid <pid> (default: 0x102)\n"
             "  --segment <segment-duration-in-seconds>\n"
-            "    [the <output> name must be a 'printf' template]\n"
             "  --segment-duration-threshold in ms (default = 50)\n"
             "    [only used with the --segment option]\n"
             "  --verbose\n"
@@ -234,15 +234,15 @@ WriteSamples(AP4_Mpeg2TsWriter&               writer,
             if (video_track == NULL) sync_sample = true;
         }
         if (video_track && !video_eos) {
-            if (video_sample.IsSync()) {
-                sync_sample = true;
-            }
             if (audio_track) {
-                if (video_ts < audio_ts) {
+                if (video_ts <= audio_ts) {
                     chosen_track = video_track;
                 }
             } else {
                 chosen_track = video_track;
+            }
+            if (chosen_track == video_track && video_sample.IsSync()) {
+                sync_sample = true;
             }
         }
         if (chosen_track == NULL) break;
@@ -313,8 +313,28 @@ WriteSamples(AP4_Mpeg2TsWriter&               writer,
         }        
     }
     
-    // finish the current segment
-    segment_durations.Append((int)((segment_duration+500)/1000));
+    // finish the last segment
+    if (output) {
+        if (video_track) {
+            segment_duration = video_ts - last_ts;
+        } else {
+            segment_duration = audio_ts - last_ts;
+        }
+        unsigned int segment_duration_s = (unsigned int)((segment_duration+500)/1000);
+        segment_durations.Append(segment_duration_s);
+        if (Options.verbose) {
+            printf("Segment %d, duration=%d, %d audio samples, %d video samples\n", 
+                   segment_number, 
+                   segment_duration_s, 
+                   audio_sample_count, 
+                   video_sample_count);
+        }
+        output->Release();
+        output = NULL;
+        ++segment_number;
+        audio_sample_count = 0;
+        video_sample_count = 0;
+    }
 
     // create the playlist file if needed 
     if (Options.playlist) {
