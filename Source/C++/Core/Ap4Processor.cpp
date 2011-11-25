@@ -66,12 +66,12 @@ struct AP4_SampleCursor {
     bool              m_EndReached;
 };
 
-struct AP4_MoofLocator {
-    AP4_MoofLocator(AP4_ContainerAtom* moof, AP4_UI64 offset) : 
-        m_Moof(moof),
+struct AP4_AtomLocator {
+    AP4_AtomLocator(AP4_Atom* atom, AP4_UI64 offset) : 
+        m_Atom(atom),
         m_Offset(offset) {}
-    AP4_ContainerAtom* m_Moof;
-    AP4_UI64           m_Offset;
+    AP4_Atom* m_Atom;
+    AP4_UI64  m_Offset;
 };
 
 /*----------------------------------------------------------------------
@@ -103,33 +103,43 @@ AP4_DefaultFragmentHandler::ProcessSample(AP4_DataBuffer& data_in, AP4_DataBuffe
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_Processor::ProcessFragments(AP4_MoovAtom*              moov, 
-                                AP4_List<AP4_MoofLocator>& moofs, 
+                                AP4_List<AP4_AtomLocator>& atoms, 
                                 AP4_ContainerAtom*         mfra,
                                 AP4_ByteStream&            input, 
                                 AP4_ByteStream&            output)
 {
-    for (AP4_List<AP4_MoofLocator>::Item* item = moofs.FirstItem();
+    for (AP4_List<AP4_AtomLocator>::Item* item = atoms.FirstItem();
                                           item;
                                           item = item->GetNext()) {
-        AP4_MoofLocator*   locator     = item->GetData();
-        AP4_ContainerAtom* moof        = locator->m_Moof;
-        AP4_UI64           moof_offset = locator->m_Offset;
-        AP4_UI64           mdat_payload_offset = moof_offset+moof->GetSize()+AP4_ATOM_HEADER_SIZE;
-        AP4_MovieFragment* fragment    = new AP4_MovieFragment(moof);
+        AP4_AtomLocator*   locator     = item->GetData();
+        AP4_Atom*          atom        = locator->m_Atom;
+        AP4_UI64           atom_offset = locator->m_Offset;
+        AP4_UI64           mdat_payload_offset = atom_offset+atom->GetSize()+AP4_ATOM_HEADER_SIZE;
         AP4_Sample         sample;
         AP4_DataBuffer     sample_data_in;
         AP4_DataBuffer     sample_data_out;
         AP4_Result         result;
     
+        // if this is not a moof atom, just write it back and continue
+        if (atom->GetType() != AP4_ATOM_TYPE_MOOF) {
+            result = atom->Write(output);
+            if (AP4_FAILED(result)) return result;
+            continue;
+        }
+        
+        // parse the moof
+        AP4_ContainerAtom* moof = AP4_DYNAMIC_CAST(AP4_ContainerAtom, atom);
+        AP4_MovieFragment* fragment = new AP4_MovieFragment(moof);
+
         // process all the traf atoms
         AP4_Array<AP4_Processor::FragmentHandler*> handlers;
         AP4_Array<AP4_FragmentSampleTable*> sample_tables;
-        for (;AP4_Atom* atom = moof->GetChild(AP4_ATOM_TYPE_TRAF, handlers.ItemCount());) {
-            AP4_ContainerAtom* traf = AP4_DYNAMIC_CAST(AP4_ContainerAtom, atom);
+        for (;AP4_Atom* child = moof->GetChild(AP4_ATOM_TYPE_TRAF, handlers.ItemCount());) {
+            AP4_ContainerAtom* traf = AP4_DYNAMIC_CAST(AP4_ContainerAtom, child);
             AP4_TfhdAtom* tfhd = AP4_DYNAMIC_CAST(AP4_TfhdAtom, traf->GetChild(AP4_ATOM_TYPE_TFHD));
             
             // create the handler for this traf
-            AP4_Processor::FragmentHandler* handler = CreateFragmentHandler(traf);
+            AP4_Processor::FragmentHandler* handler = CreateFragmentHandler(traf, input, atom_offset);
             if (handler) {
                 result = handler->ProcessFragment();
             } else {
@@ -140,7 +150,7 @@ AP4_Processor::ProcessFragments(AP4_MoovAtom*              moov,
             
             // create a sample table object so we can read the sample data
             AP4_FragmentSampleTable* sample_table = NULL;
-            result = fragment->CreateSampleTable(moov, tfhd->GetTrackId(), &input, moof_offset, mdat_payload_offset, 0, sample_table);
+            result = fragment->CreateSampleTable(moov, tfhd->GetTrackId(), &input, atom_offset, mdat_payload_offset, 0, sample_table);
             if (AP4_FAILED(result)) return result;
             sample_tables.Append(sample_table);
             
@@ -296,7 +306,9 @@ AP4_Processor::ProcessFragments(AP4_MoovAtom*              moov,
 |   AP4_Processor::CreateFragmentHandler
 +---------------------------------------------------------------------*/
 AP4_Processor::FragmentHandler* 
-AP4_Processor::CreateFragmentHandler(AP4_ContainerAtom* traf)
+AP4_Processor::CreateFragmentHandler(AP4_ContainerAtom* traf,
+                                     AP4_ByteStream&    /* moof_data   */,
+                                     AP4_Position       /* moof_offset */)
 {
     // find the matching track handler
     for (unsigned int i=0; i<m_TrackIds.ItemCount(); i++) {
@@ -325,8 +337,9 @@ AP4_Processor::Process(AP4_ByteStream&   input,
     AP4_AtomParent              top_level;
     AP4_MoovAtom*               moov = NULL;
     AP4_ContainerAtom*          mfra = NULL;
-    AP4_List<AP4_MoofLocator>   moofs;
+    AP4_List<AP4_AtomLocator>   frags;
     AP4_UI64                    stream_offset = 0;
+    bool                        in_fragments = false;
     for (AP4_Atom* atom = NULL;
         AP4_SUCCEEDED(atom_factory.CreateAtomFromStream(input, atom));
         input.Tell(stream_offset)) {
@@ -335,14 +348,12 @@ AP4_Processor::Process(AP4_ByteStream&   input,
             continue;
         } else if (atom->GetType() == AP4_ATOM_TYPE_MOOV) {
             moov = AP4_DYNAMIC_CAST(AP4_MoovAtom, atom);
-        } else if (atom->GetType() == AP4_ATOM_TYPE_MOOF) {
-            AP4_ContainerAtom* moof = AP4_DYNAMIC_CAST(AP4_ContainerAtom, atom);
-            if (moof) {
-                moofs.Add(new AP4_MoofLocator(moof, stream_offset));
-            }
-            continue;
         } else if (atom->GetType() == AP4_ATOM_TYPE_MFRA) {
             mfra = AP4_DYNAMIC_CAST(AP4_ContainerAtom, atom);
+            continue;
+        } else if (in_fragments || atom->GetType() == AP4_ATOM_TYPE_MOOF) {
+            in_fragments = true;
+            frags.Add(new AP4_AtomLocator(atom, stream_offset));
             continue;
         }
         top_level.AddChild(atom);
@@ -547,7 +558,7 @@ AP4_Processor::Process(AP4_ByteStream&   input,
 #endif
     
         // process the fragments, if any
-        result = ProcessFragments(moov, moofs, mfra, input, output);
+        result = ProcessFragments(moov, frags, mfra, input, output);
         if (AP4_FAILED(result)) return result;
         
         // write the mfra atom at the end if we have one
@@ -565,7 +576,7 @@ AP4_Processor::Process(AP4_ByteStream&   input,
     }
 
     // cleanup
-    moofs.DeleteReferences();
+    frags.DeleteReferences();
     delete mfra;
     
     return AP4_SUCCESS;

@@ -56,6 +56,8 @@ AP4_SaizAtom::Create(AP4_Size size, AP4_ByteStream& stream)
 +---------------------------------------------------------------------*/
 AP4_SaizAtom::AP4_SaizAtom() :
     AP4_Atom(AP4_ATOM_TYPE_SAIZ, AP4_FULL_ATOM_HEADER_SIZE+1+4, 0, 0),
+    m_AuxInfoType(0),
+    m_AuxInfoTypeParameter(0),
     m_DefaultSampleInfoSize(0),
     m_SampleCount(0)
 {
@@ -68,12 +70,22 @@ AP4_SaizAtom::AP4_SaizAtom(AP4_UI32        size,
                            AP4_UI32        version,
                            AP4_UI32        flags,
                            AP4_ByteStream& stream) :
-    AP4_Atom(AP4_ATOM_TYPE_SAIZ, size, version, flags)
+    AP4_Atom(AP4_ATOM_TYPE_SAIZ, size, version, flags),
+    m_AuxInfoType(0),
+    m_AuxInfoTypeParameter(0)
 {
+    AP4_UI32 remains = size-GetHeaderSize();
+    if (flags & 1) {
+        stream.ReadUI32(m_AuxInfoType);
+        stream.ReadUI32(m_AuxInfoTypeParameter);
+        remains -= 8;
+    }
     stream.ReadUI08(m_DefaultSampleInfoSize);
     stream.ReadUI32(m_SampleCount);
+    remains -= 5;
     if (m_DefaultSampleInfoSize == 0) { 
         // means that the sample info entries  have different sizes
+        if (m_SampleCount > remains) m_SampleCount = remains; // sanity check
         unsigned long sample_count = m_SampleCount;
         m_Entries.SetItemCount(sample_count);
         unsigned char* buffer = new AP4_UI08[sample_count];
@@ -96,15 +108,16 @@ AP4_Result
 AP4_SaizAtom::SetSampleCount(AP4_UI32 sample_count)
 {
     m_SampleCount = sample_count;
+    unsigned int extra = (m_Flags&1)?8:0;
     if (m_DefaultSampleInfoSize == 0) {
         if (sample_count) {
             m_Entries.SetItemCount(sample_count);
         } else {
             m_Entries.Clear();
         }
-        SetSize(AP4_FULL_ATOM_HEADER_SIZE+1+4+sample_count);
+        SetSize(AP4_FULL_ATOM_HEADER_SIZE+extra+1+4+sample_count);
     } else {
-        SetSize(AP4_FULL_ATOM_HEADER_SIZE+1+4);
+        SetSize(AP4_FULL_ATOM_HEADER_SIZE+extra+1+4);
     }
     
     return AP4_SUCCESS;
@@ -118,7 +131,8 @@ AP4_SaizAtom::SetDefaultSampleInfoSize(AP4_UI08 sample_info_size)
 {
     m_DefaultSampleInfoSize = sample_info_size;
     m_Entries.Clear();
-    SetSize(AP4_FULL_ATOM_HEADER_SIZE+1+4);
+    unsigned int extra = (m_Flags&1)?8:0;
+    SetSize(AP4_FULL_ATOM_HEADER_SIZE+extra+1+4);
     
     return AP4_SUCCESS;
 }
@@ -129,19 +143,19 @@ AP4_SaizAtom::SetDefaultSampleInfoSize(AP4_UI08 sample_info_size)
 AP4_Result
 AP4_SaizAtom::GetSampleInfoSize(AP4_Ordinal sample, AP4_UI08& sample_info_size)
 {
-    // check the sample index
-    if (sample >= m_SampleCount) {
-        sample_info_size = 0;
-        return AP4_ERROR_OUT_OF_RANGE;
+    if (m_DefaultSampleInfoSize) {
+        sample_info_size = m_DefaultSampleInfoSize;
     } else {
-        // find the size
-        if (m_DefaultSampleInfoSize != 0) { // constant size
-            sample_info_size = m_DefaultSampleInfoSize;
+        // check the sample index
+        if (sample >= m_SampleCount) {
+            sample_info_size = 0;
+            return AP4_ERROR_OUT_OF_RANGE;
         } else {
             sample_info_size = m_Entries[sample];
         }
-        return AP4_SUCCESS;
     }
+    
+    return AP4_SUCCESS;
 }
 
 /*----------------------------------------------------------------------
@@ -171,7 +185,14 @@ AP4_SaizAtom::SetSampleInfoSize(AP4_Ordinal sample, AP4_UI08 sample_info_size)
 AP4_Result
 AP4_SaizAtom::WriteFields(AP4_ByteStream& stream)
 {
-    AP4_Result result = stream.WriteUI08(m_DefaultSampleInfoSize);
+    AP4_Result result;
+    if (m_Flags&1) {
+        result = stream.WriteUI32(m_AuxInfoType);
+        if (AP4_FAILED(result)) return result;
+        result = stream.WriteUI32(m_AuxInfoTypeParameter);
+        if (AP4_FAILED(result)) return result;
+    }
+    result = stream.WriteUI08(m_DefaultSampleInfoSize);
     if (AP4_FAILED(result)) return result;
     result = stream.WriteUI32(m_SampleCount);
     if (AP4_FAILED(result)) return result;
@@ -192,6 +213,10 @@ AP4_SaizAtom::WriteFields(AP4_ByteStream& stream)
 AP4_Result
 AP4_SaizAtom::InspectFields(AP4_AtomInspector& inspector)
 {
+    if (m_Flags&1) {
+        inspector.AddField("aux info type", m_AuxInfoType, AP4_AtomInspector::HINT_HEX);
+        inspector.AddField("aux info type parameter", m_AuxInfoTypeParameter, AP4_AtomInspector::HINT_HEX);
+    }
     inspector.AddField("default sample info size", m_DefaultSampleInfoSize);
     inspector.AddField("sample count", m_SampleCount);
 

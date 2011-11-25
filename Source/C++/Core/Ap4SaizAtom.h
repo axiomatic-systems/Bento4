@@ -51,7 +51,9 @@ public:
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
 
-    AP4_UI32   GetSampleCount() { return m_SampleCount; }
+    AP4_UI32   GetAuxInfoType() const { return m_AuxInfoType; }
+    AP4_UI32   GetAuxInfoTypeParameter() const { return m_AuxInfoTypeParameter; }
+    AP4_UI32   GetSampleCount() const { return m_SampleCount; }
     AP4_Result SetSampleCount(AP4_UI32 sample_count);
     AP4_Result SetDefaultSampleInfoSize(AP4_UI08 sample_info_size);
     AP4_Result GetSampleInfoSize(AP4_Ordinal sample, 
@@ -67,6 +69,8 @@ private:
                  AP4_ByteStream& stream);
 
     // members
+    AP4_UI32            m_AuxInfoType;
+    AP4_UI32            m_AuxInfoTypeParameter;
     AP4_UI08            m_DefaultSampleInfoSize;
     AP4_UI32            m_SampleCount;
     AP4_Array<AP4_UI32> m_Entries;

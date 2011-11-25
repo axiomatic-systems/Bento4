@@ -663,19 +663,6 @@ AP4_SampleDecrypter::Create(AP4_ProtectedSampleDescription* sample_description,
             if (AP4_FAILED(result)) return NULL;
             return decrypter;
         }
-
-        case AP4_PROTECTION_SCHEME_TYPE_PIFF:
-        case AP4_PROTECTION_SCHEME_TYPE_CENC: {
-            AP4_CencSampleDecrypter* decrypter = NULL;
-            AP4_Result result = AP4_CencSampleDecrypter::Create(sample_description, 
-                                                                0,
-                                                                key, 
-                                                                key_size, 
-                                                                block_cipher_factory, 
-                                                                decrypter);
-            if (AP4_FAILED(result)) return NULL;
-            return decrypter;
-        }
         
         default:
             return NULL;
@@ -690,6 +677,8 @@ AP4_SampleDecrypter::Create(AP4_ProtectedSampleDescription* sample_description,
 AP4_SampleDecrypter* 
 AP4_SampleDecrypter::Create(AP4_ProtectedSampleDescription* sample_description,
                             AP4_ContainerAtom*              traf,
+                            AP4_ByteStream&                 aux_info_data,
+                            AP4_Position                    aux_info_data_offset,
                             const AP4_UI08*                 key,
                             AP4_Size                        key_size,
                             AP4_BlockCipherFactory*         block_cipher_factory)
@@ -707,6 +696,8 @@ AP4_SampleDecrypter::Create(AP4_ProtectedSampleDescription* sample_description,
             AP4_CencSampleDecrypter* decrypter = NULL;
             AP4_Result result = AP4_CencSampleDecrypter::Create(sample_description, 
                                                                 traf,
+                                                                aux_info_data,
+                                                                aux_info_data_offset,
                                                                 key, 
                                                                 key_size, 
                                                                 block_cipher_factory, 

@@ -109,6 +109,8 @@ ShowSample(AP4_Sample& sample, unsigned int index, AP4_SampleDecrypter* sample_d
 static int
 ProcessSamples(AP4_Track*               track, 
                AP4_ContainerAtom*       traf,
+               AP4_ByteStream&          moof_data,
+               AP4_Position             moof_data_offset,
                AP4_FragmentSampleTable* sample_table)
 {
     // look at the first sample description
@@ -128,6 +130,8 @@ ProcessSamples(AP4_Track*               track,
             AP4_ProtectedSampleDescription* prot_desc = AP4_DYNAMIC_CAST(AP4_ProtectedSampleDescription, sample_description);
             sample_decrypter = AP4_SampleDecrypter::Create(prot_desc,
                                                            traf,
+                                                           moof_data,
+                                                           moof_data_offset,
                                                            key, 
                                                            key_size,
                                                            NULL);
@@ -184,7 +188,7 @@ ProcessMoof(AP4_Movie*         movie,
         result = fragment->CreateSampleTable(movie, ids[i], sample_stream, moof_offset, mdat_payload_offset, 0, sample_table);
         CHECK(result == AP4_SUCCESS || result == AP4_ERROR_NO_SUCH_ITEM);
         if (AP4_SUCCEEDED(result) ) {
-            ProcessSamples(track, traf, sample_table);
+            ProcessSamples(track, traf, *sample_stream, moof_offset, sample_table);
             delete sample_table;
         } else {
             printf("no sample table for this track\n");

@@ -52,6 +52,8 @@ public:
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
 
     // accessors
+    AP4_UI32             GetAuxInfoType() const { return m_AuxInfoType; }
+    AP4_UI32             GetAuxInfoTypeParameter() const { return m_AuxInfoTypeParameter; }
     AP4_Result           AddEntry(AP4_UI64 offset);
     AP4_Result           SetEntry(AP4_Ordinal entry_index, AP4_UI64 offset);
     AP4_Array<AP4_UI64>& GetEntries() { return m_Entries; }
@@ -64,6 +66,8 @@ private:
                  AP4_ByteStream& stream);
 
     // members
+    AP4_UI32            m_AuxInfoType;
+    AP4_UI32            m_AuxInfoTypeParameter;
     AP4_Array<AP4_UI64> m_Entries;
 };
 
