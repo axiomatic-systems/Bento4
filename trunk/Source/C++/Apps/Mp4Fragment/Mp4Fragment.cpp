@@ -291,11 +291,18 @@ Fragment(AP4_File& input_file, AP4_ByteStream& output_stream, unsigned int fragm
         AP4_Array<AP4_TrunAtom::Entry> trun_entries;
         AP4_UI32                       mdat_size = AP4_ATOM_HEADER_SIZE;
         for (;;) {
+            // if we have one non-zero CTS delta, we'll need to express it
+            if (cursor->m_Sample.GetCtsDelta()) {
+                trun->SetFlags(trun->GetFlags() | AP4_TRUN_FLAG_SAMPLE_COMPOSITION_TIME_OFFSET_PRESENT);
+            }
+            
+            // add one sample
             trun_entries.SetItemCount(sample_count+1);
             AP4_TrunAtom::Entry& trun_entry = trun_entries[sample_count];
-            trun_entry.sample_duration = cursor->m_Sample.GetDuration();
-            trun_entry.sample_size     = cursor->m_Sample.GetSize();
-            
+            trun_entry.sample_duration                = cursor->m_Sample.GetDuration();
+            trun_entry.sample_size                    = cursor->m_Sample.GetSize();
+            trun_entry.sample_composition_time_offset = cursor->m_Sample.GetCtsDelta();
+                        
             sample_indexes.SetItemCount(sample_count+1);
             sample_indexes[sample_count] = cursor->m_SampleIndex;
             mdat_size += trun_entry.sample_size;

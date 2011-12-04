@@ -299,6 +299,7 @@
 #include "Ap4Piff.h"
 #include "Ap4TrunAtom.h"
 #include "Ap4TfdtAtom.h"
+#include "Ap4TencAtom.h"
 
 /*----------------------------------------------------------------------
 |   global functions

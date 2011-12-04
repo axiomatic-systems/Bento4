@@ -108,13 +108,13 @@ AP4_Sample::operator=(const AP4_Sample& other)
     AP4_RELEASE(m_DataStream);
     m_DataStream = other.m_DataStream;
 
-    m_Offset               = other.m_Offset;
-    m_Size                 = other.m_Size;
-    m_Duration             = other.m_Duration;
-    m_DescriptionIndex     = other.m_DescriptionIndex;
-    m_Dts                  = other.m_Dts;
-    m_CtsDelta             = other.m_CtsDelta;
-    m_IsSync               = other.m_IsSync;
+    m_Offset           = other.m_Offset;
+    m_Size             = other.m_Size;
+    m_Duration         = other.m_Duration;
+    m_DescriptionIndex = other.m_DescriptionIndex;
+    m_Dts              = other.m_Dts;
+    m_CtsDelta         = other.m_CtsDelta;
+    m_IsSync           = other.m_IsSync;
     
     return *this;
 }
@@ -192,12 +192,12 @@ AP4_Sample::Reset()
 {
     AP4_RELEASE(m_DataStream);
     
-    m_Offset               = 0;
-    m_Size                 = 0;
-    m_Duration             = 0;
-    m_DescriptionIndex     = 0;
-    m_Dts                  = 0;
-    m_CtsDelta             = 0;
-    m_IsSync               = false;
+    m_Offset           = 0;
+    m_Size             = 0;
+    m_Duration         = 0;
+    m_DescriptionIndex = 0;
+    m_Dts              = 0;
+    m_CtsDelta         = 0;
+    m_IsSync           = false;
 }
 

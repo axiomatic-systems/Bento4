@@ -70,16 +70,17 @@ PrintUsageAndExit()
     fprintf(stderr, 
             BANNER 
             "\n\nusage: mp42ts [options] <input> <output>\n"
-            "    [the <output> name must be a 'printf' template, like \"seg-\%d.ts\"]\n"
             "Options:\n"
             "  --pmt-pid <pid>   (default: 0x100)\n"
             "  --audio-pid <pid> (default: 0x101)\n"
             "  --video-pid <pid> (default: 0x102)\n"
             "  --segment <segment-duration-in-seconds>\n"
+            "    [with this option, the <output> name must be a 'printf' template,\n"
+            "     like \"seg-%cd.ts\"]\n"
             "  --segment-duration-threshold in ms (default = 50)\n"
             "    [only used with the --segment option]\n"
             "  --verbose\n"
-            "  --playlist <filename>\n");
+            "  --playlist <filename>\n",'%');
     exit(1);
 }
 

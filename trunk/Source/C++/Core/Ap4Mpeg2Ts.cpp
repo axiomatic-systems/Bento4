@@ -279,6 +279,10 @@ AP4_Mpeg2TsWriter::SampleStream::WritePES(const unsigned char* data,
     unsigned int pes_header_size = 14+(with_dts?5:0);
     AP4_BitWriter pes_header(pes_header_size);
     
+    // adjust the base timestamp so we don't start at 0
+    // dts += 10000;
+    // pts += 10000;
+    
     pes_header.Write(0x000001, 24);    // packet_start_code_prefix
     pes_header.Write(m_StreamId, 8);   // stream_id
     pes_header.Write(m_StreamId == AP4_MPEG2_TS_DEFAULT_STREAM_ID_VIDEO?0:(data_size+pes_header_size-6), 16); // PES_packet_length
