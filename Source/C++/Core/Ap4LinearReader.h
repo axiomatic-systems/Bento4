@@ -123,7 +123,6 @@ protected:
         AP4_Track*             m_Track;
         AP4_SampleTable*       m_SampleTable;
         bool                   m_SampleTableIsOwned;
-        bool                   m_HasFragments;
         AP4_Sample*            m_NextSample;
         AP4_Ordinal            m_NextSampleIndex;
         AP4_UI64               m_NextDts;
