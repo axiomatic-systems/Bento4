@@ -292,7 +292,7 @@ AP4_RtpPacket::Release()
 AP4_Size
 AP4_RtpPacket::GetSize()
 {
-    AP4_Size result = 12 + (m_TimeStampOffset != 0)?16:0; 
+    AP4_Size result = 12 + ((m_TimeStampOffset != 0)?16:0); 
     result += m_Constructors.ItemCount() * AP4_RTP_CONSTRUCTOR_SIZE;
     return result;
 }
