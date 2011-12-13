@@ -409,7 +409,7 @@ def main():
             out_dir = path.join(options.output_dir, 'audio')
             MakeNewDir(out_dir)
             print 'Processing media file (audio)', media_files[0].filename
-            Mp4Split(media_files[0].work_filename,
+            Mp4Split(media_file.work_filename,
                      no_track_id   = True,
                      init_segment  = path.join(out_dir, INIT_SEGMENT_NAME),
                      media_segment = path.join(out_dir, SEGMENT_PATTERN),
@@ -427,7 +427,7 @@ def main():
                          video         = True)
             else:
                 print 'Processing media file', media_file.filename
-                shutil.copyfile(media_files[0].work_filename,
+                shutil.copyfile(media_file.work_filename,
                                 path.join(options.output_dir, LINEAR_PATTERN%(media_file.index)))
     
     # save the MPD
