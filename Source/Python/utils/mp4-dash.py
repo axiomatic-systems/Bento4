@@ -223,7 +223,8 @@ def MakeNewDir(dir, is_warning=False):
         print 'directory "'+dir+'" already exists'
         if not is_warning:
             sys.exit(1)
-    os.mkdir(dir)
+    else:
+        os.mkdir(dir)
         
 def AddSegmentList(container, subdir, media_file, track_id, use_byte_range=False):
     if subdir:
@@ -375,7 +376,12 @@ def main():
             PrintErrorAndExit('ERROR: video sample count mismatch between file '+str(media_file[0].index)+' and '+str(media_file.index))
         
     # create the MPD
-    mpd = xml.Element('MPD', xmlns=MPD_NS, profiles=ISOFF_LIVE_PROFILE, minBufferTime="PT%.02fS"%(options.min_buffer_time), type='static')
+    mpd = xml.Element('MPD', 
+                      xmlns=MPD_NS, 
+                      profiles=ISOFF_LIVE_PROFILE, 
+                      minBufferTime="PT%.02fS" % (options.min_buffer_time), 
+                      mediaPresentationDuration="PT%dS" % (int(mp4_file.info['movie']['duration_ms'])/1000),
+                      type='static')
     period = xml.SubElement(mpd, 'Period')
 
     # use the first media file for audio
@@ -403,7 +409,7 @@ def main():
             AddSegments(representation, None, media_file, media_file.video_track_id, use_byte_range=True)           
     
     # create the directories and split the media
-    MakeNewDir(options.output_dir)
+    MakeNewDir(options.output_dir, is_warning=options.mpd_only)
     if not options.mpd_only:
         if options.split:
             out_dir = path.join(options.output_dir, 'audio')

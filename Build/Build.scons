@@ -102,7 +102,7 @@ def Executable(name,
         environment = env
     DeclareBuildDir(source_dir)
     sdk = ['Bento4'] + Split(extra_deps)
-    libs = GetLibraries(sdk)
+    libs = GetLibraries(sdk) + environment['AP4_EXTRA_LIBS']
     cpp_path = GetIncludeDirs(sdk) + extra_includes
     sources = GlobSources(source_dir, source_pattern)
     
@@ -121,7 +121,8 @@ def Executable(name,
     else:
         exe = environment.Program(target_name, 
                                   sources + environment['AP4_EXTRA_EXECUTABLE_OBJECTS'], 
-                                  LIBS=libs, CPPPATH=cpp_path)
+                                  LIBS=libs, 
+                                  CPPPATH=cpp_path)
     #environment.Alias(name, exe)
     
 #######################################################
@@ -130,6 +131,7 @@ def Executable(name,
 Import("env")
 SOURCE_ROOT='Source'
 env['AP4_EXTRA_EXECUTABLE_OBJECTS'] = []
+env['AP4_EXTRA_LIBS'] = []
 
 ### try to read in any target specific configuration
 target_config_file = env.GetBuildPath('#/Build/Targets/'+env['target']+'/Config.scons')

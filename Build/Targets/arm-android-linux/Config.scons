@@ -1,32 +1,20 @@
+#################################################################
+# Important: this build file has been tested with Android NDK r6 and r7
+# It may or may not work with other releases of the NDK. Please notify
+# us if you find a newer NDK for which this does not work.
+#################################################################
+
 import os
 import re
 import sys
 import platform
 
+# we need to know when the NDK is
 ANDROID_NDK_ROOT=os.getenv('ANDROID_NDK_ROOT')
 if not ANDROID_NDK_ROOT:
     raise Exception('ANDROID_NDK_ROOT environment variable not set')
 
-if ARGUMENTS.get('android_toolchain'):
-    ANDROID_TOOLCHAIN=ARGUMENTS.get('android_toolchain')
-else:
-    ANDROID_TOOLCHAIN='arm-eabi-4.4.0'
-
-if ARGUMENTS.get('android_cross_prefix'):
-    ANDROID_CROSS_PREFIX=ARGUMENTS.get('android_cross_prefix')
-else:
-    ANDROID_CROSS_PREFIX='arm-eabi'
-
-if ARGUMENTS.get('android_platform'):
-    ANDROID_PLATFORM=ARGUMENTS.get('android_platform')
-else:
-    ANDROID_PLATFORM='android-3'
-
-if ARGUMENTS.get('android_arch'):
-    ANDROID_ARCH=ARGUMENTS.get('android_arch')
-else:
-    ANDROID_ARCH='arm'
-
+# detect the host system on which we're running
 if env.has_key('android_host_system') and env['android_host_system']:
 	ANDROID_HOST_SYSTEM = env['android_host_system']
 else:
@@ -41,6 +29,36 @@ else:
 		ANDROID_HOST_SYSTEM = PLATFORM_TO_TARGET_MAP[sys.platform]
 	else:
 		raise Exception('Android Host Platform cannot be determined')
+
+# set defaults
+ANDROID_ARCH         = 'arm'
+ANDROID_PLATFORM     = 'android-3'
+ANDROID_TOOLCHAIN    = 'arm-linux-androideabi-4.4.3'
+ANDROID_CROSS_PREFIX = 'arm-linux-androideabi'
+
+if not os.path.exists(os.path.join(ANDROID_NDK_ROOT, 'toolchains', ANDROID_TOOLCHAIN)):
+    toolchain_dirs = os.listdir(ANDROID_NDK_ROOT+'/toolchains')
+    for toolchain_dir in toolchain_dirs:
+        if os.path.exists(os.path.join(ANDROID_NDK_ROOT, 'toolchains', toolchain_dir, 'prebuilt', ANDROID_HOST_SYSTEM)):
+            ANDROID_TOOLCHAIN=toolchain_dir
+            suffix_pos = toolchain_dir.rfind('-')
+            if (suffix_pos >= 0):
+                ANDROID_CROSS_PREFIX = ANDROID_TOOLCHAIN[:suffix_pos]
+            print "Auto-selecting toolchain:", ANDROID_TOOLCHAIN
+            break
+        
+# override defaults from command line args
+if ARGUMENTS.get('android_toolchain'):
+    ANDROID_TOOLCHAIN=ARGUMENTS.get('android_toolchain')
+
+if ARGUMENTS.get('android_cross_prefix'):
+    ANDROID_CROSS_PREFIX=ARGUMENTS.get('android_cross_prefix')
+
+if ARGUMENTS.get('android_platform'):
+    ANDROID_PLATFORM=ARGUMENTS.get('android_platform')
+
+if ARGUMENTS.get('android_arch'):
+    ANDROID_ARCH=ARGUMENTS.get('android_arch')
 		
 print 'Building for Android: '
 print 'ANDROID_HOST_SYSTEM =', ANDROID_HOST_SYSTEM
@@ -57,7 +75,7 @@ env.PrependENVPath('PATH', ANDROID_TOOLCHAIN_BIN)
 ### special C Runtime startup for executables
 env['AP4_EXTRA_EXECUTABLE_OBJECTS'] = [ANDROID_SYSROOT+'/usr/lib/crtbegin_static.o',
                                        ANDROID_SYSROOT+'/usr/lib/crtend_android.o']
-
+env['AP4_EXTRA_LIBS'] = ['gcc']
 
 ### Load the tools
 LoadTool('gcc-generic', env, gcc_cross_prefix=ANDROID_CROSS_PREFIX, gcc_strict=False)
