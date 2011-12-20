@@ -50,6 +50,20 @@ def PrintErrorAndExit(message):
     sys.stderr.write(message+'\n')
     sys.exit(1)
     
+def XmlDuration(d):
+    h  = d/3600
+    d -= h*3600
+    m  = d/60
+    s  = d-m*60
+    xsd = 'PT'
+    if h:
+        xsd += str(h)+'H'
+    if h or m:
+        xsd += str(m)+'M'
+    if s:
+        xsd += str(s)+'S'
+    return xsd
+    
 def Bento4Command(name, *args, **kwargs):
     cmd = [path.join(Options.exec_dir, name)]
     for kwarg in kwargs:
@@ -261,6 +275,7 @@ def AddSegmentTemplate(container, subdir, media_file, track_id):
                                   'SegmentTemplate',
                                   timescale='1000',
                                   duration=str(int(media_file.segment_duration[track_id]*1000)),
+                                  startNumber='0',
                                   initialisation=prefix+INIT_SEGMENT_NAME,
                                   media=prefix+SEGMENT_TEMPLATE)
 
@@ -380,7 +395,7 @@ def main():
                       xmlns=MPD_NS, 
                       profiles=ISOFF_LIVE_PROFILE, 
                       minBufferTime="PT%.02fS" % (options.min_buffer_time), 
-                      mediaPresentationDuration="PT%dS" % (int(mp4_file.info['movie']['duration_ms'])/1000),
+                      mediaPresentationDuration=XmlDuration(int(mp4_file.info['movie']['duration_ms'])/1000),
                       type='static')
     period = xml.SubElement(mpd, 'Period')
 
