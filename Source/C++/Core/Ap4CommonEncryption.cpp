@@ -921,6 +921,43 @@ AP4_CencSampleDecrypter::Create(AP4_ProtectedSampleDescription* sample_descripti
                                 AP4_BlockCipherFactory*         block_cipher_factory,
                                 AP4_CencSampleDecrypter*&       decrypter)
 {
+    AP4_SaioAtom* saio = NULL;
+    AP4_SaizAtom* saiz = NULL;
+    AP4_CencSampleEncryption* sample_encryption_atom = NULL;
+    return Create(sample_description, 
+                  traf,
+                  aux_info_data,
+                  aux_info_data_offset,
+                  key,
+                  key_size,
+                  saio,
+                  saiz,
+                  sample_encryption_atom,
+                  block_cipher_factory,
+                  decrypter);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_CencSampleDecrypter::Create
++---------------------------------------------------------------------*/
+AP4_Result 
+AP4_CencSampleDecrypter::Create(AP4_ProtectedSampleDescription* sample_description, 
+                                AP4_ContainerAtom*              traf,
+                                AP4_ByteStream&                 aux_info_data,
+                                AP4_Position                    aux_info_data_offset,
+                                const AP4_UI08*                 key, 
+                                AP4_Size                        key_size,
+                                AP4_SaioAtom*&                  saio,
+                                AP4_SaizAtom*&                  saiz,
+                                AP4_CencSampleEncryption*&      sample_encryption_atom,
+                                AP4_BlockCipherFactory*         block_cipher_factory,
+                                AP4_CencSampleDecrypter*&       decrypter)
+{
+    // default return values
+    saio = NULL;
+    saiz = NULL;
+    sample_encryption_atom = NULL;
+    
     // check the parameters
     if (key == NULL) return AP4_ERROR_INVALID_PARAMETERS;
     
@@ -955,9 +992,8 @@ AP4_CencSampleDecrypter::Create(AP4_ProtectedSampleDescription* sample_descripti
         track_encryption_atom = AP4_DYNAMIC_CAST(AP4_CencTrackEncryption, schi->GetChild(AP4_UUID_PIFF_TRACK_ENCRYPTION_ATOM));
     }
     
-    // try to look for saio and saiz
+    // let's build a sample info table
     AP4_CencSampleInfoTable* sample_info_table = NULL;
-    AP4_CencSampleEncryption* sample_encryption_atom = NULL;
     
     // look for a sample encryption atom
     if (traf) {
@@ -987,8 +1023,6 @@ AP4_CencSampleDecrypter::Create(AP4_ProtectedSampleDescription* sample_descripti
     }
 
     // try to create a sample info table from saio/saiz
-    AP4_SaioAtom* saio = NULL;
-    AP4_SaizAtom* saiz = NULL;
     if (traf) {
         for (AP4_List<AP4_Atom>::Item* child = traf->GetChildren().FirstItem();
                                        child;
@@ -1076,9 +1110,6 @@ AP4_CencSampleDecrypter::Create(AP4_ProtectedSampleDescription* sample_descripti
     // create the decrypter
     decrypter = new AP4_CencSampleDecrypter(stream_cipher, 
                                             full_blocks_only,
-                                            sample_encryption_atom,
-                                            saio,
-                                            saiz,
                                             sample_info_table);                    
 
     return AP4_SUCCESS;
@@ -1294,7 +1325,14 @@ AP4_CencTrackDecrypter::ProcessTrack()
 class AP4_CencFragmentDecrypter : public AP4_Processor::FragmentHandler {
 public:
     // constructor
-    AP4_CencFragmentDecrypter(AP4_CencSampleDecrypter* sample_decrypter);
+    AP4_CencFragmentDecrypter(AP4_CencSampleDecrypter*  sample_decrypter,
+                              AP4_SaioAtom*             saio_atom,
+                              AP4_SaizAtom*             saiz_atom,
+                              AP4_CencSampleEncryption* sample_encryption_atom) :
+    m_SampleDecrypter(sample_decrypter),
+    m_SaioAtom(saio_atom),
+    m_SaizAtom(saiz_atom),
+    m_SampleEncryptionAtom(sample_encryption_atom) {}
 
     // methods
     virtual AP4_Result ProcessFragment();
@@ -1304,16 +1342,11 @@ public:
 
 private:
     // members
-    AP4_CencSampleDecrypter* m_SampleDecrypter;
+    AP4_CencSampleDecrypter*  m_SampleDecrypter;
+    AP4_SaioAtom*             m_SaioAtom;
+    AP4_SaizAtom*             m_SaizAtom;
+    AP4_CencSampleEncryption* m_SampleEncryptionAtom;
 };
-
-/*----------------------------------------------------------------------
-|   AP4_CencFragmentDecrypter::AP4_CencFragmentDecrypter
-+---------------------------------------------------------------------*/
-AP4_CencFragmentDecrypter::AP4_CencFragmentDecrypter(AP4_CencSampleDecrypter* sample_decrypter) :
-    m_SampleDecrypter(sample_decrypter)
-{
-}
 
 /*----------------------------------------------------------------------
 |   AP4_CencFragmentDecrypter::ProcessFragment
@@ -1323,13 +1356,11 @@ AP4_CencFragmentDecrypter::ProcessFragment()
 {
     // detach the sample encryption atom
     if (m_SampleDecrypter) {
-        AP4_CencSampleEncryption* atom = m_SampleDecrypter->GetSampleEncryptionAtom();
-        if (atom) atom->GetOuter().Detach();
-        AP4_SaioAtom* saio = m_SampleDecrypter->GetSaioAtom();
-        if (saio) saio->Detach();
-        AP4_SaizAtom* saiz = m_SampleDecrypter->GetSaizAtom();
-        if (saiz) saiz->Detach();
+        if (m_SaioAtom) m_SaioAtom->Detach();
+        if (m_SaizAtom) m_SaizAtom->Detach();
+        if (m_SampleEncryptionAtom) m_SampleEncryptionAtom->GetOuter().Detach();
     }
+
     return AP4_SUCCESS;
 }
 
@@ -1340,12 +1371,12 @@ AP4_Result
 AP4_CencFragmentDecrypter::FinishFragment()
 {
     if (m_SampleDecrypter) {
-        delete m_SampleDecrypter->GetSampleEncryptionAtom();
-        m_SampleDecrypter->SetSampleEncryptionAtom(NULL);
-        delete m_SampleDecrypter->GetSaioAtom();
-        m_SampleDecrypter->SetSaioAtom(NULL);
-        delete m_SampleDecrypter->GetSaizAtom();
-        m_SampleDecrypter->SetSaizAtom(NULL);
+        delete m_SaioAtom; 
+        m_SaioAtom = NULL;
+        delete m_SaizAtom;
+        m_SaizAtom = NULL;
+        delete m_SampleEncryptionAtom;
+        m_SampleEncryptionAtom = NULL;
     }
     return AP4_SUCCESS;
 }
@@ -1464,6 +1495,9 @@ AP4_CencDecryptingProcessor::CreateFragmentHandler(AP4_ContainerAtom* traf,
     
     // create the sample decrypter for the fragment
     AP4_CencSampleDecrypter* sample_decrypter = NULL;
+    AP4_SaioAtom* saio = NULL;
+    AP4_SaizAtom* saiz = NULL;
+    AP4_CencSampleEncryption* sample_encryption_atom = NULL;
     AP4_Result result = AP4_CencSampleDecrypter::Create(
         sample_description, 
         traf, 
@@ -1471,11 +1505,14 @@ AP4_CencDecryptingProcessor::CreateFragmentHandler(AP4_ContainerAtom* traf,
         moof_offset,
         key->GetData(), 
         key->GetDataSize(), 
+        saio,
+        saiz,
+        sample_encryption_atom,
         NULL, 
         sample_decrypter);
     if (AP4_FAILED(result)) return NULL;
     
-    return new AP4_CencFragmentDecrypter(sample_decrypter);
+    return new AP4_CencFragmentDecrypter(sample_decrypter, saio, saiz, sample_encryption_atom);
 }
     
 /*----------------------------------------------------------------------
