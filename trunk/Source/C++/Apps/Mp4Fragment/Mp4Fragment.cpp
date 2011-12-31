@@ -312,13 +312,13 @@ Fragment(AP4_File& input_file, AP4_ByteStream& output_stream, unsigned int fragm
             sample_count++;
             if (cursor->m_SampleIndex >= cursor->m_Track->GetSampleCount()) {
                 cursor->m_Eos = true;
-                cursor->m_Sample.Reset();
+                //cursor->m_Sample.Reset();
                 break;
             }
             result = cursor->m_Track->GetSample(cursor->m_SampleIndex, cursor->m_Sample);
             if (AP4_FAILED(result)) {
                 cursor->m_Eos = true;
-                cursor->m_Sample.Reset();
+                //cursor->m_Sample.Reset();
                 break;
             }
             if (cursor->m_Sample.IsSync()) {

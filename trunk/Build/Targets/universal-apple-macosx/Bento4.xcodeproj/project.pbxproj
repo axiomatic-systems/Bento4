@@ -70,10 +70,8 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
-		CA00667910153960004C0D5F /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
 		CA00667D1015399A004C0D5F /* Mp42Ts.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA00667C1015399A004C0D5F /* Mp42Ts.cpp */; };
 		CA00CB8713D9F1EC00C1A140 /* Mp4Compact.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA00CB8613D9F1EC00C1A140 /* Mp4Compact.cpp */; };
-		CA00CB8A13D9F29E00C1A140 /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
 		CA04DFDE1040921500AD5863 /* Ap4KeyWrap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA04DFDC1040921500AD5863 /* Ap4KeyWrap.cpp */; };
 		CA04DFDF1040921500AD5863 /* Ap4KeyWrap.h in Headers */ = {isa = PBXBuildFile; fileRef = CA04DFDD1040921500AD5863 /* Ap4KeyWrap.h */; };
 		CA09F27F0DF62FC600C2B2DA /* Ap4Marlin.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA09F27D0DF62FC600C2B2DA /* Ap4Marlin.cpp */; };
@@ -92,18 +90,13 @@
 		CA2898B20D897F20006A758B /* Ap4IodsAtom.h in Headers */ = {isa = PBXBuildFile; fileRef = CA2898B00D897F20006A758B /* Ap4IodsAtom.h */; };
 		CA2DBC7D108165330012E204 /* Ap4Mpeg2Ts.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA2DBC7B108165330012E204 /* Ap4Mpeg2Ts.cpp */; };
 		CA2DBC7E108165330012E204 /* Ap4Mpeg2Ts.h in Headers */ = {isa = PBXBuildFile; fileRef = CA2DBC7C108165330012E204 /* Ap4Mpeg2Ts.h */; };
-		CA2E6A411087E0A000F837E2 /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
 		CA2E6A421087E0BB00F837E2 /* Mp42Avc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA2E6A371087E07C00F837E2 /* Mp42Avc.cpp */; };
 		CA39215E13AC0B36006718F0 /* Ap4Stz2Atom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA39215C13AC0B36006718F0 /* Ap4Stz2Atom.cpp */; };
 		CA39215F13AC0B36006718F0 /* Ap4Stz2Atom.h in Headers */ = {isa = PBXBuildFile; fileRef = CA39215D13AC0B36006718F0 /* Ap4Stz2Atom.h */; };
-		CA399C9E10A347690085284B /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
 		CA399CA010A348560085284B /* Aac2Mp4.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA646A880CE97B2D009699D7 /* Aac2Mp4.cpp */; };
 		CA3EDA850D7E0BA0007AE943 /* AvcInfo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA3EDA790D7E0B6B007AE943 /* AvcInfo.cpp */; };
-		CA3EDA8D0D7E0C92007AE943 /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
 		CA3EDA970D7E14D3007AE943 /* Ap4AvcParser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA3EDA960D7E14D3007AE943 /* Ap4AvcParser.cpp */; };
-		CA40CB2F0F40DC1C0008649B /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
 		CA40CB370F40DC580008649B /* BasicTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA40CB360F40DC580008649B /* BasicTest.cpp */; };
-		CA44C5310D46379100173F5F /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
 		CA44C5340D46383A00173F5F /* Mp4DcfPackager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA44C5250D46370B00173F5F /* Mp4DcfPackager.cpp */; };
 		CA504D5D0C5E8A8A0060E6FE /* Ap4ElstAtom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA504D5B0C5E8A8A0060E6FE /* Ap4ElstAtom.cpp */; };
 		CA504D5E0C5E8A8A0060E6FE /* Ap4ElstAtom.h in Headers */ = {isa = PBXBuildFile; fileRef = CA504D5C0C5E8A8A0060E6FE /* Ap4ElstAtom.h */; };
@@ -120,29 +113,17 @@
 		CA5734FD13B5DCFA00953446 /* Ap4SencAtom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA5734FB13B5DCFA00953446 /* Ap4SencAtom.cpp */; };
 		CA5734FE13B5DCFA00953446 /* Ap4SencAtom.h in Headers */ = {isa = PBXBuildFile; fileRef = CA5734FC13B5DCFA00953446 /* Ap4SencAtom.h */; };
 		CA5A8F8C13541628007C6EFC /* Ap4.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA5A8F8B13541628007C6EFC /* Ap4.cpp */; };
-		CA6103DC128598AF0039C7E6 /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
 		CA6103E4128599C20039C7E6 /* Mp4Fragment.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA6103E3128599C20039C7E6 /* Mp4Fragment.cpp */; };
 		CA646ABF0CE97C0C009699D7 /* Mp4Dump.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA646A8E0CE97B2D009699D7 /* Mp4Dump.cpp */; };
-		CA646AC00CE97C17009699D7 /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
-		CA646AD10CE97C80009699D7 /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
 		CA646AD70CE97C97009699D7 /* Mp4Info.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA646A960CE97B2D009699D7 /* Mp4Info.cpp */; };
-		CA646AE60CE97CD2009699D7 /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
 		CA646AEC0CE97CE4009699D7 /* Mp4Encrypt.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA646A920CE97B2D009699D7 /* Mp4Encrypt.cpp */; };
-		CA646AF30CE97CEE009699D7 /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
 		CA646AF90CE97D08009699D7 /* Mp4Decrypt.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA646A8C0CE97B2D009699D7 /* Mp4Decrypt.cpp */; };
-		CA646B060CE97D6E009699D7 /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
 		CA646B0C0CE97D7F009699D7 /* Mp4Edit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA646A900CE97B2D009699D7 /* Mp4Edit.cpp */; };
-		CA646B160CE97D9C009699D7 /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
 		CA646B1C0CE97DB0009699D7 /* Mp4Extract.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA646A940CE97B2D009699D7 /* Mp4Extract.cpp */; };
-		CA646B260CE97DD1009699D7 /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
 		CA646B2C0CE97DE5009699D7 /* Mp4Tag.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA646A9A0CE97B2D009699D7 /* Mp4Tag.cpp */; };
-		CA646B460CE97E27009699D7 /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
 		CA646B4F0CE97E49009699D7 /* Mp42Aac.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA646A8A0CE97B2D009699D7 /* Mp42Aac.cpp */; };
-		CA646B560CE97E52009699D7 /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
 		CA646B5F0CE97E75009699D7 /* Mp4RtpHintInfo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA646A980CE97B2D009699D7 /* Mp4RtpHintInfo.cpp */; };
-		CA646B660CE97E82009699D7 /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
 		CA646B6F0CE97EC9009699D7 /* CryptoTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA646A9D0CE97B51009699D7 /* CryptoTest.cpp */; };
-		CA7EECEB0F720656009F85F9 /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
 		CA7EECEC0F720663009F85F9 /* CompareFiles.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA7EECE10F720627009F85F9 /* CompareFiles.cpp */; };
 		CA8B6A620F66D20900720A07 /* Ap4MfhdAtom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA8B6A600F66D20900720A07 /* Ap4MfhdAtom.cpp */; };
 		CA8B6A630F66D20900720A07 /* Ap4MfhdAtom.h in Headers */ = {isa = PBXBuildFile; fileRef = CA8B6A610F66D20900720A07 /* Ap4MfhdAtom.h */; };
@@ -310,7 +291,6 @@
 		CA9367FF0B4383F00067D50B /* Ap4AdtsParser.h in Headers */ = {isa = PBXBuildFile; fileRef = CA9367FB0B4383F00067D50B /* Ap4AdtsParser.h */; };
 		CA9368000B4383F00067D50B /* Ap4BitStream.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA9367FC0B4383F00067D50B /* Ap4BitStream.cpp */; };
 		CA9368010B4383F00067D50B /* Ap4BitStream.h in Headers */ = {isa = PBXBuildFile; fileRef = CA9367FD0B4383F00067D50B /* Ap4BitStream.h */; };
-		CA9A16DE0ED4F43800C60FDF /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
 		CA9A16E10ED4F44C00C60FDF /* PassthroughWriterTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA9A16E00ED4F44C00C60FDF /* PassthroughWriterTest.cpp */; };
 		CA9CB9BE0F86ABB400063C70 /* Ap48bdlAtom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA9CB9BC0F86ABB400063C70 /* Ap48bdlAtom.cpp */; };
 		CA9CB9BF0F86ABB400063C70 /* Ap48bdlAtom.h in Headers */ = {isa = PBXBuildFile; fileRef = CA9CB9BD0F86ABB400063C70 /* Ap48bdlAtom.h */; };
@@ -321,13 +301,38 @@
 		CAA033690DF7E2FA0086EC1C /* Ap4Ipmp.h in Headers */ = {isa = PBXBuildFile; fileRef = CAA033670DF7E2FA0086EC1C /* Ap4Ipmp.h */; };
 		CAA4FF2010B2CBB3009C8F5B /* Ap4Mp4AudioInfo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAA4FF1E10B2CBB3009C8F5B /* Ap4Mp4AudioInfo.cpp */; };
 		CAA4FF2110B2CBB3009C8F5B /* Ap4Mp4AudioInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = CAA4FF1F10B2CBB3009C8F5B /* Ap4Mp4AudioInfo.h */; };
+		CAA7E6CA14ACD77A008AA54E /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAA7E6C914ACD763008AA54E /* libBento4.a */; };
+		CAA7E6CB14ACD77F008AA54E /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAA7E6C914ACD763008AA54E /* libBento4.a */; };
+		CAA7E6CC14ACD785008AA54E /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAA7E6C914ACD763008AA54E /* libBento4.a */; };
+		CAA7E6CD14ACD798008AA54E /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAA7E6C914ACD763008AA54E /* libBento4.a */; };
+		CAA7E6CE14ACD79E008AA54E /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAA7E6C914ACD763008AA54E /* libBento4.a */; };
+		CAA7E6CF14ACD7A5008AA54E /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAA7E6C914ACD763008AA54E /* libBento4.a */; };
+		CAA7E6D014ACD7AA008AA54E /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAA7E6C914ACD763008AA54E /* libBento4.a */; };
+		CAA7E6D114ACD7B0008AA54E /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAA7E6C914ACD763008AA54E /* libBento4.a */; };
+		CAA7E6D214ACD7B6008AA54E /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAA7E6C914ACD763008AA54E /* libBento4.a */; };
+		CAA7E6D314ACD7BC008AA54E /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAA7E6C914ACD763008AA54E /* libBento4.a */; };
+		CAA7E6D414ACD7C3008AA54E /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAA7E6C914ACD763008AA54E /* libBento4.a */; };
+		CAA7E6D514ACD7C8008AA54E /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAA7E6C914ACD763008AA54E /* libBento4.a */; };
+		CAA7E6D614ACD7CE008AA54E /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAA7E6C914ACD763008AA54E /* libBento4.a */; };
+		CAA7E6D714ACD7D4008AA54E /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAA7E6C914ACD763008AA54E /* libBento4.a */; };
+		CAA7E6D814ACD7D9008AA54E /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAA7E6C914ACD763008AA54E /* libBento4.a */; };
+		CAA7E6D914ACD7DF008AA54E /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAA7E6C914ACD763008AA54E /* libBento4.a */; };
+		CAA7E6DA14ACD7E4008AA54E /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAA7E6C914ACD763008AA54E /* libBento4.a */; };
+		CAA7E6DB14ACD7EB008AA54E /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAA7E6C914ACD763008AA54E /* libBento4.a */; };
+		CAA7E6DC14ACD7F1008AA54E /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAA7E6C914ACD763008AA54E /* libBento4.a */; };
+		CAA7E6DD14ACD7F6008AA54E /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAA7E6C914ACD763008AA54E /* libBento4.a */; };
+		CAA7E6DE14ACD7FB008AA54E /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAA7E6C914ACD763008AA54E /* libBento4.a */; };
+		CAA7E6DF14ACD801008AA54E /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAA7E6C914ACD763008AA54E /* libBento4.a */; };
+		CAA7E6E014ACD807008AA54E /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAA7E6C914ACD763008AA54E /* libBento4.a */; };
+		CAA7E6E114ACD80D008AA54E /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAA7E6C914ACD763008AA54E /* libBento4.a */; };
+		CAA7E6E214ACD812008AA54E /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAA7E6C914ACD763008AA54E /* libBento4.a */; };
+		CAA7E6E314ACD818008AA54E /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAA7E6C914ACD763008AA54E /* libBento4.a */; };
+		CAA7E6E414ACD81C008AA54E /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAA7E6C914ACD763008AA54E /* libBento4.a */; };
+		CAA7E6E514ACD868008AA54E /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAA7E6C914ACD763008AA54E /* libBento4.a */; };
 		CAA88EBB10A2069900178BE3 /* Ap4NeptuneAdapters.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAA88EB910A2069900178BE3 /* Ap4NeptuneAdapters.cpp */; };
 		CAA88EBC10A2069900178BE3 /* Ap4NeptuneAdapters.h in Headers */ = {isa = PBXBuildFile; fileRef = CAA88EBA10A2069900178BE3 /* Ap4NeptuneAdapters.h */; };
-		CAB3CB770FCB35C4007C4260 /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
 		CAB3CB790FCB35EC007C4260 /* BufferedStreamTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAB3CB6C0FCB35A8007C4260 /* BufferedStreamTest.cpp */; };
 		CABB61F70F02BADB00B53D31 /* TracksTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CABB61EF0F02B85900B53D31 /* TracksTest.cpp */; };
-		CABB61FD0F02CD0B00B53D31 /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
-		CAC02A12139DBA400034427F /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
 		CAC02A19139DBA6F0034427F /* Mp4Split.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAC02A18139DBA6F0034427F /* Mp4Split.cpp */; };
 		CAC51D76129708CB00AE5CF9 /* Ap4PosixRandom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAC51D75129708CB00AE5CF9 /* Ap4PosixRandom.cpp */; };
 		CAD6A7C40F7AFFD800456513 /* Ap4DynamicCast.h in Headers */ = {isa = PBXBuildFile; fileRef = CAD6A7C30F7AFFD800456513 /* Ap4DynamicCast.h */; };
@@ -335,7 +340,6 @@
 		CAE03AC01034AE0D006FAFD7 /* Ap4Hmac.h in Headers */ = {isa = PBXBuildFile; fileRef = CAE03ABE1034AE0D006FAFD7 /* Ap4Hmac.h */; };
 		CAE723FF0FC33618008F2905 /* Ap4LinearReader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAE723FD0FC33618008F2905 /* Ap4LinearReader.cpp */; };
 		CAE724000FC33618008F2905 /* Ap4LinearReader.h in Headers */ = {isa = PBXBuildFile; fileRef = CAE723FE0FC33618008F2905 /* Ap4LinearReader.h */; };
-		CAE7240C0FC33654008F2905 /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
 		CAE724290FC337C0008F2905 /* LinearReaderTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAE724020FC3362B008F2905 /* LinearReaderTest.cpp */; };
 		CAEA9CE70E144676008C396D /* Ap4AtomixAdapters.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAEA9CDE0E14460F008C396D /* Ap4AtomixAdapters.cpp */; };
 		CAEA9CE80E144677008C396D /* Ap4AtomixAdapters.h in Headers */ = {isa = PBXBuildFile; fileRef = CAEA9CDF0E14460F008C396D /* Ap4AtomixAdapters.h */; };
@@ -348,9 +352,7 @@
 		CAEFE10F0FB6993D00AF6434 /* Ap4MehdAtom.h in Headers */ = {isa = PBXBuildFile; fileRef = CAEFE10D0FB6993D00AF6434 /* Ap4MehdAtom.h */; };
 		CAEFE1340FB69CF600AF6434 /* Ap4TrexAtom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAEFE1320FB69CF600AF6434 /* Ap4TrexAtom.cpp */; };
 		CAEFE1350FB69CF600AF6434 /* Ap4TrexAtom.h in Headers */ = {isa = PBXBuildFile; fileRef = CAEFE1330FB69CF600AF6434 /* Ap4TrexAtom.h */; };
-		CAF479310F0951C3004073ED /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
 		CAF479380F0951E7004073ED /* BenchmarksTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAF479370F0951E7004073ED /* BenchmarksTest.cpp */; };
-		CAFC31BF0FEB3DE900EF80A0 /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
 		CAFC31CE0FEB3E7C00EF80A0 /* FragmentParserTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAFC31CD0FEB3E7C00EF80A0 /* FragmentParserTest.cpp */; };
 		CAFC31D90FEB95F700EF80A0 /* Ap4MovieFragment.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAFC31D70FEB95F700EF80A0 /* Ap4MovieFragment.cpp */; };
 		CAFC31DA0FEB95F700EF80A0 /* Ap4MovieFragment.h in Headers */ = {isa = PBXBuildFile; fileRef = CAFC31D80FEB95F700EF80A0 /* Ap4MovieFragment.h */; };
@@ -360,9 +362,7 @@
 		F98E8CC20EA9AEC3000C8839 /* Bento4C.h in Headers */ = {isa = PBXBuildFile; fileRef = F98E8CC00EA9AEC3000C8839 /* Bento4C.h */; };
 		F9B1F4FB0B54AD91003F147E /* Ap4AvccAtom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F9B1F4F90B54AD91003F147E /* Ap4AvccAtom.cpp */; };
 		F9B1F4FC0B54AD91003F147E /* Ap4AvccAtom.h in Headers */ = {isa = PBXBuildFile; fileRef = F9B1F4FA0B54AD91003F147E /* Ap4AvccAtom.h */; };
-		F9DBC8010E99B00100913BF6 /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
 		F9DBC8060E99B05000913BF6 /* AvcTrackWriterTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F9DBC8050E99B05000913BF6 /* AvcTrackWriterTest.cpp */; };
-		F9FDDA350EA799CA0061DCB2 /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libBento4.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -1046,6 +1046,7 @@
 		CAA033670DF7E2FA0086EC1C /* Ap4Ipmp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4Ipmp.h; sourceTree = "<group>"; };
 		CAA4FF1E10B2CBB3009C8F5B /* Ap4Mp4AudioInfo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4Mp4AudioInfo.cpp; sourceTree = "<group>"; };
 		CAA4FF1F10B2CBB3009C8F5B /* Ap4Mp4AudioInfo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4Mp4AudioInfo.h; sourceTree = "<group>"; };
+		CAA7E6C914ACD763008AA54E /* libBento4.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libBento4.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		CAA88EA910A2064500178BE3 /* libBento4Neptune.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libBento4Neptune.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		CAA88EB910A2069900178BE3 /* Ap4NeptuneAdapters.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4NeptuneAdapters.cpp; sourceTree = "<group>"; };
 		CAA88EBA10A2069900178BE3 /* Ap4NeptuneAdapters.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4NeptuneAdapters.h; sourceTree = "<group>"; };
@@ -1083,7 +1084,6 @@
 		CAFC31D80FEB95F700EF80A0 /* Ap4MovieFragment.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4MovieFragment.h; sourceTree = "<group>"; };
 		CAFC31EE0FEBAA9200EF80A0 /* Ap4FragmentSampleTable.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4FragmentSampleTable.cpp; sourceTree = "<group>"; };
 		CAFC31EF0FEBAA9200EF80A0 /* Ap4FragmentSampleTable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4FragmentSampleTable.h; sourceTree = "<group>"; };
-		D2AAC046055464E500DB518D /* libBento4.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libBento4.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		F98E8CBF0EA9AEC3000C8839 /* Bento4C.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Bento4C.cpp; path = "../../../Source/C++/CApi/Bento4C.cpp"; sourceTree = SOURCE_ROOT; };
 		F98E8CC00EA9AEC3000C8839 /* Bento4C.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Bento4C.h; path = "../../../Source/C++/CApi/Bento4C.h"; sourceTree = SOURCE_ROOT; };
 		F9B1F4F90B54AD91003F147E /* Ap4AvccAtom.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4AvccAtom.cpp; sourceTree = "<group>"; };
@@ -1098,7 +1098,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CA00667910153960004C0D5F /* libBento4.a in Frameworks */,
+				CAA7E6D714ACD7D4008AA54E /* libBento4.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1106,7 +1106,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CA00CB8A13D9F29E00C1A140 /* libBento4.a in Frameworks */,
+				CAA7E6D414ACD7C3008AA54E /* libBento4.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1114,7 +1114,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CA2E6A411087E0A000F837E2 /* libBento4.a in Frameworks */,
+				CAA7E6D614ACD7CE008AA54E /* libBento4.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1122,7 +1122,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CA399C9E10A347690085284B /* libBento4.a in Frameworks */,
+				CAA7E6D914ACD7DF008AA54E /* libBento4.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1130,7 +1130,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CA3EDA8D0D7E0C92007AE943 /* libBento4.a in Frameworks */,
+				CAA7E6DA14ACD7E4008AA54E /* libBento4.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1138,7 +1138,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CA40CB2F0F40DC1C0008649B /* libBento4.a in Frameworks */,
+				CAA7E6E014ACD807008AA54E /* libBento4.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1146,7 +1146,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CA44C5310D46379100173F5F /* libBento4.a in Frameworks */,
+				CAA7E6CD14ACD798008AA54E /* libBento4.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1154,7 +1154,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CA6103DC128598AF0039C7E6 /* libBento4.a in Frameworks */,
+				CAA7E6D214ACD7B6008AA54E /* libBento4.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1162,7 +1162,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CA646AC00CE97C17009699D7 /* libBento4.a in Frameworks */,
+				CAA7E6CA14ACD77A008AA54E /* libBento4.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1170,7 +1170,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CA646AD10CE97C80009699D7 /* libBento4.a in Frameworks */,
+				CAA7E6CB14ACD77F008AA54E /* libBento4.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1178,7 +1178,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CA646AE60CE97CD2009699D7 /* libBento4.a in Frameworks */,
+				CAA7E6CC14ACD785008AA54E /* libBento4.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1186,7 +1186,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CA646AF30CE97CEE009699D7 /* libBento4.a in Frameworks */,
+				CAA7E6CE14ACD79E008AA54E /* libBento4.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1194,7 +1194,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CA646B060CE97D6E009699D7 /* libBento4.a in Frameworks */,
+				CAA7E6CF14ACD7A5008AA54E /* libBento4.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1202,7 +1202,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CA646B160CE97D9C009699D7 /* libBento4.a in Frameworks */,
+				CAA7E6D014ACD7AA008AA54E /* libBento4.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1210,7 +1210,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CA646B260CE97DD1009699D7 /* libBento4.a in Frameworks */,
+				CAA7E6D114ACD7B0008AA54E /* libBento4.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1218,7 +1218,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CA646B460CE97E27009699D7 /* libBento4.a in Frameworks */,
+				CAA7E6D514ACD7C8008AA54E /* libBento4.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1226,7 +1226,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CA646B560CE97E52009699D7 /* libBento4.a in Frameworks */,
+				CAA7E6D814ACD7D9008AA54E /* libBento4.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1234,7 +1234,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CA646B660CE97E82009699D7 /* libBento4.a in Frameworks */,
+				CAA7E6DB14ACD7EB008AA54E /* libBento4.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1242,7 +1242,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CA7EECEB0F720656009F85F9 /* libBento4.a in Frameworks */,
+				CAA7E6E114ACD80D008AA54E /* libBento4.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1250,7 +1250,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CA9A16DE0ED4F43800C60FDF /* libBento4.a in Frameworks */,
+				CAA7E6DD14ACD7F6008AA54E /* libBento4.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1265,7 +1265,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CAB3CB770FCB35C4007C4260 /* libBento4.a in Frameworks */,
+				CAA7E6E314ACD818008AA54E /* libBento4.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1273,7 +1273,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CABB61FD0F02CD0B00B53D31 /* libBento4.a in Frameworks */,
+				CAA7E6DE14ACD7FB008AA54E /* libBento4.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1281,7 +1281,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CAC02A12139DBA400034427F /* libBento4.a in Frameworks */,
+				CAA7E6D314ACD7BC008AA54E /* libBento4.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1289,7 +1289,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CAE7240C0FC33654008F2905 /* libBento4.a in Frameworks */,
+				CAA7E6E214ACD812008AA54E /* libBento4.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1304,7 +1304,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CAF479310F0951C3004073ED /* libBento4.a in Frameworks */,
+				CAA7E6DF14ACD801008AA54E /* libBento4.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1312,7 +1312,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CAFC31BF0FEB3DE900EF80A0 /* libBento4.a in Frameworks */,
+				CAA7E6E414ACD81C008AA54E /* libBento4.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1327,7 +1327,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F9DBC8010E99B00100913BF6 /* libBento4.a in Frameworks */,
+				CAA7E6DC14ACD7F1008AA54E /* libBento4.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1335,7 +1335,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F9FDDA350EA799CA0061DCB2 /* libBento4.a in Frameworks */,
+				CAA7E6E514ACD868008AA54E /* libBento4.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1345,7 +1345,6 @@
 		08FB7794FE84155DC02AAC07 /* Bento4 */ = {
 			isa = PBXGroup;
 			children = (
-				D2AAC046055464E500DB518D /* libBento4.a */,
 				08FB7795FE84155DC02AAC07 /* Runtime */,
 				CA646A860CE97B2D009699D7 /* Apps */,
 				CA646A9B0CE97B51009699D7 /* Test */,
@@ -1403,6 +1402,7 @@
 				CA6103D61285988E0039C7E6 /* mp4fragment */,
 				CAC02A0C139DBA350034427F /* mp4split */,
 				CA00CB7C13D9F13B00C1A140 /* mp4compact */,
+				CAA7E6C914ACD763008AA54E /* libBento4.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -2623,7 +2623,7 @@
 			);
 			name = Bento4;
 			productName = Bento4;
-			productReference = D2AAC046055464E500DB518D /* libBento4.a */;
+			productReference = CAA7E6C914ACD763008AA54E /* libBento4.a */;
 			productType = "com.apple.product-type.library.static";
 		};
 		F9DBC7FC0E99AFE100913BF6 /* AvcTrackWriterTest */ = {

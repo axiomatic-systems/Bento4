@@ -186,10 +186,8 @@ class Mp4File:
         track_id      = 0
         self.moofs         = { self.audio_track_id:[],  self.video_track_id:[]}
         self.sample_counts = { self.audio_track_id:[],  self.video_track_id: []}
-        self.media_size    = { self.audio_track_id:0,   self.video_track_id: 0}
+        self.segment_sizes = { self.audio_track_id:[],  self.video_track_id: []}
         for atom in self.tree:
-            if track_id:
-                self.media_size[track_id] += atom['size']
             if atom['name'] == 'moof':
                 trafs = FilterChildren(atom, 'traf')
                 if len(trafs) != 1:
@@ -197,11 +195,23 @@ class Mp4File:
                 tfhd = FilterChildren(trafs[0], 'tfhd')[0]
                 track_id = tfhd['track ID']
                 self.moofs[track_id].append(segment_index)
+                self.segment_sizes[track_id].append(0)
                 for trun in FilterChildren(trafs[0], 'trun'):
                     self.sample_counts[track_id].append(trun['sample count'])
                 segment_index += 1
+            else:
+                if track_id and len(self.segment_sizes[track_id]):
+                    self.segment_sizes[track_id][-1] += atom['size']
                 
-        self.bitrates = {
+        self.media_size = {
+            self.audio_track_id: reduce(operator.add, self.segment_sizes[self.audio_track_id], 0),
+            self.video_track_id: reduce(operator.add, self.segment_sizes[self.video_track_id], 0)
+        }
+        self.average_segment_bitrate = {
+            self.audio_track_id:0,
+            self.video_track_id:0
+        }
+        self.max_segment_bitrate = {
             self.audio_track_id:0,
             self.video_track_id:0
         }
@@ -211,18 +221,25 @@ class Mp4File:
         }
 
         if self.total_samples[self.audio_track_id] and Options.audio_sample_rate:
-            self.bitrates[self.audio_track_id] = int(8*self.media_size[self.audio_track_id]/(self.total_samples[self.audio_track_id]/(Options.audio_sample_rate/1024)))
+            self.average_segment_bitrate[self.audio_track_id] = int(8*self.media_size[self.audio_track_id]/(self.total_samples[self.audio_track_id]/(Options.audio_sample_rate/1024)))
         if self.total_samples[self.video_track_id] and Options.video_frame_rate:
-            self.bitrates[self.video_track_id] = int(8*self.media_size[self.video_track_id]/(self.total_samples[self.video_track_id]/Options.video_frame_rate))
+            self.average_segment_bitrate[self.video_track_id] = int(8*self.media_size[self.video_track_id]/(self.total_samples[self.video_track_id]/Options.video_frame_rate))
         
         self.segment_duration = { self.audio_track_id:0, self.video_track_id:0 }
         if len(self.sample_counts[self.audio_track_id]) > 1 and Options.audio_sample_rate:
             self.segment_duration[self.audio_track_id] = float(reduce(operator.add, self.sample_counts[self.audio_track_id][:-1]))/float(len(self.sample_counts[self.audio_track_id])-1)/(Options.audio_sample_rate/1024.0)
         if len(self.sample_counts[self.video_track_id]) > 1 and Options.video_frame_rate:
             self.segment_duration[self.video_track_id] = float(reduce(operator.add, self.sample_counts[self.video_track_id][:-1]))/float(len(self.sample_counts[self.video_track_id])-1)/Options.video_frame_rate
+
         gap = self.segment_duration[self.audio_track_id]-self.segment_duration[self.video_track_id]
         if gap > 0.1:
             print 'WARNING: audio and video segment durations are not equal ('+str(self.segment_duration[self.audio_track_id])+' and '+str(self.segment_duration[self.video_track_id])+'), check sample and frame rates'
+
+        self.max_segment_bitrate = { self.audio_track_id:0.0, self.video_track_id:0.0 }
+        if self.segment_duration[self.audio_track_id]:
+            self.max_segment_bitrate[self.audio_track_id] = 8*int(float(max(self.segment_sizes[self.audio_track_id][:-1]))/self.segment_duration[self.audio_track_id])
+        if self.segment_duration[self.video_track_id]:
+            self.max_segment_bitrate[self.video_track_id] = 8*int(float(max(self.segment_sizes[self.video_track_id][:-1]))/self.segment_duration[self.video_track_id])
         
 # Setup default setting
 class Settings:
@@ -306,6 +323,9 @@ Options = None
 def main():
     # parse options
     parser = OptionParser(usage="%prog [options] <filename> [<filename> ...]")
+    parser.add_option('', '--verbose', dest="verbose",
+                      action='store_true', default=False,
+                      help="Be verbose")
     parser.add_option('-o', '--output-dir', dest="output_dir",
                       help="Output directory", metavar="<output-dir>", default='output')
     parser.add_option('', '--init-segment', dest="init_segment",
@@ -368,7 +388,7 @@ def main():
         mp4_file = Mp4File(media_file)
         mp4_file.index = 1+len(media_files)
         #print mp4_file.media_size
-        #print mp4_file.bitrates
+        #print mp4_file.bitrate
         
         # check the file
         if mp4_file.info['movie']['fragments'] != True:
@@ -403,7 +423,7 @@ def main():
     adaptation_set = xml.SubElement(period, 'AdaptationSet', mimeType=AUDIO_MIMETYPE)
     if options.marlin:
         AddContentProtection(adaptation_set, [media_files[0]], 'audio')
-    bandwidth = media_files[0].bitrates[media_files[0].audio_track_id]
+    bandwidth = media_files[0].max_segment_bitrate[media_files[0].audio_track_id]
     representation = xml.SubElement(adaptation_set, 'Representation', id='audio', bandwidth=str(bandwidth))
     if options.split:
         AddSegments(representation, 'audio', media_files[0], media_files[0].audio_track_id)
@@ -416,13 +436,21 @@ def main():
     if options.marlin:
         AddContentProtection(adaptation_set, media_files, 'video')
     for media_file in media_files:
-        bandwidth = media_file.bitrates[media_file.video_track_id]
+        bandwidth = media_file.max_segment_bitrate[media_file.video_track_id]
         representation = xml.SubElement(adaptation_set, 'Representation', id='video.'+str(media_file.index), bandwidth=str(bandwidth))
         if options.split:
             AddSegments(representation, 'video/'+str(media_file.index), media_file, media_file.video_track_id)
         else:
             AddSegments(representation, None, media_file, media_file.video_track_id, use_byte_range=True)           
     
+    if options.verbose:
+        for media_file in media_files:
+            print 'Media File %d:' % (media_file.index)
+            if media_file.audio_track_id:
+                print '  Audio Track: max bitrate=%d, avg bitrate=%d' % (media_file.max_segment_bitrate[media_file.audio_track_id], media_file.average_segment_bitrate[media_file.audio_track_id])
+            if media_file.video_track_id:
+                print '  Video Track: max bitrate=%d, avg bitrate=%d' % (media_file.max_segment_bitrate[media_file.video_track_id], media_file.average_segment_bitrate[media_file.video_track_id])
+        
     # create the directories and split the media
     MakeNewDir(options.output_dir, is_warning=options.mpd_only)
     if not options.mpd_only:
