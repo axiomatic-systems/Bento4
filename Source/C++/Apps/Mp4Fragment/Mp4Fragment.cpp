@@ -312,13 +312,21 @@ Fragment(AP4_File& input_file, AP4_ByteStream& output_stream, unsigned int fragm
             sample_count++;
             if (cursor->m_SampleIndex >= cursor->m_Track->GetSampleCount()) {
                 cursor->m_Eos = true;
-                //cursor->m_Sample.Reset();
+
+                AP4_UI64 end_dts = cursor->m_Sample.GetDts()+cursor->m_Sample.GetDuration();
+                cursor->m_Sample.Reset();
+                cursor->m_Sample.SetDts(end_dts);
+
                 break;
             }
             result = cursor->m_Track->GetSample(cursor->m_SampleIndex, cursor->m_Sample);
             if (AP4_FAILED(result)) {
                 cursor->m_Eos = true;
-                //cursor->m_Sample.Reset();
+
+                AP4_UI64 end_dts = cursor->m_Sample.GetDts()+cursor->m_Sample.GetDuration();
+                cursor->m_Sample.Reset();
+                cursor->m_Sample.SetDts(end_dts);
+
                 break;
             }
             if (cursor->m_Sample.IsSync()) {
