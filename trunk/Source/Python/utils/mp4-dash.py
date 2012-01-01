@@ -342,7 +342,7 @@ def main():
                       action="store_true", dest="use_segment_list", default=False,
                       help="Use segment lists instead of segment templates")
     parser.add_option('', "--min-buffer-time", metavar='<duration>',
-                      dest="min_buffer_time", type="float", default=4.0,
+                      dest="min_buffer_time", type="float", default=0.0,
                       help="Mininum buffer time (in seconds)")
     parser.add_option('', "--video-frame-rate", metavar='<rate>',
                       dest="video_frame_rate", type="float", default=23.976,
@@ -409,6 +409,10 @@ def main():
             PrintErrorAndExit('ERROR: video track ID mismatch between file '+str(media_file[0].index)+' and '+str(media_file.index))
         if media_files[0].sample_counts[video_track_id] != media_file.sample_counts[video_track_id]:
             PrintErrorAndExit('ERROR: video sample count mismatch between file '+str(media_file[0].index)+' and '+str(media_file.index))
+        
+    # compute some values if not set
+    if options.min_buffer_time == 0.0:
+        options.min_buffer_time = media_files[0].segment_duration[media_files[0].video_track_id]
         
     # create the MPD
     mpd = xml.Element('MPD', 
