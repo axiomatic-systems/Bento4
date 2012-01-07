@@ -201,7 +201,9 @@ AP4_Mp4AudioDecoderConfig::ParseGASpecificInfo(AP4_Mp4AudioDsiParser& parser)
         }
         if (parser.BitsLeft() < 1) return AP4_ERROR_INVALID_FORMAT;
         unsigned int extensionFlag3 = parser.ReadBits(1);
-        if (extensionFlag3) return AP4_ERROR_NOT_SUPPORTED;
+        if (extensionFlag3) {
+            return AP4_ERROR_NOT_SUPPORTED;
+        }
     }
     
     return AP4_SUCCESS;

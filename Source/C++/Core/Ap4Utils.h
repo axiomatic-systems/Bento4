@@ -36,6 +36,26 @@
 #include "Ap4Types.h"
 #include "Ap4Results.h"
 #include "Ap4Config.h"
+#include "Ap4List.h"
+#include "Ap4String.h"
+
+/*----------------------------------------------------------------------
+|   global options
++---------------------------------------------------------------------*/
+class AP4_GlobalOptions
+{
+public:
+    static bool GetBool(const char* name);
+    static void SetBool(const char* name, bool value);
+    
+private:
+    struct Entry {
+        AP4_String m_Name;
+        bool       m_BoolValue;
+    };
+    static Entry* GetEntry(const char* name, bool autocreate);
+    static AP4_List<Entry>* g_Entries;
+};
 
 /*----------------------------------------------------------------------
 |   non-inline functions

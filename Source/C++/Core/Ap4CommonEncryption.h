@@ -44,6 +44,7 @@
 class AP4_StreamCipher;
 class AP4_SaizAtom;
 class AP4_SaioAtom;
+class AP4_CencSampleInfoTable;
 
 /*----------------------------------------------------------------------
 |   constants
@@ -98,11 +99,71 @@ private:
 };
 
 /*----------------------------------------------------------------------
+|   AP4_CencSampleEncryption
++---------------------------------------------------------------------*/
+class AP4_CencSampleEncryption {
+public:
+    AP4_IMPLEMENT_DYNAMIC_CAST(AP4_CencSampleEncryption)
+
+    virtual ~AP4_CencSampleEncryption() {}
+
+    // methods
+    AP4_Result DoInspectFields(AP4_AtomInspector& inspector);
+    AP4_Result DoWriteFields(AP4_ByteStream& stream);
+    
+    // accessors
+    AP4_Atom&       GetOuter()              { return m_Outer;           }
+    AP4_UI32        GetAlgorithmId()        { return m_AlgorithmId;     }
+    AP4_UI08        GetIvSize()             { return m_IvSize;          }
+    AP4_Result      SetIvSize(AP4_UI08 iv_size);
+    const AP4_UI08* GetKid()                { return m_Kid;             }
+    AP4_Cardinal    GetSampleInfoCount()    { return m_SampleInfoCount; }
+    AP4_Result      AddSampleInfo(const AP4_UI08* iv, AP4_DataBuffer& subsample_info);
+    AP4_Result      SetSampleInfosSize(AP4_Size size);
+    AP4_Result      CreateSampleInfoTable(AP4_Size                  default_iv_size,
+                                          AP4_CencSampleInfoTable*& table);
+    
+protected:
+    // constructors
+    AP4_CencSampleEncryption(AP4_Atom& outer);
+    AP4_CencSampleEncryption(AP4_Atom& outer, AP4_Size size, AP4_ByteStream& stream);
+    AP4_CencSampleEncryption(AP4_Atom&       outer,
+                             AP4_UI32        algorithm_id,
+                             AP4_UI08        iv_size,
+                             const AP4_UI08* kid);
+    
+protected:
+    // members
+    AP4_Atom&      m_Outer;
+    AP4_UI32       m_AlgorithmId;
+    AP4_UI08       m_IvSize;
+    AP4_UI08       m_Kid[16];    
+    AP4_Cardinal   m_SampleInfoCount;
+    AP4_DataBuffer m_SampleInfos;
+    unsigned int   m_SampleInfoCursor;
+};
+
+/*----------------------------------------------------------------------
 |   AP4_CencSampleInfoTable
 +---------------------------------------------------------------------*/
 class AP4_CencSampleInfoTable {
 public:
     // class methods
+    static AP4_Result Create(AP4_ProtectedSampleDescription* sample_description,
+                             AP4_ContainerAtom*              traf,
+                             AP4_UI32&                       algorithm_id,
+                             AP4_ByteStream&                 aux_info_data,
+                             AP4_Position                    aux_info_data_offset,
+                             AP4_CencSampleInfoTable*&       sample_info_table);
+    static AP4_Result Create(AP4_ProtectedSampleDescription* sample_description,
+                             AP4_ContainerAtom*              traf,
+                             AP4_SaioAtom*&                  saio,
+                             AP4_SaizAtom*&                  saiz,
+                             AP4_CencSampleEncryption*&      sample_encryption_atom,
+                             AP4_UI32&                       algorithm_id,
+                             AP4_ByteStream&                 aux_info_data,
+                             AP4_Position                    aux_info_data_offset,
+                             AP4_CencSampleInfoTable*&       sample_info_table);
     static AP4_Result Create(unsigned int              iv_size, 
                              AP4_ContainerAtom&        traf,
                              AP4_SaioAtom&             saio, 
@@ -146,51 +207,6 @@ private:
     AP4_Array<AP4_UI32>     m_BytesOfEncryptedData;
     AP4_Array<unsigned int> m_SubSampleMapStarts;
     AP4_Array<unsigned int> m_SubSampleMapLengths;
-};
-
-/*----------------------------------------------------------------------
-|   AP4_CencSampleEncryption
-+---------------------------------------------------------------------*/
-class AP4_CencSampleEncryption {
-public:
-    AP4_IMPLEMENT_DYNAMIC_CAST(AP4_CencSampleEncryption)
-
-    virtual ~AP4_CencSampleEncryption() {}
-
-    // methods
-    AP4_Result DoInspectFields(AP4_AtomInspector& inspector);
-    AP4_Result DoWriteFields(AP4_ByteStream& stream);
-    
-    // accessors
-    AP4_Atom&       GetOuter()              { return m_Outer;           }
-    AP4_UI32        GetAlgorithmId()        { return m_AlgorithmId;     }
-    AP4_UI08        GetIvSize()             { return m_IvSize;          }
-    AP4_Result      SetIvSize(AP4_UI08 iv_size);
-    const AP4_UI08* GetKid()                { return m_Kid;             }
-    AP4_Cardinal    GetSampleInfoCount()    { return m_SampleInfoCount; }
-    AP4_Result      AddSampleInfo(const AP4_UI08* iv, AP4_DataBuffer& subsample_info);
-    AP4_Result      SetSampleInfosSize(AP4_Size size);
-    AP4_Result      CreateSampleInfoTable(AP4_Size                  default_iv_size,
-                                          AP4_CencSampleInfoTable*& table);
-    
-protected:
-    // constructors
-    AP4_CencSampleEncryption(AP4_Atom& outer);
-    AP4_CencSampleEncryption(AP4_Atom& outer, AP4_Size size, AP4_ByteStream& stream);
-    AP4_CencSampleEncryption(AP4_Atom&       outer,
-                             AP4_UI32        algorithm_id,
-                             AP4_UI08        iv_size,
-                             const AP4_UI08* kid);
-    
-protected:
-    // members
-    AP4_Atom&      m_Outer;
-    AP4_UI32       m_AlgorithmId;
-    AP4_UI08       m_IvSize;
-    AP4_UI08       m_Kid[16];    
-    AP4_Cardinal   m_SampleInfoCount;
-    AP4_DataBuffer m_SampleInfos;
-    unsigned int   m_SampleInfoCursor;
 };
 
 /*----------------------------------------------------------------------
@@ -397,10 +413,10 @@ public:
                              AP4_Position                    moof_offset,
                              const AP4_UI08*                 key, 
                              AP4_Size                        key_size,
+                             AP4_BlockCipherFactory*         block_cipher_factory,
                              AP4_SaioAtom*&                  saio_atom,              // [out]
                              AP4_SaizAtom*&                  saiz_atom,              // [out]
                              AP4_CencSampleEncryption*&      sample_encryption_atom, // [out]
-                             AP4_BlockCipherFactory*         block_cipher_factory,
                              AP4_CencSampleDecrypter*&       decrypter);
 
     static AP4_Result Create(AP4_ProtectedSampleDescription* sample_description, 
@@ -411,6 +427,13 @@ public:
                              AP4_Size                        key_size,
                              AP4_BlockCipherFactory*         block_cipher_factory,
                              AP4_CencSampleDecrypter*&       decrypter);
+
+    static AP4_Result Create(AP4_CencSampleInfoTable*  sample_info_table,
+                             AP4_UI32                  algorithm_id,
+                             const AP4_UI08*           key, 
+                             AP4_Size                  key_size,
+                             AP4_BlockCipherFactory*   block_cipher_factory,
+                             AP4_CencSampleDecrypter*& decrypter);
 
     // methods
     AP4_CencSampleDecrypter(AP4_StreamCipher*        cipher,

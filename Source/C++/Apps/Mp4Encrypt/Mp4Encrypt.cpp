@@ -295,6 +295,23 @@ main(int argc, char** argv)
             }
             // set the property in the map
             property_map.SetProperty(track, name, value);
+        } else if (!strcmp(arg, "--global-option")) {
+            arg = *++argv;
+            char* name = NULL;
+            char* value = NULL;
+            if (arg == NULL) {
+                fprintf(stderr, "ERROR: missing argument for --global-option option\n");
+                return 1;
+            }
+            if (AP4_FAILED(AP4_SplitArgs(arg, name, value))) {
+                fprintf(stderr, "ERROR: invalid argument for --global-option option\n");
+                return 1;
+            }
+            bool bool_value = false;
+            if (AP4_CompareStrings(value, "true") == 0) {
+                bool_value = true;
+            }
+            AP4_GlobalOptions::SetBool(name, bool_value);
         } else if (input_filename == NULL) {
             input_filename = arg;
         } else if (output_filename == NULL) {

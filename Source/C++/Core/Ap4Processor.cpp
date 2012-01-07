@@ -142,8 +142,6 @@ AP4_Processor::ProcessFragments(AP4_MoovAtom*              moov,
             AP4_Processor::FragmentHandler* handler = CreateFragmentHandler(traf, input, atom_offset);
             if (handler) {
                 result = handler->ProcessFragment();
-            } else {
-                result = AP4_ERROR_NOT_SUPPORTED;
             }
             if (AP4_FAILED(result)) return result;
             handlers.Append(handler);
@@ -183,7 +181,7 @@ AP4_Processor::ProcessFragments(AP4_MoovAtom*              moov,
             // compute the base data offset
             AP4_UI64 base_data_offset;
             if (tfhd->GetFlags() & AP4_TFHD_FLAG_BASE_DATA_OFFSET_PRESENT) {
-                base_data_offset = mdat_out_start;
+                base_data_offset = mdat_out_start+AP4_ATOM_HEADER_SIZE;
             } else {
                 base_data_offset = moof_out_start;
             }
@@ -245,7 +243,7 @@ AP4_Processor::ProcessFragments(AP4_MoovAtom*              moov,
             if (handler) {
                 // update the tfhd header
                 if (tfhd->GetFlags() & AP4_TFHD_FLAG_BASE_DATA_OFFSET_PRESENT) {
-                    tfhd->SetBaseDataOffset(mdat_out_start);
+                    tfhd->SetBaseDataOffset(mdat_out_start+AP4_ATOM_HEADER_SIZE);
                 }
                 if (tfhd->GetFlags() & AP4_TFHD_FLAG_DEFAULT_SAMPLE_SIZE_PRESENT) {
                     tfhd->SetDefaultSampleSize(trun->GetEntries()[0].sample_size);
