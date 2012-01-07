@@ -32,6 +32,60 @@
 #include "Ap4Utils.h"
 
 /*----------------------------------------------------------------------
+|   AP4_GlobalOptions::g_Entry
++---------------------------------------------------------------------*/
+AP4_List<AP4_GlobalOptions::Entry>* AP4_GlobalOptions::g_Entries = NULL;
+
+/*----------------------------------------------------------------------
+|   AP4_GlobalOptions::GetEntry
++---------------------------------------------------------------------*/
+AP4_GlobalOptions::Entry*
+AP4_GlobalOptions::GetEntry(const char* name, bool autocreate)
+{
+    if (g_Entries == NULL) {
+        g_Entries = new AP4_List<Entry>;
+    }
+    for (AP4_List<Entry>::Item* item = g_Entries->FirstItem();
+                                item;
+                                item = item->GetNext()) {
+        if (item->GetData()->m_Name == name) return item->GetData();
+    }
+    
+    if (autocreate) {
+        Entry* new_entry = new Entry();
+        new_entry->m_Name = name;
+        g_Entries->Add(new_entry);
+        return new_entry;
+    } else {
+        return NULL;
+    }
+}
+
+/*----------------------------------------------------------------------
+|   AP4_GlobalOptions::SetBool
++---------------------------------------------------------------------*/
+void
+AP4_GlobalOptions::SetBool(const char* name, bool value)
+{
+    Entry* entry = GetEntry(name, true);
+    entry->m_BoolValue = value;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_GlobalOptions::GetBool
++---------------------------------------------------------------------*/
+bool
+AP4_GlobalOptions::GetBool(const char* name)
+{
+    Entry* entry = GetEntry(name, false);
+    if (entry) {
+        return entry->m_BoolValue;
+    } else {
+        return false;
+    }
+}
+
+/*----------------------------------------------------------------------
 |   AP4_BytesToDoubleBE
 +---------------------------------------------------------------------*/
 double

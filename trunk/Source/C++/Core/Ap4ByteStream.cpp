@@ -542,19 +542,30 @@ AP4_MemoryByteStream::AP4_MemoryByteStream(const AP4_UI08* buffer, AP4_Size size
 }
 
 /*----------------------------------------------------------------------
- |   AP4_MemoryByteStream::AP4_MemoryByteStream
- +---------------------------------------------------------------------*/
+|   AP4_MemoryByteStream::AP4_MemoryByteStream
++---------------------------------------------------------------------*/
 AP4_MemoryByteStream::AP4_MemoryByteStream(AP4_DataBuffer& data_buffer) :
     m_BufferIsLocal(false),
     m_Position(0),
-    m_ReferenceCount(1)
+    m_ReferenceCount(1),
+    m_Buffer(&data_buffer)
 {
-    m_Buffer = &data_buffer;
 }
 
 /*----------------------------------------------------------------------
- |   AP4_MemoryByteStream::~AP4_MemoryByteStream
- +---------------------------------------------------------------------*/
+|   AP4_MemoryByteStream::AP4_MemoryByteStream
++---------------------------------------------------------------------*/
+AP4_MemoryByteStream::AP4_MemoryByteStream(AP4_DataBuffer* data_buffer) :
+    m_BufferIsLocal(true),
+    m_Position(0),
+    m_ReferenceCount(1),
+    m_Buffer(data_buffer)
+{
+}
+
+/*----------------------------------------------------------------------
+|   AP4_MemoryByteStream::~AP4_MemoryByteStream
++---------------------------------------------------------------------*/
 AP4_MemoryByteStream::~AP4_MemoryByteStream()
 {
     if (m_BufferIsLocal) {

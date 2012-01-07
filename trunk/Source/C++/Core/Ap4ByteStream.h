@@ -123,7 +123,8 @@ class AP4_MemoryByteStream : public AP4_ByteStream
 public:
     AP4_MemoryByteStream(AP4_Size size = 0); // filled with zeros
     AP4_MemoryByteStream(const AP4_UI08* buffer, AP4_Size size);
-    AP4_MemoryByteStream(AP4_DataBuffer& data_buffer); // data is read/written from/to supplied buffer
+    AP4_MemoryByteStream(AP4_DataBuffer& data_buffer); // data is read/written from/to supplied buffer, no ownership transfer
+    AP4_MemoryByteStream(AP4_DataBuffer* data_buffer); // data is read/written from/to supplied buffer, ownership is transfered
 
     // AP4_ByteStream methods
     AP4_Result ReadPartial(void*     buffer, 
