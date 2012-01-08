@@ -142,8 +142,8 @@ AP4_Processor::ProcessFragments(AP4_MoovAtom*              moov,
             AP4_Processor::FragmentHandler* handler = CreateFragmentHandler(traf, input, atom_offset);
             if (handler) {
                 result = handler->ProcessFragment();
+                if (AP4_FAILED(result)) return result;
             }
-            if (AP4_FAILED(result)) return result;
             handlers.Append(handler);
             
             // create a sample table object so we can read the sample data
