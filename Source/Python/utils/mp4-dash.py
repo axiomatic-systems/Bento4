@@ -313,7 +313,8 @@ def AddContentProtection(container, media_files, media_type):
         if kid not in kids:
             kids.append(kid)
     xml.register_namespace('mas', MARLIN_MAS_NAMESPACE)
-    cp = xml.SubElement(container, 'ContentProtection', schemeIdUri="urn:uuid:5E629AF5-38DA-4063-8977-97FFBD9902D4")
+    xml.SubElement(container, 'ContentProtection', schemeIdUri='urn:mpeg:dash:mp4protection:2011', value='cenc')
+    cp = xml.SubElement(container, 'ContentProtection', schemeIdUri='urn:uuid:5E629AF5-38DA-4063-8977-97FFBD9902D4')
     cids = xml.SubElement(cp, '{'+MARLIN_MAS_NAMESPACE+'}MarlinContentIds')
     for kid in kids:
         cid = xml.SubElement(cids, '{'+MARLIN_MAS_NAMESPACE+'}MarlinContentId')
