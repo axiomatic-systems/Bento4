@@ -807,14 +807,14 @@ ShowTrackInfo_Json(AP4_Track& track, bool /*show_samples*/, bool /*show_sample_d
     
     // show all sample descriptions
     printf("  \"sample_descriptions\":[\n");
-    AP4_AvcSampleDescription* avc_desc = NULL;
+    //AP4_AvcSampleDescription* avc_desc = NULL;
     for (unsigned int desc_index=0;
         AP4_SampleDescription* sample_desc = track.GetSampleDescription(desc_index);
         desc_index++) {
         ShowSampleDescription(*sample_desc, verbose);
-        if (sample_desc->GetFormat() == AP4_SAMPLE_FORMAT_AVC1) {
-            avc_desc = AP4_DYNAMIC_CAST(AP4_AvcSampleDescription, sample_desc);
-        }
+        //if (sample_desc->GetFormat() == AP4_SAMPLE_FORMAT_AVC1) {
+        //    avc_desc = AP4_DYNAMIC_CAST(AP4_AvcSampleDescription, sample_desc);
+        //}
     }
     printf("  ]\n");
     printf("}");

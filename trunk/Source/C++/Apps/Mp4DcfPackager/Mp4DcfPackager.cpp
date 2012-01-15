@@ -221,6 +221,7 @@ main(int argc, char** argv)
         fprintf(stderr, "ERROR: missing output filename\n");
         return 1;
     }
+    (void)show_progress; // avoid warnings
 
     // convert to a textual headers buffer
     textual_headers.GetTextualHeaders(0, textual_headers_buffer);
