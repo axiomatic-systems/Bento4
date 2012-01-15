@@ -49,15 +49,6 @@ def DefaultTarget():
     else:
         return None
     
-def IsCommandInPath(env, cmd):
-    for dir in env['ENV']['PATH'].split(':'):
-        try:
-            if cmd in os.listdir(dir):
-                return True
-        except:
-            pass # ignore: go to the next dir
-    return False   
-
 #######################################################
 # Main Build
 #######################################################
