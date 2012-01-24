@@ -383,12 +383,8 @@ public:
     // constructor
     AP4_CencDecryptingProcessor(const AP4_ProtectionKeyMap* key_map, 
                                 AP4_BlockCipherFactory*     block_cipher_factory = NULL);
-    ~AP4_CencDecryptingProcessor();
 
     // AP4_Processor methods
-    virtual AP4_Result Initialize(AP4_AtomParent&   top_level,
-                                  AP4_ByteStream&   stream,
-                                  AP4_Processor::ProgressListener* listener = NULL);
     virtual AP4_Processor::TrackHandler*    CreateTrackHandler(AP4_TrakAtom* trak);
     virtual AP4_Processor::FragmentHandler* CreateFragmentHandler(AP4_ContainerAtom* traf,
                                                                   AP4_ByteStream&    moof_data,

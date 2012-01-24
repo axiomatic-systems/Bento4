@@ -55,6 +55,10 @@ PrintUsageAndExit()
         "     MARLIN-IPMP-ACGK, ISMA-IAEC, PIFF-CBC, PIFF-CTR, or MPEG-CENC\n"
         "  Options:\n"
         "  --show-progress: show progress details\n"
+        "  --fragments <fragments-input>\n"
+        "      Encrypt the fragments read from <fragments-input> instead of the\n"
+        "      file read from <input>. The <input> file is used to initialize\n"
+        "      the encrypter\n"
         "  --key <n>:<k>:<iv>\n"   
         "      Specifies the key to use for a track (or group key).\n"
         "      <n> is a track ID, <k> a 128-bit key in hex (32 characters)\n"
@@ -143,6 +147,7 @@ main(int argc, char** argv)
     enum Method method  = METHOD_NONE;
     const char* input_filename = NULL;
     const char* output_filename = NULL;
+    const char* fragments_filename = NULL;
     AP4_ProtectionKeyMap key_map;
     AP4_TrackPropertyMap property_map;
     bool                 show_progress = false;
@@ -177,12 +182,24 @@ main(int argc, char** argv)
                 fprintf(stderr, "ERROR: invalid value for --method argument\n");
                 return 1;
             }
+        } else if (!strcmp(arg, "--fragments")) {
+            arg = *++argv;
+            if (arg == NULL) {
+                fprintf(stderr, "ERROR: missing argument for --fragments option\n");
+                return 1;
+            }
+            fragments_filename = arg;
         } else if (!strcmp(arg, "--kms-uri")) {
+            arg = *++argv;
+            if (arg == NULL) {
+                fprintf(stderr, "ERROR: missing argument for --kms-uri option\n");
+                return 1;
+            }
             if (method != METHOD_ISMA_AES) {
                 fprintf(stderr, "ERROR: --kms-uri only applies to method ISMA-IAEC\n");
                 return 1;
             }
-            kms_uri = *++argv;
+            kms_uri = arg;
         } else if (!strcmp(arg, "--show-progress")) {
             show_progress = true;
         } else if (!strcmp(arg, "--key")) {
@@ -412,9 +429,23 @@ main(int argc, char** argv)
         return 1;
     }
 
+    // create the fragments stream if needed
+    AP4_ByteStream* fragments = NULL;
+    if (fragments_filename) {
+        result = AP4_FileByteStream::Create(fragments_filename, AP4_FileByteStream::STREAM_MODE_READ, fragments);
+        if (AP4_FAILED(result)) {
+            fprintf(stderr, "ERROR: cannot open fragments file (%s)\n", fragments_filename);
+            return 1;
+        }
+    }
+    
     // process/decrypt the file
     ProgressListener listener;
-    result = processor->Process(*input, *output, show_progress?&listener:NULL);
+    if (fragments) {
+        result = processor->Process(*fragments, *output, *input, show_progress?&listener:NULL);
+    } else {
+        result = processor->Process(*input, *output, show_progress?&listener:NULL);
+    }
     if (AP4_FAILED(result)) {
         fprintf(stderr, "ERROR: failed to process the file (%d)\n", result);
     }
@@ -423,6 +454,7 @@ main(int argc, char** argv)
     delete processor;
     input->Release();
     output->Release();
-
+    if (fragments) fragments->Release();
+    
     return 0;
 }
