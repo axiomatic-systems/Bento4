@@ -325,6 +325,7 @@ AP4_Processor::CreateFragmentHandler(AP4_ContainerAtom* traf,
 AP4_Result
 AP4_Processor::Process(AP4_ByteStream&   input, 
                        AP4_ByteStream&   output,
+                       AP4_ByteStream*   fragments,
                        ProgressListener* listener,
                        AP4_AtomFactory&  atom_factory)
 {
@@ -346,10 +347,11 @@ AP4_Processor::Process(AP4_ByteStream&   input,
             continue;
         } else if (atom->GetType() == AP4_ATOM_TYPE_MOOV) {
             moov = AP4_DYNAMIC_CAST(AP4_MoovAtom, atom);
+            if (fragments) break;
         } else if (atom->GetType() == AP4_ATOM_TYPE_MFRA) {
             mfra = AP4_DYNAMIC_CAST(AP4_ContainerAtom, atom);
             continue;
-        } else if (in_fragments || atom->GetType() == AP4_ATOM_TYPE_MOOF) {
+        } else if (!fragments && (in_fragments || atom->GetType() == AP4_ATOM_TYPE_MOOF)) {
             in_fragments = true;
             frags.Add(new AP4_AtomLocator(atom, stream_offset));
             continue;
@@ -357,6 +359,19 @@ AP4_Processor::Process(AP4_ByteStream&   input,
         top_level.AddChild(atom);
     }
 
+    // if we have a fragments stream, get the fragment locators from there
+    if (fragments) {
+        for (AP4_Atom* atom = NULL;
+            AP4_SUCCEEDED(atom_factory.CreateAtomFromStream(*fragments, atom));
+            fragments->Tell(stream_offset)) {
+            if (atom->GetType() == AP4_ATOM_TYPE_MDAT) {
+                delete atom;
+                continue;
+            }
+            frags.Add(new AP4_AtomLocator(atom, stream_offset));
+        }
+    }
+    
     // initialize the processor
     AP4_Result result = Initialize(top_level, input);
     if (AP4_FAILED(result)) return result;
@@ -486,84 +501,89 @@ AP4_Processor::Process(AP4_ByteStream&   input,
     // finalize the processor
     Finalize(top_level);
 
-    // calculate the size of all atoms combined
-    AP4_UI64 atoms_size = 0;
-    top_level.GetChildren().Apply(AP4_AtomSizeAdder(atoms_size));
+    if (!fragments) {
+        // calculate the size of all atoms combined
+        AP4_UI64 atoms_size = 0;
+        top_level.GetChildren().Apply(AP4_AtomSizeAdder(atoms_size));
 
-    // see if we need a 64-bit or 32-bit mdat
-    AP4_Size mdat_header_size = AP4_ATOM_HEADER_SIZE;
-    if (mdat_payload_size+mdat_header_size > 0xFFFFFFFF) {
-        // we need a 64-bit size
-        mdat_header_size += 8;
-    }
-    
-    // adjust the chunk offsets
-    for (AP4_Ordinal i=0; i<track_count; i++) {
-        AP4_TrakAtom* trak;
-        trak_atoms->Get(i, trak);
-        trak->AdjustChunkOffsets(atoms_size+mdat_header_size);
-    }
-
-    // write all atoms
-    top_level.GetChildren().Apply(AP4_AtomListWriter(output));
-
-    // write mdat header
-    if (mdat_payload_size) {
-        if (mdat_header_size == AP4_ATOM_HEADER_SIZE) {
-            // 32-bit size
-            output.WriteUI32((AP4_UI32)(mdat_header_size+mdat_payload_size));
-            output.WriteUI32(AP4_ATOM_TYPE_MDAT);
-        } else {
-            // 64-bit size
-            output.WriteUI32(1);
-            output.WriteUI32(AP4_ATOM_TYPE_MDAT);
-            output.WriteUI64(mdat_header_size+mdat_payload_size);
+        // see if we need a 64-bit or 32-bit mdat
+        AP4_Size mdat_header_size = AP4_ATOM_HEADER_SIZE;
+        if (mdat_payload_size+mdat_header_size > 0xFFFFFFFF) {
+            // we need a 64-bit size
+            mdat_header_size += 8;
         }
+        
+        // adjust the chunk offsets
+        for (AP4_Ordinal i=0; i<track_count; i++) {
+            AP4_TrakAtom* trak;
+            trak_atoms->Get(i, trak);
+            trak->AdjustChunkOffsets(atoms_size+mdat_header_size);
+        }
+
+        // write all atoms
+        top_level.GetChildren().Apply(AP4_AtomListWriter(output));
+
+        // write mdat header
+        if (mdat_payload_size) {
+            if (mdat_header_size == AP4_ATOM_HEADER_SIZE) {
+                // 32-bit size
+                output.WriteUI32((AP4_UI32)(mdat_header_size+mdat_payload_size));
+                output.WriteUI32(AP4_ATOM_TYPE_MDAT);
+            } else {
+                // 64-bit size
+                output.WriteUI32(1);
+                output.WriteUI32(AP4_ATOM_TYPE_MDAT);
+                output.WriteUI64(mdat_header_size+mdat_payload_size);
+            }
+        }        
     }
     
-#if defined(AP4_DEBUG)
-    AP4_Position before;
-    output.Tell(before);
-#endif
-
     // write the samples
     if (moov) {
-        AP4_Sample     sample;
-        AP4_DataBuffer data_in;
-        AP4_DataBuffer data_out;
-        for (unsigned int i=0; i<locators.ItemCount(); i++) {
-            AP4_SampleLocator& locator = locators[i];
-            locator.m_Sample.ReadData(data_in);
-            TrackHandler* handler = m_TrackHandlers[locator.m_TrakIndex];
-            if (handler) {
-                result = handler->ProcessSample(data_in, data_out);
-                if (AP4_FAILED(result)) return result;
-                output.Write(data_out.GetData(), data_out.GetDataSize());
-            } else {
-                output.Write(data_in.GetData(), data_in.GetDataSize());            
-            }
+        if (!fragments) {
+#if defined(AP4_DEBUG)
+            AP4_Position before;
+            output.Tell(before);
+#endif
+            AP4_Sample     sample;
+            AP4_DataBuffer data_in;
+            AP4_DataBuffer data_out;
+            for (unsigned int i=0; i<locators.ItemCount(); i++) {
+                AP4_SampleLocator& locator = locators[i];
+                locator.m_Sample.ReadData(data_in);
+                TrackHandler* handler = m_TrackHandlers[locator.m_TrakIndex];
+                if (handler) {
+                    result = handler->ProcessSample(data_in, data_out);
+                    if (AP4_FAILED(result)) return result;
+                    output.Write(data_out.GetData(), data_out.GetDataSize());
+                } else {
+                    output.Write(data_in.GetData(), data_in.GetDataSize());            
+                }
 
-            // notify the progress listener
-            if (listener) {
-                listener->OnProgress(i+1, locators.ItemCount());
+                // notify the progress listener
+                if (listener) {
+                    listener->OnProgress(i+1, locators.ItemCount());
+                }
             }
-        }
 
 #if defined(AP4_DEBUG)
-        AP4_Position after;
-        output.Tell(after);
-        AP4_ASSERT(after-before == mdat_payload_size);
+            AP4_Position after;
+            output.Tell(after);
+            AP4_ASSERT(after-before == mdat_payload_size);
 #endif
-    
+        }
+        
         // process the fragments, if any
-        result = ProcessFragments(moov, frags, mfra, input, output);
+        result = ProcessFragments(moov, frags, mfra, fragments?*fragments:input, output);
         if (AP4_FAILED(result)) return result;
         
-        // write the mfra atom at the end if we have one
-        if (mfra) {
-            mfra->Write(output);
+        if (!fragments) {
+            // write the mfra atom at the end if we have one
+            if (mfra) {
+                mfra->Write(output);
+            }
         }
-
+        
         // cleanup
         for (AP4_Ordinal i=0; i<track_count; i++) {
             delete cursors[i].m_Locator.m_SampleTable;
@@ -578,6 +598,31 @@ AP4_Processor::Process(AP4_ByteStream&   input,
     delete mfra;
     
     return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_Processor::Process
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_Processor::Process(AP4_ByteStream&   input, 
+                       AP4_ByteStream&   output,
+                       ProgressListener* listener,
+                       AP4_AtomFactory&  atom_factory)
+{
+    return Process(input, output, NULL, listener, atom_factory);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_Processor::Process
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_Processor::Process(AP4_ByteStream&   fragments, 
+                       AP4_ByteStream&   output,
+                       AP4_ByteStream&   init,
+                       ProgressListener* listener,
+                       AP4_AtomFactory&  atom_factory)
+{
+    return Process(init, output, &fragments, listener, atom_factory);
 }
 
 /*----------------------------------------------------------------------

@@ -1362,24 +1362,6 @@ AP4_CencDecryptingProcessor::AP4_CencDecryptingProcessor(const AP4_ProtectionKey
 }
 
 /*----------------------------------------------------------------------
-|   AP4_CencDecryptingProcessor::~AP4_CencDecryptingProcessor
-+---------------------------------------------------------------------*/
-AP4_CencDecryptingProcessor::~AP4_CencDecryptingProcessor()
-{
-}
-
-/*----------------------------------------------------------------------
-|   AP4_CencDecryptingProcessor::Initialize
-+---------------------------------------------------------------------*/
-AP4_Result 
-AP4_CencDecryptingProcessor::Initialize(AP4_AtomParent&                  /*top_level*/,
-                                        AP4_ByteStream&                  /*stream*/,
-                                        AP4_Processor::ProgressListener* /*listener*/)
-{
-    return AP4_SUCCESS;
-}
-
-/*----------------------------------------------------------------------
 |   AP4_CencDecryptingProcessor:CreateTrackHandler
 +---------------------------------------------------------------------*/
 AP4_Processor::TrackHandler* 

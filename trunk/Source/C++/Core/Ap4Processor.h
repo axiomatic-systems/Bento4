@@ -163,7 +163,7 @@ public:
 
     /**
      * Process the input stream into an output stream.
-     * @param input Reference to the file to process.
+     * @param input Input stream from which to read the input file.
      * @param output Output stream to which the processed input
      * will be written.
      * @param listener Pointer to a listener, or NULL. The listener
@@ -172,6 +172,23 @@ public:
      */
     AP4_Result Process(AP4_ByteStream&   input, 
                        AP4_ByteStream&   output,
+                       ProgressListener* listener = NULL,
+                       AP4_AtomFactory&  atom_factory = 
+                           AP4_DefaultAtomFactory::Instance);
+
+    /**
+     * Process a fragment input stream into an output stream.
+     * @param fragments Input stream from which to read the fragments.
+     * @param output Output stream to which the processed fragments
+     * will be written.
+     * @param init Input stream from which to read the init data.
+     * @param listener Pointer to a listener, or NULL. The listener
+     * will be called one or more times before this method returns, 
+     * with progress information.
+     */
+    AP4_Result Process(AP4_ByteStream&   fragments, 
+                       AP4_ByteStream&   output,
+                       AP4_ByteStream&   init,
                        ProgressListener* listener = NULL,
                        AP4_AtomFactory&  atom_factory = 
                            AP4_DefaultAtomFactory::Instance);
@@ -229,6 +246,12 @@ protected:
         unsigned int    m_TrackId;
         AP4_ByteStream* m_MediaData;
     };
+
+    AP4_Result Process(AP4_ByteStream&   input, 
+                       AP4_ByteStream&   output,
+                       AP4_ByteStream*   fragments,
+                       ProgressListener* listener,
+                       AP4_AtomFactory&  atom_factory);
 
     AP4_Result ProcessFragments(AP4_MoovAtom*              moov, 
                                 AP4_List<AP4_AtomLocator>& atoms, 

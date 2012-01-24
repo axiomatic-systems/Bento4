@@ -1,7 +1,6 @@
 import sys
 import os
 import platform
-import distutils.sysconfig
 
 EnsureSConsVersion(0,98,1)
 
