@@ -71,7 +71,8 @@ PrintUsageAndExit()
             "Options:\n"
             "  --verbose\n"
             "  --init-segment <filename> (default: init.mp4)\n"
-            "  --media-segment <filename-pattern> (default: segment-%%d.%%4d.m4f)\n"
+            "  --media-segment <filename-pattern> (default: segment-%%d.%%04d.m4f\n"
+            "    or segment-%%04d.m4f if the --no-track-id option is used)\n"
             "  --no-track-id\n"
             "  --audio\n"
             "  --video\n");
