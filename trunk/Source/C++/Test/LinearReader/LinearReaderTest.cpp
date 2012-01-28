@@ -87,7 +87,7 @@ main(int argc, char** argv)
     AP4_Track* video_track = movie->GetTrack(AP4_Track::TYPE_VIDEO);
     CHECK(video_track != NULL);
     AP4_Track* audio_track = movie->GetTrack(AP4_Track::TYPE_AUDIO);
-    CHECK(video_track != NULL);
+    CHECK(audio_track != NULL);
     
     AP4_LinearReader reader(*movie, input);
     AP4_Sample sample;

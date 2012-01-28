@@ -425,7 +425,7 @@ def main():
     period = xml.SubElement(mpd, 'Period')
 
     # use the first media file for audio
-    adaptation_set = xml.SubElement(period, 'AdaptationSet', mimeType=AUDIO_MIMETYPE)
+    adaptation_set = xml.SubElement(period, 'AdaptationSet', mimeType=AUDIO_MIMETYPE, segmentAlignment='true')
     if options.marlin:
         AddContentProtection(adaptation_set, [media_files[0]], 'audio')
     bandwidth = media_files[0].max_segment_bitrate[media_files[0].audio_track_id]
@@ -437,7 +437,7 @@ def main():
         
 
     # process all the video
-    adaptation_set = xml.SubElement(period, 'AdaptationSet', mimeType=VIDEO_MIMETYPE, startWithSAP='1')
+    adaptation_set = xml.SubElement(period, 'AdaptationSet', mimeType=VIDEO_MIMETYPE, segmentAlignment='true', startWithSAP='1')
     if options.marlin:
         AddContentProtection(adaptation_set, media_files, 'video')
     for media_file in media_files:
