@@ -59,7 +59,7 @@ AP4_FragmentSampleTable::AP4_FragmentSampleTable(AP4_ContainerAtom* traf,
         AP4_Atom* atom = item->GetData();
         if (atom->GetType() == AP4_ATOM_TYPE_TRUN) {
             AP4_TrunAtom* trun = AP4_DYNAMIC_CAST(AP4_TrunAtom, atom);
-            sample_count += trun->GetEntries().ItemCount();
+            if (trun) sample_count += trun->GetEntries().ItemCount();
         }
     }    
     m_Samples.EnsureCapacity(sample_count);
@@ -71,14 +71,16 @@ AP4_FragmentSampleTable::AP4_FragmentSampleTable(AP4_ContainerAtom* traf,
         AP4_Atom* atom = item->GetData();
         if (atom->GetType() == AP4_ATOM_TYPE_TRUN) {
             AP4_TrunAtom* trun = AP4_DYNAMIC_CAST(AP4_TrunAtom, atom);
-            AP4_Result result = AddTrun(trun, 
-                                        tfhd, 
-                                        trex, 
-                                        sample_stream, 
-                                        moof_offset,
-                                        mdat_payload_offset,
-                                        dts_origin);
-            if (AP4_FAILED(result)) return;
+            if (trun) {
+                AP4_Result result = AddTrun(trun, 
+                                            tfhd, 
+                                            trex, 
+                                            sample_stream, 
+                                            moof_offset,
+                                            mdat_payload_offset,
+                                            dts_origin);
+                if (AP4_FAILED(result)) return;
+            }
         }
     }    
 }
