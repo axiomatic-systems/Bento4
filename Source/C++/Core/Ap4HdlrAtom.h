@@ -69,8 +69,8 @@ public:
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
 
-    AP4_UI32   GetHandlerType() { return m_HandlerType; }
-    AP4_String GetHandlerName() { return m_HandlerName; }
+    AP4_UI32          GetHandlerType() { return m_HandlerType; }
+    const AP4_String& GetHandlerName() { return m_HandlerName; }
 
 private:
     // methods
