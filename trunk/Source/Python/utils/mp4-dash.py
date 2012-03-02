@@ -10,7 +10,7 @@ __copyright__ = 'Copyright 2011 Axiomatic Systems, LLC.'
 # this script is.
 # <platform> depends on the platform you're running on:
 # Mac OSX --> platform = darwin
-# Linux
+# Linux   --> platform = 
 # Windows --> platform = 
 
 import sys
@@ -348,9 +348,15 @@ def main():
     parser.add_option('', "--video-frame-rate", metavar='<rate>',
                       dest="video_frame_rate", type="float", default=23.976,
                       help="Video frame rate (in frames per second)")
+    parser.add_option('', "--video-codec", metavar='<codec>',
+                      dest="video_codec", default='avc1.42c015',
+                      help="Video codec string")
     parser.add_option('', "--audio-sample-rate", metavar='<rate>',
                       dest="audio_sample_rate", type="float", default=44100,
                       help="Audio sample rate (in samples per second)")
+    parser.add_option('', "--audio-codec", metavar='<codec>',
+                      dest="audio_codec", default='mp4a.40.2',
+                      help="Audio codec string")
     parser.add_option('', "--marlin",
                       dest="marlin", action="store_true", default=False,
                       help="Add Marlin signaling to the MPD")
@@ -429,7 +435,7 @@ def main():
     if options.marlin:
         AddContentProtection(adaptation_set, [media_files[0]], 'audio')
     bandwidth = media_files[0].max_segment_bitrate[media_files[0].audio_track_id]
-    representation = xml.SubElement(adaptation_set, 'Representation', id='audio', bandwidth=str(bandwidth))
+    representation = xml.SubElement(adaptation_set, 'Representation', id='audio', codecs=options.audio_codec, bandwidth=str(bandwidth))
     if options.split:
         AddSegments(representation, 'audio', media_files[0], media_files[0].audio_track_id)
     else:
@@ -442,7 +448,7 @@ def main():
         AddContentProtection(adaptation_set, media_files, 'video')
     for media_file in media_files:
         bandwidth = media_file.max_segment_bitrate[media_file.video_track_id]
-        representation = xml.SubElement(adaptation_set, 'Representation', id='video.'+str(media_file.index), bandwidth=str(bandwidth))
+        representation = xml.SubElement(adaptation_set, 'Representation', id='video.'+str(media_file.index), codecs=options.video_codec, bandwidth=str(bandwidth))
         if options.split:
             AddSegments(representation, 'video/'+str(media_file.index), media_file, media_file.video_track_id)
         else:

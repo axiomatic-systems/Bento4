@@ -851,9 +851,9 @@ AP4_DecryptingStream::Create(AP4_BlockCipher::CipherMode mode,
     AP4_BlockCipher::CtrParams ctr_params;
     const void*                mode_params = NULL;
     if (mode == AP4_BlockCipher::CBC) {
-        // we need at least 32 bytes of data+padding
+        // we need at least 16 bytes of data+padding
         // we also need a multiple of the block size
-        if (encrypted_size < 32 || ((encrypted_size % 16) != 0)) {
+        if (encrypted_size < 16 || ((encrypted_size % 16) != 0)) {
             return AP4_ERROR_INVALID_FORMAT;
         }
     } else if (mode == AP4_BlockCipher::CTR) {
