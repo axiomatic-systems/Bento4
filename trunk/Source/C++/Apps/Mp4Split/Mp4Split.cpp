@@ -212,6 +212,14 @@ main(int argc, char** argv)
         fprintf(stderr, "ERROR: cannot open output file (%d)\n", result);
         return 1;
     }
+    AP4_FtypAtom* ftyp = file->GetFileType(); 
+    if (ftyp) {
+        result = ftyp->Write(*output);
+        if (AP4_FAILED(result)) {
+            fprintf(stderr, "ERROR: cannot write init segment (%d)\n", result);
+            return 1;
+        }
+    }
     result = movie->GetMoovAtom()->Write(*output);
     if (AP4_FAILED(result)) {
         fprintf(stderr, "ERROR: cannot write init segment (%d)\n", result);
