@@ -268,9 +268,9 @@ def AddSegmentList(container, subdir, media_file, track_id, use_byte_range=False
                                   duration=str(int(media_file.segment_duration[track_id]*1000)))
     if use_byte_range:
         byte_range=str(media_file.init_segment.position)+'-'+str(media_file.init_segment.position+media_file.init_segment.size-1)
-        xml.SubElement(segment_list, 'Initialisation', sourceURL=prefix+(LINEAR_PATTERN % (media_file.index)), range=byte_range)
+        xml.SubElement(segment_list, 'Initialization', sourceURL=prefix+(LINEAR_PATTERN % (media_file.index)), range=byte_range)
     else:
-        xml.SubElement(segment_list, 'Initialisation', sourceURL=prefix+INIT_SEGMENT_NAME)
+        xml.SubElement(segment_list, 'Initialization', sourceURL=prefix+INIT_SEGMENT_NAME)
     i = 0
     for segment_index in media_file.moofs[track_id]:
         segment = media_file.segments[segment_index]
@@ -293,7 +293,7 @@ def AddSegmentTemplate(container, subdir, media_file, track_id):
                                   timescale='1000',
                                   duration=str(int(media_file.segment_duration[track_id]*1000)),
                                   startNumber='0',
-                                  initialisation=prefix+INIT_SEGMENT_NAME,
+                                  initialization=prefix+INIT_SEGMENT_NAME,
                                   media=prefix+SEGMENT_TEMPLATE)
 
 def AddSegments(container, subdir, media_file, track_id, use_byte_range=False):
