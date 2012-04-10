@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 __author__    = 'Gilles Boccon-Gibod (bok@bok.net)'
-__copyright__ = 'Copyright 2011 Axiomatic Systems, LLC.'
+__copyright__ = 'Copyright 2011-2012 Axiomatic Systems, LLC.'
 
 ###
 # NOTE: this script needs Bento4 command line binaries to run

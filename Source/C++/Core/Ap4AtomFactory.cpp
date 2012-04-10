@@ -2,7 +2,7 @@
 |
 |    AP4 - Atom Factory
 |
-|    Copyright 2002-2008 Axiomatic Systems, LLC
+|    Copyright 2002-2012 Axiomatic Systems, LLC
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -94,6 +94,9 @@
 #include "Ap4SaioAtom.h"
 #include "Ap4SaizAtom.h"
 #include "Ap4PdinAtom.h"
+#include "Ap4BlocAtom.h"
+#include "Ap4AinfAtom.h"
+#include "Ap4PsshAtom.h"
 
 /*----------------------------------------------------------------------
 |   AP4_AtomFactory::~AP4_AtomFactory
@@ -607,6 +610,21 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
           case AP4_ATOM_TYPE_PDIN:
             if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
             atom = AP4_PdinAtom::Create(size_32, stream);
+            break;
+
+          case AP4_ATOM_TYPE_BLOC:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_BlocAtom::Create(size_32, stream);
+            break;
+
+          case AP4_ATOM_TYPE_AINF:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_AinfAtom::Create(size_32, stream);
+            break;
+
+          case AP4_ATOM_TYPE_PSSH:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_PsshAtom::Create(size_32, stream);
             break;
 
           // track ref types
