@@ -300,6 +300,10 @@
 #include "Ap4TrunAtom.h"
 #include "Ap4TfdtAtom.h"
 #include "Ap4TencAtom.h"
+#include "Ap4PdinAtom.h"
+#include "Ap4BlocAtom.h"
+#include "Ap4AinfAtom.h"
+#include "Ap4PsshAtom.h"
 
 /*----------------------------------------------------------------------
 |   global functions

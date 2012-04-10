@@ -484,6 +484,9 @@ const AP4_Atom::Type AP4_ATOM_TYPE_SENC = AP4_ATOM_TYPE('s','e','n','c');
 const AP4_Atom::Type AP4_ATOM_TYPE_SAIO = AP4_ATOM_TYPE('s','a','i','o');
 const AP4_Atom::Type AP4_ATOM_TYPE_SAIZ = AP4_ATOM_TYPE('s','a','i','z');
 const AP4_Atom::Type AP4_ATOM_TYPE_PDIN = AP4_ATOM_TYPE('p','d','i','n');
+const AP4_Atom::Type AP4_ATOM_TYPE_BLOC = AP4_ATOM_TYPE('b','l','o','c');
+const AP4_Atom::Type AP4_ATOM_TYPE_AINF = AP4_ATOM_TYPE('a','i','n','f');
+const AP4_Atom::Type AP4_ATOM_TYPE_PSSH = AP4_ATOM_TYPE('p','s','s','h');
 
 /*----------------------------------------------------------------------
 |   AP4_AtomListInspector

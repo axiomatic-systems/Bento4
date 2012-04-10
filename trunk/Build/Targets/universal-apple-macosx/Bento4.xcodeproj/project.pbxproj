@@ -352,6 +352,12 @@
 		CAEFE10F0FB6993D00AF6434 /* Ap4MehdAtom.h in Headers */ = {isa = PBXBuildFile; fileRef = CAEFE10D0FB6993D00AF6434 /* Ap4MehdAtom.h */; };
 		CAEFE1340FB69CF600AF6434 /* Ap4TrexAtom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAEFE1320FB69CF600AF6434 /* Ap4TrexAtom.cpp */; };
 		CAEFE1350FB69CF600AF6434 /* Ap4TrexAtom.h in Headers */ = {isa = PBXBuildFile; fileRef = CAEFE1330FB69CF600AF6434 /* Ap4TrexAtom.h */; };
+		CAF0104915343D5D00CCD976 /* Ap4AinfAtom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAF0104515343D5D00CCD976 /* Ap4AinfAtom.cpp */; };
+		CAF0104A15343D5D00CCD976 /* Ap4AinfAtom.h in Headers */ = {isa = PBXBuildFile; fileRef = CAF0104615343D5D00CCD976 /* Ap4AinfAtom.h */; };
+		CAF0104B15343D5D00CCD976 /* Ap4BlocAtom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAF0104715343D5D00CCD976 /* Ap4BlocAtom.cpp */; };
+		CAF0104C15343D5D00CCD976 /* Ap4BlocAtom.h in Headers */ = {isa = PBXBuildFile; fileRef = CAF0104815343D5D00CCD976 /* Ap4BlocAtom.h */; };
+		CAF0104F15343E4000CCD976 /* Ap4PsshAtom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAF0104D15343E4000CCD976 /* Ap4PsshAtom.cpp */; };
+		CAF0105015343E4000CCD976 /* Ap4PsshAtom.h in Headers */ = {isa = PBXBuildFile; fileRef = CAF0104E15343E4000CCD976 /* Ap4PsshAtom.h */; };
 		CAF479380F0951E7004073ED /* BenchmarksTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAF479370F0951E7004073ED /* BenchmarksTest.cpp */; };
 		CAFC31CE0FEB3E7C00EF80A0 /* FragmentParserTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAFC31CD0FEB3E7C00EF80A0 /* FragmentParserTest.cpp */; };
 		CAFC31D90FEB95F700EF80A0 /* Ap4MovieFragment.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAFC31D70FEB95F700EF80A0 /* Ap4MovieFragment.cpp */; };
@@ -1076,6 +1082,12 @@
 		CAEFE10D0FB6993D00AF6434 /* Ap4MehdAtom.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4MehdAtom.h; sourceTree = "<group>"; };
 		CAEFE1320FB69CF600AF6434 /* Ap4TrexAtom.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4TrexAtom.cpp; sourceTree = "<group>"; };
 		CAEFE1330FB69CF600AF6434 /* Ap4TrexAtom.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4TrexAtom.h; sourceTree = "<group>"; };
+		CAF0104515343D5D00CCD976 /* Ap4AinfAtom.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4AinfAtom.cpp; sourceTree = "<group>"; };
+		CAF0104615343D5D00CCD976 /* Ap4AinfAtom.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4AinfAtom.h; sourceTree = "<group>"; };
+		CAF0104715343D5D00CCD976 /* Ap4BlocAtom.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4BlocAtom.cpp; sourceTree = "<group>"; };
+		CAF0104815343D5D00CCD976 /* Ap4BlocAtom.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4BlocAtom.h; sourceTree = "<group>"; };
+		CAF0104D15343E4000CCD976 /* Ap4PsshAtom.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4PsshAtom.cpp; sourceTree = "<group>"; };
+		CAF0104E15343E4000CCD976 /* Ap4PsshAtom.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4PsshAtom.h; sourceTree = "<group>"; };
 		CAF4792B0F0951B8004073ED /* BenchmarksTest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = BenchmarksTest; sourceTree = BUILT_PRODUCTS_DIR; };
 		CAF479370F0951E7004073ED /* BenchmarksTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BenchmarksTest.cpp; sourceTree = "<group>"; };
 		CAFC31B90FEB3DDD00EF80A0 /* FragmentParserTest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = FragmentParserTest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -1612,6 +1624,12 @@
 		CA93660F0B437D030067D50B /* Core */ = {
 			isa = PBXGroup;
 			children = (
+				CAF0104D15343E4000CCD976 /* Ap4PsshAtom.cpp */,
+				CAF0104E15343E4000CCD976 /* Ap4PsshAtom.h */,
+				CAF0104515343D5D00CCD976 /* Ap4AinfAtom.cpp */,
+				CAF0104615343D5D00CCD976 /* Ap4AinfAtom.h */,
+				CAF0104715343D5D00CCD976 /* Ap4BlocAtom.cpp */,
+				CAF0104815343D5D00CCD976 /* Ap4BlocAtom.h */,
 				CA15E16B1467D01A00D4EC8B /* Ap4PdinAtom.cpp */,
 				CA15E16C1467D01A00D4EC8B /* Ap4PdinAtom.h */,
 				CA5734FB13B5DCFA00953446 /* Ap4SencAtom.cpp */,
@@ -2117,6 +2135,9 @@
 				CA5734EF13B5DBB100953446 /* Ap4SaizAtom.h in Headers */,
 				CA5734FE13B5DCFA00953446 /* Ap4SencAtom.h in Headers */,
 				CA15E16E1467D01A00D4EC8B /* Ap4PdinAtom.h in Headers */,
+				CAF0104A15343D5D00CCD976 /* Ap4AinfAtom.h in Headers */,
+				CAF0104C15343D5D00CCD976 /* Ap4BlocAtom.h in Headers */,
+				CAF0105015343E4000CCD976 /* Ap4PsshAtom.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3063,6 +3084,9 @@
 				CA5734EE13B5DBB100953446 /* Ap4SaizAtom.cpp in Sources */,
 				CA5734FD13B5DCFA00953446 /* Ap4SencAtom.cpp in Sources */,
 				CA15E16D1467D01A00D4EC8B /* Ap4PdinAtom.cpp in Sources */,
+				CAF0104915343D5D00CCD976 /* Ap4AinfAtom.cpp in Sources */,
+				CAF0104B15343D5D00CCD976 /* Ap4BlocAtom.cpp in Sources */,
+				CAF0104F15343E4000CCD976 /* Ap4PsshAtom.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
