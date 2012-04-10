@@ -78,7 +78,7 @@ AP4_BlocAtom::AP4_BlocAtom(AP4_UI32        size,
 void
 AP4_BlocAtom::SetBaseLocation(const char* base_location)
 {
-    unsigned int len = AP4_StringLength(base_location);
+    unsigned int len = (unsigned int)AP4_StringLength(base_location);
     if (len > 256) len = 256;
     AP4_CopyMemory(m_BaseLocation, base_location, len);
     AP4_SetMemory(&m_BaseLocation[len], 0, 256-len+1);
@@ -90,7 +90,7 @@ AP4_BlocAtom::SetBaseLocation(const char* base_location)
 void
 AP4_BlocAtom::SetPurchaseLocation(const char* purchase_location)
 {
-    unsigned int len = AP4_StringLength(purchase_location);
+    unsigned int len = (unsigned int)AP4_StringLength(purchase_location);
     if (len > 256) len = 256;
     AP4_CopyMemory(m_PurchaseLocation, purchase_location, len);
     AP4_SetMemory(&m_PurchaseLocation[len], 0, 256-len+1);

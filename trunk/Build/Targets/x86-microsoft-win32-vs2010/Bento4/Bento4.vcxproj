@@ -78,7 +78,10 @@
   <ItemGroup>
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap48bdlAtom.cpp" />
     <ClCompile Include="..\..\..\..\Source\C++\Codecs\Ap4AdtsParser.cpp" />
+    <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4AinfAtom.cpp" />
+    <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4BlocAtom.cpp" />
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4CommonEncryption.cpp" />
+    <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4PsshAtom.cpp" />
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4SaioAtom.cpp" />
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4SaizAtom.cpp" />
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4SencAtom.cpp" />
@@ -191,7 +194,10 @@
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4.h" />
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap48bdlAtom.h" />
     <ClInclude Include="..\..\..\..\Source\C++\Codecs\Ap4AdtsParser.h" />
+    <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4AinfAtom.h" />
+    <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4BlocAtom.h" />
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4CommonEncryption.h" />
+    <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4PsshAtom.h" />
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4SaioAtom.h" />
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4SaizAtom.h" />
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4SencAtom.h" />
