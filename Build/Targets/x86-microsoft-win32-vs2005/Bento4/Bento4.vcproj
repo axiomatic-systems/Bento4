@@ -169,6 +169,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\..\Source\C++\Core\Ap4AinfAtom.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\Source\C++\Core\Ap4AinfAtom.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\Source\C++\Core\Ap4Atom.cpp"
 				>
 			</File>
@@ -186,6 +194,14 @@
 			</File>
 			<File
 				RelativePath="..\..\..\..\Source\C++\Codecs\Ap4BitStream.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\Source\C++\Core\Ap4BlocAtom.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\Source\C++\Core\Ap4BlocAtom.h"
 				>
 			</File>
 			<File
@@ -430,6 +446,14 @@
 			</File>
 			<File
 				RelativePath="..\..\..\..\Source\C++\Core\Ap4Protection.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\Source\C++\Core\Ap4PsshAtom.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\Source\C++\Core\Ap4PsshAtom.h"
 				>
 			</File>
 			<File
