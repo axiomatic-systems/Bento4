@@ -110,7 +110,10 @@ CORE_SOURCES = 								\
     Ap4SencAtom.cpp							\
     Ap4TencAtom.cpp							\
     Ap4TfdtAtom.cpp                         \
-    Ap4PdinAtom.cpp
+    Ap4PdinAtom.cpp                         \
+    Ap4AinfAtom.cpp                         \
+    Ap4BlocAtom.cpp                         \
+    Ap4PsshAtom.cpp
     
 
 CORE_OBJECTS=$(CORE_SOURCES:.cpp=.o)
