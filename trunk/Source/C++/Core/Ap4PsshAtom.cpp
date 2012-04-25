@@ -81,6 +81,44 @@ AP4_PsshAtom::AP4_PsshAtom(AP4_UI32        size,
 }
 
 /*----------------------------------------------------------------------
+|   AP4_PsshAtom::SetData
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_PsshAtom::SetData(AP4_Atom& atom)
+{
+    AP4_MemoryByteStream* memstr = new AP4_MemoryByteStream(m_Data);
+    if (!memstr) {
+        return AP4_ERROR_OUT_OF_MEMORY;
+    }
+    AP4_Result result = atom.Write(*memstr);
+    memstr->Release();
+    SetSize32(AP4_FULL_ATOM_HEADER_SIZE+16+4 + m_Data.GetDataSize()+m_Padding.GetDataSize());
+    return result;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_PsshAtom::SetPadding
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_PsshAtom::SetPadding(AP4_Byte* data, unsigned int data_size)
+{
+    AP4_Result result;
+    result = m_Padding.SetData(data, data_size);
+    AP4_CHECK(result);
+    SetSize32(AP4_FULL_ATOM_HEADER_SIZE+16+4 + m_Data.GetDataSize()+m_Padding.GetDataSize());
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_PsshAtom::SetSystemId
++---------------------------------------------------------------------*/
+void
+AP4_PsshAtom::SetSystemId(const unsigned char system_id[16])
+{
+    AP4_CopyMemory(m_SystemId, system_id, 16);
+}
+
+/*----------------------------------------------------------------------
 |   AP4_PsshAtom::WriteFields
 +---------------------------------------------------------------------*/
 AP4_Result

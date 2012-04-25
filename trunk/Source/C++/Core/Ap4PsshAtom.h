@@ -50,9 +50,11 @@ public:
 
     // accessors
     const unsigned char*  GetSystemId() { return m_SystemId; }
-    void                  SetSystemId(const unsigned char* system_id);
+    void                  SetSystemId(const unsigned char system_id[16]);
     const AP4_DataBuffer& GetData() { return m_Data; }
     void                  SetData(const unsigned char* data, unsigned int data_size);
+    AP4_Result            SetData(AP4_Atom& atom);
+    AP4_Result            SetPadding(AP4_Byte* data, unsigned int data_size);
     
 private:
     // methods

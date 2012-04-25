@@ -40,6 +40,8 @@
 class AP4_AinfAtom : public AP4_Atom
 {
 public:
+    AP4_IMPLEMENT_DYNAMIC_CAST_D(AP4_AinfAtom, AP4_Atom)
+
     // class methods
     static AP4_AinfAtom* Create(AP4_Size size, AP4_ByteStream& stream);
 
