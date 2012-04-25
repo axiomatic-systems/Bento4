@@ -41,6 +41,8 @@
 class AP4_BlocAtom : public AP4_Atom
 {
 public:
+    AP4_IMPLEMENT_DYNAMIC_CAST_D(AP4_BlocAtom, AP4_Atom)
+
     // class methods
     static AP4_BlocAtom* Create(AP4_Size size, AP4_ByteStream& stream);
 

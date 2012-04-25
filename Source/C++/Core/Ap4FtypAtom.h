@@ -47,6 +47,7 @@ class AP4_ByteStream;
 const AP4_UI32 AP4_FTYP_BRAND_ISOM = AP4_ATOM_TYPE('i','s','o','m');
 const AP4_UI32 AP4_FTYP_BRAND_MP41 = AP4_ATOM_TYPE('m','p','4','1');
 const AP4_UI32 AP4_FTYP_BRAND_MP42 = AP4_ATOM_TYPE('m','p','4','2');
+const AP4_UI32 AP4_FTYP_BRAND_CCFF = AP4_ATOM_TYPE('c','c','f','f');
 
 /*----------------------------------------------------------------------
 |   AP4_FtypAtom
