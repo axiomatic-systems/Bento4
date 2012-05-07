@@ -487,6 +487,8 @@ const AP4_Atom::Type AP4_ATOM_TYPE_PDIN = AP4_ATOM_TYPE('p','d','i','n');
 const AP4_Atom::Type AP4_ATOM_TYPE_BLOC = AP4_ATOM_TYPE('b','l','o','c');
 const AP4_Atom::Type AP4_ATOM_TYPE_AINF = AP4_ATOM_TYPE('a','i','n','f');
 const AP4_Atom::Type AP4_ATOM_TYPE_PSSH = AP4_ATOM_TYPE('p','s','s','h');
+const AP4_Atom::Type AP4_ATOM_TYPE_MARL = AP4_ATOM_TYPE('m','a','r','l');
+const AP4_Atom::Type AP4_ATOM_TYPE_MKID = AP4_ATOM_TYPE('m','k','i','d');
 
 /*----------------------------------------------------------------------
 |   AP4_AtomListInspector

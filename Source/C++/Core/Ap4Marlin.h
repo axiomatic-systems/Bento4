@@ -61,6 +61,10 @@ const AP4_Atom::Type AP4_ATOM_TYPE_GKEY = AP4_ATOM_TYPE('g','k','e','y');
 const char* const AP4_MARLIN_IPMP_STYP_VIDEO = "urn:marlin:organization:sne:content-type:video";
 const char* const AP4_MARLIN_IPMP_STYP_AUDIO = "urn:marlin:organization:sne:content-type:audio";
 
+const AP4_UI08 AP4_MARLIN_PSSH_SYSTEM_ID[16] = {
+    0x69, 0xF9, 0x08, 0xAF, 0x48, 0x16, 0x46, 0xEA, 0x91, 0x0C, 0xCD, 0x5D, 0xCC, 0xCB, 0x0A, 0x3A
+};
+
 /*----------------------------------------------------------------------
 |   AP4_MarlinIpmpParser
 +---------------------------------------------------------------------*/
@@ -243,5 +247,44 @@ private:
     AP4_UI08          m_IV[16];
     AP4_StreamCipher* m_Cipher;
 };
+
+/*----------------------------------------------------------------------
+|   AP4_MkidAtom
++---------------------------------------------------------------------*/
+class AP4_MkidAtom : public AP4_Atom
+{
+public:
+    AP4_IMPLEMENT_DYNAMIC_CAST_D(AP4_MkidAtom, AP4_Atom)
+
+    // types
+    struct Entry {
+        AP4_UI08   m_KID[16];
+        AP4_String m_ContentId;
+    };
+    
+    // virtual constructor
+    static AP4_MkidAtom* Create(AP4_Size size, AP4_ByteStream& stream);
+    
+    // constructors
+    AP4_MkidAtom();
+
+    // methods
+    virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
+    virtual AP4_Result WriteFields(AP4_ByteStream& stream);
+
+    // accessors
+    const AP4_Array<Entry>& GetEntries() { return m_Entries; }
+    AP4_Result              AddEntry(const AP4_UI08* kid, const char* content_id);
+    
+private:
+    // methods
+    AP4_MkidAtom(AP4_Size        size,
+                 AP4_ByteStream& stream);
+
+    // members
+    AP4_UI32         m_EntryCount;
+    AP4_Array<Entry> m_Entries;
+};
+
 
 #endif // _AP4_MARLIN_H_
