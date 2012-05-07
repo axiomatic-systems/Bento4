@@ -48,6 +48,8 @@
 #include "Ap4SaioAtom.h"
 #include "Ap4SaizAtom.h"
 #include "Ap4TrunAtom.h"
+#include "Ap4Marlin.h"
+#include "Ap4PsshAtom.h"
 
 /*----------------------------------------------------------------------
 |   AP4_CencSampleEncrypter::~AP4_CencSampleEncrypter
@@ -740,7 +742,57 @@ AP4_CencEncryptingProcessor::Initialize(AP4_AtomParent&                  top_lev
     }
     
     // insert the ftyp atom as the first child
-    return top_level.AddChild(ftyp, 0);
+    AP4_Result result = top_level.AddChild(ftyp, 0);
+    if (AP4_FAILED(result)) return result;
+    
+    // check if we need to create a Marln 'mkid' table
+    AP4_MkidAtom* mkid = NULL;
+    if (m_Variant == AP4_CENC_VARIANT_MPEG) {
+        const AP4_List<AP4_TrackPropertyMap::Entry>& prop_entries = m_PropertyMap.GetEntries();
+        for (unsigned int i=0; i<prop_entries.ItemCount(); i++) {
+            AP4_TrackPropertyMap::Entry* entry = NULL;
+            prop_entries.Get(i, entry);
+            if (entry && entry->m_Name == "ContentId") {
+                if (mkid == NULL) mkid = new AP4_MkidAtom();
+                const char* kid_hex = m_PropertyMap.GetProperty(entry->m_TrackId, "KID");
+                
+                // check that no other track has the same KID
+                bool duplicate = false;
+                for (unsigned int j=0; j<i; j++) {
+                    AP4_TrackPropertyMap::Entry* entry2 = NULL;
+                    prop_entries.Get(j, entry2);
+                    if (entry2->m_Name == "KID" && entry2->m_Value == kid_hex && entry2->m_TrackId != entry->m_TrackId) {
+                        duplicate = true;
+                        break;
+                    }
+                }
+                if (duplicate) continue;
+                if (kid_hex && AP4_StringLength(kid_hex) == 32) {
+                    AP4_UI08 kid[16];
+                    AP4_ParseHex(kid_hex, kid, 16);
+                    mkid->AddEntry(kid, entry->m_Value.GetChars());
+                }
+            }
+        }
+    }
+    if (mkid) {
+        // find the moov container
+        AP4_ContainerAtom* moov = AP4_DYNAMIC_CAST(AP4_ContainerAtom, top_level.GetChild(AP4_ATOM_TYPE_MOOV));
+        if (moov) {
+            // create a 'marl' container
+            AP4_ContainerAtom* marl = new AP4_ContainerAtom(AP4_ATOM_TYPE_MARL);
+            marl->AddChild(mkid);
+            
+            // create a 'pssh' atom to contain the 'marl' atom
+            AP4_PsshAtom* pssh = new AP4_PsshAtom(AP4_MARLIN_PSSH_SYSTEM_ID);
+            pssh->SetData(*marl);
+            
+            // add the 'pssh' atom at the end of the 'moov' container
+            moov->AddChild(pssh);
+        }
+    }
+    
+    return AP4_SUCCESS;
 }
 
 /*----------------------------------------------------------------------

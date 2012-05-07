@@ -37,9 +37,9 @@
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-#define BANNER "MP4 Encrypter - Version 1.3\n"\
+#define BANNER "MP4 Encrypter - Version 1.4\n"\
                "(Bento4 Version " AP4_VERSION_STRING ")\n"\
-               "(c) 2002-2010 Axiomatic Systems, LLC"
+               "(c) 2002-2012 Axiomatic Systems, LLC"
 
 /*----------------------------------------------------------------------
 |   PrintUsageAndExit
@@ -98,7 +98,8 @@ PrintUsageAndExit()
         "    It should therefore be set to 0000000000000000\n"
         "\n"
         "    MPEG-CENC, PIFF-CTR, PIFF-CBC: The following properties are defined:\n"
-        "    KID -> the value of KID, 16 bytes, in hexadecimal (32 characters)\n"
+        "      KID -> the value of KID, 16 bytes, in hexadecimal (32 characters)\n"
+        "      ContentId -> Content ID mapping for KID (Marlin option)\n"
         );
     exit(1);
 }

@@ -627,6 +627,13 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
             atom = AP4_PsshAtom::Create(size_32, stream);
             break;
 
+          case AP4_ATOM_TYPE_MKID:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            if (GetContext() == AP4_ATOM_TYPE_MARL) {
+                atom = AP4_MkidAtom::Create(size_32, stream);
+            }
+            break;
+
           // track ref types
           case AP4_ATOM_TYPE_HINT:
           case AP4_ATOM_TYPE_CDSC:
@@ -666,6 +673,13 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
             atom = AP4_ContainerAtom::Create(type, size_64, false, force_64, stream, *this);
             break;
 
+          // containers, only at the top
+          case AP4_ATOM_TYPE_MARL:
+            if (GetContext() == 0) {
+                atom = AP4_ContainerAtom::Create(type, size_64, false, force_64, stream, *this);
+            }
+            break;
+            
           // full container atoms
           case AP4_ATOM_TYPE_META:
           case AP4_ATOM_TYPE_ODRM:

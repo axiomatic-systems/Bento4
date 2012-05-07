@@ -176,17 +176,6 @@ private:
 class AP4_TrackPropertyMap
 {
 public:
-    // methods
-    AP4_Result  SetProperty(AP4_UI32 track_id, const char* name, const char* value);
-    AP4_Result  SetProperties(const AP4_TrackPropertyMap& properties);
-    const char* GetProperty(AP4_UI32 track_id, const char* name);
-    AP4_Result  GetTextualHeaders(AP4_UI32 track_id, AP4_DataBuffer& buffer);
-    
-
-    // destructor
-    virtual ~AP4_TrackPropertyMap();
-
-private:
     // types
     class Entry {
     public:
@@ -197,6 +186,17 @@ private:
         AP4_String m_Value;
     };
 
+    // methods
+    AP4_Result  SetProperty(AP4_UI32 track_id, const char* name, const char* value);
+    AP4_Result  SetProperties(const AP4_TrackPropertyMap& properties);
+    const char* GetProperty(AP4_UI32 track_id, const char* name);
+    AP4_Result  GetTextualHeaders(AP4_UI32 track_id, AP4_DataBuffer& buffer);
+    const AP4_List<Entry>& GetEntries() { return m_Entries; }
+
+    // destructor
+    virtual ~AP4_TrackPropertyMap();
+
+private:
     // members
     AP4_List<Entry> m_Entries;
 };

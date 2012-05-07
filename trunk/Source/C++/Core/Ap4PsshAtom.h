@@ -44,7 +44,7 @@ public:
     static AP4_PsshAtom* Create(AP4_Size size, AP4_ByteStream& stream);
 
     // methods
-    AP4_PsshAtom();
+    AP4_PsshAtom(const unsigned char* system_id);
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
 
@@ -52,7 +52,7 @@ public:
     const unsigned char*  GetSystemId() { return m_SystemId; }
     void                  SetSystemId(const unsigned char system_id[16]);
     const AP4_DataBuffer& GetData() { return m_Data; }
-    void                  SetData(const unsigned char* data, unsigned int data_size);
+    AP4_Result            SetData(const unsigned char* data, unsigned int data_size);
     AP4_Result            SetData(AP4_Atom& atom);
     AP4_Result            SetPadding(AP4_Byte* data, unsigned int data_size);
     

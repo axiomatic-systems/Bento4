@@ -53,6 +53,11 @@
 #include "Ap4ByteStream.h"
 
 /*----------------------------------------------------------------------
+|   dynamic cast support
++---------------------------------------------------------------------*/
+AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_MkidAtom)
+
+/*----------------------------------------------------------------------
 |   AP4_MarlinIpmpAtomTypeHandler
 +---------------------------------------------------------------------*/
 class AP4_MarlinIpmpAtomTypeHandler : public AP4_AtomFactory::TypeHandler
@@ -1076,3 +1081,112 @@ AP4_MarlinIpmpTrackEncrypter::ProcessSample(AP4_DataBuffer& data_in,
     
     return AP4_SUCCESS;
 }
+
+
+/*----------------------------------------------------------------------
+|   AP4_MkidAtom::AP4_MkidAtom
++---------------------------------------------------------------------*/
+AP4_MkidAtom::AP4_MkidAtom() :
+    AP4_Atom(AP4_ATOM_TYPE_MKID, AP4_FULL_ATOM_HEADER_SIZE+4, 0, 0)
+{
+}
+
+/*----------------------------------------------------------------------
+|   AP4_MkidAtom::Create
++---------------------------------------------------------------------*/
+AP4_MkidAtom*
+AP4_MkidAtom::Create(AP4_Size size, AP4_ByteStream& stream)
+{
+    AP4_UI32 version;
+    AP4_UI32 flags;
+    if (AP4_FAILED(AP4_Atom::ReadFullHeader(stream, version, flags))) return NULL;
+    if (version > 0) return NULL;
+    return new AP4_MkidAtom(size, stream);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_MkidAtom::AP4_MkidAtom
++---------------------------------------------------------------------*/
+AP4_MkidAtom::AP4_MkidAtom(AP4_Size        size,
+                           AP4_ByteStream& stream) :
+    AP4_Atom(AP4_ATOM_TYPE_MKID, (AP4_UI32)(size))
+{
+    AP4_Size available = size-(AP4_FULL_ATOM_HEADER_SIZE+4);
+    AP4_UI32 entry_count = 0;
+    stream.ReadUI32(entry_count);
+    if (available < entry_count*(16+4)) return;
+    m_Entries.SetItemCount(entry_count);
+    for (unsigned int i=0; i<entry_count && available >= 16+4; i++) {
+        AP4_UI32 entry_size;
+        stream.ReadUI32(entry_size);
+        if (available < 4+entry_size) break;
+        if (entry_size < 16) continue;
+        available -= (4+entry_size);
+        stream.Read(m_Entries[i].m_KID, 16);
+        unsigned int content_id_size = entry_size-16; 
+        char* content_id = new char[content_id_size];
+        stream.Read(content_id, content_id_size);
+        m_Entries[i].m_ContentId.Assign(content_id, content_id_size);
+        delete[] content_id;
+    }
+}
+
+/*----------------------------------------------------------------------
+|   AP4_MkidAtom::AddEntry
++---------------------------------------------------------------------*/
+AP4_Result              
+AP4_MkidAtom::AddEntry(const AP4_UI08* kid, const char* content_id)
+{
+    unsigned int content_id_size = AP4_StringLength(content_id);
+    unsigned int entry_count = m_Entries.ItemCount();
+
+    // add the entry
+    m_Entries.SetItemCount(entry_count+1);
+    AP4_CopyMemory(m_Entries[entry_count].m_KID, kid, 16);
+    m_Entries[entry_count].m_ContentId.Assign(content_id, content_id_size);
+
+    // update the size
+    m_Size32 += 4+16+content_id_size;
+
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_MkidAtom::WriteFields
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_MkidAtom::WriteFields(AP4_ByteStream& stream)
+{
+    AP4_Result result;
+
+    // encoding
+    result = stream.WriteUI32(m_Entries.ItemCount());
+    if (AP4_FAILED(result)) return result;
+
+    // entries
+    for (unsigned int i=0; i<m_Entries.ItemCount(); i++) {
+        stream.WriteUI32(16+m_Entries[i].m_ContentId.GetLength());
+        stream.Write(m_Entries[i].m_KID, 16);
+        stream.Write(m_Entries[i].m_ContentId.GetChars(), m_Entries[i].m_ContentId.GetLength());
+    }
+    
+    return result;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_MkidAtom::InspectFields
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_MkidAtom::InspectFields(AP4_AtomInspector& inspector)
+{
+    inspector.AddField("entry_count", m_Entries.ItemCount());
+    for (unsigned int i=0; i<m_Entries.ItemCount(); i++) {
+        inspector.AddField("KID", m_Entries[i].m_KID, 16);
+        inspector.AddField("content_id", m_Entries[i].m_ContentId.GetChars());
+    }
+    return AP4_SUCCESS;
+}
+
+
+
+

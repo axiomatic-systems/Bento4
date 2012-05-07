@@ -53,9 +53,10 @@ AP4_PsshAtom::Create(AP4_Size size, AP4_ByteStream& stream)
 /*----------------------------------------------------------------------
 |   AP4_PsshAtom::AP4_PsshAtom
 +---------------------------------------------------------------------*/
-AP4_PsshAtom::AP4_PsshAtom() :
+AP4_PsshAtom::AP4_PsshAtom(const unsigned char* system_id) :
     AP4_Atom(AP4_ATOM_TYPE_PSSH, AP4_FULL_ATOM_HEADER_SIZE+16+4, 0, 0)
 {
+    AP4_CopyMemory(m_SystemId, system_id, 16);
 }
 
 /*----------------------------------------------------------------------
@@ -94,6 +95,17 @@ AP4_PsshAtom::SetData(AP4_Atom& atom)
     memstr->Release();
     SetSize32(AP4_FULL_ATOM_HEADER_SIZE+16+4 + m_Data.GetDataSize()+m_Padding.GetDataSize());
     return result;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_PsshAtom::SetData
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_PsshAtom::SetData(const unsigned char* data, unsigned int data_size)
+{
+    m_Data.SetData(data, data_size);
+    SetSize32(AP4_FULL_ATOM_HEADER_SIZE+16+4 + data_size+m_Padding.GetDataSize());
+    return AP4_SUCCESS;
 }
 
 /*----------------------------------------------------------------------
