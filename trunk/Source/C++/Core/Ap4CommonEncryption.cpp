@@ -783,12 +783,36 @@ AP4_CencEncryptingProcessor::Initialize(AP4_AtomParent&                  top_lev
             AP4_ContainerAtom* marl = new AP4_ContainerAtom(AP4_ATOM_TYPE_MARL);
             marl->AddChild(mkid);
             
+            // see if we need to pad the 'pssh' container
+            const char* padding_str = m_PropertyMap.GetProperty(0, "PsshPadding");
+            AP4_UI32    padding = 0;
+            if (padding_str) {
+                padding = AP4_ParseIntegerU(padding_str);
+            }
+            
             // create a 'pssh' atom to contain the 'marl' atom
             AP4_PsshAtom* pssh = new AP4_PsshAtom(AP4_MARLIN_PSSH_SYSTEM_ID);
             pssh->SetData(*marl);
+            if (padding > marl->GetSize()+32 && padding < 1024*1024) {
+                padding -= marl->GetSize()+32;
+                AP4_UI08* data = new AP4_UI08[padding];
+                AP4_SetMemory(data, 0, padding);
+                pssh->SetPadding(data, padding);
+                delete[] data;
+            }
             
             // add the 'pssh' atom at the end of the 'moov' container
-            moov->AddChild(pssh);
+            // but before any 'free' atom, if any
+            int position = -1;
+            int current = 0;
+            for (AP4_List<AP4_Atom>::Item* child = moov->GetChildren().FirstItem();
+                                           child;
+                                           child = child->GetNext(), ++current) {
+                if (child->GetData()->GetType() == AP4_ATOM_TYPE_FREE) {
+                    position = current;
+                }
+            }
+            moov->AddChild(pssh, position);
         }
     }
     
