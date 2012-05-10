@@ -100,6 +100,8 @@ PrintUsageAndExit()
         "    MPEG-CENC, PIFF-CTR, PIFF-CBC: The following properties are defined:\n"
         "      KID -> the value of KID, 16 bytes, in hexadecimal (32 characters)\n"
         "      ContentId -> Content ID mapping for KID (Marlin option)\n"
+        "      PsshPadding -> pad the 'pssh' container to this size (when using ContentId)\n"
+        "                     (this property should be set for track ID 0 only)\n"
         );
     exit(1);
 }

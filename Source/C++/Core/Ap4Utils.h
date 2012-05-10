@@ -206,6 +206,8 @@ AP4_Result
 AP4_SplitArgs(char* arg, char*& arg0, char*& arg1, char*& arg2);
 AP4_Result
 AP4_SplitArgs(char* arg, char*& arg0, char*& arg1);
+AP4_UI32
+AP4_ParseIntegerU(const char* value);
 
 /*----------------------------------------------------------------------
 |   AP4_BitWriter

@@ -317,4 +317,26 @@ AP4_BitWriter::Write(AP4_UI32 bits, unsigned int bit_count)
     }
 }
 
+/*----------------------------------------------------------------------
+|   AP4_ParseIntegerU
++---------------------------------------------------------------------*/
+AP4_UI32
+AP4_ParseIntegerU(const char* str)
+{
+    if (str == NULL) {
+        return 0;
+    }
+
+    // parse the digits
+    AP4_UI32 value = 0;
+    while (char c = *str++) {
+        if (c >= '0' && c <= '9') {
+            value = 10*value + (c-'0');
+        } else {
+            return 0;
+        } 
+    }
+
+    return value;
+}
 

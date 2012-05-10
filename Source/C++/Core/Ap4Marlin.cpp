@@ -1101,15 +1101,17 @@ AP4_MkidAtom::Create(AP4_Size size, AP4_ByteStream& stream)
     AP4_UI32 flags;
     if (AP4_FAILED(AP4_Atom::ReadFullHeader(stream, version, flags))) return NULL;
     if (version > 0) return NULL;
-    return new AP4_MkidAtom(size, stream);
+    return new AP4_MkidAtom(size, version, flags, stream);
 }
 
 /*----------------------------------------------------------------------
 |   AP4_MkidAtom::AP4_MkidAtom
 +---------------------------------------------------------------------*/
 AP4_MkidAtom::AP4_MkidAtom(AP4_Size        size,
+                           AP4_UI32        version,
+                           AP4_UI32        flags,
                            AP4_ByteStream& stream) :
-    AP4_Atom(AP4_ATOM_TYPE_MKID, (AP4_UI32)(size))
+    AP4_Atom(AP4_ATOM_TYPE_MKID, size, version, flags)
 {
     AP4_Size available = size-(AP4_FULL_ATOM_HEADER_SIZE+4);
     AP4_UI32 entry_count = 0;

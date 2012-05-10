@@ -279,6 +279,8 @@ public:
 private:
     // methods
     AP4_MkidAtom(AP4_Size        size,
+                 AP4_UI32        version,
+                 AP4_UI32        flags,
                  AP4_ByteStream& stream);
 
     // members
