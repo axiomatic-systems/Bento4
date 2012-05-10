@@ -40,6 +40,8 @@
 class AP4_PsshAtom : public AP4_Atom
 {
 public:
+    AP4_IMPLEMENT_DYNAMIC_CAST_D(AP4_PsshAtom, AP4_Atom)
+
     // class methods
     static AP4_PsshAtom* Create(AP4_Size size, AP4_ByteStream& stream);
 
