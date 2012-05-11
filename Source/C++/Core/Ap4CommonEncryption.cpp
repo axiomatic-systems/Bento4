@@ -127,6 +127,9 @@ AP4_CencCtrSubSampleEncrypter::GetSubSampleMap(AP4_DataBuffer&      sample_data,
         unsigned int chunk_size     = m_NaluLengthSize+nalu_length;
         unsigned int cleartext_size = chunk_size%16;
         unsigned int block_count    = chunk_size/16;
+        if (in+chunk_size > in_end) {
+            return AP4_ERROR_INVALID_FORMAT;
+        }
         if (cleartext_size < m_NaluLengthSize+1) {
             AP4_ASSERT(block_count);
             --block_count;

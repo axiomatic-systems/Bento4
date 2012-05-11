@@ -37,7 +37,7 @@
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-#define BANNER "MP4 Encrypter - Version 1.4\n"\
+#define BANNER "MP4 Encrypter - Version 1.5\n"\
                "(Bento4 Version " AP4_VERSION_STRING ")\n"\
                "(c) 2002-2012 Axiomatic Systems, LLC"
 
@@ -55,10 +55,9 @@ PrintUsageAndExit()
         "     MARLIN-IPMP-ACGK, ISMA-IAEC, PIFF-CBC, PIFF-CTR, or MPEG-CENC\n"
         "  Options:\n"
         "  --show-progress: show progress details\n"
-        "  --fragments <fragments-input>\n"
-        "      Encrypt the fragments read from <fragments-input> instead of the\n"
-        "      file read from <input>. The <input> file is used to initialize\n"
-        "      the encrypter\n"
+        "  --fragments-info <filename>\n"
+        "      Encrypt the fragments read from <input>, with track info read\n"
+        "      from <filename>.\n"
         "  --key <n>:<k>:<iv>\n"   
         "      Specifies the key to use for a track (or group key).\n"
         "      <n> is a track ID, <k> a 128-bit key in hex (32 characters)\n"
@@ -100,8 +99,9 @@ PrintUsageAndExit()
         "    MPEG-CENC, PIFF-CTR, PIFF-CBC: The following properties are defined:\n"
         "      KID -> the value of KID, 16 bytes, in hexadecimal (32 characters)\n"
         "      ContentId -> Content ID mapping for KID (Marlin option)\n"
-        "      PsshPadding -> pad the 'pssh' container to this size (when using ContentId)\n"
-        "                     (this property should be set for track ID 0 only)\n"
+        "      PsshPadding -> pad the 'pssh' container to this size\n"
+        "                    (only when using ContentId).\n"
+        "                    This property should be set for track ID 0 only\n"
         );
     exit(1);
 }
@@ -150,7 +150,7 @@ main(int argc, char** argv)
     enum Method method  = METHOD_NONE;
     const char* input_filename = NULL;
     const char* output_filename = NULL;
-    const char* fragments_filename = NULL;
+    const char* fragments_info_filename = NULL;
     AP4_ProtectionKeyMap key_map;
     AP4_TrackPropertyMap property_map;
     bool                 show_progress = false;
@@ -185,13 +185,13 @@ main(int argc, char** argv)
                 fprintf(stderr, "ERROR: invalid value for --method argument\n");
                 return 1;
             }
-        } else if (!strcmp(arg, "--fragments")) {
+        } else if (!strcmp(arg, "--fragments-info")) {
             arg = *++argv;
             if (arg == NULL) {
-                fprintf(stderr, "ERROR: missing argument for --fragments option\n");
+                fprintf(stderr, "ERROR: missing argument for --fragments-info option\n");
                 return 1;
             }
-            fragments_filename = arg;
+            fragments_info_filename = arg;
         } else if (!strcmp(arg, "--kms-uri")) {
             arg = *++argv;
             if (arg == NULL) {
@@ -433,19 +433,19 @@ main(int argc, char** argv)
     }
 
     // create the fragments stream if needed
-    AP4_ByteStream* fragments = NULL;
-    if (fragments_filename) {
-        result = AP4_FileByteStream::Create(fragments_filename, AP4_FileByteStream::STREAM_MODE_READ, fragments);
+    AP4_ByteStream* fragments_info = NULL;
+    if (fragments_info_filename) {
+        result = AP4_FileByteStream::Create(fragments_info_filename, AP4_FileByteStream::STREAM_MODE_READ, fragments_info);
         if (AP4_FAILED(result)) {
-            fprintf(stderr, "ERROR: cannot open fragments file (%s)\n", fragments_filename);
+            fprintf(stderr, "ERROR: cannot open fragments info file (%s)\n", fragments_info_filename);
             return 1;
         }
     }
     
     // process/decrypt the file
     ProgressListener listener;
-    if (fragments) {
-        result = processor->Process(*fragments, *output, *input, show_progress?&listener:NULL);
+    if (fragments_info) {
+        result = processor->Process(*input, *output, *fragments_info, show_progress?&listener:NULL);
     } else {
         result = processor->Process(*input, *output, show_progress?&listener:NULL);
     }
@@ -457,7 +457,7 @@ main(int argc, char** argv)
     delete processor;
     input->Release();
     output->Release();
-    if (fragments) fragments->Release();
+    if (fragments_info) fragments_info->Release();
     
     return 0;
 }
