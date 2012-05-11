@@ -361,6 +361,7 @@ AP4_Processor::Process(AP4_ByteStream&   input,
 
     // if we have a fragments stream, get the fragment locators from there
     if (fragments) {
+        stream_offset = 0;
         for (AP4_Atom* atom = NULL;
             AP4_SUCCEEDED(atom_factory.CreateAtomFromStream(*fragments, atom));
             fragments->Tell(stream_offset)) {

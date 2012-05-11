@@ -37,9 +37,9 @@
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-#define BANNER "MP4 Decrypter - Version 1.2\n"\
+#define BANNER "MP4 Decrypter - Version 1.3\n"\
                "(Bento4 Version " AP4_VERSION_STRING ")\n"\
-               "(c) 2002-2008 Axiomatic Systems, LLC"
+               "(c) 2002-2012 Axiomatic Systems, LLC"
  
 /*----------------------------------------------------------------------
 |   PrintUsageAndExit
@@ -57,7 +57,11 @@ PrintUsageAndExit()
             "      <n> is a track index, <k> a 128-bit key in hex\n"
             "      (several --key options can be used, one for each track)\n"
             "      note: for dcf files, use 1 as the track index\n"
-            "      note: for Marlin IPMP/ACGK, use 0 as the track index\n");
+            "      note: for Marlin IPMP/ACGK, use 0 as the track index\n"
+            "  --fragments-info <filename>\n"
+            "      Encrypt the fragments read from <input>, with track info read\n"
+            "      from <filename>.\n"
+            );
     exit(1);
 }
 
@@ -93,6 +97,7 @@ main(int argc, char** argv)
     // parse options
     const char* input_filename = NULL;
     const char* output_filename = NULL;
+    const char* fragments_info_filename = NULL;
     bool        show_progress = false;
 
     char* arg;
@@ -117,6 +122,13 @@ main(int argc, char** argv)
             }
             // set the key in the map
             key_map.SetKey(track, key, 16);
+        } else if (!strcmp(arg, "--fragments-info")) {
+            arg = *++argv;
+            if (arg == NULL) {
+                fprintf(stderr, "ERROR: missing argument for --fragments-info option\n");
+                return 1;
+            }
+            fragments_info_filename = arg;
         } else if (!strcmp(arg, "--show-progress")) {
             show_progress = true;
         } else if (input_filename == NULL) {
@@ -156,9 +168,19 @@ main(int argc, char** argv)
         return 1;
     }
 
+    // create the fragments stream if needed
+    AP4_ByteStream* fragments_info = NULL;
+    if (fragments_info_filename) {
+        result = AP4_FileByteStream::Create(fragments_info_filename, AP4_FileByteStream::STREAM_MODE_READ, fragments_info);
+        if (AP4_FAILED(result)) {
+            fprintf(stderr, "ERROR: cannot open fragments info file (%s)\n", fragments_info_filename);
+            return 1;
+        }
+    }
+
     // create the decrypting processor
     AP4_Processor* processor = NULL;
-    AP4_File* input_file = new AP4_File(*input);
+    AP4_File* input_file = new AP4_File(fragments_info?*fragments_info:*input);
     AP4_FtypAtom* ftyp = input_file->GetFileType();
     if (ftyp) {
         if (ftyp->GetMajorBrand() == AP4_OMA_DCF_BRAND_ODCF || ftyp->HasCompatibleBrand(AP4_OMA_DCF_BRAND_ODCF)) {
@@ -200,11 +222,19 @@ main(int argc, char** argv)
     
     delete input_file;
     input_file = NULL;
-    input->Seek(0);
+    if (fragments_info) {
+        fragments_info->Seek(0);
+    } else {
+        input->Seek(0);
+    }
     
     // process/decrypt the file
     ProgressListener listener;
-    result = processor->Process(*input, *output, show_progress?&listener:NULL);
+    if (fragments_info) {
+        result = processor->Process(*input, *output, *fragments_info, show_progress?&listener:NULL);
+    } else {
+        result = processor->Process(*input, *output, show_progress?&listener:NULL);
+    }
     if (AP4_FAILED(result)) {
         fprintf(stderr, "ERROR: failed to process the file (%d)\n", result);
     }
