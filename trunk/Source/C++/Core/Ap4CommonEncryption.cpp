@@ -1833,6 +1833,79 @@ end:
 }
 
 /*----------------------------------------------------------------------
+|   AP4_CencSampleInfoTable::Create
++---------------------------------------------------------------------*/
+AP4_Result 
+AP4_CencSampleInfoTable::Create(const AP4_UI08*           serialized,
+                                unsigned int              serialized_size,
+                                AP4_CencSampleInfoTable*& sample_info_table)
+{
+    sample_info_table = NULL;
+    
+    if (serialized_size < 4+4) return AP4_ERROR_INVALID_FORMAT;
+    AP4_UI32 sample_count = AP4_BytesToUInt32BE(serialized); serialized += 4; serialized_size -= 4;
+    AP4_UI32 iv_size      = AP4_BytesToUInt32BE(serialized); serialized += 4; serialized_size -= 4;
+    
+    if (serialized_size < sample_count*iv_size) return AP4_ERROR_INVALID_FORMAT;
+    AP4_CencSampleInfoTable* table = new AP4_CencSampleInfoTable(sample_count, iv_size);
+    table->m_IvData.SetData(serialized, sample_count*iv_size);
+    serialized      += sample_count*iv_size;
+    serialized_size -= sample_count*iv_size;
+    
+    if (serialized_size < 4) {
+        delete table;
+        return AP4_ERROR_INVALID_FORMAT;
+    }
+    AP4_UI32 item_count = AP4_BytesToUInt32BE(serialized); serialized += 4; serialized_size -= 4;
+    if (serialized_size < item_count*(2+4)) {
+        delete table;
+        return AP4_ERROR_INVALID_FORMAT;
+    }
+    table->m_BytesOfCleartextData.SetItemCount(item_count);
+    table->m_BytesOfEncryptedData.SetItemCount(item_count);
+    for (unsigned int i=0; i<item_count; i++) {
+        table->m_BytesOfCleartextData[i] = AP4_BytesToUInt16BE(serialized);
+        serialized      += 2;
+        serialized_size -= 2;
+    }
+    for (unsigned int i=0; i<item_count; i++) {
+        table->m_BytesOfEncryptedData[i] = AP4_BytesToUInt32BE(serialized);
+        serialized      += 4;
+        serialized_size -= 4;
+    }
+    
+    if (serialized_size < 4) {
+        delete table;
+        return AP4_ERROR_INVALID_FORMAT;
+    }
+    AP4_UI32 use_subsamples = AP4_BytesToUInt32BE(serialized) != 0; serialized += 4; serialized_size -= 4;
+    if (!use_subsamples) {
+        sample_info_table = table;
+        return AP4_SUCCESS;
+    }
+    
+    if (serialized_size < sample_count*(4+4)) {
+        delete table;
+        return AP4_ERROR_INVALID_FORMAT;
+    }
+    table->m_SubSampleMapStarts.SetItemCount(sample_count);
+    table->m_SubSampleMapLengths.SetItemCount(sample_count);
+    for (unsigned int i=0; i<sample_count; i++) {
+        table->m_SubSampleMapStarts[i] = AP4_BytesToUInt32BE(serialized);
+        serialized      += 4;
+        serialized_size -= 4;
+    }
+    for (unsigned int i=0; i<sample_count; i++) {
+        table->m_SubSampleMapLengths[i] = AP4_BytesToUInt32BE(serialized);
+        serialized      += 4;
+        serialized_size -= 4;
+    }
+    
+    sample_info_table = table;
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
 |   AP4_CencSampleInfoTable::AP4_CencSampleInfoTable
 +---------------------------------------------------------------------*/
 AP4_CencSampleInfoTable::AP4_CencSampleInfoTable(AP4_UI32 sample_count,
@@ -1842,6 +1915,59 @@ AP4_CencSampleInfoTable::AP4_CencSampleInfoTable(AP4_UI32 sample_count,
 {
     m_IvData.SetDataSize(m_IvSize*sample_count);
     AP4_SetMemory(m_IvData.UseData(), 0, m_IvSize*sample_count);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_CencSampleInfoTable::Serialize
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_CencSampleInfoTable::Serialize(AP4_DataBuffer& buffer)
+{
+    unsigned int size = 4 +
+                        4 +
+                        m_SampleCount*m_IvSize +
+                        4 +
+                        m_BytesOfCleartextData.ItemCount()*2 +
+                        m_BytesOfEncryptedData.ItemCount()*4 +
+                        4;
+    bool use_subsamples = m_SubSampleMapStarts.ItemCount() != 0;
+    if (use_subsamples) {
+        size += m_SampleCount*(4+4);
+    }
+    
+    // sanity check
+    if (m_IvData.GetDataSize()             != m_SampleCount*m_IvSize ||
+        m_BytesOfCleartextData.ItemCount() != m_BytesOfEncryptedData.ItemCount() ||
+        m_SubSampleMapStarts.ItemCount()   != m_SubSampleMapLengths.ItemCount()) {
+        return AP4_ERROR_INTERNAL;
+    }
+    if (use_subsamples && m_SubSampleMapStarts.ItemCount() != m_SampleCount) {
+        return AP4_ERROR_INTERNAL;
+    }
+    
+    buffer.SetDataSize(size);
+    AP4_UI08* data = buffer.UseData();
+    
+    AP4_BytesFromUInt32BE(data, m_SampleCount);                       data += 4;
+    AP4_BytesFromUInt32BE(data, m_IvSize);                            data += 4;
+    AP4_CopyMemory(data, m_IvData.GetData(), m_SampleCount*m_IvSize); data += m_SampleCount*m_IvSize;
+    AP4_BytesFromUInt32BE(data, m_BytesOfCleartextData.ItemCount());  data += 4;
+    for (unsigned int i=0; i<m_BytesOfCleartextData.ItemCount(); i++) {
+        AP4_BytesFromUInt16BE(data, m_BytesOfCleartextData[i]); data += 2;
+    }
+    for (unsigned int i=0; i<m_BytesOfEncryptedData.ItemCount(); i++) {
+        AP4_BytesFromUInt32BE(data, m_BytesOfEncryptedData[i]); data += 4;
+    }
+    AP4_BytesFromUInt32BE(data, use_subsamples?1:0); data += 4;
+    if (use_subsamples) {
+        for (unsigned int i=0; i<m_SampleCount; i++) {
+            AP4_BytesFromUInt32BE(data, m_SubSampleMapStarts[i]); data += 4;
+        }
+        for (unsigned int i=0; i<m_SampleCount; i++) {
+            AP4_BytesFromUInt32BE(data, m_SubSampleMapLengths[i]); data += 4;
+        }
+    }
+    return AP4_SUCCESS;
 }
 
 /*----------------------------------------------------------------------

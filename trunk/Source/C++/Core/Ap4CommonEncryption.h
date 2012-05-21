@@ -155,6 +155,7 @@ public:
                              AP4_ByteStream&                 aux_info_data,
                              AP4_Position                    aux_info_data_offset,
                              AP4_CencSampleInfoTable*&       sample_info_table);
+                             
     static AP4_Result Create(AP4_ProtectedSampleDescription* sample_description,
                              AP4_ContainerAtom*              traf,
                              AP4_SaioAtom*&                  saio,
@@ -164,6 +165,7 @@ public:
                              AP4_ByteStream&                 aux_info_data,
                              AP4_Position                    aux_info_data_offset,
                              AP4_CencSampleInfoTable*&       sample_info_table);
+                             
     static AP4_Result Create(unsigned int              iv_size, 
                              AP4_ContainerAtom&        traf,
                              AP4_SaioAtom&             saio, 
@@ -172,6 +174,10 @@ public:
                              AP4_Position              aux_info_data_offset, 
                              AP4_CencSampleInfoTable*& sample_info_table);
                                                           
+    static AP4_Result Create(const AP4_UI08*           serialized,
+                             unsigned int              serialized_size,
+                             AP4_CencSampleInfoTable*& sample_info_table);
+    
     // constructor
     AP4_CencSampleInfoTable(AP4_UI32 sample_count,
                             AP4_UI08 iv_size);
@@ -197,11 +203,11 @@ public:
                                 AP4_Cardinal subsample_index,
                                 AP4_UI16&    bytes_of_cleartext_data,
                                 AP4_UI32&    bytes_of_encrypted_data);
+    AP4_Result Serialize(AP4_DataBuffer& buffer);
     
 private:
     AP4_UI32                m_SampleCount;
     unsigned int            m_IvSize;
-    AP4_Array<unsigned int> m_IvOffsets;
     AP4_DataBuffer          m_IvData;
     AP4_Array<AP4_UI16>     m_BytesOfCleartextData;
     AP4_Array<AP4_UI32>     m_BytesOfEncryptedData;
