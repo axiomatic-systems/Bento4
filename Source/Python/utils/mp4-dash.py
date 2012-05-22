@@ -150,7 +150,7 @@ class Mp4File:
         # get the mp4 file info
         json_info = Mp4Info(filename, format='json')
         #print json_info
-        self.info = json.loads(json_info)
+        self.info = json.loads(json_info, strict=False)
 
         for track in self.info['tracks']:
             if track['type'] == 'Video':
@@ -161,7 +161,7 @@ class Mp4File:
         # get a complete file dump
         json_dump = Mp4Dump(filename, format='json')
         #print json_dump
-        self.tree = json.loads(json_dump)
+        self.tree = json.loads(json_dump, strict=False)
         
         # look for KIDs
         if Options.marlin:
