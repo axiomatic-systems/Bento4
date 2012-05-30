@@ -1842,11 +1842,15 @@ AP4_CencSampleInfoTable::Create(const AP4_UI08*           serialized,
 {
     sample_info_table = NULL;
     
-    if (serialized_size < 4+4) return AP4_ERROR_INVALID_FORMAT;
+    if (serialized_size < 4+4) {
+        return AP4_ERROR_INVALID_FORMAT;
+    }
     AP4_UI32 sample_count = AP4_BytesToUInt32BE(serialized); serialized += 4; serialized_size -= 4;
     AP4_UI32 iv_size      = AP4_BytesToUInt32BE(serialized); serialized += 4; serialized_size -= 4;
     
-    if (serialized_size < sample_count*iv_size) return AP4_ERROR_INVALID_FORMAT;
+    if (serialized_size < sample_count*iv_size) {
+        return AP4_ERROR_INVALID_FORMAT;
+    }
     AP4_CencSampleInfoTable* table = new AP4_CencSampleInfoTable(sample_count, iv_size);
     table->m_IvData.SetData(serialized, sample_count*iv_size);
     serialized      += sample_count*iv_size;
