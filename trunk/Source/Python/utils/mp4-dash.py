@@ -9,9 +9,9 @@ __copyright__ = 'Copyright 2011-2012 Axiomatic Systems, LLC.'
 # in a directory named 'bin/<platform>' at the same level as where
 # this script is.
 # <platform> depends on the platform you're running on:
-# Mac OSX --> platform = darwin
-# Linux   --> platform = 
-# Windows --> platform = 
+# Mac OSX --> platform = macosx
+# Linux   --> platform = linux
+# Windows --> platform = win32
 
 import sys
 import os
@@ -322,6 +322,13 @@ def AddContentProtection(container, media_files, media_type):
         
 Options = None            
 def main():
+    # determine the platform binary name
+    platform = sys.platform
+    if platform.startswith('linux'):
+        platform = 'linux'
+    elif platform.startswith('darwin'):
+        platform = 'macosx'
+                
     # parse options
     parser = OptionParser(usage="%prog [options] <filename> [<filename> ...]")
     parser.add_option('', '--verbose', dest="verbose",
@@ -361,7 +368,7 @@ def main():
                       dest="marlin", action="store_true", default=False,
                       help="Add Marlin signaling to the MPD")
     parser.add_option('', "--exec-dir", metavar="<exec_dir>",
-                      dest="exec_dir", default=path.join(SCRIPT_PATH, 'bin', sys.platform),
+                      dest="exec_dir", default=path.join(SCRIPT_PATH, 'bin', platform),
                       help="Directory where the Bento4 executables are located")
     (options, args) = parser.parse_args()
     if len(args) == 0:
