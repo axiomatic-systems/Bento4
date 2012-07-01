@@ -1220,7 +1220,8 @@ AP4_CencSampleDecrypter::DecryptSampleData(AP4_DataBuffer& data_in,
             
             // decrypt the rest
             if (encrypted_size) {
-                m_Cipher->ProcessBuffer(in+cleartext_size, encrypted_size, out+cleartext_size, &encrypted_size, false);
+                AP4_Result result = m_Cipher->ProcessBuffer(in+cleartext_size, encrypted_size, out+cleartext_size, &encrypted_size, false);
+                if (AP4_FAILED(result)) return result;
             }
             
             // move the pointers
@@ -1247,7 +1248,8 @@ AP4_CencSampleDecrypter::DecryptSampleData(AP4_DataBuffer& data_in,
         } else {
             // process the entire sample data at once
             AP4_Size encrypted_size = data_in.GetDataSize();
-            m_Cipher->ProcessBuffer(in, encrypted_size, out, &encrypted_size, false);
+            AP4_Result result = m_Cipher->ProcessBuffer(in, encrypted_size, out, &encrypted_size, false);
+            if (AP4_FAILED(result)) return result;
         }
     }
     
