@@ -37,9 +37,9 @@
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-#define BANNER "MP4 File Editor - Version 1.0\n"\
+#define BANNER "MP4 File Editor - Version 1.1\n"\
                "(Bento4 Version " AP4_VERSION_STRING ")\n"\
-               "(c) 2002-2008 Axiomatic Systems, LLC"
+               "(c) 2002-2012 Axiomatic Systems, LLC"
  
 /*----------------------------------------------------------------------
 |   PrintUsageAndExit
@@ -318,12 +318,22 @@ main(int argc, char** argv)
                     fprintf(stderr, "ERROR: missing file path in --insert argument\n");
                     return 1;
                 }
+                bool is_windows_path = false;
+                if (((file_path[0] >= 'a' && file_path[0] <= 'z') ||
+                     (file_path[0] >= 'A' && file_path[0] <= 'Z')) &&
+                    file_path[1] == ':' && file_path[2] == '\\') {
+                    is_windows_path = true;
+                    file_path[1] = '@'; // temporary replacement so that the next split works
+                }
                 int position = -1;
                 char* position_str = NULL;
                 if (AP4_SUCCEEDED(AP4_SplitArgs(file_path, file_path, position_str))) {
                     if (position_str) {
                         position = strtoul(position_str, NULL, 10);
                     }
+                }
+                if (is_windows_path) {
+                    file_path[1] = ':';
                 }
                 processor.AddCommand(AP4_EditingProcessor::Command::TYPE_INSERT, atom_path, file_path, position);
             } else {
