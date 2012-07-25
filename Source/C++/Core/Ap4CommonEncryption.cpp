@@ -597,7 +597,7 @@ AP4_CencFragmentEncrypter::PrepareForSamples(AP4_FragmentSampleTable* sample_tab
     AP4_DataBuffer      sample_data;
     AP4_Array<AP4_UI16> bytes_of_cleartext_data;
     AP4_Array<AP4_UI32> bytes_of_encrypted_data;
-    AP4_Size            sample_info_size = sample_count*(m_SampleEncryptionAtom->GetIvSize()+2);
+    AP4_Size            sample_info_size = sample_count*(m_SampleEncryptionAtom->GetIvSize());
     for (unsigned int i=0; i<sample_count; i++) {
         AP4_Result result = sample_table->GetSample(i, sample);
         if (AP4_FAILED(result)) return result;
@@ -2131,6 +2131,7 @@ AP4_Result
 AP4_CencSampleEncryption::SetSampleInfosSize(AP4_Size size)
 {
     m_SampleInfos.SetDataSize(size);
+    AP4_SetMemory(m_SampleInfos.UseData(), 0, size);
     if (m_Outer.GetFlags() & AP4_CENC_SAMPLE_ENCRYPTION_FLAG_OVERRIDE_TRACK_ENCRYPTION_DEFAULTS) {
         m_Outer.SetSize(m_Outer.GetHeaderSize()+20+4+size);
     } else {
