@@ -98,18 +98,28 @@ AP4_TfhdAtom::AP4_TfhdAtom(AP4_UI32        size,
     stream.ReadUI32(m_TrackId);
     if (flags & AP4_TFHD_FLAG_BASE_DATA_OFFSET_PRESENT) {
         stream.ReadUI64(m_BaseDataOffset);
+    } else {
+        m_BaseDataOffset = 0;
     }
     if (flags & AP4_TFHD_FLAG_SAMPLE_DESCRIPTION_INDEX_PRESENT) {
         stream.ReadUI32(m_SampleDescriptionIndex);
+    } else {
+        m_SampleDescriptionIndex = 1;
     }
     if (flags & AP4_TFHD_FLAG_DEFAULT_SAMPLE_DURATION_PRESENT) {
         stream.ReadUI32(m_DefaultSampleDuration);
+    } else {
+        m_DefaultSampleDuration = 0;
     }
     if (flags & AP4_TFHD_FLAG_DEFAULT_SAMPLE_SIZE_PRESENT) {
         stream.ReadUI32(m_DefaultSampleSize);
+    } else {
+        m_DefaultSampleSize = 0;
     }
     if (flags & AP4_TFHD_FLAG_DEFAULT_SAMPLE_FLAGS_PRESENT) {
         stream.ReadUI32(m_DefaultSampleFlags);
+    } else {
+        m_DefaultSampleFlags = 0;
     }
 }
 

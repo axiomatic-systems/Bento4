@@ -41,6 +41,7 @@
 #include "Ap4TrakAtom.h"
 #include "Ap4HdlrAtom.h"
 #include "Ap4TfhdAtom.h"
+#include "Ap4TrexAtom.h"
 #include "Ap4SaizAtom.h"
 #include "Ap4SaioAtom.h"
 #include "Ap4Piff.h"
@@ -371,12 +372,12 @@ AP4_CencCbcSubSampleEncrypter::EncryptSampleData(AP4_DataBuffer& data_in,
 class AP4_CencTrackEncrypter : public AP4_Processor::TrackHandler {
 public:
     // constructor
-    AP4_CencTrackEncrypter(AP4_CencVariant    varient,
-                           AP4_UI32           default_algorithm_id,
-                           AP4_UI08           default_iv_size,
-                           const AP4_UI08*    default_kid,
-                           AP4_SampleEntry*   sample_entry,
-                           AP4_UI32           format);
+    AP4_CencTrackEncrypter(AP4_CencVariant              variant,
+                           AP4_UI32                     default_algorithm_id,
+                           AP4_UI08                     default_iv_size,
+                           const AP4_UI08*              default_kid,
+                           AP4_Array<AP4_SampleEntry*>& sample_entries,
+                           AP4_UI32                     format);
 
     // methods
     virtual AP4_Result ProcessTrack();
@@ -385,32 +386,36 @@ public:
 
 private:
     // members
-    AP4_CencVariant  m_Variant;
-    AP4_SampleEntry* m_SampleEntry;
-    AP4_UI32         m_Format;
-    AP4_UI32         m_DefaultAlgorithmId;
-    AP4_UI08         m_DefaultIvSize;
-    AP4_UI08         m_DefaultKid[16];
+    AP4_CencVariant             m_Variant;
+    AP4_Array<AP4_SampleEntry*> m_SampleEntries;
+    AP4_UI32                    m_Format;
+    AP4_UI32                    m_DefaultAlgorithmId;
+    AP4_UI08                    m_DefaultIvSize;
+    AP4_UI08                    m_DefaultKid[16];
 };
 
 /*----------------------------------------------------------------------
 |   AP4_CencTrackEncrypter::AP4_CencTrackEncrypter
 +---------------------------------------------------------------------*/
 AP4_CencTrackEncrypter::AP4_CencTrackEncrypter(
-    AP4_CencVariant    variant,
-    AP4_UI32           default_algorithm_id,
-    AP4_UI08           default_iv_size,
-    const AP4_UI08*    default_kid,
-    AP4_SampleEntry*   sample_entry,
-    AP4_UI32           format) :
+    AP4_CencVariant              variant,
+    AP4_UI32                     default_algorithm_id,
+    AP4_UI08                     default_iv_size,
+    const AP4_UI08*              default_kid,
+    AP4_Array<AP4_SampleEntry*>& sample_entries,
+    AP4_UI32                     format) :
     m_Variant(variant),
-    m_SampleEntry(sample_entry),
     m_Format(format),
     m_DefaultAlgorithmId(default_algorithm_id),
     m_DefaultIvSize(default_iv_size)
 {
     // copy the KID
     AP4_CopyMemory(m_DefaultKid, default_kid, 16);
+
+    // copy the sample entry list
+    for (unsigned int i=0; i<sample_entries.ItemCount(); i++) {
+        m_SampleEntries.Append(sample_entries[i]);
+    }
 }
 
 /*----------------------------------------------------------------------
@@ -419,46 +424,48 @@ AP4_CencTrackEncrypter::AP4_CencTrackEncrypter(
 AP4_Result   
 AP4_CencTrackEncrypter::ProcessTrack()
 {
-    // original format
-    AP4_FrmaAtom* frma = new AP4_FrmaAtom(m_SampleEntry->GetType());
-    
-    // scheme info
-    AP4_SchmAtom* schm = NULL;
-    AP4_Atom*     tenc = NULL;
-    switch (m_Variant) {
-        case AP4_CENC_VARIANT_PIFF_CBC:
-        case AP4_CENC_VARIANT_PIFF_CTR:
-            schm = new AP4_SchmAtom(AP4_PROTECTION_SCHEME_TYPE_PIFF, 
-                                    AP4_PROTECTION_SCHEME_VERSION_PIFF_11);
-            tenc = new AP4_PiffTrackEncryptionAtom(m_DefaultAlgorithmId, 
-                                                   m_DefaultIvSize, 
-                                                   m_DefaultKid);
-            break;
-            
-        case AP4_CENC_VARIANT_MPEG:
-            schm = new AP4_SchmAtom(AP4_PROTECTION_SCHEME_TYPE_CENC, 
-                                    AP4_PROTECTION_SCHEME_VERSION_CENC_10);
-            tenc = new AP4_TencAtom(m_DefaultAlgorithmId,
-                                    m_DefaultIvSize,
-                                    m_DefaultKid);
-            break;
-    }
-    
-    // populate the schi container
-    AP4_ContainerAtom* schi = new AP4_ContainerAtom(AP4_ATOM_TYPE_SCHI);
-    schi->AddChild(tenc);
+    for (unsigned int i=0; i<m_SampleEntries.ItemCount(); i++) {
+        // original format
+        AP4_FrmaAtom* frma = new AP4_FrmaAtom(m_SampleEntries[i]->GetType());
         
-    // populate the sinf container
-    AP4_ContainerAtom* sinf = new AP4_ContainerAtom(AP4_ATOM_TYPE_SINF);
-    sinf->AddChild(frma);
-    sinf->AddChild(schm);
-    sinf->AddChild(schi);
+        // scheme info
+        AP4_SchmAtom* schm = NULL;
+        AP4_Atom*     tenc = NULL;
+        switch (m_Variant) {
+            case AP4_CENC_VARIANT_PIFF_CBC:
+            case AP4_CENC_VARIANT_PIFF_CTR:
+                schm = new AP4_SchmAtom(AP4_PROTECTION_SCHEME_TYPE_PIFF, 
+                                        AP4_PROTECTION_SCHEME_VERSION_PIFF_11);
+                tenc = new AP4_PiffTrackEncryptionAtom(m_DefaultAlgorithmId, 
+                                                       m_DefaultIvSize, 
+                                                       m_DefaultKid);
+                break;
+                
+            case AP4_CENC_VARIANT_MPEG:
+                schm = new AP4_SchmAtom(AP4_PROTECTION_SCHEME_TYPE_CENC, 
+                                        AP4_PROTECTION_SCHEME_VERSION_CENC_10);
+                tenc = new AP4_TencAtom(m_DefaultAlgorithmId,
+                                        m_DefaultIvSize,
+                                        m_DefaultKid);
+                break;
+        }
+        
+        // populate the schi container
+        AP4_ContainerAtom* schi = new AP4_ContainerAtom(AP4_ATOM_TYPE_SCHI);
+        schi->AddChild(tenc);
+            
+        // populate the sinf container
+        AP4_ContainerAtom* sinf = new AP4_ContainerAtom(AP4_ATOM_TYPE_SINF);
+        sinf->AddChild(frma);
+        sinf->AddChild(schm);
+        sinf->AddChild(schi);
 
-    // add the sinf atom to the sample description
-    m_SampleEntry->AddChild(sinf);
+        // add the sinf atom to the sample description
+        m_SampleEntries[i]->AddChild(sinf);
 
-    // change the atom type of the sample description
-    m_SampleEntry->SetType(m_Format);
+        // change the atom type of the sample description
+        m_SampleEntries[i]->SetType(m_Format);
+    }
     
     return AP4_SUCCESS;
 }
@@ -834,9 +841,13 @@ AP4_CencEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
     // avoid tracks with no stsd atom (should not happen)
     if (stsd == NULL) return NULL;
 
-    // only look at the first sample description
-    AP4_SampleEntry* entry = stsd->GetSampleEntry(0);
-    if (entry == NULL) return NULL;
+    // get the list of sample entries
+    AP4_Array<AP4_SampleEntry*> entries;
+    for (unsigned int i=0; i<stsd->GetSampleDescriptionCount(); i++) {
+        AP4_SampleEntry* entry = stsd->GetSampleEntry(i);
+        if (entry == NULL) return NULL;
+        entries.Append(entry);
+    }
         
     // create a handler for this track if we have a key for it and we know
     // how to map the type
@@ -850,7 +861,7 @@ AP4_CencEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
     }
     
     AP4_UI32 format = 0;
-    switch (entry->GetType()) {
+    switch (entries[0]->GetType()) { // only look at the type of the first entry
         case AP4_ATOM_TYPE_MP4A:
             format = AP4_ATOM_TYPE_ENCA;
             break;
@@ -906,7 +917,7 @@ AP4_CencEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
                                                  algorithm_id, 
                                                  16,
                                                  kid,
-                                                 entry, 
+                                                 entries, 
                                                  format);
         
     // create a block cipher
@@ -942,8 +953,8 @@ AP4_CencEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
     switch (algorithm_id) {
         case AP4_CENC_ALGORITHM_ID_CBC:
             stream_cipher = new AP4_CbcStreamCipher(block_cipher);
-            if (entry->GetType() == AP4_ATOM_TYPE_AVC1) {
-                AP4_AvccAtom* avcc = AP4_DYNAMIC_CAST(AP4_AvccAtom, entry->GetChild(AP4_ATOM_TYPE_AVCC));
+            if (entries[0]->GetType() == AP4_ATOM_TYPE_AVC1) {
+                AP4_AvccAtom* avcc = AP4_DYNAMIC_CAST(AP4_AvccAtom, entries[0]->GetChild(AP4_ATOM_TYPE_AVCC));
                 if (avcc == NULL) return NULL;
                 sample_encrypter = new AP4_CencCbcSubSampleEncrypter(stream_cipher, avcc->GetNaluLengthSize());
             } else {
@@ -953,8 +964,8 @@ AP4_CencEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
             
         case AP4_CENC_ALGORITHM_ID_CTR:
             stream_cipher = new AP4_CtrStreamCipher(block_cipher, 16);
-            if (entry->GetType() == AP4_ATOM_TYPE_AVC1) {
-                AP4_AvccAtom* avcc = AP4_DYNAMIC_CAST(AP4_AvccAtom, entry->GetChild(AP4_ATOM_TYPE_AVCC));
+            if (entries[0]->GetType() == AP4_ATOM_TYPE_AVC1) {
+                AP4_AvccAtom* avcc = AP4_DYNAMIC_CAST(AP4_AvccAtom, entries[0]->GetChild(AP4_ATOM_TYPE_AVCC));
                 if (avcc == NULL) return NULL;
                 sample_encrypter = new AP4_CencCtrSubSampleEncrypter(stream_cipher, avcc->GetNaluLengthSize());
             } else {
@@ -972,7 +983,8 @@ AP4_CencEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
 |   AP4_CencEncryptingProcessor:CreateFragmentHandler
 +---------------------------------------------------------------------*/
 AP4_Processor::FragmentHandler* 
-AP4_CencEncryptingProcessor::CreateFragmentHandler(AP4_ContainerAtom* traf,
+AP4_CencEncryptingProcessor::CreateFragmentHandler(AP4_TrexAtom*      /* trex */,
+                                                   AP4_ContainerAtom* traf,
                                                    AP4_ByteStream&    /* moof_data   */,
                                                    AP4_Position       /* moof_offset */)
 {
@@ -1264,11 +1276,11 @@ public:
     AP4_IMPLEMENT_DYNAMIC_CAST(AP4_CencTrackDecrypter)
 
     // constructor
-    static AP4_Result Create(const unsigned char*            key,
-                             AP4_Size                        key_size,
-                             AP4_ProtectedSampleDescription* sample_description,
-                             AP4_SampleEntry*                sample_entry,
-                             AP4_CencTrackDecrypter*&        decrypter);
+    static AP4_Result Create(const unsigned char*                        key,
+                             AP4_Size                                    key_size,
+                             AP4_Array<AP4_ProtectedSampleDescription*>& sample_descriptions,
+                             AP4_Array<AP4_SampleEntry*>&                sample_entries,
+                             AP4_CencTrackDecrypter*&                    decrypter);
 
     // methods
     virtual AP4_Result ProcessSample(AP4_DataBuffer& data_in,
@@ -1276,20 +1288,24 @@ public:
     virtual AP4_Result ProcessTrack();
 
     // accessors
-    AP4_ProtectedSampleDescription* GetSampleDescription() {
-        return m_SampleDescription;
+    AP4_ProtectedSampleDescription* GetSampleDescription(unsigned int i) {
+        if (i < m_SampleDescriptions.ItemCount()) {
+            return m_SampleDescriptions[i];
+        } else {
+            return NULL;
+        }
     }
     
 private:
     // constructor
-    AP4_CencTrackDecrypter(AP4_ProtectedSampleDescription* sample_description,
-                           AP4_SampleEntry*                sample_entry,
-                           AP4_UI32                        original_format);
+    AP4_CencTrackDecrypter(AP4_Array<AP4_ProtectedSampleDescription*>& sample_descriptions,
+                           AP4_Array<AP4_SampleEntry*>&                sample_entries,
+                           AP4_UI32                                    original_format);
 
     // members
-    AP4_ProtectedSampleDescription* m_SampleDescription;
-    AP4_SampleEntry*                m_SampleEntry;
-    AP4_UI32                        m_OriginalFormat;
+    AP4_Array<AP4_ProtectedSampleDescription*> m_SampleDescriptions;
+    AP4_Array<AP4_SampleEntry*>                m_SampleEntries;
+    AP4_UI32                                   m_OriginalFormat;
 };
 
 /*----------------------------------------------------------------------
@@ -1301,11 +1317,11 @@ AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_CencTrackDecrypter)
 |   AP4_CencTrackDecrypter::Create
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_CencTrackDecrypter::Create(const unsigned char*            key,
-                               AP4_Size                        /* key_size */,
-                               AP4_ProtectedSampleDescription* sample_description,
-                               AP4_SampleEntry*                sample_entry,
-                               AP4_CencTrackDecrypter*&        decrypter)
+AP4_CencTrackDecrypter::Create(const unsigned char*                        key,
+                               AP4_Size                                    /* key_size */,
+                               AP4_Array<AP4_ProtectedSampleDescription*>& sample_descriptions,
+                               AP4_Array<AP4_SampleEntry*>&                sample_entries,
+                               AP4_CencTrackDecrypter*&                    decrypter)
 {
     decrypter = NULL;
 
@@ -1315,22 +1331,26 @@ AP4_CencTrackDecrypter::Create(const unsigned char*            key,
     }
 
     // instantiate the object
-    decrypter = new AP4_CencTrackDecrypter(sample_description,
-                                           sample_entry, 
-                                           sample_description->GetOriginalFormat());
+    decrypter = new AP4_CencTrackDecrypter(sample_descriptions,
+                                           sample_entries, 
+                                           sample_descriptions[0]->GetOriginalFormat());
     return AP4_SUCCESS;
 }
 
 /*----------------------------------------------------------------------
 |   AP4_CencTrackDecrypter::AP4_CencTrackDecrypter
 +---------------------------------------------------------------------*/
-AP4_CencTrackDecrypter::AP4_CencTrackDecrypter(AP4_ProtectedSampleDescription* sample_description,
-                                               AP4_SampleEntry*                sample_entry,
-                                               AP4_UI32                        original_format) :
-    m_SampleDescription(sample_description),
-    m_SampleEntry(sample_entry),
+AP4_CencTrackDecrypter::AP4_CencTrackDecrypter(AP4_Array<AP4_ProtectedSampleDescription*>& sample_descriptions,
+                                               AP4_Array<AP4_SampleEntry*>&                sample_entries,
+                                               AP4_UI32                                    original_format) :
     m_OriginalFormat(original_format)
 {
+    for (unsigned int i=0; i<sample_descriptions.ItemCount(); i++) {
+        m_SampleDescriptions.Append(sample_descriptions[i]);
+    }
+    for (unsigned int i=0; i<sample_entries.ItemCount(); i++) {
+        m_SampleEntries.Append(sample_entries[i]);
+    }
 }
 
 /*----------------------------------------------------------------------
@@ -1350,8 +1370,10 @@ AP4_CencTrackDecrypter::ProcessSample(AP4_DataBuffer& data_in,
 AP4_Result   
 AP4_CencTrackDecrypter::ProcessTrack()
 {
-    m_SampleEntry->SetType(m_OriginalFormat);
-    m_SampleEntry->DeleteChild(AP4_ATOM_TYPE_SINF);
+    for (unsigned int i=0; i<m_SampleEntries.ItemCount(); i++) {
+        m_SampleEntries[i]->SetType(m_OriginalFormat);
+        m_SampleEntries[i]->DeleteChild(AP4_ATOM_TYPE_SINF);
+    }
     return AP4_SUCCESS;
 }
 
@@ -1454,29 +1476,37 @@ AP4_CencDecryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
     // avoid tracks with no stsd atom (should not happen)
     if (stsd == NULL) return NULL;
 
-    // we only look at the first sample description
-    AP4_SampleDescription* desc = stsd->GetSampleDescription(0);
-    AP4_SampleEntry* entry = stsd->GetSampleEntry(0);
-    if (desc == NULL || entry == NULL) return NULL;
+    // if we don't have keys, don't bother
     if (m_KeyMap == NULL) return NULL;
-    if (desc->GetType() == AP4_SampleDescription::TYPE_PROTECTED) {
-        // create a handler for this track
-        AP4_ProtectedSampleDescription* protected_desc = 
-            static_cast<AP4_ProtectedSampleDescription*>(desc);
-        if (protected_desc->GetSchemeType() == AP4_PROTECTION_SCHEME_TYPE_PIFF ||
-            protected_desc->GetSchemeType() == AP4_PROTECTION_SCHEME_TYPE_CENC) {
-            const AP4_DataBuffer* key = m_KeyMap->GetKey(trak->GetId());
-            if (key) {
-                AP4_CencTrackDecrypter* handler = NULL;
-                AP4_Result result = AP4_CencTrackDecrypter::Create(key->GetData(), 
-                                                                   key->GetDataSize(), 
-                                                                   protected_desc, 
-                                                                   entry, 
-                                                                   handler);
-                if (AP4_FAILED(result)) return NULL;
-                return handler;
+
+    // build a list of sample descriptions
+    AP4_Array<AP4_ProtectedSampleDescription*> sample_descs;
+    AP4_Array<AP4_SampleEntry*>                sample_entries;
+    for (unsigned int i=0; i<stsd->GetSampleDescriptionCount(); i++) {
+        AP4_SampleDescription* sample_desc  = stsd->GetSampleDescription(i);
+        AP4_SampleEntry*       sample_entry = stsd->GetSampleEntry(i);
+        if (sample_desc == NULL || sample_entry == NULL) continue;
+        if (sample_desc->GetType() == AP4_SampleDescription::TYPE_PROTECTED) {
+            AP4_ProtectedSampleDescription* protected_desc = 
+                static_cast<AP4_ProtectedSampleDescription*>(sample_desc);
+            if (protected_desc->GetSchemeType() == AP4_PROTECTION_SCHEME_TYPE_PIFF ||
+                protected_desc->GetSchemeType() == AP4_PROTECTION_SCHEME_TYPE_CENC) {
+                sample_descs.Append(protected_desc);
+                sample_entries.Append(sample_entry);
             }
         }
+    }
+    if (sample_entries.ItemCount() == 0) return NULL;
+    const AP4_DataBuffer* key = m_KeyMap->GetKey(trak->GetId());
+    if (key) {
+        AP4_CencTrackDecrypter* handler = NULL;
+        AP4_Result result = AP4_CencTrackDecrypter::Create(key->GetData(), 
+                                                           key->GetDataSize(), 
+                                                           sample_descs, 
+                                                           sample_entries, 
+                                                           handler);
+        if (AP4_FAILED(result)) return NULL;
+        return handler;
     }
 
     return NULL;
@@ -1486,7 +1516,8 @@ AP4_CencDecryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
 |   AP4_CencDecryptingProcessor::CreateFragmentHandler
 +---------------------------------------------------------------------*/
 AP4_Processor::FragmentHandler* 
-AP4_CencDecryptingProcessor::CreateFragmentHandler(AP4_ContainerAtom* traf,
+AP4_CencDecryptingProcessor::CreateFragmentHandler(AP4_TrexAtom*      trex,
+                                                   AP4_ContainerAtom* traf,
                                                    AP4_ByteStream&    moof_data,
                                                    AP4_Position       moof_offset)
 {
@@ -1500,7 +1531,15 @@ AP4_CencDecryptingProcessor::CreateFragmentHandler(AP4_ContainerAtom* traf,
             AP4_CencTrackDecrypter* track_decrypter = 
                 AP4_DYNAMIC_CAST(AP4_CencTrackDecrypter, m_TrackHandlers[i]);
             if (track_decrypter) {
-                sample_description = track_decrypter->GetSampleDescription();
+                unsigned int index = trex->GetDefaultSampleDescriptionIndex();
+                unsigned int tfhd_flags = tfhd->GetFlags();
+                if (tfhd_flags & AP4_TFHD_FLAG_SAMPLE_DESCRIPTION_INDEX_PRESENT) {
+                    index = tfhd->GetSampleDescriptionIndex();
+                }
+                if (index >= 1) {
+                    sample_description = track_decrypter->GetSampleDescription(index-1);
+                }
+                if (sample_description == NULL) return NULL;
             }
             
             // get the matching key
