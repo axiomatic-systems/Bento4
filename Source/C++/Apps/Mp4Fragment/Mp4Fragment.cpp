@@ -158,10 +158,11 @@ Fragment(AP4_File& input_file, AP4_ByteStream& output_stream, unsigned int fragm
         }
             
         // create a sample table (with no samples) to hold the sample description
-        // (we only use sample description 0 here)
         AP4_SyntheticSampleTable* sample_table = new AP4_SyntheticSampleTable();
-        AP4_SampleDescription* sample_description = track->GetSampleDescription(0);
-        sample_table->AddSampleDescription(sample_description, false);
+        for (unsigned int i=0; i<track->GetSampleDescriptionCount(); i++) {
+            AP4_SampleDescription* sample_description = track->GetSampleDescription(i);
+            sample_table->AddSampleDescription(sample_description, false);
+        }
         
         // create the track
         AP4_Track* output_track = new AP4_Track(track->GetType(),
@@ -263,15 +264,25 @@ Fragment(AP4_File& input_file, AP4_ByteStream& output_stream, unsigned int fragm
             printf("fragment: %s (%d) ", cursor==audio_cursor?"audio":"video", cursor->m_Track->GetId());
         }
 
+        // decide which sample description index to use
+        // (this is not very sophisticated, we only look at the sample description
+        // index of the first sample in the group, which may not be correct. This
+        // should be fixed later)
+        unsigned int sample_desc_index = cursor->m_Sample.GetDescriptionIndex();
+        unsigned int tfhd_flags = 0;
+        if (sample_desc_index > 0) {
+            tfhd_flags |= AP4_TFHD_FLAG_SAMPLE_DESCRIPTION_INDEX_PRESENT;
+        }
+        
         // setup the moof structure
         AP4_ContainerAtom* moof = new AP4_ContainerAtom(AP4_ATOM_TYPE_MOOF);
         AP4_MfhdAtom* mfhd = new AP4_MfhdAtom(sequence_number++);
         moof->AddChild(mfhd);
         AP4_ContainerAtom* traf = new AP4_ContainerAtom(AP4_ATOM_TYPE_TRAF);
-        AP4_TfhdAtom* tfhd = new AP4_TfhdAtom(0,
+        AP4_TfhdAtom* tfhd = new AP4_TfhdAtom(tfhd_flags,
                                               cursor->m_TrackId,
                                               0,
-                                              0,
+                                              sample_desc_index+1,
                                               0,
                                               0,
                                               0);

@@ -113,6 +113,7 @@ class AP4_Track {
                                               AP4_Ordinal& index);
     AP4_Ordinal  GetNearestSyncSampleIndex(AP4_Ordinal index, bool before=true);
     AP4_SampleDescription* GetSampleDescription(AP4_Ordinal index);
+    AP4_Cardinal           GetSampleDescriptionCount();
     AP4_SampleTable*       GetSampleTable() { return m_SampleTable; }
     AP4_UI32      GetId();
     AP4_Result    SetId(AP4_UI32 track_id);

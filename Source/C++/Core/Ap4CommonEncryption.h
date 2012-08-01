@@ -174,6 +174,8 @@ public:
                              AP4_Position              aux_info_data_offset, 
                              AP4_CencSampleInfoTable*& sample_info_table);
                                                           
+                                                          
+    // see note below regarding the serialization format
     static AP4_Result Create(const AP4_UI08*           serialized,
                              unsigned int              serialized_size,
                              AP4_CencSampleInfoTable*& sample_info_table);
@@ -203,6 +205,8 @@ public:
                                 AP4_Cardinal subsample_index,
                                 AP4_UI16&    bytes_of_cleartext_data,
                                 AP4_UI32&    bytes_of_encrypted_data);
+                                
+    // see note below regarding the serialization format
     AP4_Result Serialize(AP4_DataBuffer& buffer);
     
 private:
@@ -214,6 +218,70 @@ private:
     AP4_Array<unsigned int> m_SubSampleMapStarts;
     AP4_Array<unsigned int> m_SubSampleMapLengths;
 };
+
+/*----------------------------------------------------------------------
+|   AP4_CencSampleInfoTable serialization format
+|   
+|   (All integers are stored in big-endian byte order)
+|   
+|   +---------------+----------------+------------------------------------+
+|   | Size          |  Type          |  Description                       |
+|   +---------------+----------------+------------------------------------+
+|
+|   +---------------+----------------+------------------------------------+
+|   | 4 bytes       | 32-bit integer | sample_count                       |
+|   +---------------+----------------+------------------------------------+
+|   | 4 bytes       | 32-bit integer | iv_size                            |
+|   +---------------+----------------+------------------------------------+
+|
+|   repeat sample_count times:
+|   +---------------+----------------+------------------------------------+
+|   | iv_size bytes | byte array     | IV[i]                              |
+|   +---------------+----------------+------------------------------------+
+|
+|   +---------------+----------------+------------------------------------+
+|   | 4 bytes       | 32-bit integer | entry_count                        |
+|   +---------------+----------------+------------------------------------+
+|
+|   repeat entry_count times:
+|   +---------------+----------------+------------------------------------+
+|   | 2 bytes       | 16-bit integer | bytes_of_cleartext_data[i]         |
+|   +---------------+----------------+------------------------------------+
+|
+|   repeat entry_count times:
+|   +---------------+----------------+------------------------------------+
+|   | 4 bytes       | 32-bit integer | bytes_of_encrypted_data[i]         |
+|   +---------------+----------------+------------------------------------+
+|
+|   +---------------+----------------+------------------------------------+
+|   | 4 bytes       | 32-bit flags   | 1 if subsamples are used, 0 if not |
+|   +---------------+----------------+------------------------------------+
+|
+|   if subsamples are used, repeat sample_count times:
+|   +---------------+----------------+------------------------------------+
+|   | 4 bytes       | 32-bit integer | subsample_map_start[i]             |
+|   +---------------+----------------+------------------------------------+
+|
+|   if subsamples are used, repeat sample_count times:
+|   +---------------+----------------+------------------------------------+
+|   | 4 bytes       | 32-bit integer | subsample_map_length[i]            |
+|   +---------------+----------------+------------------------------------+
+|
+|   NOTES: subsample_map_start[i] ans subsample_map_length[i] are, respecitvely,
+|   the index and the length the i'th subsample map sequence in the
+|   bytes_of_cleartext_data anb bytes_of_encrypted_data arrays.
+|   For example, if we have:
+|   bytes_of_cleartext_data[] = { 10,   15, 13, 17, 12 }
+|   bytes_of_encrypted_data[] = { 100, 200, 50, 80, 32 }
+|   subsample_map_start  = { 0, 3 }
+|   subsample_map_length = { 3, 2 }
+|   It means that the (bytes_of_cleartext_data, bytes_of_encrypted_data)
+|   sequences for the two subsamples are:
+|   subsample[0] --> [(10,100), (15, 200), (13, 50)] 
+|   subsample[1] --> [(17, 80), (12,  32)] 
+|
++---------------------------------------------------------------------*/
+
 
 /*----------------------------------------------------------------------
 |   AP4_CencSampleEncrypter
@@ -367,7 +435,8 @@ public:
                                   AP4_ByteStream&   stream,
                                   AP4_Processor::ProgressListener* listener = NULL);
     virtual AP4_Processor::TrackHandler*    CreateTrackHandler(AP4_TrakAtom* trak);
-    virtual AP4_Processor::FragmentHandler* CreateFragmentHandler(AP4_ContainerAtom* traf,
+    virtual AP4_Processor::FragmentHandler* CreateFragmentHandler(AP4_TrexAtom*      trex,
+                                                                  AP4_ContainerAtom* traf,
                                                                   AP4_ByteStream&    moof_data,
                                                                   AP4_Position       moof_offset);
     
@@ -392,7 +461,8 @@ public:
 
     // AP4_Processor methods
     virtual AP4_Processor::TrackHandler*    CreateTrackHandler(AP4_TrakAtom* trak);
-    virtual AP4_Processor::FragmentHandler* CreateFragmentHandler(AP4_ContainerAtom* traf,
+    virtual AP4_Processor::FragmentHandler* CreateFragmentHandler(AP4_TrexAtom*      trex,
+                                                                  AP4_ContainerAtom* traf,
                                                                   AP4_ByteStream&    moof_data,
                                                                   AP4_Position       moof_offset);
     

@@ -365,6 +365,16 @@ AP4_Track::GetSampleDescription(AP4_Ordinal index)
 }
 
 /*----------------------------------------------------------------------
+|   AP4_Track::GetSampleDescriptionCount
++---------------------------------------------------------------------*/
+AP4_Cardinal
+AP4_Track::GetSampleDescriptionCount()
+{
+    // delegate to the sample table
+    return m_SampleTable ? m_SampleTable->GetSampleDescriptionCount() : 0;
+}
+
+/*----------------------------------------------------------------------
 |   AP4_Track::ReadSample
 +---------------------------------------------------------------------*/
 AP4_Result   
