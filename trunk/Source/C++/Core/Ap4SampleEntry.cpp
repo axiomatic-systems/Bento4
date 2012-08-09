@@ -495,6 +495,7 @@ AP4_AudioSampleEntry::WriteFields(AP4_ByteStream& stream)
     
     // write the fields of the base class
     result = AP4_SampleEntry::WriteFields(stream);
+    if (AP4_FAILED(result)) return result;
 
     // QT version
     result = stream.WriteUI16(m_QtVersion);

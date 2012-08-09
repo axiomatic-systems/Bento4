@@ -179,6 +179,7 @@ AP4_TkhdAtom::WriteFields(AP4_ByteStream& stream)
 
     // reserved3
     result = stream.WriteUI16(m_Reserved3);
+    if (AP4_FAILED(result)) return result;
 
     // matrix
     for (int i=0; i<9; i++) {

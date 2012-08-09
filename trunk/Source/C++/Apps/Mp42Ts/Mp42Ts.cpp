@@ -90,6 +90,7 @@ PrintUsageAndExit()
 class SampleReader 
 {
 public:
+    virtual ~SampleReader() {}
     virtual AP4_Result ReadSample(AP4_Sample& sample, AP4_DataBuffer& sample_data) = 0;
 };
 

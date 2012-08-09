@@ -100,11 +100,11 @@ main(int argc, char** argv)
         PrintUsageAndExit();
     }
     const char* filename = NULL;
-    bool verbose = false;
+    //bool verbose = false;
 
     while (char* arg = *++argv) {
         if (!strcmp(arg, "--verbose")) {
-            verbose = true;
+            //verbose = true;
         } else {
             if (filename == NULL) {
                 filename = arg;

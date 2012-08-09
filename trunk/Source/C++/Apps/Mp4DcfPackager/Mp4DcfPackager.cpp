@@ -247,7 +247,11 @@ main(int argc, char** argv)
     if (encryption_method == AP4_OMA_DCF_ENCRYPTION_METHOD_NULL) {
         encrypted_stream = input;
     } else {
-        result = AP4_EncryptingStream::Create(cipher_mode, *input, iv, 16, key, 16, true, &AP4_DefaultBlockCipherFactory::Instance, encrypted_stream);    
+        result = AP4_EncryptingStream::Create(cipher_mode, *input, iv, 16, key, 16, true, &AP4_DefaultBlockCipherFactory::Instance, encrypted_stream);
+        if (AP4_FAILED(result)) {
+            fprintf(stderr, "ERROR: failed to create cipher (%d)\n", result);
+            return 1;
+        }
     }
     
     // create the output stream

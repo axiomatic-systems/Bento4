@@ -100,7 +100,7 @@ class DashSegmentBaseInfo:
                     self.initialization = e.get('initialization')
                     self.media          = e.get('media')
                     self.timescale      = e.get('timescale')
-                    self.startnumber    = e.get('startNumber')
+                    self.startNumber    = e.get('startNumber')
                     
                 # segment timeline
                 st = e.find(DASH_NS+'SegmentTimeline')

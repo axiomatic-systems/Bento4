@@ -248,12 +248,13 @@ main(int argc, char** argv)
             // parse the iv
             unsigned char iv[16];
             AP4_SetMemory(iv, 0, sizeof(iv));
-            if (AP4_CompareStrings(key_ascii, "random") == 0) {
+            if (AP4_CompareStrings(iv_ascii, "random") == 0) {
                 result = AP4_System_GenerateRandomBytes(iv, 16);
                 if (AP4_FAILED(result)) {
                     fprintf(stderr, "ERROR: failed to generate random key (%d)\n", result);
                     return 1;
                 }
+                iv[0] &= 0x7F; // always set the MSB to 0 so we don't have wraparounds
             } else {
                 unsigned int iv_size = (unsigned int)AP4_StringLength(iv_ascii)/2;
                 if (AP4_ParseHex(iv_ascii, iv, iv_size)) {
