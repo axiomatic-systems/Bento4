@@ -100,6 +100,7 @@ AP4_AinfAtom::WriteFields(AP4_ByteStream& stream)
     result = stream.WriteUI32(m_ProfileVersion);
     if (AP4_FAILED(result)) return result;
     result = stream.Write(m_APID.GetChars(), m_APID.GetLength()+1);
+    if (AP4_FAILED(result)) return result;
     if (m_OtherBoxes.GetDataSize()) {
         stream.Write(m_OtherBoxes.GetData(), m_OtherBoxes.GetDataSize());
     }

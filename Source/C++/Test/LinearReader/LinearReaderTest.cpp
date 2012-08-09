@@ -119,7 +119,7 @@ main(int argc, char** argv)
 
     offset = 0;
     audio_sample_count = 0;
-    video_sample_count = 0;
+    //video_sample_count = 0;
     reader.SetSampleIndex(audio_track->GetId(), 0);
     reader.SetSampleIndex(video_track->GetId(), 0);
     do {

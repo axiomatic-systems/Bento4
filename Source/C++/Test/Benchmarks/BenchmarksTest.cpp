@@ -563,7 +563,7 @@ main(int argc, char** argv)
     AP4_SetMemory(blocks_in, 0, sizeof(blocks_in));
     unsigned char blocks_out[blocks_size];
     unsigned char* megabyte_in = new unsigned char[ENC_IN_BUFFER_SIZE];
-    AP4_SetMemory(megabyte_in, 0, sizeof(megabyte_in));
+    AP4_SetMemory(megabyte_in, 0, ENC_IN_BUFFER_SIZE);
     unsigned char* megabyte_out = new unsigned char[ENC_OUT_BUFFER_SIZE];
     
     AP4_BlockCipher* e_cbc_block_cipher;

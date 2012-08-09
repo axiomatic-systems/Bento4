@@ -189,6 +189,7 @@ AP4_TfraAtom::WriteFields(AP4_ByteStream& stream)
     result = stream.WriteUI32(fields);
     if (AP4_FAILED(result)) return result;
     result = stream.WriteUI32(m_Entries.ItemCount());
+    if (AP4_FAILED(result)) return result;
     for (unsigned int i=0; i<m_Entries.ItemCount(); i++) {
         if (m_Version == 1) {
             result = stream.WriteUI64(m_Entries[i].m_Time);

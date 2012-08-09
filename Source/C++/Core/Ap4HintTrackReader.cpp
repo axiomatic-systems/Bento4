@@ -330,6 +330,7 @@ AP4_HintTrackReader::WriteSampleRtpData(AP4_SampleRtpConstructor* constructor,
     AP4_Sample sample;
     AP4_Result result = referenced_track->GetSample(constructor->GetSampleNum()-1, // adjust
                                                     sample);
+    if (AP4_FAILED(result)) return result;
     AP4_DataBuffer buffer(constructor->GetLength());
     result = sample.ReadData(
         buffer, constructor->GetLength(), constructor->GetSampleOffset());

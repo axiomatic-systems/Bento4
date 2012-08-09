@@ -991,6 +991,7 @@ AP4_DecryptingStream::ReadPartial(void*     buffer,
                                                m_Buffer, 
                                                &buffer_size,
                                                is_last_buffer);
+        if (AP4_FAILED(result)) return result;
         m_BufferOffset   = 0;
         m_BufferFullness = buffer_size;
 
@@ -1247,6 +1248,7 @@ AP4_EncryptingStream::ReadPartial(void*     buffer,
                                                m_Buffer, 
                                                &buffer_size,
                                                is_last_buffer);
+        if (AP4_FAILED(result)) return result;
         m_BufferOffset   = 0;
         m_BufferFullness = buffer_size;
 

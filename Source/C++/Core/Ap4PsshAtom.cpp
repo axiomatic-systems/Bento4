@@ -147,6 +147,7 @@ AP4_PsshAtom::WriteFields(AP4_ByteStream& stream)
     result = stream.Write(m_SystemId, 16);
     if (AP4_FAILED(result)) return result;
     result = stream.WriteUI32(m_Data.GetDataSize());
+    if (AP4_FAILED(result)) return result;
     if (m_Data.GetDataSize()) {
         result = stream.Write(m_Data.GetData(), m_Data.GetDataSize());
         if (AP4_FAILED(result)) return result;

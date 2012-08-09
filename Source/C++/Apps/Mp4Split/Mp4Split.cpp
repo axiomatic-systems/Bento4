@@ -2,7 +2,7 @@
 |
 |    AP4 - MP4 fragmented file splitter
 |
-|    Copyright 2002-2011 Axiomatic Systems, LLC
+|    Copyright 2002-2012 Axiomatic Systems, LLC
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -39,7 +39,7 @@
 +---------------------------------------------------------------------*/
 #define BANNER "MP4 Fragment Splitter - Version 1.0\n"\
                "(Bento4 Version " AP4_VERSION_STRING ")\n"\
-               "(c) 2002-2011 Axiomatic Systems, LLC"
+               "(c) 2002-2012 Axiomatic Systems, LLC"
  
 #define AP4_SPLIT_DEFAULT_INIT_SEGMENT_NAME              "init.mp4"
 #define AP4_SPLIT_DEFAULT_MEDIA_SEGMENT_NAME             "segment-%d.%04d.m4f"
@@ -184,7 +184,7 @@ main(int argc, char** argv)
     AP4_File* file = new AP4_File(*input, AP4_DefaultAtomFactory::Instance, true);
     AP4_Movie* movie = file->GetMovie();
     if (movie == NULL) {
-        fprintf(stderr, "no movie foudn in file\n");
+        fprintf(stderr, "no movie found in file\n");
         return 1;
     }
     
