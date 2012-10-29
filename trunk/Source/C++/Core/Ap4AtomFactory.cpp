@@ -296,9 +296,13 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
           case AP4_ATOM_TYPE_ALAC:
           case AP4_ATOM_TYPE_AC_3:
           case AP4_ATOM_TYPE_EC_3:
+          case AP4_ATOM_TYPE_DTSC:
+          case AP4_ATOM_TYPE_DTSH:
+          case AP4_ATOM_TYPE_DTSL:
+          case AP4_ATOM_TYPE_DTSE:
             atom = new AP4_AudioSampleEntry(type, size_32, stream, *this);
             break;
-
+            
           case AP4_ATOM_TYPE_RTP_:
             atom = new AP4_RtpHintSampleEntry(size_32, stream, *this);
             break;
@@ -315,7 +319,9 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
             }
 
             // no custom handler, create a generic entry
-            atom = new AP4_UnknownSampleEntry(type, (AP4_UI32)size_64, stream);
+            if (atom == NULL) {
+                atom = new AP4_UnknownSampleEntry(type, (AP4_UI32)size_64, stream);
+            }
 
             break;
           }
