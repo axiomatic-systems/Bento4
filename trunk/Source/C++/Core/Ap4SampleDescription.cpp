@@ -66,6 +66,10 @@ AP4_GetFormatName(AP4_UI32 format)
         case AP4_SAMPLE_FORMAT_OWMA: return "WMA";
         case AP4_SAMPLE_FORMAT_AC_3: return "Dolby Digital (AC-3)";
         case AP4_SAMPLE_FORMAT_EC_3: return "Dolby Digital Plus (Enhanced AC-3)";
+        case AP4_SAMPLE_FORMAT_DTSC: return "DTS";
+        case AP4_SAMPLE_FORMAT_DTSH: return "DTS-HD";
+        case AP4_SAMPLE_FORMAT_DTSL: return "DTS-HD Lossless";
+        case AP4_SAMPLE_FORMAT_DTSE: return "DTS Low Bitrate";
         case AP4_SAMPLE_FORMAT_AVCP: return "Advanced Video Coding Parameters";
         case AP4_SAMPLE_FORMAT_DRAC: return "Dirac";
         case AP4_SAMPLE_FORMAT_DRA1: return "DRA Audio";
