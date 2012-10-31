@@ -269,7 +269,7 @@ Fragment(AP4_File& input_file, AP4_ByteStream& output_stream, unsigned int fragm
         // index of the first sample in the group, which may not be correct. This
         // should be fixed later)
         unsigned int sample_desc_index = cursor->m_Sample.GetDescriptionIndex();
-        unsigned int tfhd_flags = 0;
+        unsigned int tfhd_flags = AP4_TFHD_FLAG_DEFAULT_BASE_IS_MOOF;
         if (sample_desc_index > 0) {
             tfhd_flags |= AP4_TFHD_FLAG_SAMPLE_DESCRIPTION_INDEX_PRESENT;
         }
