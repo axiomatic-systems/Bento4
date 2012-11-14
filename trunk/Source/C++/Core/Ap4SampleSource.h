@@ -59,32 +59,16 @@ public:
      * Return the duration in milliseconds
      */
     virtual AP4_UI32 GetDurationMs() = 0;
-
-    /**
-     * Return the track ID associated with this source, or 0 if there is
-     * no track ID associated with it.
-     */
-    virtual AP4_UI32 GetTrackId() = 0;
     
     /**
      * Read the next sample from the source
      */
-    virtual AP4_Result ReadNextSample(AP4_Sample& sample, AP4_DataBuffer& buffer) = 0;
+    virtual AP4_Result ReadNextSample(AP4_Sample& sample, AP4_DataBuffer& buffer, AP4_UI32& track_id) = 0;
     
     /**
-     * Return the index of the nearest sync sample from a given sample index.
+     * Seek to the sample closest to a specific timestamp in milliseconds
      */
-    virtual AP4_Ordinal GetNearestSyncSampleIndex(AP4_Ordinal indx, bool before=true) = 0;
-    
-    /**
-     * Return the sample index given a timestamp in milliseconds
-     */
-    virtual AP4_Result GetSampleIndexForTimeStampMs(AP4_UI32 timestamp, AP4_Ordinal& indx) = 0;
-    
-    /**
-     * Seek to a specific sample index.
-     */
-    virtual AP4_Result SetSampleIndex(AP4_Ordinal indx) = 0;
+    virtual AP4_Result SeekToTime(AP4_UI32 time_ms, bool before=true) = 0;
     
     /**
      * Return a sample description by index.
@@ -103,11 +87,8 @@ public:
     
     virtual AP4_UI32    GetTimeScale();
     virtual AP4_UI32    GetDurationMs();
-    virtual AP4_UI32    GetTrackId();
-    virtual AP4_Result  ReadNextSample(AP4_Sample& sample, AP4_DataBuffer& buffer);
-    virtual AP4_Ordinal GetNearestSyncSampleIndex(AP4_Ordinal indx, bool before=true);
-    virtual AP4_Result  GetSampleIndexForTimeStampMs(AP4_UI32 timestamp, AP4_Ordinal& indx);
-    virtual AP4_Result  SetSampleIndex(AP4_Ordinal indx);
+    virtual AP4_Result  ReadNextSample(AP4_Sample& sample, AP4_DataBuffer& buffer, AP4_UI32& track_id);
+    virtual AP4_Result  SeekToTime(AP4_UI32 time_ms, bool before=true) = 0;
     virtual AP4_SampleDescription* GetSampleDescription(AP4_Ordinal indx);
     
 private:
