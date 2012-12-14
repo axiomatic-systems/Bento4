@@ -134,6 +134,8 @@ class Mp4File:
         self.video_track_id = 0
         self.audio_track_id = 0
         
+        if Options.debug: print 'Processing MP4 file', filename
+
         # walk the atom structure
         self.atoms = WalkAtoms(filename)
         self.segments = []
@@ -146,7 +148,8 @@ class Mp4File:
                 if len(self.segments):
                     self.segments[-1].append(atom)
         #print self.segments
-        
+        if Options.debug: print '  found', len(self.segments), 'segments'
+                        
         # get the mp4 file info
         json_info = Mp4Info(filename, format='json')
         #print json_info
@@ -219,7 +222,7 @@ class Mp4File:
             self.audio_track_id: reduce(operator.add, self.sample_counts[self.audio_track_id], 0),
             self.video_track_id: reduce(operator.add, self.sample_counts[self.video_track_id], 0)
         }
-
+            
         if self.total_samples[self.audio_track_id] and Options.audio_sample_rate:
             self.average_segment_bitrate[self.audio_track_id] = int(8*self.media_size[self.audio_track_id]/(self.total_samples[self.audio_track_id]/(Options.audio_sample_rate/1024)))
         if self.total_samples[self.video_track_id] and Options.video_frame_rate:
@@ -240,10 +243,15 @@ class Mp4File:
             self.max_segment_bitrate[self.audio_track_id] = 8*int(float(max(self.segment_sizes[self.audio_track_id][:-1]))/self.segment_duration[self.audio_track_id])
         if self.segment_duration[self.video_track_id]:
             self.max_segment_bitrate[self.video_track_id] = 8*int(float(max(self.segment_sizes[self.video_track_id][:-1]))/self.segment_duration[self.video_track_id])
-        
-# Setup default setting
-class Settings:
-    output_dir = 'output'
+
+        if Options.debug:
+            for t in [('Audio track', self.audio_track_id), ('Video track', self.video_track_id)]:
+                print t[0]+':'
+                print '    ID               =', t[1]
+                print '    Sample Count     =', self.total_samples[t[1]]
+                print '    Average bitrate  =', self.average_segment_bitrate[t[1]]
+                print '    Max bitrate      =', self.average_segment_bitrate[t[1]]
+                print '    Segment duration =', self.segment_duration[t[1]]
 
 def MakeNewDir(dir, is_warning=False):
     if os.path.exists(dir):
@@ -334,6 +342,9 @@ def main():
     parser.add_option('', '--verbose', dest="verbose",
                       action='store_true', default=False,
                       help="Be verbose")
+    parser.add_option('', '--debug', dest="debug",
+                      action='store_true', default=False,
+                      help="Print out debugging information")
     parser.add_option('-o', '--output-dir', dest="output_dir",
                       help="Output directory", metavar="<output-dir>", default='output')
     parser.add_option('', '--init-segment', dest="init_segment",
@@ -351,7 +362,7 @@ def main():
                       help="Use segment lists instead of segment templates")
     parser.add_option('', "--min-buffer-time", metavar='<duration>',
                       dest="min_buffer_time", type="float", default=0.0,
-                      help="Mininum buffer time (in seconds)")
+                      help="Minimum buffer time (in seconds)")
     parser.add_option('', "--video-frame-rate", metavar='<rate>',
                       dest="video_frame_rate", type="float", default=23.976,
                       help="Video frame rate (in frames per second)")
@@ -359,7 +370,7 @@ def main():
                       dest="video_codec", default='avc1.42c015',
                       help="Video codec string")
     parser.add_option('', "--audio-sample-rate", metavar='<rate>',
-                      dest="audio_sample_rate", type="float", default=44100,
+                      dest="audio_sample_rate", type="float", default=0,
                       help="Audio sample rate (in samples per second)")
     parser.add_option('', "--audio-codec", metavar='<codec>',
                       dest="audio_codec", default='mp4a.40.2',
@@ -383,10 +394,7 @@ def main():
         if not options.use_segment_list:
             print 'WARNING: --no-split requires --use-segment-list, which will be enabled automatically'
             options.use_segment_list = True
-            
-    settings = Settings()
-    #if len(sys.argv) > 1: execfile(sys.argv[1])
-        
+                    
     if not path.exists(Options.exec_dir):
         PrintErrorAndExit('Executable directory does not exist ('+Options.exec_dir+'), use --exec-dir')
 
@@ -499,10 +507,6 @@ def main():
     
     # save the MPD
     open(path.join(options.output_dir, options.mpd_filename), "wb").write(parseString(xml.tostring(mpd)).toprettyxml("  "))
-
-    #    MakeNewDir(media_output_dir, is_warning=True)
-        # create an output directory for the file
-    #    media_output_dir = path.join(options.output_dir, str(mp4_file.index))
         
 
 ###########################    
