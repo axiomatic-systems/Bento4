@@ -804,7 +804,7 @@ AP4_CencEncryptingProcessor::Initialize(AP4_AtomParent&                  top_lev
             AP4_PsshAtom* pssh = new AP4_PsshAtom(AP4_MARLIN_PSSH_SYSTEM_ID);
             pssh->SetData(*marl);
             if (padding > marl->GetSize()+32 && padding < 1024*1024) {
-                padding -= marl->GetSize()+32;
+                padding -= (AP4_UI32)marl->GetSize()+32;
                 AP4_UI08* data = new AP4_UI08[padding];
                 AP4_SetMemory(data, 0, padding);
                 pssh->SetPadding(data, padding);
