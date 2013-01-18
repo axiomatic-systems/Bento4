@@ -143,10 +143,32 @@ single_config_files = [
     ('Documents/Doxygen','*.zip','docs'),
     ('Documents/Misc','*.doc','docs'),
     ('Documents/SDK','*.doc','docs'),
-    ('Documents/SDK','*.pdf','docs')
+    ('Documents/SDK','*.pdf','docs'),
+    ('Source/Python/utils', 'mp4-dash.py', 'utils'),
+    ('Source/Python/utils', 'mp4-dash-clone.py', 'utils')
 ]
 CopyFiles(single_config_files)
 
+if SDK_TARGET == 'universal-apple-macosx':
+    script_bin_dir = 'macosx'
+elif SDK_TARGET.startswith('x86-microsoft-win32'):
+    script_bin_dir = 'win32'
+elif SDK_TARGET == 'x86-unknown-linux':
+    script_bin_dir = 'linux-x86'
+else:
+    script_bin_dir = None
+
+if script_bin_dir:
+    script_bin_in = SDK_TARGET_DIR+'/Release'
+    script_bin_out = 'utils/bin/'+script_bin_dir
+    script_files = [
+        (script_bin_in, 'mp4info',    script_bin_out),
+        (script_bin_in, 'mp4dump',    script_bin_out),
+        (script_bin_in, 'mp4split',   script_bin_out),
+        (script_bin_in, 'mp4encrypt', script_bin_out),
+    ]
+    CopyFiles(script_files)
+    
 # copy multi-config files
 multi_config_files = [
     (SDK_TARGET_DIR,'mp4*.exe','bin'),

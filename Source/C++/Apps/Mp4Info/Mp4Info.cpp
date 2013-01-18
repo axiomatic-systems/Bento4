@@ -282,11 +282,12 @@ ShowMpegAudioSampleDescription(AP4_MpegAudioSampleDescription& mpeg_audio_desc)
     const char* object_type_string = AP4_MpegAudioSampleDescription::GetMpeg4AudioObjectTypeString(object_type);
     switch (Options.format) {
         case TEXT_FORMAT:
-            printf("    MPEG-4 Audio Object Type: %s\n", object_type_string);
+            printf("    MPEG-4 Audio Object Type: %d (%s)\n", object_type, object_type_string);
             break;
 
         case JSON_FORMAT:
-            printf("\"mpeg_4_audio_object_type\":\"%s\"", object_type_string);
+            printf("\"mpeg_4_audio_object_type\":%d,\n",          object_type);
+            printf("\"mpeg_4_audio_object_type_name\":\"%s\"", object_type_string);
             break;
     }
     
@@ -397,12 +398,10 @@ ShowSampleDescription_Text(AP4_SampleDescription& description, bool verbose)
         // AVC Sample Description
         AP4_AvcSampleDescription* avc_desc = AP4_DYNAMIC_CAST(AP4_AvcSampleDescription, desc);
         const char* profile_name = AP4_AvccAtom::GetProfileName(avc_desc->GetProfile());
-        if (profile_name) {
-            printf("    AVC Profile:          %s\n", profile_name);
-        } else {
-            printf("    AVC Profile:          %d\n", avc_desc->GetProfile());
-        }
-        printf("    AVC Profile Compat:   %x\n", avc_desc->GetProfileCompatibility());
+        printf("    AVC Profile:          %d", avc_desc->GetProfile());
+        if (profile_name) printf(" (%s)\n", profile_name);
+        printf("\n");
+        printf("    AVC Profile Compat:   %d\n", avc_desc->GetProfileCompatibility());
         printf("    AVC Level:            %d\n", avc_desc->GetLevel());
         printf("    AVC NALU Length Size: %d\n", avc_desc->GetNaluLengthSize());
     }    
@@ -424,11 +423,12 @@ ShowSampleDescription_Json(AP4_SampleDescription& description, bool verbose)
     char coding[5];
     AP4_FormatFourChars(coding, desc->GetFormat());
     const char* format_name = AP4_GetFormatName(desc->GetFormat());
-    printf("\"coding\":\"%s", coding);
+    printf("\"coding\":\"%s\",\n", coding);
+    printf("\"coding_name\":");
     if (format_name) {
-        printf(" (%s)\"", format_name);
+        printf("\"%s\"", format_name);
     } else {
-        printf("\"");
+        printf("\"\"");
     }
     
     if (desc->GetType() == AP4_SampleDescription::TYPE_MPEG) {
@@ -436,11 +436,13 @@ ShowSampleDescription_Json(AP4_SampleDescription& description, bool verbose)
         AP4_MpegSampleDescription* mpeg_desc = AP4_DYNAMIC_CAST(AP4_MpegSampleDescription, desc);
 
         printf(",\n"),
-        printf("\"stream_type\":\"%s\",\n",   mpeg_desc->GetStreamTypeString(mpeg_desc->GetStreamType()));
-        printf("\"object_type\":\"%s\",\n",   mpeg_desc->GetObjectTypeString(mpeg_desc->GetObjectTypeId()));
-        printf("\"max_bitrate\":%d,\n",     mpeg_desc->GetMaxBitrate());
-        printf("\"average_bitrate\":%d,\n", mpeg_desc->GetAvgBitrate());
-        printf("\"buffer_size\":%d",     mpeg_desc->GetBufferSize());
+        printf("\"stream_type\":%d,\n",          mpeg_desc->GetStreamType());
+        printf("\"stream_type_name\":\"%s\",\n", mpeg_desc->GetStreamTypeString(mpeg_desc->GetStreamType()));
+        printf("\"object_type\":%d,\n",          mpeg_desc->GetObjectTypeId());
+        printf("\"object_type_name\":\"%s\",\n", mpeg_desc->GetObjectTypeString(mpeg_desc->GetObjectTypeId()));
+        printf("\"max_bitrate\":%d,\n",          mpeg_desc->GetMaxBitrate());
+        printf("\"average_bitrate\":%d,\n",      mpeg_desc->GetAvgBitrate());
+        printf("\"buffer_size\":%d",             mpeg_desc->GetBufferSize());
         
         if (mpeg_desc->GetObjectTypeId() == AP4_OTI_MPEG4_AUDIO          ||
             mpeg_desc->GetObjectTypeId() == AP4_OTI_MPEG2_AAC_AUDIO_LC   ||
@@ -458,7 +460,7 @@ ShowSampleDescription_Json(AP4_SampleDescription& description, bool verbose)
         printf(",\n"),
         printf("\"sample_rate\":%d,\n", audio_desc->GetSampleRate());
         printf("\"sample_size\":%d,\n", audio_desc->GetSampleSize());
-        printf("\"channels\":%d",    audio_desc->GetChannelCount());
+        printf("\"channels\":%d",       audio_desc->GetChannelCount());
     }
     AP4_VideoSampleDescription* video_desc = 
         AP4_DYNAMIC_CAST(AP4_VideoSampleDescription, desc);
@@ -467,23 +469,20 @@ ShowSampleDescription_Json(AP4_SampleDescription& description, bool verbose)
         printf(",\n"),
         printf("\"width\":%d,\n",  video_desc->GetWidth());
         printf("\"height\":%d,\n", video_desc->GetHeight());
-        printf("\"depth\":%d",  video_desc->GetDepth());
+        printf("\"depth\":%d",     video_desc->GetDepth());
     }
 
     // AVC specifics
     if (desc->GetType() == AP4_SampleDescription::TYPE_AVC) {
         // AVC Sample Description
         AP4_AvcSampleDescription* avc_desc = AP4_DYNAMIC_CAST(AP4_AvcSampleDescription, desc);
-        const char* profile_name = AP4_AvccAtom::GetProfileName(avc_desc->GetProfile());
         printf(",\n");
-        if (profile_name) {
-            printf("\"avc_profile\":\"%s\",\n", profile_name);
-        } else {
-            printf("\"avc_profile\":%d,\n", avc_desc->GetProfile());
-        }
+        printf("\"avc_profile\":%d,\n",        avc_desc->GetProfile());
+        const char* profile_name = AP4_AvccAtom::GetProfileName(avc_desc->GetProfile());
+        if (profile_name) printf("\"avc_profile_name\":\"%s\",\n", profile_name);
         printf("\"avc_profile_compat\":%d,\n", avc_desc->GetProfileCompatibility());
-        printf("\"avc_level\":%d,\n", avc_desc->GetLevel());
-        printf("\"avc_nalu_length_size\":%d", avc_desc->GetNaluLengthSize());
+        printf("\"avc_level\":%d,\n",          avc_desc->GetLevel());
+        printf("\"avc_nalu_length_size\":%d",  avc_desc->GetNaluLengthSize());
     }    
     
     printf("\n}");

@@ -76,7 +76,6 @@ class AP4_FragmentSampleTable : public AP4_SampleTable
     
 private:
     // members
-    AP4_TrunAtom*         m_TrunAtom;
     AP4_Array<AP4_Sample> m_Samples;
     AP4_UI64              m_Duration;
     
