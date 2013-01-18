@@ -9,9 +9,9 @@ __copyright__ = 'Copyright 2011-2012 Axiomatic Systems, LLC.'
 # in a directory named 'bin/<platform>' at the same level as where
 # this script is.
 # <platform> depends on the platform you're running on:
-# Mac OSX --> platform = macosx
-# Linux   --> platform = linux
-# Windows --> platform = win32
+# Mac OSX   --> platform = macosx
+# Linux x86 --> platform = linux-x86
+# Windows   --> platform = win32
 
 ### Imports
 import sys
@@ -359,7 +359,7 @@ def main():
     # determine the platform binary name
     platform = sys.platform
     if platform.startswith('linux'):
-        platform = 'linux'
+        platform = 'linux-x86'
     elif platform.startswith('darwin'):
         platform = 'macosx'
 

@@ -9,9 +9,9 @@ __copyright__ = 'Copyright 2011-2012 Axiomatic Systems, LLC.'
 # in a directory named 'bin/<platform>' at the same level as where
 # this script is.
 # <platform> depends on the platform you're running on:
-# Mac OSX --> platform = macosx
-# Linux   --> platform = linux
-# Windows --> platform = win32
+# Mac OSX   --> platform = macosx
+# Linux x86 --> platform = linux-x86
+# Windows   --> platform = win32
 
 import sys
 import os
@@ -129,10 +129,14 @@ def FindChild(top, path):
 
 class Mp4File:
     def __init__(self, filename):
-        self.filename       = filename
-        self.work_filename  = filename
-        self.video_track_id = 0
-        self.audio_track_id = 0
+        self.filename          = filename
+        self.work_filename     = filename
+        self.video_track       = None
+        self.video_track_id    = 0
+        self.video_width       = 0
+        self.video_height      = 0
+        self.audio_track       = None
+        self.audio_track_id    = 0
         
         if Options.debug: print 'Processing MP4 file', filename
 
@@ -152,17 +156,18 @@ class Mp4File:
                         
         # get the mp4 file info
         json_info = Mp4Info(filename, format='json')
-        #print json_info
         self.info = json.loads(json_info, strict=False)
 
         for track in self.info['tracks']:
-            if track['type'] == 'Video':
+            if track['type'] == 'Video' and self.video_track is None:
+                self.video_track = track
                 self.video_track_id = track['id']
-            elif track['type'] == 'Audio':
+            elif track['type'] == 'Audio' and self.audio_track is None:
+                self.audio_track = track
                 self.audio_track_id = track['id']
 
         # get a complete file dump
-        json_dump = Mp4Dump(filename, format='json')
+        json_dump = Mp4Dump(filename, format='json', verbosity='1')
         #print json_dump
         self.tree = json.loads(json_dump, strict=False)
         
@@ -184,12 +189,40 @@ class Mp4File:
             if len(self.kids) == 0:
                 PrintErrorAndExit('ERROR: no encryption info found')
                 
+        # compute default sample durations and timescales
+        self.default_sample_duration = {
+            self.audio_track_id:0,
+            self.video_track_id:0
+        }
+        self.timescale = {
+            self.audio_track_id:0,
+            self.video_track_id:0
+        }
+        for atom in self.tree:
+            if atom['name'] == 'moov':
+                for c1 in atom['children']:
+                    if c1['name'] == 'mvex':
+                        for c2 in c1['children']:
+                            if c2['name'] == 'trex':
+                                self.default_sample_duration[c2['track id']] = c2['default sample duration']
+                    elif c1['name'] == 'trak':
+                        track_id = 0
+                        for c2 in c1['children']:
+                            if c2['name'] == 'tkhd':
+                                track_id = c2['id']
+                        for c2 in c1['children']:
+                            if c2['name'] == 'mdia':
+                                for c3 in c2['children']:
+                                    if c3['name'] == 'mdhd':
+                                        self.timescale[track_id] = c3['timescale']
+
         # partition the segments
         segment_index = 0
         track_id      = 0
-        self.moofs         = { self.audio_track_id:[],  self.video_track_id:[]}
-        self.sample_counts = { self.audio_track_id:[],  self.video_track_id: []}
-        self.segment_sizes = { self.audio_track_id:[],  self.video_track_id: []}
+        self.moofs             = { self.audio_track_id:[],  self.video_track_id:[]}
+        self.sample_counts     = { self.audio_track_id:[],  self.video_track_id:[]}
+        self.segment_sizes     = { self.audio_track_id:[],  self.video_track_id:[]}
+        self.segment_durations = { self.audio_track_id:[],  self.video_track_id:[]}
         for atom in self.tree:
             if atom['name'] == 'moof':
                 trafs = FilterChildren(atom, 'traf')
@@ -199,59 +232,81 @@ class Mp4File:
                 track_id = tfhd['track ID']
                 self.moofs[track_id].append(segment_index)
                 self.segment_sizes[track_id].append(0)
+                segment_duration = 0
                 for trun in FilterChildren(trafs[0], 'trun'):
                     self.sample_counts[track_id].append(trun['sample count'])
+                    for (name, value) in trun.items():
+                        if name.startswith('entry '):
+                            sample_duration = self.default_sample_duration[track_id]
+                            f = value.find('duration:')
+                            if f >= 0:
+                                f += 9
+                                g = value.find(' ', f)
+                                if g >= 0:
+                                    sample_duration = int(value[f:g])    
+                            segment_duration += sample_duration
+                self.segment_durations[track_id].append(float(segment_duration)/float(self.timescale[track_id]))
                 segment_index += 1
             else:
                 if track_id and len(self.segment_sizes[track_id]):
                     self.segment_sizes[track_id][-1] += atom['size']
-                
-        self.media_size = {
-            self.audio_track_id: reduce(operator.add, self.segment_sizes[self.audio_track_id], 0),
-            self.video_track_id: reduce(operator.add, self.segment_sizes[self.video_track_id], 0)
-        }
-        self.average_segment_bitrate = {
-            self.audio_track_id:0,
-            self.video_track_id:0
-        }
-        self.max_segment_bitrate = {
-            self.audio_track_id:0,
-            self.video_track_id:0
-        }
+                                                
+        # check that we have at least one segment
+        if len(self.sample_counts[self.audio_track_id]) == 0 or len(self.sample_counts[self.video_track_id]) == 0:
+            return
+            
+        # compute the total numer of samples for each track
         self.total_samples = {
             self.audio_track_id: reduce(operator.add, self.sample_counts[self.audio_track_id], 0),
             self.video_track_id: reduce(operator.add, self.sample_counts[self.video_track_id], 0)
         }
+
+        # compute the total duration for each track
+        self.total_duration = {
+            self.audio_track_id: reduce(operator.add, self.segment_durations[self.audio_track_id], 0),
+            self.video_track_id: reduce(operator.add, self.segment_durations[self.video_track_id], 0)
+        }
+                           
+        # compute the average segment durations
+        self.average_segment_duration = { self.audio_track_id:0, self.video_track_id:0 }
+        for track_id in [self.audio_track_id, self.video_track_id]:
+            segment_count = len(self.segment_durations[track_id])
+            if segment_count >= 1:
+                # do not count the last segment, which could be shorter
+                self.average_segment_duration[track_id] = reduce(operator.add, self.segment_durations[track_id][:-1], 0)/float(segment_count-1)
+            elif segment_count == 1:
+                self.average_segment_duration[track_id] = self.segment_durations[track_id][0]
             
-        if self.total_samples[self.audio_track_id] and Options.audio_sample_rate:
-            self.average_segment_bitrate[self.audio_track_id] = int(8*self.media_size[self.audio_track_id]/(self.total_samples[self.audio_track_id]/(Options.audio_sample_rate/1024)))
-        if self.total_samples[self.video_track_id] and Options.video_frame_rate:
-            self.average_segment_bitrate[self.video_track_id] = int(8*self.media_size[self.video_track_id]/(self.total_samples[self.video_track_id]/Options.video_frame_rate))
-        
-        self.segment_duration = { self.audio_track_id:0, self.video_track_id:0 }
-        if len(self.sample_counts[self.audio_track_id]) > 1 and Options.audio_sample_rate:
-            self.segment_duration[self.audio_track_id] = float(reduce(operator.add, self.sample_counts[self.audio_track_id][:-1]))/float(len(self.sample_counts[self.audio_track_id])-1)/(Options.audio_sample_rate/1024.0)
-        if len(self.sample_counts[self.video_track_id]) > 1 and Options.video_frame_rate:
-            self.segment_duration[self.video_track_id] = float(reduce(operator.add, self.sample_counts[self.video_track_id][:-1]))/float(len(self.sample_counts[self.video_track_id])-1)/Options.video_frame_rate
-
-        gap = self.segment_duration[self.audio_track_id]-self.segment_duration[self.video_track_id]
+        # check the difference between audio and video segment durations
+        gap = self.average_segment_duration[self.audio_track_id]-self.average_segment_duration[self.video_track_id]
         if gap > 0.1:
-            print 'WARNING: audio and video segment durations are not equal ('+str(self.segment_duration[self.audio_track_id])+' and '+str(self.segment_duration[self.video_track_id])+'), check sample and frame rates'
+            print 'WARNING: audio and video segment durations are not equal ('+str(self.average_segment_duration[self.audio_track_id])+' and '+str(self.average_segment_duration[self.video_track_id])+')'
 
+        # compute the average segment bitrates
+        self.media_size = {
+            self.audio_track_id: reduce(operator.add, self.segment_sizes[self.audio_track_id], 0),
+            self.video_track_id: reduce(operator.add, self.segment_sizes[self.video_track_id], 0)
+        }
+        self.average_segment_bitrate = { self.audio_track_id:0, self.video_track_id:0 }
+        for track_id in [self.audio_track_id, self.video_track_id]:
+            if self.total_samples[track_id]:
+                self.average_segment_bitrate[track_id] = int(8.0*float(self.media_size[track_id])/self.total_duration[track_id])
+
+        # compute the max segment bitrates
         self.max_segment_bitrate = { self.audio_track_id:0.0, self.video_track_id:0.0 }
-        if self.segment_duration[self.audio_track_id]:
-            self.max_segment_bitrate[self.audio_track_id] = 8*int(float(max(self.segment_sizes[self.audio_track_id][:-1]))/self.segment_duration[self.audio_track_id])
-        if self.segment_duration[self.video_track_id]:
-            self.max_segment_bitrate[self.video_track_id] = 8*int(float(max(self.segment_sizes[self.video_track_id][:-1]))/self.segment_duration[self.video_track_id])
+        for track_id in [self.audio_track_id, self.video_track_id]:
+            if self.average_segment_duration[track_id]:
+                self.max_segment_bitrate[track_id] = 8*int(float(max(self.segment_sizes[track_id][:-1]))/self.average_segment_duration[track_id])
 
+        # print debug info if requested
         if Options.debug:
             for t in [('Audio track', self.audio_track_id), ('Video track', self.video_track_id)]:
                 print t[0]+':'
-                print '    ID               =', t[1]
-                print '    Sample Count     =', self.total_samples[t[1]]
-                print '    Average bitrate  =', self.average_segment_bitrate[t[1]]
-                print '    Max bitrate      =', self.average_segment_bitrate[t[1]]
-                print '    Segment duration =', self.segment_duration[t[1]]
+                print '    ID                       =', t[1]
+                print '    Sample Count             =', self.total_samples[t[1]]
+                print '    Average segment bitrate  =', self.average_segment_bitrate[t[1]]
+                print '    Max segment bitrate      =', self.average_segment_bitrate[t[1]]
+                print '    Average segment duration =', self.average_segment_duration[t[1]]
 
 def MakeNewDir(dir, is_warning=False):
     if os.path.exists(dir):
@@ -273,7 +328,7 @@ def AddSegmentList(container, subdir, media_file, track_id, use_byte_range=False
     segment_list = xml.SubElement(container,
                                   'SegmentList',
                                   timescale='1000',
-                                  duration=str(int(media_file.segment_duration[track_id]*1000)))
+                                  duration=str(int(media_file.average_segment_duration[track_id]*1000)))
     if use_byte_range:
         byte_range=str(media_file.init_segment.position)+'-'+str(media_file.init_segment.position+media_file.init_segment.size-1)
         xml.SubElement(segment_list, 'Initialization', sourceURL=prefix+(LINEAR_PATTERN % (media_file.index)), range=byte_range)
@@ -299,7 +354,7 @@ def AddSegmentTemplate(container, subdir, media_file, track_id):
     segment_list = xml.SubElement(container,
                                   'SegmentTemplate',
                                   timescale='1000',
-                                  duration=str(int(media_file.segment_duration[track_id]*1000)),
+                                  duration=str(int(media_file.average_segment_duration[track_id]*1000)),
                                   startNumber='0',
                                   initialization=prefix+INIT_SEGMENT_NAME,
                                   media=prefix+SEGMENT_TEMPLATE)
@@ -333,7 +388,7 @@ def main():
     # determine the platform binary name
     platform = sys.platform
     if platform.startswith('linux'):
-        platform = 'linux'
+        platform = 'linux-x86'
     elif platform.startswith('darwin'):
         platform = 'macosx'
                 
@@ -363,17 +418,11 @@ def main():
     parser.add_option('', "--min-buffer-time", metavar='<duration>',
                       dest="min_buffer_time", type="float", default=0.0,
                       help="Minimum buffer time (in seconds)")
-    parser.add_option('', "--video-frame-rate", metavar='<rate>',
-                      dest="video_frame_rate", type="float", default=23.976,
-                      help="Video frame rate (in frames per second)")
     parser.add_option('', "--video-codec", metavar='<codec>',
-                      dest="video_codec", default='avc1.42c015',
+                      dest="video_codec", default=None,
                       help="Video codec string")
-    parser.add_option('', "--audio-sample-rate", metavar='<rate>',
-                      dest="audio_sample_rate", type="float", default=0,
-                      help="Audio sample rate (in samples per second)")
     parser.add_option('', "--audio-codec", metavar='<codec>',
-                      dest="audio_codec", default='mp4a.40.2',
+                      dest="audio_codec", default=None,
                       help="Audio codec string")
     parser.add_option('', "--marlin",
                       dest="marlin", action="store_true", default=False,
@@ -409,8 +458,6 @@ def main():
         # get the file info
         mp4_file = Mp4File(media_file)
         mp4_file.index = 1+len(media_files)
-        #print mp4_file.media_size
-        #print mp4_file.bitrate
         
         # check the file
         if mp4_file.info['movie']['fragments'] != True:
@@ -421,49 +468,104 @@ def main():
         # add the file to the file
         media_files.append(mp4_file)
         
-    # check that segments are aligned
-    audio_track_id = media_files[0].audio_track_id
-    video_track_id = media_files[0].video_track_id
+    # select the file that we will use as the audio and video references
+    audio_ref = None
+    video_ref = None
     for media_file in media_files:
-        if media_file.audio_track_id != audio_track_id:
-            PrintErrorAndExit('ERROR: audio track ID mismatch between file '+str(media_files[0].index)+' and '+str(media_file.index))
+        if audio_ref is None and media_file.audio_track is not None:
+            audio_ref = media_file
+        if video_ref is None and media_file.video_track is not None:
+            video_ref = media_file
+    if audio_ref is None:
+        PrintErrorAndExit('ERROR: none of the files contain an audio track')        
+    if video_ref is None:
+        PrintErrorAndExit('ERROR: none of the files contain a video track')        
+    
+    # check that segments are consistent between files
+    audio_track_id = audio_ref.audio_track_id
+    video_track_id = video_ref.video_track_id
+    for media_file in media_files:
         if media_file.video_track_id != video_track_id:
-            PrintErrorAndExit('ERROR: video track ID mismatch between file '+str(media_files[0].index)+' and '+str(media_file.index))
-        if media_files[0].sample_counts[video_track_id] != media_file.sample_counts[video_track_id]:
-            PrintErrorAndExit('ERROR: video sample count mismatch between file '+str(media_files[0].index)+' and '+str(media_file.index))
+            PrintErrorAndExit('ERROR: video track ID mismatch between file '+str(video_ref.index)+' and '+str(media_file.index))
+        if video_ref.sample_counts[video_track_id] != media_file.sample_counts[video_track_id]:
+            PrintErrorAndExit('ERROR: video sample count mismatch between file '+str(video_ref.index)+' and '+str(media_file.index))
+        
+    # check that the segment durations are almost all equal
+    average_video_segment_duration = video_ref.average_segment_duration[video_track_id]
+    for media_file in media_files:
+        for segment_duration in media_file.segment_durations[video_track_id][:-1]:
+            ratio = segment_duration/average_video_segment_duration
+            if ratio > 1.1 or ratio < 0.9:
+                print 'WARNING: segment durations for', media_file.index, 'vary by more than 10%'
+    average_audio_segment_duration = audio_ref.average_segment_duration[audio_track_id]
+    for segment_duration in audio_ref.segment_durations[audio_track_id][:-1]:
+        ratio = segment_duration/average_audio_segment_duration
+        if ratio > 1.1 or ratio < 0.9:
+            print 'WARNING: segment durations for', media_file.index, 'vary by more than 10%'
+    
+    # compute the audio codec
+    audio_codec = options.audio_codec
+    if audio_codec is None and audio_ref:
+        audio_desc = audio_ref.audio_track['sample_descriptions'][0]
+        if audio_desc['coding'] == 'mp4a':
+            audio_codec = 'mp4a.%02x' % (audio_desc['object_type'])
+            if audio_desc['object_type'] == 64:
+                audio_codec += '.%02x' % (audio_desc['mpeg_4_audio_object_type'])
+    if audio_codec is None:
+        PrintErrorAndExit('ERROR: unable to determine the audio codec')
+                    
+    # compute the total duration
+    presentation_duration = 0.0
+    for media_file in media_files:
+        if media_file.total_duration[video_track_id] > presentation_duration:
+            presentation_duration = media_file.total_duration[video_track_id]
         
     # compute some values if not set
     if options.min_buffer_time == 0.0:
-        options.min_buffer_time = media_files[0].segment_duration[media_files[0].video_track_id]
+        options.min_buffer_time = video_ref.average_segment_duration[video_track_id]
         
     # create the MPD
     mpd = xml.Element('MPD', 
                       xmlns=MPD_NS, 
                       profiles=ISOFF_LIVE_PROFILE, 
                       minBufferTime="PT%.02fS" % (options.min_buffer_time), 
-                      mediaPresentationDuration=XmlDuration(int(mp4_file.info['movie']['duration_ms'])/1000),
+                      mediaPresentationDuration=XmlDuration(int(presentation_duration)),
                       type='static')
     period = xml.SubElement(mpd, 'Period')
 
-    # use the first media file for audio
+    # process the audio
     adaptation_set = xml.SubElement(period, 'AdaptationSet', mimeType=AUDIO_MIMETYPE, segmentAlignment='true')
     if options.marlin:
-        AddContentProtection(adaptation_set, [media_files[0]], 'audio')
-    bandwidth = media_files[0].max_segment_bitrate[media_files[0].audio_track_id]
-    representation = xml.SubElement(adaptation_set, 'Representation', id='audio', codecs=options.audio_codec, bandwidth=str(bandwidth))
+        AddContentProtection(adaptation_set, [audio_ref], 'audio')
+    bandwidth = audio_ref.max_segment_bitrate[audio_track_id]
+    representation = xml.SubElement(adaptation_set, 'Representation', id='audio', codecs=audio_codec, bandwidth=str(bandwidth))
     if options.split:
-        AddSegments(representation, 'audio', media_files[0], media_files[0].audio_track_id)
+        AddSegments(representation, 'audio', audio_ref, audio_track_id)
     else:
-        AddSegments(representation, None, media_files[0], media_files[0].audio_track_id, use_byte_range=True)
+        AddSegments(representation, None, audio_ref, audio_track_id, use_byte_range=True)
         
-
     # process all the video
     adaptation_set = xml.SubElement(period, 'AdaptationSet', mimeType=VIDEO_MIMETYPE, segmentAlignment='true', startWithSAP='1')
     if options.marlin:
         AddContentProtection(adaptation_set, media_files, 'video')
     for media_file in media_files:
+        video_desc = media_file.video_track['sample_descriptions'][0]
+
+        # compute the codecs
+        video_codec = options.video_codec
+        if video_codec is None:
+            if video_desc['coding'].startswith('avc'):
+                video_codec = video_desc['coding']+'.%02x%02x%02x'%(video_desc['avc_profile'], video_desc['avc_profile_compat'], video_desc['avc_level'])
+        if video_codec is None:
+            PrintErrorAndExit('ERROR: unable to determine the video codec')
+
+        # get the width and height
+        video_width  = video_desc['width']
+        video_height = video_desc['height']
+            
+        
         bandwidth = media_file.max_segment_bitrate[media_file.video_track_id]
-        representation = xml.SubElement(adaptation_set, 'Representation', id='video.'+str(media_file.index), codecs=options.video_codec, bandwidth=str(bandwidth))
+        representation = xml.SubElement(adaptation_set, 'Representation', id='video.'+str(media_file.index), codecs=video_codec, width=str(video_width), height=str(video_height), bandwidth=str(bandwidth))
         if options.split:
             AddSegments(representation, 'video/'+str(media_file.index), media_file, media_file.video_track_id)
         else:
@@ -483,7 +585,7 @@ def main():
         if options.split:
             out_dir = path.join(options.output_dir, 'audio')
             MakeNewDir(out_dir)
-            print 'Processing media file (audio)', media_files[0].filename
+            print 'Processing media file (audio)', audio_ref.filename
             Mp4Split(media_file.work_filename,
                      no_track_id   = True,
                      init_segment  = path.join(out_dir, INIT_SEGMENT_NAME),
