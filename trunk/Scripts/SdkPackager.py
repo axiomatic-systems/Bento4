@@ -166,6 +166,10 @@ if script_bin_dir:
         (script_bin_in, 'mp4dump',    script_bin_out),
         (script_bin_in, 'mp4split',   script_bin_out),
         (script_bin_in, 'mp4encrypt', script_bin_out),
+        (script_bin_in, 'mp4info.exe',    script_bin_out),
+        (script_bin_in, 'mp4dump.exe',    script_bin_out),
+        (script_bin_in, 'mp4split.exe',   script_bin_out),
+        (script_bin_in, 'mp4encrypt.exe', script_bin_out)
     ]
     CopyFiles(script_files)
     
