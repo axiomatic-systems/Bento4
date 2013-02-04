@@ -5,7 +5,7 @@ __copyright__ = 'Copyright 2011-2012 Axiomatic Systems, LLC.'
 
 ###
 # NOTE: this script needs Bento4 command line binaries to run
-# You must place the 'mp4info' 'mp4dump' and 'mp4split' binaries
+# You must place the 'mp4info' 'mp4dump', 'mp4encrypt' and 'mp4split' binaries
 # in a directory named 'bin/<platform>' at the same level as where
 # this script is.
 # <platform> depends on the platform you're running on:
@@ -29,6 +29,7 @@ import struct
 import xml.etree.ElementTree as xml
 from xml.dom.minidom import parseString
 import operator
+import tempfile
 
 # setup main options
 SCRIPT_PATH = path.abspath(path.dirname(__file__))
@@ -87,6 +88,9 @@ def Mp4Dump(filename, **args):
 
 def Mp4Split(filename, **args):
     return Bento4Command('mp4split', filename, **args)
+
+def Mp4Encrypt(input_filename, output_filename, **args):
+    return Bento4Command('mp4encrypt', input_filename, output_filename, **args)
 
 class Mp4Atom:
     def __init__(self, type, size, position):
@@ -424,9 +428,11 @@ def main():
     parser.add_option('', "--audio-codec", metavar='<codec>',
                       dest="audio_codec", default=None,
                       help="Audio codec string")
+    parser.add_option('', "--encryption-key", dest="encryption_key", metavar='<KID>:<key>', default=None,
+                      help="Encrypt all audio and video tracks with AES key <key> (in hex) with KID <KID> (in hex)")
     parser.add_option('', "--marlin",
                       dest="marlin", action="store_true", default=False,
-                      help="Add Marlin signaling to the MPD")
+                      help="Add Marlin signaling to the MPD (requires an encrypted input, or the --encryption-key option)")
     parser.add_option('', "--exec-dir", metavar="<exec_dir>",
                       dest="exec_dir", default=path.join(SCRIPT_PATH, 'bin', platform),
                       help="Directory where the Bento4 executables are located")
@@ -447,10 +453,53 @@ def main():
     if not path.exists(Options.exec_dir):
         PrintErrorAndExit('Executable directory does not exist ('+Options.exec_dir+'), use --exec-dir')
 
+    # create the output directory
+    MakeNewDir(options.output_dir, is_warning=options.mpd_only)
+
+    # keep track of media file names (in case we use temporary files when encrypting)
+    file_name_map = {}
+    for media_file_name in media_file_names:
+        file_name_map[media_file_name] = media_file_name
+
+    # encrypt the input files if needed
+    encrypted_files = []
+    if options.encryption_key:
+        if ':' not in options.encryption_key:
+            raise Exception('Invalid argument syntax for --encryption-key option')
+        kid_b64, key_b64 = options.encryption_key.split(':')
+        if len(kid_b64) != 32 or len(key_b64) != 32:
+            raise Exception('Invalid argument format for --encryption-key option')
+            
+        track_ids = []
+        for media_file in media_file_names:
+            # get the mp4 file info
+            json_info = Mp4Info(media_file, format='json')
+            info = json.loads(json_info, strict=False)
+
+            track_ids = [track['id'] for track in info['tracks'] if track['type'] in ['Audio', 'Video']]
+            if options.verbose:
+                print 'Encrypting track IDs '+str(track_ids)+' in '+ media_file
+                encrypted_file = tempfile.NamedTemporaryFile(dir = options.output_dir)
+                encrypted_files.append(encrypted_file)
+                file_name_map[encrypted_file.name] = encrypted_file.name + ' (Encrypted ' + media_file + ')'
+                args = ['--method', 'MPEG-CENC']
+                args.append(media_file)
+                args.append(encrypted_file.name)
+                for track_id in track_ids:
+                    args += ['--key', str(track_id)+':'+key_b64+':random', '--property', str(track_id)+':KID:'+kid_b64] 
+                cmd = [path.join(Options.exec_dir, 'mp4encrypt')] + args
+                try:
+                    check_output(cmd) 
+                except CalledProcessError, e:
+                    raise Exception("binary tool failed with error %d" % e.returncode)
+    
+        # point to the encrypted files
+        media_file_names = [f.name for f in encrypted_files]
+            
     # parse the media files
     media_files = []
     for media_file in media_file_names:
-        print 'Parsing media file', str(1+len(media_files))+':', media_file
+        print 'Parsing media file', str(1+len(media_files))+':', file_name_map[media_file]
         if not os.path.exists(media_file):
             print 'ERROR: media file', media_file, ' does not exist'
             sys.exit(1)
@@ -580,12 +629,11 @@ def main():
                 print '  Video Track: max bitrate=%d, avg bitrate=%d' % (media_file.max_segment_bitrate[media_file.video_track_id], media_file.average_segment_bitrate[media_file.video_track_id])
         
     # create the directories and split the media
-    MakeNewDir(options.output_dir, is_warning=options.mpd_only)
     if not options.mpd_only:
         if options.split:
             out_dir = path.join(options.output_dir, 'audio')
             MakeNewDir(out_dir)
-            print 'Processing media file (audio)', audio_ref.filename
+            print 'Processing media file (audio)', file_name_map[audio_ref.filename]
             Mp4Split(media_file.work_filename,
                      no_track_id   = True,
                      init_segment  = path.join(out_dir, INIT_SEGMENT_NAME),
@@ -596,14 +644,14 @@ def main():
             if options.split:
                 out_dir = path.join(options.output_dir, 'video', str(media_file.index))
                 MakeNewDir(out_dir)
-                print 'Processing media file (video)', media_file.filename
+                print 'Processing media file (video)', file_name_map[media_file.filename]
                 Mp4Split(media_file.work_filename,
                          no_track_id   = True,
                          init_segment  = path.join(out_dir, INIT_SEGMENT_NAME),
                          media_segment = path.join(out_dir, SEGMENT_PATTERN),
                          video         = True)
             else:
-                print 'Processing media file', media_file.filename
+                print 'Processing media file', file_name_map[media_file.filename]
                 shutil.copyfile(media_file.work_filename,
                                 path.join(options.output_dir, LINEAR_PATTERN%(media_file.index)))
     

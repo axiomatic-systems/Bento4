@@ -386,7 +386,7 @@ def main():
     output_dir = args[1]
     if Options.encrypt:
         if len(Options.encrypt) != 65:
-            raise 'Invalid argument for --encrypt option'
+            raise Exception('Invalid argument for --encrypt option')
         Options.kid = Options.encrypt[:32].decode('hex')
         Options.key = Options.encrypt[33:].decode('hex') 
         
