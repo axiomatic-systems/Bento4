@@ -67,6 +67,7 @@ PrintUsageAndExit()
         "      instead of a hex-encoded value, in which case a randomly generated value\n"
         "      will be used.\n"
         "      (several --key options can be used, one for each track)\n"
+        "  --strict: fail if there is a warning (ex: one or more tracks would be left unencrypted)\n"
         "  --property <n>:<name>:<value>\n"
         "      Specifies a named string property for a track\n"
         "      <n> is a track ID, <name> a property name, and <value> is the\n"
@@ -138,6 +139,48 @@ ProgressListener::OnProgress(unsigned int step, unsigned int total)
 }
 
 /*----------------------------------------------------------------------
+|   CheckWarning
++---------------------------------------------------------------------*/
+static bool
+CheckWarning(AP4_ByteStream& stream, AP4_ProtectionKeyMap& key_map, Method method)
+{
+    AP4_File file(stream,
+                  AP4_DefaultAtomFactory::Instance,
+                  true);
+    AP4_Movie* movie = file.GetMovie();
+    if (!movie) {
+        fprintf(stderr, "WARNING: no movie atom found in input file\n");
+        return false;
+    }
+
+    bool warning = false;
+    switch (method) {
+        case METHOD_MPEG_CENC:
+            if (!movie->HasFragments()) {
+                fprintf(stderr, "WARNING: MPEG-CENC method only applies to fragmented files\n");
+                warning = true;
+            }
+            break;
+        default:
+            break;
+    }
+
+    for (unsigned int i=0; i<movie->GetTracks().ItemCount(); i++) {
+        AP4_Track* track;
+        AP4_Result result = movie->GetTracks().Get(i, track);
+        if (AP4_FAILED(result)) return false;
+        const AP4_DataBuffer* key = key_map.GetKey(track->GetId());
+        if (key == NULL) {
+            fprintf(stderr, "WARNING: track ID %d will not be encrypted\n", track->GetId());
+            warning = true;
+        }
+    }
+    
+    stream.Seek(0);
+    return warning;
+}
+
+/*----------------------------------------------------------------------
 |   main
 +---------------------------------------------------------------------*/
 int
@@ -154,6 +197,7 @@ main(int argc, char** argv)
     AP4_ProtectionKeyMap key_map;
     AP4_TrackPropertyMap property_map;
     bool                 show_progress = false;
+    bool                 strict = false;
     AP4_Result           result;
 
     // parse the command line arguments
@@ -205,6 +249,8 @@ main(int argc, char** argv)
             kms_uri = arg;
         } else if (!strcmp(arg, "--show-progress")) {
             show_progress = true;
+        } else if (!strcmp(arg, "--show-progress")) {
+            strict = true;
         } else if (!strcmp(arg, "--key")) {
             if (method == METHOD_NONE) {
                 fprintf(stderr, "ERROR: --method argument must appear before --key\n");
@@ -433,7 +479,7 @@ main(int argc, char** argv)
         return 1;
     }
 
-    // create the fragments stream if needed
+    // create the fragments info stream if needed
     AP4_ByteStream* fragments_info = NULL;
     if (fragments_info_filename) {
         result = AP4_FileByteStream::Create(fragments_info_filename, AP4_FileByteStream::STREAM_MODE_READ, fragments_info);
@@ -446,8 +492,12 @@ main(int argc, char** argv)
     // process/decrypt the file
     ProgressListener listener;
     if (fragments_info) {
+        bool check = CheckWarning(*fragments_info, key_map, method);
+        if (strict && check) return 1;
         result = processor->Process(*input, *output, *fragments_info, show_progress?&listener:NULL);
     } else {
+        bool check = CheckWarning(*input, key_map, method);
+        if (strict && check) return 1;
         result = processor->Process(*input, *output, show_progress?&listener:NULL);
     }
     if (AP4_FAILED(result)) {

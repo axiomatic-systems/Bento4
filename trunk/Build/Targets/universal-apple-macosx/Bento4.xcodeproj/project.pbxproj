@@ -335,6 +335,9 @@
 		CABB61F70F02BADB00B53D31 /* TracksTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CABB61EF0F02B85900B53D31 /* TracksTest.cpp */; };
 		CAC02A19139DBA6F0034427F /* Mp4Split.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAC02A18139DBA6F0034427F /* Mp4Split.cpp */; };
 		CAC51D76129708CB00AE5CF9 /* Ap4PosixRandom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAC51D75129708CB00AE5CF9 /* Ap4PosixRandom.cpp */; };
+		CAC8F17616BE444E00C49741 /* Mp4AudioClip.1 in CopyFiles */ = {isa = PBXBuildFile; fileRef = CAC8F17516BE444E00C49741 /* Mp4AudioClip.1 */; };
+		CAC8F17C16BE448300C49741 /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAA7E6C914ACD763008AA54E /* libBento4.a */; };
+		CACDDD6916BF5FE500B79B20 /* Mp4AudioClip.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CACDDD6816BF5FC200B79B20 /* Mp4AudioClip.cpp */; };
 		CAD6A7C40F7AFFD800456513 /* Ap4DynamicCast.h in Headers */ = {isa = PBXBuildFile; fileRef = CAD6A7C30F7AFFD800456513 /* Ap4DynamicCast.h */; };
 		CAE03ABF1034AE0D006FAFD7 /* Ap4Hmac.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAE03ABD1034AE0D006FAFD7 /* Ap4Hmac.cpp */; };
 		CAE03AC01034AE0D006FAFD7 /* Ap4Hmac.h in Headers */ = {isa = PBXBuildFile; fileRef = CAE03ABE1034AE0D006FAFD7 /* Ap4Hmac.h */; };
@@ -701,6 +704,13 @@
 			remoteGlobalIDString = D2AAC045055464E500DB518D;
 			remoteInfo = Bento4;
 		};
+		CAC8F17A16BE447A00C49741 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D2AAC045055464E500DB518D;
+			remoteInfo = Bento4;
+		};
 		CAE7240A0FC3364E008F2905 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
@@ -794,6 +804,16 @@
 			dstPath = /usr/share/man/man1/;
 			dstSubfolderSpec = 0;
 			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+		CAC8F16E16BE444D00C49741 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+				CAC8F17616BE444E00C49741 /* Mp4AudioClip.1 in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 1;
 		};
@@ -1063,6 +1083,10 @@
 		CAC02A0C139DBA350034427F /* mp4split */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mp4split; sourceTree = BUILT_PRODUCTS_DIR; };
 		CAC02A18139DBA6F0034427F /* Mp4Split.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Mp4Split.cpp; sourceTree = "<group>"; };
 		CAC51D75129708CB00AE5CF9 /* Ap4PosixRandom.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4PosixRandom.cpp; sourceTree = "<group>"; };
+		CAC8F17016BE444D00C49741 /* mp4audioclip */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mp4audioclip; sourceTree = BUILT_PRODUCTS_DIR; };
+		CAC8F17316BE444E00C49741 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		CAC8F17516BE444E00C49741 /* Mp4AudioClip.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = Mp4AudioClip.1; sourceTree = "<group>"; };
+		CACDDD6816BF5FC200B79B20 /* Mp4AudioClip.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Mp4AudioClip.cpp; sourceTree = "<group>"; };
 		CAD6A7C30F7AFFD800456513 /* Ap4DynamicCast.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4DynamicCast.h; sourceTree = "<group>"; };
 		CAE03ABD1034AE0D006FAFD7 /* Ap4Hmac.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4Hmac.cpp; sourceTree = "<group>"; };
 		CAE03ABE1034AE0D006FAFD7 /* Ap4Hmac.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4Hmac.h; sourceTree = "<group>"; };
@@ -1297,6 +1321,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		CAC8F16D16BE444D00C49741 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CAC8F17C16BE448300C49741 /* libBento4.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		CAE724040FC33645008F2905 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -1361,6 +1393,7 @@
 				CA646A860CE97B2D009699D7 /* Apps */,
 				CA646A9B0CE97B51009699D7 /* Test */,
 				C6A0FF2B0290797F04C91782 /* Documentation */,
+				CAC8F17216BE444E00C49741 /* Mp4AudioClip */,
 				1AB674ADFE9D54B511CA2CBB /* Products */,
 			);
 			name = Bento4;
@@ -1415,6 +1448,7 @@
 				CAC02A0C139DBA350034427F /* mp4split */,
 				CA00CB7C13D9F13B00C1A140 /* mp4compact */,
 				CAA7E6C914ACD763008AA54E /* libBento4.a */,
+				CAC8F17016BE444D00C49741 /* mp4audioclip */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1485,11 +1519,13 @@
 		CA646A860CE97B2D009699D7 /* Apps */ = {
 			isa = PBXGroup;
 			children = (
-				CA3EDA780D7E0B6B007AE943 /* AvcInfo */,
 				CA646A870CE97B2D009699D7 /* Aac2Mp4 */,
+				CA3EDA780D7E0B6B007AE943 /* AvcInfo */,
 				CA646A890CE97B2D009699D7 /* Mp42Aac */,
 				CA2E6A361087E07C00F837E2 /* Mp42Avc */,
 				CA00667B1015399A004C0D5F /* Mp42Ts */,
+				CACDDD6716BF5FC200B79B20 /* Mp4AudioClip */,
+				CA00CB8513D9F1EC00C1A140 /* Mp4Compact */,
 				CA44C5260D46371C00173F5F /* Mp4DcfPackager */,
 				CA646A8B0CE97B2D009699D7 /* Mp4Decrypt */,
 				CA646A8D0CE97B2D009699D7 /* Mp4Dump */,
@@ -1499,9 +1535,8 @@
 				CA6103E2128599C20039C7E6 /* Mp4Fragment */,
 				CA646A950CE97B2D009699D7 /* Mp4Info */,
 				CA646A970CE97B2D009699D7 /* Mp4RtpHintInfo */,
-				CA646A990CE97B2D009699D7 /* Mp4Tag */,
 				CAC02A17139DBA6F0034427F /* Mp4Split */,
-				CA00CB8513D9F1EC00C1A140 /* Mp4Compact */,
+				CA646A990CE97B2D009699D7 /* Mp4Tag */,
 			);
 			name = Apps;
 			path = "../../../Source/C++/Apps";
@@ -1939,6 +1974,23 @@
 			name = Posix;
 			path = "../../../Source/C++/System/Posix";
 			sourceTree = SOURCE_ROOT;
+		};
+		CAC8F17216BE444E00C49741 /* Mp4AudioClip */ = {
+			isa = PBXGroup;
+			children = (
+				CAC8F17316BE444E00C49741 /* main.cpp */,
+				CAC8F17516BE444E00C49741 /* Mp4AudioClip.1 */,
+			);
+			path = Mp4AudioClip;
+			sourceTree = "<group>";
+		};
+		CACDDD6716BF5FC200B79B20 /* Mp4AudioClip */ = {
+			isa = PBXGroup;
+			children = (
+				CACDDD6816BF5FC200B79B20 /* Mp4AudioClip.cpp */,
+			);
+			path = Mp4AudioClip;
+			sourceTree = "<group>";
 		};
 		CAE724010FC3362B008F2905 /* LinearReader */ = {
 			isa = PBXGroup;
@@ -2561,6 +2613,24 @@
 			productReference = CAC02A0C139DBA350034427F /* mp4split */;
 			productType = "com.apple.product-type.tool";
 		};
+		CAC8F16F16BE444D00C49741 /* Mp4AudioClip */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CAC8F17916BE444E00C49741 /* Build configuration list for PBXNativeTarget "Mp4AudioClip" */;
+			buildPhases = (
+				CAC8F16C16BE444D00C49741 /* Sources */,
+				CAC8F16D16BE444D00C49741 /* Frameworks */,
+				CAC8F16E16BE444D00C49741 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CAC8F17B16BE447A00C49741 /* PBXTargetDependency */,
+			);
+			name = Mp4AudioClip;
+			productName = Mp4AudioClip;
+			productReference = CAC8F17016BE444D00C49741 /* mp4audioclip */;
+			productType = "com.apple.product-type.tool";
+		};
 		CAE724050FC33645008F2905 /* LinearReaderTest */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = CAE724220FC33682008F2905 /* Build configuration list for PBXNativeTarget "LinearReaderTest" */;
@@ -2726,6 +2796,7 @@
 				CA2E6A3A1087E09200F837E2 /* Mp42Avc */,
 				CA00667210153951004C0D5F /* Mp42Ts */,
 				CA646B500CE97E52009699D7 /* Mp4RtpHintInfo */,
+				CAC8F16F16BE444D00C49741 /* Mp4AudioClip */,
 				CA399C9710A3475E0085284B /* Aac2Mp4 */,
 				CA3EDA7D0D7E0B81007AE943 /* AvcInfo */,
 				CA646B600CE97E82009699D7 /* CryptoTest */,
@@ -2933,6 +3004,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				CAC02A19139DBA6F0034427F /* Mp4Split.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CAC8F16C16BE444D00C49741 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CACDDD6916BF5FE500B79B20 /* Mp4AudioClip.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3343,6 +3422,11 @@
 			isa = PBXTargetDependency;
 			target = D2AAC045055464E500DB518D /* Bento4 */;
 			targetProxy = CAC02A10139DBA3B0034427F /* PBXContainerItemProxy */;
+		};
+		CAC8F17B16BE447A00C49741 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D2AAC045055464E500DB518D /* Bento4 */;
+			targetProxy = CAC8F17A16BE447A00C49741 /* PBXContainerItemProxy */;
 		};
 		CAE7240B0FC3364E008F2905 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -3926,6 +4010,52 @@
 			};
 			name = Release;
 		};
+		CAC8F17716BE444E00C49741 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = mp4audioclip;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		CAC8F17816BE444E00C49741 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
+				PRODUCT_NAME = mp4audioclip;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
 		CAE724080FC33646008F2905 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -4282,6 +4412,15 @@
 			buildConfigurations = (
 				CAC02A0E139DBA360034427F /* Debug */,
 				CAC02A0F139DBA360034427F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CAC8F17916BE444E00C49741 /* Build configuration list for PBXNativeTarget "Mp4AudioClip" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CAC8F17716BE444E00C49741 /* Debug */,
+				CAC8F17816BE444E00C49741 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
