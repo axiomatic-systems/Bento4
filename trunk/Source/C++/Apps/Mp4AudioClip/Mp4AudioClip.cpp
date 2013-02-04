@@ -160,6 +160,7 @@ main(int argc, char** argv)
         // obtain the sample data stream in a variable so that we can release the reference
         AP4_ByteStream* sample_stream = sample.GetDataStream();
         
+        // add a sample to the sample table
         sample_table->AddSample(*sample_stream,
                                 sample.GetOffset(),
                                 sample.GetSize(),
@@ -170,11 +171,14 @@ main(int argc, char** argv)
                                 true);
         sample_stream->Release(); // the sample table has kept its own reference
         
+        // update the current timestamp
         dts += sample.GetDuration();
+        
+        // stop if we've exceeded the duration
         if (dts > max_dts) break;
     }
     
-    // compute the actual duration
+    // compute the actual effective duration (could be less than what was asked for)
     duration_ms = (AP4_UI32)AP4_ConvertTime(dts, input_track->GetMediaTimeScale(), 1000);
     
     // create an output track
