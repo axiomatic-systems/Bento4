@@ -477,21 +477,20 @@ def main():
             info = json.loads(json_info, strict=False)
 
             track_ids = [track['id'] for track in info['tracks'] if track['type'] in ['Audio', 'Video']]
-            if options.verbose:
-                print 'Encrypting track IDs '+str(track_ids)+' in '+ media_file
-                encrypted_file = tempfile.NamedTemporaryFile(dir = options.output_dir)
-                encrypted_files.append(encrypted_file)
-                file_name_map[encrypted_file.name] = encrypted_file.name + ' (Encrypted ' + media_file + ')'
-                args = ['--method', 'MPEG-CENC']
-                args.append(media_file)
-                args.append(encrypted_file.name)
-                for track_id in track_ids:
-                    args += ['--key', str(track_id)+':'+key_b64+':random', '--property', str(track_id)+':KID:'+kid_b64] 
-                cmd = [path.join(Options.exec_dir, 'mp4encrypt')] + args
-                try:
-                    check_output(cmd) 
-                except CalledProcessError, e:
-                    raise Exception("binary tool failed with error %d" % e.returncode)
+            print 'Encrypting track IDs '+str(track_ids)+' in '+ media_file
+            encrypted_file = tempfile.NamedTemporaryFile(dir = options.output_dir)
+            encrypted_files.append(encrypted_file)
+            file_name_map[encrypted_file.name] = encrypted_file.name + ' (Encrypted ' + media_file + ')'
+            args = ['--method', 'MPEG-CENC']
+            args.append(media_file)
+            args.append(encrypted_file.name)
+            for track_id in track_ids:
+                args += ['--key', str(track_id)+':'+key_b64+':random', '--property', str(track_id)+':KID:'+kid_b64] 
+            cmd = [path.join(Options.exec_dir, 'mp4encrypt')] + args
+            try:
+                check_output(cmd) 
+            except CalledProcessError, e:
+                raise Exception("binary tool failed with error %d" % e.returncode)
     
         # point to the encrypted files
         media_file_names = [f.name for f in encrypted_files]
