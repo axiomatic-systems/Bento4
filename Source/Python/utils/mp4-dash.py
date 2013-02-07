@@ -409,7 +409,7 @@ def main():
     parser.add_option('', '--init-segment', dest="init_segment",
                       help="Initialization segment name", metavar="<filename>", default='init.mp4')
     parser.add_option('-m', '--mpd-name', dest="mpd_filename",
-                      help="MPD file name", metavar="<filename>", default='mpd.xml')
+                      help="MPD file name", metavar="<filename>", default='stream.mpd')
     parser.add_option('', '--mpd-only', dest="mpd_only",
                       action='store_true', default=False,
                       help="Only output the MPD file (no media processing)")
