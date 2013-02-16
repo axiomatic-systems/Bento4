@@ -1,0 +1,25 @@
+env['BLT_RELAXED_ENV'] = env
+
+### compiler flags
+env.AppendUnique(CCFLAGS = ['-w9'])
+env.AppendUnique(CFLAGS  = [])
+env.AppendUnique(CPPFLAGS = [])
+
+if env['build_config'] == 'Debug':
+    env.AppendUnique(CCFLAGS = '-g')
+else:
+    env.AppendUnique(CCFLAGS = '-O')
+
+env['ARCOM']  = 'qcc -A $TARGET $SOURCES'
+env['RANLIB'] = 'echo'
+env['CC']     = 'qcc -lang-c'
+env['CXX']    = 'qcc -lang-c++'
+env['LINK']   = 'qcc -lang-c++'
+
+env['SHOBJSUFFIX'] = '.o'
+env['ENV']['PATH'] = os.environ['PATH'] + ':' + env['ENV']['PATH']
+env['ENV']['QNX_HOST'] = os.environ['QNX_HOST']
+env['ENV']['QNX_TARGET'] = os.environ['QNX_TARGET']
+
+
+env.AppendUnique(CPPDEFINES = [('AP4_PLATFORM_BYTE_ORDER', 'AP4_PLATFORM_BYTE_ORDER_LITTLE_ENDIAN')])
