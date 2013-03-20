@@ -674,8 +674,8 @@ ShowTrackInfo_Text(AP4_Track& track, bool show_samples, bool show_sample_data, b
         printf("  display height: %f\n", (float)track.GetHeight()/65536.0);
     }
     if (track.GetType() == AP4_Track::TYPE_VIDEO && track.GetSampleCount()) {
-        printf("  frame rate (computed): %.3f\n", (float)1000*track.GetSampleCount()/
-                                                  (float)track.GetDurationMs());
+        printf("  frame rate (computed): %.3f\n", (float)track.GetSampleCount()/
+                                                  ((float)track.GetMediaDuration()/(float)track.GetMediaTimeScale()));
     }
     
     // show all sample descriptions

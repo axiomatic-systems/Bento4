@@ -53,7 +53,8 @@ struct Options {
     const char*  input;
     const char*  init_segment_name;
     const char*  media_segment_name;
-    bool         no_track_id;
+    unsigned int track_id;
+    bool         no_track_id_in_pattern;
     bool         audio_only;
     bool         video_only;
     unsigned int track_filter;
@@ -72,8 +73,9 @@ PrintUsageAndExit()
             "  --verbose\n"
             "  --init-segment <filename> (default: init.mp4)\n"
             "  --media-segment <filename-pattern> (default: segment-%%d.%%04d.m4f\n"
-            "    or segment-%%04d.m4f if the --no-track-id option is used)\n"
-            "  --no-track-id\n"
+            "    or segment-%%04d.m4f if the --no-track-id-in-pattern option is used)\n"
+            "  --no-track-id-in-pattern\n"
+            "  --track-id <track-id>\n"
             "  --audio\n"
             "  --video\n");
     exit(1);
@@ -114,14 +116,15 @@ main(int argc, char** argv)
     }
     
     // default options
-    Options.verbose            = false;
-    Options.input              = NULL;
-    Options.init_segment_name  = AP4_SPLIT_DEFAULT_INIT_SEGMENT_NAME;
-    Options.media_segment_name = NULL;
-    Options.no_track_id        = false;
-    Options.audio_only         = false;
-    Options.video_only         = false;
-    Options.track_filter       = 0;
+    Options.verbose                = false;
+    Options.input                  = NULL;
+    Options.init_segment_name      = AP4_SPLIT_DEFAULT_INIT_SEGMENT_NAME;
+    Options.media_segment_name     = NULL;
+    Options.no_track_id_in_pattern = false;
+    Options.track_id               = 0;
+    Options.audio_only             = false;
+    Options.video_only             = false;
+    Options.track_filter           = 0;
     
     // parse command line
     AP4_Result result;
@@ -141,8 +144,10 @@ main(int argc, char** argv)
                 return 1;
             }
             Options.media_segment_name = *args++;
-        } else if (!strcmp(arg, "--no-track-id")) {
-            Options.no_track_id = true;
+        } else if (!strcmp(arg, "--no-track-id-in-pattern")) {
+            Options.no_track_id_in_pattern = true;
+        } else if (!strcmp(arg, "--track-id")) {
+            Options.track_id = strtoul(*args++, NULL, 10);
         } else if (!strcmp(arg, "--audio")) {
             Options.audio_only = true;
         } else if (!strcmp(arg, "--video")) {
@@ -160,12 +165,14 @@ main(int argc, char** argv)
         fprintf(stderr, "ERROR: missing input file name\n");
         return 1;
     }
-    if (Options.audio_only && Options.video_only) {
-        fprintf(stderr, "ERROR: --audio and --video options are mutualy exclusive\n");
+    if ((Options.audio_only && (Options.video_only || Options.track_id)) ||
+        (Options.video_only && (Options.audio_only || Options.track_id)) ||
+        (Options.track_id   && (Options.audio_only || Options.video_only))) {
+        fprintf(stderr, "ERROR: --audio, --video and --track-id options are mutualy exclusive\n");
         return 1;
     }
     if (Options.media_segment_name == NULL) {
-        if (Options.no_track_id) {
+        if (Options.no_track_id_in_pattern) {
             Options.media_segment_name = AP4_SPLIT_DEFAULT_MEDIA_SEGMENT_NAME_NO_TRACK_ID;
         } else {
             Options.media_segment_name = AP4_SPLIT_DEFAULT_MEDIA_SEGMENT_NAME;
@@ -200,6 +207,13 @@ main(int argc, char** argv)
         AP4_Track* track = movie->GetTrack(AP4_Track::TYPE_VIDEO);
         if (track == NULL) {
             fprintf(stderr, "--video option specified, but no video track found\n");
+            return 1;
+        }
+        Options.track_filter = track->GetId();
+    } else if (Options.track_id) {
+        AP4_Track* track = movie->GetTrack(Options.track_id);
+        if (track == NULL) {
+            fprintf(stderr, "--track-id option specified, but no such track found\n");
             return 1;
         }
         Options.track_filter = track->GetId();
@@ -270,7 +284,7 @@ main(int argc, char** argv)
             }
             char segment_name[4096];
             if (Options.track_filter == 0 || Options.track_filter == track_id) {
-                if (Options.no_track_id) {
+                if (Options.no_track_id_in_pattern) {
                     sprintf(segment_name, Options.media_segment_name, NextFragmentIndex(track_id));
                 } else {
                     sprintf(segment_name, Options.media_segment_name, track_id, NextFragmentIndex(track_id));

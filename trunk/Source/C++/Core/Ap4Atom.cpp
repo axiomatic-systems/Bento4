@@ -779,7 +779,7 @@ AP4_PrintInspector::StartAtom(const char* name,
     // write atom name
     char info[128];
     char extra[32] = "";
-    if (header_size == 12 || header_size == 20) {
+    if (header_size == 28 || header_size == 12 || header_size == 20) {
         if (version && flags) {
             AP4_FormatString(extra, sizeof(extra), 
                              ", version=%d, flags=%x",

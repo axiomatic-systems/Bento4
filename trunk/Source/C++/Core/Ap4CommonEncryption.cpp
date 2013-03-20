@@ -1696,9 +1696,9 @@ AP4_CencSampleInfoTable::Create(AP4_ProtectedSampleDescription* sample_descripti
     // check the scheme
     if (sample_description->GetSchemeType() == AP4_PROTECTION_SCHEME_TYPE_PIFF) {
         // we don't support PIFF 1.0 anymore!
-        if (sample_description->GetSchemeVersion() != AP4_PROTECTION_SCHEME_VERSION_PIFF_11) {
-            return AP4_ERROR_NOT_SUPPORTED;
-        }
+        //if (sample_description->GetSchemeVersion() != AP4_PROTECTION_SCHEME_VERSION_PIFF_11) {
+        //    return AP4_ERROR_NOT_SUPPORTED;
+        //}
     } else if (sample_description->GetSchemeType() == AP4_PROTECTION_SCHEME_TYPE_CENC) {
         if (sample_description->GetSchemeVersion() != AP4_PROTECTION_SCHEME_VERSION_CENC_10) {
             return AP4_ERROR_NOT_SUPPORTED;
@@ -2261,7 +2261,7 @@ AP4_CencSampleEncryption::DoInspectFields(AP4_AtomInspector& inspector)
     if (iv_size == 0) {
         if (m_Outer.GetFlags() & AP4_CENC_SAMPLE_ENCRYPTION_FLAG_USE_SUB_SAMPLE_ENCRYPTION) {
             bool data_ok = false;
-            for (unsigned int k=1; k<=2; k++) {
+            for (unsigned int k=1; k<=2 && !data_ok; k++) {
                 data_ok = true;
                 iv_size = 8*k;
                 const AP4_UI08* info = m_SampleInfos.GetData();
