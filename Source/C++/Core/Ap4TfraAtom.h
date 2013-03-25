@@ -52,6 +52,12 @@ public:
     // types
     struct Entry {
         Entry() : m_Time(0), m_MoofOffset(0), m_TrafNumber(0), m_TrunNumber(0), m_SampleNumber(0) {}
+        Entry(AP4_UI64 time,
+              AP4_UI64 moof_offset,
+              AP4_UI32 traf_number,
+              AP4_UI32 trun_number,
+              AP4_UI32 sample_number) :
+            m_Time(time), m_MoofOffset(moof_offset), m_TrafNumber(traf_number), m_TrunNumber(trun_number), m_SampleNumber(sample_number) {}
         AP4_UI64 m_Time;
         AP4_UI64 m_MoofOffset;
         AP4_UI32 m_TrafNumber;
@@ -63,19 +69,29 @@ public:
     static AP4_TfraAtom* Create(AP4_Size size, AP4_ByteStream& stream);
     
     // constructors 
-    AP4_TfraAtom();
+    AP4_TfraAtom(AP4_UI32 track_id,
+                 AP4_UI08 length_size_of_traf_number   = 0,
+                 AP4_UI08 length_size_of_trun_number   = 0,
+                 AP4_UI08 length_size_of_sample_number = 0);
 
     // methods
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
-
+    AP4_Result         AddEntry(AP4_UI64 time,
+                                AP4_UI64 moof_offset,
+                                AP4_UI32 traf_number = 1,
+                                AP4_UI32 trun_number = 1,
+                                AP4_UI32 sample_number = 1);
+    
     // accessors
     AP4_Array<Entry>& GetEntries() { return m_Entries; }
-
+    void     SetTrackId(AP4_UI32 track_id) { m_TrackId = track_id; }
+    AP4_UI32 GetTrackId( )                 { return m_TrackId;     }
+    
 private:
     // methods
     AP4_TfraAtom(AP4_UI32 size, AP4_UI32 version, AP4_UI32 flags, AP4_ByteStream& stream);
-
+        
     // members
     AP4_UI32         m_TrackId;
     AP4_UI08         m_LengthSizeOfTrafNumber;

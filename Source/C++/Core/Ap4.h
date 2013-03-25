@@ -304,6 +304,8 @@
 #include "Ap4BlocAtom.h"
 #include "Ap4AinfAtom.h"
 #include "Ap4PsshAtom.h"
+#include "Ap4TfraAtom.h"
+#include "Ap4MfroAtom.h"
 
 /*----------------------------------------------------------------------
 |   global functions

@@ -55,8 +55,15 @@ AP4_TfraAtom::Create(AP4_Size size, AP4_ByteStream& stream)
 /*----------------------------------------------------------------------
 |   AP4_TfraAtom::AP4_TfraAtom
 +---------------------------------------------------------------------*/
-AP4_TfraAtom::AP4_TfraAtom() :
-    AP4_Atom(AP4_ATOM_TYPE_TFRA, AP4_FULL_ATOM_HEADER_SIZE+4+4+4)
+AP4_TfraAtom::AP4_TfraAtom(AP4_UI32 track_id,
+                           AP4_UI08 length_size_of_traf_number,
+                           AP4_UI08 length_size_of_trun_number,
+                           AP4_UI08 length_size_of_sample_number) :
+    AP4_Atom(AP4_ATOM_TYPE_TFRA, AP4_FULL_ATOM_HEADER_SIZE+4+4+4, 0, 0),
+    m_TrackId(track_id),
+    m_LengthSizeOfTrafNumber(length_size_of_traf_number),
+    m_LengthSizeOfTrunNumber(length_size_of_trun_number),
+    m_LengthSizeOfSampleNumber(length_size_of_sample_number)
 {
 }
 
@@ -270,6 +277,29 @@ AP4_TfraAtom::WriteFields(AP4_ByteStream& stream)
         }
     }
     
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_TfraAtom::AddEntry
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_TfraAtom::AddEntry(AP4_UI64 time,
+                       AP4_UI64 moof_offset,
+                       AP4_UI32 traf_number,
+                       AP4_UI32 trun_number,
+                       AP4_UI32 sample_number)
+{
+    if (time > 0xFFFFFFFFULL || moof_offset > 0xFFFFFFFFULL) {
+        m_Version = 1;
+    }
+    Entry entry(time, moof_offset, traf_number, trun_number, sample_number);
+    m_Entries.Append(entry);
+    m_Size32 = AP4_FULL_ATOM_HEADER_SIZE+4+4+4 +
+               m_Entries.ItemCount()*((m_Version == 0 ? 8 : 16) +
+                                      m_LengthSizeOfTrafNumber+1+
+                                      m_LengthSizeOfTrunNumber+1+
+                                      m_LengthSizeOfSampleNumber+1);
     return AP4_SUCCESS;
 }
 

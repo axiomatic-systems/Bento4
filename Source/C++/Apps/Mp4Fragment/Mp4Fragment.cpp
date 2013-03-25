@@ -79,14 +79,16 @@ class TrackCursor
 {
 public:
     TrackCursor();
+    ~TrackCursor();
     
-    AP4_Result   SetTrack(AP4_Track* track);
-    AP4_Track*   m_Track;
-    unsigned int m_TrackId;
-    AP4_Ordinal  m_SampleIndex;
-    AP4_Sample   m_Sample;
-    bool         m_Eos;
-    AP4_UI64     m_TargetDuration;
+    AP4_Result    SetTrack(AP4_Track* track);
+    AP4_Track*    m_Track;
+    unsigned int  m_TrackId;
+    AP4_Ordinal   m_SampleIndex;
+    AP4_Sample    m_Sample;
+    bool          m_Eos;
+    AP4_UI64      m_TargetDuration;
+    AP4_TfraAtom* m_Tfra;
 };
 
 /*----------------------------------------------------------------------
@@ -97,8 +99,17 @@ TrackCursor::TrackCursor() :
     m_TrackId(0),
     m_SampleIndex(0),
     m_Eos(false),
-    m_TargetDuration(0)
+    m_TargetDuration(0),
+    m_Tfra(new AP4_TfraAtom(0))
 {
+}
+
+/*----------------------------------------------------------------------
+|   TrackCursor::~TrackCursor
++---------------------------------------------------------------------*/
+TrackCursor::~TrackCursor()
+{
+    delete m_Tfra;
 }
 
 /*----------------------------------------------------------------------
@@ -126,7 +137,7 @@ Fragment(AP4_File& input_file, AP4_ByteStream& output_stream, unsigned int fragm
     }
 
     // create the output file object
-    AP4_Movie* output_movie = new AP4_Movie();
+    AP4_Movie* output_movie = new AP4_Movie(1000); // timescale in milliseconds
     
     // create an mvex container
     AP4_ContainerAtom* mvex = new AP4_ContainerAtom(AP4_ATOM_TYPE_MVEX);
@@ -148,11 +159,13 @@ Fragment(AP4_File& input_file, AP4_ByteStream& output_stream, unsigned int fragm
             audio_cursor = new TrackCursor();
             cursor = audio_cursor;
             cursor->m_TrackId = AP4_FRAGMENTER_AUDIO_TRACK_ID;
+            cursor->m_Tfra->SetTrackId(AP4_FRAGMENTER_AUDIO_TRACK_ID);
         } else if (track->GetType() == AP4_Track::TYPE_VIDEO) {
             if (video_cursor) continue;
             video_cursor = new TrackCursor();
             cursor = video_cursor;
             cursor->m_TrackId = AP4_FRAGMENTER_VIDEO_TRACK_ID;
+            cursor->m_Tfra->SetTrackId(AP4_FRAGMENTER_VIDEO_TRACK_ID);
         } else {
             continue;
         }
@@ -171,7 +184,7 @@ Fragment(AP4_File& input_file, AP4_ByteStream& output_stream, unsigned int fragm
                                                 1000, // timescale in milliseconds
                                                 track->GetDurationMs(),
                                                 track->GetMediaTimeScale(),
-                                                track->GetMediaDuration(),
+                                                0,//track->GetMediaDuration(),
                                                 track->GetTrackLanguage(),
                                                 track->GetWidth(),
                                                 track->GetHeight());
@@ -181,7 +194,7 @@ Fragment(AP4_File& input_file, AP4_ByteStream& output_stream, unsigned int fragm
             fprintf(stderr, "ERROR: failed to read sample (%d)\n", result);
             return;
         }
-        
+                
         // add a trex entry to the mvex container
         AP4_TrexAtom* trex = new AP4_TrexAtom(cursor->m_TrackId,
                                               1,
@@ -196,7 +209,8 @@ Fragment(AP4_File& input_file, AP4_ByteStream& output_stream, unsigned int fragm
     unsigned int track_count = 0;
     if (video_cursor) {
         cursors[track_count++] = video_cursor;
-        video_cursor->m_TargetDuration = AP4_ConvertTime(fragment_duration-AP4_FRAGMENTER_FRAGMENT_DURATION_TOLERANCE, 
+        video_cursor->m_TargetDuration = AP4_ConvertTime(fragment_duration>AP4_FRAGMENTER_FRAGMENT_DURATION_TOLERANCE ?
+                                                         fragment_duration-AP4_FRAGMENTER_FRAGMENT_DURATION_TOLERANCE : 0,
                                                          1000, 
                                                          video_cursor->m_Track->GetMediaTimeScale());
     }
@@ -264,6 +278,11 @@ Fragment(AP4_File& input_file, AP4_ByteStream& output_stream, unsigned int fragm
             printf("fragment: %s (%d) ", cursor==audio_cursor?"audio":"video", cursor->m_Track->GetId());
         }
 
+        // remember the time and position of this fragment
+        AP4_Position moof_offset = 0;
+        output_stream.Tell(moof_offset);
+        cursor->m_Tfra->AddEntry(cursor->m_Sample.GetDts(), moof_offset);
+        
         // decide which sample description index to use
         // (this is not very sophisticated, we only look at the sample description
         // index of the first sample in the group, which may not be correct. This
@@ -273,7 +292,10 @@ Fragment(AP4_File& input_file, AP4_ByteStream& output_stream, unsigned int fragm
         if (sample_desc_index > 0) {
             tfhd_flags |= AP4_TFHD_FLAG_SAMPLE_DESCRIPTION_INDEX_PRESENT;
         }
-        
+        if (cursor == video_cursor) {
+            tfhd_flags |= AP4_TFHD_FLAG_DEFAULT_SAMPLE_FLAGS_PRESENT;
+        }
+            
         // setup the moof structure
         AP4_ContainerAtom* moof = new AP4_ContainerAtom(AP4_ATOM_TYPE_MOOF);
         AP4_MfhdAtom* mfhd = new AP4_MfhdAtom(sequence_number++);
@@ -286,13 +308,23 @@ Fragment(AP4_File& input_file, AP4_ByteStream& output_stream, unsigned int fragm
                                               0,
                                               0,
                                               0);
+        if (tfhd_flags & AP4_TFHD_FLAG_DEFAULT_SAMPLE_FLAGS_PRESENT) {
+            tfhd->SetDefaultSampleFlags(0x1010000); // sample_is_non_sync_sample=1, sample_depends_on=1 (not I frame)
+        }
+        
         traf->AddChild(tfhd);
         AP4_TfdtAtom* tfdt = new AP4_TfdtAtom(1, cursor->m_Sample.GetDts());
         traf->AddChild(tfdt);
-        AP4_TrunAtom* trun = new AP4_TrunAtom(AP4_TRUN_FLAG_DATA_OFFSET_PRESENT     |
-                                              AP4_TRUN_FLAG_SAMPLE_DURATION_PRESENT |
-                                              AP4_TRUN_FLAG_SAMPLE_SIZE_PRESENT,
-                                              0, 0);
+        AP4_UI32 trun_flags = AP4_TRUN_FLAG_DATA_OFFSET_PRESENT     |
+                              AP4_TRUN_FLAG_SAMPLE_DURATION_PRESENT |
+                              AP4_TRUN_FLAG_SAMPLE_SIZE_PRESENT;
+        AP4_UI32 first_sample_flags = 0;
+        if (cursor == video_cursor) {
+            trun_flags |= AP4_TRUN_FLAG_FIRST_SAMPLE_FLAGS_PRESENT;
+            first_sample_flags = 0x2000000; // sample_depends_on=2 (I frame)
+        }
+        AP4_TrunAtom* trun = new AP4_TrunAtom(trun_flags, 0, first_sample_flags);
+        
         traf->AddChild(trun);
         moof->AddChild(traf);
             
@@ -380,6 +412,24 @@ Fragment(AP4_File& input_file, AP4_ByteStream& output_stream, unsigned int fragm
         delete moof;
     }
     
+    // create an mfra container and write out the index
+    AP4_ContainerAtom mfra(AP4_ATOM_TYPE_MFRA);
+    if (audio_cursor) {
+        mfra.AddChild(audio_cursor->m_Tfra);
+        audio_cursor->m_Tfra = NULL;
+    }
+    if (video_cursor) {
+        mfra.AddChild(video_cursor->m_Tfra);
+        video_cursor->m_Tfra = NULL;
+    }
+    result = mfra.Write(output_stream);
+    if (AP4_FAILED(result)) {
+        fprintf(stderr, "ERROR: failed to write 'mfra' (%d)\n", result);
+        return;
+    }
+    AP4_MfroAtom mfro(mfra.GetSize());
+    mfro.Write(output_stream);
+    
     // cleanup
     if (audio_cursor) delete audio_cursor;
     if (video_cursor) delete video_cursor;
@@ -449,10 +499,11 @@ main(int argc, char** argv)
     }
 
     // init the variables
-    const char*             input_filename  = NULL;
-    const char*             output_filename = NULL;
-    unsigned int            fragment_duration = 0;
-    AP4_Result              result;
+    const char*  input_filename    = NULL;
+    const char*  output_filename   = NULL;
+    unsigned int fragment_duration = 0;
+    bool         auto_detect_fragment_duration = true;
+    AP4_Result   result;
 
     Options.verbosity = 0;
     
@@ -474,6 +525,7 @@ main(int argc, char** argv)
                 return 1;
             }
             fragment_duration = strtoul(arg, NULL, 10);
+            auto_detect_fragment_duration = false;
         } else {
             if (input_filename == NULL) {
                 input_filename = arg;
@@ -539,7 +591,7 @@ main(int argc, char** argv)
     }
     
     // auto-detect the fragment duration if needed
-    if (fragment_duration == 0) {
+    if (auto_detect_fragment_duration) {
         if (video_track) {
             fragment_duration = AutoDetectFragmentDuration(video_track);
         } else {
