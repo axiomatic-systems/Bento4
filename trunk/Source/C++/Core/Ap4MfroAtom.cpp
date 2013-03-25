@@ -51,7 +51,7 @@ AP4_MfroAtom::Create(AP4_Size size, AP4_ByteStream& stream)
 |   AP4_MfroAtom::AP4_MfroAtom
 +---------------------------------------------------------------------*/
 AP4_MfroAtom::AP4_MfroAtom(AP4_UI32 mfra_size) :
-    AP4_Atom(AP4_ATOM_TYPE_MFRO, AP4_FULL_ATOM_HEADER_SIZE+4),
+    AP4_Atom(AP4_ATOM_TYPE_MFRO, AP4_FULL_ATOM_HEADER_SIZE+4, 0, 0),
     m_MfraSize(mfra_size)
 {
 }
