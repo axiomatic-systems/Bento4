@@ -427,7 +427,7 @@ Fragment(AP4_File& input_file, AP4_ByteStream& output_stream, unsigned int fragm
         fprintf(stderr, "ERROR: failed to write 'mfra' (%d)\n", result);
         return;
     }
-    AP4_MfroAtom mfro(mfra.GetSize());
+    AP4_MfroAtom mfro((AP4_UI32)mfra.GetSize());
     mfro.Write(output_stream);
     
     // cleanup
