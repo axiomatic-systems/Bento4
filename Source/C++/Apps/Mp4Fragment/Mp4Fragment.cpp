@@ -37,9 +37,9 @@
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-#define BANNER "MP4 Fragmenter - Version 1.1\n"\
+#define BANNER "MP4 Fragmenter - Version 1.2\n"\
                "(Bento4 Version " AP4_VERSION_STRING ")\n"\
-               "(c) 2002-2010 Axiomatic Systems, LLC"
+               "(c) 2002-2013 Axiomatic Systems, LLC"
 
 /*----------------------------------------------------------------------
 |   constants
@@ -47,6 +47,7 @@
 const unsigned int AP4_FRAGMENTER_AUDIO_TRACK_ID              = 1;
 const unsigned int AP4_FRAGMENTER_VIDEO_TRACK_ID              = 2;
 const unsigned int AP4_FRAGMENTER_DEFAULT_FRAGMENT_DURATION   = 2000; // ms
+const unsigned int AP4_FRAGMENTER_MAX_AUTO_FRAGMENT_DURATION  = 15000; 
 const unsigned int AP4_FRAGMENTER_FRAGMENT_DURATION_TOLERANCE = 100;
 
 /*----------------------------------------------------------------------
@@ -68,6 +69,7 @@ PrintUsageAndExit()
             "options are:\n"
             "  --verbosity <n> sets the verbosity (details) level to <n> (between 0 and 3)\n"
             "  --fragment-duration <milliseconds> (default = automatic)\n"
+            "  --timescale <n> (default = 1000)\n"
             );
     exit(1);
 }
@@ -422,13 +424,13 @@ Fragment(AP4_File& input_file, AP4_ByteStream& output_stream, unsigned int fragm
         mfra.AddChild(video_cursor->m_Tfra);
         video_cursor->m_Tfra = NULL;
     }
+    AP4_MfroAtom* mfro = new AP4_MfroAtom(mfra.GetSize()+16);
+    mfra.AddChild(mfro);
     result = mfra.Write(output_stream);
     if (AP4_FAILED(result)) {
         fprintf(stderr, "ERROR: failed to write 'mfra' (%d)\n", result);
         return;
     }
-    AP4_MfroAtom mfro((AP4_UI32)mfra.GetSize());
-    mfro.Write(output_stream);
     
     // cleanup
     if (audio_cursor) delete audio_cursor;
@@ -596,12 +598,17 @@ main(int argc, char** argv)
             fragment_duration = AutoDetectFragmentDuration(video_track);
         } else {
             if (Options.verbosity > 0) {
-                printf("no video track, cannot autodetect fragment duration\n");
+                fprintf(stderr, "no video track, cannot autodetect fragment duration\n");
             }
         }
         if (fragment_duration == 0) {
             if (Options.verbosity > 0) {
-                printf("unable to detect fragment duration, using default\n");
+                fprintf(stderr, "unable to detect fragment duration, using default\n");
+            }
+            fragment_duration = AP4_FRAGMENTER_DEFAULT_FRAGMENT_DURATION;
+        } else if (fragment_duration > AP4_FRAGMENTER_MAX_AUTO_FRAGMENT_DURATION) {
+            if (Options.verbosity > 0) {
+                fprintf(stderr, "auto-detected fragment duration too large, using default\n");
             }
             fragment_duration = AP4_FRAGMENTER_DEFAULT_FRAGMENT_DURATION;
         }
