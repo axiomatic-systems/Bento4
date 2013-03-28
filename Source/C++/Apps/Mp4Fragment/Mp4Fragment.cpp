@@ -37,7 +37,7 @@
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-#define BANNER "MP4 Fragmenter - Version 1.2\n"\
+#define BANNER "MP4 Fragmenter - Version 1.3\n"\
                "(Bento4 Version " AP4_VERSION_STRING ")\n"\
                "(c) 2002-2013 Axiomatic Systems, LLC"
 
@@ -69,7 +69,7 @@ PrintUsageAndExit()
             "options are:\n"
             "  --verbosity <n> sets the verbosity (details) level to <n> (between 0 and 3)\n"
             "  --fragment-duration <milliseconds> (default = automatic)\n"
-            "  --timescale <n> (default = 1000)\n"
+            "  --timescale <n> (use 10000000 for Smooth Streaming compatibility)\n"
             );
     exit(1);
 }
@@ -128,7 +128,10 @@ TrackCursor::SetTrack(AP4_Track* track)
 |   Fragment
 +---------------------------------------------------------------------*/
 static void
-Fragment(AP4_File& input_file, AP4_ByteStream& output_stream, unsigned int fragment_duration)
+Fragment(AP4_File&       input_file,
+         AP4_ByteStream& output_stream,
+         unsigned int    fragment_duration,
+         AP4_UI32        timescale)
 {
     AP4_Result result;
     
@@ -139,7 +142,7 @@ Fragment(AP4_File& input_file, AP4_ByteStream& output_stream, unsigned int fragm
     }
 
     // create the output file object
-    AP4_Movie* output_movie = new AP4_Movie(1000); // timescale in milliseconds
+    AP4_Movie* output_movie = new AP4_Movie(timescale?timescale:1000);
     
     // create an mvex container
     AP4_ContainerAtom* mvex = new AP4_ContainerAtom(AP4_ATOM_TYPE_MVEX);
@@ -183,9 +186,11 @@ Fragment(AP4_File& input_file, AP4_ByteStream& output_stream, unsigned int fragm
         AP4_Track* output_track = new AP4_Track(track->GetType(),
                                                 sample_table,
                                                 cursor->m_TrackId,
-                                                1000, // timescale in milliseconds
-                                                track->GetDurationMs(),
-                                                track->GetMediaTimeScale(),
+                                                timescale?timescale:1000,
+                                                AP4_ConvertTime(track->GetDuration(),
+                                                                input_movie->GetTimeScale(),
+                                                                timescale?timescale:1000),
+                                                timescale?timescale:track->GetMediaTimeScale(),
                                                 0,//track->GetMediaDuration(),
                                                 track->GetTrackLanguage(),
                                                 track->GetWidth(),
@@ -315,7 +320,11 @@ Fragment(AP4_File& input_file, AP4_ByteStream& output_stream, unsigned int fragm
         }
         
         traf->AddChild(tfhd);
-        AP4_TfdtAtom* tfdt = new AP4_TfdtAtom(1, cursor->m_Sample.GetDts());
+        AP4_TfdtAtom* tfdt = new AP4_TfdtAtom(1, timescale?
+                                                 AP4_ConvertTime(cursor->m_Sample.GetDts(),
+                                                                 cursor->m_Track->GetMediaTimeScale(),
+                                                                 timescale):
+                                                 cursor->m_Sample.GetDts());
         traf->AddChild(tfdt);
         AP4_UI32 trun_flags = AP4_TRUN_FLAG_DATA_OFFSET_PRESENT     |
                               AP4_TRUN_FLAG_SAMPLE_DURATION_PRESENT |
@@ -344,9 +353,17 @@ Fragment(AP4_File& input_file, AP4_ByteStream& output_stream, unsigned int fragm
             // add one sample
             trun_entries.SetItemCount(sample_count+1);
             AP4_TrunAtom::Entry& trun_entry = trun_entries[sample_count];
-            trun_entry.sample_duration                = cursor->m_Sample.GetDuration();
+            trun_entry.sample_duration                = timescale?
+                                                        AP4_ConvertTime(cursor->m_Sample.GetDuration(),
+                                                                        cursor->m_Track->GetMediaTimeScale(),
+                                                                        timescale):
+                                                        cursor->m_Sample.GetDuration();
             trun_entry.sample_size                    = cursor->m_Sample.GetSize();
-            trun_entry.sample_composition_time_offset = cursor->m_Sample.GetCtsDelta();
+            trun_entry.sample_composition_time_offset = timescale?
+                                                        AP4_ConvertTime(cursor->m_Sample.GetCtsDelta(),
+                                                                        cursor->m_Track->GetMediaTimeScale(),
+                                                                        timescale):
+                                                        cursor->m_Sample.GetCtsDelta();
                         
             sample_indexes.SetItemCount(sample_count+1);
             sample_indexes[sample_count] = cursor->m_SampleIndex;
@@ -505,6 +522,7 @@ main(int argc, char** argv)
     const char*  output_filename   = NULL;
     unsigned int fragment_duration = 0;
     bool         auto_detect_fragment_duration = true;
+    AP4_UI32     timescale = 0;
     AP4_Result   result;
 
     Options.verbosity = 0;
@@ -528,6 +546,13 @@ main(int argc, char** argv)
             }
             fragment_duration = strtoul(arg, NULL, 10);
             auto_detect_fragment_duration = false;
+        } else if (!strcmp(arg, "--timescale")) {
+            arg = *argv++;
+            if (arg == NULL) {
+                fprintf(stderr, "ERROR: missing argument after --timescale option\n");
+                return 1;
+            }
+            timescale = strtoul(arg, NULL, 10);
         } else {
             if (input_filename == NULL) {
                 input_filename = arg;
@@ -615,7 +640,7 @@ main(int argc, char** argv)
     }
     
     // fragment the file
-    Fragment(input_file, *output_stream, fragment_duration);
+    Fragment(input_file, *output_stream, fragment_duration, timescale);
     
     // cleanup and exit
     if (input_stream)  input_stream->Release();
