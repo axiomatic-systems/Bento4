@@ -566,7 +566,7 @@ AP4_CencFragmentEncrypter::ProcessFragment()
     
     // set the default-base-is-moof flag
     AP4_TfhdAtom* tfhd = AP4_DYNAMIC_CAST(AP4_TfhdAtom, m_Traf->GetChild(AP4_ATOM_TYPE_TFHD));
-    if (tfhd) {
+    if (tfhd && m_Variant != AP4_CENC_VARIANT_PIFF_CBC && m_Variant != AP4_CENC_VARIANT_PIFF_CTR) {
         tfhd->SetFlags(tfhd->GetFlags() | AP4_TFHD_FLAG_DEFAULT_BASE_IS_MOOF);
     }
     
