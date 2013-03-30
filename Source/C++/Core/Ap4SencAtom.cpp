@@ -55,7 +55,7 @@ AP4_SencAtom::Create(AP4_Size size, AP4_ByteStream& stream)
 +---------------------------------------------------------------------*/
 AP4_SencAtom::AP4_SencAtom() :
     AP4_Atom(AP4_ATOM_TYPE_SENC, AP4_FULL_ATOM_HEADER_SIZE+4, 0, 0),
-    AP4_CencSampleEncryption(*((AP4_Atom*)this))
+    AP4_CencSampleEncryption(*((AP4_Atom*)this), 16)
 {
 	m_Outer = *this;
 }

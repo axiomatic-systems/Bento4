@@ -125,7 +125,7 @@ public:
     
 protected:
     // constructors
-    AP4_CencSampleEncryption(AP4_Atom& outer);
+    AP4_CencSampleEncryption(AP4_Atom& outer, AP4_UI08 iv_size);
     AP4_CencSampleEncryption(AP4_Atom& outer, AP4_Size size, AP4_ByteStream& stream);
     AP4_CencSampleEncryption(AP4_Atom&       outer,
                              AP4_UI32        algorithm_id,
@@ -321,13 +321,17 @@ class AP4_CencCtrSampleEncrypter : public AP4_CencSampleEncrypter
 {
 public:
     // constructor and destructor
-    AP4_CencCtrSampleEncrypter(AP4_StreamCipher* cipher) :
-        AP4_CencSampleEncrypter(cipher) {}
+    AP4_CencCtrSampleEncrypter(AP4_StreamCipher* cipher, unsigned int iv_size) :
+        AP4_CencSampleEncrypter(cipher),
+        m_IvSize(iv_size) {}
 
     // methods
     virtual AP4_Result EncryptSampleData(AP4_DataBuffer& data_in,
                                          AP4_DataBuffer& data_out,
                                          AP4_DataBuffer& sample_infos);
+    
+protected:
+    unsigned int m_IvSize;
 };
 
 /*----------------------------------------------------------------------
@@ -373,8 +377,10 @@ class AP4_CencCtrSubSampleEncrypter : public AP4_CencSubSampleEncrypter
 public:
     // constructor and destructor
     AP4_CencCtrSubSampleEncrypter(AP4_StreamCipher* cipher,
-                                  AP4_Size          nalu_length_size) :
-        AP4_CencSubSampleEncrypter(cipher, nalu_length_size) {}
+                                  AP4_Size          nalu_length_size,
+                                  unsigned int      iv_size) :
+        AP4_CencSubSampleEncrypter(cipher, nalu_length_size),
+        m_IvSize(iv_size) {}
 
     // methods
     virtual AP4_Result GetSubSampleMap(AP4_DataBuffer&      sample_data, 
@@ -383,6 +389,9 @@ public:
     virtual AP4_Result EncryptSampleData(AP4_DataBuffer& data_in,
                                          AP4_DataBuffer& data_out,
                                          AP4_DataBuffer& sample_infos);
+    
+protected:
+    unsigned int m_IvSize;
 };
 
 /*----------------------------------------------------------------------

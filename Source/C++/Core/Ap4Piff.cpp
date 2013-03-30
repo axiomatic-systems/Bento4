@@ -126,9 +126,9 @@ AP4_PiffSampleEncryptionAtom::Create(AP4_Size size, AP4_ByteStream& stream)
 /*----------------------------------------------------------------------
 |   AP4_PiffSampleEncryptionAtom::AP4_PiffSampleEncryptionAtom
 +---------------------------------------------------------------------*/
-AP4_PiffSampleEncryptionAtom::AP4_PiffSampleEncryptionAtom() :
+AP4_PiffSampleEncryptionAtom::AP4_PiffSampleEncryptionAtom(AP4_UI08 iv_size) :
     AP4_UuidAtom(AP4_FULL_UUID_ATOM_HEADER_SIZE+4, AP4_UUID_PIFF_SAMPLE_ENCRYPTION_ATOM, 0, 0),
-    AP4_CencSampleEncryption(*((AP4_Atom*)this))
+    AP4_CencSampleEncryption(*((AP4_Atom*)this), iv_size)
 {
 }
 
