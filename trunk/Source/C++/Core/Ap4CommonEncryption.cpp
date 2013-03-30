@@ -86,9 +86,16 @@ AP4_CencCtrSampleEncrypter::EncryptSampleData(AP4_DataBuffer& data_in,
     }
     
     // update the IV
-    unsigned int block_count = (data_in.GetDataSize()+15)/16;
-    AP4_UI64 counter = AP4_BytesToUInt64BE(&m_Iv[8]);
-    AP4_BytesFromUInt64BE(&m_Iv[8], counter+block_count);
+    if (m_IvSize == 16) {
+        unsigned int block_count = (data_in.GetDataSize()+15)/16;
+        AP4_UI64 counter = AP4_BytesToUInt64BE(&m_Iv[8]);
+        AP4_BytesFromUInt64BE(&m_Iv[8], counter+block_count);
+    } else if (m_IvSize == 8){
+        AP4_UI64 counter = AP4_BytesToUInt64BE(&m_Iv[0]);
+        AP4_BytesFromUInt64BE(&m_Iv[0], counter+1);
+    } else {
+        return AP4_ERROR_INTERNAL;
+    }
     
     return AP4_SUCCESS;
 }
@@ -197,8 +204,13 @@ AP4_CencCtrSubSampleEncrypter::EncryptSampleData(AP4_DataBuffer& data_in,
     }
     
     // update the IV
-    AP4_UI64 counter = AP4_BytesToUInt64BE(&m_Iv[8]);
-    AP4_BytesFromUInt64BE(&m_Iv[8], counter+(total_encrypted+15)/16);    
+    if (m_IvSize == 16) {
+        AP4_UI64 counter = AP4_BytesToUInt64BE(&m_Iv[8]);
+        AP4_BytesFromUInt64BE(&m_Iv[8], counter+(total_encrypted+15)/16);
+    } else {
+        AP4_UI64 counter = AP4_BytesToUInt64BE(&m_Iv[0]);
+        AP4_BytesFromUInt64BE(&m_Iv[0], counter+1);
+    }
     
     // encode the sample infos
     unsigned int sample_info_count = bytes_of_cleartext_data.ItemCount();
@@ -534,8 +546,11 @@ AP4_CencFragmentEncrypter::ProcessFragment()
     m_Saio = NULL;
     switch (m_Variant) {
         case AP4_CENC_VARIANT_PIFF_CBC:
+            m_SampleEncryptionAtom = new AP4_PiffSampleEncryptionAtom(16);
+            break;
+            
         case AP4_CENC_VARIANT_PIFF_CTR:
-            m_SampleEncryptionAtom = new AP4_PiffSampleEncryptionAtom();
+            m_SampleEncryptionAtom = new AP4_PiffSampleEncryptionAtom(8);
             break;
             
         case AP4_CENC_VARIANT_MPEG:
@@ -900,8 +915,13 @@ AP4_CencEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
     // create the encrypter
     AP4_Processor::TrackHandler* track_encrypter;
     AP4_UI32 algorithm_id = 0;
+    AP4_UI08 iv_size = 16;
     switch (m_Variant) {
         case AP4_CENC_VARIANT_PIFF_CTR:
+            algorithm_id = AP4_CENC_ALGORITHM_ID_CTR;
+            iv_size = 8;
+            break;
+
         case AP4_CENC_VARIANT_MPEG:
             algorithm_id = AP4_CENC_ALGORITHM_ID_CTR;
             break;
@@ -915,7 +935,7 @@ AP4_CencEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
     }
     track_encrypter = new AP4_CencTrackEncrypter(m_Variant,
                                                  algorithm_id, 
-                                                 16,
+                                                 iv_size,
                                                  kid,
                                                  entries, 
                                                  format);
@@ -967,9 +987,9 @@ AP4_CencEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
             if (entries[0]->GetType() == AP4_ATOM_TYPE_AVC1) {
                 AP4_AvccAtom* avcc = AP4_DYNAMIC_CAST(AP4_AvccAtom, entries[0]->GetChild(AP4_ATOM_TYPE_AVCC));
                 if (avcc == NULL) return NULL;
-                sample_encrypter = new AP4_CencCtrSubSampleEncrypter(stream_cipher, avcc->GetNaluLengthSize());
+                sample_encrypter = new AP4_CencCtrSubSampleEncrypter(stream_cipher, avcc->GetNaluLengthSize(), iv_size);
             } else {
-                sample_encrypter = new AP4_CencCtrSampleEncrypter(stream_cipher);
+                sample_encrypter = new AP4_CencCtrSampleEncrypter(stream_cipher, iv_size);
             }
             break;
     }
@@ -2113,10 +2133,10 @@ AP4_CencSampleEncryption::AP4_CencSampleEncryption(AP4_Atom&       outer,
 /*----------------------------------------------------------------------
 |   AP4_CencSampleEncryption::AP4_CencSampleEncryption
 +---------------------------------------------------------------------*/
-AP4_CencSampleEncryption::AP4_CencSampleEncryption(AP4_Atom& outer) :
+AP4_CencSampleEncryption::AP4_CencSampleEncryption(AP4_Atom& outer, AP4_UI08 iv_size) :
     m_Outer(outer),
     m_AlgorithmId(0),
-    m_IvSize(16),
+    m_IvSize(iv_size),
     m_SampleInfoCount(0),
     m_SampleInfoCursor(0)
 {

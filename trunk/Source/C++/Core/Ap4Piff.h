@@ -109,7 +109,7 @@ public:
                                                 AP4_ByteStream& stream);
 
     // constructors
-    AP4_PiffSampleEncryptionAtom();
+    AP4_PiffSampleEncryptionAtom(AP4_UI08 iv_size);
     AP4_PiffSampleEncryptionAtom(AP4_UI32        algorithm_id,
                                  AP4_UI08        iv_size,
                                  const AP4_UI08* kid);
