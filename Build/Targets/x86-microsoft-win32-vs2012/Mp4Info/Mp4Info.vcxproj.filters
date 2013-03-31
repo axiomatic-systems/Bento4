@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source%255cC++ Files">
+      <UniqueIdentifier>{61835ac0-a418-43bd-97ca-86c718043136}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;rc;def;r;odl;idl;hpj;bat</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\..\Source\C++\Apps\Mp4Info\Mp4Info.cpp">
+      <Filter>Source%255cC++ Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

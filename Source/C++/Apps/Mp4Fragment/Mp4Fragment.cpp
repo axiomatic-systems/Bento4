@@ -354,15 +354,15 @@ Fragment(AP4_File&       input_file,
             trun_entries.SetItemCount(sample_count+1);
             AP4_TrunAtom::Entry& trun_entry = trun_entries[sample_count];
             trun_entry.sample_duration                = timescale?
-                                                        AP4_ConvertTime(cursor->m_Sample.GetDuration(),
-                                                                        cursor->m_Track->GetMediaTimeScale(),
-                                                                        timescale):
+                                                        (AP4_UI32)AP4_ConvertTime(cursor->m_Sample.GetDuration(),
+                                                                                  cursor->m_Track->GetMediaTimeScale(),
+                                                                                  timescale):
                                                         cursor->m_Sample.GetDuration();
             trun_entry.sample_size                    = cursor->m_Sample.GetSize();
             trun_entry.sample_composition_time_offset = timescale?
-                                                        AP4_ConvertTime(cursor->m_Sample.GetCtsDelta(),
-                                                                        cursor->m_Track->GetMediaTimeScale(),
-                                                                        timescale):
+                                                        (AP4_UI32)AP4_ConvertTime(cursor->m_Sample.GetCtsDelta(),
+                                                                                  cursor->m_Track->GetMediaTimeScale(),
+                                                                                  timescale):
                                                         cursor->m_Sample.GetCtsDelta();
                         
             sample_indexes.SetItemCount(sample_count+1);
@@ -441,7 +441,7 @@ Fragment(AP4_File&       input_file,
         mfra.AddChild(video_cursor->m_Tfra);
         video_cursor->m_Tfra = NULL;
     }
-    AP4_MfroAtom* mfro = new AP4_MfroAtom(mfra.GetSize()+16);
+    AP4_MfroAtom* mfro = new AP4_MfroAtom((AP4_UI32)mfra.GetSize()+16);
     mfra.AddChild(mfro);
     result = mfra.Write(output_stream);
     if (AP4_FAILED(result)) {
