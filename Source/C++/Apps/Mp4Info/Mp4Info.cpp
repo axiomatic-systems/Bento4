@@ -99,6 +99,17 @@ ShowPayload(AP4_Atom& atom, bool ascii = false)
 }
 
 /*----------------------------------------------------------------------
+|   ShowData
++---------------------------------------------------------------------*/
+static void
+ShowData(const AP4_DataBuffer& data)
+{
+    for (unsigned int i=0; i<data.GetDataSize(); i++) {
+        printf("%02x", (unsigned char)data.GetData()[i]);
+    }
+}
+
+/*----------------------------------------------------------------------
 |   ShowProtectionSchemeInfo_Text
 +---------------------------------------------------------------------*/
 static void
@@ -350,6 +361,15 @@ ShowSampleDescription_Text(AP4_SampleDescription& description, bool verbose)
         if (prot_desc) ShowProtectedSampleDescription_Text(*prot_desc, verbose);
         desc = prot_desc->GetOriginalSampleDescription();
     }
+    
+    if (verbose) {
+        printf("    Bytes: ");
+        AP4_Atom* details = desc->ToAtom();
+        ShowPayload(*details, false);
+        printf("\n");
+        delete details;
+    }
+    
     char coding[5];
     AP4_FormatFourChars(coding, desc->GetFormat());
     printf(    "    Coding:      %s", coding);
@@ -404,7 +424,23 @@ ShowSampleDescription_Text(AP4_SampleDescription& description, bool verbose)
         printf("    AVC Profile Compat:   %d\n", avc_desc->GetProfileCompatibility());
         printf("    AVC Level:            %d\n", avc_desc->GetLevel());
         printf("    AVC NALU Length Size: %d\n", avc_desc->GetNaluLengthSize());
-    }    
+        printf("    AVC SPS: [");
+        const char* sep = "";
+        for (unsigned int i=0; i<avc_desc->GetSequenceParameters().ItemCount(); i++) {
+            printf("%s", sep);
+            ShowData(avc_desc->GetSequenceParameters()[i]);
+            sep = ", ";
+        }
+        printf("]\n");
+        printf("    AVC PPS: [");
+        sep = "";
+        for (unsigned int i=0; i<avc_desc->GetPictureParameters().ItemCount(); i++) {
+            printf("%s", sep);
+            ShowData(avc_desc->GetPictureParameters()[i]);
+            sep = ", ";
+        }
+        printf("]\n");
+    }
 }
 
 /*----------------------------------------------------------------------
@@ -442,8 +478,10 @@ ShowSampleDescription_Json(AP4_SampleDescription& description, bool verbose)
         printf("\"object_type_name\":\"%s\",\n", mpeg_desc->GetObjectTypeString(mpeg_desc->GetObjectTypeId()));
         printf("\"max_bitrate\":%d,\n",          mpeg_desc->GetMaxBitrate());
         printf("\"average_bitrate\":%d,\n",      mpeg_desc->GetAvgBitrate());
-        printf("\"buffer_size\":%d",             mpeg_desc->GetBufferSize());
-        
+        printf("\"buffer_size\":%d,\n",             mpeg_desc->GetBufferSize());
+        printf("\"decoder_info\": \"");
+        ShowData(mpeg_desc->GetDecoderInfo());
+        printf("\"");
         if (mpeg_desc->GetObjectTypeId() == AP4_OTI_MPEG4_AUDIO          ||
             mpeg_desc->GetObjectTypeId() == AP4_OTI_MPEG2_AAC_AUDIO_LC   ||
             mpeg_desc->GetObjectTypeId() == AP4_OTI_MPEG2_AAC_AUDIO_MAIN) {
@@ -482,8 +520,28 @@ ShowSampleDescription_Json(AP4_SampleDescription& description, bool verbose)
         if (profile_name) printf("\"avc_profile_name\":\"%s\",\n", profile_name);
         printf("\"avc_profile_compat\":%d,\n", avc_desc->GetProfileCompatibility());
         printf("\"avc_level\":%d,\n",          avc_desc->GetLevel());
-        printf("\"avc_nalu_length_size\":%d",  avc_desc->GetNaluLengthSize());
-    }    
+        printf("\"avc_nalu_length_size\":%d,\n",  avc_desc->GetNaluLengthSize());
+        printf("\"avc_sps\": [");
+        const char* sep = "";
+        for (unsigned int i=0; i<avc_desc->GetSequenceParameters().ItemCount(); i++) {
+            printf("%s", sep);
+            printf("\"");
+            ShowData(avc_desc->GetSequenceParameters()[i]);
+            printf("\"");
+            sep = ", ";
+        }
+        printf("],\n");
+        printf("\"avc_pps\": [");
+        sep = "";
+        for (unsigned int i=0; i<avc_desc->GetPictureParameters().ItemCount(); i++) {
+            printf("%s", sep);
+            printf("\"");
+            ShowData(avc_desc->GetPictureParameters()[i]);
+            printf("\"");
+            sep = ", ";
+        }
+        printf("]");
+    }
     
     printf("\n}");
 }

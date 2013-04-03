@@ -37,13 +37,13 @@
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-#define BANNER "MP4 Fragment Splitter - Version 1.0\n"\
+#define BANNER "MP4 Fragment Splitter - Version 1.1\n"\
                "(Bento4 Version " AP4_VERSION_STRING ")\n"\
-               "(c) 2002-2012 Axiomatic Systems, LLC"
+               "(c) 2002-2013 Axiomatic Systems, LLC"
  
-#define AP4_SPLIT_DEFAULT_INIT_SEGMENT_NAME              "init.mp4"
-#define AP4_SPLIT_DEFAULT_MEDIA_SEGMENT_NAME             "segment-%d.%04d.m4f"
-#define AP4_SPLIT_DEFAULT_MEDIA_SEGMENT_NAME_NO_TRACK_ID "segment-%04d.m4f"
+#define AP4_SPLIT_DEFAULT_INIT_SEGMENT_NAME  "init.mp4"
+#define AP4_SPLIT_DEFAULT_MEDIA_SEGMENT_NAME "segment-%llu.%04llu.m4f"
+#define AP4_SPLIT_DEFAULT_PATTERN_PARAMS     "IN"
 
 /*----------------------------------------------------------------------
 |   options
@@ -53,8 +53,8 @@ struct Options {
     const char*  input;
     const char*  init_segment_name;
     const char*  media_segment_name;
+    const char*  pattern_params;
     unsigned int track_id;
-    bool         no_track_id_in_pattern;
     bool         audio_only;
     bool         video_only;
     unsigned int track_filter;
@@ -70,14 +70,16 @@ PrintUsageAndExit()
             BANNER 
             "\n\nusage: mp4split [options] <input>\n"
             "Options:\n"
-            "  --verbose\n"
-            "  --init-segment <filename> (default: init.mp4)\n"
-            "  --media-segment <filename-pattern> (default: segment-%%d.%%04d.m4f\n"
-            "    or segment-%%04d.m4f if the --no-track-id-in-pattern option is used)\n"
-            "  --no-track-id-in-pattern\n"
-            "  --track-id <track-id>\n"
-            "  --audio\n"
-            "  --video\n");
+            "  --verbose : print verbose information when running\n"
+            "  --init-segment <filename> : name of init segment (default: init.mp4)\n"
+            "  --media-segment <filename-pattern> (default: segment-%%llu.%%04llu.m4f)\n"
+            "    NOTE: all parameters are 64-bit integers, use %%llu in the pattern\n"
+            "  --pattern-parameters <params> : one or more selector letter (default: IN)\n"
+            "     I: track ID\n"
+            "     N: segment number, starting with 0\n"
+            "  --track-id <track-id> : only output segments with this track ID\n"
+            "  --audio : only output audio segments\n"
+            "  --video : only output video segments\n");
     exit(1);
 }
 
@@ -119,8 +121,8 @@ main(int argc, char** argv)
     Options.verbose                = false;
     Options.input                  = NULL;
     Options.init_segment_name      = AP4_SPLIT_DEFAULT_INIT_SEGMENT_NAME;
-    Options.media_segment_name     = NULL;
-    Options.no_track_id_in_pattern = false;
+    Options.media_segment_name     = AP4_SPLIT_DEFAULT_MEDIA_SEGMENT_NAME;
+    Options.pattern_params         = AP4_SPLIT_DEFAULT_PATTERN_PARAMS;
     Options.track_id               = 0;
     Options.audio_only             = false;
     Options.video_only             = false;
@@ -144,8 +146,12 @@ main(int argc, char** argv)
                 return 1;
             }
             Options.media_segment_name = *args++;
-        } else if (!strcmp(arg, "--no-track-id-in-pattern")) {
-            Options.no_track_id_in_pattern = true;
+        } else if (!strcmp(arg, "--pattern-parameters")) {
+            if (*args == NULL) {
+                fprintf(stderr, "ERROR: missing argument after --pattern-params option\n");
+                return 1;
+            }
+            Options.pattern_params = *args++;
         } else if (!strcmp(arg, "--track-id")) {
             Options.track_id = strtoul(*args++, NULL, 10);
         } else if (!strcmp(arg, "--audio")) {
@@ -171,12 +177,21 @@ main(int argc, char** argv)
         fprintf(stderr, "ERROR: --audio, --video and --track-id options are mutualy exclusive\n");
         return 1;
     }
-    if (Options.media_segment_name == NULL) {
-        if (Options.no_track_id_in_pattern) {
-            Options.media_segment_name = AP4_SPLIT_DEFAULT_MEDIA_SEGMENT_NAME_NO_TRACK_ID;
-        } else {
-            Options.media_segment_name = AP4_SPLIT_DEFAULT_MEDIA_SEGMENT_NAME;
+    if (strlen(Options.pattern_params) < 1) {
+        fprintf(stderr, "ERROR: --pattern-params argument is too short\n");
+        return 1;
+    }
+    if (strlen(Options.pattern_params) > 2) {
+        fprintf(stderr, "ERROR: --pattern-params argument is too long\n");
+        return 1;
+    }
+    const char* cursor = Options.pattern_params;
+    while (*cursor) {
+        if (*cursor != 'I' && *cursor != 'N') {
+            fprintf(stderr, "ERROR: invalid pattern parameter '%c'\n", *cursor);
+            return 1;
         }
+        ++cursor;
     }
     
 	// create the input stream
@@ -284,10 +299,25 @@ main(int argc, char** argv)
             }
             char segment_name[4096];
             if (Options.track_filter == 0 || Options.track_filter == track_id) {
-                if (Options.no_track_id_in_pattern) {
-                    sprintf(segment_name, Options.media_segment_name, NextFragmentIndex(track_id));
-                } else {
-                    sprintf(segment_name, Options.media_segment_name, track_id, NextFragmentIndex(track_id));
+                AP4_UI64 p[2] = {0,0};
+                unsigned int params_len = strlen(Options.pattern_params);
+                for (unsigned int i=0; i<params_len; i++) {
+                    if (Options.pattern_params[i] == 'I') {
+                        p[i] = track_id;
+                    } else if (Options.pattern_params[i] == 'N') {
+                        p[i] = NextFragmentIndex(track_id);
+                    }
+                }
+                switch (params_len) {
+                    case 1:
+                        sprintf(segment_name, Options.media_segment_name, p[0]);
+                        break;
+                    case 2:
+                        sprintf(segment_name, Options.media_segment_name, p[0], p[1]);
+                        break;
+                    default:
+                        segment_name[0] = 0;
+                        break;
                 }
                 result = AP4_FileByteStream::Create(segment_name, AP4_FileByteStream::STREAM_MODE_WRITE, output);
                 if (AP4_FAILED(result)) {

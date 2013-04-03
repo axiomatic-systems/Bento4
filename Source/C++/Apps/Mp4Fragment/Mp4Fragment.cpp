@@ -88,6 +88,7 @@ public:
     unsigned int  m_TrackId;
     AP4_Ordinal   m_SampleIndex;
     AP4_Sample    m_Sample;
+    AP4_UI64      m_Timestamp;
     bool          m_Eos;
     AP4_UI64      m_TargetDuration;
     AP4_TfraAtom* m_Tfra;
@@ -100,6 +101,7 @@ TrackCursor::TrackCursor() :
     m_Track(NULL), 
     m_TrackId(0),
     m_SampleIndex(0),
+    m_Timestamp(0),
     m_Eos(false),
     m_TargetDuration(0),
     m_Tfra(new AP4_TfraAtom(0))
@@ -142,7 +144,7 @@ Fragment(AP4_File&       input_file,
     }
 
     // create the output file object
-    AP4_Movie* output_movie = new AP4_Movie(timescale?timescale:1000);
+    AP4_Movie* output_movie = new AP4_Movie(1000);
     
     // create an mvex container
     AP4_ContainerAtom* mvex = new AP4_ContainerAtom(AP4_ATOM_TYPE_MVEX);
@@ -288,7 +290,7 @@ Fragment(AP4_File&       input_file,
         // remember the time and position of this fragment
         AP4_Position moof_offset = 0;
         output_stream.Tell(moof_offset);
-        cursor->m_Tfra->AddEntry(cursor->m_Sample.GetDts(), moof_offset);
+        cursor->m_Tfra->AddEntry(cursor->m_Timestamp, moof_offset);
         
         // decide which sample description index to use
         // (this is not very sophisticated, we only look at the sample description
@@ -320,11 +322,7 @@ Fragment(AP4_File&       input_file,
         }
         
         traf->AddChild(tfhd);
-        AP4_TfdtAtom* tfdt = new AP4_TfdtAtom(1, timescale?
-                                                 AP4_ConvertTime(cursor->m_Sample.GetDts(),
-                                                                 cursor->m_Track->GetMediaTimeScale(),
-                                                                 timescale):
-                                                 cursor->m_Sample.GetDts());
+        AP4_TfdtAtom* tfdt = new AP4_TfdtAtom(1, cursor->m_Timestamp);
         traf->AddChild(tfdt);
         AP4_UI32 trun_flags = AP4_TRUN_FLAG_DATA_OFFSET_PRESENT     |
                               AP4_TRUN_FLAG_SAMPLE_DURATION_PRESENT |
@@ -370,6 +368,7 @@ Fragment(AP4_File&       input_file,
             mdat_size += trun_entry.sample_size;
             
             // next sample
+            cursor->m_Timestamp += trun_entry.sample_duration;
             cursor->m_SampleIndex++;
             sample_count++;
             if (cursor->m_SampleIndex >= cursor->m_Track->GetSampleCount()) {
