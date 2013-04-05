@@ -6,7 +6,7 @@
 #
 #      Original author:  Gilles Boccon-Gibod
 #
-#      Copyright (c) 2009-2011 by Axiomatic Systems, LLC. All rights reserved.
+#      Copyright (c) 2009-2013 by Axiomatic Systems, LLC. All rights reserved.
 #
 #######################################################################
 
@@ -145,7 +145,9 @@ single_config_files = [
     ('Documents/SDK','*.doc','docs'),
     ('Documents/SDK','*.pdf','docs'),
     ('Source/Python/utils', 'mp4-dash.py', 'utils'),
-    ('Source/Python/utils', 'mp4-dash-clone.py', 'utils')
+    ('Source/Python/utils', 'mp4-smooth.py', 'utils'),
+    ('Source/Python/utils', 'mp4-dash-clone.py', 'utils'),
+    ('Source/Python/utils', 'mp4utils.py', 'utils')
 ]
 CopyFiles(single_config_files)
 
