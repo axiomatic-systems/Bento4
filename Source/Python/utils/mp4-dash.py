@@ -30,6 +30,7 @@ import xml.etree.ElementTree as xml
 from xml.dom.minidom import parseString
 import operator
 import tempfile
+from mp4utils import *
 
 # setup main options
 SCRIPT_PATH = path.abspath(path.dirname(__file__))
@@ -42,308 +43,10 @@ AUDIO_DIR            = 'audio'
 MPD_NS               = 'urn:mpeg:DASH:schema:MPD:2011'
 ISOFF_LIVE_PROFILE   = 'urn:mpeg:dash:profile:isoff-live:2011' 
 INIT_SEGMENT_NAME    = 'init.mp4'
-SEGMENT_PATTERN      = 'seg-%04d.m4f'
+SEGMENT_PATTERN      = 'seg-%04llu.m4f'
 SEGMENT_TEMPLATE     = 'seg-$Number%04d$.m4f'
 LINEAR_PATTERN       = 'media-%02d.mp4'
 MARLIN_MAS_NAMESPACE = 'urn:marlin:mas:1-0:services:schemas:mpd'
-
-def PrintErrorAndExit(message):
-    sys.stderr.write(message+'\n')
-    sys.exit(1)
-    
-def XmlDuration(d):
-    h  = d/3600
-    d -= h*3600
-    m  = d/60
-    s  = d-m*60
-    xsd = 'PT'
-    if h:
-        xsd += str(h)+'H'
-    if h or m:
-        xsd += str(m)+'M'
-    if s:
-        xsd += str(s)+'S'
-    return xsd
-    
-def Bento4Command(name, *args, **kwargs):
-    cmd = [path.join(Options.exec_dir, name)]
-    for kwarg in kwargs:
-        arg = kwarg.replace('_', '-')
-        cmd.append('--'+arg)
-        if not isinstance(kwargs[kwarg], bool):
-            cmd.append(kwargs[kwarg])
-    cmd += args
-    #print cmd
-    try:
-        return check_output(cmd) 
-    except CalledProcessError, e:
-        #print e
-        raise Exception("binary tool failed with error %d" % e.returncode)
-    
-def Mp4Info(filename, **args):
-    return Bento4Command('mp4info', filename, **args)
-
-def Mp4Dump(filename, **args):
-    return Bento4Command('mp4dump', filename, **args)
-
-def Mp4Split(filename, **args):
-    return Bento4Command('mp4split', filename, **args)
-
-def Mp4Encrypt(input_filename, output_filename, **args):
-    return Bento4Command('mp4encrypt', input_filename, output_filename, **args)
-
-class Mp4Atom:
-    def __init__(self, type, size, position):
-        self.type     = type
-        self.size     = size
-        self.position = position
-        
-def WalkAtoms(filename):
-    cursor = 0
-    atoms = []
-    file = io.FileIO(filename, "rb")
-    while True:
-        try:
-            size = struct.unpack('>I', file.read(4))[0]
-            type = file.read(4)
-            if size == 1:
-                size = struct.unpack('>Q', file.read(8))[0]
-            #print type,size
-            atoms.append(Mp4Atom(type, size, cursor))
-            cursor += size
-            file.seek(cursor)
-        except:
-            break
-        
-    return atoms
-        
-def FilterChildren(parent, type):
-    if isinstance(parent, list):
-        children = parent
-    else:
-        children = parent['children']
-    return [child for child in children if child['name'] == type]
-
-def FindChild(top, path):
-    for entry in path:
-        children = FilterChildren(top, entry)
-        if len(children) == 0: return None
-        top = children[0]
-    return top
-
-class Mp4Track:
-    def __init__(self, parent, info):
-        self.parent = parent
-        self.info   = info
-        self.default_sample_duration  = 0
-        self.timescale                = 0
-        self.moofs                    = []
-        self.kid                      = None
-        self.sample_counts            = []
-        self.segment_sizes            = []
-        self.segment_durations        = []
-        self.total_sample_count       = 0
-        self.total_duration           = 0
-        self.average_segment_duration = 0
-        self.average_segment_bitrate  = 0
-        self.max_segment_bitrate      = 0
-        self.id = info['id']
-        if info['type'] == 'Audio':
-            self.type = 'audio'
-        elif info['type'] == 'Video':
-            self.type = 'video'
-        else:
-            self.type = 'other'
-        
-    def update(self):
-        # compute the total number of samples
-        self.total_sample_count = reduce(operator.add, self.sample_counts, 0)
-        
-        # compute the total duration
-        self.total_duration = reduce(operator.add, self.segment_durations, 0)
-        
-        # compute the average segment durations
-        segment_count = len(self.segment_durations)
-        if segment_count >= 1:
-            # do not count the last segment, which could be shorter
-            self.average_segment_duration = reduce(operator.add, self.segment_durations[:-1], 0)/float(segment_count-1)
-        elif segment_count == 1:
-            self.average_segment_duration = self.segment_durations[0]
-    
-        # compute the average segment bitrates
-        self.media_size = reduce(operator.add, self.segment_sizes, 0)
-        if self.total_duration:
-            self.average_segment_bitrate = int(8.0*float(self.media_size)/self.total_duration)
-
-        # compute the max segment bitrates
-        if self.average_segment_duration:
-            self.max_segment_bitrate = 8*int(float(max(self.segment_sizes[:-1]))/self.average_segment_duration)
-
-    def compute_kid(self):
-        moov = FilterChildren(self.parent.tree, 'moov')[0]
-        traks = FilterChildren(moov, 'trak')
-        for trak in traks:
-            tkhd = FindChild(trak, ['tkhd'])
-            track_id = tkhd['id']
-            tenc = FindChild(trak, ('mdia', 'minf', 'stbl', 'stsd', 'encv', 'sinf', 'schi', 'tenc'))
-            if tenc is None:
-                tenc = FindChild(trak, ('mdia', 'minf', 'stbl', 'stsd', 'enca', 'sinf', 'schi', 'tenc'))
-            if tenc and 'default_KID' in tenc:
-                kid = tenc['default_KID'].strip('[]').replace(' ', '')
-                self.kid = kid
-    
-    def __repr__(self):
-        return 'File '+str(self.parent.index)+'#'+str(self.id)
-    
-class Mp4File:
-    def __init__(self, filename):
-        self.filename = filename
-        self.tracks   = {}
-                
-        if Options.debug: print 'Processing MP4 file', filename
-
-        # walk the atom structure
-        self.atoms = WalkAtoms(filename)
-        self.segments = []
-        for atom in self.atoms:
-            if atom.type == 'moov':
-                self.init_segment = atom
-            elif atom.type == 'moof':
-                self.segments.append([atom])
-            else:
-                if len(self.segments):
-                    self.segments[-1].append(atom)
-        #print self.segments
-        if Options.debug: print '  found', len(self.segments), 'segments'
-                        
-        # get the mp4 file info
-        json_info = Mp4Info(filename, format='json')
-        self.info = json.loads(json_info, strict=False)
-
-        for track in self.info['tracks']:
-            self.tracks[track['id']] = Mp4Track(self, track)
-
-        # get a complete file dump
-        json_dump = Mp4Dump(filename, format='json', verbosity='1')
-        #print json_dump
-        self.tree = json.loads(json_dump, strict=False)
-        
-        # look for KIDs
-        for track in self.tracks.itervalues():
-            track.compute_kid()
-                
-        # compute default sample durations and timescales
-        for atom in self.tree:
-            if atom['name'] == 'moov':
-                for c1 in atom['children']:
-                    if c1['name'] == 'mvex':
-                        for c2 in c1['children']:
-                            if c2['name'] == 'trex':
-                                self.tracks[c2['track id']].default_sample_duration = c2['default sample duration']
-                    elif c1['name'] == 'trak':
-                        track_id = 0
-                        for c2 in c1['children']:
-                            if c2['name'] == 'tkhd':
-                                track_id = c2['id']
-                        for c2 in c1['children']:
-                            if c2['name'] == 'mdia':
-                                for c3 in c2['children']:
-                                    if c3['name'] == 'mdhd':
-                                        self.tracks[track_id].timescale = c3['timescale']
-
-        # partition the segments
-        segment_index = 0
-        track = None
-        for atom in self.tree:
-            if atom['name'] == 'moof':
-                trafs = FilterChildren(atom, 'traf')
-                if len(trafs) != 1:
-                    PrintErrorAndExit('ERROR: unsupported input file, more than one "traf" box in fragment')
-                tfhd = FilterChildren(trafs[0], 'tfhd')[0]
-                track = self.tracks[tfhd['track ID']]
-                track.moofs.append(segment_index)
-                track.segment_sizes.append(0)
-                segment_duration = 0
-                for trun in FilterChildren(trafs[0], 'trun'):
-                    track.sample_counts.append(trun['sample count'])
-                    for (name, value) in trun.items():
-                        if name.startswith('entry '):
-                            sample_duration = track.default_sample_duration
-                            f = value.find('duration:')
-                            if f >= 0:
-                                f += 9
-                                g = value.find(' ', f)
-                                if g >= 0:
-                                    sample_duration = int(value[f:g])    
-                            segment_duration += sample_duration
-                track.segment_durations.append(float(segment_duration)/float(track.timescale))
-                segment_index += 1
-            else:
-                if track and len(track.segment_sizes):
-                    track.segment_sizes[-1] += atom['size']
-                                                
-        # compute the total numer of samples for each track
-        for track_id in self.tracks:
-            self.tracks[track_id].update()
-                                                   
-        # print debug info if requested
-        if Options.debug:
-            for track in self.tracks.itervalues():
-                print '    ID                       =', track.id
-                print '    Type                     =', track.type
-                print '    Sample Count             =', track.total_sample_count
-                print '    Average segment bitrate  =', track.average_segment_bitrate
-                print '    Max segment bitrate      =', track.average_segment_bitrate
-                print '    Average segment duration =', track.average_segment_duration
-
-    def find_track_by_id(self, track_id_to_find):
-        for track_id in self.tracks:
-            if track_id_to_find == 0 or track_id_to_find == track_id:
-                return self.tracks[track_id]
-        
-        return None
-
-    def find_track_by_type(self, track_type_to_find):
-        for track_id in self.tracks:
-            if track_type_to_find == '' or track_type_to_find == self.tracks[track_id].type:
-                return self.tracks[track_id]
-        
-        return None
-            
-class MediaSource:
-    def __init__(self, name):
-        self.name = name
-        if name.startswith('[') and ']' in name:
-            try:
-                params = name[1:name.find(']')]
-                self.filename = name[2+len(params):]
-                self.spec = dict([x.split('=') for x in params.split(',')])
-                for int_param in ['track']:
-                    if int_param in self.spec: self.spec[int_param] = int(self.spec[int_param])
-            except:
-                raise Exception('Invalid syntax for media file spec "'+name+'"')
-        else:
-            self.filename = name
-            self.spec = {}
-            
-        if 'type'     not in self.spec: self.spec['type']     = ''
-        if 'track'    not in self.spec: self.spec['track']    = 0
-        if 'language' not in self.spec: self.spec['language'] = ''
-        
-    def __repr__(self):
-        return self.name
-
-def MakeNewDir(dir, is_warning=False):
-    if os.path.exists(dir):
-        if is_warning:
-            sys.stderr.write('WARNING: ')
-        else:
-            sys.stderr.write('ERROR: ')
-        sys.stderr.write('directory "'+dir+'" already exists\n')
-        if not is_warning:
-            sys.exit(1)
-    else:
-        os.mkdir(dir)
         
 def AddSegmentList(container, subdir, track, use_byte_range=False):
     if subdir:
@@ -394,7 +97,7 @@ def AddContentProtection(container, tracks):
     kids = []
     for track in tracks:
         kid = track.kid
-        kid is None:
+        if kid is None:
             PrintErrorAndExit('ERROR: no encryption info found in track '+str(track))
         if kid not in kids:
             kids.append(kid)
@@ -425,6 +128,8 @@ def main():
                       help="Print out debugging information")
     parser.add_option('-o', '--output-dir', dest="output_dir",
                       help="Output directory", metavar="<output-dir>", default='output')
+    parser.add_option('-f', '--force', dest="force_output", action="store_true",
+                      help="Allow output to an existing directory", default=False)
     parser.add_option('', '--init-segment', dest="init_segment",
                       help="Initialization segment name", metavar="<filename>", default='init.mp4')
     parser.add_option('-m', '--mpd-name', dest="mpd_filename",
@@ -475,7 +180,10 @@ def main():
         PrintErrorAndExit('Executable directory does not exist ('+Options.exec_dir+'), use --exec-dir')
 
     # create the output directory
-    MakeNewDir(options.output_dir, is_warning=options.mpd_only)
+    severity = 'ERROR'
+    if options.mpd_only: severity = 'WARNING'
+    if options.force_output: severity = None
+    MakeNewDir(dir=options.output_dir, exit_if_exists = not (options.mpd_only or options.force_output), severity=severity)
 
     # keep track of media file names (in case we use temporary files when encrypting)
     file_name_map = {}
@@ -495,7 +203,7 @@ def main():
         for media_source in media_sources:
             media_file = media_source.filename
             # get the mp4 file info
-            json_info = Mp4Info(media_file, format='json')
+            json_info = Mp4Info(Options, media_file, format='json')
             info = json.loads(json_info, strict=False)
 
             track_ids = [track['id'] for track in info['tracks'] if track['type'] in ['Audio', 'Video']]
@@ -524,7 +232,7 @@ def main():
             PrintErrorAndExit('ERROR: media file ' + media_file + ' does not exist')
             
         # get the file info
-        mp4_file = Mp4File(media_file)
+        mp4_file = Mp4File(Options, media_file)
         mp4_file.index = index
         
         # check the file
@@ -714,9 +422,10 @@ def main():
                     out_dir = path.join(out_dir, language)
                     MakeNewDir(out_dir)
                 print 'Processing media file (audio)', file_name_map[audio_track.parent.filename]
-                Mp4Split(audio_track.parent.filename,
+                Mp4Split(Options,
+                         audio_track.parent.filename,
                          track_id               = str(audio_track.id),
-                         no_track_id_in_pattern = True,
+                         pattern_parameters     = 'N',
                          init_segment           = path.join(out_dir, INIT_SEGMENT_NAME),
                          media_segment          = path.join(out_dir, SEGMENT_PATTERN))
         
@@ -725,9 +434,10 @@ def main():
                 out_dir = path.join(options.output_dir, 'video', str(video_track.parent.index))
                 MakeNewDir(out_dir)
                 print 'Processing media file (video)', file_name_map[video_track.parent.filename]
-                Mp4Split(video_track.parent.filename,
+                Mp4Split(Options,
+                         video_track.parent.filename,
                          track_id               = str(video_track.id),
-                         no_track_id_in_pattern = True,
+                         pattern_parameters     = 'N',
                          init_segment           = path.join(out_dir, INIT_SEGMENT_NAME),
                          media_segment          = path.join(out_dir, SEGMENT_PATTERN))
         else:

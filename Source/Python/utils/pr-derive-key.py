@@ -1,39 +1,7 @@
 #! /usr/bin/env python
 
 import sys
-import hashlib
-
-def derive_key(seed, kid):
-    if len(seed) < 30:
-        raise Exception('seed must be  >= 30 bytes')
-    if len(kid) != 16:
-        raise Exception('kid must be 16 bytes')
-    
-    seed = seed[:30]
-
-    sha = hashlib.sha256()
-    sha.update(seed)
-    sha.update(kid)
-    sha_A = [ord(x) for x in sha.digest()]
-    
-    sha = hashlib.sha256()
-    sha.update(seed)
-    sha.update(kid)
-    sha.update(seed)
-    sha_B = [ord(x) for x in sha.digest()]
-    
-    sha = hashlib.sha256()
-    sha.update(seed)
-    sha.update(kid)
-    sha.update(seed)
-    sha.update(kid)
-    sha_C = [ord(x) for x in sha.digest()]
-        
-    content_key = ""
-    for i in range(16):
-        content_key += chr(sha_A[i] ^ sha_A[i+16] ^ sha_B[i] ^ sha_B[i+16] ^ sha_C[i] ^ sha_C[i+16])
-
-    return content_key.encode('hex')
+from mp4utils import DerivePlayReadyKey
 
 ###########################    
 if __name__ == '__main__':
@@ -55,9 +23,6 @@ if __name__ == '__main__':
     
     seed_bin = seed_base64.decode('base64')
     kid_bin = kid_hex.decode('hex')
-    
-    if swap:
-        kid_bin = kid_bin[3]+kid_bin[2]+kid_bin[1]+kid_bin[0]+kid_bin[5]+kid_bin[4]+kid_bin[7]+kid_bin[6]+kid_bin[8:]
-        
-    dkey = derive_key(seed_bin, kid_bin)
-    print dkey
+            
+    dkey = DerivePlayReadyKey(seed_bin, kid_bin, swap)
+    print dkey.encode('hex')
