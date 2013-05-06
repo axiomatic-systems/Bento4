@@ -57,6 +57,7 @@ struct Options {
     unsigned int track_id;
     bool         audio_only;
     bool         video_only;
+    bool         init_only;
     unsigned int track_filter;
 } Options;
 
@@ -72,6 +73,7 @@ PrintUsageAndExit()
             "Options:\n"
             "  --verbose : print verbose information when running\n"
             "  --init-segment <filename> : name of init segment (default: init.mp4)\n"
+            "  --init-only : only output the init segment (no media segments)\n"
             "  --media-segment <filename-pattern> (default: segment-%%llu.%%04llu.m4f)\n"
             "    NOTE: all parameters are 64-bit integers, use %%llu in the pattern\n"
             "  --pattern-parameters <params> : one or more selector letter (default: IN)\n"
@@ -126,6 +128,7 @@ main(int argc, char** argv)
     Options.track_id               = 0;
     Options.audio_only             = false;
     Options.video_only             = false;
+    Options.init_only              = false;
     Options.track_filter           = 0;
     
     // parse command line
@@ -154,6 +157,8 @@ main(int argc, char** argv)
             Options.pattern_params = *args++;
         } else if (!strcmp(arg, "--track-id")) {
             Options.track_id = strtoul(*args++, NULL, 10);
+        } else if (!strcmp(arg, "--init-only")) {
+            Options.init_only = true;
         } else if (!strcmp(arg, "--audio")) {
             Options.audio_only = true;
         } else if (!strcmp(arg, "--video")) {
@@ -254,10 +259,10 @@ main(int argc, char** argv)
         fprintf(stderr, "ERROR: cannot write init segment (%d)\n", result);
         return 1;
     }
-    
+        
     AP4_Atom* atom = NULL;
     unsigned int track_id = 0;
-    for (;;) {
+    for (;!Options.init_only;) {
         // process the next atom
         result = AP4_DefaultAtomFactory::Instance.CreateAtomFromStream(*input, atom);
         if (AP4_FAILED(result)) break;
