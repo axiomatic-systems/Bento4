@@ -149,14 +149,18 @@ CheckWarning(AP4_ByteStream& stream, AP4_ProtectionKeyMap& key_map, Method metho
                   true);
     AP4_Movie* movie = file.GetMovie();
     if (!movie) {
-        fprintf(stderr, "WARNING: no movie atom found in input file\n");
-        return false;
+        if (method != METHOD_MPEG_CENC && method != METHOD_PIFF_CBC && method != METHOD_PIFF_CTR) {
+            fprintf(stderr, "WARNING: no movie atom found in input file\n");
+            return false;
+        }
     }
 
     bool warning = false;
     switch (method) {
         case METHOD_MPEG_CENC:
-            if (!movie->HasFragments()) {
+        case METHOD_PIFF_CBC:
+        case METHOD_PIFF_CTR:
+            if (movie && !movie->HasFragments()) {
                 fprintf(stderr, "WARNING: MPEG-CENC method only applies to fragmented files\n");
                 warning = true;
             }
@@ -165,14 +169,16 @@ CheckWarning(AP4_ByteStream& stream, AP4_ProtectionKeyMap& key_map, Method metho
             break;
     }
 
-    for (unsigned int i=0; i<movie->GetTracks().ItemCount(); i++) {
-        AP4_Track* track;
-        AP4_Result result = movie->GetTracks().Get(i, track);
-        if (AP4_FAILED(result)) return false;
-        const AP4_DataBuffer* key = key_map.GetKey(track->GetId());
-        if (key == NULL) {
-            fprintf(stderr, "WARNING: track ID %d will not be encrypted\n", track->GetId());
-            warning = true;
+    if (movie) {
+        for (unsigned int i=0; i<movie->GetTracks().ItemCount(); i++) {
+            AP4_Track* track;
+            AP4_Result result = movie->GetTracks().Get(i, track);
+            if (AP4_FAILED(result)) return false;
+            const AP4_DataBuffer* key = key_map.GetKey(track->GetId());
+            if (key == NULL) {
+                fprintf(stderr, "WARNING: track ID %d will not be encrypted\n", track->GetId());
+                warning = true;
+            }
         }
     }
     

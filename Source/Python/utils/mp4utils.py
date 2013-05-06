@@ -249,17 +249,19 @@ class Mp4File:
                 track.moofs.append(segment_index)
                 track.segment_sizes.append(0)
                 segment_duration = 0
+                default_sample_duration = tfhd.get('default sample duration', track.default_sample_duration)
                 for trun in FilterChildren(trafs[0], 'trun'):
                     track.sample_counts.append(trun['sample count'])
                     for (name, value) in trun.items():
                         if name.startswith('entry '):
-                            sample_duration = track.default_sample_duration
                             f = value.find('duration:')
                             if f >= 0:
                                 f += 9
                                 g = value.find(' ', f)
                                 if g >= 0:
-                                    sample_duration = int(value[f:g])    
+                                    sample_duration = int(value[f:g])
+                            else:
+                                sample_duration = default_sample_duration
                             segment_duration += sample_duration
                 track.segment_scaled_durations.append(segment_duration)
                 track.segment_durations.append(float(segment_duration)/float(track.timescale))

@@ -33,6 +33,7 @@ import tempfile
 from mp4utils import *
 
 # setup main options
+VERSION = "1.0.0"
 SCRIPT_PATH = path.abspath(path.dirname(__file__))
 sys.path += [SCRIPT_PATH]
 
@@ -260,7 +261,7 @@ def main():
                                   MajorVersion="2", 
                                   MinorVersion="0",
                                   Duration=str(presentation_duration))
-    client_manifest.append(xml.Comment('Created with Bento4 mp4-smooth.py'))
+    client_manifest.append(xml.Comment('Created with Bento4 mp4-smooth.py, VERSION='+VERSION))
     
     # process the audio tracks
     audio_index = 0
@@ -274,7 +275,7 @@ def main():
         audio_url_pattern="QualityLevels({bitrate})/Fragments(%s={start time})" % (stream_name)
         stream_index = xml.SubElement(client_manifest, 
                                       'StreamIndex', 
-                                      Chunks=str(len(track.moofs)), 
+                                      Chunks=str(len(audio_track.moofs)), 
                                       Url=audio_url_pattern, 
                                       Type="audio", 
                                       Name=stream_name, 
