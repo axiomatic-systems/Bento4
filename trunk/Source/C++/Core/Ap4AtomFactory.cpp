@@ -290,7 +290,10 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
             break;
 
           case AP4_ATOM_TYPE_AVC1:
-            atom = new AP4_Avc1SampleEntry(size_32, stream, *this);
+          case AP4_ATOM_TYPE_AVC2:
+          case AP4_ATOM_TYPE_AVC3:
+          case AP4_ATOM_TYPE_AVC4:
+            atom = new AP4_AvcSampleEntry(type, size_32, stream, *this);
             break;
 
           case AP4_ATOM_TYPE_ALAC:

@@ -53,6 +53,9 @@ const AP4_UI32 AP4_SAMPLE_FORMAT_MP4A = AP4_ATOM_TYPE('m','p','4','a');
 const AP4_UI32 AP4_SAMPLE_FORMAT_MP4V = AP4_ATOM_TYPE('m','p','4','v');
 const AP4_UI32 AP4_SAMPLE_FORMAT_MP4S = AP4_ATOM_TYPE('m','p','4','s');
 const AP4_UI32 AP4_SAMPLE_FORMAT_AVC1 = AP4_ATOM_TYPE('a','v','c','1');
+const AP4_UI32 AP4_SAMPLE_FORMAT_AVC2 = AP4_ATOM_TYPE('a','v','c','2');
+const AP4_UI32 AP4_SAMPLE_FORMAT_AVC3 = AP4_ATOM_TYPE('a','v','c','3');
+const AP4_UI32 AP4_SAMPLE_FORMAT_AVC4 = AP4_ATOM_TYPE('a','v','c','4');
 const AP4_UI32 AP4_SAMPLE_FORMAT_ALAC = AP4_ATOM_TYPE('a','l','a','c');
 const AP4_UI32 AP4_SAMPLE_FORMAT_OWMA = AP4_ATOM_TYPE('o','w','m','a');
 const AP4_UI32 AP4_SAMPLE_FORMAT_OVC1 = AP4_ATOM_TYPE('o','v','c','1');
@@ -257,13 +260,15 @@ public:
     AP4_IMPLEMENT_DYNAMIC_CAST_D2(AP4_AvcSampleDescription, AP4_SampleDescription, AP4_VideoSampleDescription)
 
     // constructors
-    AP4_AvcSampleDescription(AP4_UI16            width,
+    AP4_AvcSampleDescription(AP4_UI32            format, // avc1, avc2, avc3 or avc4
+                             AP4_UI16            width,
                              AP4_UI16            height,
                              AP4_UI16            depth,
                              const char*         compressor_name,
                              const AP4_AvccAtom* avcc);
     
-    AP4_AvcSampleDescription(AP4_UI16        width,
+    AP4_AvcSampleDescription(AP4_UI32        format, // avc1, avc2, avc3 or avc4
+                             AP4_UI16        width,
                              AP4_UI16        height,
                              AP4_UI16        depth,
                              const char*     compressor_name,

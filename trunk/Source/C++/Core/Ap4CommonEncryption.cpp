@@ -883,6 +883,9 @@ AP4_CencEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
 
         case AP4_ATOM_TYPE_MP4V:
         case AP4_ATOM_TYPE_AVC1:
+        case AP4_ATOM_TYPE_AVC2:
+        case AP4_ATOM_TYPE_AVC3:
+        case AP4_ATOM_TYPE_AVC4:
             format = AP4_ATOM_TYPE_ENCV;
             break;
             
@@ -973,7 +976,10 @@ AP4_CencEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
     switch (algorithm_id) {
         case AP4_CENC_ALGORITHM_ID_CBC:
             stream_cipher = new AP4_CbcStreamCipher(block_cipher);
-            if (entries[0]->GetType() == AP4_ATOM_TYPE_AVC1) {
+            if (entries[0]->GetType() == AP4_ATOM_TYPE_AVC1 ||
+                entries[0]->GetType() == AP4_ATOM_TYPE_AVC2 ||
+                entries[0]->GetType() == AP4_ATOM_TYPE_AVC3 ||
+                entries[0]->GetType() == AP4_ATOM_TYPE_AVC4) {
                 AP4_AvccAtom* avcc = AP4_DYNAMIC_CAST(AP4_AvccAtom, entries[0]->GetChild(AP4_ATOM_TYPE_AVCC));
                 if (avcc == NULL) return NULL;
                 sample_encrypter = new AP4_CencCbcSubSampleEncrypter(stream_cipher, avcc->GetNaluLengthSize());
@@ -984,7 +990,10 @@ AP4_CencEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
             
         case AP4_CENC_ALGORITHM_ID_CTR:
             stream_cipher = new AP4_CtrStreamCipher(block_cipher, 16);
-            if (entries[0]->GetType() == AP4_ATOM_TYPE_AVC1) {
+            if (entries[0]->GetType() == AP4_ATOM_TYPE_AVC1 ||
+                entries[0]->GetType() == AP4_ATOM_TYPE_AVC2 ||
+                entries[0]->GetType() == AP4_ATOM_TYPE_AVC3 ||
+                entries[0]->GetType() == AP4_ATOM_TYPE_AVC4) {
                 AP4_AvccAtom* avcc = AP4_DYNAMIC_CAST(AP4_AvccAtom, entries[0]->GetChild(AP4_ATOM_TYPE_AVCC));
                 if (avcc == NULL) return NULL;
                 sample_encrypter = new AP4_CencCtrSubSampleEncrypter(stream_cipher, avcc->GetNaluLengthSize(), iv_size);
