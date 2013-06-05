@@ -34,6 +34,7 @@ from mp4utils import *
 
 # setup main options
 VERSION = "1.0.0"
+SVN_REVISION = "$Revision$"
 SCRIPT_PATH = path.abspath(path.dirname(__file__))
 sys.path += [SCRIPT_PATH]
 
@@ -85,6 +86,7 @@ def main():
                       dest="exec_dir", default=path.join(SCRIPT_PATH, 'bin', platform),
                       help="Directory where the Bento4 executables are located")
     (options, args) = parser.parse_args()
+    options.min_buffer_time=0
     if len(args) == 0:
         parser.print_help()
         sys.exit(1)
@@ -261,7 +263,7 @@ def main():
                                   MajorVersion="2", 
                                   MinorVersion="0",
                                   Duration=str(presentation_duration))
-    client_manifest.append(xml.Comment('Created with Bento4 mp4-smooth.py, VERSION='+VERSION))
+    client_manifest.append(xml.Comment('Created with Bento4 mp4-smooth.py, VERSION='+VERSION+'-'+SVN_REVISION[11:-1]+' '))
     
     # process the audio tracks
     audio_index = 0
