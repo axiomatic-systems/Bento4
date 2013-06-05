@@ -79,6 +79,8 @@ public:
                             
     AP4_Result SetSampleIndex(AP4_UI32 track_id, AP4_UI32 sample_index);
     
+    AP4_Result SeekTo(AP4_UI32 time_ms, AP4_UI32* actual_time_ms = 0);
+    
     // accessors
     AP4_Size GetBufferFullness() { return m_BufferFullness; }
     
@@ -152,6 +154,7 @@ protected:
     AP4_Size            m_BufferFullness;
     AP4_Size            m_BufferFullnessPeak;
     AP4_Size            m_MaxBufferFullness;
+    AP4_ContainerAtom*  m_Mfra;
 };
 
 /*----------------------------------------------------------------------

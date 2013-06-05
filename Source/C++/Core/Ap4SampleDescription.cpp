@@ -62,6 +62,9 @@ AP4_GetFormatName(AP4_UI32 format)
         case AP4_SAMPLE_FORMAT_MP4S: return "MPEG-4 Systems";
         case AP4_SAMPLE_FORMAT_ALAC: return "Apple Lossless Audio";
         case AP4_SAMPLE_FORMAT_AVC1: return "H.264";
+        case AP4_SAMPLE_FORMAT_AVC2: return "H.264";
+        case AP4_SAMPLE_FORMAT_AVC3: return "H.264";
+        case AP4_SAMPLE_FORMAT_AVC4: return "H.264";
         case AP4_SAMPLE_FORMAT_OVC1: return "VC-1";
         case AP4_SAMPLE_FORMAT_OWMA: return "WMA";
         case AP4_SAMPLE_FORMAT_AC_3: return "Dolby Digital (AC-3)";
@@ -231,12 +234,13 @@ AP4_AvcSampleDescription::AP4_AvcSampleDescription(AP4_UI16     width,
 /*----------------------------------------------------------------------
 |   AP4_AvcSampleDescription::AP4_AvcSampleDescription
 +---------------------------------------------------------------------*/
-AP4_AvcSampleDescription::AP4_AvcSampleDescription(AP4_UI16            width,
+AP4_AvcSampleDescription::AP4_AvcSampleDescription(AP4_UI32            format,
+                                                   AP4_UI16            width,
                                                    AP4_UI16            height,
                                                    AP4_UI16            depth,
                                                    const char*         compressor_name,
                                                    const AP4_AvccAtom* avcc) :
-    AP4_SampleDescription(TYPE_AVC, AP4_SAMPLE_FORMAT_AVC1, NULL),
+    AP4_SampleDescription(TYPE_AVC, format, NULL),
     AP4_VideoSampleDescription(width, height, depth, compressor_name)
 {
     if (avcc) {
@@ -251,12 +255,13 @@ AP4_AvcSampleDescription::AP4_AvcSampleDescription(AP4_UI16            width,
 /*----------------------------------------------------------------------
 |   AP4_AvcSampleDescription::AP4_AvcSampleDescription
 +---------------------------------------------------------------------*/
-AP4_AvcSampleDescription::AP4_AvcSampleDescription(AP4_UI16        width,
+AP4_AvcSampleDescription::AP4_AvcSampleDescription(AP4_UI32        format,
+                                                   AP4_UI16        width,
                                                    AP4_UI16        height,
                                                    AP4_UI16        depth,
                                                    const char*     compressor_name,
                                                    AP4_AtomParent* details) :
-    AP4_SampleDescription(TYPE_AVC, AP4_SAMPLE_FORMAT_AVC1, details),
+    AP4_SampleDescription(TYPE_AVC, format, details),
     AP4_VideoSampleDescription(width, height, depth, compressor_name),
     m_AvccAtom(NULL)
 {
@@ -276,11 +281,12 @@ AP4_AvcSampleDescription::AP4_AvcSampleDescription(AP4_UI16        width,
 AP4_Atom*
 AP4_AvcSampleDescription::ToAtom() const
 {
-    return new AP4_Avc1SampleEntry(m_Width, 
-                                   m_Height, 
-                                   m_Depth, 
-                                   m_CompressorName.GetChars(), 
-                                   *m_AvccAtom);
+    return new AP4_AvcSampleEntry(m_Format,
+                                  m_Width,
+                                  m_Height,
+                                  m_Depth,
+                                  m_CompressorName.GetChars(),
+                                  *m_AvccAtom);
 }
 
 /*----------------------------------------------------------------------

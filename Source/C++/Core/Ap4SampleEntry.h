@@ -328,20 +328,22 @@ class AP4_Mp4vSampleEntry : public AP4_MpegVideoSampleEntry
 };
 
 /*----------------------------------------------------------------------
-|   AP4_Avc1SampleEntry
+|   AP4_AvcSampleEntry
 +---------------------------------------------------------------------*/
-class AP4_Avc1SampleEntry : public AP4_VisualSampleEntry
+class AP4_AvcSampleEntry : public AP4_VisualSampleEntry
 {
 public:
     // constructors
-    AP4_Avc1SampleEntry(AP4_Size         size,
-                        AP4_ByteStream&  stream,
-                        AP4_AtomFactory& atom_factory);
-    AP4_Avc1SampleEntry(AP4_UI16            width,
-                        AP4_UI16            height,
-                        AP4_UI16            depth,
-                        const char*         compressor_name,
-                        const AP4_AvccAtom& avcc);
+    AP4_AvcSampleEntry(AP4_UI32         format, // avc1, avc2, avc3, avc4
+                       AP4_Size         size,
+                       AP4_ByteStream&  stream,
+                       AP4_AtomFactory& atom_factory);
+    AP4_AvcSampleEntry(AP4_UI32            format, // avc1, avc2, avc3, avc4
+                       AP4_UI16            width,
+                       AP4_UI16            height,
+                       AP4_UI16            depth,
+                       const char*         compressor_name,
+                       const AP4_AvccAtom& avcc);
                         
     // inherited from AP4_SampleEntry
     virtual AP4_SampleDescription* ToSampleDescription();

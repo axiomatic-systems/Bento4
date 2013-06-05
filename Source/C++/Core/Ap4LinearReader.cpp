@@ -48,7 +48,8 @@ AP4_LinearReader::AP4_LinearReader(AP4_Movie&      movie,
     m_NextFragmentPosition(0),
     m_BufferFullness(0),
     m_BufferFullnessPeak(0),
-    m_MaxBufferFullness(max_buffer)
+    m_MaxBufferFullness(max_buffer),
+    m_Mfra(NULL)
 {
     m_HasFragments = movie.HasFragments();
     if (fragment_stream) {
@@ -66,6 +67,7 @@ AP4_LinearReader::~AP4_LinearReader()
         delete m_Trackers[i];
     }
     delete m_Fragment;
+    delete m_Mfra;
     if (m_FragmentStream) m_FragmentStream->Release();
 }
 
@@ -112,6 +114,58 @@ AP4_LinearReader::SetSampleIndex(AP4_UI32 track_id, AP4_UI32 sample_index)
         delete buffer;
     }
     tracker->m_Samples.Clear();
+    
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_LinearReader::SeekTo
++---------------------------------------------------------------------*/
+
+AP4_Result
+AP4_LinearReader::SeekTo(AP4_UI32 time_ms, AP4_UI32* actual_time_ms)
+{
+    if (actual_time_ms) *actual_time_ms = time_ms; // default
+    
+    // we only support fragmented sources for now
+    if (!m_HasFragments) return AP4_ERROR_NOT_SUPPORTED;
+    
+    // look for a fragment index
+    if (m_Mfra == NULL) {
+        if (m_FragmentStream) {
+            // get the size of the stream (needed)
+            AP4_LargeSize stream_size = 0;
+            m_FragmentStream->GetSize(stream_size);
+
+            if (stream_size > 12) {
+                // remember where we are
+                AP4_Position here;
+                m_FragmentStream->Tell(here);
+                
+                // read the last 12 bytes
+                unsigned char mfro[12];
+                AP4_Result result = m_FragmentStream->Seek(stream_size-12);
+                if (AP4_SUCCEEDED(result)) {
+                    result = m_FragmentStream->Read(mfro, 12);
+                }
+                if (AP4_SUCCEEDED(result) && mfro[0] == 'm' && mfro[1] == 'f' && mfro[2] == 'r' && mfro[3] == 'o') {
+                    AP4_UI32 mfra_size = AP4_BytesToUInt32BE(&mfro[8]);
+                    if ((AP4_LargeSize)mfra_size < stream_size) {
+                        result = m_FragmentStream->Seek(stream_size-mfra_size);
+                        if (AP4_SUCCEEDED(result)) {
+                            AP4_Atom* mfra = NULL;
+                            AP4_LargeSize available = mfra_size;
+                            AP4_DefaultAtomFactory::Instance.CreateAtomFromStream(*m_FragmentStream, available, mfra);
+                            m_Mfra = AP4_DYNAMIC_CAST(AP4_ContainerAtom, mfra);
+                        }
+                    }
+                }
+                if (AP4_SUCCEEDED(result)) {
+                    result = m_FragmentStream->Seek(here);
+                }
+            }
+        }
+    }
     
     return AP4_SUCCESS;
 }
