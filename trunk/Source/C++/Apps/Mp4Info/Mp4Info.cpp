@@ -743,9 +743,7 @@ ShowTrackInfo_Text(AP4_Track& track, bool show_samples, bool show_sample_data, b
         desc_index++) {
         printf("  Sample Description %d\n", desc_index);
         ShowSampleDescription(*sample_desc, verbose);
-        if (sample_desc->GetFormat() == AP4_SAMPLE_FORMAT_AVC1) {
-            avc_desc = AP4_DYNAMIC_CAST(AP4_AvcSampleDescription, sample_desc);
-        }
+        avc_desc = AP4_DYNAMIC_CAST(AP4_AvcSampleDescription, sample_desc);
     }
 
     // show samples if requested

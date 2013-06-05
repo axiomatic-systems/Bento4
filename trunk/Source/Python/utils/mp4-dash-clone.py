@@ -28,10 +28,12 @@ from xml.etree import ElementTree
 from subprocess import check_output, CalledProcessError
 
 # constants
-DASH_NS_URN = 'urn:mpeg:DASH:schema:MPD:2011'
-DASH_NS = '{'+DASH_NS_URN+'}'
-MARLIN_MAS_NS_URN = 'urn:marlin:mas:1-0:services:schemas:mpd'
-MARLIN_MAS_NS = '{'+MARLIN_MAS_NS_URN+'}'
+DASH_NS_URN_COMPAT = 'urn:mpeg:DASH:schema:MPD:2011'
+DASH_NS_URN        = 'urn:mpeg:dash:schema:mpd:2011'
+DASH_NS_COMPAT     = '{'+DASH_NS_URN_COMPAT+'}'
+DASH_NS            = '{'+DASH_NS_URN+'}'
+MARLIN_MAS_NS_URN  = 'urn:marlin:mas:1-0:services:schemas:mpd'
+MARLIN_MAS_NS      = '{'+MARLIN_MAS_NS_URN+'}'
 
 def Bento4Command(name, *args, **kwargs):
     cmd = [os.path.join(Options.exec_dir, name)]
@@ -261,6 +263,9 @@ class DashMPD:
         
         # compute base URL (note: we'll just use the MPD URL for now)
         self.base_urls = [url] 
+        base_url = self.xml.find(DASH_NS+'BaseURL')
+        if base_url is not None:
+            self.base_urls = [base_url.text]
         
     def __str__(self):
         result = "MPD:\n" + '\n'.join([str(p) for p in self.periods])
@@ -268,6 +273,12 @@ class DashMPD:
         
 def ParseMpd(url, xml):
     mpd_tree = ElementTree.XML(xml)
+    if mpd_tree.tag.startswith(DASH_NS_COMPAT):
+        global DASH_NS
+        DASH_NS = DASH_NS_COMPAT
+        if Options.verbose:
+            print '@@@ Using backward compatible namespace'
+            
     mpd = DashMPD(url, mpd_tree)
     
     if not (mpd.type is None or mpd.type == 'static'):
@@ -287,10 +298,20 @@ def MakeNewDir(dir, is_warning=False):
     else:
         os.mkdir(dir)
 
+def OpenURL(url):
+    if url.startswith("file://"):
+        return open(url[7:], 'rb')
+    else:
+        return urllib2.urlopen(url)
+
 def ComputeUrl(base_url, url):
     if url.startswith('http://') or url.startswith('https://'):
         raise Exception('Absolute URLs are not supported')
-    return urlparse.urljoin(base_url, url)
+    
+    if base_url.startswith('file://'):
+        return os.path.join(os.path.dirname(base_url), url)
+    else:
+        return urlparse.urljoin(base_url, url)
     
 class Cloner:
     def __init__(self, root_dir):
@@ -314,7 +335,7 @@ class Cloner:
         except:
             raise            
                 
-        data = urllib2.urlopen(url)
+        data = OpenURL(url)
         outfile_name = os.path.join(self.root_dir, path_out)
         use_temp_file = False
         if Options.encrypt:
@@ -396,7 +417,7 @@ def main():
     # load and parse the MPD
     if Options.verbose: print "Loading MPD from", mpd_url
     try:
-        mpd_xml = urllib2.urlopen(mpd_url).read()
+        mpd_xml = OpenURL(mpd_url).read()
     except Exception as e:
         print "ERROR: failed to load MPD:", e
         sys.exit(1)
@@ -414,7 +435,9 @@ def main():
             for representation in adaptation_set.representations:
                 # compute the base URL
                 base_url = representation.AttributeLookup('base_urls')[0]
-                
+                if Options.verbose:
+                    print 'Base URL = '+base_url
+                    
                 # process the init segment
                 if Options.verbose:
                     print '### Processing Initialization Segment'
@@ -428,7 +451,7 @@ def main():
                     url = ComputeUrl(base_url, seg_url)
                     try:
                         cloner.CloneSegment(url, seg_url, False)
-                    except (urllib2.HTTPError, urllib2.URLError):
+                    except (urllib2.HTTPError, urllib2.URLError, IOError):
                         # move to the next representation
                         break
                 
