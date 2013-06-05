@@ -151,7 +151,7 @@ def OutputDash(options, audio_tracks, video_tracks):
                       minBufferTime="PT%.02fS" % (options.min_buffer_time), 
                       mediaPresentationDuration=XmlDuration(int(presentation_duration)),
                       type='static')
-    mpd.append(xml.Comment('Created with Bento4 mp4-dash.py, VERSION='+VERSION+' - '+SVN_REVISION))
+    mpd.append(xml.Comment('Created with Bento4 mp4-dash.py, VERSION='+VERSION+'-'+SVN_REVISION[11:-1]+' '))
     period = xml.SubElement(mpd, 'Period')
 
     # process the audio tracks
