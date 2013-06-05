@@ -90,7 +90,7 @@ public:
     AP4_UI64      m_Timestamp;
     bool          m_Eos;
     AP4_UI64      m_TargetDuration;
-    AP4_UI32      m_EndDts;
+    AP4_UI64      m_EndDts;
     AP4_TfraAtom* m_Tfra;
 };
 
