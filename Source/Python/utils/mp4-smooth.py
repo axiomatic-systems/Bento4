@@ -283,10 +283,9 @@ def main():
                                       TimeScale=str(audio_track.timescale))
         if language:
             stream_index.set('Language', language)
-        bandwidth = audio_track.max_segment_bitrate
         quality_level = xml.SubElement(stream_index, 
                                        'QualityLevel', 
-                                       Bitrate=str(bandwidth), 
+                                       Bitrate=str(audio_track.bandwidth), 
                                        SamplingRate=str(audio_track.sample_rate),
                                        Channels=str(audio_track.channels), 
                                        BitsPerSample="16", 
@@ -315,12 +314,11 @@ def main():
                                    MaxHeight=str(max_height))
     qindex = 0
     for video_track in video_tracks:
-        bandwidth = video_track.max_segment_bitrate
         sample_desc = video_track.info['sample_descriptions'][0]
         codec_private_data = '00000001'+sample_desc['avc_sps'][0]+'00000001'+sample_desc['avc_pps'][0]
         quality_level = xml.SubElement(stream_index, 
                                        'QualityLevel', 
-                                       Bitrate=str(bandwidth),
+                                       Bitrate=str(video_track.bandwidth),
                                        MaxWidth=str(video_track.width), 
                                        MaxHeight=str(video_track.height),
                                        FourCC="H264",

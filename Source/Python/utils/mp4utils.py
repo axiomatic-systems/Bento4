@@ -117,11 +117,13 @@ class Mp4Track:
         self.segment_sizes            = []
         self.segment_durations        = []
         self.segment_scaled_durations = []
+        self.segment_bitrates         = []
         self.total_sample_count       = 0
         self.total_duration           = 0
         self.average_segment_duration = 0
         self.average_segment_bitrate  = 0
         self.max_segment_bitrate      = 0
+        self.bandwidth                = 0
         self.id = info['id']
         if info['type'] == 'Audio':
             self.type = 'audio'
@@ -140,7 +142,7 @@ class Mp4Track:
             self.sample_rate = sample_desc['sample_rate']
             self.channels = sample_desc['channels']
                         
-    def update(self):
+    def update(self, options):
         # compute the total number of samples
         self.total_sample_count = reduce(operator.add, self.sample_counts, 0)
         
@@ -161,8 +163,12 @@ class Mp4Track:
             self.average_segment_bitrate = int(8.0*float(self.media_size)/self.total_duration)
 
         # compute the max segment bitrates
-        if self.average_segment_duration:
-            self.max_segment_bitrate = 8*int(float(max(self.segment_sizes[:-1]))/self.average_segment_duration)
+        self.max_segment_bitrate = max(self.segment_bitrates[:-1])
+        
+        # compute bandwidth
+        if options.min_buffer_time == 0.0:
+            options.min_buffer_time = self.average_segment_duration
+        self.bandwidth = ComputeBandwidth(options.min_buffer_time, self.segment_sizes, self.segment_durations)
 
     def compute_kid(self):
         moov = FilterChildren(self.parent.tree, 'moov')[0]
@@ -239,7 +245,10 @@ class Mp4File:
         # partition the segments
         segment_index = 0
         track = None
+        segment_size = 0
+        segment_duration_sec = 0.0
         for atom in self.tree:
+            segment_size += atom['size']
             if atom['name'] == 'moof':
                 trafs = FilterChildren(atom, 'traf')
                 if len(trafs) != 1:
@@ -247,7 +256,6 @@ class Mp4File:
                 tfhd = FilterChildren(trafs[0], 'tfhd')[0]
                 track = self.tracks[tfhd['track ID']]
                 track.moofs.append(segment_index)
-                track.segment_sizes.append(0)
                 segment_duration = 0
                 default_sample_duration = tfhd.get('default sample duration', track.default_sample_duration)
                 for trun in FilterChildren(trafs[0], 'trun'):
@@ -264,15 +272,23 @@ class Mp4File:
                                 sample_duration = default_sample_duration
                             segment_duration += sample_duration
                 track.segment_scaled_durations.append(segment_duration)
-                track.segment_durations.append(float(segment_duration)/float(track.timescale))
+                segment_duration_sec = float(segment_duration)/float(track.timescale)
+                track.segment_durations.append(segment_duration_sec)
                 segment_index += 1
-            else:
-                if track and len(track.segment_sizes):
-                    track.segment_sizes[-1] += atom['size']
+            elif atom['name'] == 'mdat':
+                # end of fragment on 'mdat' atom
+                if track:
+                    track.segment_sizes.append(segment_size)
+                    if segment_duration_sec > 0.0:
+                        segment_bitrate = int((8.0*float(segment_size))/segment_duration_sec)
+                    else:
+                        segment_bitrate = 0
+                    track.segment_bitrates.append(segment_bitrate)
+                segment_size = 0
                                                 
         # compute the total numer of samples for each track
         for track_id in self.tracks:
-            self.tracks[track_id].update()
+            self.tracks[track_id].update(options)
                                                    
         # print debug info if requested
         if options.debug:
@@ -281,7 +297,8 @@ class Mp4File:
                 print '    Type                     =', track.type
                 print '    Sample Count             =', track.total_sample_count
                 print '    Average segment bitrate  =', track.average_segment_bitrate
-                print '    Max segment bitrate      =', track.average_segment_bitrate
+                print '    Max segment bitrate      =', track.max_segment_bitrate
+                print '    Required bandwidth       =', int(track.bandwidth)
                 print '    Average segment duration =', track.average_segment_duration
 
     def find_track_by_id(self, track_id_to_find):
@@ -321,6 +338,21 @@ class MediaSource:
     def __repr__(self):
         return self.name
 
+def ComputeBandwidth(buffer_time, sizes, durations):
+    bandwidth = 0.0
+    for i in range(len(sizes)):
+        accu_size     = 0
+        accu_duration = 0
+        buffer_size = (buffer_time*bandwidth)/8.0
+        for j in range(i, len(sizes)):
+            accu_size     += sizes[j]
+            accu_duration += durations[j]
+            max_avail = buffer_size+accu_duration*bandwidth/8.0
+            if accu_size > max_avail:
+                bandwidth = 8.0*(accu_size-buffer_size)/accu_duration
+                break
+    return int(bandwidth)
+    
 def MakeNewDir(dir, exit_if_exists=False, severity=None):
     if os.path.exists(dir):
         if severity:

@@ -41,7 +41,8 @@ VIDEO_MIMETYPE       = 'video/mp4'
 AUDIO_MIMETYPE       = 'audio/mp4'
 VIDEO_DIR            = 'video'
 AUDIO_DIR            = 'audio'
-MPD_NS               = 'urn:mpeg:DASH:schema:MPD:2011'
+MPD_NS_COMPAT        = 'urn:mpeg:DASH:schema:MPD:2011'
+MPD_NS               = 'urn:mpeg:dash:schema:mpd:2011'
 ISOFF_LIVE_PROFILE   = 'urn:mpeg:dash:profile:isoff-live:2011' 
 INIT_SEGMENT_NAME    = 'init.mp4'
 SEGMENT_PATTERN      = 'seg-%04llu.m4f'
@@ -162,8 +163,7 @@ def OutputDash(options, audio_tracks, video_tracks):
             id_ext = ''
         if options.marlin:
             AddContentProtection(options, adaptation_set, [audio_track])
-        bandwidth = audio_track.max_segment_bitrate
-        representation = xml.SubElement(adaptation_set, 'Representation', id='audio'+id_ext, codecs=audio_track.codec, bandwidth=str(bandwidth))
+        representation = xml.SubElement(adaptation_set, 'Representation', id='audio'+id_ext, codecs=audio_track.codec, bandwidth=str(audio_track.bandwidth))
         if options.split:
             if len(audio_tracks) > 1:
                 subdir = '/'+language
@@ -182,8 +182,7 @@ def OutputDash(options, audio_tracks, video_tracks):
     for video_track in video_tracks:
         video_desc = video_track.info['sample_descriptions'][0]
 
-        bandwidth = video_track.max_segment_bitrate
-        representation = xml.SubElement(adaptation_set, 'Representation', id='video.'+str(video_track.parent.index), codecs=video_track.codec, width=str(video_track.width), height=str(video_track.height), bandwidth=str(bandwidth))
+        representation = xml.SubElement(adaptation_set, 'Representation', id='video.'+str(video_track.parent.index), codecs=video_track.codec, width=str(video_track.width), height=str(video_track.height), bandwidth=str(video_track.bandwidth))
         if options.split:
             AddSegments(options, representation, 'video/'+str(video_track.parent.index), video_track, False, 'video')
         else:
@@ -223,10 +222,9 @@ def OutputSmooth(options, audio_tracks, video_tracks):
                                       TimeScale=str(audio_track.timescale))
         if language:
             stream_index.set('Language', language)
-        bandwidth = audio_track.max_segment_bitrate
         quality_level = xml.SubElement(stream_index, 
                                        'QualityLevel', 
-                                       Bitrate=str(bandwidth), 
+                                       Bitrate=str(audio_track.bandwidth), 
                                        SamplingRate=str(audio_track.sample_rate),
                                        Channels=str(audio_track.channels), 
                                        BitsPerSample="16", 
@@ -255,12 +253,11 @@ def OutputSmooth(options, audio_tracks, video_tracks):
                                    MaxHeight=str(max_height))
     qindex = 0
     for video_track in video_tracks:
-        bandwidth = video_track.max_segment_bitrate
         sample_desc = video_track.info['sample_descriptions'][0]
         codec_private_data = '00000001'+sample_desc['avc_sps'][0]+'00000001'+sample_desc['avc_pps'][0]
         quality_level = xml.SubElement(stream_index, 
                                        'QualityLevel', 
-                                       Bitrate=str(bandwidth),
+                                       Bitrate=str(video_track.bandwidth),
                                        MaxWidth=str(video_track.width), 
                                        MaxHeight=str(video_track.height),
                                        FourCC="H264",
@@ -575,9 +572,9 @@ def main():
     # print info about the tracks
     if options.verbose:
         for audio_track in audio_tracks.itervalues():
-            print '  Audio Track: '+str(audio_track)+' - max bitrate=%d, avg bitrate=%d' % (audio_track.max_segment_bitrate, audio_track.average_segment_bitrate)
+            print '  Audio Track: '+str(audio_track)+' - max bitrate=%d, avg bitrate=%d, req bandwidth=%d' % (audio_track.max_segment_bitrate, audio_track.average_segment_bitrate, audio_track.bandwidth)
         for video_track in video_tracks:
-            print '  Video Track: '+str(video_track)+' - max bitrate=%d, avg bitrate=%d' % (video_track.max_segment_bitrate, video_track.average_segment_bitrate)
+            print '  Video Track: '+str(video_track)+' - max bitrate=%d, avg bitrate=%d, req bandwidth=%d' % (video_track.max_segment_bitrate, video_track.average_segment_bitrate, video_track.bandwidth)
 
     # output the DASH MPD
     OutputDash(options, audio_tracks, video_tracks)
