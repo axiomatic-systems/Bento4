@@ -34,6 +34,7 @@ from mp4utils import *
 
 # setup main options
 VERSION = "1.1.0"
+SVN_REVISION = "$Revision$"
 SCRIPT_PATH = path.abspath(path.dirname(__file__))
 sys.path += [SCRIPT_PATH]
 
@@ -150,7 +151,7 @@ def OutputDash(options, audio_tracks, video_tracks):
                       minBufferTime="PT%.02fS" % (options.min_buffer_time), 
                       mediaPresentationDuration=XmlDuration(int(presentation_duration)),
                       type='static')
-    mpd.append(xml.Comment('Created with Bento4 mp4-dash.py, VERSION='+VERSION))
+    mpd.append(xml.Comment('Created with Bento4 mp4-dash.py, VERSION='+VERSION+' - '+SVN_REVISION))
     period = xml.SubElement(mpd, 'Period')
 
     # process the audio tracks
