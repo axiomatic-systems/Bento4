@@ -275,7 +275,9 @@ def ParseMpd(url, xml):
     mpd_tree = ElementTree.XML(xml)
     if mpd_tree.tag.startswith(DASH_NS_COMPAT):
         global DASH_NS
+        global DASH_NS_URN
         DASH_NS = DASH_NS_COMPAT
+        DASH_NS_URN = DASH_NS_URN_COMPAT
         if Options.verbose:
             print '@@@ Using backward compatible namespace'
             
@@ -471,7 +473,7 @@ def main():
                 
     # write the MPD    
     xml_tree = ElementTree.ElementTree(mpd.xml)
-    xml_tree.write(os.path.join(output_dir, os.path.basename(urlparse.urlparse(mpd_url).path)))
+    xml_tree.write(os.path.join(output_dir, os.path.basename(urlparse.urlparse(mpd_url).path)), encoding="UTF-8", xml_declaration=True)
     
 ###########################    
 SCRIPT_PATH = os.path.abspath(os.path.dirname(__file__))
