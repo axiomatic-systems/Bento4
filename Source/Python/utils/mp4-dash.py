@@ -145,8 +145,12 @@ def OutputDash(options, audio_tracks, video_tracks):
     presentation_duration = video_tracks[0].total_duration
         
     # create the MPD
+    if options.use_compat_namespace:
+      mpd_ns = MPD_NS_COMPAT
+    else:
+      mpd_ns = MPD_NS
     mpd = xml.Element('MPD', 
-                      xmlns=MPD_NS, 
+                      xmlns=mpd_ns, 
                       profiles=ISOFF_LIVE_PROFILE, 
                       minBufferTime="PT%.02fS" % (options.min_buffer_time), 
                       mediaPresentationDuration=XmlDuration(int(presentation_duration)),
@@ -360,6 +364,9 @@ def main():
                       help="Smooth Streaming Server Manifest file name", metavar="<filename>", default='stream.ism')
     parser.add_option('', "--encryption-key", dest="encryption_key", metavar='<KID>:<key>', default=None,
                       help="Encrypt all audio and video tracks with AES key <key> (in hex) with KID <KID> (in hex)")
+    parser.add_option('', "--use-compat-namespace",
+                      dest="use_compat_namespace", action="store_true", default=False,
+                      help="Use the original DASH MPD namespace as it was specified in the first published specification")
     parser.add_option('', "--marlin",
                       dest="marlin", action="store_true", default=False,
                       help="Add Marlin signaling to the MPD (requires an encrypted input, or the --encryption-key option)")

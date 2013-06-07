@@ -163,7 +163,8 @@ class Mp4Track:
             self.average_segment_bitrate = int(8.0*float(self.media_size)/self.total_duration)
 
         # compute the max segment bitrates
-        self.max_segment_bitrate = max(self.segment_bitrates[:-1])
+        if len(self.segment_bitrates) > 1:
+            self.max_segment_bitrate = max(self.segment_bitrates[:-1])            
         
         # compute bandwidth
         if options.min_buffer_time == 0.0:
