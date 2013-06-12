@@ -21,6 +21,8 @@ import operator
 import tempfile
 import hashlib
 
+LanguageCodeMap = {'roh': 'rm', 'zul': 'zu', 'ron': 'ro', 'oss': 'os', 'ita': 'it', 'ssw': 'ss', 'nld': 'nl', 'oji': 'oj', 'oci': 'oc', 'tso': 'ts', 'ell': 'el', 'jav': 'jv', 'hrv': 'hr', 'nor': 'no', 'fij': 'fj', 'fin': 'fi', 'hau': 'ha', 'eus': 'eu', 'amh': 'am', 'bih': 'bh', 'fas': 'fa', 'dan': 'da', 'nob': 'nb', 'ces': 'cs', 'fao': 'fo', 'mol': 'mo', 'bis': 'bi', 'hin': 'hi', 'hye': 'hy', 'guj': 'gu', 'tir': 'ti', 'yor': 'yo', 'srd': 'sc', 'nep': 'ne', 'cre': 'cr', 'div': 'dv', 'bam': 'bm', 'bak': 'ba', 'tel': 'te', 'pan': 'pa', 'aze': 'az', 'ara': 'ar', 'mar': 'mr', 'arg': 'an', 'est': 'et', 'sun': 'su', 'abk': 'ab', 'kur': 'ku', 'smo': 'sm', 'wol': 'wo', 'lub': 'lu', 'lug': 'lg', 'sme': 'se', 'kua': 'kj', 'tsn': 'tn', 'run': 'rn', 'iku': 'iu', 'yid': 'yi', 'tur': 'tr', 'slk': 'sk', 'orm': 'om', 'que': 'qu', 'ori': 'or', 'rus': 'ru', 'asm': 'as', 'pus': 'ps', 'kas': 'ks', 'cos': 'co', 'ile': 'ie', 'ndo': 'ng', 'gla': 'gd', 'bos': 'bs', 'nde': 'nd', 'gle': 'ga', 'dzo': 'dz', 'glg': 'gl', 'ido': 'io', 'srp': 'sr', 'tuk': 'tk', 'wln': 'wa', 'isl': 'is', 'aka': 'ak', 'bod': 'bo', 'glv': 'gv', 'tat': 'tt', 'twi': 'tw', 'vie': 'vi', 'ipk': 'ik', 'por': 'pt', 'uzb': 'uz', 'pol': 'pl', 'sot': 'st', 'mah': 'mh', 'tgk': 'tg', 'bre': 'br', 'tgl': 'tl', 'aym': 'ay', 'cha': 'ch', 'fra': 'fr', 'mkd': 'mk', 'kom': 'kv', 'che': 'ce', 'her': 'hz', 'kon': 'kg', 'swa': 'sw', 'ltz': 'lb', 'swe': 'sv', 'ukr': 'uk', 'ton': 'to', 'chu': 'cu', 'chv': 'cv', 'fry': 'fy', 'kor': 'ko', 'msa': 'ms', 'pli': 'pi', 'heb': 'he', 'hun': 'hu', 'ven': 've', 'hmo': 'ho', 'bul': 'bg', 'iii': 'ii', 'cym': 'cy', 'ben': 'bn', 'mlg': 'mg', 'bel': 'be', 'ibo': 'ig', 'hat': 'ht', 'slv': 'sl', 'som': 'so', 'xho': 'xh', 'deu': 'de', 'cat': 'ca', 'zha': 'za', 'mlt': 'mt', 'aar': 'aa', 'ful': 'ff', 'zho': 'zh', 'nno': 'nn', 'san': 'sa', 'uig': 'ug', 'jpn': 'ja', 'vol': 'vo', 'nbl': 'nr', 'sag': 'sg', 'mya': 'my', 'khm': 'km', 'spa': 'es', 'ind': 'id', 'ave': 'ae', 'tah': 'ty', 'ava': 'av', 'sna': 'sn', 'eng': 'en', 'lim': 'li', 'lin': 'ln', 'ewe': 'ee', 'ina': 'ia', 'lit': 'lt', 'nav': 'nv', 'nau': 'na', 'grn': 'gn', 'nya': 'ny', 'sin': 'si', 'afr': 'af', 'tam': 'ta', 'snd': 'sd', 'lao': 'lo', 'cor': 'kw', 'kir': 'ky', 'kan': 'kn', 'kal': 'kl', 'kik': 'ki', 'sqi': 'sq', 'kin': 'rw', 'kau': 'kr', 'kat': 'ka', 'lat': 'la', 'kaz': 'kk', 'lav': 'lv', 'mal': 'ml', 'urd': 'ur', 'epo': 'eo', 'mri': 'mi', 'tha': 'th', 'mon': 'mn', 'und': ''  , '```': ''}
+ 
 def PrintErrorAndExit(message):
     sys.stderr.write(message+'\n')
     sys.exit(1)
@@ -124,6 +126,7 @@ class Mp4Track:
         self.average_segment_bitrate  = 0
         self.max_segment_bitrate      = 0
         self.bandwidth                = 0
+        self.language                 = ''
         self.id = info['id']
         if info['type'] == 'Audio':
             self.type = 'audio'
@@ -142,6 +145,8 @@ class Mp4Track:
             self.sample_rate = sample_desc['sample_rate']
             self.channels = sample_desc['channels']
                         
+        self.language = info['language']
+        
     def update(self, options):
         # compute the total number of samples
         self.total_sample_count = reduce(operator.add, self.sample_counts, 0)

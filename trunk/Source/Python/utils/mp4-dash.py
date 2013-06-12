@@ -205,7 +205,7 @@ def OutputSmooth(options, audio_tracks, video_tracks):
                                   MajorVersion="2", 
                                   MinorVersion="0",
                                   Duration=str(presentation_duration))
-    client_manifest.append(xml.Comment('Created with Bento4 mp4-dash.py'))
+    client_manifest.append(xml.Comment('Created with Bento4 mp4-dash.py, VERSION='+VERSION+'-'+SVN_REVISION[11:-1]+' '))
     
     # process the audio tracks
     audio_index = 0
@@ -291,7 +291,7 @@ def OutputSmooth(options, audio_tracks, video_tracks):
     server_manifest_body = xml.SubElement(server_manifest , 'body')
     server_manifest_switch = xml.SubElement(server_manifest_body, 'switch')
     for (language, audio_track) in audio_tracks.iteritems():
-        audio_entry = xml.SubElement(server_manifest_switch, 'audio', src=MEDIA_FILE_PATTERN%(audio_track.parent.index), systemBitrate=str(audio_track.max_segment_bitrate))
+        audio_entry = xml.SubElement(server_manifest_switch, 'audio', src=MEDIA_FILE_PATTERN%(audio_track.parent.index), systemBitrate=str(audio_track.bandwidth))
         xml.SubElement(audio_entry, 'param', name='trackID', value=str(audio_track.id), valueType='data')
         if language:
             xml.SubElement(audio_entry, 'param', name='trackName', value="audio_"+language, valueType='data')
@@ -299,7 +299,7 @@ def OutputSmooth(options, audio_tracks, video_tracks):
             xml.SubElement(audio_entry, 'param', name='timeScale', value=str(audio_track.timescale), valueType='data')
         
     for video_track in video_tracks:
-        video_entry = xml.SubElement(server_manifest_switch, 'video', src=MEDIA_FILE_PATTERN%(video_track.parent.index), systemBitrate=str(video_track.max_segment_bitrate))
+        video_entry = xml.SubElement(server_manifest_switch, 'video', src=MEDIA_FILE_PATTERN%(video_track.parent.index), systemBitrate=str(video_track.bandwidth))
         xml.SubElement(video_entry, 'param', name='trackID', value=str(video_track.id), valueType='data')
         if video_track.timescale != SMOOTH_DEFAULT_TIMESCALE:
             xml.SubElement(video_entry, 'param', name='timeScale', value=str(video_track.timescale), valueType='data')
@@ -308,6 +308,8 @@ def OutputSmooth(options, audio_tracks, video_tracks):
     if options.smooth_server_manifest_filename != '':
         open(path.join(options.output_dir, options.smooth_server_manifest_filename), "wb").write(parseString(xml.tostring(server_manifest)).toprettyxml("  "))
     
+def ComputeIso961ShortLanguage(language):
+    return LanguageCodeMap.get(language, language)
 
 #############################################
 Options = None            
@@ -477,28 +479,39 @@ def main():
             track = media_source.mp4_file.find_track_by_id(track_id)
             if not track:
                 PrintErrorAndExit('ERROR: track id not found for media file '+media_source.name)
+        
+        if track is None and track_type:
+            track = media_source.mp4_file.find_track_by_type(track_type)
 
         if track and track_type and track.type != track_type:
             PrintErrorAndExit('ERROR: track type mismatch for media file '+media_source.name)
+        
+        # process audio tracks
+        if track is None:
+            # select all audio tracks
+            tracks = [t for t in media_source.mp4_file.tracks.values() if t.type == 'audio']
+        elif track.type == 'audio':
+            tracks = [track]
+        else:
+            if track_type:
+                sys.stderr.write('WARNING: no audio track found in '+media_source.name+'\n')
+            tracks = []
 
-        audio_track = track
-        if track_type == 'audio' or track_type == '':
-            if audio_track is None:
-                audio_track = media_source.mp4_file.find_track_by_type('audio')
-            if audio_track:
-                language = media_source.spec['language']
-                if language not in audio_tracks:
-                    audio_tracks[language] = audio_track
-            else:
-                if track_type:
-                    sys.stderr.write('WARNING: no audio track found in '+media_source.name+'\n')
+        for audio_track in tracks:
+            language = media_source.spec['language']
+            if language == '':
+                language = ComputeIso961ShortLanguage(audio_track.language)
+                
+            if language not in audio_tracks:
+                audio_tracks[language] = audio_track
                     
         # audio tracks with languages don't mix with language-less tracks
         if len(audio_tracks) > 1 and '' in audio_tracks:
+            sys.stderr.write('WARNING: removing audio tracks with an unspecified language\n')
             del audio_tracks['']
             
         video_track = track
-        if track_type == 'video' or track_type == '':
+        if track_type == 'video' or track is None or track.type == 'video':
             if video_track is None:
                 video_track = media_source.mp4_file.find_track_by_type('video')
             if video_track:

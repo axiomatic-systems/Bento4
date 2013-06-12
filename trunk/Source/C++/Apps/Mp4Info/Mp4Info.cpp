@@ -687,6 +687,64 @@ ShowAvcInfo(const AP4_DataBuffer& sample_data, AP4_AvcSampleDescription* avc_des
 }
 
 /*----------------------------------------------------------------------
+|   ShowSample_Text
++---------------------------------------------------------------------*/
+static void
+ShowSample_Text(AP4_Track&      track,
+                AP4_Sample&     sample,
+                AP4_DataBuffer& sample_data,
+                unsigned int    index,
+                bool            verbose,
+                bool            show_sample_data,
+                AP4_AvcSampleDescription* avc_desc)
+{
+    printf("[%06d] size=%6d duration=%6d",
+           index+1, 
+           (int)sample.GetSize(), 
+           (int)sample.GetDuration());
+    if (verbose) {
+        printf(" (%6d ms) offset=%10lld dts=%10lld (%10lld ms) cts=%10lld (%10lld ms) [%d]", 
+               (int)AP4_ConvertTime(sample.GetDuration(), track.GetMediaTimeScale(), 1000),
+               sample.GetOffset(),
+               sample.GetDts(), 
+               AP4_ConvertTime(sample.GetDts(), track.GetMediaTimeScale(), 1000),
+               sample.GetCts(),
+               AP4_ConvertTime(sample.GetCts(), track.GetMediaTimeScale(), 1000),
+               sample.GetDescriptionIndex());
+    }
+    if (sample.IsSync()) {
+        printf(" [S] ");
+    } else {
+        printf("     ");
+    }
+    if (avc_desc || show_sample_data) {
+        sample.ReadData(sample_data);
+    }
+    if (avc_desc) {
+        ShowAvcInfo(sample_data, avc_desc);
+    }
+    if (show_sample_data) {
+        unsigned int show = sample_data.GetDataSize();
+        if (!verbose) {
+            if (show > 12) show = 12; // max first 12 chars
+        }
+        
+        for (unsigned int i=0; i<show; i++) {
+            if (verbose) {
+                if (i%16 == 0) {
+                    printf("\n%06d: ", i);
+                }
+            }
+            printf("%02x", sample_data.GetData()[i]);
+            if (verbose) printf(" ");
+        }
+        if (show != sample_data.GetDataSize()) {
+            printf("...");
+        }
+    }
+}
+
+/*----------------------------------------------------------------------
 |   ShowTrackInfo_Text
 +---------------------------------------------------------------------*/
 static void
@@ -722,6 +780,7 @@ ShowTrackInfo_Text(AP4_Track& track, bool show_samples, bool show_sample_data, b
         }
     }
     printf("  duration: %d ms\n", track.GetDurationMs());
+    printf("  language: %s\n", track.GetTrackLanguage());
     printf("  media:\n");
     printf("    sample count: %d\n", track.GetSampleCount());
     printf("    timescale:    %d\n", track.GetMediaTimeScale());
@@ -752,52 +811,12 @@ ShowTrackInfo_Text(AP4_Track& track, bool show_samples, bool show_sample_data, b
         AP4_DataBuffer sample_data;
         AP4_Ordinal    index = 0;
         while (AP4_SUCCEEDED(track.GetSample(index, sample))) {
-            printf("[%06d] size=%6d duration=%6d", 
-                   index+1, 
-                   (int)sample.GetSize(), 
-                   (int)sample.GetDuration());
-            if (verbose) {
-                printf(" (%6d ms) offset=%10lld dts=%10lld (%10lld ms) cts=%10lld (%10lld ms) [%d]", 
-                       (int)AP4_ConvertTime(sample.GetDuration(), track.GetMediaTimeScale(), 1000),
-                       sample.GetOffset(),
-                       sample.GetDts(), 
-                       AP4_ConvertTime(sample.GetDts(), track.GetMediaTimeScale(), 1000),
-                       sample.GetCts(),
-                       AP4_ConvertTime(sample.GetCts(), track.GetMediaTimeScale(), 1000),
-                       sample.GetDescriptionIndex());
-            }
-            if (sample.IsSync()) {
-                printf(" [S] ");
-            } else {
-                printf("     ");
-            }
             if (avc_desc || show_sample_data) {
                 sample.ReadData(sample_data);
             }
-            if (avc_desc) {
-                ShowAvcInfo(sample_data, avc_desc);
-            }
-            if (show_sample_data) {
-                unsigned int show = sample_data.GetDataSize();
-                if (!verbose) {
-                    if (show > 12) show = 12; // max first 12 chars
-                }
-                
-                for (unsigned int i=0; i<show; i++) {
-                    if (verbose) {
-                        if (i%16 == 0) {
-                            printf("\n%06d: ", i);
-                        }
-                    }
-                    printf("%02x", sample_data.GetData()[i]);
-                    if (verbose) printf(" ");
-                }
-                if (show != sample_data.GetDataSize()) {
-                    printf("...");
-                }
-            }
+
+            ShowSample_Text(track, sample, sample_data, index, verbose, show_sample_data, avc_desc);
             printf("\n");
-            
             index++;
         }
     }
@@ -845,6 +864,7 @@ ShowTrackInfo_Json(AP4_Track& track, bool /*show_samples*/, bool /*show_sample_d
     }
     printf(",\n");
     printf("  \"duration_ms\":%d,\n", track.GetDurationMs());
+    printf("  \"language\":\"%s\",\n", track.GetTrackLanguage());
     printf("  \"media\":{\n");
     printf("    \"sample_count\":%d,\n", track.GetSampleCount());
     printf("    \"timescale\":%d,\n", track.GetMediaTimeScale());
@@ -1126,6 +1146,45 @@ ShowSampleLayout(AP4_List<AP4_Track>& tracks, bool /* verbose */)
 }
 
 /*----------------------------------------------------------------------
+|   ShowFragments_Text
++---------------------------------------------------------------------*/
+static void
+ShowFragments_Text(AP4_Movie& movie, bool verbose, bool show_sample_data, AP4_ByteStream* stream)
+{
+    stream->Seek(0);
+    AP4_LinearReader reader(movie, stream);
+    AP4_List<AP4_Track>::Item* track_item = movie.GetTracks().FirstItem();
+    while (track_item) {
+        reader.EnableTrack(track_item->GetData()->GetId());
+        track_item = track_item->GetNext();
+    }
+    
+    AP4_Sample     sample;
+    AP4_DataBuffer sample_data;
+    AP4_UI32       prev_track_id = 0;
+    for(unsigned int i=0; ; i++) {
+        AP4_UI32 track_id = 0;
+        AP4_Result result = reader.ReadNextSample(sample, sample_data, track_id);
+        if (AP4_SUCCEEDED(result)) {
+            AP4_Track* track = movie.GetTrack(track_id);
+            
+            AP4_SampleDescription* sample_desc = track->GetSampleDescription(sample.GetDescriptionIndex());
+            AP4_AvcSampleDescription* avc_desc = AP4_DYNAMIC_CAST(AP4_AvcSampleDescription, sample_desc);
+
+            if (track_id != prev_track_id) {
+                printf("Track %d:\n", track_id);
+                prev_track_id = track_id;
+            }
+            
+            ShowSample_Text(*track, sample, sample_data, i, verbose, show_sample_data, avc_desc);
+            printf("\n");
+        } else {
+            break;
+        }
+    }
+}
+
+/*----------------------------------------------------------------------
 |   main
 +---------------------------------------------------------------------*/
 int
@@ -1216,6 +1275,12 @@ main(int argc, char** argv)
         if (show_layout) {
             ShowSampleLayout(tracks, verbose);
         }
+        
+        if (movie->HasFragments() && show_samples) {
+            if (Options.format == TEXT_FORMAT) {
+                ShowFragments_Text(*movie, verbose, show_sample_data, input);
+            }
+        }
     } else {
         // check if this is a DCF file
         if (ftyp && ftyp->GetMajorBrand() == AP4_OMA_DCF_BRAND_ODCF) {
@@ -1226,7 +1291,7 @@ main(int argc, char** argv)
             }
         }
     }
-
+    
     if (Options.format == JSON_FORMAT) printf("}\n");
 
     delete file;
