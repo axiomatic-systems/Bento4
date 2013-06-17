@@ -169,16 +169,16 @@ def OutputDash(options, audio_tracks, video_tracks):
         if options.marlin:
             AddContentProtection(options, adaptation_set, [audio_track])
         representation = xml.SubElement(adaptation_set, 'Representation', id='audio'+id_ext, codecs=audio_track.codec, bandwidth=str(audio_track.bandwidth))
+        if len(audio_tracks) > 1:
+            subdir = '/'+language
+            stream_name='audio_'+language
+        else:
+            subdir = ''
+            stream_name='audio'
         if options.split:
-            if len(audio_tracks) > 1:
-                subdir = '/'+language
-                stream_name='audio_'+language
-            else:
-                subdir = ''
-                stream_name='audio'
             AddSegments(options, representation, 'audio'+subdir, audio_track, False, stream_name)
         else:
-            AddSegments(options, representation, None, audio_track, True, 'audio')
+            AddSegments(options, representation, None, audio_track, True, stream_name)
         
     # process all the video tracks
     adaptation_set = xml.SubElement(period, 'AdaptationSet', mimeType=VIDEO_MIMETYPE, segmentAlignment='true', startWithSAP='1')
