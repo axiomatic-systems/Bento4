@@ -1063,3 +1063,124 @@ AP4_RtpHintSampleEntry::InspectFields(AP4_AtomInspector& inspector)
     
     return AP4_SUCCESS;
 }
+
+/*----------------------------------------------------------------------
+|   AP4_SubtitleSampleEntry::AP4_SubtitleSampleEntry
++---------------------------------------------------------------------*/
+AP4_SubtitleSampleEntry::AP4_SubtitleSampleEntry(
+    AP4_Atom::Type    format,
+    const char*       namespce,
+    const char*       schema_location,
+    const char*       image_mime_type) :
+    AP4_SampleEntry(format),
+    m_Namespace(namespce),
+    m_SchemaLocation(schema_location),
+    m_ImageMimeType(image_mime_type)
+{
+}
+
+/*----------------------------------------------------------------------
+|   AP4_SubtitleSampleEntry::AP4_SubtitleSampleEntry
++---------------------------------------------------------------------*/
+AP4_SubtitleSampleEntry::AP4_SubtitleSampleEntry(AP4_Atom::Type   format,
+                                                 AP4_Size         size,
+                                                 AP4_ByteStream&  stream,
+                                                 AP4_AtomFactory& atom_factory) :
+    AP4_SampleEntry(format, size)
+{
+    Read(stream, atom_factory);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_SubtitleSampleEntry::GetFieldsSize
++---------------------------------------------------------------------*/
+AP4_Size
+AP4_SubtitleSampleEntry::GetFieldsSize()
+{
+    return AP4_SampleEntry::GetFieldsSize() +
+        3                                   +
+        m_Namespace.GetLength()             +
+        m_SchemaLocation.GetLength()        +
+        m_ImageMimeType.GetLength();
+}
+
+/*----------------------------------------------------------------------
+|   AP4_SubtitleSampleEntry::ReadFields
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_SubtitleSampleEntry::ReadFields(AP4_ByteStream& stream)
+{
+    // sample entry
+    AP4_Result result = AP4_SampleEntry::ReadFields(stream);
+    if (result < 0) return result;
+
+    // read fields from this class
+    result = stream.ReadNullTerminatedString(m_Namespace);
+    if (AP4_FAILED(result)) return result;
+    result = stream.ReadNullTerminatedString(m_SchemaLocation);
+    if (AP4_FAILED(result)) return result;
+    result = stream.ReadNullTerminatedString(m_ImageMimeType);
+    if (AP4_FAILED(result)) return result;
+    
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_SubtitleSampleEntry::WriteFields
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_SubtitleSampleEntry::WriteFields(AP4_ByteStream& stream)
+{
+    AP4_Result result;
+        
+    // write the fields of the base class
+    result = AP4_SampleEntry::WriteFields(stream);
+    if (AP4_FAILED(result)) return result;
+    
+    // write fields from this class
+    result = stream.WriteString(m_Namespace.GetChars());
+    if (AP4_FAILED(result)) return result;
+    result = stream.WriteUI08(0);
+    if (AP4_FAILED(result)) return result;
+    result = stream.WriteString(m_SchemaLocation.GetChars());
+    if (AP4_FAILED(result)) return result;
+    result = stream.WriteUI08(0);
+    if (AP4_FAILED(result)) return result;
+    result = stream.WriteString(m_ImageMimeType.GetChars());
+    if (AP4_FAILED(result)) return result;
+    result = stream.WriteUI08(0);
+    if (AP4_FAILED(result)) return result;
+    
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_SubtitleSampleEntry::InspectFields
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_SubtitleSampleEntry::InspectFields(AP4_AtomInspector& inspector)
+{
+    // dump the fields of the base class
+    AP4_SampleEntry::InspectFields(inspector);
+
+    // fields
+    inspector.AddField("namespace",       m_Namespace.GetChars());
+    inspector.AddField("schema_location", m_SchemaLocation.GetChars());
+    inspector.AddField("image_mime_type", m_ImageMimeType.GetChars());
+
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_SubtitleSampleEntry::ToSampleDescription
++---------------------------------------------------------------------*/
+AP4_SampleDescription*
+AP4_SubtitleSampleEntry::ToSampleDescription()
+{
+    // create a sample description
+    return new AP4_SubtitleSampleDescription(m_Type,
+                                             m_Namespace.GetChars(),
+                                             m_SchemaLocation.GetChars(),
+                                             m_ImageMimeType.GetChars());
+}
+

@@ -32,6 +32,7 @@
 #include "Ap4ByteStream.h"
 #include "Ap4Utils.h"
 #include "Ap4Debug.h"
+#include "Ap4String.h"
 
 /*----------------------------------------------------------------------
 |   constants
@@ -91,10 +92,10 @@ AP4_ByteStream::Write(const void* buffer, AP4_Size bytes_to_write)
 AP4_Result
 AP4_ByteStream::WriteString(const char* buffer)
 {
+    if (buffer == NULL) return AP4_SUCCESS;
+    
     AP4_Size string_length = static_cast<AP4_Size>(strlen(buffer));
-
-    // shortcut
-    if ((buffer == NULL) || (string_length == 0)) return AP4_SUCCESS;
+    if (string_length == 0) return AP4_SUCCESS;
 
     // write the string
     return Write((const void*)buffer, string_length);
@@ -343,6 +344,27 @@ AP4_ByteStream::ReadString(char* buffer, AP4_Size size)
 
     // the string was not null terminated, terminate it
     buffer[size-1] = '\0';
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_ByteStream::ReadNullTerminatedString
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_ByteStream::ReadNullTerminatedString(AP4_String& string)
+{
+    AP4_DataBuffer buffer;
+    unsigned int   size = 0;
+    AP4_UI08       c = 0;
+    do {
+        AP4_Result result = ReadUI08(c);
+        if (AP4_FAILED(result)) return result;
+        buffer.SetDataSize(size+1);
+        buffer.UseData()[size] = c;
+        ++size;
+    } while (c);
+
+    string.Assign((const char*)buffer.GetData(), size);
     return AP4_SUCCESS;
 }
 

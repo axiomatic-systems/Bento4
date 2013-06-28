@@ -156,6 +156,7 @@ extern const int AP4_TRACK_TYPE_HINT;
 extern const int AP4_TRACK_TYPE_TEXT;
 extern const int AP4_TRACK_TYPE_JPEG;
 extern const int AP4_TRACK_TYPE_RTP;
+extern const int AP4_TRACK_TYPE_SUBTITLES;
 
 extern const AP4_UI32 AP4_HANDLER_TYPE_SOUN;
 extern const AP4_UI32 AP4_HANDLER_TYPE_VIDE;

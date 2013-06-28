@@ -254,6 +254,22 @@ main(int argc, char** argv)
             return 1;
         }
     }
+    if (Options.track_filter) {
+        AP4_MoovAtom* moov = movie->GetMoovAtom();
+        AP4_List<AP4_Atom>::Item* child = moov->GetChildren().FirstItem();
+        while (child) {
+            AP4_Atom* atom = child->GetData();
+            child = child->GetNext();
+            if (atom->GetType() == AP4_ATOM_TYPE_TRAK) {
+                AP4_TrakAtom* trak = (AP4_TrakAtom*)atom;
+                AP4_TkhdAtom* tkhd = (AP4_TkhdAtom*)trak->GetChild(AP4_ATOM_TYPE_TKHD);
+                if (tkhd && tkhd->GetTrackId() != Options.track_filter) {
+                    atom->Detach();
+                    delete atom;
+                }
+            }
+        }
+    }
     result = movie->GetMoovAtom()->Write(*output);
     if (AP4_FAILED(result)) {
         fprintf(stderr, "ERROR: cannot write init segment (%d)\n", result);

@@ -1033,6 +1033,11 @@ AP4_DecryptingStream::Seek(AP4_Position position)
 {
     AP4_Cardinal preroll = 0;
     
+    // check for no-op seek requests
+    if (position == m_CleartextPosition) {
+        return AP4_SUCCESS;
+    }
+    
     // check bounds
     if (position > m_CleartextSize) {
         return AP4_ERROR_INVALID_PARAMETERS;

@@ -63,14 +63,15 @@ class AP4_Track {
  public:
     // types
     typedef enum {
-        TYPE_UNKNOWN = 0,
-        TYPE_AUDIO   = 1,
-        TYPE_VIDEO   = 2,
-        TYPE_SYSTEM  = 3,
-        TYPE_HINT    = 4,
-        TYPE_TEXT    = 5,
-        TYPE_JPEG    = 6,
-        TYPE_RTP     = 7
+        TYPE_UNKNOWN   = 0,
+        TYPE_AUDIO     = 1,
+        TYPE_VIDEO     = 2,
+        TYPE_SYSTEM    = 3,
+        TYPE_HINT      = 4,
+        TYPE_TEXT      = 5,
+        TYPE_JPEG      = 6,
+        TYPE_RTP       = 7,
+        TYPE_SUBTITLES = 8
     } Type;
 
     // methods

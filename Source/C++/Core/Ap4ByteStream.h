@@ -38,6 +38,11 @@
 #include "Ap4DataBuffer.h"
 
 /*----------------------------------------------------------------------
+|   class references
++---------------------------------------------------------------------*/
+class AP4_String;
+
+/*----------------------------------------------------------------------
 |   AP4_ByteStream
 +---------------------------------------------------------------------*/
 class AP4_ByteStream : public AP4_Referenceable
@@ -55,7 +60,8 @@ class AP4_ByteStream : public AP4_Referenceable
     AP4_Result ReadUI16(AP4_UI16& value);
     AP4_Result ReadUI08(AP4_UI08& value);
     AP4_Result ReadString(char* buffer, AP4_Size size);
-    virtual AP4_Result WritePartial(const void* buffer, 
+    AP4_Result ReadNullTerminatedString(AP4_String& string);
+    virtual AP4_Result WritePartial(const void* buffer,
                                     AP4_Size    bytes_to_write, 
                                     AP4_Size&   bytes_written) = 0;
     AP4_Result Write(const void* buffer, AP4_Size bytes_to_write);

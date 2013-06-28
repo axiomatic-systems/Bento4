@@ -377,4 +377,38 @@ protected:
     AP4_UI32 m_MaxPacketSize;
 };
 
+/*----------------------------------------------------------------------
+|   AP4_SubtitleSampleEntry
++---------------------------------------------------------------------*/
+class AP4_SubtitleSampleEntry : public AP4_SampleEntry
+{
+public:
+    // methods
+    AP4_SubtitleSampleEntry(AP4_Atom::Type format,
+                            const char* namespce,
+                            const char* schema_location,
+                            const char* image_mime_type);
+    AP4_SubtitleSampleEntry(AP4_Atom::Type   format,
+                            AP4_Size         size,
+                            AP4_ByteStream&  stream,
+                            AP4_AtomFactory& atom_factory);
+
+    // accessors
+
+    // methods
+    AP4_SampleDescription* ToSampleDescription();
+
+protected:
+    // methods
+    virtual AP4_Size   GetFieldsSize();
+    virtual AP4_Result ReadFields(AP4_ByteStream& stream);
+    virtual AP4_Result WriteFields(AP4_ByteStream& stream);
+    virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
+
+    // members
+    AP4_String m_Namespace;
+    AP4_String m_SchemaLocation;
+    AP4_String m_ImageMimeType;
+};
+
 #endif // _AP4_SAMPLE_ENTRY_H_

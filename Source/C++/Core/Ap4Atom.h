@@ -497,6 +497,7 @@ const AP4_Atom::Type AP4_ATOM_TYPE_PSSH = AP4_ATOM_TYPE('p','s','s','h');
 const AP4_Atom::Type AP4_ATOM_TYPE_MARL = AP4_ATOM_TYPE('m','a','r','l');
 const AP4_Atom::Type AP4_ATOM_TYPE_MKID = AP4_ATOM_TYPE('m','k','i','d');
 const AP4_Atom::Type AP4_ATOM_TYPE_PRFT = AP4_ATOM_TYPE('p','r','f','t');
+const AP4_Atom::Type AP4_ATOM_TYPE_STPP = AP4_ATOM_TYPE('s','t','p','p');
 
 /*----------------------------------------------------------------------
 |   AP4_AtomListInspector

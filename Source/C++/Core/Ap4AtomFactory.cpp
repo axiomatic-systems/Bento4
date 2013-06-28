@@ -310,6 +310,10 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
             atom = new AP4_RtpHintSampleEntry(size_32, stream, *this);
             break;
 
+          case AP4_ATOM_TYPE_STPP:
+            atom = new AP4_SubtitleSampleEntry(type, size_32, stream, *this);
+            break;
+
           default: {
             // try all the external type handlers
             AP4_List<TypeHandler>::Item* handler_item = m_TypeHandlers.FirstItem();
