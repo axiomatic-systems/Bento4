@@ -88,15 +88,19 @@ def AddSegmentTemplate(options, container, subdir, track, stream_name):
     if options.use_segment_timeline:
         url_template=prefix+SEGMENT_TEMPLATE
         init_segment_url=prefix+INIT_SEGMENT_NAME
+        use_template_numbers = True
         if options.smooth:
             url_base = path.basename(options.smooth_server_manifest_filename)
             url_template=url_base+"/QualityLevels($Bandwidth$)/Fragments(%s=$Time$)" % (stream_name)
             init_segment_url=INIT_FILE_PATTERN%(track.parent.index)
-        segment_template = xml.SubElement(container,
-                                          'SegmentTemplate',
-                                          timescale=str(track.timescale),
-                                          initialization=init_segment_url,
-                                          media=url_template)
+            use_template_numbers = False
+        args = [container, 'SegmentTemplate']
+        kwargs = {'timescale': str(track.timescale),
+                  'initialization': init_segment_url,
+                  'media': url_template}
+        if use_template_numbers:
+            kwargs['startNumber'] = '0'
+        segment_template = xml.SubElement(*args, **kwargs)
         segment_timeline = xml.SubElement(segment_template, 'SegmentTimeline')
         repeat_count = 0
         for i in range(len(track.segment_scaled_durations)):
@@ -104,10 +108,12 @@ def AddSegmentTemplate(options, container, subdir, track, stream_name):
             if i+1 < len(track.segment_scaled_durations) and duration == track.segment_scaled_durations[i+1]:
                 repeat_count += 1
             else:
+                args = [segment_timeline, 'S']
+                kwargs = {'d':str(duration)}
                 if repeat_count:
-                    xml.SubElement(segment_timeline, "S", d=str(duration), r=str(repeat_count))
-                else:
-                    xml.SubElement(segment_timeline, "S", d=str(duration))
+                    kwargs['r'] = str(repeat_count)
+
+                xml.SubElement(*args, **kwargs)
                 repeat_count = 0
     else:
         xml.SubElement(container,
@@ -160,12 +166,14 @@ def OutputDash(options, audio_tracks, video_tracks):
 
     # process the audio tracks
     for (language, audio_track) in audio_tracks.iteritems():
+        args = [period, 'AdaptationSet']
+        kwargs = {'mimeType': AUDIO_MIMETYPE, 'startWithSAP':'1', 'segmentAlignment':'true'}
         if language:
-            adaptation_set = xml.SubElement(period, 'AdaptationSet', mimeType=AUDIO_MIMETYPE, segmentAlignment='true', lang=language)
             id_ext = '.'+language
+            kwargs['lang'] = language
         else:
-            adaptation_set = xml.SubElement(period, 'AdaptationSet', mimeType=AUDIO_MIMETYPE, segmentAlignment='true')
             id_ext = ''
+        adaptation_set = xml.SubElement(*args, **kwargs)
         if options.marlin:
             AddContentProtection(options, adaptation_set, [audio_track])
         representation = xml.SubElement(adaptation_set, 'Representation', id='audio'+id_ext, codecs=audio_track.codec, bandwidth=str(audio_track.bandwidth))

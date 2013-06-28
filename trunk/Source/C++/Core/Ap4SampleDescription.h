@@ -103,7 +103,8 @@ class AP4_SampleDescription
         TYPE_UNKNOWN   = 0x00,
         TYPE_MPEG      = 0x01,
         TYPE_PROTECTED = 0x02,
-        TYPE_AVC       = 0x03
+        TYPE_AVC       = 0x03,
+        TYPE_SUBTITLES = 0x04
     };
 
     // constructors & destructor
@@ -446,6 +447,34 @@ public:
 
     // methods
     AP4_Atom* ToAtom() const;
+};
+
+/*----------------------------------------------------------------------
+|   AP4_SubtitleSampleDescription
++---------------------------------------------------------------------*/
+class AP4_SubtitleSampleDescription : public AP4_SampleDescription
+{
+public:
+    AP4_IMPLEMENT_DYNAMIC_CAST_D(AP4_SubtitleSampleDescription, AP4_SampleDescription)
+
+    // constructor
+    AP4_SubtitleSampleDescription(AP4_UI32    format,
+                                  const char* namespce,
+                                  const char* schema_location,
+                                  const char* image_mime_type);
+
+    virtual AP4_SampleDescription* Clone(AP4_Result* result);
+    virtual AP4_Atom* ToAtom() const;    
+    
+    // accessor
+    const AP4_String& GetNamespace()      { return m_Namespace;      }
+    const AP4_String& GetSchemaLocation() { return m_SchemaLocation; }
+    const AP4_String& GetImageMimeType()  { return m_ImageMimeType;  }
+    
+private:
+    AP4_String m_Namespace;
+    AP4_String m_SchemaLocation;
+    AP4_String m_ImageMimeType;
 };
 
 /*----------------------------------------------------------------------

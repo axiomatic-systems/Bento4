@@ -49,6 +49,7 @@ AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_MpegAudioSampleDescription)
 AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_MpegVideoSampleDescription)
 AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_MpegSystemSampleDescription)
 AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_AvcSampleDescription)
+AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_SubtitleSampleDescription)
 
 /*----------------------------------------------------------------------
 |  AP4_GetFormatName
@@ -627,3 +628,44 @@ AP4_MpegAudioSampleDescription::GetMpeg4AudioObjectTypeString(Mpeg4AudioObjectTy
         default:                                                  return "UNKNOWN";
     }
 }
+
+/*----------------------------------------------------------------------
+|   AP4_SubtitleSampleDescription::AP4_SubtitleSampleDescription
++---------------------------------------------------------------------*/
+AP4_SubtitleSampleDescription::AP4_SubtitleSampleDescription(AP4_UI32    format,
+                                                             const char* namespce,
+                                                             const char* schema_location,
+                                                             const char* image_mime_type) :
+    AP4_SampleDescription(AP4_SampleDescription::TYPE_SUBTITLES, format, NULL),
+    m_Namespace(namespce),
+    m_SchemaLocation(schema_location),
+    m_ImageMimeType(image_mime_type)
+{
+}
+
+/*----------------------------------------------------------------------
+|   AP4_SubtitleSampleDescription::Clone
++---------------------------------------------------------------------*/
+AP4_SampleDescription*
+AP4_SubtitleSampleDescription::Clone(AP4_Result* result)
+{
+    if (result) *result = AP4_SUCCESS;
+    return new AP4_SubtitleSampleDescription(m_Format,
+                                             m_Namespace.GetChars(),
+                                             m_SchemaLocation.GetChars(),
+                                             m_ImageMimeType.GetChars());
+}
+
+/*----------------------------------------------------------------------
+|   AP4_SubtitleSampleDescription::ToAtom
++---------------------------------------------------------------------*/
+AP4_Atom*
+AP4_SubtitleSampleDescription::ToAtom() const
+{
+    return new AP4_SubtitleSampleEntry(m_Format,
+                                       m_Namespace.GetChars(),
+                                       m_SchemaLocation.GetChars(),
+                                       m_ImageMimeType.GetChars());
+}
+    
+

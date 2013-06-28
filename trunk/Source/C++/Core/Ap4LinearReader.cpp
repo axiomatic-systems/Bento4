@@ -35,6 +35,7 @@
 #include "Ap4MovieFragment.h"
 #include "Ap4FragmentSampleTable.h"
 #include "Ap4AtomFactory.h"
+#include "Ap4TfraAtom.h"
 
 /*----------------------------------------------------------------------
 |   AP4_LinearReader::AP4_LinearReader
@@ -89,6 +90,34 @@ AP4_LinearReader::EnableTrack(AP4_UI32 track_id)
 }
 
 /*----------------------------------------------------------------------
+|   AP4_LinearReader::FlushQueue
++---------------------------------------------------------------------*/
+void
+AP4_LinearReader::FlushQueue(Tracker* tracker)
+{
+    // empty any queued samples
+    for (AP4_List<SampleBuffer>::Item* item = tracker->m_Samples.FirstItem();
+         item;
+         item = item->GetNext()) {
+        SampleBuffer* buffer = item->GetData();
+        m_BufferFullness -= buffer->m_Data.GetDataSize();
+        delete buffer;
+    }
+    tracker->m_Samples.Clear();
+}
+
+/*----------------------------------------------------------------------
+|   AP4_LinearReader::FlushQueues
++---------------------------------------------------------------------*/
+void
+AP4_LinearReader::FlushQueues()
+{
+    for (unsigned int i=0; i<m_Trackers.ItemCount(); i++) {
+        FlushQueue(m_Trackers[i]);
+    }
+}
+
+/*----------------------------------------------------------------------
 |   AP4_LinearReader::SetSampleIndex
 +---------------------------------------------------------------------*/
 AP4_Result 
@@ -121,7 +150,6 @@ AP4_LinearReader::SetSampleIndex(AP4_UI32 track_id, AP4_UI32 sample_index)
 /*----------------------------------------------------------------------
 |   AP4_LinearReader::SeekTo
 +---------------------------------------------------------------------*/
-
 AP4_Result
 AP4_LinearReader::SeekTo(AP4_UI32 time_ms, AP4_UI32* actual_time_ms)
 {
@@ -167,6 +195,75 @@ AP4_LinearReader::SeekTo(AP4_UI32 time_ms, AP4_UI32* actual_time_ms)
         }
     }
     
+    // return now if we have not found an index
+    if (m_Mfra == NULL) {
+        return AP4_ERROR_NOT_SUPPORTED;
+    }
+    
+    // look for the earliest fragment referenced by an entry with the largest timestamp that's
+    // before or equal to the requested time
+    int best_entry = -1;
+    for (unsigned t=0; t<m_Trackers.ItemCount(); t++) {
+        // find the tfra index for this track
+        AP4_TfraAtom* tfra = NULL;
+        for (AP4_List<AP4_Atom>::Item* item = m_Mfra->GetChildren().FirstItem();
+                                       item;
+                                       item = item->GetNext()) {
+            if (item->GetData()->GetType() == AP4_ATOM_TYPE_TFRA) {
+                AP4_TfraAtom* tfra_ = (AP4_TfraAtom*)item->GetData();
+                if (tfra_->GetTrackId() == m_Trackers[t]->m_Track->GetId()) {
+                    tfra = tfra_;
+                    break;
+                }
+            }
+        }
+        if (tfra == NULL) {
+            return AP4_ERROR_NOT_SUPPORTED;
+        }
+        AP4_Array<AP4_TfraAtom::Entry>& entries = tfra->GetEntries();
+
+        AP4_UI64 media_time = AP4_ConvertTime(time_ms, 1000, m_Trackers[t]->m_Track->GetMediaTimeScale());
+        int entry = -1;
+        for (int i=0; i<(int)entries.ItemCount(); i++) {
+            if (entries[i].m_Time > media_time) break;
+            entry = i;
+        }
+        if (entry >= 0) {
+            if (best_entry == -1) {
+                best_entry = entry;
+            } else if (entries[entry].m_MoofOffset < entries[best_entry].m_MoofOffset) {
+                best_entry = entry;
+            }
+
+            // update our position
+            if (best_entry >= 0) {
+                if (actual_time_ms) {
+                    // report the actual time we found (in milliseconds)
+                    *actual_time_ms = (AP4_UI32)AP4_ConvertTime(entries[best_entry].m_Time, m_Trackers[t]->m_Track->GetMediaTimeScale(), 1000);
+                }
+                m_NextFragmentPosition = entries[best_entry].m_MoofOffset;
+            }
+        }
+    }
+    
+    // check that we found something
+    if (best_entry == -1) {
+        return AP4_FAILURE;
+    }
+    
+    // flush any queued samples
+    FlushQueues();
+    
+    // reset tracker states
+    for (unsigned int i=0; i<m_Trackers.ItemCount(); i++) {
+        delete m_Trackers[i]->m_SampleTable;
+        delete m_Trackers[i]->m_NextSample;
+        m_Trackers[i]->m_SampleTable     = NULL;
+        m_Trackers[i]->m_NextSample      = NULL;
+        m_Trackers[i]->m_NextSampleIndex = 0;
+        m_Trackers[i]->m_Eos             = false;
+    }
+        
     return AP4_SUCCESS;
 }
 

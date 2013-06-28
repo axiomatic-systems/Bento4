@@ -110,7 +110,14 @@ protected:
             m_NextSample(NULL),
             m_NextSampleIndex(0),
             m_NextDts(0),
-            m_Reader(NULL) {}
+            m_Reader(NULL) {
+                m_SeekPoint.m_Pending      = false;
+                m_SeekPoint.m_Time         = 0;
+                m_SeekPoint.m_MoofOffset   = 0;
+                m_SeekPoint.m_TrafNumber   = 0;
+                m_SeekPoint.m_TrunNumber   = 0;
+                m_SeekPoint.m_SampleNumber = 0;
+            }
         Tracker(const Tracker& other) : 
             m_Eos(other.m_Eos),
             m_Track(other.m_Track),
@@ -119,7 +126,9 @@ protected:
             m_NextSample(NULL),
             m_NextSampleIndex(other.m_NextSampleIndex),
             m_NextDts(other.m_NextDts),
-            m_Reader(other.m_Reader) {} // don't copy samples
+            m_Reader(other.m_Reader) {
+                m_SeekPoint = other.m_SeekPoint;
+            } // don't copy samples
        ~Tracker();
         bool                   m_Eos;
         AP4_Track*             m_Track;
@@ -130,6 +139,14 @@ protected:
         AP4_UI64               m_NextDts;
         AP4_List<SampleBuffer> m_Samples;
         SampleReader*          m_Reader;
+        struct {
+            bool         m_Pending;
+            AP4_UI64     m_Time;
+            AP4_Position m_MoofOffset;
+            unsigned int m_TrafNumber;
+            unsigned int m_TrunNumber;
+            unsigned int m_SampleNumber;
+        } m_SeekPoint;
     };
     
     // methods that can be overridden
@@ -143,6 +160,8 @@ protected:
     AP4_Result Advance();
     AP4_Result AdvanceFragment();
     bool       PopSample(Tracker* tracker, AP4_Sample& sample, AP4_DataBuffer& sample_data);
+    void       FlushQueue(Tracker* tracker);
+    void       FlushQueues();
     
     // members
     AP4_Movie&          m_Movie;

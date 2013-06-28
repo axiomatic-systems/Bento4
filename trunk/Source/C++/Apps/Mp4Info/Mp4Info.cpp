@@ -441,6 +441,15 @@ ShowSampleDescription_Text(AP4_SampleDescription& description, bool verbose)
         }
         printf("]\n");
     }
+    
+    // Subtitles
+    if (desc->GetType() == AP4_SampleDescription::TYPE_SUBTITLES) {
+        AP4_SubtitleSampleDescription* subt_desc = AP4_DYNAMIC_CAST(AP4_SubtitleSampleDescription, desc);
+        printf("    Subtitles:\n");
+        printf("       Namespace:       %s\n", subt_desc->GetNamespace().GetChars());
+        printf("       Schema Location: %s\n", subt_desc->GetSchemaLocation().GetChars());
+        printf("       Image Mime Type: %s\n", subt_desc->GetImageMimeType().GetChars());
+    }
 }
 
 /*----------------------------------------------------------------------
@@ -810,12 +819,13 @@ ShowTrackInfo_Text(AP4_Movie& movie, AP4_Track& track, AP4_ByteStream& stream, b
 	printf("  id:           %d\n", track.GetId());
     printf("  type:         ");
     switch (track.GetType()) {
-        case AP4_Track::TYPE_AUDIO:   printf("Audio\n");  break;
-        case AP4_Track::TYPE_VIDEO:   printf("Video\n");  break;
-        case AP4_Track::TYPE_HINT:    printf("Hint\n");   break;
-        case AP4_Track::TYPE_SYSTEM:  printf("System\n"); break;
-        case AP4_Track::TYPE_TEXT:    printf("Text\n");   break;
-        case AP4_Track::TYPE_JPEG:    printf("Jpeg\n");   break;
+        case AP4_Track::TYPE_AUDIO:     printf("Audio\n");     break;
+        case AP4_Track::TYPE_VIDEO:     printf("Video\n");     break;
+        case AP4_Track::TYPE_HINT:      printf("Hint\n");      break;
+        case AP4_Track::TYPE_SYSTEM:    printf("System\n");    break;
+        case AP4_Track::TYPE_TEXT:      printf("Text\n");      break;
+        case AP4_Track::TYPE_JPEG:      printf("JPEG\n");      break;
+        case AP4_Track::TYPE_SUBTITLES: printf("Subtitles\n"); break;
         default: {
             char hdlr[5];
             AP4_FormatFourChars(hdlr, track.GetHandlerType());
@@ -894,12 +904,13 @@ ShowTrackInfo_Json(AP4_Movie& movie, AP4_Track& track, AP4_ByteStream& stream, b
 	printf("  \"id\":%d,\n", track.GetId());
     printf("  \"type\":");
     switch (track.GetType()) {
-        case AP4_Track::TYPE_AUDIO:   printf("\"Audio\"");  break;
-        case AP4_Track::TYPE_VIDEO:   printf("\"Video\"");  break;
-        case AP4_Track::TYPE_HINT:    printf("\"Hint\"");   break;
-        case AP4_Track::TYPE_SYSTEM:  printf("\"System\""); break;
-        case AP4_Track::TYPE_TEXT:    printf("\"Text\"");   break;
-        case AP4_Track::TYPE_JPEG:    printf("\"Jpeg\"");   break;
+        case AP4_Track::TYPE_AUDIO:     printf("\"Audio\"");     break;
+        case AP4_Track::TYPE_VIDEO:     printf("\"Video\"");     break;
+        case AP4_Track::TYPE_HINT:      printf("\"Hint\"");      break;
+        case AP4_Track::TYPE_SYSTEM:    printf("\"System\"");    break;
+        case AP4_Track::TYPE_TEXT:      printf("\"Text\"");      break;
+        case AP4_Track::TYPE_JPEG:      printf("\"JPEG\"");      break;
+        case AP4_Track::TYPE_SUBTITLES: printf("\"Subtitles\""); break;
         default: {
             char hdlr[5];
             AP4_FormatFourChars(hdlr, track.GetHandlerType());
@@ -1172,12 +1183,13 @@ ShowSampleLayout(AP4_List<AP4_Track>& tracks, bool /* verbose */)
         // show the chosen track/sample
         char track_type = ' ';
         switch (chosen_track->GetType()) {
-            case AP4_Track::TYPE_AUDIO:  track_type = 'A'; break;
-            case AP4_Track::TYPE_VIDEO:  track_type = 'V'; break;
-            case AP4_Track::TYPE_HINT:   track_type = 'H'; break;
-            case AP4_Track::TYPE_TEXT:   track_type = 'T'; break;
-            case AP4_Track::TYPE_SYSTEM: track_type = 'S'; break;
-            default:                     track_type = ' '; break;
+            case AP4_Track::TYPE_AUDIO:     track_type = 'A'; break;
+            case AP4_Track::TYPE_VIDEO:     track_type = 'V'; break;
+            case AP4_Track::TYPE_HINT:      track_type = 'H'; break;
+            case AP4_Track::TYPE_TEXT:      track_type = 'T'; break;
+            case AP4_Track::TYPE_SYSTEM:    track_type = 'S'; break;
+            case AP4_Track::TYPE_SUBTITLES: track_type = 'U'; break;
+            default:                        track_type = ' '; break;
         }
         AP4_UI64 sample_dts_ms = AP4_ConvertTime(sample_dts, chosen_track->GetMediaTimeScale(), 1000);
         printf("%c %08d [%c] (%d)%c size=%6d, offset=%8lld, dts=%lld (%lld ms)\n",
