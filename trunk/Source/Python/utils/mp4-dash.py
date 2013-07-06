@@ -49,8 +49,8 @@ INIT_SEGMENT_NAME    = 'init.mp4'
 SEGMENT_PATTERN      = 'seg-%04llu.m4f'
 SEGMENT_TEMPLATE     = 'seg-$Number%04d$.m4f'
 MEDIA_FILE_PATTERN   = 'media-%02d.mp4'
-INIT_FILE_PATTERN    = 'init-%02d.mp4'
 MARLIN_MAS_NAMESPACE = 'urn:marlin:mas:1-0:services:schemas:mpd'
+SMOOTH_INIT_FILE_PATTERN = 'init-%02d-%02d.mp4'
 SMOOTH_DEFAULT_TIMESCALE = 10000000
 SMIL_NAMESPACE           = 'http://www.w3.org/2001/SMIL20/Language'
         
@@ -92,7 +92,7 @@ def AddSegmentTemplate(options, container, subdir, track, stream_name):
         if options.smooth:
             url_base = path.basename(options.smooth_server_manifest_filename)
             url_template=url_base+"/QualityLevels($Bandwidth$)/Fragments(%s=$Time$)" % (stream_name)
-            init_segment_url=INIT_FILE_PATTERN%(track.parent.index)
+            init_segment_url=SMOOTH_INIT_FILE_PATTERN%(track.parent.index, track.id)
             use_template_numbers = False
         args = [container, 'SegmentTemplate']
         kwargs = {'timescale': str(track.timescale),
@@ -645,11 +645,13 @@ def main():
                 print 'Processing media file', file_name_map[media_source.mp4_file.filename]
                 shutil.copyfile(media_source.mp4_file.filename,
                                 path.join(options.output_dir, MEDIA_FILE_PATTERN%(media_source.mp4_file.index)))
-                if options.smooth:
+            if options.smooth:
+                for track in audio_tracks.values() + video_tracks:
                     Mp4Split(options,
-                             media_source.mp4_file.filename,
-                             init_only=True,
-                             init_segment = path.join(options.output_dir, INIT_FILE_PATTERN%(media_source.mp4_file.index)))
+                             track.parent.filename,
+                             track_id     = str(track.id),
+                             init_only    =True,
+                             init_segment = path.join(options.output_dir, SMOOTH_INIT_FILE_PATTERN%(track.parent.index, track.id)))
 
 ###########################    
 if __name__ == '__main__':
