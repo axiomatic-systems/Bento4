@@ -14,9 +14,10 @@
 			);
 			dependencies = (
 				CA399CA410A3488B0085284B /* PBXTargetDependency */,
+				CA0D91AE0E258349005667F1 /* PBXTargetDependency */,
+				CAB1AE321782C1DB0038B6A6 /* PBXTargetDependency */,
 				CA3185611087EED3002B38A8 /* PBXTargetDependency */,
 				CA00667F101539BF004C0D5F /* PBXTargetDependency */,
-				CA0D91AE0E258349005667F1 /* PBXTargetDependency */,
 				CA646AC90CE97C4E009699D7 /* PBXTargetDependency */,
 				CA646B710CE97EE1009699D7 /* PBXTargetDependency */,
 				CA646B730CE97EE1009699D7 /* PBXTargetDependency */,
@@ -682,6 +683,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = CA646AC50CE97C47009699D7;
 			remoteInfo = Apps;
+		};
+		CAB1AE311782C1DB0038B6A6 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CAC8F16F16BE444D00C49741;
+			remoteInfo = Mp4AudioClip;
 		};
 		CAB3CB750FCB35BE007C4260 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -3407,6 +3415,11 @@
 			isa = PBXTargetDependency;
 			target = CA646AC50CE97C47009699D7 /* Apps */;
 			targetProxy = CAA97B3D0CF4D55500C01909 /* PBXContainerItemProxy */;
+		};
+		CAB1AE321782C1DB0038B6A6 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CAC8F16F16BE444D00C49741 /* Mp4AudioClip */;
+			targetProxy = CAB1AE311782C1DB0038B6A6 /* PBXContainerItemProxy */;
 		};
 		CAB3CB760FCB35BE007C4260 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
