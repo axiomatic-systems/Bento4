@@ -99,6 +99,11 @@ AP4_AinfAtom::WriteFields(AP4_ByteStream& stream)
     AP4_Result result;
     result = stream.WriteUI32(m_ProfileVersion);
     if (AP4_FAILED(result)) return result;
+    
+    // stop early if we have an atom with no APID and a declared size
+    // that doesn't leave enough room for the NULL terminator
+    if (GetSize() <= AP4_FULL_ATOM_HEADER_SIZE+4) return AP4_SUCCESS;
+    
     result = stream.Write(m_APID.GetChars(), m_APID.GetLength()+1);
     if (AP4_FAILED(result)) return result;
     if (m_OtherBoxes.GetDataSize()) {

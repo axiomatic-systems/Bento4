@@ -372,7 +372,7 @@ def main():
             MakeNewDir(path.join(options.output_dir, 'audio'))
             for (language, audio_track) in audio_tracks.iteritems():
                 out_dir = path.join(options.output_dir, 'audio')
-                if len(audio_tracks) > 1:
+                if language:
                     out_dir = path.join(out_dir, language)
                     MakeNewDir(out_dir, severity=None)
                 print 'Processing media file (audio)', file_name_map[audio_track.parent.filename]
