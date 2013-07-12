@@ -403,3 +403,29 @@ def DerivePlayReadyKey(seed, kid, swap=True):
         content_key += chr(sha_A[i] ^ sha_A[i+16] ^ sha_B[i] ^ sha_B[i+16] ^ sha_C[i] ^ sha_C[i+16])
 
     return content_key
+
+def ComputePlayReadyHeader(header_spec):
+    # construct the base64 header
+    if os.path.exists(header_spec):
+        # read the header from the file
+        header = open(header_spec, 'rb').read()
+        header_xml = None
+        if (ord(header[0]) == 0xff and ord(header[1]) == 0xfe) or (ord(header[0]) == 0xfe and ord(header[1]) == 0xff):
+            # this is UTF-16 XML
+            header_xml = header.decode('utf-16')
+        elif header[0] == '<':
+            # this is ASCII or UTF-8 XML
+            header_xml = header.decode('utf-8')
+        if header_xml is not None:
+            # encode the XML header into UTF-16 little-endian
+            header_utf16_le = header_xml.encode('utf-16-le')
+            rm_record = struct.pack('<HH', 1, len(header_utf16_le))+header_utf16_le
+            header = struct.pack('<IH', len(rm_record)+6, 1)+rm_record
+        header_b64 = header.encode('base64')
+    else:
+        header_b64 = header_spec
+        header = header_b64.decode('base64')
+        if len(header) == 0:
+            raise Exception('invalid base64 encoding')
+
+    return header_b64

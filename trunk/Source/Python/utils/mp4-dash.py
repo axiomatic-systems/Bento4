@@ -38,18 +38,21 @@ SVN_REVISION = "$Revision$"
 SCRIPT_PATH = path.abspath(path.dirname(__file__))
 sys.path += [SCRIPT_PATH]
 
-VIDEO_MIMETYPE       = 'video/mp4'
-AUDIO_MIMETYPE       = 'audio/mp4'
-VIDEO_DIR            = 'video'
-AUDIO_DIR            = 'audio'
-MPD_NS_COMPAT        = 'urn:mpeg:DASH:schema:MPD:2011'
-MPD_NS               = 'urn:mpeg:dash:schema:mpd:2011'
-ISOFF_LIVE_PROFILE   = 'urn:mpeg:dash:profile:isoff-live:2011' 
-INIT_SEGMENT_NAME    = 'init.mp4'
-SEGMENT_PATTERN      = 'seg-%04llu.m4f'
-SEGMENT_TEMPLATE     = 'seg-$Number%04d$.m4f'
-MEDIA_FILE_PATTERN   = 'media-%02d.mp4'
-MARLIN_MAS_NAMESPACE = 'urn:marlin:mas:1-0:services:schemas:mpd'
+VIDEO_MIMETYPE           = 'video/mp4'
+AUDIO_MIMETYPE           = 'audio/mp4'
+VIDEO_DIR                = 'video'
+AUDIO_DIR                = 'audio'
+MPD_NS_COMPAT            = 'urn:mpeg:DASH:schema:MPD:2011'
+MPD_NS                   = 'urn:mpeg:dash:schema:mpd:2011'
+ISOFF_LIVE_PROFILE       = 'urn:mpeg:dash:profile:isoff-live:2011' 
+INIT_SEGMENT_NAME        = 'init.mp4'
+SEGMENT_PATTERN          = 'seg-%04llu.m4f'
+SEGMENT_TEMPLATE         = 'seg-$Number%04d$.m4f'
+MEDIA_FILE_PATTERN       = 'media-%02d.mp4'
+MARLIN_SCHEME_ID_URI     = 'urn:uuid:5E629AF5-38DA-4063-8977-97FFBD9902D4'
+MARLIN_MAS_NAMESPACE     = 'urn:marlin:mas:1-0:services:schemas:mpd'
+PLAYREADY_SCHEME_ID_URI  = 'urn:uuid:9a04f079-9840-4286-ab92-e65be0885f95'
+PLAYREADY_MSPR_NAMESPACE = 'urn:microsoft:playready'
 SMOOTH_INIT_FILE_PATTERN = 'init-%02d-%02d.mp4'
 SMOOTH_DEFAULT_TIMESCALE = 10000000
 SMIL_NAMESPACE           = 'http://www.w3.org/2001/SMIL20/Language'
@@ -139,13 +142,21 @@ def AddContentProtection(options, container, tracks):
         if kid not in kids:
             kids.append(kid)
     xml.register_namespace('mas', MARLIN_MAS_NAMESPACE)
+    xml.register_namespace('mspr', PLAYREADY_MSPR_NAMESPACE)
     #xml.SubElement(container, 'ContentProtection', schemeIdUri='urn:mpeg:dash:mp4protection:2011', value='cenc')
-    cp = xml.SubElement(container, 'ContentProtection', schemeIdUri='urn:uuid:5E629AF5-38DA-4063-8977-97FFBD9902D4')
-    cids = xml.SubElement(cp, '{'+MARLIN_MAS_NAMESPACE+'}MarlinContentIds')
-    for kid in kids:
-        cid = xml.SubElement(cids, '{'+MARLIN_MAS_NAMESPACE+'}MarlinContentId')
-        cid.text = 'urn:marlin:kid:'+kid
-        
+    
+    if options.marlin:
+        cp = xml.SubElement(container, 'ContentProtection', schemeIdUri=MARLIN_SCHEME_ID_URI)
+        cids = xml.SubElement(cp, '{'+MARLIN_MAS_NAMESPACE+'}MarlinContentIds')
+        for kid in kids:
+            cid = xml.SubElement(cids, '{'+MARLIN_MAS_NAMESPACE+'}MarlinContentId')
+            cid.text = 'urn:marlin:kid:'+kid
+    if options.playready_header:
+        header_b64 = ComputePlayReadyHeader(options.playready_header)        
+        cp = xml.SubElement(container, 'ContentProtection', schemeIdUri=PLAYREADY_SCHEME_ID_URI)
+        pro = xml.SubElement(cp, '{'+PLAYREADY_MSPR_NAMESPACE+'}pro')
+        pro.text = header_b64
+                
 def OutputDash(options, audio_tracks, video_tracks):
     # compute the total duration (we take the duration of the video)
     presentation_duration = video_tracks[0].total_duration
@@ -174,10 +185,10 @@ def OutputDash(options, audio_tracks, video_tracks):
         else:
             id_ext = ''
         adaptation_set = xml.SubElement(*args, **kwargs)
-        if options.marlin:
+        if options.marlin or options.playready_header:
             AddContentProtection(options, adaptation_set, [audio_track])
         representation = xml.SubElement(adaptation_set, 'Representation', id='audio'+id_ext, codecs=audio_track.codec, bandwidth=str(audio_track.bandwidth))
-        if len(audio_tracks) > 1:
+        if language:
             subdir = '/'+language
             stream_name='audio_'+language
         else:
@@ -190,7 +201,7 @@ def OutputDash(options, audio_tracks, video_tracks):
         
     # process all the video tracks
     adaptation_set = xml.SubElement(period, 'AdaptationSet', mimeType=VIDEO_MIMETYPE, segmentAlignment='true', startWithSAP='1')
-    if options.marlin:
+    if options.marlin or options.playready_header:
         AddContentProtection(options, adaptation_set, video_tracks)
     for video_track in video_tracks:
         video_desc = video_track.info['sample_descriptions'][0]
@@ -280,18 +291,17 @@ def OutputSmooth(options, audio_tracks, video_tracks):
 
     for duration in video_tracks[0].segment_scaled_durations:
         xml.SubElement(stream_index, "c", d=str(duration))
-    
-    if options.verbose:
-        for audio_track in audio_tracks.itervalues():
-            print '  Audio Track: '+str(audio_track)+' - max bitrate=%d, avg bitrate=%d' % (audio_track.max_segment_bitrate, audio_track.average_segment_bitrate)
-        for video_track in video_tracks:
-            print '  Video Track: '+str(video_track)+' - max bitrate=%d, avg bitrate=%d' % (video_track.max_segment_bitrate, video_track.average_segment_bitrate)
-            
+                
+    if options.playready_header:
+        header_b64 = ComputePlayReadyHeader(options.playready_header)
+        protection = xml.SubElement(client_manifest, 'Protection')
+        protection_header = xml.SubElement(protection, 'ProtectionHeader', SystemID='9a04f079-9840-4286-ab92-e65be0885f95')
+        protection_header.text = header_b64
+        
     # save the Client Manifest
     if options.smooth_client_manifest_filename != '':
         open(path.join(options.output_dir, options.smooth_client_manifest_filename), "wb").write(parseString(xml.tostring(client_manifest)).toprettyxml("  "))
         
-
     # create the Server Manifest file
     server_manifest = xml.Element('smil', xmlns=SMIL_NAMESPACE)
     server_manifest_head = xml.SubElement(server_manifest , 'head')
@@ -380,6 +390,9 @@ def main():
     parser.add_option('', "--marlin",
                       dest="marlin", action="store_true", default=False,
                       help="Add Marlin signaling to the MPD (requires an encrypted input, or the --encryption-key option)")
+    parser.add_option('', "--playready-header",
+                      dest="playready_header", metavar='<playready-header-object>', default=None,
+                      help="Add PlayReady signaling to the MPD (requires an encrypted input, or the --encryption-key option). The <playready-header-object> argument can be the name of a file containing either a PlayReady XML Rights Management Header or a PlayReady Header Object (PRO),  or a header object itself encoded in Base64")
     parser.add_option('', "--exec-dir", metavar="<exec_dir>",
                       dest="exec_dir", default=path.join(SCRIPT_PATH, 'bin', platform),
                       help="Directory where the Bento4 executables are located")
@@ -618,7 +631,7 @@ def main():
             MakeNewDir(path.join(options.output_dir, 'audio'))
             for (language, audio_track) in audio_tracks.iteritems():
                 out_dir = path.join(options.output_dir, 'audio')
-                if len(audio_tracks) > 1:
+                if language:
                     out_dir = path.join(out_dir, language)
                     MakeNewDir(out_dir)
                 print 'Processing media file (audio)', file_name_map[audio_track.parent.filename]
