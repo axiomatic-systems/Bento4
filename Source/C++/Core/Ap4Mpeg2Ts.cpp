@@ -448,6 +448,18 @@ AP4_Mpeg2TsVideoSampleStream::Create(AP4_UI16                          pid,
 }
 
 /*----------------------------------------------------------------------
+|   AppendData
++---------------------------------------------------------------------*/
+static void
+AppendData(AP4_DataBuffer& buffer, const unsigned char* data, unsigned int data_size)
+{
+    if (data_size == 0) return;
+    unsigned int buffer_data_size = buffer.GetDataSize();
+    buffer.SetDataSize(buffer_data_size+data_size);
+    AP4_CopyMemory(buffer.UseData()+buffer_data_size, data, data_size);
+}    
+
+/*----------------------------------------------------------------------
 |   AP4_Mpeg2TsVideoSampleStream::WriteSample
 +---------------------------------------------------------------------*/
 AP4_Result
@@ -496,30 +508,16 @@ AP4_Mpeg2TsVideoSampleStream::WriteSample(AP4_Sample&            sample,
     if (sample.IsSync()) {
         emit_prefix = true;
     }
-        
-    // allocate a buffer for the PES packet
-    AP4_DataBuffer pes_data;
-    pes_data.SetDataSize(6+(emit_prefix?m_Prefix.GetDataSize():0));
-    unsigned char* pes_buffer = pes_data.UseData();
-    
-    // start of access unit
-    pes_buffer[0] = 0;
-    pes_buffer[1] = 0;
-    pes_buffer[2] = 0;
-    pes_buffer[3] = 1;
-    pes_buffer[4] = 9;    // NAL type = Access Unit Delimiter;
-    pes_buffer[5] = 0xE0; // Slice types = ANY
-    
-    // copy the prefix if needed
-    if (emit_prefix) {
-        AP4_CopyMemory(pes_buffer+6, m_Prefix.GetData(), m_Prefix.GetDataSize());
-    }
     
     // write the NAL units
     const unsigned char* data      = sample_data.GetData();
     unsigned int         data_size = sample_data.GetDataSize();
     
-    while (data_size) {
+    // allocate a buffer for the PES packet
+    AP4_DataBuffer pes_data;
+
+    // output all NALUs
+    for (unsigned int nalu_count = 0; data_size; nalu_count++) {
         // sanity check
         if (data_size < m_NaluLengthSize) break;
         
@@ -541,15 +539,42 @@ AP4_Mpeg2TsVideoSampleStream::WriteSample(AP4_Sample&            sample,
         }
         if (nalu_size > data_size) break;
         
-        // add a start code before the NAL unit
-        unsigned int offset = pes_data.GetDataSize(); 
-        pes_data.SetDataSize(offset+3+nalu_size);
-        pes_buffer = pes_data.UseData()+offset;
-        pes_buffer[0] = 0;
-        pes_buffer[1] = 0;
-        pes_buffer[2] = 1;
-        AP4_CopyMemory(pes_buffer+3, data, nalu_size);
+        // check if we need to add a delimiter before the NALU 
+        if (nalu_count == 0) {
+            if (nalu_size != 2 || data[0] != 9) {
+                // this is not an Access Unit Delimiter, we need to add one
+                unsigned char delimiter[6];
+                delimiter[0] = 0;
+                delimiter[1] = 0;
+                delimiter[2] = 0;
+                delimiter[3] = 1;
+                delimiter[4] = 9;    // NAL type = Access Unit Delimiter;
+                delimiter[5] = 0xE0; // Slice types = ANY
+                AppendData(pes_data, delimiter, 6);
+                
+                if (emit_prefix) {
+                    AppendData(pes_data, m_Prefix.GetData(), m_Prefix.GetDataSize());
+                    emit_prefix = false;
+                }
+            }
+        }
         
+        // add a start code before the NAL unit
+        unsigned char start_code[3];
+        start_code[0] = 0;
+        start_code[1] = 0;
+        start_code[2] = 1;
+        AppendData(pes_data, start_code, 3);
+        
+        // add the NALU
+        AppendData(pes_data, data, nalu_size);
+        
+        // check if we need to add SPS/PPS
+        if (nalu_count == 0 && emit_prefix) {
+            AppendData(pes_data, m_Prefix.GetData(), m_Prefix.GetDataSize());
+            emit_prefix = false;
+        }
+
         // move to the next NAL unit
         data      += nalu_size;
         data_size -= nalu_size;
