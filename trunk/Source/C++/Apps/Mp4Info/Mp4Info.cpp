@@ -681,13 +681,13 @@ ShowAvcInfo(const AP4_DataBuffer& sample_data, AP4_AvcSampleDescription* avc_des
                     case 7: printf("<I>");  break;
                     case 8:	printf("<SP>"); break;
                     case 9: printf("<SI>"); break;
-                    default: printf("<S/%d> ", slice_type); break;
+                    default: printf("<S/%d>", slice_type); break;
                 }
                 return; // only show first slice type
             }
             
             case 5: 
-                printf("<I> "); 
+                printf("<I>"); 
                 return;
         }
         
