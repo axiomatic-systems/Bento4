@@ -314,12 +314,8 @@ class Mp4File:
         
         return None
 
-    def find_track_by_type(self, track_type_to_find):
-        for track_id in self.tracks:
-            if track_type_to_find == '' or track_type_to_find == self.tracks[track_id].type:
-                return self.tracks[track_id]
-        
-        return None
+    def find_tracks_by_type(self, track_type_to_find):
+        return [track for track in self.tracks.values() if track_type_to_find == '' or track_type_to_find == track.type]
             
 class MediaSource:
     def __init__(self, name):

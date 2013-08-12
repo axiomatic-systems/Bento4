@@ -326,9 +326,6 @@ def OutputSmooth(options, audio_tracks, video_tracks):
     if options.smooth_server_manifest_filename != '':
         open(path.join(options.output_dir, options.smooth_server_manifest_filename), "wb").write(parseString(xml.tostring(server_manifest)).toprettyxml("  "))
     
-def ComputeIso961ShortLanguage(language):
-    return LanguageCodeMap.get(language, language)
-
 #############################################
 Options = None            
 def main():
@@ -340,7 +337,8 @@ def main():
         platform = 'macosx'
                 
     # parse options
-    parser = OptionParser(usage="%prog [options] <media-file> [<media-file> ...]")
+    parser = OptionParser(usage="%prog [options] <media-file> [<media-file> ...]",
+                          description="Each <media-file> is the path to a fragmented MP4 file, optionally prefixed with a stream selector qualifier delimited by [ and ]. The same input MP4 file may be repeated, provided that the stream selector prefixes select different streams")
     parser.add_option('', '--verbose', dest="verbose",
                       action='store_true', default=False,
                       help="Be verbose")
@@ -432,8 +430,8 @@ def main():
         file_name_map[media_source.filename] = media_source.filename
 
     # encrypt the input files if needed
-    encrypted_files = []
-    if options.encryption_key:
+    encrypted_files = {}
+    if not options.no_media and options.encryption_key:
         if ':' not in options.encryption_key:
             raise Exception('Invalid argument syntax for --encryption-key option')
         kid_b64, key_b64 = options.encryption_key.split(':')
@@ -443,6 +441,12 @@ def main():
         track_ids = []
         for media_source in media_sources:
             media_file = media_source.filename
+            
+            # check if we have already encrypted this file
+            if media_file in encrypted_files:
+                media_source.filename = encrypted_files[media_file].name
+                continue
+                
             # get the mp4 file info
             json_info = Mp4Info(Options, media_file, format='json')
             info = json.loads(json_info, strict=False)
@@ -450,7 +454,7 @@ def main():
             track_ids = [track['id'] for track in info['tracks'] if track['type'] in ['Audio', 'Video']]
             print 'Encrypting track IDs '+str(track_ids)+' in '+ media_file
             encrypted_file = tempfile.NamedTemporaryFile(dir = options.output_dir)
-            encrypted_files.append(encrypted_file) # keep a ref so that it does not get deleted
+            encrypted_files[media_file] = encrypted_file # keep a ref so that it does not get deleted
             file_name_map[encrypted_file.name] = encrypted_file.name + ' (Encrypted ' + media_file + ')'
             args = ['--method', 'MPEG-CENC']
             args.append(media_file)
@@ -466,8 +470,16 @@ def main():
             
     # parse the media files
     index = 1
+    mp4_files = {}
     for media_source in media_sources:
         media_file = media_source.filename
+        
+        # check if we have already parsed this file
+        if media_file in mp4_files:
+            media_source.mp4_file = mp4_files[media_file]
+            continue
+        
+        # parse the file
         print 'Parsing media file', str(index)+':', file_name_map[media_file]
         if not os.path.exists(media_file):
             PrintErrorAndExit('ERROR: media file ' + media_file + ' does not exist')
@@ -480,8 +492,9 @@ def main():
         if mp4_file.info['movie']['fragments'] != True:
             PrintErrorAndExit('ERROR: file '+str(mp4_file.index)+' is not fragmented (use mp4fragment to fragment it)')
             
-        # add the file to the file
+        # set the source property
         media_source.mp4_file = mp4_file
+        mp4_files[media_file] = mp4_file
         
         index += 1
         
@@ -489,62 +502,50 @@ def main():
     audio_tracks = {}
     video_tracks = []
     for media_source in media_sources:
-        track_id   = media_source.spec['track']
-        track_type = media_source.spec['type']
-        track      = None
+        track_id       = media_source.spec['track']
+        track_type     = media_source.spec['type']
+        track_language = media_source.spec['language']
+        tracks         = []
         
         if track_type not in ['', 'audio', 'video']:
             sys.stderr.write('WARNING: ignoring source '+media_source.name+', unknown type')
 
+        if track_id and track_type:
+            PrintErrorAndExit('ERROR: track ID and track type selections are mutually exclusive')
+
         if track_id:
-            track = media_source.mp4_file.find_track_by_id(track_id)
-            if not track:
+            tracks = [media_source.mp4_file.find_track_by_id(track_id)]
+            if not tracks:
                 PrintErrorAndExit('ERROR: track id not found for media file '+media_source.name)
         
-        if track is None and track_type:
-            track = media_source.mp4_file.find_track_by_type(track_type)
-
-        if track and track_type and track.type != track_type:
-            PrintErrorAndExit('ERROR: track type mismatch for media file '+media_source.name)
+        if track_type:
+            tracks = media_source.mp4_file.find_tracks_by_type(track_type)
+            if not tracks:
+                PrintErrorAndExit('ERROR: no ' + track_type + ' found for media file '+media_source.name)
         
+        if not tracks:
+            tracks = media_source.mp4_file.tracks.values()
+            
         # process audio tracks
-        if track is None:
-            # select all audio tracks
-            tracks = [t for t in media_source.mp4_file.tracks.values() if t.type == 'audio']
-        elif track.type == 'audio':
-            tracks = [track]
-        else:
-            if track_type:
-                sys.stderr.write('WARNING: no audio track found in '+media_source.name+'\n')
-            tracks = []
-
-        for audio_track in tracks:
-            language = media_source.spec['language']
-            if language == '':
-                language = ComputeIso961ShortLanguage(audio_track.language)
-                
+        for track in [t for t in tracks if t.type == 'audio']:
+            language = LanguageCodeMap.get(track.language, track.language)
+            if track_language and track_language != language:
+                continue
             if language not in audio_tracks:
-                audio_tracks[language] = audio_track
+                audio_tracks[language] = track
                     
         # audio tracks with languages don't mix with language-less tracks
         if len(audio_tracks) > 1 and '' in audio_tracks:
             sys.stderr.write('WARNING: removing audio tracks with an unspecified language\n')
             del audio_tracks['']
             
-        video_track = track
-        if track_type == 'video' or track is None or track.type == 'video':
-            if video_track is None:
-                video_track = media_source.mp4_file.find_track_by_type('video')
-            if video_track:
-                video_tracks.append(video_track)
-            else:
-                if track_type:
-                    sys.stderr.write('WARNING: no video track found in '+media_source.name+'\n')
+        # process video tracks
+        video_tracks += [t for t in tracks if t.type == 'video']
         
     # check that we have at least one audio and one video
-    if len(audio_tracks) == 0:
+    if not audio_tracks:
         PrintErrorAndExit('ERROR: no audio track selected')
-    if len(video_tracks) == 0:
+    if not video_tracks:
         PrintErrorAndExit('ERROR: no video track selected')
         
     if Options.verbose:
@@ -654,10 +655,10 @@ def main():
                          init_segment           = path.join(out_dir, INIT_SEGMENT_NAME),
                          media_segment          = path.join(out_dir, SEGMENT_PATTERN))
         else:
-            for media_source in media_sources:
-                print 'Processing media file', file_name_map[media_source.mp4_file.filename]
-                shutil.copyfile(media_source.mp4_file.filename,
-                                path.join(options.output_dir, MEDIA_FILE_PATTERN%(media_source.mp4_file.index)))
+            for mp4_file in mp4_files.values():
+                print 'Processing media file', file_name_map[mp4_file.filename]
+                shutil.copyfile(mp4_file.filename,
+                                path.join(options.output_dir, MEDIA_FILE_PATTERN%(mp4_file.index)))
             if options.smooth:
                 for track in audio_tracks.values() + video_tracks:
                     Mp4Split(options,

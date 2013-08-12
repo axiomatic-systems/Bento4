@@ -177,51 +177,50 @@ def main():
     audio_tracks = {}
     video_tracks = []
     for media_source in media_sources:
-        track_id   = media_source.spec['track']
-        track_type = media_source.spec['type']
-        track      = None
+        track_id       = media_source.spec['track']
+        track_type     = media_source.spec['type']
+        track_language = media_source.spec['language']
+        tracks         = []
         
         if track_type not in ['', 'audio', 'video']:
             sys.stderr.write('WARNING: ignoring source '+media_source.name+', unknown type')
 
+        if track_id and track_type:
+            PrintErrorAndExit('ERROR: track ID and track type selections are mutually exclusive')
+
         if track_id:
-            track = media_source.mp4_file.find_track_by_id(track_id)
-            if not track:
+            tracks = [media_source.mp4_file.find_track_by_id(track_id)]
+            if not tracks:
                 PrintErrorAndExit('ERROR: track id not found for media file '+media_source.name)
-
-        if track and track_type and track.type != track_type:
-            PrintErrorAndExit('ERROR: track type mismatch for media file '+media_source.name)
-
-        audio_track = track
-        if track_type == 'audio' or track_type == '':
-            if audio_track is None:
-                audio_track = media_source.mp4_file.find_track_by_type('audio')
-            if audio_track:
-                language = media_source.spec['language']
-                if language not in audio_tracks:
-                    audio_tracks[language] = audio_track
-            else:
-                if track_type:
-                    sys.stderr.write('WARNING: no audio track found in '+media_source.name+'\n')
+        
+        if track_type:
+            tracks = media_source.mp4_file.find_tracks_by_type(track_type)
+            if not tracks:
+                PrintErrorAndExit('ERROR: no ' + track_type + ' found for media file '+media_source.name)
+        
+        if not tracks:
+            tracks = media_source.mp4_file.tracks.values()
+            
+        # process audio tracks
+        for track in [t for t in tracks if t.type == 'audio']:
+            language = LanguageCodeMap.get(track.language, track.language)
+            if track_language and track_language != language:
+                continue
+            if language not in audio_tracks:
+                audio_tracks[language] = track
                     
         # audio tracks with languages don't mix with language-less tracks
         if len(audio_tracks) > 1 and '' in audio_tracks:
+            sys.stderr.write('WARNING: removing audio tracks with an unspecified language\n')
             del audio_tracks['']
             
-        video_track = track
-        if track_type == 'video' or track_type == '':
-            if video_track is None:
-                video_track = media_source.mp4_file.find_track_by_type('video')
-            if video_track:
-                video_tracks.append(video_track)
-            else:
-                if track_type:
-                    sys.stderr.write('WARNING: no video track found in '+media_source.name+'\n')
+        # process video tracks
+        video_tracks += [t for t in tracks if t.type == 'video']
         
     # check that we have at least one audio and one video
-    if len(audio_tracks) == 0:
+    if not audio_tracks:
         PrintErrorAndExit('ERROR: no audio track selected')
-    if len(video_tracks) == 0:
+    if not video_tracks:
         PrintErrorAndExit('ERROR: no video track selected')
         
     if Options.verbose:
