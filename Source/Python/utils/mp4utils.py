@@ -199,6 +199,9 @@ class Mp4File:
                 
         if options.debug: print 'Processing MP4 file', filename
 
+        # by default, the media name is the basename of the source file
+        self.media_name = os.path.basename(filename)
+
         # walk the atom structure
         self.atoms = WalkAtoms(filename)
         self.segments = []
@@ -336,6 +339,10 @@ class MediaSource:
         if 'type'     not in self.spec: self.spec['type']     = ''
         if 'track'    not in self.spec: self.spec['track']    = 0
         if 'language' not in self.spec: self.spec['language'] = ''
+        
+        # keep a record of our original filename in case it gets changed later
+        self.original_filename = self.filename
+        
         
     def __repr__(self):
         return self.name
