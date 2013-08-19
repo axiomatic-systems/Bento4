@@ -33,7 +33,7 @@ import tempfile
 from mp4utils import *
 
 # setup main options
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 SVN_REVISION = "$Revision$"
 SCRIPT_PATH = path.abspath(path.dirname(__file__))
 sys.path += [SCRIPT_PATH]
@@ -47,6 +47,7 @@ MPD_NS                   = 'urn:mpeg:dash:schema:mpd:2011'
 ISOFF_LIVE_PROFILE       = 'urn:mpeg:dash:profile:isoff-live:2011' 
 INIT_SEGMENT_NAME        = 'init.mp4'
 SEGMENT_PATTERN          = 'seg-%04llu.m4f'
+SEGMENT_URL_PATTERN      = 'seg-%04d.m4f'
 SEGMENT_TEMPLATE         = 'seg-$Number%04d$.m4f'
 MEDIA_FILE_PATTERN       = 'media-%02d.mp4'
 MARLIN_SCHEME_ID_URI     = 'urn:uuid:5E629AF5-38DA-4063-8977-97FFBD9902D4'
@@ -56,7 +57,7 @@ PLAYREADY_MSPR_NAMESPACE = 'urn:microsoft:playready'
 SMOOTH_INIT_FILE_PATTERN = 'init-%02d-%02d.mp4'
 SMOOTH_DEFAULT_TIMESCALE = 10000000
 SMIL_NAMESPACE           = 'http://www.w3.org/2001/SMIL20/Language'
-        
+             
 def AddSegmentList(options, container, subdir, track, use_byte_range=False):
     if subdir:
         prefix = subdir+'/'
@@ -68,7 +69,7 @@ def AddSegmentList(options, container, subdir, track, use_byte_range=False):
                                   duration=str(int(track.average_segment_duration*1000)))
     if use_byte_range:
         byte_range=str(track.parent.init_segment.position)+'-'+str(track.parent.init_segment.position+track.parent.init_segment.size-1)
-        xml.SubElement(segment_list, 'Initialization', sourceURL=prefix+(MEDIA_FILE_PATTERN % (track.parent.index)), range=byte_range)
+        xml.SubElement(segment_list, 'Initialization', sourceURL=prefix+track.parent.media_name, range=byte_range)
     else:
         xml.SubElement(segment_list, 'Initialization', sourceURL=prefix+INIT_SEGMENT_NAME)
     i = 0
@@ -78,9 +79,9 @@ def AddSegmentList(options, container, subdir, track, use_byte_range=False):
         segment_length = reduce(operator.add, [atom.size for atom in segment], 0)
         if use_byte_range:
             byte_range = str(segment_offset)+'-'+str(segment_offset+segment_length-1)
-            xml.SubElement(segment_list, 'SegmentURL', media=prefix+(MEDIA_FILE_PATTERN % (track.parent.index)), mediaRange=byte_range)
+            xml.SubElement(segment_list, 'SegmentURL', media=prefix+track.parent.media_name, mediaRange=byte_range)
         else:
-            xml.SubElement(segment_list, 'SegmentURL', media=prefix+(SEGMENT_PATTERN % (i)))
+            xml.SubElement(segment_list, 'SegmentURL', media=prefix+(SEGMENT_URL_PATTERN % (i)))
         i += 1
 
 def AddSegmentTemplate(options, container, subdir, track, stream_name):
@@ -172,7 +173,7 @@ def OutputDash(options, audio_tracks, video_tracks):
                       minBufferTime="PT%.02fS" % (options.min_buffer_time), 
                       mediaPresentationDuration=XmlDuration(int(presentation_duration)),
                       type='static')
-    mpd.append(xml.Comment('Created with Bento4 mp4-dash.py, VERSION='+VERSION+'-'+SVN_REVISION[11:-1]+' '))
+    mpd.append(xml.Comment(' Created with Bento4 mp4-dash.py, VERSION='+VERSION+'-'+SVN_REVISION[11:-1]+' '))
     period = xml.SubElement(mpd, 'Period')
 
     # process the audio tracks
@@ -224,7 +225,7 @@ def OutputSmooth(options, audio_tracks, video_tracks):
                                   MajorVersion="2", 
                                   MinorVersion="0",
                                   Duration=str(presentation_duration))
-    client_manifest.append(xml.Comment('Created with Bento4 mp4-dash.py, VERSION='+VERSION+'-'+SVN_REVISION[11:-1]+' '))
+    client_manifest.append(xml.Comment(' Created with Bento4 mp4-dash.py, VERSION='+VERSION+'-'+SVN_REVISION[11:-1]+' '))
     
     # process the audio tracks
     audio_index = 0
@@ -309,7 +310,7 @@ def OutputSmooth(options, audio_tracks, video_tracks):
     server_manifest_body = xml.SubElement(server_manifest , 'body')
     server_manifest_switch = xml.SubElement(server_manifest_body, 'switch')
     for (language, audio_track) in audio_tracks.iteritems():
-        audio_entry = xml.SubElement(server_manifest_switch, 'audio', src=MEDIA_FILE_PATTERN%(audio_track.parent.index), systemBitrate=str(audio_track.bandwidth))
+        audio_entry = xml.SubElement(server_manifest_switch, 'audio', src=audio_track.parent.media_name, systemBitrate=str(audio_track.bandwidth))
         xml.SubElement(audio_entry, 'param', name='trackID', value=str(audio_track.id), valueType='data')
         if language:
             xml.SubElement(audio_entry, 'param', name='trackName', value="audio_"+language, valueType='data')
@@ -317,7 +318,7 @@ def OutputSmooth(options, audio_tracks, video_tracks):
             xml.SubElement(audio_entry, 'param', name='timeScale', value=str(audio_track.timescale), valueType='data')
         
     for video_track in video_tracks:
-        video_entry = xml.SubElement(server_manifest_switch, 'video', src=MEDIA_FILE_PATTERN%(video_track.parent.index), systemBitrate=str(video_track.bandwidth))
+        video_entry = xml.SubElement(server_manifest_switch, 'video', src=video_track.parent.media_name, systemBitrate=str(video_track.bandwidth))
         xml.SubElement(video_entry, 'param', name='trackID', value=str(video_track.id), valueType='data')
         if video_track.timescale != SMOOTH_DEFAULT_TIMESCALE:
             xml.SubElement(video_entry, 'param', name='timeScale', value=str(video_track.timescale), valueType='data')
@@ -338,12 +339,10 @@ def main():
                 
     # parse options
     parser = OptionParser(usage="%prog [options] <media-file> [<media-file> ...]",
-                          description="Each <media-file> is the path to a fragmented MP4 file, optionally prefixed with a stream selector qualifier delimited by [ and ]. The same input MP4 file may be repeated, provided that the stream selector prefixes select different streams")
-    parser.add_option('', '--verbose', dest="verbose",
-                      action='store_true', default=False,
+                          description="Each <media-file> is the path to a fragmented MP4 file, optionally prefixed with a stream selector delimited by [ and ]. The same input MP4 file may be repeated, provided that the stream selector prefixes select different streams")
+    parser.add_option('', '--verbose', dest="verbose", action='store_true', default=False,
                       help="Be verbose")
-    parser.add_option('', '--debug', dest="debug",
-                      action='store_true', default=False,
+    parser.add_option('', '--debug', dest="debug", action='store_true', default=False,
                       help="Print out debugging information")
     parser.add_option('-o', '--output-dir', dest="output_dir",
                       help="Output directory", metavar="<output-dir>", default='output')
@@ -353,26 +352,21 @@ def main():
                       help="Initialization segment name", metavar="<filename>", default='init.mp4')
     parser.add_option('-m', '--mpd-name', dest="mpd_filename",
                       help="MPD file name", metavar="<filename>", default='stream.mpd')
-    parser.add_option('', '--no-media', dest="no_media",
-                      action='store_true', default=False,
-                      help="Do not output media files (MPD/manifests only)")
-    parser.add_option('', "--no-split",
-                      action="store_false", dest="split", default=True,
-                      help="Do not split the file into segments (use byte ranges instead)")
-    parser.add_option('', "--use-segment-list",
-                      action="store_true", dest="use_segment_list", default=False,
+    parser.add_option('', '--no-media', dest="no_media", action='store_true', default=False,
+                      help="Do not output media files (MPD/Manifests only)")
+    parser.add_option('', '--rename-media', dest='rename_media', action='store_true', default=False,
+                      help = 'Use a file name pattern instead of the base name of input files for output media files.')
+    parser.add_option('', "--no-split", action="store_false", dest="split", default=True,
+                      help="Do not split the file into segments")
+    parser.add_option('', "--use-segment-list", action="store_true", dest="use_segment_list", default=False,
                       help="Use segment lists instead of segment templates")
-    parser.add_option('', "--use-segment-timeline",
-                      action="store_true", dest="use_segment_timeline", default=False,
+    parser.add_option('', "--use-segment-timeline", action="store_true", dest="use_segment_timeline", default=False,
                       help="Use segment timelines (necessary if segment durations vary)")
-    parser.add_option('', "--min-buffer-time", metavar='<duration>',
-                      dest="min_buffer_time", type="float", default=0.0,
+    parser.add_option('', "--min-buffer-time", metavar='<duration>', dest="min_buffer_time", type="float", default=0.0,
                       help="Minimum buffer time (in seconds)")
-    parser.add_option('', "--video-codec", metavar='<codec>',
-                      dest="video_codec", default=None,
+    parser.add_option('', "--video-codec", metavar='<codec>', dest="video_codec", default=None,
                       help="Video codec string")
-    parser.add_option('', "--audio-codec", metavar='<codec>',
-                      dest="audio_codec", default=None,
+    parser.add_option('', "--audio-codec", metavar='<codec>', dest="audio_codec", default=None,
                       help="Audio codec string")
     parser.add_option('', "--smooth", dest="smooth", default=False, action="store_true", 
                       help="Produce a Smooth Streaming compatible output")
@@ -381,18 +375,14 @@ def main():
     parser.add_option('', '--smooth-server-manifest-name', dest="smooth_server_manifest_filename",
                       help="Smooth Streaming Server Manifest file name", metavar="<filename>", default='stream.ism')
     parser.add_option('', "--encryption-key", dest="encryption_key", metavar='<KID>:<key>', default=None,
-                      help="Encrypt all audio and video tracks with AES key <key> (in hex) with KID <KID> (in hex)")
-    parser.add_option('', "--use-compat-namespace",
-                      dest="use_compat_namespace", action="store_true", default=False,
+                      help="Encrypt all audio and video tracks with AES key <key> (in hex) and KID <KID> (in hex)")
+    parser.add_option('', "--use-compat-namespace", dest="use_compat_namespace", action="store_true", default=False,
                       help="Use the original DASH MPD namespace as it was specified in the first published specification")
-    parser.add_option('', "--marlin",
-                      dest="marlin", action="store_true", default=False,
+    parser.add_option('', "--marlin", dest="marlin", action="store_true", default=False,
                       help="Add Marlin signaling to the MPD (requires an encrypted input, or the --encryption-key option)")
-    parser.add_option('', "--playready-header",
-                      dest="playready_header", metavar='<playready-header-object>', default=None,
+    parser.add_option('', "--playready-header", dest="playready_header", metavar='<playready-header-object>', default=None,
                       help="Add PlayReady signaling to the MPD (requires an encrypted input, or the --encryption-key option). The <playready-header-object> argument can be the name of a file containing either a PlayReady XML Rights Management Header or a PlayReady Header Object (PRO),  or a header object itself encoded in Base64")
-    parser.add_option('', "--exec-dir", metavar="<exec_dir>",
-                      dest="exec_dir", default=path.join(SCRIPT_PATH, 'bin', platform),
+    parser.add_option('', "--exec-dir", metavar="<exec_dir>", dest="exec_dir", default=path.join(SCRIPT_PATH, 'bin', platform),
                       help="Directory where the Bento4 executables are located")
     (options, args) = parser.parse_args()
     if len(args) == 0:
@@ -417,7 +407,7 @@ def main():
                     
     if not path.exists(Options.exec_dir):
         PrintErrorAndExit('Executable directory does not exist ('+Options.exec_dir+'), use --exec-dir')
-
+            
     # create the output directory
     severity = 'ERROR'
     if options.no_media: severity = 'WARNING'
@@ -471,6 +461,7 @@ def main():
     # parse the media files
     index = 1
     mp4_files = {}
+    mp4_media_names = []
     for media_source in media_sources:
         media_file = media_source.filename
         
@@ -486,7 +477,19 @@ def main():
             
         # get the file info
         mp4_file = Mp4File(Options, media_file)
+        
+        # set some metadata properties for this file
         mp4_file.index = index
+        if options.rename_media:
+            mp4_file.media_name = MEDIA_FILE_PATTERN % (mp4_file.index)
+        elif 'media' in media_source.spec:
+            mp4_file.media_name = media_source.spec['media']
+        else:
+            mp4_file.media_name = path.basename(media_source.original_filename)
+            
+        if not options.split:
+            if mp4_file.media_name in mp4_media_names:
+                PrintErrorAndExit('ERROR: output media name %s is not unique, consider using --rename-media'%mp4_file.media_name)
         
         # check the file
         if mp4_file.info['movie']['fragments'] != True:
@@ -495,6 +498,7 @@ def main():
         # set the source property
         media_source.mp4_file = mp4_file
         mp4_files[media_file] = mp4_file
+        mp4_media_names.append(mp4_file.media_name)
         
         index += 1
         
@@ -657,14 +661,17 @@ def main():
         else:
             for mp4_file in mp4_files.values():
                 print 'Processing media file', file_name_map[mp4_file.filename]
-                shutil.copyfile(mp4_file.filename,
-                                path.join(options.output_dir, MEDIA_FILE_PATTERN%(mp4_file.index)))
+                media_filename = path.join(options.output_dir, mp4_file.media_name)
+                if not options.force_output and path.exists(media_filename):
+                    PrintErrorAndExit('ERROR: file '+media_filename+' already exists')
+                    
+                shutil.copyfile(mp4_file.filename, media_filename)
             if options.smooth:
                 for track in audio_tracks.values() + video_tracks:
                     Mp4Split(options,
                              track.parent.filename,
                              track_id     = str(track.id),
-                             init_only    =True,
+                             init_only    = True,
                              init_segment = path.join(options.output_dir, SMOOTH_INIT_FILE_PATTERN%(track.parent.index, track.id)))
 
 ###########################    
