@@ -1036,6 +1036,177 @@ AP4_CencEncryptingProcessor::CreateFragmentHandler(AP4_TrexAtom*      /* trex */
 }
 
 /*----------------------------------------------------------------------
+|   AP4_CencSingleSampleDecrypter::Create
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_CencSingleSampleDecrypter::Create(AP4_UI32                        algorithm_id,
+                                      const AP4_UI08*                 key,
+                                      AP4_Size                        key_size,
+                                      AP4_BlockCipherFactory*         block_cipher_factory,
+                                      AP4_CencSingleSampleDecrypter*& decrypter)
+{
+    // check the parameters
+    if (key == NULL) return AP4_ERROR_INVALID_PARAMETERS;
+    
+    // use the default cipher factory if  none was passed
+    if (block_cipher_factory == NULL) {
+        block_cipher_factory = &AP4_DefaultBlockCipherFactory::Instance;
+    }
+    
+    // create the cipher
+    AP4_StreamCipher* stream_cipher = NULL;
+    bool              full_blocks_only = false;
+    switch (algorithm_id) {
+        case AP4_CENC_ALGORITHM_ID_NONE:
+            break;
+            
+        case AP4_CENC_ALGORITHM_ID_CTR: {
+            // create the block cipher
+            AP4_BlockCipher* block_cipher = NULL;
+            AP4_BlockCipher::CtrParams ctr_params;
+            ctr_params.counter_size = 8;
+            AP4_Result result = block_cipher_factory->CreateCipher(AP4_BlockCipher::AES_128, 
+                                                                   AP4_BlockCipher::DECRYPT, 
+                                                                   AP4_BlockCipher::CTR,
+                                                                   &ctr_params,
+                                                                   key, 
+                                                                   key_size, 
+                                                                   block_cipher);
+            if (AP4_FAILED(result)) return result;
+            
+            // create the stream cipher
+            stream_cipher = new AP4_CtrStreamCipher(block_cipher, 8);
+            break;
+        }
+            
+        case AP4_CENC_ALGORITHM_ID_CBC: {
+            // create the block cipher
+            AP4_BlockCipher* block_cipher = NULL;
+            AP4_Result result = block_cipher_factory->CreateCipher(AP4_BlockCipher::AES_128,
+                                                                   AP4_BlockCipher::DECRYPT,
+                                                                   AP4_BlockCipher::CBC,
+                                                                   NULL,
+                                                                   key,
+                                                                   key_size,
+                                                                   block_cipher);
+            if (AP4_FAILED(result)) return result;
+
+            // create the stream cipher
+            stream_cipher = new AP4_CbcStreamCipher(block_cipher);
+            
+            // with CBC, we only use full blocks
+            full_blocks_only = true;
+            break;
+        }
+        
+        default:
+            return AP4_ERROR_NOT_SUPPORTED;
+    }
+
+    // create the decrypter
+    decrypter = new AP4_CencSingleSampleDecrypter(stream_cipher, full_blocks_only);                    
+
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_CencSingleSampleDecrypter::~AP4_CencSingleSampleDecrypter
++---------------------------------------------------------------------*/
+AP4_CencSingleSampleDecrypter::~AP4_CencSingleSampleDecrypter() {
+    delete m_Cipher;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_CencSingleSampleDecrypter::DecryptSampleData
++---------------------------------------------------------------------*/
+AP4_Result 
+AP4_CencSingleSampleDecrypter::DecryptSampleData(AP4_DataBuffer& data_in,
+                                                 AP4_DataBuffer& data_out,
+                                                 const AP4_UI08* iv,
+                                                 unsigned int    subsample_count,
+                                                 const AP4_UI16* bytes_of_cleartext_data,
+                                                 const AP4_UI32* bytes_of_encrypted_data)
+{
+    // the output has the same size as the input
+    data_out.SetDataSize(data_in.GetDataSize());
+
+    // check input parameters
+    if (iv == NULL) return AP4_ERROR_INVALID_PARAMETERS;
+    if (subsample_count) {
+        if (bytes_of_cleartext_data == NULL || bytes_of_encrypted_data == NULL) {
+            return AP4_ERROR_INVALID_PARAMETERS;
+        }
+    }
+    
+    // shortcut for NULL ciphers
+    if (m_Cipher == NULL) {
+        AP4_CopyMemory(data_out.UseData(), data_in.GetData(), data_in.GetDataSize());
+        return AP4_SUCCESS;
+    }
+    
+    // setup direct pointers to the buffers
+    const AP4_UI08* in  = data_in.GetData();
+    AP4_UI08*       out = data_out.UseData();
+
+    // setup the IV
+    m_Cipher->SetIV(iv);
+
+    if (subsample_count) {
+        // process the sample data, one sub-sample at a time
+        const AP4_UI08* in_end = data_in.GetData()+data_in.GetDataSize();
+        for (unsigned int i=0; i<subsample_count; i++) {
+            AP4_UI16 cleartext_size = bytes_of_cleartext_data[i];
+            AP4_UI32 encrypted_size = bytes_of_encrypted_data[i];
+
+            // check bounds
+            if ((unsigned int)(in_end-in) < cleartext_size+encrypted_size) {
+                return AP4_ERROR_INVALID_FORMAT;
+            }
+
+            // copy the cleartext portion
+            if (cleartext_size) {
+                AP4_CopyMemory(out, in, cleartext_size);
+            }
+            
+            // decrypt the rest
+            if (encrypted_size) {
+                AP4_Result result = m_Cipher->ProcessBuffer(in+cleartext_size, encrypted_size, out+cleartext_size, &encrypted_size, false);
+                if (AP4_FAILED(result)) return result;
+            }
+            
+            // move the pointers
+            in  += cleartext_size+encrypted_size;
+            out += cleartext_size+encrypted_size;
+        }
+    } else {
+        if (m_FullBlocksOnly) {
+            unsigned int block_count = data_in.GetDataSize()/16;
+            if (block_count) {
+                AP4_Size out_size = data_out.GetDataSize();
+                AP4_Result result = m_Cipher->ProcessBuffer(in, block_count*16, out, &out_size, false);
+                if (AP4_FAILED(result)) return result;
+                AP4_ASSERT(out_size == block_count*16);
+                in  += block_count*16;
+                out += block_count*16;
+            }
+            
+            // any partial block at the end remains in the clear
+            unsigned int partial = data_in.GetDataSize()%16;
+            if (partial) {
+                AP4_CopyMemory(out, in, partial);
+            }        
+        } else {
+            // process the entire sample data at once
+            AP4_Size encrypted_size = data_in.GetDataSize();
+            AP4_Result result = m_Cipher->ProcessBuffer(in, encrypted_size, out, &encrypted_size, false);
+            if (AP4_FAILED(result)) return result;
+        }
+    }
+    
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
 |   AP4_CencSampleDecrypter::Create
 +---------------------------------------------------------------------*/
 AP4_Result 
@@ -1117,17 +1288,10 @@ AP4_CencSampleDecrypter::Create(AP4_CencSampleInfoTable*  sample_info_table,
                                 AP4_BlockCipherFactory*   block_cipher_factory,
                                 AP4_CencSampleDecrypter*& decrypter)
 {
-    // check the parameters
-    if (key == NULL) return AP4_ERROR_INVALID_PARAMETERS;
+    // default return value
+    decrypter = NULL;
     
-    // use the default cipher factory if  none was passed
-    if (block_cipher_factory == NULL) {
-        block_cipher_factory = &AP4_DefaultBlockCipherFactory::Instance;
-    }
-    
-    // create the cipher
-    AP4_StreamCipher* stream_cipher = NULL;
-    bool              full_blocks_only = false;
+    // check some basic paramaters
     unsigned int      iv_size = sample_info_table->GetIvSize();
     switch (algorithm_id) {
         case AP4_CENC_ALGORITHM_ID_NONE:
@@ -1136,45 +1300,12 @@ AP4_CencSampleDecrypter::Create(AP4_CencSampleInfoTable*  sample_info_table,
         case AP4_CENC_ALGORITHM_ID_CTR:
             if (iv_size != 8 && iv_size != 16) {
                 return AP4_ERROR_INVALID_FORMAT;
-            } else {
-                // create the block cipher
-                AP4_BlockCipher* block_cipher = NULL;
-                AP4_BlockCipher::CtrParams ctr_params;
-                ctr_params.counter_size = iv_size;
-                AP4_Result result = block_cipher_factory->CreateCipher(AP4_BlockCipher::AES_128, 
-                                                                       AP4_BlockCipher::DECRYPT, 
-                                                                       AP4_BlockCipher::CTR,
-                                                                       &ctr_params,
-                                                                       key, 
-                                                                       key_size, 
-                                                                       block_cipher);
-                if (AP4_FAILED(result)) return result;
-                
-                // create the stream cipher
-                stream_cipher = new AP4_CtrStreamCipher(block_cipher, 8);
             }
             break;
             
         case AP4_CENC_ALGORITHM_ID_CBC:
             if (iv_size != 16) {
                 return AP4_ERROR_INVALID_FORMAT;
-            } else {
-                // create the block cipher
-                AP4_BlockCipher* block_cipher = NULL;
-                AP4_Result result = block_cipher_factory->CreateCipher(AP4_BlockCipher::AES_128, 
-                                                                       AP4_BlockCipher::DECRYPT, 
-                                                                       AP4_BlockCipher::CBC,
-                                                                       NULL,
-                                                                       key, 
-                                                                       key_size, 
-                                                                       block_cipher);
-                if (AP4_FAILED(result)) return result;
-
-                // create the stream cipher
-                stream_cipher = new AP4_CbcStreamCipher(block_cipher);
-                
-                // with CBC, we only use full blocks
-                full_blocks_only = true;
             }
             break;
             
@@ -1182,10 +1313,13 @@ AP4_CencSampleDecrypter::Create(AP4_CencSampleInfoTable*  sample_info_table,
             return AP4_ERROR_NOT_SUPPORTED;
     }
 
+    // create a single-sample decrypter
+    AP4_CencSingleSampleDecrypter* single_sample_decrypter = NULL;
+    AP4_Result result = AP4_CencSingleSampleDecrypter::Create(algorithm_id, key, key_size, block_cipher_factory, single_sample_decrypter);
+    if (AP4_FAILED(result)) return result;
+
     // create the decrypter
-    decrypter = new AP4_CencSampleDecrypter(stream_cipher, 
-                                            full_blocks_only,
-                                            sample_info_table);                    
+    decrypter = new AP4_CencSampleDecrypter(single_sample_decrypter, sample_info_table);
 
     return AP4_SUCCESS;
 }
@@ -1196,7 +1330,7 @@ AP4_CencSampleDecrypter::Create(AP4_CencSampleInfoTable*  sample_info_table,
 AP4_CencSampleDecrypter::~AP4_CencSampleDecrypter()
 {
 	delete m_SampleInfoTable;
-	delete m_Cipher;
+	delete m_SingleSampleDecrypter;
 }
 
 /*----------------------------------------------------------------------
@@ -1217,21 +1351,10 @@ AP4_CencSampleDecrypter::DecryptSampleData(AP4_DataBuffer& data_in,
                                            AP4_DataBuffer& data_out,
                                            const AP4_UI08* iv)
 {
-    // the output has the same size as the input
-    data_out.SetDataSize(data_in.GetDataSize());
-
-    // shortcut for NULL ciphers
-    if (m_Cipher == NULL) {
-        AP4_CopyMemory(data_out.UseData(), data_in.GetData(), data_in.GetDataSize());
-        return AP4_SUCCESS;
-    }
-    
-    // setup direct pointers to the buffers
-    const AP4_UI08* in  = data_in.GetData();
-    AP4_UI08*       out = data_out.UseData();
+    // increment the sample cursor
+    unsigned int sample_cursor = m_SampleCursor++;
 
     // setup the IV
-    unsigned int sample_cursor = m_SampleCursor++;
     unsigned char iv_block[16];
     if (iv == NULL) {
         iv = m_SampleInfoTable->GetIv(sample_cursor);
@@ -1240,61 +1363,18 @@ AP4_CencSampleDecrypter::DecryptSampleData(AP4_DataBuffer& data_in,
     unsigned int iv_size = m_SampleInfoTable->GetIvSize();
     AP4_CopyMemory(iv_block, iv, iv_size);
     if (iv_size != 16) AP4_SetMemory(&iv_block[iv_size], 0, 16-iv_size);
-    m_Cipher->SetIV(iv_block);
 
-    if (m_SampleInfoTable->HasSubSampleInfo()) {
-        // process the sample data, one sub-sample at a time
-        const AP4_UI08* in_end = data_in.GetData()+data_in.GetDataSize();
-        unsigned int subsample_count = m_SampleInfoTable->GetSubsampleCount(sample_cursor);
-        for (unsigned int i=0; i<subsample_count; i++) {
-            AP4_UI16 cleartext_size = 0;
-            AP4_UI32 encrypted_size = 0;
-            AP4_Result result = m_SampleInfoTable->GetSubsampleInfo(sample_cursor, i, cleartext_size, encrypted_size);
-            if (AP4_FAILED(result)) return AP4_ERROR_INVALID_FORMAT;
-            if ((unsigned int)(in_end-in) < cleartext_size+encrypted_size) {
-                return AP4_ERROR_INVALID_FORMAT;
-            }
-            // copy the cleartext portion
-            if (cleartext_size) {
-                AP4_CopyMemory(out, in, cleartext_size);
-            }
-            
-            // decrypt the rest
-            if (encrypted_size) {
-                AP4_Result result = m_Cipher->ProcessBuffer(in+cleartext_size, encrypted_size, out+cleartext_size, &encrypted_size, false);
-                if (AP4_FAILED(result)) return result;
-            }
-            
-            // move the pointers
-            in  += cleartext_size+encrypted_size;
-            out += cleartext_size+encrypted_size;
-        }
-    } else {
-        if (m_FullBlocksOnly) {
-            unsigned int block_count = data_in.GetDataSize()/16;
-            if (block_count) {
-                AP4_Size out_size = data_out.GetDataSize();
-                AP4_Result result = m_Cipher->ProcessBuffer(in, block_count*16, out, &out_size, false);
-                if (AP4_FAILED(result)) return result;
-                AP4_ASSERT(out_size == block_count*16);
-                in  += block_count*16;
-                out += block_count*16;
-            }
-            
-            // any partial block at the end remains in the clear
-            unsigned int partial = data_in.GetDataSize()%16;
-            if (partial) {
-                AP4_CopyMemory(out, in, partial);
-            }        
-        } else {
-            // process the entire sample data at once
-            AP4_Size encrypted_size = data_in.GetDataSize();
-            AP4_Result result = m_Cipher->ProcessBuffer(in, encrypted_size, out, &encrypted_size, false);
-            if (AP4_FAILED(result)) return result;
-        }
+    // get the subsample info to this sample if needed
+    unsigned int    subsample_count = 0;
+    const AP4_UI16* bytes_of_cleartext_data = NULL;
+    const AP4_UI32* bytes_of_encrypted_data = NULL;
+    if (m_SampleInfoTable) {
+        AP4_Result result = m_SampleInfoTable->GetSampleInfo(sample_cursor, subsample_count, bytes_of_cleartext_data, bytes_of_encrypted_data);
+        if (AP4_FAILED(result)) return result;
     }
     
-    return AP4_SUCCESS;
+    // decrypt the sample
+    return m_SingleSampleDecrypter->DecryptSampleData(data_in, data_out, iv_block, subsample_count, bytes_of_cleartext_data, bytes_of_encrypted_data);
 }
 
 /*----------------------------------------------------------------------
@@ -2087,6 +2167,36 @@ AP4_CencSampleInfoTable::AddSubSampleData(AP4_Cardinal    subsample_count,
         m_BytesOfEncryptedData.Append(AP4_BytesToUInt32BE(subsample_data+2));
         subsample_data += 6;
     }
+    
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_CencSampleInfoTable::GetSampleInfo
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_CencSampleInfoTable::GetSampleInfo(AP4_Cardinal     sample_index,
+                                       AP4_Cardinal&    subsample_count,
+                                       const AP4_UI16*& bytes_of_cleartext_data,
+                                       const AP4_UI32*& bytes_of_encrypted_data)
+{
+    
+    if (sample_index >= m_SampleCount) {
+        return AP4_ERROR_OUT_OF_RANGE;
+    }
+    
+    if (m_SubSampleMapStarts.ItemCount() == 0) {
+        // no subsamples
+        subsample_count = 0;
+        bytes_of_cleartext_data = NULL;
+        bytes_of_encrypted_data = NULL;
+        return AP4_SUCCESS;
+    }
+    
+    subsample_count         = m_SubSampleMapLengths[sample_index];
+    unsigned int target     = m_SubSampleMapStarts[sample_index];
+    bytes_of_cleartext_data = &m_BytesOfCleartextData[target];
+    bytes_of_encrypted_data = &m_BytesOfEncryptedData[target];
     
     return AP4_SUCCESS;
 }
