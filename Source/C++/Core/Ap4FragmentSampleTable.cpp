@@ -36,6 +36,7 @@
 #include "Ap4TfhdAtom.h"
 #include "Ap4ContainerAtom.h"
 #include "Ap4TrunAtom.h"
+#include "Ap4TfdtAtom.h"
 #include "Ap4MovieFragment.h"
 
 /*----------------------------------------------------------------------
@@ -63,6 +64,12 @@ AP4_FragmentSampleTable::AP4_FragmentSampleTable(AP4_ContainerAtom* traf,
         }
     }    
     m_Samples.EnsureCapacity(sample_count);
+    
+    // check if we have a timecode base
+    AP4_TfdtAtom* tfdt = AP4_DYNAMIC_CAST(AP4_TfdtAtom, traf->GetChild(AP4_ATOM_TYPE_TFDT));
+    if (tfdt) {
+        dts_origin = tfdt->GetBaseMediaDecodeTime();
+    }
     
     // process all the trun atoms
     for (AP4_List<AP4_Atom>::Item* item = traf->GetChildren().FirstItem();
