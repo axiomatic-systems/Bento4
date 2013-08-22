@@ -119,6 +119,11 @@ class AP4_SyntheticSampleTable : public AP4_SampleTable
                                  AP4_UI32        cts_delta,
                                  bool            sync);
 
+    /**
+     * Get a reference to a sample for the purpose of modifying it
+     */
+    AP4_Sample& UseSample(AP4_Ordinal index) { return m_Samples[index]; }
+
 private:
     // classes
     class SampleDescriptionHolder {
