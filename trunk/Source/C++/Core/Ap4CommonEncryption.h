@@ -201,6 +201,11 @@ public:
             return 0;
         }
     }
+    AP4_Result GetSampleInfo(AP4_Cardinal     sample_index,
+                             AP4_Cardinal&    subsample_count,
+                             const AP4_UI16*& bytes_of_cleartext_data,
+                             const AP4_UI32*& bytes_of_encrypted_data);
+    
     AP4_Result GetSubsampleInfo(AP4_Cardinal sample_index, 
                                 AP4_Cardinal subsample_index,
                                 AP4_UI16&    bytes_of_cleartext_data,
@@ -482,13 +487,53 @@ protected:
 };
 
 /*----------------------------------------------------------------------
+|   AP4_CencSingleSampleDecrypter
++---------------------------------------------------------------------*/
+class AP4_CencSingleSampleDecrypter
+{
+public:
+    static AP4_Result Create(AP4_UI32                        algorithm_id,
+                             const AP4_UI08*                 key,
+                             AP4_Size                        key_size,
+                             AP4_BlockCipherFactory*         block_cipher_factory,
+                             AP4_CencSingleSampleDecrypter*& decrypter);
+    
+    // methods
+    AP4_CencSingleSampleDecrypter(AP4_StreamCipher* cipher) : m_Cipher(cipher) {}
+    virtual ~AP4_CencSingleSampleDecrypter();
+    virtual AP4_Result DecryptSampleData(AP4_DataBuffer& data_in,
+                                         AP4_DataBuffer& data_out,
+                                         
+                                         // always 16 bytes
+                                         const AP4_UI08* iv,
+                                         
+                                         // pass 0 for full decryption
+                                         unsigned int    subsample_count,
+                                         
+                                         // array of <subsample_count> integers. NULL if subsample_count is 0
+                                         const AP4_UI16* bytes_of_cleartext_data,
+                                         
+                                         // array of <subsample_count> integers. NULL if subsample_count is 0
+                                         const AP4_UI32* bytes_of_encrypted_data);  
+                                             
+private:
+    // constructor
+    AP4_CencSingleSampleDecrypter(AP4_StreamCipher* cipher, bool full_blocks_only) :
+        m_Cipher(cipher),
+        m_FullBlocksOnly(full_blocks_only) {}
+
+    // members
+    AP4_StreamCipher* m_Cipher;
+    bool              m_FullBlocksOnly;
+};
+
+/*----------------------------------------------------------------------
 |   AP4_CencSampleDecrypter
 +---------------------------------------------------------------------*/
 class AP4_CencSampleDecrypter : public AP4_SampleDecrypter
 {
 public:
-    // factory
-    static AP4_Result Create(AP4_ProtectedSampleDescription* sample_description, 
+    static AP4_Result Create(AP4_ProtectedSampleDescription* sample_description,
                              AP4_ContainerAtom*              traf,
                              AP4_ByteStream&                 moof_data,
                              AP4_Position                    moof_offset,
@@ -515,13 +560,11 @@ public:
                              AP4_Size                  key_size,
                              AP4_BlockCipherFactory*   block_cipher_factory,
                              AP4_CencSampleDecrypter*& decrypter);
-
+    
     // methods
-    AP4_CencSampleDecrypter(AP4_StreamCipher*        cipher,
-                            bool                     full_blocks_only,
-                            AP4_CencSampleInfoTable* sample_info_table) :
-        m_Cipher(cipher),
-        m_FullBlocksOnly(full_blocks_only),
+    AP4_CencSampleDecrypter(AP4_CencSingleSampleDecrypter* single_sample_decrypter,
+                            AP4_CencSampleInfoTable*       sample_info_table) :
+        m_SingleSampleDecrypter(single_sample_decrypter),
         m_SampleInfoTable(sample_info_table),
         m_SampleCursor(0) {}
     virtual ~AP4_CencSampleDecrypter();
@@ -531,13 +574,9 @@ public:
                                          const AP4_UI08* iv);
                                              
 protected:
-    AP4_StreamCipher*         m_Cipher;    
-    bool                      m_FullBlocksOnly;
-    AP4_CencSampleEncryption* m_SampleEncryptionAtom;
-    AP4_SaioAtom*             m_SaioAtom;
-    AP4_SaizAtom*             m_SaizAtom;
-    AP4_CencSampleInfoTable*  m_SampleInfoTable;
-    AP4_Ordinal               m_SampleCursor;
+    AP4_CencSingleSampleDecrypter* m_SingleSampleDecrypter;
+    AP4_CencSampleInfoTable*       m_SampleInfoTable;
+    AP4_Ordinal                    m_SampleCursor;
 };
 
 #endif // _AP4_COMMON_ENCRYPTION_H_
