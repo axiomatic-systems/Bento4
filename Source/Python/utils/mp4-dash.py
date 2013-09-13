@@ -58,6 +58,7 @@ SMOOTH_INIT_FILE_PATTERN = 'init-%02d-%02d.mp4'
 SMOOTH_DEFAULT_TIMESCALE = 10000000
 SMIL_NAMESPACE           = 'http://www.w3.org/2001/SMIL20/Language'
              
+#############################################
 def AddSegmentList(options, container, subdir, track, use_byte_range=False):
     if subdir:
         prefix = subdir+'/'
@@ -84,6 +85,7 @@ def AddSegmentList(options, container, subdir, track, use_byte_range=False):
             xml.SubElement(segment_list, 'SegmentURL', media=prefix+(SEGMENT_URL_PATTERN % (i)))
         i += 1
 
+#############################################
 def AddSegmentTemplate(options, container, subdir, track, stream_name):
     if subdir:
         prefix = subdir+'/'
@@ -128,12 +130,14 @@ def AddSegmentTemplate(options, container, subdir, track, stream_name):
                        initialization=prefix+INIT_SEGMENT_NAME,
                        media=prefix+SEGMENT_TEMPLATE)
 
+#############################################
 def AddSegments(options, container, subdir, track, use_byte_range, stream_name):
     if options.use_segment_list:
         AddSegmentList(options, container, subdir, track, use_byte_range)
     else:
         AddSegmentTemplate(options, container, subdir, track, stream_name)
     
+#############################################
 def AddContentProtection(options, container, tracks):
     kids = []
     for track in tracks:
@@ -158,6 +162,7 @@ def AddContentProtection(options, container, tracks):
         pro = xml.SubElement(cp, '{'+PLAYREADY_MSPR_NAMESPACE+'}pro')
         pro.text = header_b64
                 
+#############################################
 def OutputDash(options, audio_tracks, video_tracks):
     # compute the total duration (we take the duration of the video)
     presentation_duration = video_tracks[0].total_duration
@@ -214,8 +219,10 @@ def OutputDash(options, audio_tracks, video_tracks):
             AddSegments(options, representation, None, video_track, True, 'video')           
         
     # save the MPD
-    open(path.join(options.output_dir, options.mpd_filename), "wb").write(parseString(xml.tostring(mpd)).toprettyxml("  "))
+    if options.mpd_filename:
+        open(path.join(options.output_dir, options.mpd_filename), "wb").write(parseString(xml.tostring(mpd)).toprettyxml("  "))
 
+#############################################
 def OutputSmooth(options, audio_tracks, video_tracks):
     # compute the total duration (we take the duration of the video)
     presentation_duration = video_tracks[0].total_duration

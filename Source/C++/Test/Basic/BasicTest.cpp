@@ -54,6 +54,27 @@ PrintUsageAndExit()
 }
 
 /*----------------------------------------------------------------------
+|   CloneTest
++---------------------------------------------------------------------*/
+static bool
+CloneTest(AP4_File* file)
+{
+    AP4_Track* track = file->GetMovie()->GetTrack(AP4_Track::TYPE_VIDEO);
+    AP4_SampleDescription* sdesc = track->GetSampleDescription(0);
+    AP4_ProtectedSampleDescription* psdesc = AP4_DYNAMIC_CAST(AP4_ProtectedSampleDescription, sdesc);
+    if (psdesc == NULL) return false;
+    
+    AP4_SampleDescription* clone = psdesc->Clone();
+    AP4_ProtectedSampleDescription* pclone = AP4_DYNAMIC_CAST(AP4_ProtectedSampleDescription, clone);
+    
+    if (pclone == NULL) return false;
+    if (pclone->GetFormat()         != psdesc->GetFormat())         return false;
+    if (pclone->GetOriginalFormat() != psdesc->GetOriginalFormat()) return false;
+    
+    return true;
+}
+
+/*----------------------------------------------------------------------
 |   main
 +---------------------------------------------------------------------*/
 int
@@ -82,6 +103,8 @@ main(int argc, char** argv)
     
     // parse the file
     AP4_File* mp4_file = new AP4_File(*input);
+    
+    CloneTest(mp4_file);
     
     // write the file to the output
     AP4_FileWriter::Write(*mp4_file, *output);

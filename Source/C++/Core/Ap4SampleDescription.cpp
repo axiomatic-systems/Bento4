@@ -132,10 +132,30 @@ AP4_SampleDescription::Clone(AP4_Result* result)
         if (result) *result = AP4_FAILURE;
         return NULL;
     }
-    AP4_SampleEntry* sample_entry = AP4_DYNAMIC_CAST(AP4_SampleEntry, atom);
+    
+    // serialize the atom to a buffer
+    AP4_MemoryByteStream* mbs = new AP4_MemoryByteStream((AP4_UI32)atom->GetSize());
+    atom->Write(*mbs);
+    delete atom;
+    atom = NULL;
+    
+    // parse the buffer back to an atom
+    mbs->Seek(0);
+    AP4_AtomFactory* factory = new AP4_AtomFactory();
+    factory->PushContext(AP4_ATOM_TYPE_STSD);
+    AP4_Atom* atom_clone = NULL;
+    AP4_Result lresult = factory->CreateAtomFromStream(*mbs, atom_clone);
+    factory->PopContext();
+    delete factory;
+    if (result) *result = lresult;
+    mbs->Release();
+    if (AP4_FAILED(lresult)) return NULL;
+    
+    // convert the atom clone to a sample description
+    AP4_SampleEntry* sample_entry = AP4_DYNAMIC_CAST(AP4_SampleEntry, atom_clone);
     if (sample_entry == NULL) {
         if (result) *result = AP4_ERROR_INTERNAL;
-        delete atom;
+        delete atom_clone;
         return NULL;
     }
     
@@ -144,7 +164,7 @@ AP4_SampleDescription::Clone(AP4_Result* result)
         if (result) *result = AP4_ERROR_INTERNAL;
     }
     
-    delete atom;
+    delete atom_clone;
     return clone;
 }
 
