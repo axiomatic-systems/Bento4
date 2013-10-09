@@ -49,12 +49,15 @@ def Bento4Command(options, name, *args, **kwargs):
         if not isinstance(kwargs[kwarg], bool):
             cmd.append(kwargs[kwarg])
     cmd += args
-    #print cmd
+    if options.debug:
+        print 'COMMAND: ', cmd
     try:
         return check_output(cmd) 
     except CalledProcessError, e:
-        #print e
-        raise Exception("binary tool failed with error %d" % e.returncode)
+        message = "binary tool failed with error %d" % e.returncode
+        if options.verbose:
+            message += " - " + str(cmd)
+        raise Exception(message)
     
 def Mp4Info(options, filename, **args):
     return Bento4Command(options, 'mp4info', filename, **args)

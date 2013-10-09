@@ -37,9 +37,9 @@
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-#define BANNER "MP4 Encrypter - Version 1.5\n"\
+#define BANNER "MP4 Encrypter - Version 1.6\n"\
                "(Bento4 Version " AP4_VERSION_STRING ")\n"\
-               "(c) 2002-2012 Axiomatic Systems, LLC"
+               "(c) 2002-2013 Axiomatic Systems, LLC"
 
 /*----------------------------------------------------------------------
 |   PrintUsageAndExit
@@ -73,6 +73,8 @@ PrintUsageAndExit()
         "      <n> is a track ID, <name> a property name, and <value> is the\n"
         "      property value\n"
         "      (several --property options can be used, one or more for each track)\n"
+        "  --global-option <name>:<value>\n"
+        "      Sets the global option <name> to be equal to <value>\n"
         "  --kms-uri <uri>\n"
         "      Specifies the KMS URI for the ISMA-IAEC method\n"
         "\n"
