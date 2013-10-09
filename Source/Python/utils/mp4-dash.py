@@ -33,7 +33,7 @@ import tempfile
 from mp4utils import *
 
 # setup main options
-VERSION = "1.2.0"
+VERSION = "1.3.0"
 SVN_REVISION = "$Revision$"
 SCRIPT_PATH = path.abspath(path.dirname(__file__))
 sys.path += [SCRIPT_PATH]
@@ -58,6 +58,8 @@ SMOOTH_INIT_FILE_PATTERN = 'init-%02d-%02d.mp4'
 SMOOTH_DEFAULT_TIMESCALE = 10000000
 SMIL_NAMESPACE           = 'http://www.w3.org/2001/SMIL20/Language'
              
+TempFiles = []
+
 #############################################
 def AddSegmentList(options, container, subdir, track, use_byte_range=False):
     if subdir:
@@ -377,6 +379,8 @@ def main():
                       help="Audio codec string")
     parser.add_option('', "--smooth", dest="smooth", default=False, action="store_true", 
                       help="Produce a Smooth Streaming compatible output")
+    parser.add_option('', "--smooth-piff-cenc", dest="smooth_piff_cenc", default=False, action="store_true", 
+                      help="When using encryption, produce a variant of PIFF compatible with CENC")
     parser.add_option('', '--smooth-client-manifest-name', dest="smooth_client_manifest_filename",
                       help="Smooth Streaming Client Manifest file name", metavar="<filename>", default='stream.ismc')
     parser.add_option('', '--smooth-server-manifest-name', dest="smooth_server_manifest_filename",
@@ -450,10 +454,15 @@ def main():
 
             track_ids = [track['id'] for track in info['tracks'] if track['type'] in ['Audio', 'Video']]
             print 'Encrypting track IDs '+str(track_ids)+' in '+ media_file
-            encrypted_file = tempfile.NamedTemporaryFile(dir = options.output_dir)
-            encrypted_files[media_file] = encrypted_file # keep a ref so that it does not get deleted
+            encrypted_file = tempfile.NamedTemporaryFile(dir = options.output_dir, delete=False)
+            encrypted_files[media_file] = encrypted_file 
+            TempFiles.append(encrypted_file.name)
+            encrypted_file.close() # necessary on Windows
             file_name_map[encrypted_file.name] = encrypted_file.name + ' (Encrypted ' + media_file + ')'
-            args = ['--method', 'MPEG-CENC']
+            if (options.smooth_piff_cenc):
+                args = ['--method', 'PIFF-CTR', '--global-option', 'piff.cenc-compatible:true']
+            else:
+                args = ['--method', 'MPEG-CENC']
             args.append(media_file)
             args.append(encrypted_file.name)
             for track_id in track_ids:
@@ -462,7 +471,10 @@ def main():
             try:
                 check_output(cmd) 
             except CalledProcessError, e:
-                raise Exception("binary tool failed with error %d" % e.returncode)
+                message = "binary tool failed with error %d" % e.returncode
+                if options.verbose:
+                    message += " - " + str(cmd)
+                raise Exception(message)
             media_source.filename = encrypted_file.name
             
     # parse the media files
@@ -690,3 +702,6 @@ if __name__ == '__main__':
             raise
         else:
             PrintErrorAndExit('ERROR: %s\n' % str(err))
+    finally:
+        for f in TempFiles:
+            os.unlink(f)

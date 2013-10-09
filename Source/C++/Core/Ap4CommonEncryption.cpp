@@ -546,10 +546,18 @@ AP4_CencFragmentEncrypter::ProcessFragment()
     m_Saio = NULL;
     switch (m_Variant) {
         case AP4_CENC_VARIANT_PIFF_CBC:
+            if (AP4_GlobalOptions::GetBool("piff.cenc-compatible")) {
+                m_Saiz = new AP4_SaizAtom();
+                m_Saio = new AP4_SaioAtom();
+            }
             m_SampleEncryptionAtom = new AP4_PiffSampleEncryptionAtom(16);
             break;
             
         case AP4_CENC_VARIANT_PIFF_CTR:
+            if (AP4_GlobalOptions::GetBool("piff.cenc-compatible")) {
+                m_Saiz = new AP4_SaizAtom();
+                m_Saio = new AP4_SaioAtom();
+            }
             m_SampleEncryptionAtom = new AP4_PiffSampleEncryptionAtom(8);
             break;
             
@@ -683,9 +691,10 @@ AP4_CencFragmentEncrypter::FinishFragment()
             // NOTE: here we assume that the sample auxiliary info is stored 
             // in the 'senc' child atom of the traf, and that it is the last child
             AP4_Atom* senc = m_Traf->GetChild(AP4_ATOM_TYPE_SENC);
-            if (senc == NULL) senc = m_Traf->GetChild(AP4_ATOM_TYPE('s', 'e', 'n', 'C')); // sometimes used instead of 'senc' for testing
+            if (senc == NULL) senc = m_Traf->GetChild(AP4_ATOM_TYPE('s', 'e', 'n', 'C'));    // sometimes used instead of 'senc' for testing
+            if (senc == NULL) senc = m_Traf->GetChild(AP4_UUID_PIFF_SAMPLE_ENCRYPTION_ATOM); // used in PIFF-compatible files
             if (senc) {
-                AP4_UI64 saio_offset = traf_offset+m_Traf->GetSize()-senc->GetSize()+AP4_FULL_ATOM_HEADER_SIZE+4;
+                AP4_UI64 saio_offset = traf_offset+m_Traf->GetSize()-senc->GetSize()+senc->GetHeaderSize()+4;
                 m_Saio->SetEntry(0, saio_offset);
             }
         } else {
