@@ -336,7 +336,6 @@
 		CABB61F70F02BADB00B53D31 /* TracksTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CABB61EF0F02B85900B53D31 /* TracksTest.cpp */; };
 		CAC02A19139DBA6F0034427F /* Mp4Split.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAC02A18139DBA6F0034427F /* Mp4Split.cpp */; };
 		CAC51D76129708CB00AE5CF9 /* Ap4PosixRandom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAC51D75129708CB00AE5CF9 /* Ap4PosixRandom.cpp */; };
-		CAC8F17616BE444E00C49741 /* Mp4AudioClip.1 in CopyFiles */ = {isa = PBXBuildFile; fileRef = CAC8F17516BE444E00C49741 /* Mp4AudioClip.1 */; };
 		CAC8F17C16BE448300C49741 /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAA7E6C914ACD763008AA54E /* libBento4.a */; };
 		CACDDD6916BF5FE500B79B20 /* Mp4AudioClip.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CACDDD6816BF5FC200B79B20 /* Mp4AudioClip.cpp */; };
 		CAD6A7C40F7AFFD800456513 /* Ap4DynamicCast.h in Headers */ = {isa = PBXBuildFile; fileRef = CAD6A7C30F7AFFD800456513 /* Ap4DynamicCast.h */; };
@@ -812,16 +811,6 @@
 			dstPath = /usr/share/man/man1/;
 			dstSubfolderSpec = 0;
 			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 1;
-		};
-		CAC8F16E16BE444D00C49741 /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
-			dstSubfolderSpec = 0;
-			files = (
-				CAC8F17616BE444E00C49741 /* Mp4AudioClip.1 in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 1;
 		};
@@ -2627,7 +2616,6 @@
 			buildPhases = (
 				CAC8F16C16BE444D00C49741 /* Sources */,
 				CAC8F16D16BE444D00C49741 /* Frameworks */,
-				CAC8F16E16BE444D00C49741 /* CopyFiles */,
 			);
 			buildRules = (
 			);
