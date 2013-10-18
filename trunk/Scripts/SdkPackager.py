@@ -145,7 +145,6 @@ single_config_files = [
     ('Documents/SDK','*.doc','docs'),
     ('Documents/SDK','*.pdf','docs'),
     ('Source/Python/utils', 'mp4-dash.py', 'utils'),
-    ('Source/Python/utils', 'mp4-smooth.py', 'utils'),
     ('Source/Python/utils', 'mp4-dash-clone.py', 'utils'),
     ('Source/Python/utils', 'mp4utils.py', 'utils')
 ]
