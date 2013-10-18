@@ -233,7 +233,8 @@ def OutputSmooth(options, audio_tracks, video_tracks):
     client_manifest = xml.Element('SmoothStreamingMedia', 
                                   MajorVersion="2", 
                                   MinorVersion="0",
-                                  Duration=str(presentation_duration))
+                                  TimeScale="10000000",
+                                  Duration=str(int(presentation_duration*10000000.0)))
     client_manifest.append(xml.Comment(' Created with Bento4 mp4-dash.py, VERSION='+VERSION+'-'+SVN_REVISION[11:-1]+' '))
     
     # process the audio tracks
