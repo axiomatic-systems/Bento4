@@ -18,6 +18,7 @@ import datetime
 import fnmatch
 import zipfile
 import re
+import platform
 
 #############################################################
 # GetVersion
@@ -100,15 +101,56 @@ def ZipIt(basename, dir) :
 # Main
 #############################################################
 # parse the command line
-BENTO4_HOME = sys.argv[1]
-SDK_TARGET  = sys.argv[2]
+if len(sys.argv) > 1:
+    SDK_TARGET = sys.argv[1]
+else:
+    SDK_TARGET = None
 
+if len(sys.argv) > 2:
+    BENTO4_HOME = sys.argv[1]
+else:
+    script_dir  = os.path.abspath(os.path.dirname(__file__))
+    BENTO4_HOME = os.path.join(script_dir,'..')
+    
 # ensure that BENTO4_HOME has been set and exists
 if not os.path.exists(BENTO4_HOME) :
-    print 'ERROR: BENTO4_HOME ('+BENTO4_HOME+' does not exist'
+    print 'ERROR: BENTO4_HOME ('+BENTO4_HOME+') does not exist'
     sys.exit(1)
 else :
     print 'BENTO4_HOME = ' + BENTO4_HOME
+
+# compute the target if it is not specified    
+if SDK_TARGET is None:
+    targets_dir = BENTO4_HOME+'/Build/Targets'
+    targets_dirs = os.listdir(targets_dir)
+    target_platforms = [x for x in targets_dirs if os.path.exists(targets_dir +'/'+x+'/Config.scons')]
+    platform_id = sys.platform
+    if platform.system() == 'Linux':
+        if (platform.machine() == 'i386' or
+            platform.machine() == 'i486' or
+            platform.machine() == 'i586' or
+            platform.machine() == 'i686'):
+            platform_id = 'linux-i386'
+        if (platform.machine() == 'x86_64'):
+            platform_id = 'linux-x86_64'
+        if (platform.machine().startswith('arm')):
+            platform_id = 'linux-arm'
+    
+    platform_to_target_map = { 
+        'linux-i386'  : 'x86-unknown-linux',
+        'linux-x86_64': 'x86_64-unknown-linux',
+        'linux2'      : 'x86-unknown-linux',
+        'win32'       : 'x86-microsoft-win32',
+        'darwin'      : 'universal-apple-macosx'
+    }
+        
+    if platform_to_target_map.has_key(platform_id):
+        SDK_TARGET = platform_to_target_map[platform_id]
+    else:
+        print 'ERROR: SDK_TARGET is not set and cannot be detected'
+        sys.exit(1)
+        
+print "TARGET = " + SDK_TARGET
 
 BENTO4_VERSION = GetVersion()
 

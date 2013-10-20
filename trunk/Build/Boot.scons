@@ -30,7 +30,7 @@ def DefaultTarget():
     if platform.system() == 'Linux':
         if (platform.machine() == 'i386' or
             platform.machine() == 'i486' or
-            platform.machine() == 'i586'or
+            platform.machine() == 'i586' or
             platform.machine() == 'i686'):
             platform_id = 'linux-i386'
         if (platform.machine() == 'x86_64'):
