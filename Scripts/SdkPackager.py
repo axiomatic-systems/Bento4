@@ -140,7 +140,7 @@ if SDK_TARGET is None:
         'linux-i386'  : 'x86-unknown-linux',
         'linux-x86_64': 'x86_64-unknown-linux',
         'linux2'      : 'x86-unknown-linux',
-        'win32'       : 'x86-microsoft-win32',
+        'win32'       : 'x86-microsoft-win32-vs2010',
         'darwin'      : 'universal-apple-macosx'
     }
         

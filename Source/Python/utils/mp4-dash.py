@@ -380,8 +380,6 @@ def main():
                       help="Audio codec string")
     parser.add_option('', "--smooth", dest="smooth", default=False, action="store_true", 
                       help="Produce a Smooth Streaming compatible output")
-    parser.add_option('', "--smooth-piff-cenc", dest="smooth_piff_cenc", default=False, action="store_true", 
-                      help="When using encryption, produce a variant of PIFF compatible with CENC")
     parser.add_option('', '--smooth-client-manifest-name', dest="smooth_client_manifest_filename",
                       help="Smooth Streaming Client Manifest file name", metavar="<filename>", default='stream.ismc')
     parser.add_option('', '--smooth-server-manifest-name', dest="smooth_server_manifest_filename",
@@ -460,10 +458,10 @@ def main():
             TempFiles.append(encrypted_file.name)
             encrypted_file.close() # necessary on Windows
             file_name_map[encrypted_file.name] = encrypted_file.name + ' (Encrypted ' + media_file + ')'
-            if (options.smooth_piff_cenc):
-                args = ['--method', 'PIFF-CTR', '--global-option', 'piff.cenc-compatible:true']
-            else:
-                args = ['--method', 'MPEG-CENC']
+            args = ['--method', 'MPEG-CENC']
+            if (options.smooth):
+                args += ['--global-option', 'mpeg-cenc.piff-compatible:true']
+                
             args.append(media_file)
             args.append(encrypted_file.name)
             for track_id in track_ids:

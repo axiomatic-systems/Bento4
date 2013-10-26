@@ -427,7 +427,7 @@ def ComputePlayReadyHeader(header_spec):
             header_utf16_le = header_xml.encode('utf-16-le')
             rm_record = struct.pack('<HH', 1, len(header_utf16_le))+header_utf16_le
             header = struct.pack('<IH', len(rm_record)+6, 1)+rm_record
-        header_b64 = header.encode('base64')
+        header_b64 = header.encode('base64').replace('\n', '')
     else:
         header_b64 = header_spec
         header = header_b64.decode('base64')

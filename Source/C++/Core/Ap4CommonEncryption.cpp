@@ -546,23 +546,19 @@ AP4_CencFragmentEncrypter::ProcessFragment()
     m_Saio = NULL;
     switch (m_Variant) {
         case AP4_CENC_VARIANT_PIFF_CBC:
-            if (AP4_GlobalOptions::GetBool("piff.cenc-compatible")) {
-                m_Saiz = new AP4_SaizAtom();
-                m_Saio = new AP4_SaioAtom();
-            }
             m_SampleEncryptionAtom = new AP4_PiffSampleEncryptionAtom(16);
             break;
             
         case AP4_CENC_VARIANT_PIFF_CTR:
-            if (AP4_GlobalOptions::GetBool("piff.cenc-compatible")) {
-                m_Saiz = new AP4_SaizAtom();
-                m_Saio = new AP4_SaioAtom();
-            }
             m_SampleEncryptionAtom = new AP4_PiffSampleEncryptionAtom(8);
             break;
             
         case AP4_CENC_VARIANT_MPEG:
-            m_SampleEncryptionAtom = new AP4_SencAtom();
+            if (AP4_GlobalOptions::GetBool("mpeg-cenc.piff-compatible")) {
+                m_SampleEncryptionAtom = new AP4_PiffSampleEncryptionAtom(8);
+            } else {
+                m_SampleEncryptionAtom = new AP4_SencAtom();
+            }
             m_Saiz = new AP4_SaizAtom();
             m_Saio = new AP4_SaioAtom();
             break;
@@ -934,14 +930,17 @@ AP4_CencEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
             iv_size = 8;
             break;
 
-        case AP4_CENC_VARIANT_MPEG:
-            algorithm_id = AP4_CENC_ALGORITHM_ID_CTR;
-            break;
-            
         case AP4_CENC_VARIANT_PIFF_CBC:
             algorithm_id = AP4_CENC_ALGORITHM_ID_CBC;
             break;
         
+        case AP4_CENC_VARIANT_MPEG:
+            if (AP4_GlobalOptions::GetBool("mpeg-cenc.piff-compatible")) {
+                iv_size = 8;
+            }
+            algorithm_id = AP4_CENC_ALGORITHM_ID_CTR;
+            break;
+            
         default:
             return NULL;
     }

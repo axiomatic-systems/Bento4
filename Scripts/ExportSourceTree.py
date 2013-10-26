@@ -43,12 +43,8 @@ def GetVersion():
 #############################################################
 # Main
 #############################################################
-
-if not os.environ.has_key('BENTO4_HOME'):
-    print 'ERROR: BENTO4_HOME not set'
-    sys.exit(1)
-BENTO4_HOME = os.environ['BENTO4_HOME']
-
+script_dir  = os.path.abspath(os.path.dirname(__file__))
+BENTO4_HOME = os.path.join(script_dir,'..')
 BENTO4_VERSION = GetVersion()
 
 SDK_REVISION = sys.argv[1]
