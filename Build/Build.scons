@@ -155,4 +155,5 @@ Executable('AvcTrackWriterTest', source_dir='C++/Test/Avc')
 Executable('PassthroughWriterTest', source_dir='C++/Test/PassthroughWriter')
 Executable('TracksTest', source_dir='C++/Test/Tracks')
 Executable('BenchmarksTest', source_dir='C++/Test/Benchmarks')
-Executable('libBento4C.so', source_dir='C++/CApi', shared_lib=True, lowercase=False)
+if 'AP4_BUILD_CONFIG_NO_SHARED_LIB' not in env:
+    Executable('libBento4C.so', source_dir='C++/CApi', shared_lib=True, lowercase=False)
