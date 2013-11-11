@@ -386,6 +386,8 @@ def main():
                       help="Smooth Streaming Server Manifest file name", metavar="<filename>", default='stream.ism')
     parser.add_option('', "--encryption-key", dest="encryption_key", metavar='<KID>:<key>', default=None,
                       help="Encrypt all audio and video tracks with AES key <key> (in hex) and KID <KID> (in hex)")
+    parser.add_option('', "--encryption-args", dest="encryption_args", metavar='<cmdline-arguments>', default=None,
+                      help="Pass additional command line arguments to mp4encrypt (separated by spaces)")
     parser.add_option('', "--use-compat-namespace", dest="use_compat_namespace", action="store_true", default=False,
                       help="Use the original DASH MPD namespace as it was specified in the first published specification")
     parser.add_option('', "--marlin", dest="marlin", action="store_true", default=False,
@@ -462,11 +464,16 @@ def main():
             if (options.smooth):
                 args += ['--global-option', 'mpeg-cenc.piff-compatible:true']
                 
+            if options.encryption_args:
+                args += options.encryption_args.split()
+                
             args.append(media_file)
             args.append(encrypted_file.name)
             for track_id in track_ids:
                 args += ['--key', str(track_id)+':'+key_b64+':random', '--property', str(track_id)+':KID:'+kid_b64] 
             cmd = [path.join(Options.exec_dir, 'mp4encrypt')] + args
+            if options.debug:
+                print 'COMMAND: ', cmd
             try:
                 check_output(cmd) 
             except CalledProcessError, e:
@@ -607,10 +614,14 @@ def main():
         audio_codec = options.audio_codec
         if audio_codec is None:
             audio_desc = audio_track.info['sample_descriptions'][0]
-            if audio_desc['coding'] == 'mp4a':
+            audio_coding = audio_desc['coding']
+            if audio_coding == 'mp4a':
                 audio_codec = 'mp4a.%02x' % (audio_desc['object_type'])
                 if audio_desc['object_type'] == 64:
                     audio_codec += '.%02x' % (audio_desc['mpeg_4_audio_object_type'])
+            else:
+                audio_codec = audio_coding
+                
         if audio_codec is None:
             PrintErrorAndExit('ERROR: unable to determine the audio codec for "'+str(audio_track)+'"')
         audio_track.codec = audio_codec

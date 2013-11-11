@@ -47,7 +47,7 @@ public:
     static AP4_SencAtom* Create(AP4_Size size, AP4_ByteStream& stream);
     
     // constructors
-    AP4_SencAtom();
+    AP4_SencAtom(AP4_UI08 iv_size = 16);
     AP4_SencAtom(AP4_UI32        algorithm_id,
                  AP4_UI08        iv_size,
                  const AP4_UI08* kid);

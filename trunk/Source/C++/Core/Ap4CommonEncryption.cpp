@@ -557,7 +557,11 @@ AP4_CencFragmentEncrypter::ProcessFragment()
             if (AP4_GlobalOptions::GetBool("mpeg-cenc.piff-compatible")) {
                 m_SampleEncryptionAtom = new AP4_PiffSampleEncryptionAtom(8);
             } else {
-                m_SampleEncryptionAtom = new AP4_SencAtom();
+                AP4_UI08 iv_size = 16; // default
+                if (AP4_GlobalOptions::GetBool("mpeg-cenc.iv-size-8")) {
+                    iv_size = 8;
+                }
+                m_SampleEncryptionAtom = new AP4_SencAtom(iv_size);
             }
             m_Saiz = new AP4_SaizAtom();
             m_Saio = new AP4_SaioAtom();
@@ -574,7 +578,7 @@ AP4_CencFragmentEncrypter::ProcessFragment()
     
     // this is mostly for testing: forces the clients to parse saio/saiz instead
     // on relying on 'senc'
-    if (AP4_GlobalOptions::GetBool("cenc.no-senc")) {
+    if (AP4_GlobalOptions::GetBool("mpeg-cenc.no-senc")) {
         m_SampleEncryptionAtom->GetOuter().SetType(AP4_ATOM_TYPE('s', 'e', 'n', 'C'));
     }
 
@@ -935,7 +939,8 @@ AP4_CencEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
             break;
         
         case AP4_CENC_VARIANT_MPEG:
-            if (AP4_GlobalOptions::GetBool("mpeg-cenc.piff-compatible")) {
+            if (AP4_GlobalOptions::GetBool("mpeg-cenc.piff-compatible") ||
+                AP4_GlobalOptions::GetBool("mpeg-cenc.iv-size-8")) {
                 iv_size = 8;
             }
             algorithm_id = AP4_CENC_ALGORITHM_ID_CTR;
