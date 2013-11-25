@@ -226,7 +226,48 @@ AP4_UnknownSampleDescription::ToAtom() const
         return NULL;
     }
 }
-    
+
+/*----------------------------------------------------------------------
+|   AP4_GenericAudioSampleDescription
++---------------------------------------------------------------------*/
+AP4_Atom*
+AP4_GenericAudioSampleDescription::ToAtom() const
+{
+    AP4_AudioSampleEntry* sample_entry = new AP4_AudioSampleEntry(m_Format,
+                                                                  m_SampleRate,
+                                                                  m_SampleSize,
+                                                                  m_ChannelCount);
+    AP4_AtomParent& details = const_cast<AP4_AtomParent&>(m_Details);
+    for (AP4_List<AP4_Atom>::Item* item = details.GetChildren().FirstItem();
+                                   item;
+                                   item = item->GetNext()) {
+        AP4_Atom* child = item->GetData();
+        sample_entry->AddChild(child->Clone());
+    }
+    return sample_entry;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_GenericVideoSampleDescription
++---------------------------------------------------------------------*/
+AP4_Atom*
+AP4_GenericVideoSampleDescription::ToAtom() const
+{
+    AP4_VisualSampleEntry* sample_entry = new AP4_VisualSampleEntry(m_Format,
+                                                                    m_Width,
+                                                                    m_Height,
+                                                                    m_Depth,
+                                                                    m_CompressorName.GetChars());
+    AP4_AtomParent& details = const_cast<AP4_AtomParent&>(m_Details);
+    for (AP4_List<AP4_Atom>::Item* item = details.GetChildren().FirstItem();
+                                   item;
+                                   item = item->GetNext()) {
+        AP4_Atom* child = item->GetData();
+        sample_entry->AddChild(child->Clone());
+    }
+    return sample_entry;
+}
+
 /*----------------------------------------------------------------------
 |   AP4_AvcSampleDescription::AP4_AvcSampleDescription
 +---------------------------------------------------------------------*/

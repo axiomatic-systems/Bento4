@@ -514,6 +514,7 @@ private:
     AP4_CencVariant                         m_Variant;
     AP4_ContainerAtom*                      m_Traf;
     AP4_CencSampleEncryption*               m_SampleEncryptionAtom;
+    AP4_CencSampleEncryption*               m_SampleEncryptionAtomShadow;
     AP4_SaizAtom*                           m_Saiz;
     AP4_SaioAtom*                           m_Saio;
     AP4_CencEncryptingProcessor::Encrypter* m_Encrypter;
@@ -528,6 +529,7 @@ AP4_CencFragmentEncrypter::AP4_CencFragmentEncrypter(AP4_CencVariant            
     m_Variant(variant),
     m_Traf(traf),
     m_SampleEncryptionAtom(NULL),
+    m_SampleEncryptionAtomShadow(NULL),
     m_Saiz(NULL),
     m_Saio(NULL),
     m_Encrypter(encrypter)
@@ -541,7 +543,8 @@ AP4_Result
 AP4_CencFragmentEncrypter::ProcessFragment()
 {
     // create a sample encryption atom
-    m_SampleEncryptionAtom = NULL;
+    m_SampleEncryptionAtom       = NULL;
+    m_SampleEncryptionAtomShadow = NULL;
     m_Saiz = NULL;
     m_Saio = NULL;
     switch (m_Variant) {
@@ -555,7 +558,8 @@ AP4_CencFragmentEncrypter::ProcessFragment()
             
         case AP4_CENC_VARIANT_MPEG:
             if (AP4_GlobalOptions::GetBool("mpeg-cenc.piff-compatible")) {
-                m_SampleEncryptionAtom = new AP4_PiffSampleEncryptionAtom(8);
+                m_SampleEncryptionAtom       = new AP4_PiffSampleEncryptionAtom(8);
+                m_SampleEncryptionAtomShadow = new AP4_SencAtom(8);
             } else {
                 AP4_UI08 iv_size = 16; // default
                 if (AP4_GlobalOptions::GetBool("mpeg-cenc.iv-size-8")) {
@@ -574,6 +578,11 @@ AP4_CencFragmentEncrypter::ProcessFragment()
         m_SampleEncryptionAtom->GetOuter().SetFlags(
             m_SampleEncryptionAtom->GetOuter().GetFlags() |
             AP4_CENC_SAMPLE_ENCRYPTION_FLAG_USE_SUB_SAMPLE_ENCRYPTION);
+        if (m_SampleEncryptionAtomShadow) {
+            m_SampleEncryptionAtomShadow->GetOuter().SetFlags(
+                m_SampleEncryptionAtomShadow->GetOuter().GetFlags() |
+                AP4_CENC_SAMPLE_ENCRYPTION_FLAG_USE_SUB_SAMPLE_ENCRYPTION);
+        }
     }
     
     // this is mostly for testing: forces the clients to parse saio/saiz instead
@@ -586,6 +595,9 @@ AP4_CencFragmentEncrypter::ProcessFragment()
     if (m_Saiz) m_Traf->AddChild(m_Saiz);
     if (m_Saio) m_Traf->AddChild(m_Saio);
     m_Traf->AddChild(&m_SampleEncryptionAtom->GetOuter());
+    if (m_SampleEncryptionAtomShadow) {
+        m_Traf->AddChild(&m_SampleEncryptionAtomShadow->GetOuter());
+    }
     
     // set the default-base-is-moof flag
     AP4_TfhdAtom* tfhd = AP4_DYNAMIC_CAST(AP4_TfhdAtom, m_Traf->GetChild(AP4_ATOM_TYPE_TFHD));
@@ -610,6 +622,9 @@ AP4_CencFragmentEncrypter::PrepareForSamples(AP4_FragmentSampleTable* sample_tab
     
     if (!m_Encrypter->m_SampleEncrypter->UseSubSamples()) {
         m_SampleEncryptionAtom->SetSampleInfosSize(sample_count*m_SampleEncryptionAtom->GetIvSize());
+        if (m_SampleEncryptionAtomShadow) {
+            m_SampleEncryptionAtomShadow->SetSampleInfosSize(sample_count*m_SampleEncryptionAtomShadow->GetIvSize());
+        }
         if (m_Saiz) {
             m_Saiz->SetDefaultSampleInfoSize(m_SampleEncryptionAtom->GetIvSize());
             m_Saiz->SetSampleCount(sample_count);
@@ -646,6 +661,9 @@ AP4_CencFragmentEncrypter::PrepareForSamples(AP4_FragmentSampleTable* sample_tab
         }
     }
     m_SampleEncryptionAtom->SetSampleInfosSize(sample_info_size);
+    if (m_SampleEncryptionAtomShadow) {
+        m_SampleEncryptionAtomShadow->SetSampleInfosSize(sample_info_size);
+    }
     
     return AP4_SUCCESS;
 }
@@ -668,6 +686,9 @@ AP4_CencFragmentEncrypter::ProcessSample(AP4_DataBuffer& data_in,
 
     // update the sample info
     m_SampleEncryptionAtom->AddSampleInfo(iv, sample_infos);
+    if (m_SampleEncryptionAtomShadow) {
+        m_SampleEncryptionAtomShadow->AddSampleInfo(iv, sample_infos);
+    }
     
     return AP4_SUCCESS;
 }
@@ -688,13 +709,27 @@ AP4_CencFragmentEncrypter::FinishFragment()
     AP4_List<AP4_Atom>::Item* child = moof->GetChildren().FirstItem();
     while (child) {
         if (AP4_DYNAMIC_CAST(AP4_ContainerAtom, child->GetData()) == m_Traf) {
-            // NOTE: here we assume that the sample auxiliary info is stored 
-            // in the 'senc' child atom of the traf, and that it is the last child
-            AP4_Atom* senc = m_Traf->GetChild(AP4_ATOM_TYPE_SENC);
-            if (senc == NULL) senc = m_Traf->GetChild(AP4_ATOM_TYPE('s', 'e', 'n', 'C'));    // sometimes used instead of 'senc' for testing
-            if (senc == NULL) senc = m_Traf->GetChild(AP4_UUID_PIFF_SAMPLE_ENCRYPTION_ATOM); // used in PIFF-compatible files
-            if (senc) {
-                AP4_UI64 saio_offset = traf_offset+m_Traf->GetSize()-senc->GetSize()+senc->GetHeaderSize()+4;
+            AP4_UI64  senc_offset = m_Traf->GetHeaderSize();
+            AP4_Atom* senc_atom = NULL;
+            for (AP4_List<AP4_Atom>::Item* item = m_Traf->GetChildren().FirstItem();
+                                           item && !senc_atom;
+                                           item = item->GetNext()) {
+                AP4_Atom* atom = item->GetData();
+                if (atom->GetType() == AP4_ATOM_TYPE_SENC ||
+                    atom->GetType() == AP4_ATOM_TYPE('s', 'e', 'n', 'C')) { // sometimes used instead of 'senc' for testing
+                    senc_atom = atom;
+                } else if (atom->GetType() == AP4_ATOM_TYPE_UUID) {
+                    AP4_UuidAtom* uuid_atom = AP4_DYNAMIC_CAST(AP4_UuidAtom, atom);
+                    if (AP4_CompareMemory(uuid_atom->GetUuid(), AP4_UUID_PIFF_SAMPLE_ENCRYPTION_ATOM, 16) == 0) {
+                        senc_atom = atom;
+                    }
+                }
+                if (senc_atom) break;
+                senc_offset += atom->GetSize();
+            }
+        
+            if (senc_atom) {
+                AP4_UI64 saio_offset = traf_offset+senc_offset+senc_atom->GetHeaderSize()+4;
                 m_Saio->SetEntry(0, saio_offset);
             }
         } else {
@@ -779,7 +814,7 @@ AP4_CencEncryptingProcessor::Initialize(AP4_AtomParent&                  top_lev
     AP4_Result result = top_level.AddChild(ftyp, 0);
     if (AP4_FAILED(result)) return result;
     
-    // check if we need to create a Marln 'mkid' table
+    // check if we need to create a Marlin 'mkid' table
     AP4_MkidAtom* mkid = NULL;
     if (m_Variant == AP4_CENC_VARIANT_MPEG) {
         const AP4_List<AP4_TrackPropertyMap::Entry>& prop_entries = m_PropertyMap.GetEntries();
@@ -790,21 +825,20 @@ AP4_CencEncryptingProcessor::Initialize(AP4_AtomParent&                  top_lev
                 if (mkid == NULL) mkid = new AP4_MkidAtom();
                 const char* kid_hex = m_PropertyMap.GetProperty(entry->m_TrackId, "KID");
                 
-                // check that no other track has the same KID
-                bool duplicate = false;
-                for (unsigned int j=0; j<i; j++) {
-                    AP4_TrackPropertyMap::Entry* entry2 = NULL;
-                    prop_entries.Get(j, entry2);
-                    if (entry2->m_Name == "KID" && entry2->m_Value == kid_hex && entry2->m_TrackId != entry->m_TrackId) {
-                        duplicate = true;
-                        break;
-                    }
-                }
-                if (duplicate) continue;
                 if (kid_hex && AP4_StringLength(kid_hex) == 32) {
                     AP4_UI08 kid[16];
                     AP4_ParseHex(kid_hex, kid, 16);
-                    mkid->AddEntry(kid, entry->m_Value.GetChars());
+                    // only add this entry if there isn't already an entry for this KID
+                    const AP4_Array<AP4_MkidAtom::Entry>& entries = mkid->GetEntries();
+                    bool found = false;
+                    for (unsigned int i=0; i<entries.ItemCount() && !found; i++) {
+                        if (AP4_CompareMemory(entries[i].m_KID, kid, 16) == 0) {
+                            found = true;
+                        }
+                    }
+                    if (!found) {
+                        mkid->AddEntry(kid, entry->m_Value.GetChars());
+                    }
                 }
             }
         }
@@ -2438,7 +2472,7 @@ AP4_CencSampleEncryption::DoInspectFields(AP4_AtomInspector& inspector)
             }
             if (data_ok == false) return AP4_SUCCESS;
         } else {
-            iv_size = m_SampleInfos.GetDataSize()/m_SampleInfoCount;
+            iv_size = m_SampleInfoCount?(m_SampleInfos.GetDataSize()/m_SampleInfoCount):0;
             if (iv_size*m_SampleInfoCount != m_SampleInfos.GetDataSize()) {
                 // not a multiple...
                 return AP4_SUCCESS;
