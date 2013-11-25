@@ -115,9 +115,9 @@ class AP4_SampleDescription
     virtual AP4_SampleDescription* Clone(AP4_Result* result = NULL);
     
     // accessors
-    Type            GetType()   const { return m_Type;    }
-    AP4_UI32        GetFormat() const { return m_Format;  }
-    AP4_AtomParent& GetDetails()      { return m_Details; }
+    Type                  GetType()    const { return m_Type;    }
+    AP4_UI32              GetFormat()  const { return m_Format;  }
+    const AP4_AtomParent& GetDetails() const { return m_Details; }
     
     // factories
     virtual AP4_Atom* ToAtom() const;
@@ -229,6 +229,9 @@ public:
                                       AP4_AtomParent* details) :
         AP4_SampleDescription(TYPE_UNKNOWN, format, details),
         AP4_AudioSampleDescription(sample_rate, sample_size, channel_count) {}
+    
+    // inherited from AP4_SampleDescription
+    virtual AP4_Atom* ToAtom() const;
 };
 
 /*----------------------------------------------------------------------
@@ -249,6 +252,9 @@ public:
                                       AP4_AtomParent* details) :
     AP4_SampleDescription(TYPE_UNKNOWN, format, details),
     AP4_VideoSampleDescription(width, height, depth, compressor_name) {}
+    
+    // inherited from AP4_SampleDescription
+    virtual AP4_Atom* ToAtom() const;    
 };
 
 /*----------------------------------------------------------------------
