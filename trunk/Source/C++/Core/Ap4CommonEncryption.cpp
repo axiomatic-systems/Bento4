@@ -558,8 +558,8 @@ AP4_CencFragmentEncrypter::ProcessFragment()
             
         case AP4_CENC_VARIANT_MPEG:
             if (AP4_GlobalOptions::GetBool("mpeg-cenc.piff-compatible")) {
-                m_SampleEncryptionAtom       = new AP4_PiffSampleEncryptionAtom(8);
-                m_SampleEncryptionAtomShadow = new AP4_SencAtom(8);
+                m_SampleEncryptionAtom       = new AP4_SencAtom(8);
+                m_SampleEncryptionAtomShadow = new AP4_PiffSampleEncryptionAtom(8);
             } else {
                 AP4_UI08 iv_size = 16; // default
                 if (AP4_GlobalOptions::GetBool("mpeg-cenc.iv-size-8")) {
