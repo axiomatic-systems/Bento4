@@ -13,22 +13,10 @@ __copyright__ = 'Copyright 2011-2013 Axiomatic Systems, LLC.'
 # Linux x86 --> platform = linux-x86
 # Windows   --> platform = win32
 
-import sys
-import os
-import os.path as path
-from optparse import OptionParser, make_option, OptionError
-from subprocess import check_output, CalledProcessError
-import urlparse
-import random
-import base64
+from optparse import OptionParser
 import shutil
-import tempfile
-import json
-import io
-import struct
 import xml.etree.ElementTree as xml
 from xml.dom.minidom import parseString
-import operator
 import tempfile
 from mp4utils import *
 
