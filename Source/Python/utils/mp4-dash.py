@@ -33,7 +33,7 @@ import tempfile
 from mp4utils import *
 
 # setup main options
-VERSION = "1.3.0"
+VERSION = "1.4.0"
 SVN_REVISION = "$Revision$"
 SCRIPT_PATH = path.abspath(path.dirname(__file__))
 sys.path += [SCRIPT_PATH]
@@ -72,35 +72,46 @@ def AddSegmentList(options, container, subdir, track, use_byte_range=False):
                                   duration=str(int(track.average_segment_duration*1000)))
     if use_byte_range:
         byte_range=str(track.parent.init_segment.position)+'-'+str(track.parent.init_segment.position+track.parent.init_segment.size-1)
-        xml.SubElement(segment_list, 'Initialization', sourceURL=prefix+track.parent.media_name, range=byte_range)
+        xml.SubElement(segment_list,
+                       'Initialization',
+                       sourceURL=prefix + track.parent.media_name,
+                       range=byte_range)
     else:
-        xml.SubElement(segment_list, 'Initialization', sourceURL=prefix+INIT_SEGMENT_NAME)
+        xml.SubElement(segment_list,
+                       'Initialization',
+                       sourceURL=prefix + INIT_SEGMENT_NAME)
     i = 0
     for segment_index in track.moofs:
         segment = track.parent.segments[segment_index]
         segment_offset = segment[0].position
         segment_length = reduce(operator.add, [atom.size for atom in segment], 0)
         if use_byte_range:
-            byte_range = str(segment_offset)+'-'+str(segment_offset+segment_length-1)
-            xml.SubElement(segment_list, 'SegmentURL', media=prefix+track.parent.media_name, mediaRange=byte_range)
+            byte_range = str(segment_offset) + '-' + str(segment_offset + segment_length - 1)
+            xml.SubElement(segment_list,
+                           'SegmentURL',
+                           media=prefix + track.parent.media_name,
+                           mediaRange=byte_range)
         else:
-            xml.SubElement(segment_list, 'SegmentURL', media=prefix+(SEGMENT_URL_PATTERN % (i)))
+            xml.SubElement(segment_list,
+                           'SegmentURL',
+                           media=prefix + (SEGMENT_URL_PATTERN % i))
         i += 1
+
 
 #############################################
 def AddSegmentTemplate(options, container, subdir, track, stream_name):
     if subdir:
-        prefix = subdir+'/'
+        prefix = subdir + '/'
     else:
         prefix = ''
     if options.use_segment_timeline:
-        url_template=prefix+SEGMENT_TEMPLATE
-        init_segment_url=prefix+INIT_SEGMENT_NAME
+        url_template = prefix + SEGMENT_TEMPLATE
+        init_segment_url = prefix + INIT_SEGMENT_NAME
         use_template_numbers = True
         if options.smooth:
             url_base = path.basename(options.smooth_server_manifest_filename)
-            url_template=url_base+"/QualityLevels($Bandwidth$)/Fragments(%s=$Time$)" % (stream_name)
-            init_segment_url=SMOOTH_INIT_FILE_PATTERN%(track.parent.index, track.id)
+            url_template = url_base + "/QualityLevels($Bandwidth$)/Fragments(%s=$Time$)" % stream_name
+            init_segment_url = SMOOTH_INIT_FILE_PATTERN % (track.parent.index, track.id)
             use_template_numbers = False
         args = [container, 'SegmentTemplate']
         kwargs = {'timescale': str(track.timescale),
@@ -113,11 +124,11 @@ def AddSegmentTemplate(options, container, subdir, track, stream_name):
         repeat_count = 0
         for i in range(len(track.segment_scaled_durations)):
             duration = track.segment_scaled_durations[i]
-            if i+1 < len(track.segment_scaled_durations) and duration == track.segment_scaled_durations[i+1]:
+            if i + 1 < len(track.segment_scaled_durations) and duration == track.segment_scaled_durations[i + 1]:
                 repeat_count += 1
             else:
                 args = [segment_timeline, 'S']
-                kwargs = {'d':str(duration)}
+                kwargs = {'d': str(duration)}
                 if repeat_count:
                     kwargs['r'] = str(repeat_count)
 
@@ -129,8 +140,8 @@ def AddSegmentTemplate(options, container, subdir, track, stream_name):
                        timescale='1000',
                        duration=str(int(track.average_segment_duration*1000)),
                        startNumber='0',
-                       initialization=prefix+INIT_SEGMENT_NAME,
-                       media=prefix+SEGMENT_TEMPLATE)
+                       initialization=prefix + INIT_SEGMENT_NAME,
+                       media=prefix + SEGMENT_TEMPLATE)
 
 #############################################
 def AddSegments(options, container, subdir, track, use_byte_range, stream_name):
@@ -154,14 +165,14 @@ def AddContentProtection(options, container, tracks):
     
     if options.marlin:
         cp = xml.SubElement(container, 'ContentProtection', schemeIdUri=MARLIN_SCHEME_ID_URI)
-        cids = xml.SubElement(cp, '{'+MARLIN_MAS_NAMESPACE+'}MarlinContentIds')
+        cids = xml.SubElement(cp, '{' + MARLIN_MAS_NAMESPACE + '}MarlinContentIds')
         for kid in kids:
-            cid = xml.SubElement(cids, '{'+MARLIN_MAS_NAMESPACE+'}MarlinContentId')
-            cid.text = 'urn:marlin:kid:'+kid
+            cid = xml.SubElement(cids, '{' + MARLIN_MAS_NAMESPACE + '}MarlinContentId')
+            cid.text = 'urn:marlin:kid:' + kid
     if options.playready_header:
         header_b64 = ComputePlayReadyHeader(options.playready_header)        
         cp = xml.SubElement(container, 'ContentProtection', schemeIdUri=PLAYREADY_SCHEME_ID_URI)
-        pro = xml.SubElement(cp, '{'+PLAYREADY_MSPR_NAMESPACE+'}pro')
+        pro = xml.SubElement(cp, '{' + PLAYREADY_MSPR_NAMESPACE + '}pro')
         pro.text = header_b64
                 
 #############################################
@@ -171,52 +182,66 @@ def OutputDash(options, audio_tracks, video_tracks):
         
     # create the MPD
     if options.use_compat_namespace:
-      mpd_ns = MPD_NS_COMPAT
+        mpd_ns = MPD_NS_COMPAT
     else:
-      mpd_ns = MPD_NS
+        mpd_ns = MPD_NS
     mpd = xml.Element('MPD', 
                       xmlns=mpd_ns, 
                       profiles=ISOFF_LIVE_PROFILE, 
-                      minBufferTime="PT%.02fS" % (options.min_buffer_time), 
+                      minBufferTime="PT%.02fS" % options.min_buffer_time,
                       mediaPresentationDuration=XmlDuration(int(presentation_duration)),
                       type='static')
-    mpd.append(xml.Comment(' Created with Bento4 mp4-dash.py, VERSION='+VERSION+'-'+SVN_REVISION[11:-1]+' '))
+    mpd.append(xml.Comment(' Created with Bento4 mp4-dash.py, VERSION=' + VERSION + '-' + SVN_REVISION[11:-1] + ' '))
     period = xml.SubElement(mpd, 'Period')
 
     # process the audio tracks
     for (language, audio_track) in audio_tracks.iteritems():
         args = [period, 'AdaptationSet']
-        kwargs = {'mimeType': AUDIO_MIMETYPE, 'startWithSAP':'1', 'segmentAlignment':'true'}
+        kwargs = {'mimeType': AUDIO_MIMETYPE, 'startWithSAP': '1', 'segmentAlignment': 'true'}
         if language:
-            id_ext = '.'+language
+            id_ext = '.' + language
             kwargs['lang'] = language
         else:
             id_ext = ''
         adaptation_set = xml.SubElement(*args, **kwargs)
         if options.marlin or options.playready_header:
             AddContentProtection(options, adaptation_set, [audio_track])
-        representation = xml.SubElement(adaptation_set, 'Representation', id='audio'+id_ext, codecs=audio_track.codec, bandwidth=str(audio_track.bandwidth))
+        representation = xml.SubElement(adaptation_set,
+                                        'Representation',
+                                        id='audio' + id_ext,
+                                        codecs=audio_track.codec,
+                                        bandwidth=str(audio_track.bandwidth))
         if language:
-            subdir = '/'+language
-            stream_name='audio_'+language
+            subdir = '/' + language
+            stream_name = 'audio_' + language
         else:
             subdir = ''
-            stream_name='audio'
+            stream_name = 'audio'
         if options.split:
-            AddSegments(options, representation, 'audio'+subdir, audio_track, False, stream_name)
+            AddSegments(options, representation, 'audio' + subdir, audio_track, False, stream_name)
         else:
             AddSegments(options, representation, None, audio_track, True, stream_name)
         
     # process all the video tracks
-    adaptation_set = xml.SubElement(period, 'AdaptationSet', mimeType=VIDEO_MIMETYPE, segmentAlignment='true', startWithSAP='1')
+    adaptation_set = xml.SubElement(period,
+                                    'AdaptationSet',
+                                    mimeType=VIDEO_MIMETYPE,
+                                    segmentAlignment='true',
+                                    startWithSAP='1')
     if options.marlin or options.playready_header:
         AddContentProtection(options, adaptation_set, video_tracks)
     for video_track in video_tracks:
         video_desc = video_track.info['sample_descriptions'][0]
 
-        representation = xml.SubElement(adaptation_set, 'Representation', id='video.'+str(video_track.parent.index), codecs=video_track.codec, width=str(video_track.width), height=str(video_track.height), bandwidth=str(video_track.bandwidth))
+        representation = xml.SubElement(adaptation_set,
+                                        'Representation',
+                                        id='video.' + str(video_track.parent.index),
+                                        codecs=video_track.codec,
+                                        width=str(video_track.width),
+                                        height=str(video_track.height),
+                                        bandwidth=str(video_track.bandwidth))
         if options.split:
-            AddSegments(options, representation, 'video/'+str(video_track.parent.index), video_track, False, 'video')
+            AddSegments(options, representation, 'video/' + str(video_track.parent.index), video_track, False, 'video')
         else:
             AddSegments(options, representation, None, video_track, True, 'video')           
         
@@ -257,17 +282,17 @@ def OutputSmooth(options, audio_tracks, video_tracks):
                                       TimeScale=str(audio_track.timescale))
         if language:
             stream_index.set('Language', language)
-        quality_level = xml.SubElement(stream_index, 
-                                       'QualityLevel', 
-                                       Bitrate=str(audio_track.bandwidth), 
-                                       SamplingRate=str(audio_track.sample_rate),
-                                       Channels=str(audio_track.channels), 
-                                       BitsPerSample="16", 
-                                       PacketSize="4", 
-                                       AudioTag="255", 
-                                       FourCC="AACL",
-                                       Index="0",
-                                       CodecPrivateData=audio_track.info['sample_descriptions'][0]['decoder_info'])
+        xml.SubElement(stream_index,
+                       'QualityLevel',
+                       Bitrate=str(audio_track.bandwidth),
+                       SamplingRate=str(audio_track.sample_rate),
+                       Channels=str(audio_track.channels),
+                       BitsPerSample="16",
+                       PacketSize="4",
+                       AudioTag="255",
+                       FourCC="AACL",
+                       Index="0",
+                       CodecPrivateData=audio_track.info['sample_descriptions'][0]['decoder_info'])
 
         for duration in audio_track.segment_scaled_durations:
             xml.SubElement(stream_index, "c", d=str(duration))
@@ -290,14 +315,14 @@ def OutputSmooth(options, audio_tracks, video_tracks):
     for video_track in video_tracks:
         sample_desc = video_track.info['sample_descriptions'][0]
         codec_private_data = '00000001'+sample_desc['avc_sps'][0]+'00000001'+sample_desc['avc_pps'][0]
-        quality_level = xml.SubElement(stream_index, 
-                                       'QualityLevel', 
-                                       Bitrate=str(video_track.bandwidth),
-                                       MaxWidth=str(video_track.width), 
-                                       MaxHeight=str(video_track.height),
-                                       FourCC="H264",
-                                       CodecPrivateData=codec_private_data,
-                                       Index=str(qindex))
+        xml.SubElement(stream_index,
+                       'QualityLevel',
+                       Bitrate=str(video_track.bandwidth),
+                       MaxWidth=str(video_track.width),
+                       MaxHeight=str(video_track.height),
+                       FourCC="H264",
+                       CodecPrivateData=codec_private_data,
+                       Index=str(qindex))
         qindex += 1
 
     for duration in video_tracks[0].segment_scaled_durations:
@@ -306,7 +331,9 @@ def OutputSmooth(options, audio_tracks, video_tracks):
     if options.playready_header:
         header_b64 = ComputePlayReadyHeader(options.playready_header)
         protection = xml.SubElement(client_manifest, 'Protection')
-        protection_header = xml.SubElement(protection, 'ProtectionHeader', SystemID='9a04f079-9840-4286-ab92-e65be0885f95')
+        protection_header = xml.SubElement(protection,
+                                           'ProtectionHeader',
+                                           SystemID='9a04f079-9840-4286-ab92-e65be0885f95')
         protection_header.text = header_b64
         
     # save the Client Manifest
@@ -315,23 +342,52 @@ def OutputSmooth(options, audio_tracks, video_tracks):
         
     # create the Server Manifest file
     server_manifest = xml.Element('smil', xmlns=SMIL_NAMESPACE)
-    server_manifest_head = xml.SubElement(server_manifest , 'head')
-    xml.SubElement(server_manifest_head, 'meta', name='clientManifestRelativePath', content=path.basename(options.smooth_client_manifest_filename))
-    server_manifest_body = xml.SubElement(server_manifest , 'body')
+    server_manifest_head = xml.SubElement(server_manifest, 'head')
+    xml.SubElement(server_manifest_head,
+                   'meta',
+                   name='clientManifestRelativePath',
+                   content=path.basename(options.smooth_client_manifest_filename))
+    server_manifest_body = xml.SubElement(server_manifest, 'body')
     server_manifest_switch = xml.SubElement(server_manifest_body, 'switch')
     for (language, audio_track) in audio_tracks.iteritems():
-        audio_entry = xml.SubElement(server_manifest_switch, 'audio', src=audio_track.parent.media_name, systemBitrate=str(audio_track.bandwidth))
-        xml.SubElement(audio_entry, 'param', name='trackID', value=str(audio_track.id), valueType='data')
+        audio_entry = xml.SubElement(server_manifest_switch,
+                                     'audio',
+                                     src=audio_track.parent.media_name,
+                                     systemBitrate=str(audio_track.bandwidth))
+        xml.SubElement(audio_entry,
+                       'param',
+                       name='trackID',
+                       value=str(audio_track.id),
+                       valueType='data')
         if language:
-            xml.SubElement(audio_entry, 'param', name='trackName', value="audio_"+language, valueType='data')
+            xml.SubElement(audio_entry,
+                           'param',
+                           name='trackName',
+                           value="audio_" + language,
+                           valueType='data')
         if audio_track.timescale != SMOOTH_DEFAULT_TIMESCALE:
-            xml.SubElement(audio_entry, 'param', name='timeScale', value=str(audio_track.timescale), valueType='data')
+            xml.SubElement(audio_entry,
+                           'param',
+                           name='timeScale',
+                           value=str(audio_track.timescale),
+                           valueType='data')
         
     for video_track in video_tracks:
-        video_entry = xml.SubElement(server_manifest_switch, 'video', src=video_track.parent.media_name, systemBitrate=str(video_track.bandwidth))
-        xml.SubElement(video_entry, 'param', name='trackID', value=str(video_track.id), valueType='data')
+        video_entry = xml.SubElement(server_manifest_switch,
+                                     'video',
+                                     src=video_track.parent.media_name,
+                                     systemBitrate=str(video_track.bandwidth))
+        xml.SubElement(video_entry,
+                       'param',
+                       name='trackID',
+                       value=str(video_track.id),
+                       valueType='data')
         if video_track.timescale != SMOOTH_DEFAULT_TIMESCALE:
-            xml.SubElement(video_entry, 'param', name='timeScale', value=str(video_track.timescale), valueType='data')
+            xml.SubElement(video_entry,
+                           'param',
+                           name='timeScale',
+                           value=str(video_track.timescale),
+                           valueType='data')
     
     # save the Manifest
     if options.smooth_server_manifest_filename != '':
@@ -349,7 +405,7 @@ def main():
                 
     # parse options
     parser = OptionParser(usage="%prog [options] <media-file> [<media-file> ...]",
-                          description="Each <media-file> is the path to a fragmented MP4 file, optionally prefixed with a stream selector delimited by [ and ]. The same input MP4 file may be repeated, provided that the stream selector prefixes select different streams")
+                          description="Each <media-file> is the path to a fragmented MP4 file, optionally prefixed with a stream selector delimited by [ and ]. The same input MP4 file may be repeated, provided that the stream selector prefixes select different streams. Version " + VERSION + " r" + SVN_REVISION[-5:-2])
     parser.add_option('', '--verbose', dest="verbose", action='store_true', default=False,
                       help="Be verbose")
     parser.add_option('', '--debug', dest="debug", action='store_true', default=False,
@@ -367,7 +423,7 @@ def main():
     parser.add_option('', '--rename-media', dest='rename_media', action='store_true', default=False,
                       help = 'Use a file name pattern instead of the base name of input files for output media files.')
     parser.add_option('', "--no-split", action="store_false", dest="split", default=True,
-                      help="Do not split the file into segments")
+                      help="Do not split the file into individual segment files")
     parser.add_option('', "--use-segment-list", action="store_true", dest="use_segment_list", default=False,
                       help="Use segment lists instead of segment templates")
     parser.add_option('', "--use-segment-timeline", action="store_true", dest="use_segment_timeline", default=False,
@@ -452,6 +508,9 @@ def main():
             # get the mp4 file info
             json_info = Mp4Info(Options, media_file, format='json')
             info = json.loads(json_info, strict=False)
+
+            if 'tracks' not in info:
+                raise Exception('No track found in input file(s)')
 
             track_ids = [track['id'] for track in info['tracks'] if track['type'] in ['Audio', 'Video']]
             print 'Encrypting track IDs '+str(track_ids)+' in '+ media_file
@@ -632,9 +691,11 @@ def main():
         if video_codec is None:
             video_desc = video_track.info['sample_descriptions'][0]
             if video_desc['coding'].startswith('avc'):
-                video_codec = video_desc['coding']+'.%02x%02x%02x'%(video_desc['avc_profile'], video_desc['avc_profile_compat'], video_desc['avc_level'])
+                video_codec = video_desc['coding'] + '.%02x%02x%02x' % (video_desc['avc_profile'],
+                                                                        video_desc['avc_profile_compat'],
+                                                                        video_desc['avc_level'])
         if video_codec is None:
-            PrintErrorAndExit('ERROR: unable to determine the video codec for "'+str(video_track)+'"')
+            PrintErrorAndExit('ERROR: unable to determine the video codec for "' + str(video_track) + '"')
         video_track.codec = video_codec
 
         # get the width and height
@@ -648,9 +709,9 @@ def main():
     # print info about the tracks
     if options.verbose:
         for audio_track in audio_tracks.itervalues():
-            print '  Audio Track: '+str(audio_track)+' - max bitrate=%d, avg bitrate=%d, req bandwidth=%d' % (audio_track.max_segment_bitrate, audio_track.average_segment_bitrate, audio_track.bandwidth)
+            print '  Audio Track: ' + str(audio_track) + ' - max bitrate=%d, avg bitrate=%d, req bandwidth=%d' % (audio_track.max_segment_bitrate, audio_track.average_segment_bitrate, audio_track.bandwidth)
         for video_track in video_tracks:
-            print '  Video Track: '+str(video_track)+' - max bitrate=%d, avg bitrate=%d, req bandwidth=%d' % (video_track.max_segment_bitrate, video_track.average_segment_bitrate, video_track.bandwidth)
+            print '  Video Track: ' + str(video_track) + ' - max bitrate=%d, avg bitrate=%d, req bandwidth=%d' % (video_track.max_segment_bitrate, video_track.average_segment_bitrate, video_track.bandwidth)
 
     # output the DASH MPD
     OutputDash(options, audio_tracks, video_tracks)
@@ -692,7 +753,7 @@ def main():
                 print 'Processing media file', file_name_map[mp4_file.filename]
                 media_filename = path.join(options.output_dir, mp4_file.media_name)
                 if not options.force_output and path.exists(media_filename):
-                    PrintErrorAndExit('ERROR: file '+media_filename+' already exists')
+                    PrintErrorAndExit('ERROR: file ' + media_filename + ' already exists')
                     
                 shutil.copyfile(mp4_file.filename, media_filename)
             if options.smooth:
@@ -701,7 +762,7 @@ def main():
                              track.parent.filename,
                              track_id     = str(track.id),
                              init_only    = True,
-                             init_segment = path.join(options.output_dir, SMOOTH_INIT_FILE_PATTERN%(track.parent.index, track.id)))
+                             init_segment = path.join(options.output_dir, SMOOTH_INIT_FILE_PATTERN % (track.parent.index, track.id)))
 
 ###########################    
 if __name__ == '__main__':
