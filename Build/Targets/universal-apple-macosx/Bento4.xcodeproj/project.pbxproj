@@ -333,6 +333,8 @@
 		CAA88EBB10A2069900178BE3 /* Ap4NeptuneAdapters.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAA88EB910A2069900178BE3 /* Ap4NeptuneAdapters.cpp */; };
 		CAA88EBC10A2069900178BE3 /* Ap4NeptuneAdapters.h in Headers */ = {isa = PBXBuildFile; fileRef = CAA88EBA10A2069900178BE3 /* Ap4NeptuneAdapters.h */; };
 		CAB3CB790FCB35EC007C4260 /* BufferedStreamTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAB3CB6C0FCB35A8007C4260 /* BufferedStreamTest.cpp */; };
+		CAB82A091859CD7000FC4944 /* Ap4Dec3Atom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAB82A071859CD7000FC4944 /* Ap4Dec3Atom.cpp */; };
+		CAB82A0A1859CD7000FC4944 /* Ap4Dec3Atom.h in Headers */ = {isa = PBXBuildFile; fileRef = CAB82A081859CD7000FC4944 /* Ap4Dec3Atom.h */; };
 		CABB61F70F02BADB00B53D31 /* TracksTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CABB61EF0F02B85900B53D31 /* TracksTest.cpp */; };
 		CAC02A19139DBA6F0034427F /* Mp4Split.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAC02A18139DBA6F0034427F /* Mp4Split.cpp */; };
 		CAC51D76129708CB00AE5CF9 /* Ap4PosixRandom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAC51D75129708CB00AE5CF9 /* Ap4PosixRandom.cpp */; };
@@ -1075,6 +1077,8 @@
 		CAA88EBA10A2069900178BE3 /* Ap4NeptuneAdapters.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4NeptuneAdapters.h; sourceTree = "<group>"; };
 		CAB3CB6C0FCB35A8007C4260 /* BufferedStreamTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BufferedStreamTest.cpp; sourceTree = "<group>"; };
 		CAB3CB710FCB35B8007C4260 /* BufferedStreamTest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = BufferedStreamTest; sourceTree = BUILT_PRODUCTS_DIR; };
+		CAB82A071859CD7000FC4944 /* Ap4Dec3Atom.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4Dec3Atom.cpp; sourceTree = "<group>"; };
+		CAB82A081859CD7000FC4944 /* Ap4Dec3Atom.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4Dec3Atom.h; sourceTree = "<group>"; };
 		CABB61EF0F02B85900B53D31 /* TracksTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TracksTest.cpp; sourceTree = "<group>"; };
 		CABB61F30F02BABC00B53D31 /* TracksTest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = TracksTest; sourceTree = BUILT_PRODUCTS_DIR; };
 		CAC02A0C139DBA350034427F /* mp4split */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mp4split; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -1693,6 +1697,8 @@
 				CA9366230B437D040067D50B /* Ap4DataBuffer.h */,
 				CA9366240B437D040067D50B /* Ap4Debug.cpp */,
 				CA9366250B437D040067D50B /* Ap4Debug.h */,
+				CAB82A071859CD7000FC4944 /* Ap4Dec3Atom.cpp */,
+				CAB82A081859CD7000FC4944 /* Ap4Dec3Atom.h */,
 				CA9366260B437D040067D50B /* Ap4DecoderConfigDescriptor.cpp */,
 				CA9366270B437D040067D50B /* Ap4DecoderConfigDescriptor.h */,
 				CA9366280B437D040067D50B /* Ap4DecoderSpecificInfoDescriptor.cpp */,
@@ -2083,6 +2089,7 @@
 				CA9366BB0B437D040067D50B /* Ap4Descriptor.h in Headers */,
 				CA9366BD0B437D040067D50B /* Ap4DescriptorFactory.h in Headers */,
 				CA9366BF0B437D040067D50B /* Ap4DrefAtom.h in Headers */,
+				CAB82A0A1859CD7000FC4944 /* Ap4Dec3Atom.h in Headers */,
 				CA9366C10B437D040067D50B /* Ap4EsDescriptor.h in Headers */,
 				CA9366C30B437D040067D50B /* Ap4EsdsAtom.h in Headers */,
 				CA9366C50B437D040067D50B /* Ap4File.h in Headers */,
@@ -3140,6 +3147,7 @@
 				CAEFE1340FB69CF600AF6434 /* Ap4TrexAtom.cpp in Sources */,
 				CAE723FF0FC33618008F2905 /* Ap4LinearReader.cpp in Sources */,
 				CAFC31D90FEB95F700EF80A0 /* Ap4MovieFragment.cpp in Sources */,
+				CAB82A091859CD7000FC4944 /* Ap4Dec3Atom.cpp in Sources */,
 				CAFC31F00FEBAA9200EF80A0 /* Ap4FragmentSampleTable.cpp in Sources */,
 				CAE03ABF1034AE0D006FAFD7 /* Ap4Hmac.cpp in Sources */,
 				CA04DFDE1040921500AD5863 /* Ap4KeyWrap.cpp in Sources */,

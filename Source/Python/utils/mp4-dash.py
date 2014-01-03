@@ -48,6 +48,7 @@ SMIL_NAMESPACE           = 'http://www.w3.org/2001/SMIL20/Language'
              
 TempFiles = []
 
+
 #############################################
 def AddSegmentList(options, container, subdir, track, use_byte_range=False):
     if subdir:
@@ -131,6 +132,7 @@ def AddSegmentTemplate(options, container, subdir, track, stream_name):
                        initialization=prefix + INIT_SEGMENT_NAME,
                        media=prefix + SEGMENT_TEMPLATE)
 
+
 #############################################
 def AddSegments(options, container, subdir, track, use_byte_range, stream_name):
     if options.use_segment_list:
@@ -138,6 +140,7 @@ def AddSegments(options, container, subdir, track, use_byte_range, stream_name):
     else:
         AddSegmentTemplate(options, container, subdir, track, stream_name)
     
+
 #############################################
 def AddContentProtection(options, container, tracks):
     kids = []
@@ -158,11 +161,18 @@ def AddContentProtection(options, container, tracks):
             cid = xml.SubElement(cids, '{' + MARLIN_MAS_NAMESPACE + '}MarlinContentId')
             cid.text = 'urn:marlin:kid:' + kid
     if options.playready_header:
-        header_b64 = ComputePlayReadyHeader(options.playready_header)        
+        if options.encryption_key:
+            kid = options.kid_hex
+            key = options.key_hex
+        else:
+            kid = kids[0]
+            key = None
+        header_b64 = ComputePlayReadyHeader(options.playready_header, kid, key)
         cp = xml.SubElement(container, 'ContentProtection', schemeIdUri=PLAYREADY_SCHEME_ID_URI)
         pro = xml.SubElement(cp, '{' + PLAYREADY_MSPR_NAMESPACE + '}pro')
         pro.text = header_b64
                 
+
 #############################################
 def OutputDash(options, audio_tracks, video_tracks):
     # compute the total duration (we take the duration of the video)
@@ -236,6 +246,7 @@ def OutputDash(options, audio_tracks, video_tracks):
     # save the MPD
     if options.mpd_filename:
         open(path.join(options.output_dir, options.mpd_filename), "wb").write(parseString(xml.tostring(mpd)).toprettyxml("  "))
+
 
 #############################################
 def OutputSmooth(options, audio_tracks, video_tracks):
@@ -317,7 +328,13 @@ def OutputSmooth(options, audio_tracks, video_tracks):
         xml.SubElement(stream_index, "c", d=str(duration))
                 
     if options.playready_header:
-        header_b64 = ComputePlayReadyHeader(options.playready_header)
+        if options.encryption_key:
+            kid = options.kid_hex
+            key = options.key_hex
+        else:
+            kid = video_tracks[0].kid
+            key = None
+        header_b64 = ComputePlayReadyHeader(options.playready_header, kid, key)
         protection = xml.SubElement(client_manifest, 'Protection')
         protection_header = xml.SubElement(protection,
                                            'ProtectionHeader',
@@ -381,6 +398,7 @@ def OutputSmooth(options, audio_tracks, video_tracks):
     if options.smooth_server_manifest_filename != '':
         open(path.join(options.output_dir, options.smooth_server_manifest_filename), "wb").write(parseString(xml.tostring(server_manifest)).toprettyxml("  "))
     
+
 #############################################
 Options = None            
 def main():
@@ -429,15 +447,19 @@ def main():
     parser.add_option('', '--smooth-server-manifest-name', dest="smooth_server_manifest_filename",
                       help="Smooth Streaming Server Manifest file name", metavar="<filename>", default='stream.ism')
     parser.add_option('', "--encryption-key", dest="encryption_key", metavar='<KID>:<key>', default=None,
-                      help="Encrypt all audio and video tracks with AES key <key> (in hex) and KID <KID> (in hex)")
+                      help="Encrypt all audio and video tracks with AES key <key> (in hex) and KID <KID> (in hex). Alternatively, the <key> can be specified as the character '#' followed by a base64-encoded key seed.")
     parser.add_option('', "--encryption-args", dest="encryption_args", metavar='<cmdline-arguments>', default=None,
                       help="Pass additional command line arguments to mp4encrypt (separated by spaces)")
     parser.add_option('', "--use-compat-namespace", dest="use_compat_namespace", action="store_true", default=False,
                       help="Use the original DASH MPD namespace as it was specified in the first published specification")
     parser.add_option('', "--marlin", dest="marlin", action="store_true", default=False,
                       help="Add Marlin signaling to the MPD (requires an encrypted input, or the --encryption-key option)")
-    parser.add_option('', "--playready-header", dest="playready_header", metavar='<playready-header-object>', default=None,
-                      help="Add PlayReady signaling to the MPD (requires an encrypted input, or the --encryption-key option). The <playready-header-object> argument can be the name of a file containing either a PlayReady XML Rights Management Header or a PlayReady Header Object (PRO),  or a header object itself encoded in Base64")
+    parser.add_option('', "--playready-header", dest="playready_header", metavar='<playready-header>', default=None,
+                      help="Add PlayReady signaling to the MPD (requires an encrypted input, or the --encryption-key option). " +
+                           "The <playready-header> argument can be either: " +
+                           "(1) the name of a file containing a PlayReady XML Rights Management Header (<WRMHEADER>) or a PlayReady Header Object (PRO) in binary form,  or "
+                           "(2) the character '#' followed by a PlayReady Header Object encoded in Base64, or " +
+                           "(3) one or more <name>:<value> pair(s) (separated by '#' if more than one) specifying fields of a PlayReady Header Object (field names include LA_URL, LUI_URL and DS_ID)")
     parser.add_option('', "--exec-dir", metavar="<exec_dir>", dest="exec_dir", default=path.join(SCRIPT_PATH, 'bin', platform),
                       help="Directory where the Bento4 executables are located")
     (options, args) = parser.parse_args()
@@ -463,7 +485,29 @@ def main():
                     
     if not path.exists(Options.exec_dir):
         PrintErrorAndExit('Executable directory does not exist ('+Options.exec_dir+'), use --exec-dir')
-            
+
+    # post-process some of the options
+    if options.encryption_key:
+        if ':' not in options.encryption_key:
+            raise Exception('Invalid argument syntax for --encryption-key option')
+        kid_hex, key_hex = options.encryption_key.split(':')
+        if len(kid_hex) != 32:
+            raise Exception('Invalid argument format for --encryption-key option')
+
+        if key_hex.startswith('#'):
+            if len(key_hex) != 41:
+                raise Exception('Invalid argument format for --encryption-key option')
+            key_seed_bin = key_hex[1:].decode('base64')
+            kid_bin = kid_hex.decode('hex')
+            key_hex = DerivePlayReadyKey(key_seed_bin, kid_bin).encode('hex')
+            if options.verbose:
+                print 'Derived Key =', key_hex
+        else:
+            if len(key_hex) != 32:
+                raise Exception('Invalid argument format for --encryption-key option')
+        options.key_hex = key_hex
+        options.kid_hex = kid_hex
+
     # create the output directory
     severity = 'ERROR'
     if options.no_media: severity = 'WARNING'
@@ -478,12 +522,7 @@ def main():
     # encrypt the input files if needed
     encrypted_files = {}
     if not options.no_media and options.encryption_key:
-        if ':' not in options.encryption_key:
-            raise Exception('Invalid argument syntax for --encryption-key option')
-        kid_b64, key_b64 = options.encryption_key.split(':')
-        if len(kid_b64) != 32 or len(key_b64) != 32:
-            raise Exception('Invalid argument format for --encryption-key option')
-            
+
         track_ids = []
         for media_source in media_sources:
             media_file = media_source.filename
@@ -517,7 +556,7 @@ def main():
             args.append(media_file)
             args.append(encrypted_file.name)
             for track_id in track_ids:
-                args += ['--key', str(track_id)+':'+key_b64+':random', '--property', str(track_id)+':KID:'+kid_b64] 
+                args += ['--key', str(track_id)+':'+key_hex+':random', '--property', str(track_id)+':KID:'+kid_hex]
             cmd = [path.join(Options.exec_dir, 'mp4encrypt')] + args
             if options.debug:
                 print 'COMMAND: ', cmd
@@ -752,7 +791,8 @@ def main():
                              init_only    = True,
                              init_segment = path.join(options.output_dir, SMOOTH_INIT_FILE_PATTERN % (track.parent.index, track.id)))
 
-###########################    
+
+###########################
 if __name__ == '__main__':
     try:
         main()

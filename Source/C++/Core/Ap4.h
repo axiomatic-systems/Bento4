@@ -306,6 +306,7 @@
 #include "Ap4PsshAtom.h"
 #include "Ap4TfraAtom.h"
 #include "Ap4MfroAtom.h"
+#include "Ap4Dec3Atom.h"
 
 /*----------------------------------------------------------------------
 |   global functions

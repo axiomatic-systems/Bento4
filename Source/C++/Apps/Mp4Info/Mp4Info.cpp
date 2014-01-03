@@ -413,6 +413,11 @@ ShowSampleDescription_Text(AP4_SampleDescription& description, bool verbose)
         printf("    Depth:       %d\n", video_desc->GetDepth());
     }
 
+    // Dolby specifics
+    if (desc->GetFormat() == AP4_SAMPLE_FORMAT_EC_3) {
+        AP4_Dec3Atom* dec3 = AP4_DYNAMIC_CAST(AP4_Dec3Atom, desc->GetDetails().GetChild(AP4_ATOM_TYPE('d', 'e', 'c', '3')));
+    }
+    
     // AVC specifics
     if (desc->GetType() == AP4_SampleDescription::TYPE_AVC) {
         // AVC Sample Description

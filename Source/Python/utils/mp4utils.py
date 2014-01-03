@@ -473,9 +473,25 @@ def DerivePlayReadyKey(seed, kid, swap=True):
 
     return content_key
 
-def ComputePlayReadyHeader(header_spec):
+def ComputePlayReadyChecksum(kid, key):
+    import aes
+    return aes.rijndael(key).encrypt(kid)[:8]
+
+def WrapPlayreadyHeaderXml(header_xml):
+    # encode the XML header into UTF-16 little-endian
+    header_utf16_le = header_xml.encode('utf-16-le')
+    rm_record = struct.pack('<HH', 1, len(header_utf16_le))+header_utf16_le
+    return struct.pack('<IH', len(rm_record)+6, 1)+rm_record
+
+def ComputePlayReadyHeader(header_spec, kid_hex, key_hex):
     # construct the base64 header
-    if os.path.exists(header_spec):
+    if header_spec.startswith('#'):
+        header_b64 = header_spec[1:]
+        header = header_b64.decode('base64')
+        if len(header) == 0:
+            raise Exception('invalid base64 encoding')
+        return header_b64
+    elif os.path.exists(header_spec):
         # read the header from the file
         header = open(header_spec, 'rb').read()
         header_xml = None
@@ -486,15 +502,37 @@ def ComputePlayReadyHeader(header_spec):
             # this is ASCII or UTF-8 XML
             header_xml = header.decode('utf-8')
         if header_xml is not None:
-            # encode the XML header into UTF-16 little-endian
-            header_utf16_le = header_xml.encode('utf-16-le')
-            rm_record = struct.pack('<HH', 1, len(header_utf16_le))+header_utf16_le
-            header = struct.pack('<IH', len(rm_record)+6, 1)+rm_record
-        header_b64 = header.encode('base64').replace('\n', '')
+            header = WrapPlayreadyHeaderXml(header_xml)
+        return header.encode('base64').replace('\n', '')
     else:
-        header_b64 = header_spec
-        header = header_b64.decode('base64')
-        if len(header) == 0:
-            raise Exception('invalid base64 encoding')
+        try:
+            pairs = header_spec.split('#')
+            fields = {}
+            for pair in pairs:
+                name, value = pair.split(':', 1)
+                fields[name] = value
+        except:
+            raise Exception('invalid syntax for argument')
 
-    return header_b64
+        header_xml = '<WRMHEADER xmlns="http://schemas.microsoft.com/DRM/2007/03/PlayReadyHeader" version="4.0.0.0"><DATA><PROTECTINFO><KEYLEN>16</KEYLEN><ALGID>AESCTR</ALGID></PROTECTINFO>'
+
+        kid = kid_hex.decode('hex')
+        kid = kid[3]+kid[2]+kid[1]+kid[0]+kid[5]+kid[4]+kid[7]+kid[6]+kid[8:]
+        header_xml += '<KID>'+kid.encode('base64').replace('\n', '')+'</KID>'
+        if key_hex:
+            header_xml += '<CHECKSUM>'+ComputePlayReadyChecksum(kid, key_hex.decode('hex')).encode('base64').replace('\n', '')+'</CHECKSUM>'
+
+        if 'CUSTOMATTRIBUTES' in fields:
+            header_xml += '<CUSTOMATTRIBUTES>'+fields['CUSTOMATTRIBUTES'].decode('base64').replace('\n', '')+'</CUSTOMATTRIBUTES>'
+        if 'LA_URL' in fields:
+            header_xml += '<LA_URL>'+fields['LA_URL']+'</LA_URL>'
+        if 'LUI_URL' in fields:
+            header_xml += '<LUI_URL>'+fields['LUI_URL']+'</LUI_URL>'
+        if 'DS_ID' in fields:
+            header_xml += '<DS_ID>'+fields['DS_ID']+'</DS_ID>'
+
+        header_xml += '</DATA></WRMHEADER>'
+        header = WrapPlayreadyHeaderXml(header_xml)
+        return header.encode('base64').replace('\n', '')
+
+    return ""
