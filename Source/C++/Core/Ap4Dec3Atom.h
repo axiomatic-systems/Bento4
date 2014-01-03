@@ -48,8 +48,8 @@ public:
     AP4_IMPLEMENT_DYNAMIC_CAST_D(AP4_AvccAtom, AP4_Atom)
 
     // types
-    class SubStream {
-    public:
+    struct SubStream {
+		SubStream() : fscod(0), bsid(0), bsmod(0), acmod(0), lfeon(0), num_dep_sub(0), chan_loc(0) {}
         unsigned int fscod;
         unsigned int bsid;
         unsigned int bsmod;

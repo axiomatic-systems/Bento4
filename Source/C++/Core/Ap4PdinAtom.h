@@ -43,6 +43,8 @@ class AP4_PdinAtom : public AP4_Atom
 public:
     // inner classes
     struct Entry {
+		Entry() : m_Rate(0), m_InitialDelay(0) {}
+
         AP4_UI32 m_Rate;
         AP4_UI32 m_InitialDelay;
     };
