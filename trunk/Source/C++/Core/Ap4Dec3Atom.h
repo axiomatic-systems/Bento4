@@ -65,7 +65,7 @@ public:
     // methods
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
-    virtual AP4_Atom* Clone() { return new AP4_Dec3Atom(GetSize(), m_RawBytes.GetData()); }
+    virtual AP4_Atom* Clone() { return new AP4_Dec3Atom(m_Size32, m_RawBytes.GetData()); }
 
     // accessors
     const AP4_DataBuffer&       GetRawBytes()   const { return m_RawBytes;   }
