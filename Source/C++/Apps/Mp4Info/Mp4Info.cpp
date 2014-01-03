@@ -416,6 +416,19 @@ ShowSampleDescription_Text(AP4_SampleDescription& description, bool verbose)
     // Dolby specifics
     if (desc->GetFormat() == AP4_SAMPLE_FORMAT_EC_3) {
         AP4_Dec3Atom* dec3 = AP4_DYNAMIC_CAST(AP4_Dec3Atom, desc->GetDetails().GetChild(AP4_ATOM_TYPE('d', 'e', 'c', '3')));
+        if (dec3) {
+            printf("    AC3 Data Rate: %d\n", dec3->GetDataRate());
+            for (unsigned int i=0; i<dec3->GetSubStreams().ItemCount(); i++) {
+                printf("    AC3 Substream %d:\n", i);
+                printf("        fscod       = %d\n", dec3->GetSubStreams()[i].fscod);
+                printf("        bsid        = %d\n", dec3->GetSubStreams()[i].bsid);
+                printf("        bsmod       = %d\n", dec3->GetSubStreams()[i].bsmod);
+                printf("        acmod       = %d\n", dec3->GetSubStreams()[i].acmod);
+                printf("        lfeon       = %d\n", dec3->GetSubStreams()[i].lfeon);
+                printf("        num_dep_sub = %d\n", dec3->GetSubStreams()[i].num_dep_sub);
+                printf("        chan_loc    = %d\n", dec3->GetSubStreams()[i].chan_loc);
+            }
+        }
     }
     
     // AVC specifics

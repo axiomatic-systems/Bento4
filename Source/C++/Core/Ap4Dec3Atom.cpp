@@ -72,7 +72,7 @@ AP4_Dec3Atom::AP4_Dec3Atom(AP4_UI32 size, const AP4_UI08* payload) :
     
     // parse the payload
     m_DataRate = (payload[0]<<5)|(payload[1]>>3);
-    unsigned int substream_count = 1+payload[1]&7;
+    unsigned int substream_count = 1+(payload[1]&7);
     payload      += 2;
     payload_size -= 2;
     m_SubStreams.SetItemCount(substream_count);
