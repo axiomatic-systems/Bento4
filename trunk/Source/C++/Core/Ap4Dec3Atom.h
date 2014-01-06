@@ -45,7 +45,7 @@
 class AP4_Dec3Atom : public AP4_Atom
 {
 public:
-    AP4_IMPLEMENT_DYNAMIC_CAST_D(AP4_AvccAtom, AP4_Atom)
+    AP4_IMPLEMENT_DYNAMIC_CAST_D(AP4_Dec3Atom, AP4_Atom)
 
     // types
     struct SubStream {
