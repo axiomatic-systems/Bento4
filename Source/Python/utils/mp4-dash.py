@@ -198,7 +198,8 @@ def OutputDash(options, audio_tracks, video_tracks):
         kwargs = {'mimeType': AUDIO_MIMETYPE, 'startWithSAP': '1', 'segmentAlignment': 'true'}
         if language:
             id_ext = '.' + language
-            kwargs['lang'] = language
+            if language != 'und':
+                kwargs['lang'] = language
         else:
             id_ext = ''
         adaptation_set = xml.SubElement(*args, **kwargs)
@@ -279,7 +280,7 @@ def OutputSmooth(options, audio_tracks, video_tracks):
                                       Name=stream_name, 
                                       QualityLevels="1",
                                       TimeScale=str(audio_track.timescale))
-        if language:
+        if language and language != 'und':
             stream_index.set('Language', language)
         xml.SubElement(stream_index,
                        'QualityLevel',
@@ -440,6 +441,8 @@ def main():
                       help="Video codec string")
     parser.add_option('', "--audio-codec", metavar='<codec>', dest="audio_codec", default=None,
                       help="Audio codec string")
+    parser.add_option('', "--language-map", dest="language_map", metavar="<lang_from>:<lang_to>[,...]",
+                      help="Remap language code <lang_from> to <lang_to>. Multiple mappings can be specified, separated by ','")
     parser.add_option('', "--smooth", dest="smooth", default=False, action="store_true", 
                       help="Produce a Smooth Streaming compatible output")
     parser.add_option('', '--smooth-client-manifest-name', dest="smooth_client_manifest_filename",
@@ -507,6 +510,13 @@ def main():
                 raise Exception('Invalid argument format for --encryption-key option')
         options.key_hex = key_hex
         options.kid_hex = kid_hex
+
+    if options.language_map:
+        mappings = options.language_map.split(',')
+        options.language_map = {}
+        for mapping in mappings:
+            from_lang, to_lang = mapping.split(':')
+            options.language_map[from_lang] = to_lang
 
     # create the output directory
     severity = 'ERROR'
@@ -644,19 +654,16 @@ def main():
         # process audio tracks
         for track in [t for t in tracks if t.type == 'audio']:
             language = LanguageCodeMap.get(track.language, track.language)
-            if track_language and track_language != language:
+            if track_language and track_language != language and track_language != track.language:
                 continue
+            if options.language_map and language in options.language_map:
+                language = options.language_map[language]
             if language not in audio_tracks:
                 audio_tracks[language] = track
-                    
-        # audio tracks with languages don't mix with language-less tracks
-        if len(audio_tracks) > 1 and '' in audio_tracks:
-            sys.stderr.write('WARNING: removing audio tracks with an unspecified language\n')
-            del audio_tracks['']
-            
+
         # process video tracks
         video_tracks += [t for t in tracks if t.type == 'video']
-        
+
     # check that we have at least one audio and one video
     if not audio_tracks:
         PrintErrorAndExit('ERROR: no audio track selected')
