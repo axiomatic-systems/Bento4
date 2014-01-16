@@ -431,6 +431,8 @@ private:
 class AP4_MetaDataStringAtom : public AP4_Atom
 {
 public:
+    AP4_IMPLEMENT_DYNAMIC_CAST_D(AP4_MetaDataStringAtom, AP4_Atom)
+
     // constructors
     AP4_MetaDataStringAtom(Type type, const char* value);
     AP4_MetaDataStringAtom(Type type, AP4_UI32 size, AP4_ByteStream& stream);

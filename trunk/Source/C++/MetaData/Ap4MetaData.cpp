@@ -46,6 +46,7 @@ AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_3GppLocalizedStringAtom)
 AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_DcfdAtom)
 AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_DcfStringAtom)
 AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_DataAtom)
+AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_MetaDataStringAtom)
 
 /*----------------------------------------------------------------------
 |   metadata keys
