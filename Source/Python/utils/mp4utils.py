@@ -245,7 +245,7 @@ class Mp4File:
             print '  found', len(self.segments), 'segments'
                         
         # get the mp4 file info
-        json_info = Mp4Info(options, filename, format='json')
+        json_info = Mp4Info(options, filename, format='json', fast=True)
         self.info = json.loads(json_info, strict=False, object_pairs_hook=collections.OrderedDict)
 
         for track in self.info['tracks']:
@@ -298,21 +298,24 @@ class Mp4File:
                 for trun in FilterChildren(trafs[0], 'trun'):
                     track.sample_counts.append(trun['sample count'])
                     for (name, value) in trun.items():
-                        if name.startswith('entry '):
-                            sample_duration = 0
-                            f = value.find('duration:')
-                            if f >= 0:
-                                f += 9
-                                g = value.find(' ', f)
-                                if g >= 0:
-                                    sample_duration = int(value[f:g])
-                            else:
+                        if name[0] in '0123456789':
+                            sample_duration = -1
+                            fields = value.split(',')
+                            for field in fields:
+                                if field.startswith('d:'):
+                                    sample_duration = int(field[2:])
+                            if sample_duration == -1:
                                 sample_duration = default_sample_duration
                             segment_duration += sample_duration
                 track.segment_scaled_durations.append(segment_duration)
                 segment_duration_sec = float(segment_duration) / float(track.timescale)
                 track.segment_durations.append(segment_duration_sec)
                 segment_index += 1
+
+                # remove the 'trun' entries to save some memory
+                for traf in trafs:
+                    traf['children'] = [x for x in traf['children'] if x['name'] != 'trun']
+
             elif atom['name'] == 'mdat':
                 # end of fragment on 'mdat' atom
                 if track:
