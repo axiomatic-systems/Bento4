@@ -543,7 +543,7 @@ def main():
                 continue
                 
             # get the mp4 file info
-            json_info = Mp4Info(Options, media_file, format='json')
+            json_info = Mp4Info(Options, media_file, format='json', fast=True)
             info = json.loads(json_info, strict=False)
 
             if 'tracks' not in info:

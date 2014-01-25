@@ -70,7 +70,8 @@ PrintUsageAndExit()
             "                      <format> is: text (default) or json\n"
             "  --show-layout:      show sample layout\n"
             "  --show-samples:     show sample details\n"
-            "  --show-sample-data: show sample data\n");
+            "  --show-sample-data: show sample data\n"
+            "  --fast:             skip some details that are slow to compute\n");
     exit(1);
 }
 
@@ -821,7 +822,7 @@ ComputeBitrate(AP4_Movie& movie, AP4_Track& track, AP4_ByteStream& stream)
 |   ShowTrackInfo_Text
 +---------------------------------------------------------------------*/
 static void
-ShowTrackInfo_Text(AP4_Movie& movie, AP4_Track& track, AP4_ByteStream& stream, bool show_samples, bool show_sample_data, bool verbose)
+ShowTrackInfo_Text(AP4_Movie& movie, AP4_Track& track, AP4_ByteStream& stream, bool show_samples, bool show_sample_data, bool verbose, bool fast)
 {
     printf("  flags:        %d", track.GetFlags());
     if (track.GetFlags() & AP4_TRACK_FLAG_ENABLED) {
@@ -860,7 +861,9 @@ ShowTrackInfo_Text(AP4_Movie& movie, AP4_Track& track, AP4_ByteStream& stream, b
     printf("    timescale:    %d\n", track.GetMediaTimeScale());
     printf("    duration:     %lld (media timescale units)\n", track.GetMediaDuration());
     printf("    duration:     %d (ms)\n", (AP4_UI32)AP4_ConvertTime(track.GetMediaDuration(), track.GetMediaTimeScale(), 1000));
+    if (!fast) {
     printf("    bitrate (computed): %.3f Kbps\n", (float)ComputeBitrate(movie, track, stream)/1000.0);
+    }
     if (track.GetWidth()  || track.GetHeight()) {
         printf("  display width:  %f\n", (float)track.GetWidth()/65536.0);
         printf("  display height: %f\n", (float)track.GetHeight()/65536.0);
@@ -901,7 +904,7 @@ ShowTrackInfo_Text(AP4_Movie& movie, AP4_Track& track, AP4_ByteStream& stream, b
 |   ShowTrackInfo_Json
 +---------------------------------------------------------------------*/
 static void
-ShowTrackInfo_Json(AP4_Movie& movie, AP4_Track& track, AP4_ByteStream& stream, bool /*show_samples*/, bool /*show_sample_data*/, bool verbose)
+ShowTrackInfo_Json(AP4_Movie& movie, AP4_Track& track, AP4_ByteStream& stream, bool /*show_samples*/, bool /*show_sample_data*/, bool verbose, bool fast)
 {
     printf("{\n");
     printf("  \"flags\":%d,\n", track.GetFlags());
@@ -945,8 +948,13 @@ ShowTrackInfo_Json(AP4_Movie& movie, AP4_Track& track, AP4_ByteStream& stream, b
     printf("    \"sample_count\":%d,\n", track.GetSampleCount());
     printf("    \"timescale\":%d,\n", track.GetMediaTimeScale());
     printf("    \"duration\":%lld,\n", track.GetMediaDuration());
-    printf("    \"duration_ms\":%d,\n", (AP4_UI32)AP4_ConvertTime(track.GetMediaDuration(), track.GetMediaTimeScale(), 1000));
+    printf("    \"duration_ms\":%d", (AP4_UI32)AP4_ConvertTime(track.GetMediaDuration(), track.GetMediaTimeScale(), 1000));
+    if (!fast) {
+        printf(",\n");
     printf("    \"bitrate\":%.3f\n", (float)ComputeBitrate(movie, track, stream)/1000.0);
+    } else {
+        printf("\n");
+    }
     printf("  },\n");
     if (track.GetWidth()  || track.GetHeight()) {
         printf("  \"display_width\":%f,\n", (float)track.GetWidth()/65536.0);
@@ -976,15 +984,15 @@ ShowTrackInfo_Json(AP4_Movie& movie, AP4_Track& track, AP4_ByteStream& stream, b
 |   ShowTrackInfo
 +---------------------------------------------------------------------*/
 static void
-ShowTrackInfo(AP4_Movie& movie, AP4_Track& track, AP4_ByteStream& stream, bool show_samples, bool show_sample_data, bool verbose)
+ShowTrackInfo(AP4_Movie& movie, AP4_Track& track, AP4_ByteStream& stream, bool show_samples, bool show_sample_data, bool verbose, bool fast)
 {
     switch (Options.format) {
         case TEXT_FORMAT: 
-            ShowTrackInfo_Text(movie, track, stream, show_samples, show_sample_data, verbose);
+            ShowTrackInfo_Text(movie, track, stream, show_samples, show_sample_data, verbose, fast);
             break;
 
         case JSON_FORMAT: 
-            ShowTrackInfo_Json(movie, track, stream, show_samples, show_sample_data, verbose);
+            ShowTrackInfo_Json(movie, track, stream, show_samples, show_sample_data, verbose, fast);
             break;
     }
 }
@@ -1073,7 +1081,7 @@ ShowFileInfo(AP4_File& file)
 |   ShowTracks
 +---------------------------------------------------------------------*/
 static void
-ShowTracks(AP4_Movie& movie, AP4_List<AP4_Track>& tracks, AP4_ByteStream& stream, bool show_samples, bool show_sample_data, bool verbose)
+ShowTracks(AP4_Movie& movie, AP4_List<AP4_Track>& tracks, AP4_ByteStream& stream, bool show_samples, bool show_sample_data, bool verbose, bool fast)
 {
     if (Options.format == JSON_FORMAT) printf("\"tracks\":[\n");
     int index=1;
@@ -1084,7 +1092,7 @@ ShowTracks(AP4_Movie& movie, AP4_List<AP4_Track>& tracks, AP4_ByteStream& stream
             printf("Track %d:\n", index); 
         }
         if (Options.format == JSON_FORMAT && index > 1) printf(",\n"); 
-        ShowTrackInfo(movie, *track_item->GetData(), stream, show_samples, show_sample_data, verbose);
+        ShowTrackInfo(movie, *track_item->GetData(), stream, show_samples, show_sample_data, verbose, fast);
     }
     if (Options.format == JSON_FORMAT) printf("]\n");
 }
@@ -1093,7 +1101,7 @@ ShowTracks(AP4_Movie& movie, AP4_List<AP4_Track>& tracks, AP4_ByteStream& stream
 |   ShowMarlinTracks
 +---------------------------------------------------------------------*/
 static void
-ShowMarlinTracks(AP4_File& file, AP4_ByteStream& stream, AP4_List<AP4_Track>& tracks, bool show_samples, bool show_sample_data, bool verbose)
+ShowMarlinTracks(AP4_File& file, AP4_ByteStream& stream, AP4_List<AP4_Track>& tracks, bool show_samples, bool show_sample_data, bool verbose, bool fast)
 {
     if (Options.format != TEXT_FORMAT) return;
     
@@ -1101,7 +1109,7 @@ ShowMarlinTracks(AP4_File& file, AP4_ByteStream& stream, AP4_List<AP4_Track>& tr
     AP4_Result result = AP4_MarlinIpmpParser::Parse(file, stream, sinf_entries);
     if (AP4_FAILED(result)) {
         printf("WARNING: cannot parse Marlin IPMP info\n");
-        ShowTracks(*file.GetMovie(), tracks, stream, show_samples, show_sample_data, verbose);
+        ShowTracks(*file.GetMovie(), tracks, stream, show_samples, show_sample_data, verbose, fast);
         return;
     }
     int index=1;
@@ -1110,7 +1118,7 @@ ShowMarlinTracks(AP4_File& file, AP4_ByteStream& stream, AP4_List<AP4_Track>& tr
          track_item = track_item->GetNext(), ++index) {
         printf("Track %d:\n", index); 
         AP4_Track* track = track_item->GetData();
-        ShowTrackInfo(*file.GetMovie(), *track, stream, show_samples, show_sample_data, verbose);
+        ShowTrackInfo(*file.GetMovie(), *track, stream, show_samples, show_sample_data, verbose, fast);
         
         for (AP4_List<AP4_MarlinIpmpParser::SinfEntry>::Item* sinf_entry_item = sinf_entries.FirstItem();
              sinf_entry_item;
@@ -1277,6 +1285,7 @@ main(int argc, char** argv)
     bool        show_samples     = false;
     bool        show_sample_data = false;
     bool        show_layout      = false;
+    bool        fast             = false;
     
     while (char* arg = *++argv) {
         if (!strcmp(arg, "--verbose")) {
@@ -1297,6 +1306,8 @@ main(int argc, char** argv)
                 return 1;
             }
 
+        } else if (!strcmp(arg, "--fast")) {
+            fast = true;
         } else if (!strcmp(arg, "--show-samples")) {
             show_samples = true;
         } else if (!strcmp(arg, "--show-sample-data")) {
@@ -1329,7 +1340,7 @@ main(int argc, char** argv)
 
     if (Options.format == JSON_FORMAT) printf("{\n");
     
-    AP4_File* file = new AP4_File(*input);
+    AP4_File* file = new AP4_File(*input, AP4_DefaultAtomFactory::Instance, true);
     input->Release();
     ShowFileInfo(*file);
 
@@ -1338,16 +1349,15 @@ main(int argc, char** argv)
     if (movie) {
         ShowMovieInfo(*movie);
 
-    
         AP4_List<AP4_Track>& tracks = movie->GetTracks();
         if (Options.format == TEXT_FORMAT) {
             printf("Found %d Tracks\n", tracks.ItemCount());
         }
 
         if (ftyp && ftyp->GetMajorBrand() == AP4_MARLIN_BRAND_MGSV) {
-            ShowMarlinTracks(*file, *input, tracks, show_samples, show_sample_data, verbose);
+            ShowMarlinTracks(*file, *input, tracks, show_samples, show_sample_data, verbose, fast);
         } else {
-            ShowTracks(*movie, tracks, *input, show_samples, show_sample_data, verbose);
+            ShowTracks(*movie, tracks, *input, show_samples, show_sample_data, verbose, fast);
         }
         
         if (show_layout) {
