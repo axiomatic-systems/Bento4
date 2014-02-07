@@ -558,8 +558,12 @@ AP4_CencFragmentEncrypter::ProcessFragment()
             
         case AP4_CENC_VARIANT_MPEG:
             if (AP4_GlobalOptions::GetBool("mpeg-cenc.piff-compatible")) {
-                m_SampleEncryptionAtom       = new AP4_SencAtom(8);
-                m_SampleEncryptionAtomShadow = new AP4_PiffSampleEncryptionAtom(8);
+                AP4_UI08 iv_size = 8;
+                if (AP4_GlobalOptions::GetBool("mpeg-cenc.iv-size-16")) {
+                    iv_size = 16;
+                }
+                m_SampleEncryptionAtom       = new AP4_SencAtom(iv_size);
+                m_SampleEncryptionAtomShadow = new AP4_PiffSampleEncryptionAtom(iv_size);
             } else {
                 AP4_UI08 iv_size = 16; // default
                 if (AP4_GlobalOptions::GetBool("mpeg-cenc.iv-size-8")) {
@@ -973,8 +977,9 @@ AP4_CencEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
             break;
         
         case AP4_CENC_VARIANT_MPEG:
-            if (AP4_GlobalOptions::GetBool("mpeg-cenc.piff-compatible") ||
-                AP4_GlobalOptions::GetBool("mpeg-cenc.iv-size-8")) {
+            if ((AP4_GlobalOptions::GetBool("mpeg-cenc.piff-compatible") ||
+                 AP4_GlobalOptions::GetBool("mpeg-cenc.iv-size-8")) &&
+                 !AP4_GlobalOptions::GetBool("mpeg-cenc.iv-size-16")) {
                 iv_size = 8;
             }
             algorithm_id = AP4_CENC_ALGORITHM_ID_CTR;
