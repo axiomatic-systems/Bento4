@@ -26,26 +26,32 @@ SVN_REVISION = "$Revision$"
 SCRIPT_PATH = path.abspath(path.dirname(__file__))
 sys.path += [SCRIPT_PATH]
 
-VIDEO_MIMETYPE           = 'video/mp4'
-AUDIO_MIMETYPE           = 'audio/mp4'
-VIDEO_DIR                = 'video'
-AUDIO_DIR                = 'audio'
-MPD_NS_COMPAT            = 'urn:mpeg:DASH:schema:MPD:2011'
-MPD_NS                   = 'urn:mpeg:dash:schema:mpd:2011'
-ISOFF_LIVE_PROFILE       = 'urn:mpeg:dash:profile:isoff-live:2011' 
-INIT_SEGMENT_NAME        = 'init.mp4'
-SEGMENT_PATTERN          = 'seg-%04llu.m4f'
-SEGMENT_URL_PATTERN      = 'seg-%04d.m4f'
-SEGMENT_TEMPLATE         = 'seg-$Number%04d$.m4f'
-MEDIA_FILE_PATTERN       = 'media-%02d.mp4'
-MARLIN_SCHEME_ID_URI     = 'urn:uuid:5E629AF5-38DA-4063-8977-97FFBD9902D4'
-MARLIN_MAS_NAMESPACE     = 'urn:marlin:mas:1-0:services:schemas:mpd'
-PLAYREADY_SCHEME_ID_URI  = 'urn:uuid:9a04f079-9840-4286-ab92-e65be0885f95'
-PLAYREADY_MSPR_NAMESPACE = 'urn:microsoft:playready'
-SMOOTH_INIT_FILE_PATTERN = 'init-%02d-%02d.mp4'
-SMOOTH_DEFAULT_TIMESCALE = 10000000
-SMIL_NAMESPACE           = 'http://www.w3.org/2001/SMIL20/Language'
-             
+VIDEO_MIMETYPE            = 'video/mp4'
+AUDIO_MIMETYPE            = 'audio/mp4'
+VIDEO_DIR                 = 'video'
+AUDIO_DIR                 = 'audio'
+MPD_NS_COMPAT             = 'urn:mpeg:DASH:schema:MPD:2011'
+MPD_NS                    = 'urn:mpeg:dash:schema:mpd:2011'
+ISOFF_LIVE_PROFILE        = 'urn:mpeg:dash:profile:isoff-live:2011'
+SPLIT_INIT_SEGMENT_NAME   = 'init.mp4'
+NOSPLIT_INIT_FILE_PATTERN = 'init-%02d-%02d.mp4'
+SEGMENT_PATTERN           = 'seg-%04llu.m4f'
+SEGMENT_URL_PATTERN       = 'seg-%04d.m4f'
+SEGMENT_TEMPLATE          = 'seg-$Number%04d$.m4f'
+MEDIA_FILE_PATTERN        = 'media-%02d.mp4'
+MARLIN_SCHEME_ID_URI      = 'urn:uuid:5E629AF5-38DA-4063-8977-97FFBD9902D4'
+MARLIN_MAS_NAMESPACE      = 'urn:marlin:mas:1-0:services:schemas:mpd'
+PLAYREADY_SCHEME_ID_URI   = 'urn:uuid:9a04f079-9840-4286-ab92-e65be0885f95'
+PLAYREADY_MSPR_NAMESPACE  = 'urn:microsoft:playready'
+SMOOTH_DEFAULT_TIMESCALE  = 10000000
+SMIL_NAMESPACE            = 'http://www.w3.org/2001/SMIL20/Language'
+DASH_MEDIA_SEGMENT_URL_PATTERN_SMOOTH = "/QualityLevels($Bandwidth$)/Fragments(%s=$Time$)"
+DASH_MEDIA_SEGMENT_URL_PATTERN_HIPPO  = '%s/Bitrate($Bandwidth$)/Fragment($Time$)'
+HIPPO_MEDIA_SEGMENT_REGEXP_DEFAULT = '%s/Bitrate\\\\(%d\\\\)/Fragment\\\\((\\\\d+)\\\\)'
+HIPPO_MEDIA_SEGMENT_GROUPS_DEFAULT = '["time"]'
+HIPPO_MEDIA_SEGMENT_REGEXP_SMOOTH  = 'QualityLevels\\\\(%d\\\\)/Fragments\\\\(%s=(\\\\d+)\\\\)'
+HIPPO_MEDIA_SEGMENT_GROUPS_SMOOTH  = '["time"]'
+
 TempFiles = []
 
 
@@ -60,7 +66,7 @@ def AddSegmentList(options, container, subdir, track, use_byte_range=False):
                                   timescale='1000',
                                   duration=str(int(track.average_segment_duration*1000)))
     if use_byte_range:
-        byte_range=str(track.parent.init_segment.position)+'-'+str(track.parent.init_segment.position+track.parent.init_segment.size-1)
+        byte_range = str(track.parent.init_segment.position)+'-'+str(track.parent.init_segment.position+track.parent.init_segment.size-1)
         xml.SubElement(segment_list,
                        'Initialization',
                        sourceURL=prefix + track.parent.media_name,
@@ -68,7 +74,7 @@ def AddSegmentList(options, container, subdir, track, use_byte_range=False):
     else:
         xml.SubElement(segment_list,
                        'Initialization',
-                       sourceURL=prefix + INIT_SEGMENT_NAME)
+                       sourceURL=prefix + track.init_segment_name)
     i = 0
     for segment_index in track.moofs:
         segment = track.parent.segments[segment_index]
@@ -93,15 +99,20 @@ def AddSegmentTemplate(options, container, subdir, track, stream_name):
         prefix = subdir + '/'
     else:
         prefix = ''
+    init_segment_url = prefix + track.init_segment_name
+
     if options.use_segment_timeline:
         url_template = prefix + SEGMENT_TEMPLATE
-        init_segment_url = prefix + INIT_SEGMENT_NAME
+        init_segment_url = prefix + track.init_segment_name
         use_template_numbers = True
         if options.smooth:
             url_base = path.basename(options.smooth_server_manifest_filename)
-            url_template = url_base + "/QualityLevels($Bandwidth$)/Fragments(%s=$Time$)" % stream_name
-            init_segment_url = SMOOTH_INIT_FILE_PATTERN % (track.parent.index, track.id)
+            url_template = url_base + DASH_MEDIA_SEGMENT_URL_PATTERN_SMOOTH % stream_name
             use_template_numbers = False
+        elif options.hippo:
+            url_template = DASH_MEDIA_SEGMENT_URL_PATTERN_HIPPO % stream_name
+            use_template_numbers = False
+
         args = [container, 'SegmentTemplate']
         kwargs = {'timescale': str(track.timescale),
                   'initialization': init_segment_url,
@@ -129,7 +140,7 @@ def AddSegmentTemplate(options, container, subdir, track, stream_name):
                        timescale='1000',
                        duration=str(int(track.average_segment_duration*1000)),
                        startNumber='0',
-                       initialization=prefix + INIT_SEGMENT_NAME,
+                       initialization=init_segment_url,
                        media=prefix + SEGMENT_TEMPLATE)
 
 
@@ -230,8 +241,6 @@ def OutputDash(options, audio_tracks, video_tracks):
     if options.marlin or options.playready_header:
         AddContentProtection(options, adaptation_set, video_tracks)
     for video_track in video_tracks:
-        video_desc = video_track.info['sample_descriptions'][0]
-
         representation = xml.SubElement(adaptation_set,
                                         'Representation',
                                         id='video.' + str(video_track.parent.index),
@@ -266,10 +275,8 @@ def OutputSmooth(options, audio_tracks, video_tracks):
     audio_index = 0
     for (language, audio_track) in audio_tracks.iteritems():
         if language:
-            id_ext = "."+language
             stream_name = "audio_"+language
         else:
-            id_ext = ''
             stream_name = "audio"
         audio_url_pattern="QualityLevels({bitrate})/Fragments(%s={start time})" % (stream_name)
         stream_index = xml.SubElement(client_manifest, 
@@ -342,7 +349,7 @@ def OutputSmooth(options, audio_tracks, video_tracks):
                                            SystemID='9a04f079-9840-4286-ab92-e65be0885f95')
         protection_header.text = header_b64
         
-    # save the Client Manifest
+    # save the Smooth Client Manifest
     if options.smooth_client_manifest_filename != '':
         open(path.join(options.output_dir, options.smooth_client_manifest_filename), "wb").write(parseString(xml.tostring(client_manifest)).toprettyxml("  "))
         
@@ -399,6 +406,37 @@ def OutputSmooth(options, audio_tracks, video_tracks):
     if options.smooth_server_manifest_filename != '':
         open(path.join(options.output_dir, options.smooth_server_manifest_filename), "wb").write(parseString(xml.tostring(server_manifest)).toprettyxml("  "))
     
+#############################################
+def OutputHippo(options, audio_tracks, video_tracks):
+    # create the Server Manifest file
+    server_manifest = '{\n  "media": [\n'
+    sep = ''
+    for track in audio_tracks.values()+video_tracks:
+        server_manifest += sep+'    {\n'
+        server_manifest += '      "trackId": '+ str(track.id) + ',\n'
+        server_manifest += '      "mediaSegments": {\n'
+        server_manifest += '        "urls": [\n'
+        server_manifest += '          {\n'
+        if options.smooth:
+            server_manifest += '            "pattern": "'+(HIPPO_MEDIA_SEGMENT_REGEXP_SMOOTH % (track.bandwidth, track.stream_id))+'",\n'
+            server_manifest += '            "fields": '+HIPPO_MEDIA_SEGMENT_GROUPS_SMOOTH+'\n'
+        else:
+            server_manifest += '            "pattern": "'+(HIPPO_MEDIA_SEGMENT_REGEXP_DEFAULT % (track.stream_id, track.bandwidth))+'",\n'
+            server_manifest += '            "fields": '+HIPPO_MEDIA_SEGMENT_GROUPS_DEFAULT+'\n'
+        server_manifest += '          }\n'
+        server_manifest += '        ],\n'
+        server_manifest += '        "file": "' + track.parent.media_name + '"\n'
+        server_manifest += '      },\n'
+        server_manifest += '      "initSegment": {\n'
+        server_manifest += '        "file": "' + track.init_segment_name + '"\n'
+        server_manifest += '      }\n'
+        server_manifest += '    }'
+        sep = ',\n'
+    server_manifest += '\n  ]\n}'
+
+    # save the Manifest
+    if options.hippo_server_manifest_filename != '':
+        open(path.join(options.output_dir, options.hippo_server_manifest_filename), "wb").write(server_manifest)
 
 #############################################
 Options = None            
@@ -444,11 +482,15 @@ def main():
     parser.add_option('', "--language-map", dest="language_map", metavar="<lang_from>:<lang_to>[,...]",
                       help="Remap language code <lang_from> to <lang_to>. Multiple mappings can be specified, separated by ','")
     parser.add_option('', "--smooth", dest="smooth", default=False, action="store_true", 
-                      help="Produce a Smooth Streaming compatible output")
+                      help="Produce an output compatible with Smooth Streaming")
     parser.add_option('', '--smooth-client-manifest-name', dest="smooth_client_manifest_filename",
                       help="Smooth Streaming Client Manifest file name", metavar="<filename>", default='stream.ismc')
     parser.add_option('', '--smooth-server-manifest-name', dest="smooth_server_manifest_filename",
                       help="Smooth Streaming Server Manifest file name", metavar="<filename>", default='stream.ism')
+    parser.add_option('', "--hippo", dest="hippo", default=False, action="store_true",
+                      help="Produce an output compatible with the Hippo Media Server")
+    parser.add_option('', '--hippo-server-manifest-name', dest="hippo_server_manifest_filename",
+                      help="Hippo Media Server Manifest file name", metavar="<filename>", default='stream.msm')
     parser.add_option('', "--encryption-key", dest="encryption_key", metavar='<KID>:<key>', default=None,
                       help="Encrypt all audio and video tracks with AES key <key> (in hex) and KID <KID> (in hex). Alternatively, the <key> can be specified as the character '#' followed by a base64-encoded key seed.")
     parser.add_option('', "--encryption-args", dest="encryption_args", metavar='<cmdline-arguments>', default=None,
@@ -481,8 +523,13 @@ def main():
         options.use_segment_timeline = True
         if options.use_segment_list:
             raise Exception('ERROR: --smooth and --use-segment-list are mutually exclusive')
+    if options.hippo:
+        options.split = False
+        options.use_segment_timeline = True
+        if options.use_segment_list:
+            raise Exception('ERROR: --hippo and --use-segment-list are mutually exclusive')
     if not options.split:
-        if not options.smooth and not options.use_segment_list:
+        if not options.smooth and not options.hippo and not options.use_segment_list:
             sys.stderr.write('WARNING: --no-split requires --use-segment-list, which will be enabled automatically\n')
             options.use_segment_list = True
                     
@@ -735,7 +782,24 @@ def main():
         # get the width and height
         video_track.width  = video_desc['width']
         video_track.height = video_desc['height']
-        
+
+    # compute the track stream id init segment name for each track
+    for (language, audio_track) in audio_tracks.items():
+        if options.split:
+            audio_track.init_segment_name = SPLIT_INIT_SEGMENT_NAME
+        else:
+            audio_track.init_segment_name = NOSPLIT_INIT_FILE_PATTERN % (audio_track.parent.index, audio_track.id)
+        if language:
+            audio_track.stream_id = 'audio_'+language
+        else:
+            audio_track.stream_id = 'audio'
+    for video_track in video_tracks:
+        if options.split:
+            video_track.init_segment_name = SPLIT_INIT_SEGMENT_NAME
+        else:
+            video_track.init_segment_name = NOSPLIT_INIT_FILE_PATTERN % (video_track.parent.index, video_track.id)
+        video_track.stream_id = 'video'
+
     # compute some values if not set
     if options.min_buffer_time == 0.0:
         options.min_buffer_time = video_tracks[0].average_segment_duration
@@ -754,6 +818,10 @@ def main():
     if options.smooth:
         OutputSmooth(options, audio_tracks, video_tracks)
     
+    # output the Hippo Manifest
+    if options.hippo:
+        OutputHippo(options, audio_tracks, video_tracks)
+
     # create the directories and split the media
     if not options.no_media:
         if options.split:
@@ -768,7 +836,7 @@ def main():
                          audio_track.parent.filename,
                          track_id               = str(audio_track.id),
                          pattern_parameters     = 'N',
-                         init_segment           = path.join(out_dir, INIT_SEGMENT_NAME),
+                         init_segment           = path.join(out_dir, audio_track.init_segment_name),
                          media_segment          = path.join(out_dir, SEGMENT_PATTERN))
         
             MakeNewDir(path.join(options.output_dir, 'video'))
@@ -780,7 +848,7 @@ def main():
                          video_track.parent.filename,
                          track_id               = str(video_track.id),
                          pattern_parameters     = 'N',
-                         init_segment           = path.join(out_dir, INIT_SEGMENT_NAME),
+                         init_segment           = path.join(out_dir, video_track.init_segment_name),
                          media_segment          = path.join(out_dir, SEGMENT_PATTERN))
         else:
             for mp4_file in mp4_files.values():
@@ -790,14 +858,13 @@ def main():
                     PrintErrorAndExit('ERROR: file ' + media_filename + ' already exists')
                     
                 shutil.copyfile(mp4_file.filename, media_filename)
-            if options.smooth:
+            if options.smooth or options.hippo:
                 for track in audio_tracks.values() + video_tracks:
                     Mp4Split(options,
                              track.parent.filename,
                              track_id     = str(track.id),
                              init_only    = True,
-                             init_segment = path.join(options.output_dir, SMOOTH_INIT_FILE_PATTERN % (track.parent.index, track.id)))
-
+                             init_segment = path.join(options.output_dir, track.init_segment_name))
 
 ###########################
 if __name__ == '__main__':
