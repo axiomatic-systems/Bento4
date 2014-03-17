@@ -53,6 +53,9 @@ public:
     // accessors
     const unsigned char*  GetSystemId() { return m_SystemId; }
     void                  SetSystemId(const unsigned char system_id[16]);
+    AP4_UI32              GetKidCount() { return m_KidCount; }
+    const unsigned char*  GetKid(unsigned int index);
+    void                  SetKids(const unsigned char* kids, AP4_UI32 kid_count);
     const AP4_DataBuffer& GetData() { return m_Data; }
     AP4_Result            SetData(const unsigned char* data, unsigned int data_size);
     AP4_Result            SetData(AP4_Atom& atom);
@@ -68,6 +71,8 @@ private:
     // members
     unsigned char  m_SystemId[16];
     AP4_DataBuffer m_Data;
+    AP4_UI32       m_KidCount;
+    AP4_DataBuffer m_Kids;
     AP4_DataBuffer m_Padding;
 };
 

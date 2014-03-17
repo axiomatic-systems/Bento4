@@ -250,8 +250,8 @@ public:
                                       AP4_UI16        depth,
                                       const char*     compressor_name,
                                       AP4_AtomParent* details) :
-    AP4_SampleDescription(TYPE_UNKNOWN, format, details),
-    AP4_VideoSampleDescription(width, height, depth, compressor_name) {}
+        AP4_SampleDescription(TYPE_UNKNOWN, format, details),
+        AP4_VideoSampleDescription(width, height, depth, compressor_name) {}
     
     // inherited from AP4_SampleDescription
     virtual AP4_Atom* ToAtom() const;    
@@ -516,6 +516,22 @@ const AP4_MpegSampleDescription::OTI AP4_OTI_MPEG2_PART3_AUDIO    = 0x69;
 const AP4_MpegSampleDescription::OTI AP4_OTI_MPEG1_VISUAL         = 0x6A;
 const AP4_MpegSampleDescription::OTI AP4_OTI_MPEG1_AUDIO          = 0x6B;
 const AP4_MpegSampleDescription::OTI AP4_OTI_JPEG                 = 0x6C;
+const AP4_MpegSampleDescription::OTI AP4_OTI_PNG                  = 0x6D;
+const AP4_MpegSampleDescription::OTI AP4_OTI_JPEG2000             = 0x6E;
+const AP4_MpegSampleDescription::OTI AP4_OTI_EVRC_VOICE           = 0xA0;
+const AP4_MpegSampleDescription::OTI AP4_OTI_SMV_VOICE            = 0xA1;
+const AP4_MpegSampleDescription::OTI AP4_OTI_3GPP2_CMF            = 0xA2;
+const AP4_MpegSampleDescription::OTI AP4_OTI_SMPTE_VC1            = 0xA3;
+const AP4_MpegSampleDescription::OTI AP4_OTI_DIRAC_VIDEO          = 0xA4;
+const AP4_MpegSampleDescription::OTI AP4_OTI_AC3_AUDIO            = 0xA5;
+const AP4_MpegSampleDescription::OTI AP4_OTI_EAC3_AUDIO           = 0xA6;
+const AP4_MpegSampleDescription::OTI AP4_OTI_DRA_AUDIO            = 0xA7;
+const AP4_MpegSampleDescription::OTI AP4_OTI_G719_AUDIO           = 0xA8;
+const AP4_MpegSampleDescription::OTI AP4_OTI_DTS_AUDIO            = 0xA9;
+const AP4_MpegSampleDescription::OTI AP4_OTI_DTS_HIRES_AUDIO      = 0xAA;
+const AP4_MpegSampleDescription::OTI AP4_OTI_DTS_MASTER_AUDIO     = 0xAB;
+const AP4_MpegSampleDescription::OTI AP4_OTI_DTS_EXPRESS_AUDIO    = 0xAC;
+const AP4_MpegSampleDescription::OTI AP4_OTI_13K_VOICE            = 0xE1;
 
 const AP4_UI08 AP4_MPEG4_AUDIO_OBJECT_TYPE_AAC_MAIN              = 1;  /**< AAC Main Profile                             */
 const AP4_UI08 AP4_MPEG4_AUDIO_OBJECT_TYPE_AAC_LC                = 2;  /**< AAC Low Complexity                           */

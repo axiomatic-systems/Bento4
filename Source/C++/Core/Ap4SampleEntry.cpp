@@ -44,10 +44,9 @@ AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_SampleEntry)
 /*----------------------------------------------------------------------
 |   AP4_SampleEntry::AP4_SampleEntry
 +---------------------------------------------------------------------*/
-AP4_SampleEntry::AP4_SampleEntry(AP4_Atom::Type format,
-                                 AP4_UI16       data_reference_index) :
+AP4_SampleEntry::AP4_SampleEntry(AP4_Atom::Type format) :
     AP4_ContainerAtom(format),
-    m_DataReferenceIndex(data_reference_index)
+    m_DataReferenceIndex(1)
 {
     m_Reserved1[0] = 0;
     m_Reserved1[1] = 0;
@@ -63,8 +62,15 @@ AP4_SampleEntry::AP4_SampleEntry(AP4_Atom::Type format,
 +---------------------------------------------------------------------*/
 AP4_SampleEntry::AP4_SampleEntry(AP4_Atom::Type format,
                                  AP4_Size       size) :
-    AP4_ContainerAtom(format, (AP4_UI64)size, false)
+    AP4_ContainerAtom(format, (AP4_UI64)size, false),
+    m_DataReferenceIndex(1)
 {
+    m_Reserved1[0] = 0;
+    m_Reserved1[1] = 0;
+    m_Reserved1[2] = 0;
+    m_Reserved1[3] = 0;
+    m_Reserved1[4] = 0;
+    m_Reserved1[5] = 0;
 }
 
 /*----------------------------------------------------------------------
@@ -225,6 +231,26 @@ AP4_UnknownSampleEntry::AP4_UnknownSampleEntry(AP4_Atom::Type  type,
         m_Payload.SetDataSize(size-(AP4_ATOM_HEADER_SIZE+AP4_SampleEntry::GetFieldsSize()));
         ReadFields(stream);
     }
+}
+
+/*----------------------------------------------------------------------
+|   AP4_UnknownSampleEntry::AP4_UnknownSampleEntry
++---------------------------------------------------------------------*/
+AP4_UnknownSampleEntry::AP4_UnknownSampleEntry(AP4_Atom::Type  type, 
+                                               AP4_DataBuffer& payload) :
+    AP4_SampleEntry(type),
+    m_Payload(payload)
+{
+    m_Size32 += payload.GetDataSize();
+}
+
+/*----------------------------------------------------------------------
+|   AP4_UnknownSampleEntry::Clone
++---------------------------------------------------------------------*/
+AP4_Atom*
+AP4_UnknownSampleEntry::Clone()
+{
+    return new AP4_UnknownSampleEntry(m_Type, m_Payload);
 }
 
 /*----------------------------------------------------------------------
@@ -967,6 +993,32 @@ AP4_AvcSampleEntry::ToSampleDescription()
         m_Depth,
         m_CompressorName.GetChars(),
         AP4_DYNAMIC_CAST(AP4_AvccAtom, GetChild(AP4_ATOM_TYPE_AVCC)));
+}
+
+/*----------------------------------------------------------------------
+|   AP4_HevcSampleEntry::AP4_HevcSampleEntry
++---------------------------------------------------------------------*/
+AP4_HevcSampleEntry::AP4_HevcSampleEntry(AP4_UI32         format,
+                                         AP4_Size         size,
+                                         AP4_ByteStream&  stream,
+                                         AP4_AtomFactory& atom_factory) :
+    AP4_VisualSampleEntry(format, size, stream, atom_factory)
+{
+}
+
+/*----------------------------------------------------------------------
+|   AP4_HevcSampleEntry::ToSampleDescription
++---------------------------------------------------------------------*/
+AP4_SampleDescription*
+AP4_HevcSampleEntry::ToSampleDescription()
+{
+    return new AP4_GenericVideoSampleDescription(
+        m_Type,
+        m_Width,
+        m_Height,
+        m_Depth,
+        m_CompressorName.GetChars(),
+        this);
 }
 
 /*----------------------------------------------------------------------

@@ -1085,8 +1085,6 @@
 		CAC02A18139DBA6F0034427F /* Mp4Split.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Mp4Split.cpp; sourceTree = "<group>"; };
 		CAC51D75129708CB00AE5CF9 /* Ap4PosixRandom.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4PosixRandom.cpp; sourceTree = "<group>"; };
 		CAC8F17016BE444D00C49741 /* mp4audioclip */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mp4audioclip; sourceTree = BUILT_PRODUCTS_DIR; };
-		CAC8F17316BE444E00C49741 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
-		CAC8F17516BE444E00C49741 /* Mp4AudioClip.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = Mp4AudioClip.1; sourceTree = "<group>"; };
 		CACDDD6816BF5FC200B79B20 /* Mp4AudioClip.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Mp4AudioClip.cpp; sourceTree = "<group>"; };
 		CAD6A7C30F7AFFD800456513 /* Ap4DynamicCast.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4DynamicCast.h; sourceTree = "<group>"; };
 		CAE03ABD1034AE0D006FAFD7 /* Ap4Hmac.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4Hmac.cpp; sourceTree = "<group>"; };
@@ -1394,7 +1392,6 @@
 				CA646A860CE97B2D009699D7 /* Apps */,
 				CA646A9B0CE97B51009699D7 /* Test */,
 				C6A0FF2B0290797F04C91782 /* Documentation */,
-				CAC8F17216BE444E00C49741 /* Mp4AudioClip */,
 				1AB674ADFE9D54B511CA2CBB /* Products */,
 			);
 			name = Bento4;
@@ -1977,15 +1974,6 @@
 			name = Posix;
 			path = "../../../Source/C++/System/Posix";
 			sourceTree = SOURCE_ROOT;
-		};
-		CAC8F17216BE444E00C49741 /* Mp4AudioClip */ = {
-			isa = PBXGroup;
-			children = (
-				CAC8F17316BE444E00C49741 /* main.cpp */,
-				CAC8F17516BE444E00C49741 /* Mp4AudioClip.1 */,
-			);
-			path = Mp4AudioClip;
-			sourceTree = "<group>";
 		};
 		CACDDD6716BF5FC200B79B20 /* Mp4AudioClip */ = {
 			isa = PBXGroup;

@@ -638,6 +638,21 @@ AP4_MpegSampleDescription::GetObjectTypeString(OTI oti)
         case AP4_OTI_MPEG1_VISUAL:         return "MPEG-1 Video";
         case AP4_OTI_MPEG1_AUDIO:          return "MPEG-1 Audio";
         case AP4_OTI_JPEG:                 return "JPEG";
+        case AP4_OTI_JPEG2000:             return "JPEG-2000";
+        case AP4_OTI_EVRC_VOICE:           return "EVRC Voice";
+        case AP4_OTI_SMV_VOICE:            return "SMV Voice";
+        case AP4_OTI_3GPP2_CMF:            return "3GPP2 CMF";
+        case AP4_OTI_SMPTE_VC1:            return "SMPTE VC1 Video";
+        case AP4_OTI_DIRAC_VIDEO:          return "Dirac Video";
+        case AP4_OTI_AC3_AUDIO:            return "AC3 Audio";
+        case AP4_OTI_EAC3_AUDIO:           return "E-AC3 Audio";
+        case AP4_OTI_DRA_AUDIO:            return "DRA Audio";
+        case AP4_OTI_G719_AUDIO:           return "G.719 Audio";
+        case AP4_OTI_DTS_AUDIO:            return "DTS Audio";
+        case AP4_OTI_DTS_HIRES_AUDIO:      return "DTS High Resolution Audio";
+        case AP4_OTI_DTS_MASTER_AUDIO:     return "DTS Master Audio";
+        case AP4_OTI_DTS_EXPRESS_AUDIO:    return "DTS Express/LBR Audio";
+        case AP4_OTI_13K_VOICE:            return "13K Voice";
         default:                           return "UNKNOWN";
     }
 }
