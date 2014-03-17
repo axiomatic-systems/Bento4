@@ -54,7 +54,7 @@ class AP4_SampleEntry : public AP4_ContainerAtom
     AP4_IMPLEMENT_DYNAMIC_CAST_D(AP4_SampleEntry, AP4_ContainerAtom)
 
     // methods
-    AP4_SampleEntry(AP4_Atom::Type format, AP4_UI16 data_ref_index = 1);
+    AP4_SampleEntry(AP4_Atom::Type format);
     AP4_SampleEntry(AP4_Atom::Type   format, 
                     AP4_Size         size,
                     AP4_ByteStream&  stream,
@@ -91,8 +91,12 @@ class AP4_SampleEntry : public AP4_ContainerAtom
 class AP4_UnknownSampleEntry : public AP4_SampleEntry
 {
  public: 
-    // this constructor takes ownership of the atom passed to it
+    // constructors
     AP4_UnknownSampleEntry(AP4_Atom::Type type, AP4_Size size, AP4_ByteStream& stream);
+    AP4_UnknownSampleEntry(AP4_Atom::Type type, AP4_DataBuffer& payload);
+    
+    // AP4_Atom methods
+    AP4_Atom* Clone();
     
     // AP4_SampleEntry methods
     virtual AP4_SampleDescription* ToSampleDescription();
@@ -345,6 +349,22 @@ public:
                        const char*         compressor_name,
                        const AP4_AvccAtom& avcc);
                         
+    // inherited from AP4_SampleEntry
+    virtual AP4_SampleDescription* ToSampleDescription();
+};
+
+/*----------------------------------------------------------------------
+|   AP4_HevcSampleEntry
++---------------------------------------------------------------------*/
+class AP4_HevcSampleEntry : public AP4_VisualSampleEntry
+{
+public:
+    // constructors
+    AP4_HevcSampleEntry(AP4_UI32         format, // hvc1, hev1
+                        AP4_Size         size,
+                        AP4_ByteStream&  stream,
+                        AP4_AtomFactory& atom_factory);
+    
     // inherited from AP4_SampleEntry
     virtual AP4_SampleDescription* ToSampleDescription();
 };

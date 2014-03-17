@@ -73,9 +73,16 @@ AP4_PsshAtom::AP4_PsshAtom(AP4_UI32        size,
                            AP4_UI32        version,
                            AP4_UI32        flags,
                            AP4_ByteStream& stream) :
-    AP4_Atom(AP4_ATOM_TYPE_PSSH, size, version, flags)
+    AP4_Atom(AP4_ATOM_TYPE_PSSH, size, version, flags),
+    m_KidCount(0)
 {
     stream.Read(m_SystemId, 16);
+    if (m_Version > 0) {
+        stream.ReadUI32(m_KidCount);
+        if (m_KidCount > size) return;
+        m_Kids.SetDataSize(m_KidCount*16);
+        stream.Read(m_Kids.UseData(), m_KidCount*16);
+    }
     AP4_UI32 data_size = 0;
     stream.ReadUI32(data_size);
     if (data_size > AP4_PSSH_MAX_DATA_SIZE) return;
@@ -86,6 +93,18 @@ AP4_PsshAtom::AP4_PsshAtom(AP4_UI32        size,
         m_Padding.SetDataSize(padding_size);
         stream.Read(m_Padding.UseData(), padding_size);
     }
+}
+
+/*----------------------------------------------------------------------
+|   AP4_PsshAtom::GetKid
++---------------------------------------------------------------------*/
+const unsigned char*
+AP4_PsshAtom::GetKid(unsigned int index)
+{
+    if (index >= m_KidCount) {
+        return NULL;
+    }
+    return m_Kids.GetData()+(index*16);
 }
 
 /*----------------------------------------------------------------------
@@ -138,6 +157,16 @@ AP4_PsshAtom::SetSystemId(const unsigned char system_id[16])
 }
 
 /*----------------------------------------------------------------------
+|   AP4_PsshAtom::SetKids
++---------------------------------------------------------------------*/
+void
+AP4_PsshAtom::SetKids(const unsigned char* kids, AP4_UI32 kid_count)
+{
+    m_KidCount = kid_count;
+    m_Kids.SetData(kids, 16*kid_count);
+}
+
+/*----------------------------------------------------------------------
 |   AP4_PsshAtom::WriteFields
 +---------------------------------------------------------------------*/
 AP4_Result
@@ -146,6 +175,12 @@ AP4_PsshAtom::WriteFields(AP4_ByteStream& stream)
     AP4_Result result;
     result = stream.Write(m_SystemId, 16);
     if (AP4_FAILED(result)) return result;
+    if (m_Version > 0) {
+        result = stream.WriteUI32(m_KidCount);
+        if (AP4_FAILED(result)) return result;
+        result = stream.Write(m_Kids.GetData(), m_KidCount*16);
+        if (AP4_FAILED(result)) return result;
+    }
     result = stream.WriteUI32(m_Data.GetDataSize());
     if (AP4_FAILED(result)) return result;
     if (m_Data.GetDataSize()) {
