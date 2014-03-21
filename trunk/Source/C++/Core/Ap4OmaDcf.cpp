@@ -1125,6 +1125,11 @@ AP4_OmaDcfEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
 
             case AP4_ATOM_TYPE_MP4V:
             case AP4_ATOM_TYPE_AVC1:
+            case AP4_ATOM_TYPE_AVC2:
+            case AP4_ATOM_TYPE_AVC3:
+            case AP4_ATOM_TYPE_AVC4:
+            case AP4_ATOM_TYPE_HEV1:
+            case AP4_ATOM_TYPE_HVC1:
                 format = AP4_ATOM_TYPE_ENCV;
                 break;
                 

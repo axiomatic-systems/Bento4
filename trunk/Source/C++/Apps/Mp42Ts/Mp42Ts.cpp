@@ -37,9 +37,9 @@
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-#define BANNER "MP4 To MPEG2-TS File Converter - Version 1.1\n"\
+#define BANNER "MP4 To MPEG2-TS File Converter - Version 1.2\n"\
                "(Bento4 Version " AP4_VERSION_STRING ")\n"\
-               "(c) 2002-2011 Axiomatic Systems, LLC"
+               "(c) 2002-2014 Axiomatic Systems, LLC"
  
 /*----------------------------------------------------------------------
 |   options
@@ -535,7 +535,16 @@ main(int argc, char** argv)
             fprintf(stderr, "ERROR: unable to parse audio sample description\n");
             goto end;
         }
+
+        // FIXME: we assume this is AAC
+        unsigned int stream_type = AP4_MPEG2_STREAM_TYPE_ISO_IEC_13818_7;
+        if (sample_description->GetFormat() != AP4_SAMPLE_FORMAT_MP4A) {
+            fprintf(stderr, "ERROR: audio codec not supported\n");
+            return 1;
+        }
+
         result = writer.SetAudioStream(audio_track->GetMediaTimeScale(),
+                                       stream_type,
                                        audio_stream,
                                        Options.audio_pid);
         if (AP4_FAILED(result)) {
@@ -551,7 +560,23 @@ main(int argc, char** argv)
             fprintf(stderr, "ERROR: unable to parse video sample description\n");
             goto end;
         }
+        
+        // decide on the stream type
+        unsigned int stream_type = 0;
+        if (sample_description->GetFormat() == AP4_SAMPLE_FORMAT_AVC1 ||
+            sample_description->GetFormat() == AP4_SAMPLE_FORMAT_AVC2 ||
+            sample_description->GetFormat() == AP4_SAMPLE_FORMAT_AVC3 ||
+            sample_description->GetFormat() == AP4_SAMPLE_FORMAT_AVC4) {
+            stream_type = AP4_MPEG2_STREAM_TYPE_AVC;
+        } else if (sample_description->GetFormat() == AP4_SAMPLE_FORMAT_HEV1 ||
+                   sample_description->GetFormat() == AP4_SAMPLE_FORMAT_HVC1) {
+            stream_type = AP4_MPEG2_STREAM_TYPE_HEVC;
+        } else {
+            fprintf(stderr, "ERROR: video codec not supported\n");
+            return 1;
+        }
         result = writer.SetVideoStream(video_track->GetMediaTimeScale(),
+                                       stream_type,
                                        video_stream,
                                        Options.video_pid);
         if (AP4_FAILED(result)) {

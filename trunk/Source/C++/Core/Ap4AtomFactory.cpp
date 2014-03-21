@@ -83,6 +83,7 @@
 #include "Ap4OdafAtom.h"
 #include "Ap4GrpiAtom.h"
 #include "Ap4AvccAtom.h"
+#include "Ap4HvccAtom.h"
 #include "Ap4Marlin.h"
 #include "Ap48bdlAtom.h"
 #include "Ap4Piff.h"
@@ -299,7 +300,7 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
 
           case AP4_ATOM_TYPE_HEV1:
           case AP4_ATOM_TYPE_HVC1:
-            atom = new AP4_VisualSampleEntry(type, size_32, stream, *this);
+            atom = new AP4_HevcSampleEntry(type, size_32, stream, *this);
             break;
 
           case AP4_ATOM_TYPE_ALAC:
@@ -467,6 +468,11 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
             atom = AP4_AvccAtom::Create(size_32, stream);
             break;
             
+          case AP4_ATOM_TYPE_HVCC:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_HvccAtom::Create(size_32, stream);
+            break;
+
     #if !defined(AP4_CONFIG_MINI_BUILD)
           case AP4_ATOM_TYPE_UUID: {
               AP4_UI08 uuid[16];

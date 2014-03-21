@@ -44,6 +44,7 @@
 +---------------------------------------------------------------------*/
 class AP4_SampleDescription;
 class AP4_AvccAtom;
+class AP4_HvccAtom;
 
 /*----------------------------------------------------------------------
 |   AP4_SampleEntry
@@ -365,6 +366,13 @@ public:
                         AP4_ByteStream&  stream,
                         AP4_AtomFactory& atom_factory);
     
+    AP4_HevcSampleEntry(AP4_UI32            format, // hvc1, hev1
+                        AP4_UI16            width,
+                        AP4_UI16            height,
+                        AP4_UI16            depth,
+                        const char*         compressor_name,
+                        const AP4_HvccAtom& hvcc);
+
     // inherited from AP4_SampleEntry
     virtual AP4_SampleDescription* ToSampleDescription();
 };

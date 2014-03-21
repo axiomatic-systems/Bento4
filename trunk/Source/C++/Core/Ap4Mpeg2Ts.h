@@ -53,6 +53,7 @@ const AP4_UI16 AP4_MPEG2_TS_DEFAULT_STREAM_ID_VIDEO = 0xe0;
 
 const AP4_UI08 AP4_MPEG2_STREAM_TYPE_ISO_IEC_13818_7 = 0x0F;
 const AP4_UI08 AP4_MPEG2_STREAM_TYPE_AVC             = 0x1B;
+const AP4_UI08 AP4_MPEG2_STREAM_TYPE_HEVC            = 0x24;
 
 /*----------------------------------------------------------------------
 |   AP4_Mpeg2TsWriter
@@ -127,8 +128,8 @@ public:
     Stream* GetPMT() { return m_PMT; }
     AP4_Result WritePAT(AP4_ByteStream& output);
     AP4_Result WritePMT(AP4_ByteStream& output);
-    AP4_Result SetAudioStream(AP4_UI32 timescale, SampleStream*& stream, unsigned int pid = AP4_MPEG2_TS_DEFAULT_PID_AUDIO);
-    AP4_Result SetVideoStream(AP4_UI32 timescale, SampleStream*& stream, unsigned int pid = AP4_MPEG2_TS_DEFAULT_PID_VIDEO);
+    AP4_Result SetAudioStream(AP4_UI32 timescale, AP4_UI32 stream_type, SampleStream*& stream, unsigned int pid = AP4_MPEG2_TS_DEFAULT_PID_AUDIO);
+    AP4_Result SetVideoStream(AP4_UI32 timescale, AP4_UI32 stream_type, SampleStream*& stream, unsigned int pid = AP4_MPEG2_TS_DEFAULT_PID_VIDEO);
     
 private:
     Stream*       m_PAT;

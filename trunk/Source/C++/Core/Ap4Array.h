@@ -58,6 +58,8 @@ public:
     // methods
              AP4_Array(): m_AllocatedCount(0), m_ItemCount(0), m_Items(0) {}
              AP4_Array(const T* items, AP4_Size count);
+    AP4_Array<T>(const AP4_Array<T>& copy);
+    AP4_Array<T>& operator=(const AP4_Array<T>& copy);
     virtual ~AP4_Array();
     AP4_Cardinal ItemCount() const { return m_ItemCount; }
     AP4_Result   Append(const T& item);
@@ -90,6 +92,23 @@ AP4_Array<T>::AP4_Array(const T* items, AP4_Size count) :
 }
 
 /*----------------------------------------------------------------------
+|   AP4_Array<T>::AP4_Array<T>
++---------------------------------------------------------------------*/
+template <typename T>
+inline
+AP4_Array<T>::AP4_Array(const AP4_Array<T>& copy) :
+    m_AllocatedCount(0),
+    m_ItemCount(0),
+    m_Items(0)
+{
+    EnsureCapacity(copy.ItemCount());
+    for (unsigned int i=0; i<copy.m_ItemCount; i++) {
+        new ((void*)&m_Items[i]) T(copy.m_Items[i]);
+    }
+    m_ItemCount = copy.m_ItemCount;
+}
+
+/*----------------------------------------------------------------------
 |   AP4_Array<T>::~AP4_Array<T>
 +---------------------------------------------------------------------*/
 template <typename T>
@@ -97,6 +116,29 @@ AP4_Array<T>::~AP4_Array()
 {
     Clear();
     ::operator delete((void*)m_Items);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_Array<T>::operator=
++---------------------------------------------------------------------*/
+template <typename T>
+AP4_Array<T>&
+AP4_Array<T>::operator=(const AP4_Array<T>& copy)
+{
+    // do nothing if we're assigning to ourselves
+    if (this == &copy) return *this;
+
+    // destroy all elements
+    Clear();
+
+    // copy all elements from the other object
+    EnsureCapacity(copy.ItemCount());
+    m_ItemCount = copy.m_ItemCount;
+    for (unsigned int i=0; i<copy.m_ItemCount; i++) {
+        new ((void*)&m_Items[i]) T(copy.m_Items[i]);
+    }
+
+    return *this;
 }
 
 /*----------------------------------------------------------------------
