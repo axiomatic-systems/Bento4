@@ -357,6 +357,15 @@
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4Dec3Atom.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4HvccAtom.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Source\C++\Codecs\Ap4HevcParser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Source\C++\Codecs\Ap4NalParser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4.h">
@@ -727,6 +736,12 @@
     </ClInclude>
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4Dec3Atom.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Source\C++\Codecs\Ap4HevcParser.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Source\C++\Codecs\Ap4NalParser.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
