@@ -281,9 +281,9 @@ private:
 |   subsample_map_start  = { 0, 3 }
 |   subsample_map_length = { 3, 2 }
 |   It means that the (bytes_of_cleartext_data, bytes_of_encrypted_data)
-|   sequences for the two samples are:
-|   sample[0] --> [(10,100), (15, 200), (13, 50)]
-|   sample[1] --> [(17, 80), (12,  32)] 
+|   sequences for the two subsamples are:
+|   subsample[0] --> [(10,100), (15, 200), (13, 50)] 
+|   subsample[1] --> [(17, 80), (12,  32)] 
 |
 +---------------------------------------------------------------------*/
 
