@@ -38,6 +38,7 @@
 #include "Ap4EsdsAtom.h"
 #include "Ap4Array.h"
 #include "Ap4AvccAtom.h"
+#include "Ap4HvccAtom.h"
 #include "Ap4DynamicCast.h"
 
 /*----------------------------------------------------------------------
@@ -56,6 +57,8 @@ const AP4_UI32 AP4_SAMPLE_FORMAT_AVC1 = AP4_ATOM_TYPE('a','v','c','1');
 const AP4_UI32 AP4_SAMPLE_FORMAT_AVC2 = AP4_ATOM_TYPE('a','v','c','2');
 const AP4_UI32 AP4_SAMPLE_FORMAT_AVC3 = AP4_ATOM_TYPE('a','v','c','3');
 const AP4_UI32 AP4_SAMPLE_FORMAT_AVC4 = AP4_ATOM_TYPE('a','v','c','4');
+const AP4_UI32 AP4_SAMPLE_FORMAT_HVC1 = AP4_ATOM_TYPE('h','v','c','1');
+const AP4_UI32 AP4_SAMPLE_FORMAT_HEV1 = AP4_ATOM_TYPE('h','e','v','1');
 const AP4_UI32 AP4_SAMPLE_FORMAT_ALAC = AP4_ATOM_TYPE('a','l','a','c');
 const AP4_UI32 AP4_SAMPLE_FORMAT_OWMA = AP4_ATOM_TYPE('o','w','m','a');
 const AP4_UI32 AP4_SAMPLE_FORMAT_OVC1 = AP4_ATOM_TYPE('o','v','c','1');
@@ -104,7 +107,8 @@ class AP4_SampleDescription
         TYPE_MPEG      = 0x01,
         TYPE_PROTECTED = 0x02,
         TYPE_AVC       = 0x03,
-        TYPE_SUBTITLES = 0x04
+        TYPE_HEVC      = 0x04,
+        TYPE_SUBTITLES = 0x05
     };
 
     // constructors & destructor
@@ -312,6 +316,63 @@ public:
 
 private:
     AP4_AvccAtom* m_AvccAtom;
+};
+
+/*----------------------------------------------------------------------
+|   AP4_HevcSampleDescription
++---------------------------------------------------------------------*/
+class AP4_HevcSampleDescription : public AP4_SampleDescription,
+                                  public AP4_VideoSampleDescription
+{
+public:
+    AP4_IMPLEMENT_DYNAMIC_CAST_D2(AP4_HevcSampleDescription, AP4_SampleDescription, AP4_VideoSampleDescription)
+
+    // constructors
+    AP4_HevcSampleDescription(AP4_UI32            format, // hvc1 or hev1
+                              AP4_UI16            width,
+                              AP4_UI16            height,
+                              AP4_UI16            depth,
+                              const char*         compressor_name,
+                              const AP4_HvccAtom* hvcc);
+    
+    AP4_HevcSampleDescription(AP4_UI32        format, // hvc1 or hev1
+                              AP4_UI16        width,
+                              AP4_UI16        height,
+                              AP4_UI16        depth,
+                              const char*     compressor_name,
+                              AP4_AtomParent* details);
+    
+    // accessors
+    AP4_UI08 GetConfigurationVersion()             const { return m_HvccAtom->GetConfigurationVersion(); }
+    AP4_UI08 GetGeneralProfileSpace()              const { return m_HvccAtom->GetGeneralProfileSpace(); }
+    AP4_UI08 GetGeneralTierFlag()                  const { return m_HvccAtom->GetGeneralTierFlag(); }
+    AP4_UI08 GetGeneralProfile()                   const { return m_HvccAtom->GetGeneralProfile(); }
+    AP4_UI32 GetGeneralProfileCompatibilityFlags() const { return m_HvccAtom->GetGeneralProfileCompatibilityFlags(); }
+    AP4_UI64 GetGeneralConstraintIndicatorFlags()  const { return m_HvccAtom->GetGeneralConstraintIndicatorFlags(); }
+    AP4_UI08 GetGeneralLevel()                     const { return m_HvccAtom->GetGeneralLevel(); }
+    AP4_UI32 GetMinSpatialSegmentation()           const { return m_HvccAtom->GetMinSpatialSegmentation(); }
+    AP4_UI08 GetParallelismType()                  const { return m_HvccAtom->GetParallelismType(); }
+    AP4_UI08 GetChromaFormat()                     const { return m_HvccAtom->GetChromaFormat(); }
+    AP4_UI08 GetLumaBitDepth()                     const { return m_HvccAtom->GetLumaBitDepth(); }
+    AP4_UI08 GetChromaBitDepth()                   const { return m_HvccAtom->GetChromaBitDepth(); }
+    AP4_UI16 GetAverageFrameRate()                 const { return m_HvccAtom->GetAverageFrameRate(); }
+    AP4_UI08 GetConstantFrameRate()                const { return m_HvccAtom->GetConstantFrameRate(); }
+    AP4_UI08 GetNumTemporalLayers()                const { return m_HvccAtom->GetNumTemporalLayers(); }
+    AP4_UI08 GetTemporalIdNested()                 const { return m_HvccAtom->GetTemporalIdNested(); }
+    AP4_UI08 GetNaluLengthSize()                   const { return m_HvccAtom->GetNaluLengthSize(); }
+    const AP4_Array<AP4_HvccAtom::Sequence>& GetSequences() const { return m_HvccAtom->GetSequences(); }
+    const AP4_DataBuffer& GetRawBytes()            const { return m_HvccAtom->GetRawBytes(); }
+    
+    // inherited from AP4_SampleDescription
+    virtual AP4_Atom* ToAtom() const;
+    
+    // static methods
+    static const char* GetProfileName(AP4_UI08 profile_space, AP4_UI08 profile) {
+        return AP4_HvccAtom::GetProfileName(profile_space, profile);
+    }
+
+private:
+    AP4_HvccAtom* m_HvccAtom;
 };
 
 /*----------------------------------------------------------------------

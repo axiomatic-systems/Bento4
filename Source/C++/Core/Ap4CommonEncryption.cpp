@@ -933,6 +933,8 @@ AP4_CencEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
         case AP4_ATOM_TYPE_AVC2:
         case AP4_ATOM_TYPE_AVC3:
         case AP4_ATOM_TYPE_AVC4:
+        case AP4_ATOM_TYPE_HEV1:
+        case AP4_ATOM_TYPE_HVC1:
             format = AP4_ATOM_TYPE_ENCV;
             break;
             
@@ -1035,6 +1037,11 @@ AP4_CencEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
                 AP4_AvccAtom* avcc = AP4_DYNAMIC_CAST(AP4_AvccAtom, entries[0]->GetChild(AP4_ATOM_TYPE_AVCC));
                 if (avcc == NULL) return NULL;
                 sample_encrypter = new AP4_CencCbcSubSampleEncrypter(stream_cipher, avcc->GetNaluLengthSize());
+            } else if (entries[0]->GetType() == AP4_ATOM_TYPE_HEV1 ||
+                       entries[0]->GetType() == AP4_ATOM_TYPE_HVC1) {
+                AP4_HvccAtom* hvcc = AP4_DYNAMIC_CAST(AP4_HvccAtom, entries[0]->GetChild(AP4_ATOM_TYPE_HVCC));
+                if (hvcc == NULL) return NULL;
+                sample_encrypter = new AP4_CencCbcSubSampleEncrypter(stream_cipher, hvcc->GetNaluLengthSize());
             } else {
                 sample_encrypter = new AP4_CencCbcSampleEncrypter(stream_cipher);
             }
@@ -1049,6 +1056,11 @@ AP4_CencEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
                 AP4_AvccAtom* avcc = AP4_DYNAMIC_CAST(AP4_AvccAtom, entries[0]->GetChild(AP4_ATOM_TYPE_AVCC));
                 if (avcc == NULL) return NULL;
                 sample_encrypter = new AP4_CencCtrSubSampleEncrypter(stream_cipher, avcc->GetNaluLengthSize(), iv_size);
+            } else if (entries[0]->GetType() == AP4_ATOM_TYPE_HEV1 ||
+                       entries[0]->GetType() == AP4_ATOM_TYPE_HVC1) {
+                AP4_HvccAtom* hvcc = AP4_DYNAMIC_CAST(AP4_HvccAtom, entries[0]->GetChild(AP4_ATOM_TYPE_HVCC));
+                if (hvcc == NULL) return NULL;
+                sample_encrypter = new AP4_CencCtrSubSampleEncrypter(stream_cipher, hvcc->GetNaluLengthSize(), iv_size);
             } else {
                 sample_encrypter = new AP4_CencCtrSampleEncrypter(stream_cipher, iv_size);
             }

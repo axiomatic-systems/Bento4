@@ -981,6 +981,24 @@ AP4_AvcSampleEntry::AP4_AvcSampleEntry(AP4_UI32         format,
 }
 
 /*----------------------------------------------------------------------
+|   AP4_HevcSampleEntry::AP4_HevcSSampleEntry
++---------------------------------------------------------------------*/
+AP4_HevcSampleEntry::AP4_HevcSampleEntry(AP4_UI32            format,
+                                         AP4_UI16            width,
+                                         AP4_UI16            height,
+                                         AP4_UI16            depth,
+                                         const char*         compressor_name,
+                                         const AP4_HvccAtom& hvcc) :
+    AP4_VisualSampleEntry(format,
+                          width, 
+                          height, 
+                          depth, 
+                          compressor_name)
+{
+    AddChild(new AP4_HvccAtom(hvcc));
+}
+
+/*----------------------------------------------------------------------
 |   AP4_AvcSampleEntry::ToSampleDescription
 +---------------------------------------------------------------------*/
 AP4_SampleDescription*
@@ -1012,13 +1030,13 @@ AP4_HevcSampleEntry::AP4_HevcSampleEntry(AP4_UI32         format,
 AP4_SampleDescription*
 AP4_HevcSampleEntry::ToSampleDescription()
 {
-    return new AP4_GenericVideoSampleDescription(
+    return new AP4_HevcSampleDescription(
         m_Type,
         m_Width,
         m_Height,
         m_Depth,
         m_CompressorName.GetChars(),
-        this);
+        AP4_DYNAMIC_CAST(AP4_HvccAtom, GetChild(AP4_ATOM_TYPE_HVCC)));
 }
 
 /*----------------------------------------------------------------------

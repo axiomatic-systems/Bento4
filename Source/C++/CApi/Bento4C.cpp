@@ -57,6 +57,7 @@ const int AP4_SAMPLE_DESCRIPTION_TYPE_UNKNOWN   = AP4_SampleDescription::TYPE_UN
 const int AP4_SAMPLE_DESCRIPTION_TYPE_MPEG      = AP4_SampleDescription::TYPE_MPEG;
 const int AP4_SAMPLE_DESCRIPTION_TYPE_PROTECTED = AP4_SampleDescription::TYPE_PROTECTED;
 const int AP4_SAMPLE_DESCRIPTION_TYPE_AVC       = AP4_SampleDescription::TYPE_AVC;
+const int AP4_SAMPLE_DESCRIPTION_TYPE_HEVC      = AP4_SampleDescription::TYPE_HEVC;
 
 /*----------------------------------------------------------------------
 |   AP4_DelegatorByteStream

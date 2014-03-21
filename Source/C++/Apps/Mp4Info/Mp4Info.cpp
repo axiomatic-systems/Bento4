@@ -440,7 +440,7 @@ ShowSampleDescription_Text(AP4_SampleDescription& description, bool verbose)
         printf("    AVC Profile:          %d", avc_desc->GetProfile());
         if (profile_name) printf(" (%s)\n", profile_name);
         printf("\n");
-        printf("    AVC Profile Compat:   %d\n", avc_desc->GetProfileCompatibility());
+        printf("    AVC Profile Compat:   %x\n", avc_desc->GetProfileCompatibility());
         printf("    AVC Level:            %d\n", avc_desc->GetLevel());
         printf("    AVC NALU Length Size: %d\n", avc_desc->GetNaluLengthSize());
         printf("    AVC SPS: [");
@@ -459,7 +459,39 @@ ShowSampleDescription_Text(AP4_SampleDescription& description, bool verbose)
             sep = ", ";
         }
         printf("]\n");
+    } else if (desc->GetType() == AP4_SampleDescription::TYPE_HEVC) {
+        // HEVC Sample Description
+        AP4_HevcSampleDescription* hevc_desc = AP4_DYNAMIC_CAST(AP4_HevcSampleDescription, desc);
+        const char* profile_name = AP4_HvccAtom::GetProfileName(hevc_desc->GetGeneralProfileSpace(), hevc_desc->GetGeneralProfile());
+        printf("    HEVC Profile:             %d", hevc_desc->GetGeneralProfile());
+        if (profile_name) printf(" (%s)", profile_name);
+        printf("\n");
+        printf("    HEVC Profile Compat:      %x\n", hevc_desc->GetGeneralProfileCompatibilityFlags());
+        printf("    HEVC Level:               %d.%d\n", hevc_desc->GetGeneralLevel()/30, (hevc_desc->GetGeneralLevel()%30)/3);
+        printf("    HEVC Tier:                %d\n", hevc_desc->GetGeneralTierFlag());
+        printf("    HEVC Chroma Format:       %d", hevc_desc->GetChromaFormat());
+        const char* chroma_format_name = AP4_HvccAtom::GetChromaFormatName(hevc_desc->GetChromaFormat());
+        if (chroma_format_name) printf(" (%s)", chroma_format_name);
+        printf("\n");
+        printf("    HEVC Chroma Bit Depth:    %d\n", hevc_desc->GetChromaBitDepth());
+        printf("    HEVC Luma Bit Depth:      %d\n", hevc_desc->GetLumaBitDepth());
+        printf("    HEVC Average Frame Rate:  %d\n", hevc_desc->GetAverageFrameRate());
+        printf("    HEVC Constant Frame Rate: %d\n", hevc_desc->GetConstantFrameRate());
+        printf("    HEVC NALU Length Size:    %d\n", hevc_desc->GetNaluLengthSize());
+        printf("    HEVC Sequences:\n");
+        for (unsigned int i=0; i<hevc_desc->GetSequences().ItemCount(); i++) {
+            const AP4_HvccAtom::Sequence& seq = hevc_desc->GetSequences()[i];
+            printf("      {\n");
+            printf("        Array Completeness=%d\n", seq.m_ArrayCompleteness);
+            printf("        Type=%d\n", seq.m_NaluType);
+            for (unsigned int j=0; j<seq.m_Nalus.ItemCount(); j++) {
+                printf("        ");
+                ShowData(seq.m_Nalus[j]);
+            }
+            printf("\n      }\n");
+        }
     }
+
     
     // Subtitles
     if (desc->GetType() == AP4_SampleDescription::TYPE_SUBTITLES) {

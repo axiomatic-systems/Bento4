@@ -34,6 +34,7 @@
 #include "Ap4SLConfigDescriptor.h"
 #include "Ap4SampleEntry.h"
 #include "Ap4AvccAtom.h"
+#include "Ap4HvccAtom.h"
 
 /*----------------------------------------------------------------------
 |   dynamic cast support
@@ -49,6 +50,7 @@ AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_MpegAudioSampleDescription)
 AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_MpegVideoSampleDescription)
 AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_MpegSystemSampleDescription)
 AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_AvcSampleDescription)
+AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_HevcSampleDescription)
 AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_SubtitleSampleDescription)
 
 /*----------------------------------------------------------------------
@@ -349,6 +351,64 @@ AP4_AvcSampleDescription::ToAtom() const
                                   m_Depth,
                                   m_CompressorName.GetChars(),
                                   *m_AvccAtom);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_HevcSampleDescription::AP4_HevcSampleDescription
++---------------------------------------------------------------------*/
+AP4_HevcSampleDescription::AP4_HevcSampleDescription(AP4_UI32            format,
+                                                     AP4_UI16            width,
+                                                     AP4_UI16            height,
+                                                     AP4_UI16            depth,
+                                                     const char*         compressor_name,
+                                                     const AP4_HvccAtom* hvcc) :
+    AP4_SampleDescription(TYPE_HEVC, format, NULL),
+    AP4_VideoSampleDescription(width, height, depth, compressor_name)
+{
+    if (hvcc) {
+        m_HvccAtom = new AP4_HvccAtom(*hvcc);
+    } else {
+        // should never happen
+        m_HvccAtom = new AP4_HvccAtom();
+    }
+    m_Details.AddChild(m_HvccAtom);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_HevcSampleDescription::AP4_HevcSampleDescription
++---------------------------------------------------------------------*/
+AP4_HevcSampleDescription::AP4_HevcSampleDescription(AP4_UI32        format,
+                                                     AP4_UI16        width,
+                                                     AP4_UI16        height,
+                                                     AP4_UI16        depth,
+                                                     const char*     compressor_name,
+                                                     AP4_AtomParent* details) :
+    AP4_SampleDescription(TYPE_HEVC, format, details),
+    AP4_VideoSampleDescription(width, height, depth, compressor_name),
+    m_HvccAtom(NULL)
+{
+    AP4_HvccAtom* hvcc = AP4_DYNAMIC_CAST(AP4_HvccAtom, details->GetChild(AP4_ATOM_TYPE_HVCC));
+    if (hvcc) {
+        m_HvccAtom = new AP4_HvccAtom(*hvcc);
+    } else {
+        // shoud never happen
+        m_HvccAtom = new AP4_HvccAtom();
+    }
+    m_Details.AddChild(m_HvccAtom);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_HevcSampleDescription::ToAtom
++---------------------------------------------------------------------*/
+AP4_Atom*
+AP4_HevcSampleDescription::ToAtom() const
+{
+    return new AP4_HevcSampleEntry(m_Format,
+                                   m_Width,
+                                   m_Height,
+                                   m_Depth,
+                                   m_CompressorName.GetChars(),
+                                   *m_HvccAtom);
 }
 
 /*----------------------------------------------------------------------
