@@ -536,15 +536,23 @@ main(int argc, char** argv)
             goto end;
         }
 
-        // FIXME: we assume this is AAC
-        unsigned int stream_type = AP4_MPEG2_STREAM_TYPE_ISO_IEC_13818_7;
-        if (sample_description->GetFormat() != AP4_SAMPLE_FORMAT_MP4A) {
+        unsigned int stream_type = 0;
+        unsigned int stream_id   = 0;
+        if (sample_description->GetFormat() == AP4_SAMPLE_FORMAT_MP4A) {
+            stream_type = AP4_MPEG2_STREAM_TYPE_ISO_IEC_13818_7;
+            stream_id   = AP4_MPEG2_TS_DEFAULT_STREAM_ID_AUDIO;
+        } else if (sample_description->GetFormat() == AP4_SAMPLE_FORMAT_AC_3 ||
+                   sample_description->GetFormat() == AP4_SAMPLE_FORMAT_EC_3) {
+            stream_type = AP4_MPEG2_STREAM_TYPE_ISO_IEC_13818_1_PES;
+            stream_id   = AP4_MPEG2_TS_STREAM_ID_PRIVATE_STREAM_1;
+        } else {
             fprintf(stderr, "ERROR: audio codec not supported\n");
             return 1;
         }
 
         result = writer.SetAudioStream(audio_track->GetMediaTimeScale(),
                                        stream_type,
+                                       stream_id,
                                        audio_stream,
                                        Options.audio_pid);
         if (AP4_FAILED(result)) {
@@ -563,6 +571,7 @@ main(int argc, char** argv)
         
         // decide on the stream type
         unsigned int stream_type = 0;
+        unsigned int stream_id   = AP4_MPEG2_TS_DEFAULT_STREAM_ID_VIDEO;
         if (sample_description->GetFormat() == AP4_SAMPLE_FORMAT_AVC1 ||
             sample_description->GetFormat() == AP4_SAMPLE_FORMAT_AVC2 ||
             sample_description->GetFormat() == AP4_SAMPLE_FORMAT_AVC3 ||
@@ -577,6 +586,7 @@ main(int argc, char** argv)
         }
         result = writer.SetVideoStream(video_track->GetMediaTimeScale(),
                                        stream_type,
+                                       stream_id,
                                        video_stream,
                                        Options.video_pid);
         if (AP4_FAILED(result)) {

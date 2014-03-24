@@ -35,6 +35,7 @@
 #include "Ap4.h"
 #include "Ap4BitStream.h"
 #include "Ap4Mp4AudioInfo.h"
+#include "Ap4HevcParser.h"
 
 /*----------------------------------------------------------------------
 |   constants
@@ -483,7 +484,12 @@ ShowSampleDescription_Text(AP4_SampleDescription& description, bool verbose)
             const AP4_HvccAtom::Sequence& seq = hevc_desc->GetSequences()[i];
             printf("      {\n");
             printf("        Array Completeness=%d\n", seq.m_ArrayCompleteness);
-            printf("        Type=%d\n", seq.m_NaluType);
+            printf("        Type=%d", seq.m_NaluType);
+            const char* nalu_type_name = AP4_HevcParser::NaluTypeName(seq.m_NaluType);
+            if (nalu_type_name) {
+                printf(" (%s)", nalu_type_name);
+            }
+            printf("\n");
             for (unsigned int j=0; j<seq.m_Nalus.ItemCount(); j++) {
                 printf("        ");
                 ShowData(seq.m_Nalus[j]);
