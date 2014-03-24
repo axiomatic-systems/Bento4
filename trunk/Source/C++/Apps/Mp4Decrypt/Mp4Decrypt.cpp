@@ -2,7 +2,7 @@
 |
 |    AP4 - MP4 Decrypter
 |
-|    Copyright 2002-2008 Axiomatic Systems, LLC
+|    Copyright 2002-2014 Axiomatic Systems, LLC
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -59,7 +59,7 @@ PrintUsageAndExit()
             "      note: for dcf files, use 1 as the track index\n"
             "      note: for Marlin IPMP/ACGK, use 0 as the track index\n"
             "  --fragments-info <filename>\n"
-            "      Encrypt the fragments read from <input>, with track info read\n"
+            "      Decrypt the fragments read from <input>, with track info read\n"
             "      from <filename>.\n"
             );
     exit(1);
