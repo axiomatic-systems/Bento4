@@ -80,6 +80,7 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\..\Source\C++\Codecs\Ap4AvcParser.cpp" />
     <ClCompile Include="..\..\..\..\Source\C++\Codecs\Ap4HevcParser.cpp" />
     <ClCompile Include="..\..\..\..\Source\C++\Codecs\Ap4NalParser.cpp" />
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap48bdlAtom.cpp" />
@@ -199,6 +200,7 @@
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4VmhdAtom.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\..\Source\C++\Codecs\Ap4AvcParser.h" />
     <ClInclude Include="..\..\..\..\Source\C++\Codecs\Ap4HevcParser.h" />
     <ClInclude Include="..\..\..\..\Source\C++\Codecs\Ap4NalParser.h" />
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4.h" />
