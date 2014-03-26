@@ -33,6 +33,7 @@ AUDIO_DIR                 = 'audio'
 MPD_NS_COMPAT             = 'urn:mpeg:DASH:schema:MPD:2011'
 MPD_NS                    = 'urn:mpeg:dash:schema:mpd:2011'
 ISOFF_LIVE_PROFILE        = 'urn:mpeg:dash:profile:isoff-live:2011'
+FULL_PROFILE              = 'urn:mpeg:dash:profile:full:2011'
 SPLIT_INIT_SEGMENT_NAME   = 'init.mp4'
 NOSPLIT_INIT_FILE_PATTERN = 'init-%02d-%02d.mp4'
 SEGMENT_PATTERN           = 'seg-%04llu.m4f'
@@ -194,9 +195,13 @@ def OutputDash(options, audio_tracks, video_tracks):
         mpd_ns = MPD_NS_COMPAT
     else:
         mpd_ns = MPD_NS
+    if options.use_segment_list:
+        profile = FULL_PROFILE
+    else:
+        profile = ISOFF_LIVE_PROFILE
     mpd = xml.Element('MPD', 
                       xmlns=mpd_ns, 
-                      profiles=ISOFF_LIVE_PROFILE, 
+                      profiles=profile,
                       minBufferTime="PT%.02fS" % options.min_buffer_time,
                       mediaPresentationDuration=XmlDuration(int(presentation_duration)),
                       type='static')
@@ -248,6 +253,9 @@ def OutputDash(options, audio_tracks, video_tracks):
                                         width=str(video_track.width),
                                         height=str(video_track.height),
                                         bandwidth=str(video_track.bandwidth))
+        if hasattr(video_track, 'max_playout_rate'):
+            representation.set('maxPlayoutRate', video_track.max_playout_rate)
+
         if options.split:
             AddSegments(options, representation, 'video/' + str(video_track.parent.index), video_track, False, 'video')
         else:
@@ -475,10 +483,8 @@ def main():
                       help="Use segment timelines (necessary if segment durations vary)")
     parser.add_option('', "--min-buffer-time", metavar='<duration>', dest="min_buffer_time", type="float", default=0.0,
                       help="Minimum buffer time (in seconds)")
-    parser.add_option('', "--video-codec", metavar='<codec>', dest="video_codec", default=None,
-                      help="Video codec string")
-    parser.add_option('', "--audio-codec", metavar='<codec>', dest="audio_codec", default=None,
-                      help="Audio codec string")
+    parser.add_option('', "--max-playout-rate", metavar='<strategy>', dest='max_playout_rate_strategy',
+                      help="Max Playout Rate setting strategy for trick-play support. Supported strategies: lowest:X"),
     parser.add_option('', "--language-map", dest="language_map", metavar="<lang_from>:<lang_to>[,...]",
                       help="Remap language code <lang_from> to <lang_to>. Multiple mappings can be specified, separated by ','")
     parser.add_option('', "--smooth", dest="smooth", default=False, action="store_true", 
@@ -535,6 +541,10 @@ def main():
                     
     if not path.exists(Options.exec_dir):
         PrintErrorAndExit('Executable directory does not exist ('+Options.exec_dir+'), use --exec-dir')
+
+    if options.max_playout_rate_strategy:
+        if not options.max_playout_rate_strategy.startswith('lowest:'):
+            PrintErrorAndExit('Max Playout Rate strategy '+options.max_playout_rate_strategy+' is not supported')
 
     # post-process some of the options
     if options.encryption_key:
@@ -741,44 +751,37 @@ def main():
                 ratio = segment_duration/video_track.average_segment_duration
                 if ratio > 1.1 or ratio < 0.9:
                     sys.stderr.write('WARNING: video segment durations for "' + str(video_track) + '" vary by more than 10% (consider using --use-segment-timeline)\n')
-                    break;
+                    break
         for audio_track in audio_tracks.values():
             for segment_duration in audio_track.segment_durations[:-1]:
                 ratio = segment_duration/audio_track.average_segment_duration
                 if ratio > 1.1 or ratio < 0.9:
                     sys.stderr.write('WARNING: audio segment durations for "' + str(audio_track) + '" vary by more than 10% (consider using --use-segment-timeline)\n')
-                    break;
+                    break
     
     # compute the audio codecs
     for audio_track in audio_tracks.values(): 
-        audio_codec = options.audio_codec
-        if audio_codec is None:
-            audio_desc = audio_track.info['sample_descriptions'][0]
-            audio_coding = audio_desc['coding']
-            if audio_coding == 'mp4a':
-                audio_codec = 'mp4a.%02x' % (audio_desc['object_type'])
-                if audio_desc['object_type'] == 64:
-                    audio_codec += '.%02x' % (audio_desc['mpeg_4_audio_object_type'])
-            else:
-                audio_codec = audio_coding
+        audio_desc = audio_track.info['sample_descriptions'][0]
+        audio_coding = audio_desc['coding']
+        if audio_coding == 'mp4a':
+            audio_codec = 'mp4a.%02x' % (audio_desc['object_type'])
+            if audio_desc['object_type'] == 64:
+                audio_codec += '.%02x' % (audio_desc['mpeg_4_audio_object_type'])
+        else:
+            audio_codec = audio_coding
                 
-        if audio_codec is None:
-            PrintErrorAndExit('ERROR: unable to determine the audio codec for "'+str(audio_track)+'"')
         audio_track.codec = audio_codec
         
     # compute the video codecs and dimensions
     for video_track in video_tracks:
-        video_codec = options.video_codec
-        if video_codec is None:
-            video_desc = video_track.info['sample_descriptions'][0]
-            if video_desc['coding'].startswith('avc'):
-                video_codec = video_desc['coding'] + '.%02x%02x%02x' % (video_desc['avc_profile'],
-                                                                        video_desc['avc_profile_compat'],
-                                                                        video_desc['avc_level'])
-            else:
-                video_codec = video_desc['coding']
-        if video_codec is None:
-            PrintErrorAndExit('ERROR: unable to determine the video codec for "' + str(video_track) + '"')
+        video_desc = video_track.info['sample_descriptions'][0]
+        if video_desc['coding'].startswith('avc'):
+            video_codec = video_desc['coding'] + '.%02x%02x%02x' % (video_desc['avc_profile'],
+                                                                    video_desc['avc_profile_compat'],
+                                                                    video_desc['avc_level'])
+        else:
+            video_codec = video_desc['coding']
+
         video_track.codec = video_codec
 
         # get the width and height
@@ -812,6 +815,18 @@ def main():
             print '  Audio Track: ' + str(audio_track) + ' - max bitrate=%d, avg bitrate=%d, req bandwidth=%d' % (audio_track.max_segment_bitrate, audio_track.average_segment_bitrate, audio_track.bandwidth)
         for video_track in video_tracks:
             print '  Video Track: ' + str(video_track) + ' - max bitrate=%d, avg bitrate=%d, req bandwidth=%d' % (video_track.max_segment_bitrate, video_track.average_segment_bitrate, video_track.bandwidth)
+
+    # deal with the max playout strategy if set
+    if options.max_playout_rate_strategy:
+        max_playout_rate = options.max_playout_rate_strategy.split(':')[1]
+        lowest_bandwidth_track = None
+        lowest_bandwidth = -1
+        for video_track in video_tracks:
+            if lowest_bandwidth < 0 or video_track.bandwidth < lowest_bandwidth:
+                lowest_bandwidth = video_track.bandwidth
+                lowest_bandwidth_track = video_track
+        if lowest_bandwidth_track:
+            lowest_bandwidth_track.max_playout_rate = max_playout_rate
 
     # output the DASH MPD
     OutputDash(options, audio_tracks, video_tracks)
