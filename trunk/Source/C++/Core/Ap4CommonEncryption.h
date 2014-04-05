@@ -37,6 +37,7 @@
 #include "Ap4Utils.h"
 #include "Ap4Processor.h"
 #include "Ap4Protection.h"
+#include "Ap4PsshAtom.h"
 
 /*----------------------------------------------------------------------
 |   class declarations
@@ -441,9 +442,10 @@ public:
     ~AP4_CencEncryptingProcessor();
 
     // accessors
-    AP4_ProtectionKeyMap& GetKeyMap()      { return m_KeyMap;      }
-    AP4_TrackPropertyMap& GetPropertyMap() { return m_PropertyMap; }
-
+    AP4_ProtectionKeyMap&     GetKeyMap()      { return m_KeyMap;      }
+    AP4_TrackPropertyMap&     GetPropertyMap() { return m_PropertyMap; }
+    AP4_Array<AP4_PsshAtom*>& GetPsshAtoms()   { return m_PsshAtoms;   }
+    
     // AP4_Processor methods
     virtual AP4_Result Initialize(AP4_AtomParent&   top_level,
                                   AP4_ByteStream&   stream,
@@ -456,11 +458,12 @@ public:
     
 protected:    
     // members
-    AP4_CencVariant         m_Variant;
-    AP4_BlockCipherFactory* m_BlockCipherFactory;
-    AP4_ProtectionKeyMap    m_KeyMap;
-    AP4_TrackPropertyMap    m_PropertyMap;
-    AP4_List<Encrypter>     m_Encrypters;
+    AP4_CencVariant          m_Variant;
+    AP4_BlockCipherFactory*  m_BlockCipherFactory;
+    AP4_ProtectionKeyMap     m_KeyMap;
+    AP4_TrackPropertyMap     m_PropertyMap;
+    AP4_Array<AP4_PsshAtom*> m_PsshAtoms;
+    AP4_List<Encrypter>      m_Encrypters;
 };
 
 /*----------------------------------------------------------------------

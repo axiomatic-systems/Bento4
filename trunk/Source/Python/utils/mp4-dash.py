@@ -36,12 +36,21 @@ ISOFF_LIVE_PROFILE        = 'urn:mpeg:dash:profile:isoff-live:2011'
 FULL_PROFILE              = 'urn:mpeg:dash:profile:full:2011'
 SPLIT_INIT_SEGMENT_NAME   = 'init.mp4'
 NOSPLIT_INIT_FILE_PATTERN = 'init-%02d-%02d.mp4'
-SEGMENT_PATTERN           = 'seg-%04llu.m4f'
-SEGMENT_URL_PATTERN       = 'seg-%04d.m4f'
-SEGMENT_TEMPLATE          = 'seg-$Number%04d$.m4f'
+
+PADDED_SEGMENT_PATTERN     = 'seg-%04llu.m4f'
+PADDED_SEGMENT_URL_PATTERN = 'seg-%04d.m4f'
+PADDED_SEGMENT_TEMPLATE    = 'seg-$Number%04d$.m4f'
+NOPAD_SEGMENT_PATTERN      = 'seg-%llu.m4f'
+NOPAD_SEGMENT_URL_PATTERN  = 'seg-%d.m4f'
+NOPAD_SEGMENT_TEMPLATE     = 'seg-$Number$.m4f'
+SEGMENT_PATTERN            = NOPAD_SEGMENT_PATTERN
+SEGMENT_URL_PATTERN        = NOPAD_SEGMENT_URL_PATTERN
+SEGMENT_TEMPLATE           = NOPAD_SEGMENT_TEMPLATE
+
 MEDIA_FILE_PATTERN        = 'media-%02d.mp4'
 MARLIN_SCHEME_ID_URI      = 'urn:uuid:5E629AF5-38DA-4063-8977-97FFBD9902D4'
 MARLIN_MAS_NAMESPACE      = 'urn:marlin:mas:1-0:services:schemas:mpd'
+PLAYREADY_PSSH_SYSTEM_ID  = '9a04f07998404286ab92e65be0885f95'
 PLAYREADY_SCHEME_ID_URI   = 'urn:uuid:9a04f079-9840-4286-ab92-e65be0885f95'
 PLAYREADY_MSPR_NAMESPACE  = 'urn:microsoft:playready'
 SMOOTH_DEFAULT_TIMESCALE  = 10000000
@@ -164,7 +173,7 @@ def AddContentProtection(options, container, tracks):
             kids.append(kid)
     xml.register_namespace('mas', MARLIN_MAS_NAMESPACE)
     xml.register_namespace('mspr', PLAYREADY_MSPR_NAMESPACE)
-    #xml.SubElement(container, 'ContentProtection', schemeIdUri='urn:mpeg:dash:mp4protection:2011', value='cenc')
+    xml.SubElement(container, 'ContentProtection', schemeIdUri='urn:mpeg:dash:mp4protection:2011', value='cenc')
     
     if options.marlin:
         cp = xml.SubElement(container, 'ContentProtection', schemeIdUri=MARLIN_SCHEME_ID_URI)
@@ -179,7 +188,8 @@ def AddContentProtection(options, container, tracks):
         else:
             kid = kids[0]
             key = None
-        header_b64 = ComputePlayReadyHeader(options.playready_header, kid, key)
+        header_bin = ComputePlayReadyHeader(options.playready_header, kid, key)
+        header_b64 = header_bin.encode('base64').replace('\n', '')
         cp = xml.SubElement(container, 'ContentProtection', schemeIdUri=PLAYREADY_SCHEME_ID_URI)
         pro = xml.SubElement(cp, '{' + PLAYREADY_MSPR_NAMESPACE + '}pro')
         pro.text = header_b64
@@ -350,7 +360,8 @@ def OutputSmooth(options, audio_tracks, video_tracks):
         else:
             kid = video_tracks[0].kid
             key = None
-        header_b64 = ComputePlayReadyHeader(options.playready_header, kid, key)
+        header_bin = ComputePlayReadyHeader(options.playready_header, kid, key)
+        header_b64 = header_bin.encode('base64').replace('\n', '')
         protection = xml.SubElement(client_manifest, 'Protection')
         protection_header = xml.SubElement(protection,
                                            'ProtectionHeader',
@@ -479,6 +490,8 @@ def main():
                       help="Do not split the file into individual segment files")
     parser.add_option('', "--use-segment-list", action="store_true", dest="use_segment_list", default=False,
                       help="Use segment lists instead of segment templates")
+    parser.add_option('', '--use-segment-template-number-padding', action='store_true', dest='segment_template_padding', default=False,
+                      help="Use padded numbers in segment URL/filename templates")
     parser.add_option('', "--use-segment-timeline", action="store_true", dest="use_segment_timeline", default=False,
                       help="Use segment timelines (necessary if segment durations vary)")
     parser.add_option('', "--min-buffer-time", metavar='<duration>', dest="min_buffer_time", type="float", default=0.0,
@@ -511,6 +524,8 @@ def main():
                            "(1) the name of a file containing a PlayReady XML Rights Management Header (<WRMHEADER>) or a PlayReady Header Object (PRO) in binary form,  or "
                            "(2) the character '#' followed by a PlayReady Header Object encoded in Base64, or " +
                            "(3) one or more <name>:<value> pair(s) (separated by '#' if more than one) specifying fields of a PlayReady Header Object (field names include LA_URL, LUI_URL and DS_ID)")
+    parser.add_option('', "--playready-add-pssh", dest="playready_add_pssh", action="store_true", default=False,
+                      help="Store the PlayReady header in a 'pssh' box in the init segment(s)")
     parser.add_option('', "--exec-dir", metavar="<exec_dir>", dest="exec_dir", default=path.join(SCRIPT_PATH, 'bin', platform),
                       help="Directory where the Bento4 executables are located")
     (options, args) = parser.parse_args()
@@ -545,6 +560,13 @@ def main():
     if options.max_playout_rate_strategy:
         if not options.max_playout_rate_strategy.startswith('lowest:'):
             PrintErrorAndExit('Max Playout Rate strategy '+options.max_playout_rate_strategy+' is not supported')
+
+    # switch variables
+    if options.segment_template_padding:
+        global SEGMENT_PATTERN, SEGMENT_URL_PATTERN, SEGMENT_TEMPLATE
+        SEGMENT_PATTERN     = PADDED_SEGMENT_PATTERN
+        SEGMENT_URL_PATTERN = PADDED_SEGMENT_URL_PATTERN
+        SEGMENT_TEMPLATE    = PADDED_SEGMENT_TEMPLATE
 
     # post-process some of the options
     if options.encryption_key:
@@ -624,6 +646,13 @@ def main():
             args.append(encrypted_file.name)
             for track_id in track_ids:
                 args += ['--key', str(track_id)+':'+key_hex+':random', '--property', str(track_id)+':KID:'+kid_hex]
+            if options.playready_add_pssh:
+                playready_header = ComputePlayReadyHeader(options.playready_header, kid_hex, key_hex)
+                pssh_file = tempfile.NamedTemporaryFile(dir = options.output_dir, delete=False)
+                pssh_file.write(playready_header)
+                TempFiles.append(pssh_file.name)
+                pssh_file.close() # necessary on Windows
+                args += ['--pssh', PLAYREADY_PSSH_SYSTEM_ID+':'+pssh_file.name]
             cmd = [path.join(Options.exec_dir, 'mp4encrypt')] + args
             if options.debug:
                 print 'COMMAND: ', cmd

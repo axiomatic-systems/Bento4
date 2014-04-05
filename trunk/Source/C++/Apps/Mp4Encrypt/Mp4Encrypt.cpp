@@ -75,6 +75,9 @@ PrintUsageAndExit()
         "      (several --property options can be used, one or more for each track)\n"
         "  --global-option <name>:<value>\n"
         "      Sets the global option <name> to be equal to <value>\n"
+        "  --pssh <system-id>:<filename>: add a 'pssh' atom for this system ID, with the payload\n"
+        "      loaded from <filename>.\n"
+        "      (several --pssh options can be used, with a different system ID for each)\n"
         "  --kms-uri <uri>\n"
         "      Specifies the KMS URI for the ISMA-IAEC method\n"
         "\n"
@@ -197,17 +200,18 @@ main(int argc, char** argv)
     if (argc == 1) PrintUsageAndExit();
 
     // parse options
-    const char* kms_uri = NULL;
-    enum Method method  = METHOD_NONE;
-    const char* input_filename = NULL;
-    const char* output_filename = NULL;
-    const char* fragments_info_filename = NULL;
-    AP4_ProtectionKeyMap key_map;
-    AP4_TrackPropertyMap property_map;
-    bool                 show_progress = false;
-    bool                 strict = false;
-    AP4_Result           result;
-
+    const char*              kms_uri = NULL;
+    enum Method              method  = METHOD_NONE;
+    const char*              input_filename = NULL;
+    const char*              output_filename = NULL;
+    const char*              fragments_info_filename = NULL;
+    AP4_ProtectionKeyMap     key_map;
+    AP4_TrackPropertyMap     property_map;
+    bool                     show_progress = false;
+    bool                     strict = false;
+    AP4_Array<AP4_PsshAtom*> pssh_atoms;
+    AP4_Result               result;
+    
     // parse the command line arguments
     char* arg;
     while ((arg = *++argv)) {
@@ -244,6 +248,44 @@ main(int argc, char** argv)
                 return 1;
             }
             fragments_info_filename = arg;
+        } else if (!strcmp(arg, "--pssh")) {
+            arg = *++argv;
+            if (arg == NULL) {
+                fprintf(stderr, "ERROR: missing argument for --pssh\n");
+                return 1;
+            }
+            if (AP4_StringLength(arg) < 32+1+1 || arg[32] != ':') {
+                fprintf(stderr, "ERROR: invalid argument syntax for --pssh\n");
+                return 1;
+            }
+            unsigned char system_id[16];
+            arg[32] = '\0';
+            result = AP4_ParseHex(arg, system_id, 16);
+            if (AP4_FAILED(result)) {
+                fprintf(stderr, "ERROR: invalid argument syntax for --pssh\n");
+                return 1;
+            }
+            const char* pssh_filename = arg+33;
+            
+            // load the pssh payload
+            AP4_ByteStream* pssh_input = NULL;
+            result = AP4_FileByteStream::Create(pssh_filename, AP4_FileByteStream::STREAM_MODE_READ, pssh_input);
+            if (AP4_FAILED(result)) {
+                fprintf(stderr, "ERROR: cannot open pssh payload file (%d)\n", result);
+                return 1;
+            }
+            AP4_LargeSize pssh_payload_size = 0;
+            pssh_input->GetSize(pssh_payload_size);
+            AP4_DataBuffer pssh_payload;
+            pssh_payload.SetDataSize(pssh_payload_size);
+            result = pssh_input->Read(pssh_payload.UseData(), pssh_payload_size);
+            if (AP4_FAILED(result)) {
+                fprintf(stderr, "ERROR: cannot read pssh payload from file (%d)\n", result);
+                return 1;
+            }
+            AP4_PsshAtom* pssh = new AP4_PsshAtom(system_id);
+            pssh->SetData(pssh_payload.GetData(), pssh_payload.GetDataSize());
+            pssh_atoms.Append(pssh);
         } else if (!strcmp(arg, "--kms-uri")) {
             arg = *++argv;
             if (arg == NULL) {
@@ -468,6 +510,9 @@ main(int argc, char** argv)
         AP4_CencEncryptingProcessor* cenc_processor = new AP4_CencEncryptingProcessor(variant);
         cenc_processor->GetKeyMap().SetKeys(key_map);
         cenc_processor->GetPropertyMap().SetProperties(property_map);
+        for (unsigned int i=0; i<pssh_atoms.ItemCount(); i++) {
+            cenc_processor->GetPsshAtoms().Append(pssh_atoms[i]);
+        }
         processor = cenc_processor;
     }
     
@@ -517,6 +562,9 @@ main(int argc, char** argv)
     input->Release();
     output->Release();
     if (fragments_info) fragments_info->Release();
+    for (unsigned int i=0; i<pssh_atoms.ItemCount(); i++) {
+        delete pssh_atoms[i];
+    }
     
     return 0;
 }

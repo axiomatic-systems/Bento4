@@ -818,6 +818,27 @@ AP4_CencEncryptingProcessor::Initialize(AP4_AtomParent&                  top_lev
     AP4_Result result = top_level.AddChild(ftyp, 0);
     if (AP4_FAILED(result)) return result;
     
+    // add pssh atoms if we have some
+    AP4_ContainerAtom* moov = AP4_DYNAMIC_CAST(AP4_ContainerAtom, top_level.GetChild(AP4_ATOM_TYPE_MOOV));
+    if (moov) {
+        for (unsigned int i=0; i<m_PsshAtoms.ItemCount(); i++) {
+            // add the 'pssh' atom at the end of the 'moov' container
+            // but before any 'free' atom, if any
+            int position = -1;
+            int current = 0;
+            for (AP4_List<AP4_Atom>::Item* child = moov->GetChildren().FirstItem();
+                                           child;
+                                           child = child->GetNext(), ++current) {
+                if (child->GetData()->GetType() == AP4_ATOM_TYPE_FREE) {
+                    position = current;
+                }
+            }
+            if (m_PsshAtoms[i]) {
+                moov->AddChild(new AP4_PsshAtom(*m_PsshAtoms[i]), position);
+            }
+        }
+    }
+    
     // check if we need to create a Marlin 'mkid' table
     AP4_MkidAtom* mkid = NULL;
     if (m_Variant == AP4_CENC_VARIANT_MPEG) {
@@ -847,45 +868,41 @@ AP4_CencEncryptingProcessor::Initialize(AP4_AtomParent&                  top_lev
             }
         }
     }
-    if (mkid) {
-        // find the moov container
-        AP4_ContainerAtom* moov = AP4_DYNAMIC_CAST(AP4_ContainerAtom, top_level.GetChild(AP4_ATOM_TYPE_MOOV));
-        if (moov) {
-            // create a 'marl' container
-            AP4_ContainerAtom* marl = new AP4_ContainerAtom(AP4_ATOM_TYPE_MARL);
-            marl->AddChild(mkid);
-            
-            // see if we need to pad the 'pssh' container
-            const char* padding_str = m_PropertyMap.GetProperty(0, "PsshPadding");
-            AP4_UI32    padding = 0;
-            if (padding_str) {
-                padding = AP4_ParseIntegerU(padding_str);
-            }
-            
-            // create a 'pssh' atom to contain the 'marl' atom
-            AP4_PsshAtom* pssh = new AP4_PsshAtom(AP4_MARLIN_PSSH_SYSTEM_ID);
-            pssh->SetData(*marl);
-            if (padding > marl->GetSize()+32 && padding < 1024*1024) {
-                padding -= (AP4_UI32)marl->GetSize()+32;
-                AP4_UI08* data = new AP4_UI08[padding];
-                AP4_SetMemory(data, 0, padding);
-                pssh->SetPadding(data, padding);
-                delete[] data;
-            }
-            
-            // add the 'pssh' atom at the end of the 'moov' container
-            // but before any 'free' atom, if any
-            int position = -1;
-            int current = 0;
-            for (AP4_List<AP4_Atom>::Item* child = moov->GetChildren().FirstItem();
-                                           child;
-                                           child = child->GetNext(), ++current) {
-                if (child->GetData()->GetType() == AP4_ATOM_TYPE_FREE) {
-                    position = current;
-                }
-            }
-            moov->AddChild(pssh, position);
+    if (mkid && moov) {
+        // create a 'marl' container
+        AP4_ContainerAtom* marl = new AP4_ContainerAtom(AP4_ATOM_TYPE_MARL);
+        marl->AddChild(mkid);
+        
+        // see if we need to pad the 'pssh' container
+        const char* padding_str = m_PropertyMap.GetProperty(0, "PsshPadding");
+        AP4_UI32    padding = 0;
+        if (padding_str) {
+            padding = AP4_ParseIntegerU(padding_str);
         }
+        
+        // create a 'pssh' atom to contain the 'marl' atom
+        AP4_PsshAtom* pssh = new AP4_PsshAtom(AP4_MARLIN_PSSH_SYSTEM_ID);
+        pssh->SetData(*marl);
+        if (padding > marl->GetSize()+32 && padding < 1024*1024) {
+            padding -= (AP4_UI32)marl->GetSize()+32;
+            AP4_UI08* data = new AP4_UI08[padding];
+            AP4_SetMemory(data, 0, padding);
+            pssh->SetPadding(data, padding);
+            delete[] data;
+        }
+        
+        // add the 'pssh' atom at the end of the 'moov' container
+        // but before any 'free' atom, if any
+        int position = -1;
+        int current = 0;
+        for (AP4_List<AP4_Atom>::Item* child = moov->GetChildren().FirstItem();
+                                       child;
+                                       child = child->GetNext(), ++current) {
+            if (child->GetData()->GetType() == AP4_ATOM_TYPE_FREE) {
+                position = current;
+            }
+        }
+        moov->AddChild(pssh, position);
     }
     
     return AP4_SUCCESS;
