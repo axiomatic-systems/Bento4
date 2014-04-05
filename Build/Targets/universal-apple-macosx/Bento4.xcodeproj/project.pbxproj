@@ -371,10 +371,8 @@
 		CAF9811118DBE48F0001B999 /* Ap4HevcParser.h in Headers */ = {isa = PBXBuildFile; fileRef = CAF9810D18DBE48F0001B999 /* Ap4HevcParser.h */; };
 		CAF9811218DBE48F0001B999 /* Ap4NalParser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAF9810E18DBE48F0001B999 /* Ap4NalParser.cpp */; };
 		CAF9811318DBE48F0001B999 /* Ap4NalParser.h in Headers */ = {isa = PBXBuildFile; fileRef = CAF9810F18DBE48F0001B999 /* Ap4NalParser.h */; };
-		CAF9811F18DBED9B0001B999 /* HevcInfo.1 in CopyFiles */ = {isa = PBXBuildFile; fileRef = CAF9811E18DBED9B0001B999 /* HevcInfo.1 */; };
 		CAF9812318DBEDD50001B999 /* HevcInfo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAF9811518DBED310001B999 /* HevcInfo.cpp */; };
 		CAF9812818DBEE640001B999 /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAA7E6C914ACD763008AA54E /* libBento4.a */; };
-		CAF9813418DBF34C0001B999 /* Mp42Hevc.1 in CopyFiles */ = {isa = PBXBuildFile; fileRef = CAF9813318DBF34C0001B999 /* Mp42Hevc.1 */; };
 		CAF9813818DBF3640001B999 /* Mp42Hevc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAF9812A18DBF3360001B999 /* Mp42Hevc.cpp */; };
 		CAF9813B18DBF3730001B999 /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAA7E6C914ACD763008AA54E /* libBento4.a */; };
 		CAFC31CE0FEB3E7C00EF80A0 /* FragmentParserTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAFC31CD0FEB3E7C00EF80A0 /* FragmentParserTest.cpp */; };
@@ -850,26 +848,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 1;
 		};
-		CAF9811818DBED9B0001B999 /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
-			dstSubfolderSpec = 0;
-			files = (
-				CAF9811F18DBED9B0001B999 /* HevcInfo.1 in CopyFiles */,
-			);
-			runOnlyForDeploymentPostprocessing = 1;
-		};
-		CAF9812D18DBF34B0001B999 /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
-			dstSubfolderSpec = 0;
-			files = (
-				CAF9813418DBF34C0001B999 /* Mp42Hevc.1 in CopyFiles */,
-			);
-			runOnlyForDeploymentPostprocessing = 1;
-		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
@@ -1175,12 +1153,8 @@
 		CAF9810F18DBE48F0001B999 /* Ap4NalParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4NalParser.h; sourceTree = "<group>"; };
 		CAF9811518DBED310001B999 /* HevcInfo.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = HevcInfo.cpp; sourceTree = "<group>"; };
 		CAF9811A18DBED9B0001B999 /* hevcinfo */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = hevcinfo; sourceTree = BUILT_PRODUCTS_DIR; };
-		CAF9811C18DBED9B0001B999 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
-		CAF9811E18DBED9B0001B999 /* HevcInfo.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = HevcInfo.1; sourceTree = "<group>"; };
 		CAF9812A18DBF3360001B999 /* Mp42Hevc.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Mp42Hevc.cpp; sourceTree = "<group>"; };
 		CAF9812F18DBF34B0001B999 /* mp42hevc */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mp42hevc; sourceTree = BUILT_PRODUCTS_DIR; };
-		CAF9813118DBF34C0001B999 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
-		CAF9813318DBF34C0001B999 /* Mp42Hevc.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = Mp42Hevc.1; sourceTree = "<group>"; };
 		CAFC31B90FEB3DDD00EF80A0 /* FragmentParserTest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = FragmentParserTest; sourceTree = BUILT_PRODUCTS_DIR; };
 		CAFC31CD0FEB3E7C00EF80A0 /* FragmentParserTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FragmentParserTest.cpp; sourceTree = "<group>"; };
 		CAFC31D70FEB95F700EF80A0 /* Ap4MovieFragment.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4MovieFragment.cpp; sourceTree = "<group>"; };
@@ -1476,8 +1450,6 @@
 				CA646A860CE97B2D009699D7 /* Apps */,
 				CA646A9B0CE97B51009699D7 /* Test */,
 				C6A0FF2B0290797F04C91782 /* Documentation */,
-				CAF9811B18DBED9B0001B999 /* HevcInfo */,
-				CAF9813018DBF34B0001B999 /* Mp42Hevc */,
 				1AB674ADFE9D54B511CA2CBB /* Products */,
 			);
 			name = Bento4;
@@ -2115,28 +2087,10 @@
 			path = HevcInfo;
 			sourceTree = "<group>";
 		};
-		CAF9811B18DBED9B0001B999 /* HevcInfo */ = {
-			isa = PBXGroup;
-			children = (
-				CAF9811C18DBED9B0001B999 /* main.cpp */,
-				CAF9811E18DBED9B0001B999 /* HevcInfo.1 */,
-			);
-			path = HevcInfo;
-			sourceTree = "<group>";
-		};
 		CAF9812918DBF3360001B999 /* Mp42Hevc */ = {
 			isa = PBXGroup;
 			children = (
 				CAF9812A18DBF3360001B999 /* Mp42Hevc.cpp */,
-			);
-			path = Mp42Hevc;
-			sourceTree = "<group>";
-		};
-		CAF9813018DBF34B0001B999 /* Mp42Hevc */ = {
-			isa = PBXGroup;
-			children = (
-				CAF9813118DBF34C0001B999 /* main.cpp */,
-				CAF9813318DBF34C0001B999 /* Mp42Hevc.1 */,
 			);
 			path = Mp42Hevc;
 			sourceTree = "<group>";
@@ -2813,7 +2767,6 @@
 			buildPhases = (
 				CAF9811618DBED9B0001B999 /* Sources */,
 				CAF9811718DBED9B0001B999 /* Frameworks */,
-				CAF9811818DBED9B0001B999 /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -2831,7 +2784,6 @@
 			buildPhases = (
 				CAF9812B18DBF34B0001B999 /* Sources */,
 				CAF9812C18DBF34B0001B999 /* Frameworks */,
-				CAF9812D18DBF34B0001B999 /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -4795,6 +4747,7 @@
 				CAF9812218DBED9B0001B999 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		CAF9813518DBF34C0001B999 /* Build configuration list for PBXNativeTarget "Mp42Hevc" */ = {
 			isa = XCConfigurationList;
@@ -4803,6 +4756,7 @@
 				CAF9813718DBF34C0001B999 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		CAFC31C00FEB3E0800EF80A0 /* Build configuration list for PBXNativeTarget "FragmentParserTest" */ = {
 			isa = XCConfigurationList;

@@ -535,7 +535,6 @@ def ComputePlayReadyHeader(header_spec, kid_hex, key_hex):
             header_xml += '<DS_ID>'+fields['DS_ID']+'</DS_ID>'
 
         header_xml += '</DATA></WRMHEADER>'
-        header = WrapPlayreadyHeaderXml(header_xml)
-        return header.encode('base64').replace('\n', '')
+        return WrapPlayreadyHeaderXml(header_xml)
 
     return ""

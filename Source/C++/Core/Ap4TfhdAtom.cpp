@@ -47,7 +47,7 @@ AP4_TfhdAtom::Create(AP4_Size size, AP4_ByteStream& stream)
     AP4_UI32 flags;
     if (AP4_FAILED(AP4_Atom::ReadFullHeader(stream, version, flags))) return NULL;
     if (version > 0) return NULL;
-    if (size != ComputeSize(flags)) return NULL;
+    if (size < ComputeSize(flags)) return NULL;
     return new AP4_TfhdAtom(size, version, flags, stream);
 }
 
