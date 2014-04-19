@@ -777,7 +777,7 @@ AP4_MetaData::Entry::ToAtom(AP4_Atom*& atom) const
             atom = new AP4_3GppLocalizedStringAtom(atom_type, language, atom_value.GetChars());
             return AP4_SUCCESS;
         } else if (atom_type == AP4_ATOM_TYPE_DCFD) {
-            atom = new AP4_DcfdAtom(m_Value->ToInteger());
+            atom = new AP4_DcfdAtom((AP4_UI32)m_Value->ToInteger());
             return AP4_SUCCESS;
         }
         

@@ -63,7 +63,7 @@ AP4_DescriptorFactory::CreateDescriptorFromStream(AP4_ByteStream&  stream,
     }
     
     // read descriptor size
-    unsigned long payload_size = 0;
+    AP4_UI32      payload_size = 0;
     unsigned int  header_size = 1;
     unsigned int  max  = 4;
     unsigned char ext  = 0;

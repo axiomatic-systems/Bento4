@@ -243,7 +243,7 @@ AP4_Array<T>::Append(const T& item)
     // ensure that we have enough space
     if (m_AllocatedCount < m_ItemCount+1) {
         // try double the size, with a minimum
-        unsigned long new_count = m_AllocatedCount?2*m_AllocatedCount:AP4_ARRAY_INITIAL_COUNT;
+        AP4_Cardinal new_count = m_AllocatedCount?2*m_AllocatedCount:AP4_ARRAY_INITIAL_COUNT;
 
         // if that's still not enough, just ask for what we need
         if (new_count < m_ItemCount+1) new_count = m_ItemCount+1;

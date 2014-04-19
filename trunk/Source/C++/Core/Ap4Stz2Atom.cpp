@@ -84,7 +84,7 @@ AP4_Stz2Atom::AP4_Stz2Atom(AP4_UI32        size,
         return;
     }
 
-    unsigned long sample_count = m_SampleCount;
+    AP4_Cardinal sample_count = m_SampleCount;
     m_Entries.SetItemCount(sample_count);
     unsigned int table_size = (sample_count*m_FieldSize+7)/8;
     if ((table_size+8) > size) return;
