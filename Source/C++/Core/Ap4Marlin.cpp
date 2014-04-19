@@ -1139,7 +1139,7 @@ AP4_MkidAtom::AP4_MkidAtom(AP4_Size        size,
 AP4_Result              
 AP4_MkidAtom::AddEntry(const AP4_UI08* kid, const char* content_id)
 {
-    unsigned int content_id_size = AP4_StringLength(content_id);
+    unsigned int content_id_size = (unsigned int)AP4_StringLength(content_id);
     unsigned int entry_count = m_Entries.ItemCount();
 
     // add the entry

@@ -73,7 +73,7 @@ AP4_StszAtom::AP4_StszAtom(AP4_UI32        size,
     stream.ReadUI32(m_SampleSize);
     stream.ReadUI32(m_SampleCount);
     if (m_SampleSize == 0) { // means that the samples have different sizes
-        unsigned long sample_count = m_SampleCount;
+        AP4_Cardinal sample_count = m_SampleCount;
         m_Entries.SetItemCount(sample_count);
         unsigned char* buffer = new unsigned char[sample_count*4];
         AP4_Result result = stream.Read(buffer, sample_count*4);

@@ -86,7 +86,7 @@ AP4_SaizAtom::AP4_SaizAtom(AP4_UI32        size,
     if (m_DefaultSampleInfoSize == 0) { 
         // means that the sample info entries  have different sizes
         if (m_SampleCount > remains) m_SampleCount = remains; // sanity check
-        unsigned long sample_count = m_SampleCount;
+        AP4_Cardinal sample_count = m_SampleCount;
         m_Entries.SetItemCount(sample_count);
         unsigned char* buffer = new AP4_UI08[sample_count];
         AP4_Result result = stream.Read(buffer, sample_count);
