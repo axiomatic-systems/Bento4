@@ -179,7 +179,9 @@ AP4_SyntheticSampleTable::AddSample(AP4_ByteStream& data_stream,
         } else {
             if (prev_sample->GetDuration() == 0) {
                 // update the previous sample
-                if (dts <= prev_sample->GetDts()) return AP4_ERROR_INVALID_PARAMETERS;
+                if (dts <= prev_sample->GetDts()) {
+                    return AP4_ERROR_INVALID_PARAMETERS;
+                }
                 prev_sample->SetDuration((AP4_UI32)(dts-prev_sample->GetDts()));
             } else {
                 if (dts != prev_sample->GetDts()+prev_sample->GetDuration()) {

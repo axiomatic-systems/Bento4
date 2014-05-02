@@ -11,9 +11,12 @@ SCRIPT_PATH = path.abspath(path.dirname(__file__))
 sys.path += [SCRIPT_PATH]
 TempFiles = []
 
+RESOLUTION_ROUNDING_H = 16
+RESOLUTION_ROUNDING_V = 2
+
 def scale_resolution(pixels, aspect_ratio):
-    x = 16*((int(math.ceil(math.sqrt(pixels*aspect_ratio)))+15)/16)
-    y = 16*((int(math.ceil(x/aspect_ratio))+15)/16)
+    x = RESOLUTION_ROUNDING_H*((int(math.ceil(math.sqrt(pixels*aspect_ratio)))+RESOLUTION_ROUNDING_H-1)/RESOLUTION_ROUNDING_H)
+    y = RESOLUTION_ROUNDING_V*((int(math.ceil(x/aspect_ratio))+RESOLUTION_ROUNDING_V-1)/RESOLUTION_ROUNDING_V)
     return (x,y)
 
 def compute_bitrates_and_resolutions(options):
@@ -98,6 +101,8 @@ def main():
                       help="Audio bitrate (default: 128kbps)", default=128)
     parser.add_option('-s', '--segment-size', dest='segment_size', type='int',
                       help="Video segment size in frames (default: 3*fps)")
+    parser.add_option('-t', '--text-overlay', dest='text_overlay', action='store_true', default=False,
+                      help="Add a text overlay with the bitrate")
     parser.add_option('-f', '--force', dest="force_output", action="store_true",
                       help="Overwrite output files if they already exist", default=False)
     (options, args) = parser.parse_args()
@@ -135,6 +140,8 @@ def main():
         output_filename = 'video_%05d.mp4' % int(bitrates[i])
         temp_filename = output_filename+'_'
         base_cmd  = "ffmpeg -i %s -strict experimental -acodec libfdk_aac -ac 2 -ab %dk -profile:v baseline -preset slow -vcodec libx264" % (args[0], options.audio_bitrate)
+        if options.text_overlay:
+            base_cmd += ' -vf "drawtext=fontfile=/Library/Fonts/Courier New.ttf: text='+str(int(bitrates[i]))+': fontsize=50:  x=(w)/8: y=h-(2*lh): fontcolor=white:"'
         if not options.debug:
             base_cmd += ' -v quiet'
         if options.force_output:
@@ -143,7 +150,7 @@ def main():
         x264_opts += ':vbv-bufsize=%d:vbv-maxrate=%d' % (bitrates[i], int(bitrates[i]*1.5))
         cmd = base_cmd+' '+x264_opts+' -s '+str(resolutions[i][0])+'x'+str(resolutions[i][1])+' -f mp4 '+temp_filename
         if options.verbose:
-            print 'ENCODING bitrate', int(bitrates[i])
+            print 'ENCODING bitrate: %d, resolution: %dx%d' % (int(bitrates[i]), resolutions[i][0], resolutions[i][1])
         run_command(options, cmd)
 
         cmd = 'mp4fragment %s %s' % (temp_filename, output_filename)

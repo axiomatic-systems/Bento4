@@ -652,9 +652,13 @@ AP4_MemoryByteStream::WritePartial(const void* buffer,
     }
 
     // reserve space in the buffer
-    AP4_Result result = m_Buffer->Reserve((AP4_Size)(m_Position+bytes_to_write));
+    AP4_Size space_needed = (AP4_Size)(m_Position+bytes_to_write);
+    AP4_Result result = m_Buffer->Reserve(space_needed);
     if (AP4_SUCCEEDED(result)) {
-        m_Buffer->SetDataSize((AP4_Size)(m_Position+bytes_to_write));
+        if (space_needed > m_Buffer->GetDataSize()) {
+            // the buffer must grow
+            m_Buffer->SetDataSize(space_needed);
+        }
     } else {
         // failed to reserve, most likely caused by a buffer that has
         // external storage
@@ -663,7 +667,7 @@ AP4_MemoryByteStream::WritePartial(const void* buffer,
         }
     } 
 
-    // check for en of stream
+    // check for end of stream
     if (bytes_to_write == 0) {
         return AP4_ERROR_EOS;
     }

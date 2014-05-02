@@ -629,7 +629,7 @@ AP4_Mpeg2TsVideoSampleStream::WriteSample(AP4_Sample&            sample,
         
         // check if we need to add a delimiter before the NALU
         if (nalu_count == 0) {
-            if (sample_description->GetType() == AP4_SampleDescription::TYPE_AVC && nalu_count == 0) {
+            if (sample_description->GetType() == AP4_SampleDescription::TYPE_AVC) {
                 if (nalu_size != 2 || data[0] != 9) {
                     // this is not an Access Unit Delimiter, we need to add one
                     unsigned char delimiter[6];
@@ -638,7 +638,7 @@ AP4_Mpeg2TsVideoSampleStream::WriteSample(AP4_Sample&            sample,
                     delimiter[2] = 0;
                     delimiter[3] = 1;
                     delimiter[4] = 9;    // NAL type = Access Unit Delimiter;
-                    delimiter[5] = 0xE0; // Slice types = ANY
+                    delimiter[5] = 0xF0; // Slice types = ANY
                     AppendData(pes_data, delimiter, 6);
                     
                     if (emit_prefix) {
@@ -646,7 +646,7 @@ AP4_Mpeg2TsVideoSampleStream::WriteSample(AP4_Sample&            sample,
                         emit_prefix = false;
                     }
                 }
-            } else if (sample_description->GetType() == AP4_SampleDescription::TYPE_HEVC && nalu_count == 0) {
+            } else if (sample_description->GetType() == AP4_SampleDescription::TYPE_HEVC) {
                 if (emit_prefix) {
                     AppendData(pes_data, m_Prefix.GetData(), m_Prefix.GetDataSize());
                     emit_prefix = false;
