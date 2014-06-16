@@ -34,6 +34,7 @@
 #include "Ap4Sample.h"
 #include "Ap4SampleDescription.h"
 #include "Ap4Utils.h"
+#include "Ap4Mp4AudioInfo.h"
 
 /*----------------------------------------------------------------------
 |   constants
@@ -400,9 +401,20 @@ AP4_Mpeg2TsAudioSampleStream::WriteSample(AP4_Sample&            sample,
         AP4_MpegAudioSampleDescription* audio_desc = AP4_DYNAMIC_CAST(AP4_MpegAudioSampleDescription, sample_description);
         if (audio_desc == NULL) return AP4_ERROR_NOT_SUPPORTED;
         if (audio_desc->GetMpeg4AudioObjectType() != AP4_MPEG4_AUDIO_OBJECT_TYPE_AAC_LC) return AP4_ERROR_NOT_SUPPORTED;
-
-        unsigned int sampling_frequency_index = GetSamplingFrequencyIndex(audio_desc->GetSampleRate());
-        unsigned int channel_configuration = audio_desc->GetChannelCount();
+        
+        unsigned int sample_rate = audio_desc->GetSampleRate();
+        unsigned int channel_count = audio_desc->GetChannelCount();
+        const AP4_DataBuffer& dsi = audio_desc->GetDecoderInfo();
+        if (dsi.GetDataSize()) {
+            AP4_Mp4AudioDecoderConfig dec_config;
+            AP4_Result result = dec_config.Parse(dsi.GetData(), dsi.GetDataSize());
+            if (AP4_SUCCEEDED(result)) {
+                sample_rate = dec_config.m_SamplingFrequency;
+                channel_count = dec_config.m_ChannelCount;
+            }
+        }
+        unsigned int sampling_frequency_index = GetSamplingFrequencyIndex(sample_rate);
+        unsigned int channel_configuration = channel_count;
 
         unsigned char* buffer = new unsigned char[7+sample_data.GetDataSize()];
         MakeAdtsHeader(buffer, sample_data.GetDataSize(), sampling_frequency_index, channel_configuration);
@@ -640,11 +652,11 @@ AP4_Mpeg2TsVideoSampleStream::WriteSample(AP4_Sample&            sample,
                     delimiter[4] = 9;    // NAL type = Access Unit Delimiter;
                     delimiter[5] = 0xF0; // Slice types = ANY
                     AppendData(pes_data, delimiter, 6);
-                    
-                    if (emit_prefix) {
-                        AppendData(pes_data, m_Prefix.GetData(), m_Prefix.GetDataSize());
-                        emit_prefix = false;
-                    }
+                }
+
+                if (emit_prefix) {
+                    AppendData(pes_data, m_Prefix.GetData(), m_Prefix.GetDataSize());
+                    emit_prefix = false;
                 }
             } else if (sample_description->GetType() == AP4_SampleDescription::TYPE_HEVC) {
                 if (emit_prefix) {
@@ -664,12 +676,6 @@ AP4_Mpeg2TsVideoSampleStream::WriteSample(AP4_Sample&            sample,
         // add the NALU
         AppendData(pes_data, data, nalu_size);
         
-        // check if we need to add SPS/PPS
-        if (nalu_count == 0 && emit_prefix) {
-            AppendData(pes_data, m_Prefix.GetData(), m_Prefix.GetDataSize());
-            emit_prefix = false;
-        }
-
         // move to the next NAL unit
         data      += nalu_size;
         data_size -= nalu_size;

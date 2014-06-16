@@ -1,6 +1,6 @@
 /*****************************************************************
 |
-|    AP4 - MP4 File Dumper
+|    AP4 - AVC Bitstream Stream Info
 |
 |    Copyright 2002-2008 Axiomatic Systems, LLC
 |
@@ -31,15 +31,52 @@
 +---------------------------------------------------------------------*/
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
 
 #include "Ap4.h"
+#include "Ap4AvcParser.h"
+#include "Ap4AdtsParser.h"
+#include "Ap4BitStream.h"
+#include "Ap4ByteStream.h"
 
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-#define BANNER "MP4 File Dumper - Version 1.1\n"\
+#define BANNER "MP4 Elementary Stream Multiplexer - Version 1.0\n"\
                "(Bento4 Version " AP4_VERSION_STRING ")\n"\
-               "(c) 2002-2009 Axiomatic Systems, LLC"
+               "(c) 2002-20014 Axiomatic Systems, LLC"
+
+const unsigned int AP4_MUX_DEFAULT_VIDEO_FRAME_RATE = 24;
+
+/*----------------------------------------------------------------------
+|   globals
++---------------------------------------------------------------------*/
+static struct {
+    bool verbose;
+} Options;
+
+/*----------------------------------------------------------------------
+|   SampleOrder
++---------------------------------------------------------------------*/
+struct SampleOrder {
+    SampleOrder(AP4_UI32 decode_order, AP4_UI32 display_order) :
+        m_DecodeOrder(decode_order),
+        m_DisplayOrder(display_order) {}
+    AP4_UI32 m_DecodeOrder;
+    AP4_UI32 m_DisplayOrder;
+};
+
+/*----------------------------------------------------------------------
+|   Parameter
++---------------------------------------------------------------------*/
+struct Parameter {
+    Parameter(const char* name, const char* value) :
+        m_Name(name),
+        m_Value(value) {}
+    AP4_String m_Name;
+    AP4_String m_Value;
+};
 
 /*----------------------------------------------------------------------
 |   PrintUsageAndExit
@@ -49,167 +86,563 @@ PrintUsageAndExit()
 {
     fprintf(stderr, 
             BANNER 
-            "\n\nusage: mp4dump [options] <input>\n"
-            "options are:\n"
-            "  --verbosity <n> sets the verbosity (details) level to <n> (between 0 and 3)\n"
-            "  --track <track_id>[:<key>] writes the track data into a file\n"
-            "                             (<mp4filename>.<track_id>) and optionally\n"
-            "                             tries to decrypt it with the key (128-bit in hex)\n"
-            "           (several --track options can be used, one for each track)\n"
-            "           Each sample is written preceded by its size encoded as a 32-bit\n"
-            "           value in big-endian byte order\n");
+            "\n\nusage: mp4mux [options] --track [<type>:]<input>[#<params] [--track [<type>:]<input>[#<params] ...] <output>\n"
+            "\n"
+            "Supported types:\n"
+            "  h264: H264/AVC NAL units\n"
+            "    optional params:\n"
+            "      frame_rate: floating point number in frames per second (default=24.0)\n"
+            "  aac:  AAC in ADTS format\n"
+            "  mp4:  MP4 track(s) from an MP4 file\n"
+            "    optional params:\n"
+            "      track: audio, video, or integer track ID (default=all tracks)\n"
+            "\n"
+            "If no type is specified for an input, the type will be inferred from the file extension\n"
+            "\n"
+            "Options:\n"
+            "  --verbose: show more details\n");
     exit(1);
 }
 
 /*----------------------------------------------------------------------
-|   CreateTrackDumpByteStream
+|   ParseParameters
 +---------------------------------------------------------------------*/
-static AP4_ByteStream*
-CreateTrackDumpByteStream(const char* mp4_filename,
-                          AP4_Ordinal track_id)
+static AP4_Result
+ParseParameters(const char* params_str, AP4_Array<Parameter>& parameters)
 {
-    // create the output file name
-    AP4_Size mp4_filename_len = strlen(mp4_filename);
-    char* dump_filename = new char[mp4_filename_len+16]; // <filename>.<trackid>
-    strcpy(dump_filename, mp4_filename);
-    dump_filename[mp4_filename_len] = '.';
-    sprintf(dump_filename+mp4_filename_len+1, "%d", track_id);
-
-    // create a FileByteStream
-    AP4_ByteStream* output = NULL;
-    AP4_Result result = AP4_FileByteStream::Create(dump_filename, AP4_FileByteStream::STREAM_MODE_WRITE, output);
-    if (AP4_FAILED(result)) {
-        fprintf(stderr, "ERROR: %d cannot open file for dumping track %d", 
-                result, track_id);
+    AP4_Array<AP4_String> params;
+    const char* cursor = params_str;
+    const char* start = params_str;
+    do {
+        if (*cursor == ',' || *cursor == '\0') {
+            AP4_String param;
+            param.Assign(start, (unsigned int)(cursor-start));
+            params.Append(param);
+            if (*cursor == ',') {
+                start = cursor+1;
+            }
+        }
+    } while (*cursor++);
+    
+    for (unsigned int i=0; i<params.ItemCount(); i++) {
+        AP4_String& param = params[i];
+        AP4_String name;
+        AP4_String value;
+        int equal = param.Find('=');
+        if (equal >= 0) {
+            name.Assign(param.GetChars(), equal);
+            value = param.GetChars()+equal+1;
+        } else {
+            name = param;
+        }
+        parameters.Append(Parameter(name.GetChars(), value.GetChars()));
     }
     
-    delete [] dump_filename;
-    return output;
+    return AP4_SUCCESS;
 }
 
 /*----------------------------------------------------------------------
-|   DumpSamples
+|   SampleFileStorage
 +---------------------------------------------------------------------*/
-static void
-DumpSamples(AP4_Track* track, AP4_ByteStream* dump)
+class SampleFileStorage
 {
-    // write the data
-    AP4_Sample sample;
-    AP4_DataBuffer sample_data;
-    AP4_Ordinal index = 0;
-
-    while (AP4_SUCCEEDED(track->ReadSample(index, sample, sample_data))) {
-        // write the sample size
-        dump->WriteUI32(sample_data.GetDataSize());
-        
-        // write the sample
-        dump->Write(sample_data.GetData(), sample_data.GetDataSize());
-        index++;
-        
-        // print progress info
-        if (index%10 == 0) printf(".");
+public:
+    static AP4_Result Create(const char* basename, SampleFileStorage*& sample_file_storage);
+    ~SampleFileStorage() {
+        m_Stream->Release();
+        remove(m_Filename.GetChars());
     }
-    printf("\n");
+    
+    AP4_Result StoreSample(AP4_Sample& from_sample, AP4_Sample& to_sample) {
+        // clone the sample fields
+        to_sample = from_sample;
+        
+        // read the sample data
+        AP4_DataBuffer sample_data;
+        AP4_Result result = from_sample.ReadData(sample_data);
+        if (AP4_FAILED(result)) return result;
+        
+        // mark where we are going to store the sample data
+        AP4_Position position;
+        m_Stream->Tell(position);
+        to_sample.SetOffset(position);
+        
+        // write the sample data
+        result = m_Stream->Write(sample_data.GetData(), sample_data.GetDataSize());
+        if (AP4_FAILED(result)) return result;
+        
+        // update the stream for the new sample
+        to_sample.SetDataStream(*m_Stream);
+    
+        return AP4_SUCCESS;
+    }
+
+    AP4_ByteStream* GetStream() { return m_Stream; }
+    
+private:
+    SampleFileStorage(const char* basename) : m_Stream(NULL) {
+        AP4_Size name_length = (AP4_Size)AP4_StringLength(basename);
+        char* filename = new char[name_length+2];
+        AP4_CopyMemory(filename, basename, name_length);
+        filename[name_length]   = '_';
+        filename[name_length+1] = '\0';
+        m_Filename = filename;
+        delete[] filename;
+    }
+
+    AP4_ByteStream* m_Stream;
+    AP4_String      m_Filename;
+};
+
+/*----------------------------------------------------------------------
+|   SampleFileStorage::Create
++---------------------------------------------------------------------*/
+AP4_Result
+SampleFileStorage::Create(const char* basename, SampleFileStorage*& sample_file_storage)
+{
+    sample_file_storage = NULL;
+    SampleFileStorage* object = new SampleFileStorage(basename);
+    AP4_Result result = AP4_FileByteStream::Create(object->m_Filename.GetChars(),
+                                                   AP4_FileByteStream::STREAM_MODE_WRITE,
+                                                   object->m_Stream);
+    if (AP4_FAILED(result)) {
+        return result;
+    }
+    sample_file_storage = object;
+    return AP4_SUCCESS;
 }
 
 /*----------------------------------------------------------------------
-|   DecryptAndDumpSamples
+|   SortSamples
 +---------------------------------------------------------------------*/
 static void
-DecryptAndDumpSamples(AP4_Track*             track, 
-                      AP4_SampleDescription* sample_desc,
-                      const AP4_UI08*        key,
-                      AP4_Size               key_size,
-                      AP4_ByteStream*        dump)
+SortSamples(SampleOrder* array, unsigned int n)
 {
-    AP4_ProtectedSampleDescription* pdesc = 
-        AP4_DYNAMIC_CAST(AP4_ProtectedSampleDescription, sample_desc);
-    if (pdesc == NULL) {
-        fprintf(stderr, "ERROR: unable to obtain cipher info\n");
+    if (n < 2)
+        return;
+    SampleOrder pivot = array[n / 2];
+    SampleOrder* left  = array;
+    SampleOrder* right = array + n - 1;
+    while (left <= right) {
+        if (left->m_DisplayOrder < pivot.m_DisplayOrder) {
+            ++left;
+            continue;
+        }
+        if (right->m_DisplayOrder > pivot.m_DisplayOrder) {
+            --right;
+            continue;
+        }
+        SampleOrder temp = *left;
+        *left++ = *right;
+        *right-- = temp;
+    }
+    SortSamples(array, (unsigned int)(right - array + 1));
+    SortSamples(left, (unsigned int)(array + n - left));
+}
+
+/*----------------------------------------------------------------------
+|   AddAacTrack
++---------------------------------------------------------------------*/
+static void
+AddAacTrack(AP4_Movie&            movie,
+            const char*           input_name,
+            AP4_Array<Parameter>& /*parameters*/,
+            SampleFileStorage&    sample_storage)
+{
+    AP4_ByteStream* input;
+    AP4_Result result = AP4_FileByteStream::Create(input_name, AP4_FileByteStream::STREAM_MODE_READ, input);
+    if (AP4_FAILED(result)) {
+        fprintf(stderr, "ERROR: cannot open input file '%s' (%d))\n", input_name, result);
         return;
     }
 
-    // create the decrypter
-    AP4_SampleDecrypter* decrypter = AP4_SampleDecrypter::Create(pdesc, key, key_size);
-    if (decrypter == NULL) {
-        fprintf(stderr, "ERROR: unable to create decrypter\n");
-        return;
-    }
+    // create a sample table
+    AP4_SyntheticSampleTable* sample_table = new AP4_SyntheticSampleTable();
 
-    AP4_Sample     sample;
-    AP4_DataBuffer encrypted_data;
-    AP4_DataBuffer decrypted_data;
-    AP4_Ordinal    index = 0;
-    while (AP4_SUCCEEDED(track->ReadSample(index, sample, encrypted_data))) {
-        if (AP4_FAILED(decrypter->DecryptSampleData(encrypted_data, decrypted_data))) {
-            fprintf(stderr, "ERROR: failed to decrypt sample\n");
-            return;
+    // create an ADTS parser
+    AP4_AdtsParser parser;
+    bool           initialized = false;
+    unsigned int   sample_description_index = 0;
+
+    // read from the input, feed, and get AAC frames
+    AP4_UI32     sample_rate = 0;
+    AP4_Cardinal sample_count = 0;
+    bool eos = false;
+    for(;;) {
+        // try to get a frame
+        AP4_AacFrame frame;
+        result = parser.FindFrame(frame);
+        if (AP4_SUCCEEDED(result)) {
+            if (Options.verbose) {
+                printf("AAC frame [%06d]: size = %d, %d kHz, %d ch\n",
+                       sample_count,
+                       frame.m_Info.m_FrameLength,
+                       (int)frame.m_Info.m_SamplingFrequency,
+                       frame.m_Info.m_ChannelConfiguration);
+            }
+            if (!initialized) {
+                initialized = true;
+
+                // create a sample description for our samples
+                AP4_DataBuffer dsi;
+                unsigned char aac_dsi[2];
+
+                unsigned int object_type = 2; // AAC LC by default
+                aac_dsi[0] = (object_type<<3) | (frame.m_Info.m_SamplingFrequencyIndex>>1);
+                aac_dsi[1] = ((frame.m_Info.m_SamplingFrequencyIndex&1)<<7) | (frame.m_Info.m_ChannelConfiguration<<3);
+
+                dsi.SetData(aac_dsi, 2);
+                AP4_MpegAudioSampleDescription* sample_description = 
+                    new AP4_MpegAudioSampleDescription(
+                    AP4_OTI_MPEG4_AUDIO,   // object type
+                    (AP4_UI32)frame.m_Info.m_SamplingFrequency,
+                    16,                    // sample size
+                    frame.m_Info.m_ChannelConfiguration,
+                    &dsi,                  // decoder info
+                    6144,                  // buffer size
+                    128000,                // max bitrate
+                    128000);               // average bitrate
+                sample_description_index = sample_table->GetSampleDescriptionCount();
+                sample_table->AddSampleDescription(sample_description);
+                sample_rate = (AP4_UI32)frame.m_Info.m_SamplingFrequency;
+            }
+
+            // read and store the sample data
+            AP4_Position position = 0;
+            sample_storage.GetStream()->Tell(position);
+            AP4_DataBuffer sample_data(frame.m_Info.m_FrameLength);
+            sample_data.SetDataSize(frame.m_Info.m_FrameLength);
+            frame.m_Source->ReadBytes(sample_data.UseData(), frame.m_Info.m_FrameLength);
+            sample_storage.GetStream()->Write(sample_data.GetData(), frame.m_Info.m_FrameLength);
+
+            // add the sample to the table
+            sample_table->AddSample(*sample_storage.GetStream(), position, frame.m_Info.m_FrameLength, 1024, sample_description_index, 0, 0, true);
+            sample_count++;
+        } else {
+            if (eos) break;
         }
 
-        // write the sample size
-        dump->WriteUI32(decrypted_data.GetDataSize());
-
-        // write the sample
-        dump->Write(decrypted_data.GetData(), decrypted_data.GetDataSize());
-        index++;
-        if (index%10 == 0) printf(".");
-    }
-    printf("\n");
-}
-
-/*----------------------------------------------------------------------
-|   DumpTrackData
-+---------------------------------------------------------------------*/
-void
-DumpTrackData(const char*                   mp4_filename, 
-              AP4_File&                     mp4_file, 
-              const AP4_Array<AP4_Ordinal>& tracks_to_dump,
-              const AP4_ProtectionKeyMap&   key_map)
-{
-    // dump all the tracks that need to be dumped
-    AP4_Cardinal tracks_to_dump_count = tracks_to_dump.ItemCount();
-    for (AP4_Ordinal i=0; i<tracks_to_dump_count; i++) {
-        // get the track
-        AP4_Ordinal track_id = tracks_to_dump[i];
-        AP4_Track* track = mp4_file.GetMovie()->GetTrack(track_id);
-        if (track == NULL) {
-            fprintf(stderr, "track not found (id = %d)", track_id);
-            return;
-        }
-
-        // get the sample description
-        AP4_SampleDescription* sample_description = track->GetSampleDescription(0);
-        if (sample_description == NULL) {
-            fprintf(stderr, "WARNING: unable to parse sample description\n");
-        }
-
-        // get the dump data byte stream
-        AP4_ByteStream* dump = CreateTrackDumpByteStream(mp4_filename, track_id);
-        if (dump == NULL) return;
-
-        printf("\nDumping data for track %d:\n", track_id);
-        switch(sample_description ?
-               sample_description->GetType() :
-               AP4_SampleDescription::TYPE_UNKNOWN) {
-            case AP4_SampleDescription::TYPE_PROTECTED:
-                {
-                    const AP4_DataBuffer* key = key_map.GetKey(track_id);
-                    if (key == NULL) {
-                        fprintf(stderr, 
-                                "WARNING: No key found for encrypted track %d... "
-                                "dumping encrypted samples\n",
-                                track_id);
-                        DumpSamples(track, dump);
-                    } else {
-                        DecryptAndDumpSamples(track, sample_description, key->GetData(), key->GetDataSize(), dump);
-                    }
+        // read some data and feed the parser
+        AP4_UI08 input_buffer[4096];
+        AP4_Size to_read = parser.GetBytesFree();
+        if (to_read) {
+            AP4_Size bytes_read = 0;
+            if (to_read > sizeof(input_buffer)) to_read = sizeof(input_buffer);
+            result = input->ReadPartial(input_buffer, to_read, bytes_read);
+            if (AP4_SUCCEEDED(result)) {
+                AP4_Size to_feed = bytes_read;
+                result = parser.Feed(input_buffer, &to_feed);
+                if (AP4_FAILED(result)) {
+                    AP4_Debug("ERROR: parser.Feed() failed (%d)\n", result);
+                    return;
                 }
-                break;
-            default:
-                DumpSamples(track, dump);
-        
+            } else {
+                if (result == AP4_ERROR_EOS) {
+                    eos = true;
+                    parser.Feed(NULL, NULL, AP4_BITSTREAM_FLAG_EOS);
+                }
+            }
         }
-        dump->Release();
+    }
+    
+    // create an audio track
+    AP4_Track* track = new AP4_Track(AP4_Track::TYPE_AUDIO, 
+                                     sample_table, 
+                                     0,                 // track id
+                                     sample_rate,       // movie time scale
+                                     sample_count*1024, // track duration              
+                                     sample_rate,       // media time scale
+                                     sample_count*1024, // media duration
+                                     "und",             // language
+                                     0, 0);             // width, height
+    
+    // cleanup
+    input->Release();
+    
+    movie.AddTrack(track);
+}
+
+/*----------------------------------------------------------------------
+|   AddH264Track
++---------------------------------------------------------------------*/
+static void
+AddH264Track(AP4_Movie&            movie,
+             const char*           input_name,
+             AP4_Array<Parameter>& parameters,
+             AP4_Array<AP4_UI32>&  brands,
+             SampleFileStorage&    sample_storage)
+{
+    AP4_ByteStream* input;
+    AP4_Result result = AP4_FileByteStream::Create(input_name, AP4_FileByteStream::STREAM_MODE_READ, input);
+    if (AP4_FAILED(result)) {
+        fprintf(stderr, "ERROR: cannot open input file '%s' (%d))\n", input_name, result);
+        return;
+    }
+
+    // see if the frame rate is specified
+    unsigned int video_frame_rate = AP4_MUX_DEFAULT_VIDEO_FRAME_RATE*1000;
+    for (unsigned int i=0; i<parameters.ItemCount(); i++) {
+        if (parameters[i].m_Name == "frame_rate") {
+            float frame_rate = strtof(parameters[i].m_Value.GetChars(), NULL);
+            if (frame_rate == 0.0f) {
+                fprintf(stderr, "ERROR: invalid video frame rate %s\n", parameters[i].m_Value.GetChars());
+                return;
+            }
+            video_frame_rate = (unsigned int)(1000.0*frame_rate);
+        }
+    }
+    
+    // create a sample table
+    AP4_SyntheticSampleTable* sample_table = new AP4_SyntheticSampleTable();
+
+    // allocate an array to keep track of sample order
+    AP4_Array<SampleOrder> sample_orders;
+    
+    // parse the input
+    AP4_AvcFrameParser parser;
+    for (;;) {
+        bool eos;
+        unsigned char input_buffer[4096];
+        AP4_Size bytes_in_buffer = 0;
+        result = input->ReadPartial(input_buffer, sizeof(input_buffer), bytes_in_buffer);
+        if (AP4_SUCCEEDED(result)) {
+            eos = false;
+        } else if (result == AP4_ERROR_EOS) {
+            eos = true;
+        } else {
+            fprintf(stderr, "ERROR: failed to read from input file\n");
+            break;
+        }
+        AP4_Size offset = 0;
+        do {
+            AP4_AvcFrameParser::AccessUnitInfo access_unit_info;
+            
+            AP4_Size bytes_consumed = 0;
+            result = parser.Feed(&input_buffer[offset],
+                                 bytes_in_buffer,
+                                 bytes_consumed,
+                                 access_unit_info,
+                                 eos);
+            if (AP4_FAILED(result)) {
+                fprintf(stderr, "ERROR: Feed() failed (%d)\n", result);
+                break;
+            }
+            if (access_unit_info.nal_units.ItemCount()) {
+                // we got one access unit
+                if (Options.verbose) {
+                    printf("H264 Access Unit, %d NAL units, decode_order=%d, display_order=%d\n",
+                           access_unit_info.nal_units.ItemCount(),
+                           access_unit_info.decoder_order,
+                           access_unit_info.display_order);
+                }
+                
+                // compute the total size of the sample data
+                unsigned int sample_data_size = 0;
+                for (unsigned int i=0; i<access_unit_info.nal_units.ItemCount(); i++) {
+                    sample_data_size += 4+access_unit_info.nal_units[i]->GetDataSize();
+                }
+                
+                // store the sample data
+                AP4_Position position = 0;
+                sample_storage.GetStream()->Tell(position);
+                for (unsigned int i=0; i<access_unit_info.nal_units.ItemCount(); i++) {
+                    sample_storage.GetStream()->WriteUI32(access_unit_info.nal_units[i]->GetDataSize());
+                    sample_storage.GetStream()->Write(access_unit_info.nal_units[i]->GetData(), access_unit_info.nal_units[i]->GetDataSize());
+                }
+                
+                // add the sample to the track
+                sample_table->AddSample(*sample_storage.GetStream(), position, sample_data_size, 1000, 0, 0, 0, access_unit_info.is_idr);
+            
+                // remember the sample order
+                sample_orders.Append(SampleOrder(access_unit_info.decoder_order, access_unit_info.display_order));
+                
+                // free the memory buffers
+                for (unsigned int i=0; i<access_unit_info.nal_units.ItemCount(); i++) {
+                    delete access_unit_info.nal_units[i];
+                }
+                access_unit_info.nal_units.Clear();
+            }
+        
+            offset += bytes_consumed;
+            bytes_in_buffer -= bytes_consumed;
+        } while (bytes_in_buffer);
+        if (eos) break;
+    }
+    
+    // adjust the sample CTS/DTS offsets based on the sample orders
+    if (sample_orders.ItemCount() > 1) {
+        unsigned int start = 0;
+        for (unsigned int i=1; i<=sample_orders.ItemCount(); i++) {
+            if (i == sample_orders.ItemCount() || sample_orders[i].m_DisplayOrder == 0) {
+                // we got to the end of the GOP, sort it by display order
+                SortSamples(&sample_orders[start], i-start);
+                start = i;
+            }
+        }
+    }
+    unsigned int max_delta = 0;
+    for (unsigned int i=0; i<sample_orders.ItemCount(); i++) {
+        if (sample_orders[i].m_DecodeOrder > i) {
+            unsigned int delta =sample_orders[i].m_DecodeOrder-i;
+            if (delta > max_delta) {
+                max_delta = delta;
+            }
+        }
+    }
+    for (unsigned int i=0; i<sample_orders.ItemCount(); i++) {
+        sample_table->UseSample(sample_orders[i].m_DecodeOrder).SetCts(1000ULL*(AP4_UI64)(i+max_delta));
+    }
+    
+    // check the video parameters
+    AP4_AvcSequenceParameterSet* sps = NULL;
+    for (unsigned int i=0; i<=AP4_AVC_SPS_MAX_ID; i++) {
+        if (parser.GetSequenceParameterSets()[i]) {
+            sps = parser.GetSequenceParameterSets()[i];
+            break;
+        }
+    }
+    if (sps == NULL) {
+        fprintf(stderr, "ERROR: no sequence parameter set found in video\n");
+        input->Release();
+        return;
+    }
+    unsigned int video_width = 0;
+    unsigned int video_height = 0;
+    sps->GetInfo(video_width, video_height);
+    if (Options.verbose) {
+        printf("VIDEO: %dx%d\n", video_width, video_height);
+    }
+    
+    // collect the SPS and PPS into arrays
+    AP4_Array<AP4_DataBuffer> sps_array;
+    for (unsigned int i=0; i<=AP4_AVC_SPS_MAX_ID; i++) {
+        if (parser.GetSequenceParameterSets()[i]) {
+            sps_array.Append(parser.GetSequenceParameterSets()[i]->raw_bytes);
+        }
+    }
+    AP4_Array<AP4_DataBuffer> pps_array;
+    for (unsigned int i=0; i<=AP4_AVC_PPS_MAX_ID; i++) {
+        if (parser.GetPictureParameterSets()[i]) {
+            pps_array.Append(parser.GetPictureParameterSets()[i]->raw_bytes);
+        }
+    }
+    
+    // setup the video the sample descripton
+    AP4_AvcSampleDescription* sample_description =
+        new AP4_AvcSampleDescription(AP4_SAMPLE_FORMAT_AVC1,
+                                     video_width,
+                                     video_height,
+                                     24,
+                                     "h264",
+                                     sps->profile_idc,
+                                     sps->level_idc,
+                                     sps->constraint_set0_flag<<7 |
+                                     sps->constraint_set1_flag<<6 |
+                                     sps->constraint_set2_flag<<5 |
+                                     sps->constraint_set3_flag<<4,
+                                     4,
+                                     sps_array,
+                                     pps_array);
+    sample_table->AddSampleDescription(sample_description);
+    
+    AP4_UI32 movie_timescale      = 1000;
+    AP4_UI32 media_timescale      = video_frame_rate;
+    AP4_UI64 video_track_duration = AP4_ConvertTime(1000*sample_table->GetSampleCount(), media_timescale, movie_timescale);
+    AP4_UI64 video_media_duration = 1000*sample_table->GetSampleCount();
+
+    // create an audio track
+    AP4_Track* track = new AP4_Track(AP4_Track::TYPE_VIDEO,
+                                     sample_table,
+                                     0,                    // auto-select track id
+                                     movie_timescale,      // movie time scale
+                                     video_track_duration, // track duration
+                                     video_frame_rate,     // media time scale
+                                     video_media_duration, // media duration
+                                     "und",                // language
+                                     video_width<<16,      // width
+                                     video_height<<16      // height
+                                     );
+
+    // update the brands list
+    brands.Append(AP4_FILE_BRAND_AVC1);
+
+    // cleanup
+    input->Release();
+    
+    movie.AddTrack(track);
+}
+
+/*----------------------------------------------------------------------
+|   AddMp4Tracks
++---------------------------------------------------------------------*/
+static void
+AddMp4Tracks(AP4_Movie&            movie,
+             const char*           input_name,
+             AP4_Array<Parameter>& parameters,
+             AP4_Array<AP4_UI32>&  /*brands*/)
+{
+    // open the input
+    AP4_ByteStream* input_stream = NULL;
+    AP4_Result result = AP4_FileByteStream::Create(input_name,
+                                                   AP4_FileByteStream::STREAM_MODE_READ, 
+                                                   input_stream);
+    if (AP4_FAILED(result)) {
+        fprintf(stderr, "ERROR: cannot open input file %s (%d)\n", input_name, result);
+        return;
+    }
+    
+    AP4_File file(*input_stream, AP4_DefaultAtomFactory::Instance, true);
+    input_stream->Release();
+    AP4_Movie* input_movie = file.GetMovie();
+    if (input_movie == NULL) {
+        return;
+    }
+    
+    // check the parameters to decide which track(s) to import
+    unsigned int track_id = 0;
+    for (unsigned int i=0; i<parameters.ItemCount(); i++) {
+        if (parameters[i].m_Name == "track") {
+            if (parameters[i].m_Value == "audio") {
+                AP4_Track* track = input_movie->GetTrack(AP4_Track::TYPE_AUDIO);
+                if (track == NULL) {
+                    fprintf(stderr, "ERROR: no audio track found in %s\n", input_name);
+                    return;
+                } else {
+                    track_id = track->GetId();
+                }
+            } else if (parameters[i].m_Value == "video") {
+                AP4_Track* track = input_movie->GetTrack(AP4_Track::TYPE_VIDEO);
+                if (track == NULL) {
+                    fprintf(stderr, "ERROR: no video track found in %s\n", input_name);
+                    return;
+                } else {
+                    track_id = track->GetId();
+                }
+            } else {
+                track_id = (unsigned int)strtoul(parameters[i].m_Value.GetChars(), NULL, 10);
+                if (track_id == 0) {
+                    fprintf(stderr, "ERROR: invalid track ID specified");
+                    return;
+                }
+            }
+        }
+    }
+    
+    if (Options.verbose) {
+        if (track_id == 0) {
+            printf("MP4 Import: importing all tracks from %s\n", input_name);
+        } else {
+            printf("MP4 Import: importing track %d from %s\n", track_id, input_name);
+        }
+    }
+    
+    AP4_List<AP4_Track>::Item* track_item = input_movie->GetTracks().FirstItem();
+    while (track_item) {
+        AP4_Track* track = track_item->GetData();
+        if (track_id == 0 || track->GetId() == track_id) {
+            movie.AddTrack(track->Clone());
+        }
+        track_item = track_item->GetNext();
     }
 }
 
@@ -222,108 +655,131 @@ main(int argc, char** argv)
     if (argc < 2) {
         PrintUsageAndExit();
     }
-
-    // init the variables
-    AP4_ByteStream*         input       = NULL;
-    const char*             filename    = NULL;
-    AP4_ProtectionKeyMap    key_map;
-    AP4_Array<AP4_Ordinal>  tracks_to_dump;
-    AP4_Ordinal             verbosity = 0;
-
-    // parse the command line
-    argv++;
-    char* arg;
-    while ((arg = *argv++)) {
-        if (!strcmp(arg, "--track")) {
-            arg = *argv++;
-            if (arg == NULL) {
-                fprintf(stderr, "ERROR: missing argument after --track option\n");
-                return 1;
-            }
-            char* track_ascii = arg;
-            char* key_ascii = NULL;
-            char* delimiter = strchr(arg, ':');
-            if (delimiter != NULL) {
-                *delimiter = '\0';
-                key_ascii = delimiter+1;  
-            }
-
-            // this track will be dumped
-            AP4_Ordinal track_id = (AP4_Ordinal) strtoul(track_ascii, NULL, 10); 
-            tracks_to_dump.Append(track_id);
-
-            // see if we have a key for this track
-            if (key_ascii != NULL) {
-                unsigned char key[16];
-                if (AP4_ParseHex(key_ascii, key, 16)) {
-                    fprintf(stderr, "ERROR: invalid hex format for key\n");
-                    return 1;
-                }
-                // set the key in the map
-                key_map.SetKey(track_id, key, 16);
-            }
-        } else if (!strcmp(arg, "--verbosity")) {
-            arg = *argv++;
-            if (arg == NULL) {
-                fprintf(stderr, "ERROR: missing argument after --verbosity option\n");
-                return 1;
-            }
-            verbosity = strtoul(arg, NULL, 10);
+    Options.verbose = false;
+    
+    const char* output_filename = NULL;
+    AP4_Array<char*> input_names;
+    
+    while (char* arg = *++argv) {
+        if (!strcmp(arg, "--verbose")) {
+            Options.verbose = true;
+        } else if (!strcmp(arg, "--track")) {
+            input_names.Append(*++argv);
+        } else if (output_filename == NULL) {
+            output_filename = arg;
         } else {
-            filename = arg;
-            AP4_Result result = AP4_FileByteStream::Create(filename, AP4_FileByteStream::STREAM_MODE_READ, input);
-            if (AP4_FAILED(result)) {
-                fprintf(stderr, "ERROR: cannot open input (%d)\n", result);
-                return 1;
-            }
+            fprintf(stderr, "ERROR: unexpected argument '%s'\n", arg);
+            return 1;
         }
     }
 
-    if (input == NULL) {
-        fprintf(stderr, "ERROR: no input specified\n");
+    if (input_names.ItemCount() == 0) {
+        fprintf(stderr, "ERROR: no input\n");
+        return 1;
+    }
+    if (output_filename == NULL) {
+        fprintf(stderr, "ERROR: output filename missing\n");
+        return 1;
+    }
+
+    // create the movie object to hold the tracks
+    AP4_Movie* movie = new AP4_Movie();
+
+    // setup the brands
+    AP4_Array<AP4_UI32> brands;
+    brands.Append(AP4_FILE_BRAND_ISOM);
+    brands.Append(AP4_FILE_BRAND_MP42);
+
+    // create a temp file to store the sample data
+    SampleFileStorage* sample_storage = NULL;
+    AP4_Result result = SampleFileStorage::Create(output_filename, sample_storage);
+    if (AP4_FAILED(result)) {
+        fprintf(stderr, "ERROR: failed to create temporary sample data storage (%d)\n", result);
         return 1;
     }
     
-    // open the output
-    AP4_ByteStream* output = NULL;
-    AP4_FileByteStream::Create("-stdout", AP4_FileByteStream::STREAM_MODE_WRITE, output);
-    
-    // create an inspector
-    AP4_PrintInspector inspector(*output);
-    inspector.SetVerbosity(verbosity);
+    // add all the tracks
+    for (unsigned int i=0; i<input_names.ItemCount(); i++) {
+        char*       input_name = input_names[i];
+        const char* input_type = NULL;
+        char*       input_params = NULL;
 
-    // inspect the atoms one by one
-    AP4_Atom* atom;
-    AP4_AtomFactory& atom_factory = AP4_DefaultAtomFactory::Instance;
-    while (atom_factory.CreateAtomFromStream(*input, atom) == AP4_SUCCESS) {
-        // remember the current stream position because the Inspect method
-        // may read from the stream (there may be stream references in some
-        // of the atoms
-        AP4_Position position;
-        input->Tell(position);
-
-        // inspect the atom
-        atom->Inspect(inspector);
-
-        // restore the previous stream position
-        input->Seek(position);
-
-        // destroy the atom
-        delete atom;
-    }  
-    if (output) output->Release();
-
-    // inspect the track data if needed
-    if (tracks_to_dump.ItemCount() != 0) {
-    	// rewind
-    	input->Seek(0);
-    	
-    	// dump the track data
-    	AP4_File file(*input);
-        DumpTrackData(filename, file, tracks_to_dump, key_map);
+        char* separator = strchr(input_name, ':');
+        if (separator) {
+            input_type = input_name;
+            input_name = separator+1;
+            *separator = '\0';
+        }
+        separator = strchr(input_name, '#');
+        if (separator) {
+            input_params = separator+1;
+            *separator = '\0';
+        }
+        
+        if (input_type == NULL) {
+            // no type, try to guess
+            separator = strrchr(input_name, '.');
+            if (separator) {
+                input_type = separator+1;
+                for (unsigned int j=1; separator[j]; j++) {
+                    separator[j] = (char)tolower(separator[j]);
+                }
+                if (!strcmp("264", input_type)) {
+                    input_type = "h264";
+                } else if (!strcmp("adts", input_type)) {
+                    input_type = "aac";
+                } else if (!strcmp("m4a", input_type) ||
+                           !strcmp("m4v", input_type) ||
+                           !strcmp("mov", input_type)) {
+                    input_type = "aac";
+                }
+            } else {
+                fprintf(stderr, "ERROR: unable to determine type for input '%s'\n", input_name);
+                delete sample_storage;
+                return 1;
+            }
+        }
+        
+        // parse parameters
+        AP4_Array<Parameter> parameters;
+        if (input_params) {
+            ParseParameters(input_params, parameters);
+        }
+        
+        if (!strcmp(input_type, "h264")) {
+            AddH264Track(*movie, input_name, parameters, brands, *sample_storage);
+        } else if (!strcmp(input_type, "aac")) {
+            AddAacTrack(*movie, input_name, parameters, *sample_storage);
+        } else if (!strcmp(input_type, "mp4")) {
+            AddMp4Tracks(*movie, input_name, parameters, brands);
+        } else {
+            fprintf(stderr, "ERROR: unsupported input type '%s'\n", input_type);
+            delete sample_storage;
+            return 1;
+        }
     }
 
-    if (input) input->Release();
+    // open the output
+    AP4_ByteStream* output = NULL;
+    result = AP4_FileByteStream::Create(output_filename, AP4_FileByteStream::STREAM_MODE_WRITE, output);
+    if (AP4_FAILED(result)) {
+        AP4_Debug("ERROR: cannot open output '%s' (%d)\n", output_filename, result);
+        delete sample_storage;
+        return 1;
+    }
+    
+    // create a multimedia file
+    AP4_File file(movie);
 
+    // set the file type
+    file.SetFileType(AP4_FILE_BRAND_ISOM, 1, &brands[0], brands.ItemCount());
+
+    // write the file to the output
+    AP4_FileWriter::Write(file, *output);
+    
+    // cleanup
+    delete sample_storage;
+    output->Release();
+    
     return 0;
 }

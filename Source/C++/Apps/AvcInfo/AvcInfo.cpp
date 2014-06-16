@@ -85,7 +85,7 @@ PrintSliceInfo(const unsigned char* data)
     ReadGolomb(bits);
     
     unsigned int slice_type = ReadGolomb(bits);
-    const char* slice_type_name = AP4_AvcParser::SliceTypeName(slice_type);
+    const char* slice_type_name = AP4_AvcNalParser::SliceTypeName(slice_type);
     if (slice_type_name == NULL) slice_type_name = "?";
     printf(" slice=%d (%s)", slice_type, slice_type_name);
 }
@@ -122,13 +122,13 @@ main(int argc, char** argv)
     AP4_ByteStream* input;
     try {
         input = new AP4_FileByteStream(filename,
-                               AP4_FileByteStream::STREAM_MODE_READ);
+                                       AP4_FileByteStream::STREAM_MODE_READ);
     } catch (AP4_Exception) {
         fprintf(stderr, "ERROR: cannot open input file (%s)\n", argv[1]);
         return 1;
     }
 
-    AP4_AvcParser parser;
+    AP4_AvcNalParser parser;
     unsigned int  nalu_count = 0;
     for (;;) {
         bool eos;
@@ -154,8 +154,8 @@ main(int argc, char** argv)
             } 
             if (nalu) {
                 const unsigned char* nalu_payload = (const unsigned char*)nalu->GetData();
-                unsigned int   nalu_type = nalu_payload[0]&0x1F;
-                const char*    nalu_type_name = AP4_AvcParser::NaluTypeName(nalu_type);
+                unsigned int         nalu_type = nalu_payload[0]&0x1F;
+                const char*          nalu_type_name = AP4_AvcNalParser::NaluTypeName(nalu_type);
                 if (nalu_type_name == NULL) nalu_type_name = "UNKNOWN";
                 printf("NALU %5d: size=%5d, type=%02d (%s)", 
                        nalu_count, 
@@ -164,7 +164,7 @@ main(int argc, char** argv)
                        nalu_type_name);
                 if (nalu_type == 9) {
                     unsigned int primary_pic_type = (nalu_payload[1]>>5);
-                    const char*  primary_pic_type_name = AP4_AvcParser::PrimaryPicTypeName(primary_pic_type);
+                    const char*  primary_pic_type_name = AP4_AvcNalParser::PrimaryPicTypeName(primary_pic_type);
                     if (primary_pic_type_name == NULL) primary_pic_type_name = "UNKNOWN";
                     printf(" [%d:%s]\n", primary_pic_type, primary_pic_type_name);
                 } else if (nalu_type == 1 || nalu_type == 2 || nalu_type == 5 || nalu_type == 19) {

@@ -119,6 +119,8 @@ class AP4_SyntheticSampleTable : public AP4_SampleTable
                                  AP4_UI32        cts_delta,
                                  bool            sync);
 
+    virtual AP4_Result AddSample(const AP4_Sample& sample);
+
     /**
      * Get a reference to a sample for the purpose of modifying it
      */

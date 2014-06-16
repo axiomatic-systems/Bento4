@@ -285,7 +285,8 @@ public:
                              const char*     compressor_name,
                              AP4_AtomParent* details);
 
-    AP4_AvcSampleDescription(AP4_UI16                         width,
+    AP4_AvcSampleDescription(AP4_UI32                         format,
+                             AP4_UI16                         width,
                              AP4_UI16                         height,
                              AP4_UI16                         depth,
                              const char*                      compressor_name,

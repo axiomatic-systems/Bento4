@@ -38,6 +38,7 @@
 #include "Ap4Config.h"
 #include "Ap4List.h"
 #include "Ap4String.h"
+#include "Ap4DataBuffer.h"
 
 /*----------------------------------------------------------------------
 |   global options
@@ -236,5 +237,38 @@ private:
     unsigned int   m_BitCount;
 };
 
+/*----------------------------------------------------------------------
+|   types
++---------------------------------------------------------------------*/
+class AP4_BitReader
+{
+public:
+    // types
+    typedef unsigned int BitsWord;
 
+    // constructor and destructor
+    AP4_BitReader(const AP4_UI08* data, unsigned int data_size);
+    ~AP4_BitReader();
+
+    // methods
+    AP4_Result   Reset();
+    int          ReadBit();
+    AP4_UI32     ReadBits(unsigned int bit_count);
+    int          PeekBit();
+    AP4_UI32     PeekBits(unsigned int bit_count);
+    AP4_Result   SkipBytes(AP4_Size byte_count);
+    void         SkipBit();
+    void         SkipBits(unsigned int bit_count);
+
+private:
+    // methods
+    BitsWord ReadCache() const;
+
+    // members
+    AP4_DataBuffer m_Buffer;
+    unsigned int   m_Position;
+    BitsWord       m_Cache;
+    unsigned int   m_BitsCached;
+};
+    
 #endif // _AP4_UTILS_H_

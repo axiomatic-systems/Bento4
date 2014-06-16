@@ -42,6 +42,32 @@ AP4_NalParser::AP4_NalParser() :
 }
 
 /*----------------------------------------------------------------------
+|   AP4_NalParser::Unescape
++---------------------------------------------------------------------*/
+void
+AP4_NalParser::Unescape(AP4_DataBuffer &data)
+{
+    unsigned int zero_count = 0;
+    unsigned int bytes_removed = 0;
+    AP4_UI08* out      = data.UseData();
+    const AP4_UI08* in = data.GetData();
+    AP4_Size  in_size  = data.GetDataSize();
+    
+    for (unsigned int i=0; i<in_size; i++) {
+        if (zero_count >= 2 && in[i] == 3 && i+1 < in_size && in[i+1] <= 3) {
+            ++bytes_removed;
+            zero_count = 0;
+        } else {
+            out[i-bytes_removed] = in[i];
+            if (in[i] == 0) {
+                ++zero_count;
+            }
+        }
+    }
+    data.SetDataSize(in_size-bytes_removed);
+}
+
+/*----------------------------------------------------------------------
 |   AP4_NalParser::Feed
 +---------------------------------------------------------------------*/
 AP4_Result 
@@ -95,18 +121,20 @@ AP4_NalParser::Feed(const void*            data,
                 
             case STATE_IN_NALU:
                 if (byte == 0) {
-                    m_ZeroTrail++;
+                    ++m_ZeroTrail;
+                    ++payload_end;
                     break;
                 } 
                 if (m_ZeroTrail >= 2) {
                     if (byte == 1) {
                         found_nalu = true;
                         m_State = STATE_START_NALU;
+                        break;
                     } else {
-                        payload_end += m_ZeroTrail+1;
+                        ++payload_end;
                     }
                 } else {
-                    payload_end += m_ZeroTrail+1;
+                    ++payload_end;
                 }
                 m_ZeroTrail = 0; 
                 break;
@@ -129,7 +157,18 @@ AP4_NalParser::Feed(const void*            data,
     bytes_consumed = data_offset;
     
     // return the NALU if we found one
-    if (found_nalu) nalu = &m_Buffer;
+    if (found_nalu) {
+        // trim zero bytes that are part of the next start code
+        if (m_ZeroTrail >= 3 && m_Buffer.GetDataSize() >= 3) {
+            // 4 byte start code
+            m_Buffer.SetDataSize(m_Buffer.GetDataSize()-3);
+        } else if (m_ZeroTrail >= 2 && m_Buffer.GetDataSize() >= 2) {
+            // 3 byte start code
+            m_Buffer.SetDataSize(m_Buffer.GetDataSize()-2);
+        }
+        m_ZeroTrail = 0;
+        nalu = &m_Buffer;
+    }
     
     return AP4_SUCCESS;
 }

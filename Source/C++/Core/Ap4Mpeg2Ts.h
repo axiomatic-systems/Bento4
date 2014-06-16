@@ -56,6 +56,7 @@ const AP4_UI08 AP4_MPEG2_STREAM_TYPE_ISO_IEC_13818_1_PES = 0x06;
 const AP4_UI08 AP4_MPEG2_STREAM_TYPE_ISO_IEC_13818_7     = 0x0F;
 const AP4_UI08 AP4_MPEG2_STREAM_TYPE_AVC                 = 0x1B;
 const AP4_UI08 AP4_MPEG2_STREAM_TYPE_HEVC                = 0x24;
+const AP4_UI08 AP4_MPEG2_STREAM_TYPE_ATSC_AC3            = 0x81;
 
 /*----------------------------------------------------------------------
 |   AP4_Mpeg2TsWriter

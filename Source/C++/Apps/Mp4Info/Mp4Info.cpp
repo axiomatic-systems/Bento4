@@ -439,8 +439,11 @@ ShowSampleDescription_Text(AP4_SampleDescription& description, bool verbose)
         AP4_AvcSampleDescription* avc_desc = AP4_DYNAMIC_CAST(AP4_AvcSampleDescription, desc);
         const char* profile_name = AP4_AvccAtom::GetProfileName(avc_desc->GetProfile());
         printf("    AVC Profile:          %d", avc_desc->GetProfile());
-        if (profile_name) printf(" (%s)\n", profile_name);
-        printf("\n");
+        if (profile_name) {
+            printf(" (%s)\n", profile_name);
+        } else {
+            printf("\n");
+        }
         printf("    AVC Profile Compat:   %x\n", avc_desc->GetProfileCompatibility());
         printf("    AVC Level:            %d\n", avc_desc->GetLevel());
         printf("    AVC NALU Length Size: %d\n", avc_desc->GetNaluLengthSize());

@@ -351,6 +351,7 @@ main(int argc, char** argv)
     AP4_AvcSampleDescription* avc_desc = AP4_DYNAMIC_CAST(AP4_AvcSampleDescription, sample_description);
     AP4_SyntheticSampleTable* video_sample_table = new AP4_SyntheticSampleTable();
     video_sample_table->AddSampleDescription(new AP4_AvcSampleDescription(
+        AP4_SAMPLE_FORMAT_AVC1,
         avc_desc->GetWidth(),
         avc_desc->GetHeight(),
         avc_desc->GetDepth(),
