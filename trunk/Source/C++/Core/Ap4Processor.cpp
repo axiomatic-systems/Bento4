@@ -144,12 +144,12 @@ AP4_Processor::ProcessFragments(AP4_MoovAtom*              moov,
             AP4_TrexAtom*      trex = NULL;
             mvex = AP4_DYNAMIC_CAST(AP4_ContainerAtom, moov->GetChild(AP4_ATOM_TYPE_MVEX));
             if (mvex) {
-                for (AP4_List<AP4_Atom>::Item* item = mvex->GetChildren().FirstItem();
-                                               item;
-                                               item = item->GetNext()) {
-                    AP4_Atom* atom = item->GetData();
-                    if (atom->GetType() == AP4_ATOM_TYPE_TREX) {
-                        trex = AP4_DYNAMIC_CAST(AP4_TrexAtom, atom);
+                for (AP4_List<AP4_Atom>::Item* child_item = mvex->GetChildren().FirstItem();
+                                               child_item;
+                                               child_item = child_item->GetNext()) {
+                    AP4_Atom* child_atom = child_item->GetData();
+                    if (child_atom->GetType() == AP4_ATOM_TYPE_TREX) {
+                        trex = AP4_DYNAMIC_CAST(AP4_TrexAtom, child_atom);
                         if (trex && trex->GetTrackId() == tfhd->GetTrackId()) break;
                         trex = NULL;
                     }
@@ -206,12 +206,12 @@ AP4_Processor::ProcessFragments(AP4_MoovAtom*              moov,
             
             // build a list of all trun atoms
             AP4_Array<AP4_TrunAtom*> truns;
-            for (AP4_List<AP4_Atom>::Item* traf_item = traf->GetChildren().FirstItem();
-                                           traf_item;
-                                           traf_item = traf_item->GetNext()) {
-                AP4_Atom* atom = traf_item->GetData();
-                if (atom->GetType() == AP4_ATOM_TYPE_TRUN) {
-                    AP4_TrunAtom* trun = AP4_DYNAMIC_CAST(AP4_TrunAtom, atom);
+            for (AP4_List<AP4_Atom>::Item* child_item = traf->GetChildren().FirstItem();
+                                           child_item;
+                                           child_item = child_item->GetNext()) {
+                AP4_Atom* child_atom = child_item->GetData();
+                if (child_atom->GetType() == AP4_ATOM_TYPE_TRUN) {
+                    AP4_TrunAtom* trun = AP4_DYNAMIC_CAST(AP4_TrunAtom, child_atom);
                     truns.Append(trun);
                 }
             }    

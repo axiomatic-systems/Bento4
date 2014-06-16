@@ -1049,7 +1049,8 @@ AP4_MpegSystemSampleDescription_Create(AP4_UI08        stream_type,
 }
                                        
 AP4_SampleDescription*
-AP4_AvcSampleDescription_Create(AP4_UI16         width,
+AP4_AvcSampleDescription_Create(AP4_UI32         format,
+                                AP4_UI16         width,
                                 AP4_UI16         height,
                                 AP4_UI16         depth,
                                 const char*      compressor_name,
@@ -1073,7 +1074,8 @@ AP4_AvcSampleDescription_Create(AP4_UI16         width,
         picture_params.Append(*picture_parameters[i]);
     }
     
-    return new AP4_AvcSampleDescription(width,
+    return new AP4_AvcSampleDescription(format,
+                                        width,
                                         height,
                                         depth,
                                         compressor_name,

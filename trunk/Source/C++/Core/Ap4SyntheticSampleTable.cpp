@@ -198,6 +198,15 @@ AP4_SyntheticSampleTable::AddSample(AP4_ByteStream& data_stream,
 }
 
 /*----------------------------------------------------------------------
+|   AP4_SyntheticSampleTable::AddSample
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_SyntheticSampleTable::AddSample(const AP4_Sample& sample)
+{
+    return m_Samples.Append(sample);
+}
+
+/*----------------------------------------------------------------------
 |   AP4_SyntheticSampleTable::GetSampleIndexForTimeStamp
 +---------------------------------------------------------------------*/
 AP4_Result 

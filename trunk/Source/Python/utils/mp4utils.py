@@ -184,9 +184,9 @@ class Mp4Track:
         
         # compute the average segment durations
         segment_count = len(self.segment_durations)
-        if segment_count > 1:
-            # do not count the last segment, which could be shorter
-            self.average_segment_duration = reduce(operator.add, self.segment_durations[:-1], 0)/float(segment_count-1)
+        if segment_count > 2:
+            # do not count the last two segments, which could be shorter
+            self.average_segment_duration = reduce(operator.add, self.segment_durations[:-2], 0)/float(segment_count-2)
         elif segment_count == 1:
             self.average_segment_duration = self.segment_durations[0]
     
@@ -371,7 +371,8 @@ class Mp4File:
         # print debug info if requested
         if options.debug:
             for track in self.tracks.itervalues():
-                print '    ID                       =', track.id
+                print 'Track ID                     =', track.id
+                print '    Segment Count            =', len(track.segment_durations)
                 print '    Type                     =', track.type
                 print '    Sample Count             =', track.total_sample_count
                 print '    Average segment bitrate  =', track.average_segment_bitrate

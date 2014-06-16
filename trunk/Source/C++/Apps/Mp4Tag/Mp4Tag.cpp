@@ -291,8 +291,8 @@ ListKeys()
         if (key_width > c1_width) c1_width = key_width;
     }
     c1_width += 2; // account for padding
-    int c3_width = 4;
-    int c2_width = LINE_WIDTH-c1_width-c3_width-1-8;
+    unsigned int c3_width = 4;
+    unsigned int c2_width = LINE_WIDTH-c1_width-c3_width-1-8;
     TableCell cells[4] = {
         {" Key",         c1_width},
         {" Description", c2_width},

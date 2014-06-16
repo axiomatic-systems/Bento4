@@ -856,8 +856,8 @@ AP4_CencEncryptingProcessor::Initialize(AP4_AtomParent&                  top_lev
                     // only add this entry if there isn't already an entry for this KID
                     const AP4_Array<AP4_MkidAtom::Entry>& entries = mkid->GetEntries();
                     bool found = false;
-                    for (unsigned int i=0; i<entries.ItemCount() && !found; i++) {
-                        if (AP4_CompareMemory(entries[i].m_KID, kid, 16) == 0) {
+                    for (unsigned int j=0; j<entries.ItemCount() && !found; j++) {
+                        if (AP4_CompareMemory(entries[j].m_KID, kid, 16) == 0) {
                             found = true;
                         }
                     }

@@ -46,14 +46,13 @@
 +---------------------------------------------------------------------*/
 const unsigned int AP4_FRAGMENTER_DEFAULT_FRAGMENT_DURATION   = 2000; // ms
 const unsigned int AP4_FRAGMENTER_MAX_AUTO_FRAGMENT_DURATION  = 15000; 
-const unsigned int AP4_FRAGMENTER_FRAGMENT_DURATION_TOLERANCE = 100;
-const unsigned int AP4_FRAGMENTER_BASE_TIMESCALE              = 1000; // milliseconds
 
 /*----------------------------------------------------------------------
 |   options
 +---------------------------------------------------------------------*/
 struct _Options {
     unsigned int verbosity;
+    bool         debug;
 } Options;
 
 /*----------------------------------------------------------------------
@@ -67,6 +66,7 @@ PrintUsageAndExit()
             "\n\nusage: mp4fragment [options] <input> <output>\n"
             "options are:\n"
             "  --verbosity <n> sets the verbosity (details) level to <n> (between 0 and 3)\n"
+            "  --debug enable debugging information output\n"
             "  --fragment-duration <milliseconds> (default = automatic)\n"
             "  --timescale <n> (use 10000000 for Smooth Streaming compatibility)\n"
             );
@@ -83,14 +83,15 @@ public:
     ~TrackCursor();
     
     AP4_Result    SetTrack(AP4_Track* track);
+    AP4_Result    SetSampleIndex(AP4_Ordinal sample_index);
+    
     AP4_Track*    m_Track;
-    unsigned int  m_TrackId;
     AP4_Ordinal   m_SampleIndex;
+    AP4_Ordinal   m_FragmentIndex;
     AP4_Sample    m_Sample;
     AP4_UI64      m_Timestamp;
     bool          m_Eos;
     AP4_UI64      m_TargetDuration;
-    AP4_UI64      m_EndDts;
     AP4_TfraAtom* m_Tfra;
 };
 
@@ -99,12 +100,11 @@ public:
 +---------------------------------------------------------------------*/
 TrackCursor::TrackCursor() :
     m_Track(NULL), 
-    m_TrackId(0),
     m_SampleIndex(0),
+    m_FragmentIndex(0),
     m_Timestamp(0),
     m_Eos(false),
     m_TargetDuration(0),
-    m_EndDts(0),
     m_Tfra(new AP4_TfraAtom(0))
 {
 }
@@ -125,6 +125,27 @@ TrackCursor::SetTrack(AP4_Track* track)
 {
     m_Track = track;
     return track->GetSample(0, m_Sample);
+}
+
+/*----------------------------------------------------------------------
+|   TrackCursor::SetSampleIndex
++---------------------------------------------------------------------*/
+AP4_Result
+TrackCursor::SetSampleIndex(AP4_Ordinal sample_index)
+{
+    m_SampleIndex = sample_index;
+    
+    // check if we're at the end
+    if (sample_index >= m_Track->GetSampleCount()) {
+        AP4_UI64 end_dts = m_Sample.GetDts()+m_Sample.GetDuration();
+        m_Sample.Reset();
+        m_Sample.SetDts(end_dts);
+        m_Eos = true;
+    } else {
+        return m_Track->GetSample(m_SampleIndex, m_Sample);
+    }
+    
+    return AP4_SUCCESS;
 }
 
 /*----------------------------------------------------------------------
@@ -160,8 +181,14 @@ Fragment(AP4_File&       input_file,
                                     track_item;
                                     track_item = track_item->GetNext()) {
         AP4_Track* track = track_item->GetData();
+        
+        if (track->GetSampleCount() == 0) {
+            // ignore this track
+            continue;
+        }
+        
+        // create a cursor for the track
         TrackCursor* cursor = new TrackCursor();
-        cursor->m_TrackId = track->GetId();
         cursor->m_Tfra->SetTrackId(track->GetId());
         cursors.Append(cursor);
                     
@@ -175,7 +202,7 @@ Fragment(AP4_File&       input_file,
         // create the track
         AP4_Track* output_track = new AP4_Track(track->GetType(),
                                                 sample_table,
-                                                cursor->m_TrackId,
+                                                track->GetId(),
                                                 timescale?timescale:1000,
                                                 AP4_ConvertTime(track->GetDuration(),
                                                                 input_movie->GetTimeScale(),
@@ -193,7 +220,7 @@ Fragment(AP4_File&       input_file,
         }
                 
         // add a trex entry to the mvex container
-        AP4_TrexAtom* trex = new AP4_TrexAtom(cursor->m_TrackId,
+        AP4_TrexAtom* trex = new AP4_TrexAtom(cursor->m_Track->GetId(),
                                               1,
                                               0,
                                               0,
@@ -206,17 +233,34 @@ Fragment(AP4_File&       input_file,
         return;
     }
 
+    // select the anchor cursor and set target durations
+    TrackCursor* anchor_cursor = NULL;
     for (unsigned int i=0; i<cursors.ItemCount(); i++) {
-        if (cursors[i]->m_Track->GetType() == AP4_Track::TYPE_VIDEO) {
-            cursors[i]->m_TargetDuration = AP4_ConvertTime(fragment_duration>AP4_FRAGMENTER_FRAGMENT_DURATION_TOLERANCE ?
-                                                           fragment_duration-AP4_FRAGMENTER_FRAGMENT_DURATION_TOLERANCE : 0,
-                                                           1000,
-                                                           cursors[i]->m_Track->GetMediaTimeScale());
-        } else {
-            cursors[i]->m_TargetDuration = AP4_ConvertTime(fragment_duration,
-                                                           1000,
-                                                           cursors[i]->m_Track->GetMediaTimeScale());
+        cursors[i]->m_TargetDuration = AP4_ConvertTime(fragment_duration,
+                                                       1000,
+                                                       cursors[i]->m_Track->GetMediaTimeScale());
+        
+        // use this as the anchor track if it is the first video track
+        if (anchor_cursor == NULL && cursors[i]->m_Track->GetType() == AP4_Track::TYPE_VIDEO) {
+            anchor_cursor = cursors[i];
         }
+    }
+    if (anchor_cursor == NULL) {
+        // no video track to anchor with, pick the first audio track
+        for (unsigned int i=0; i<cursors.ItemCount(); i++) {
+            if (cursors[i]->m_Track->GetType() == AP4_Track::TYPE_AUDIO) {
+                anchor_cursor = cursors[i];
+                break;
+            }
+        }
+    }
+    if (anchor_cursor == NULL) {
+        // this shoudl never happen
+        fprintf(stderr, "ERROR: no anchor track\n");
+        return;
+    }
+    if (Options.debug) {
+        printf("Using track ID %d as anchor\n", anchor_cursor->m_Track->GetId());
     }
     
     // update the mehd duration
@@ -237,23 +281,102 @@ Fragment(AP4_File&       input_file,
     // write all the fragments
     unsigned int sequence_number = 1;
     for(;;) {
-        // select the next track to read from
         TrackCursor* cursor = NULL;
-        AP4_UI64 min_dts = (AP4_UI64)(-1);
+
+        // pick the first track with a fragment index lower than the anchor's
         for (unsigned int i=0; i<cursors.ItemCount(); i++) {
             if (cursors[i]->m_Eos) continue;
-            AP4_UI64 dts = AP4_ConvertTime(cursors[i]->m_Sample.GetDts(),
-                                           cursors[i]->m_Track->GetMediaTimeScale(),
-                                           AP4_FRAGMENTER_BASE_TIMESCALE);
-            if (dts < min_dts) {
-                min_dts = dts;
+            if (cursors[i]->m_FragmentIndex < anchor_cursor->m_FragmentIndex) {
                 cursor = cursors[i];
+                break;
             }
+        }
+        
+        // check if we found a non-anchor cursor to use
+        if (cursor == NULL) {
+            // the anchor should be used in this round, check if we can use it
+            if (anchor_cursor->m_Eos) {
+                // the anchor is done, pick a new anchor
+                anchor_cursor = NULL;
+                for (unsigned int i=0; i<cursors.ItemCount(); i++) {
+                    if (cursors[i]->m_Eos) continue;
+                    if (anchor_cursor == NULL ||
+                        cursors[i]->m_Track->GetType() == AP4_Track::TYPE_VIDEO ||
+                        cursors[i]->m_Track->GetType() == AP4_Track::TYPE_AUDIO) {
+                        anchor_cursor = cursors[i];
+                        if (Options.debug) {
+                            printf("+++ New anchor: Track ID %d\n", anchor_cursor->m_Track->GetId());
+                        }
+                    }
+                }
+            }
+            cursor = anchor_cursor;
         }
         if (cursor == NULL) break; // all done
         
-        // compute the target end for the segment
-        cursor->m_EndDts = cursor->m_Sample.GetDts()+cursor->m_TargetDuration;
+        // decide how many samples go into this fragment
+        AP4_UI64 target_dts;
+        if (cursor == anchor_cursor) {
+            target_dts = cursor->m_Sample.GetDts()+cursor->m_TargetDuration;
+        } else {
+            target_dts = AP4_ConvertTime(anchor_cursor->m_Sample.GetDts(),
+                                         anchor_cursor->m_Track->GetMediaTimeScale(),
+                                         cursor->m_Track->GetMediaTimeScale());
+            if (target_dts <= cursor->m_Sample.GetDts()) {
+                // we must be at the end, past the last anchor sample, just use the target duration
+                target_dts = cursor->m_Sample.GetDts()+cursor->m_TargetDuration;
+            }
+        }
+
+        unsigned int end_sample_index = cursor->m_Track->GetSampleCount();
+        AP4_UI64 smallest_diff = (AP4_UI64)(0xFFFFFFFFFFFFFFFFULL);
+        AP4_Sample sample;
+        for (unsigned int i=cursor->m_SampleIndex; i<=cursor->m_Track->GetSampleCount(); i++) {
+            AP4_UI64 dts;
+            if (i < cursor->m_Track->GetSampleCount()) {
+                result = cursor->m_Track->GetSample(i, sample);
+                if (AP4_FAILED(result)) {
+                    fprintf(stderr, "ERROR: failed to get sample %d (%d)\n", i, result);
+                    return;
+                }
+                if (!sample.IsSync()) continue; // only look for sync samples
+                dts = sample.GetDts();
+            } else {
+                result = cursor->m_Track->GetSample(i-1, sample);
+                if (AP4_FAILED(result)) {
+                    fprintf(stderr, "ERROR: failed to get sample %d (%d)\n", i-1, result);
+                    return;
+                }
+                dts = sample.GetDts()+sample.GetDuration();
+            }
+            AP4_SI64 diff = dts-target_dts;
+            AP4_UI64 abs_diff = diff<0?-diff:diff;
+            if (abs_diff < smallest_diff) {
+                // this sample is the closest to the target so far
+                end_sample_index = i;
+                smallest_diff = abs_diff;
+                if (diff >= 0) {
+                    // this sample is past the target, it is not going to get any better, stop looking
+                    break;
+                }
+            }
+        }
+        if (cursor->m_Eos) continue;
+        
+        if (Options.debug) {
+            if (cursor == anchor_cursor) {
+                printf("====");
+            } else {
+                printf("----");
+            }
+            printf(" Track ID %d - dts = %lld, target = %lld, pos = %d, end = %d/%d\n",
+                   cursor->m_Track->GetId(),
+                   cursor->m_Sample.GetDts(),
+                   target_dts,
+                   cursor->m_SampleIndex,
+                   end_sample_index,
+                   cursor->m_Track->GetSampleCount());
+        }
         
         // emit a fragment for the selected track
         if (Options.verbosity > 0) {
@@ -284,7 +407,7 @@ Fragment(AP4_File&       input_file,
         moof->AddChild(mfhd);
         AP4_ContainerAtom* traf = new AP4_ContainerAtom(AP4_ATOM_TYPE_TRAF);
         AP4_TfhdAtom* tfhd = new AP4_TfhdAtom(tfhd_flags,
-                                              cursor->m_TrackId,
+                                              cursor->m_Track->GetId(),
                                               0,
                                               sample_desc_index+1,
                                               0,
@@ -309,8 +432,8 @@ Fragment(AP4_File&       input_file,
         
         traf->AddChild(trun);
         moof->AddChild(traf);
-            
-        // decide which samples go in this fragment
+        
+        // add samples to the fragment
         AP4_Array<AP4_UI32>            sample_indexes;
         unsigned int                   sample_count = 0;
         AP4_Array<AP4_TrunAtom::Entry> trun_entries;
@@ -342,31 +465,20 @@ Fragment(AP4_File&       input_file,
             
             // next sample
             cursor->m_Timestamp += trun_entry.sample_duration;
-            cursor->m_SampleIndex++;
-            sample_count++;
-            if (cursor->m_SampleIndex >= cursor->m_Track->GetSampleCount()) {
-                cursor->m_Eos = true;
-
-                AP4_UI64 end_dts = cursor->m_Sample.GetDts()+cursor->m_Sample.GetDuration();
-                cursor->m_Sample.Reset();
-                cursor->m_Sample.SetDts(end_dts);
-
-                break;
-            }
-            result = cursor->m_Track->GetSample(cursor->m_SampleIndex, cursor->m_Sample);
+            result = cursor->SetSampleIndex(cursor->m_SampleIndex+1);
             if (AP4_FAILED(result)) {
-                cursor->m_Eos = true;
-
-                AP4_UI64 end_dts = cursor->m_Sample.GetDts()+cursor->m_Sample.GetDuration();
-                cursor->m_Sample.Reset();
-                cursor->m_Sample.SetDts(end_dts);
-
+                fprintf(stderr, "ERROR: failed to get sample %d (%d)\n", cursor->m_SampleIndex+1, result);
+                return;
+            }
+            sample_count++;
+            if (cursor->m_Eos) {
+                if (Options.debug) {
+                    printf("[has reached the end]");
+                }
                 break;
             }
-            if (cursor->m_Sample.IsSync()) {
-                if (cursor->m_Sample.GetDts() >= cursor->m_EndDts) {
-                    break; // done with this segment
-                }
+            if (cursor->m_SampleIndex >= end_sample_index) {
+                break; // done with this fragment
             }
         }
         if (Options.verbosity) {
@@ -383,7 +495,6 @@ Fragment(AP4_File&       input_file,
         // write mdat
         output_stream.WriteUI32(mdat_size);
         output_stream.WriteUI32(AP4_ATOM_TYPE_MDAT);
-        AP4_Sample     sample;
         AP4_DataBuffer sample_data;
         for (unsigned int i=0; i<sample_indexes.ItemCount(); i++) {
             result = cursor->m_Track->ReadSample(sample_indexes[i], sample, sample_data);
@@ -397,6 +508,9 @@ Fragment(AP4_File&       input_file,
                 return;
             }
         }
+        
+        // advance the cursor's fragment index
+        ++cursor->m_FragmentIndex;
         
         // cleanup
         delete moof;
@@ -486,14 +600,15 @@ main(int argc, char** argv)
     }
 
     // init the variables
-    const char*  input_filename    = NULL;
-    const char*  output_filename   = NULL;
-    unsigned int fragment_duration = 0;
+    const char*  input_filename                = NULL;
+    const char*  output_filename               = NULL;
+    unsigned int fragment_duration             = 0;
     bool         auto_detect_fragment_duration = true;
     AP4_UI32     timescale = 0;
     AP4_Result   result;
 
     Options.verbosity = 0;
+    Options.debug     = false;
     
     // parse the command line
     argv++;
@@ -506,6 +621,8 @@ main(int argc, char** argv)
                 return 1;
             }
             Options.verbosity = strtoul(arg, NULL, 10);
+        } else if (!strcmp(arg, "--debug")) {
+            Options.debug = true;
         } else if (!strcmp(arg, "--fragment-duration")) {
             arg = *argv++;
             if (arg == NULL) {
@@ -532,7 +649,10 @@ main(int argc, char** argv)
             }
         }
     }
-
+    if (Options.debug && Options.verbosity == 0) {
+        Options.verbosity = 1;
+    }
+    
     if (input_filename == NULL) {
         fprintf(stderr, "ERROR: no input specified\n");
         return 1;
@@ -570,18 +690,29 @@ main(int argc, char** argv)
         fprintf(stderr, "ERROR: file is already fragmented\n");
         return 1;
     }
-    AP4_Track* audio_track = input_file.GetMovie()->GetTrack(AP4_Track::TYPE_AUDIO);
-    AP4_Track* video_track = input_file.GetMovie()->GetTrack(AP4_Track::TYPE_VIDEO);
-    if (audio_track == NULL && video_track == NULL) {
+    AP4_Track*   video_track = NULL;
+    unsigned int video_track_count = 0;
+    unsigned int audio_track_count = 0;
+    for (AP4_List<AP4_Track>::Item* track_item = input_file.GetMovie()->GetTracks().FirstItem();
+                                    track_item;
+                                    track_item = track_item->GetNext()) {
+        AP4_Track* track = track_item->GetData();
+        if (track->GetType() == AP4_Track::TYPE_VIDEO) {
+            if (video_track) {
+                fprintf(stderr, "WARNING: more than one video track found\n");
+            } else {
+                video_track = track;
+            }
+            video_track_count++;
+        } else if (track->GetType() == AP4_Track::TYPE_AUDIO) {
+            audio_track_count++;
+        }
+        if (track->GetSampleCount() == 0) {
+            fprintf(stderr, "WARNING: track %d has no samples\n", track->GetId());
+        }
+    }
+    if (video_track_count == 0 && audio_track_count == 0) {
         fprintf(stderr, "ERROR: no audio or video track in the file\n");
-        return 1;
-    }
-    if (audio_track && audio_track->GetSampleCount() == 0) {
-        fprintf(stderr, "ERROR: audio track has no samples\n");
-        return 1;
-    }
-    if (video_track && video_track->GetSampleCount() == 0) {
-        fprintf(stderr, "ERROR: video track has no samples\n");
         return 1;
     }
     

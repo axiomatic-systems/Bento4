@@ -41,6 +41,9 @@
 +---------------------------------------------------------------------*/
 class AP4_NalParser {
 public:
+    // class methods
+    static void Unescape(AP4_DataBuffer& data);
+    
     AP4_NalParser();
     
     /**

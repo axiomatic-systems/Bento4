@@ -340,3 +340,195 @@ AP4_ParseIntegerU(const char* str)
     return value;
 }
 
+/*----------------------------------------------------------------------
+|   types and macros
++---------------------------------------------------------------------*/
+#define AP4_WORD_BITS  32
+#define AP4_WORD_BYTES 4
+
+#define AP4_BIT_MASK(_n) ((1<<(_n))-1)
+
+#if AP4_WORD_BITS != 32
+#error unsupported word size /* 64 and other word size not yet implemented */
+#endif
+
+/*----------------------------------------------------------------------
+|   AP4_BitReader::AP4_BitReader
++---------------------------------------------------------------------*/
+AP4_BitReader::AP4_BitReader(const AP4_UI08* data, unsigned int data_size) :
+    m_Position(0),
+    m_Cache(0),
+    m_BitsCached(0)
+{
+    // make the buffer an integral mulitple of the word size
+    m_Buffer.SetBufferSize(AP4_WORD_BYTES*((data_size+AP4_WORD_BYTES-1)/AP4_WORD_BYTES));
+    m_Buffer.SetData(data, data_size);
+    if (m_Buffer.GetDataSize() != m_Buffer.GetBufferSize()) {
+        AP4_SetMemory(m_Buffer.UseData()+m_Buffer.GetDataSize(), 0, m_Buffer.GetBufferSize()-m_Buffer.GetDataSize());
+    }
+}
+
+/*----------------------------------------------------------------------
+|   AP4_BitReader::~AP4_BitReader
++---------------------------------------------------------------------*/
+AP4_BitReader::~AP4_BitReader()
+{
+}
+
+/*----------------------------------------------------------------------
+|   AP4_BitReader::Reset
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_BitReader::Reset()
+{
+    m_Position   = 0;
+    m_Cache      = 0;
+    m_BitsCached = 0;
+
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_BitReader::ReadCache
++---------------------------------------------------------------------*/
+AP4_BitReader::BitsWord
+AP4_BitReader::ReadCache() const
+{
+    const AP4_UI08* out_ptr = m_Buffer.GetData()+m_Position;
+    return (((AP4_BitReader::BitsWord) out_ptr[0]) << 24) |
+           (((AP4_BitReader::BitsWord) out_ptr[1]) << 16) |
+           (((AP4_BitReader::BitsWord) out_ptr[2]) <<  8) |
+           (((AP4_BitReader::BitsWord) out_ptr[3])      );
+}
+
+/*----------------------------------------------------------------------
+|   AP4_BitReader::ReadBits
++---------------------------------------------------------------------*/
+AP4_UI32
+AP4_BitReader::ReadBits(unsigned int n)
+{
+    AP4_BitReader::BitsWord result;
+    if (m_BitsCached >= n) {
+        /* we have enough bits in the cache to satisfy the request */
+        m_BitsCached -= n;
+        result = (m_Cache >> m_BitsCached) & AP4_BIT_MASK(n);
+    } else {
+        /* not enough bits in the cache */
+        AP4_BitReader::BitsWord word = ReadCache();
+        m_Position += AP4_WORD_BYTES;
+
+        /* combine the new word and the cache, and update the state */
+        AP4_BitReader::BitsWord cache = m_Cache & AP4_BIT_MASK(m_BitsCached);
+        n -= m_BitsCached;
+        m_BitsCached = AP4_WORD_BITS - n;
+        result = (word >> m_BitsCached) | (cache << n);
+        m_Cache = word;
+    }
+
+    return result;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_BitReader::ReadBit
++---------------------------------------------------------------------*/
+int
+AP4_BitReader::ReadBit()
+{
+    AP4_BitReader::BitsWord result;
+    if (m_BitsCached == 0) {
+        /* the cache is empty */
+
+        /* read the next word into the cache */
+        m_Cache = ReadCache();
+        m_Position += AP4_WORD_BYTES;
+        m_BitsCached = AP4_WORD_BITS - 1;
+
+        /* return the first bit */
+        result = m_Cache >> (AP4_WORD_BITS - 1);
+    } else {
+        /* get the bit from the cache */
+        result = (m_Cache >> (--m_BitsCached)) & 1;
+    }
+    return result;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_BitReader::PeekBits
++---------------------------------------------------------------------*/
+AP4_UI32
+AP4_BitReader::PeekBits(unsigned int n)
+{
+   /* we have enough bits in the cache to satisfy the request */
+   if (m_BitsCached >= n) {
+      return (m_Cache >> (m_BitsCached - n)) & AP4_BIT_MASK(n);
+   } else {
+      /* not enough bits in the cache, read the next word */
+      AP4_BitReader::BitsWord word = ReadCache();
+
+      /* combine the new word and the cache, and update the state */
+      AP4_BitReader::BitsWord   cache = m_Cache & AP4_BIT_MASK(m_BitsCached);
+      n -= m_BitsCached;
+      return (word >> (AP4_WORD_BITS - n)) | (cache << n);
+   }
+}
+
+/*----------------------------------------------------------------------
+|   AP4_BitReader::PeekBit
++---------------------------------------------------------------------*/
+int
+AP4_BitReader::PeekBit()
+{
+   /* the cache is empty */
+   if (m_BitsCached == 0) {
+      /* read the next word into the cache */
+      AP4_BitReader::BitsWord cache = ReadCache();
+
+      /* return the first bit */
+      return cache >> (AP4_WORD_BITS - 1);
+   } else {
+      /* get the bit from the cache */
+      return (m_Cache >> (m_BitsCached-1)) & 1;
+   }
+}
+
+/*----------------------------------------------------------------------
+|   AP4_BitReader::SkipBits
++---------------------------------------------------------------------*/
+void
+AP4_BitReader::SkipBits(unsigned int n)
+{
+   if (n <= m_BitsCached) {
+      m_BitsCached -= n;
+   } else {
+      n -= m_BitsCached;
+      while (n >= AP4_WORD_BITS) {
+         m_Position += AP4_WORD_BYTES;
+         n -= AP4_WORD_BITS;
+      }
+      if (n) {
+         m_Cache = ReadCache();
+         m_BitsCached = AP4_WORD_BITS-n;
+         m_Position += AP4_WORD_BYTES;
+      } else {
+         m_BitsCached = 0;
+         m_Cache = 0;
+      }
+   }
+}
+
+/*----------------------------------------------------------------------
+|   AP4_BitReader::SkipBit
++---------------------------------------------------------------------*/
+void
+AP4_BitReader::SkipBit()
+{
+   if (m_BitsCached == 0) {
+      m_Cache = ReadCache();
+      m_Position += AP4_WORD_BYTES;
+      m_BitsCached = AP4_WORD_BITS - 1;
+   } else {
+      --m_BitsCached;
+   }
+}
+
+

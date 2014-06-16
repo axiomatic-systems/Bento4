@@ -233,6 +233,7 @@ multi_config_files = [
     (SDK_TARGET_DIR,'mp4info','bin'),
     (SDK_TARGET_DIR,'mp4rtphintinfo','bin'),
     (SDK_TARGET_DIR,'mp4tag','bin'),
+    (SDK_TARGET_DIR,'mp4mux','bin'),
     (SDK_TARGET_DIR,'aac2mp4','bin'),
     (SDK_TARGET_DIR,'mp42ts','bin'),
     (SDK_TARGET_DIR,'*.a','lib'),

@@ -87,6 +87,8 @@ def main():
                       help="Be verbose")
     parser.add_option('-d', '--debug', dest="debug", action='store_true', default=False,
                       help="Print out debugging information")
+    parser.add_option('-k', '--keep-files', dest="keep_files", action='store_true', default=False,
+                      help="Keep intermediate files")
     parser.add_option('-o', '--output-dir', dest="output_dir",
                       help="Output directory", metavar="<output-dir>", default='output')
     parser.add_option('-b', '--bitrates', dest="bitrates",
@@ -96,7 +98,9 @@ def main():
     parser.add_option('-m', '--min-video-bitrate', dest='min_bitrate', type='float',
                       help="Minimum bitrate (default: 500kbps)", default=500.0)
     parser.add_option('-n', '--max-video-bitrate', dest='max_bitrate', type='float',
-                      help="Max Video bitrate (default: 2mbps)", default=2000.0)
+                      help="Max Video bitrate (default: 2mbps)", default=2000.0),
+    parser.add_option('-p', '--video-profile', dest='video_profile',
+                      help="Video Encoding Profile: main or baseline (default)"),
     parser.add_option('-a', '--audio-bitrate', dest='audio_bitrate', type='int',
                       help="Audio bitrate (default: 128kbps)", default=128)
     parser.add_option('-s', '--segment-size', dest='segment_size', type='int',
@@ -118,6 +122,10 @@ def main():
 
     if options.min_bitrate > options.max_bitrate:
         raise Exception('ERROR: max bitrate must be >= min bitrate')
+
+    if options.video_profile:
+        if not options.video_profile in ['main', 'baseline']:
+            raise Exception('ERROR: unknown video encoding profile')
 
     if options.verbose:
         print 'Encoding', options.bitrates, 'bitrates, min bitrate =', options.min_bitrate, 'max bitrate =', options.max_bitrate
@@ -141,12 +149,16 @@ def main():
         temp_filename = output_filename+'_'
         base_cmd  = "ffmpeg -i %s -strict experimental -acodec libfdk_aac -ac 2 -ab %dk -profile:v baseline -preset slow -vcodec libx264" % (args[0], options.audio_bitrate)
         if options.text_overlay:
-            base_cmd += ' -vf "drawtext=fontfile=/Library/Fonts/Courier New.ttf: text='+str(int(bitrates[i]))+': fontsize=50:  x=(w)/8: y=h-(2*lh): fontcolor=white:"'
+            base_cmd += ' -vf "drawtext=fontfile=/Library/Fonts/Courier New.ttf: text='+str(int(bitrates[i]))+'kbps '+str(resolutions[i][0])+'*'+str(resolutions[i][1])+': fontsize=50:  x=(w)/8: y=h-(2*lh): fontcolor=white:"'
         if not options.debug:
             base_cmd += ' -v quiet'
         if options.force_output:
             base_cmd += ' -y'
-        x264_opts = "-x264opts keyint=%d:min-keyint=%d:scenecut=0:rc-lookahead=%d" % (options.segment_size, options.segment_size, options.segment_size)
+        if options.video_profile:
+            base_cmd += ' -profile:v '+options.video_profile
+
+        #x264_opts = "-x264opts keyint=%d:min-keyint=%d:scenecut=0:rc-lookahead=%d" % (options.segment_size, options.segment_size, options.segment_size)
+        x264_opts = "-force_key_frames 'expr:eq(mod(n,%d),0)' -x264opts rc-lookahead=%d" % (options.segment_size, options.segment_size)
         x264_opts += ':vbv-bufsize=%d:vbv-maxrate=%d' % (bitrates[i], int(bitrates[i]*1.5))
         cmd = base_cmd+' '+x264_opts+' -s '+str(resolutions[i][0])+'x'+str(resolutions[i][1])+' -f mp4 '+temp_filename
         if options.verbose:
@@ -156,7 +168,8 @@ def main():
         cmd = 'mp4fragment %s %s' % (temp_filename, output_filename)
         run_command(options, cmd)
 
-        os.unlink(temp_filename)
+        if not options.keep_files:
+            os.unlink(temp_filename)
 
 ###########################
 if __name__ == '__main__':

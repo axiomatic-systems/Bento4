@@ -776,18 +776,28 @@ def main():
     # check that the video segment durations are almost all equal
     if not options.use_segment_timeline:
         for video_track in video_tracks:
-            for segment_duration in video_track.segment_durations[:-1]:
+            for segment_duration in video_track.segment_durations[:-2]:
                 ratio = segment_duration/video_track.average_segment_duration
                 if ratio > 1.1 or ratio < 0.9:
                     sys.stderr.write('WARNING: video segment durations for "' + str(video_track) + '" vary by more than 10% (consider using --use-segment-timeline)\n')
                     break
         for audio_track in audio_tracks.values():
-            for segment_duration in audio_track.segment_durations[:-1]:
+            for segment_duration in audio_track.segment_durations[:-2]:
                 ratio = segment_duration/audio_track.average_segment_duration
                 if ratio > 1.1 or ratio < 0.9:
                     sys.stderr.write('WARNING: audio segment durations for "' + str(audio_track) + '" vary by more than 10% (consider using --use-segment-timeline)\n')
                     break
     
+    # round the audio segment durations to be equal to the video segment durations
+    if len(video_tracks):
+        for audio_track in audio_tracks.values():
+            ratio = audio_track.average_segment_duration/video_tracks[0].average_segment_duration
+            if abs(ratio-1.0) < 0.05:
+                # within 5%, make it equal
+                if options.verbose:
+                    print 'INFO: adjusting segment duration for audio track '+str(audio_track)+' to '+str(video_tracks[0].average_segment_duration)+' to match the video'
+                audio_track.average_segment_duration = video_tracks[0].average_segment_duration
+
     # compute the audio codecs
     for audio_track in audio_tracks.values(): 
         audio_desc = audio_track.info['sample_descriptions'][0]
@@ -841,9 +851,9 @@ def main():
     # print info about the tracks
     if options.verbose:
         for audio_track in audio_tracks.itervalues():
-            print '  Audio Track: ' + str(audio_track) + ' - max bitrate=%d, avg bitrate=%d, req bandwidth=%d' % (audio_track.max_segment_bitrate, audio_track.average_segment_bitrate, audio_track.bandwidth)
+            print 'Audio Track: ' + str(audio_track) + ' - max bitrate=%d, avg bitrate=%d, req bandwidth=%d' % (audio_track.max_segment_bitrate, audio_track.average_segment_bitrate, audio_track.bandwidth)
         for video_track in video_tracks:
-            print '  Video Track: ' + str(video_track) + ' - max bitrate=%d, avg bitrate=%d, req bandwidth=%d' % (video_track.max_segment_bitrate, video_track.average_segment_bitrate, video_track.bandwidth)
+            print 'Video Track: ' + str(video_track) + ' - max bitrate=%d, avg bitrate=%d, req bandwidth=%d' % (video_track.max_segment_bitrate, video_track.average_segment_bitrate, video_track.bandwidth)
 
     # deal with the max playout strategy if set
     if options.max_playout_rate_strategy:
