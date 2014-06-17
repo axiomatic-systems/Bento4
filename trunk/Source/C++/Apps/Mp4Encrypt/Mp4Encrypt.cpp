@@ -277,8 +277,8 @@ main(int argc, char** argv)
             AP4_LargeSize pssh_payload_size = 0;
             pssh_input->GetSize(pssh_payload_size);
             AP4_DataBuffer pssh_payload;
-            pssh_payload.SetDataSize(pssh_payload_size);
-            result = pssh_input->Read(pssh_payload.UseData(), pssh_payload_size);
+            pssh_payload.SetDataSize((AP4_Size)pssh_payload_size);
+            result = pssh_input->Read(pssh_payload.UseData(), (AP4_Size)pssh_payload_size);
             if (AP4_FAILED(result)) {
                 fprintf(stderr, "ERROR: cannot read pssh payload from file (%d)\n", result);
                 return 1;

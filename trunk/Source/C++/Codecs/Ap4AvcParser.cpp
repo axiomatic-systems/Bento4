@@ -189,7 +189,7 @@ SignedGolomb(unsigned int code_num)
     if (code_num % 2) {
         return (code_num+1)/2;
     } else {
-        return -(code_num/2);
+        return -((int)code_num/2);
     }
 }
 
@@ -295,7 +295,7 @@ AP4_AvcFrameParser::ParseSPS(const unsigned char* data, unsigned int data_size, 
         sps.qpprime_y_zero_transform_bypass_flag = bits.ReadBit();
         sps.seq_scaling_matrix_present_flag = bits.ReadBit();
         if (sps.seq_scaling_matrix_present_flag) {
-            for (unsigned int i=0; i<(sps.chroma_format_idc != 3 ? 8 : 12); i++) {
+            for (int i=0; i<(sps.chroma_format_idc != 3 ? 8 : 12); i++) {
                 unsigned int seq_scaling_list_present_flag = bits.ReadBit();
                 if (seq_scaling_list_present_flag) {
                     if (i<6) {

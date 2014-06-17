@@ -383,8 +383,8 @@ AddH264Track(AP4_Movie&            movie,
     unsigned int video_frame_rate = AP4_MUX_DEFAULT_VIDEO_FRAME_RATE*1000;
     for (unsigned int i=0; i<parameters.ItemCount(); i++) {
         if (parameters[i].m_Name == "frame_rate") {
-            float frame_rate = strtof(parameters[i].m_Value.GetChars(), NULL);
-            if (frame_rate == 0.0f) {
+            double frame_rate = atof(parameters[i].m_Value.GetChars());
+            if (frame_rate == 0.0) {
                 fprintf(stderr, "ERROR: invalid video frame rate %s\n", parameters[i].m_Value.GetChars());
                 return;
             }
