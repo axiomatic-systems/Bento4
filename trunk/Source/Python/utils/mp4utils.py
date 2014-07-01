@@ -494,7 +494,7 @@ def ComputePlayReadyHeader(header_spec, kid_hex, key_hex):
         header = header_b64.decode('base64')
         if len(header) == 0:
             raise Exception('invalid base64 encoding')
-        return header_b64
+        return header
     elif os.path.exists(header_spec):
         # read the header from the file
         header = open(header_spec, 'rb').read()
@@ -507,7 +507,7 @@ def ComputePlayReadyHeader(header_spec, kid_hex, key_hex):
             header_xml = header.decode('utf-8')
         if header_xml is not None:
             header = WrapPlayreadyHeaderXml(header_xml)
-        return header.encode('base64').replace('\n', '')
+        return header
     else:
         try:
             pairs = header_spec.split('#')
