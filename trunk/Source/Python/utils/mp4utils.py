@@ -13,7 +13,8 @@ import io
 import struct
 import operator
 import hashlib
- 
+import xml.sax.saxutils as saxutils
+
 LanguageCodeMap = {
     'aar': 'aa', 'abk': 'ab', 'afr': 'af', 'aka': 'ak', 'alb': 'sq', 'amh': 'am', 'ara': 'ar', 'arg': 'an',
     'arm': 'hy', 'asm': 'as', 'ava': 'av', 'ave': 'ae', 'aym': 'ay', 'aze': 'az', 'bak': 'ba', 'bam': 'bm',
@@ -529,11 +530,11 @@ def ComputePlayReadyHeader(header_spec, kid_hex, key_hex):
         if 'CUSTOMATTRIBUTES' in fields:
             header_xml += '<CUSTOMATTRIBUTES>'+fields['CUSTOMATTRIBUTES'].decode('base64').replace('\n', '')+'</CUSTOMATTRIBUTES>'
         if 'LA_URL' in fields:
-            header_xml += '<LA_URL>'+fields['LA_URL']+'</LA_URL>'
+            header_xml += '<LA_URL>'+saxutils.escape(fields['LA_URL'])+'</LA_URL>'
         if 'LUI_URL' in fields:
-            header_xml += '<LUI_URL>'+fields['LUI_URL']+'</LUI_URL>'
+            header_xml += '<LUI_URL>'+saxutils.escape(fields['LUI_URL'])+'</LUI_URL>'
         if 'DS_ID' in fields:
-            header_xml += '<DS_ID>'+fields['DS_ID']+'</DS_ID>'
+            header_xml += '<DS_ID>'+saxutils.escape(fields['DS_ID'])+'</DS_ID>'
 
         header_xml += '</DATA></WRMHEADER>'
         return WrapPlayreadyHeaderXml(header_xml)
