@@ -118,7 +118,8 @@ CORE_SOURCES = 								\
     Ap4HvccAtom.cpp                         \
     Ap4NalParser.cpp                        \
     Ap4AvcParser.cpp                        \
-    Ap4HevcParser.cpp
+    Ap4HevcParser.cpp                       \
+    Ap4SegmentBuilder.cpp
     
 
 CORE_OBJECTS=$(CORE_SOURCES:.cpp=.o)

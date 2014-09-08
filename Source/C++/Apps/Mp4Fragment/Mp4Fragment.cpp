@@ -39,7 +39,7 @@
 +---------------------------------------------------------------------*/
 #define BANNER "MP4 Fragmenter - Version 1.4\n"\
                "(Bento4 Version " AP4_VERSION_STRING ")\n"\
-               "(c) 2002-2013 Axiomatic Systems, LLC"
+               "(c) 2002-2014 Axiomatic Systems, LLC"
 
 /*----------------------------------------------------------------------
 |   constants

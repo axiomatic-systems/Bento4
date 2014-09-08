@@ -171,28 +171,29 @@ def AddContentProtection(options, container, tracks):
             PrintErrorAndExit('ERROR: no encryption info found in track '+str(track))
         if kid not in kids:
             kids.append(kid)
-    xml.register_namespace('mas', MARLIN_MAS_NAMESPACE)
-    xml.register_namespace('mspr', PLAYREADY_MSPR_NAMESPACE)
     xml.SubElement(container, 'ContentProtection', schemeIdUri='urn:mpeg:dash:mp4protection:2011', value='cenc')
     
     if options.marlin:
+        xml.register_namespace('mas', MARLIN_MAS_NAMESPACE)
         cp = xml.SubElement(container, 'ContentProtection', schemeIdUri=MARLIN_SCHEME_ID_URI)
         cids = xml.SubElement(cp, '{' + MARLIN_MAS_NAMESPACE + '}MarlinContentIds')
         for kid in kids:
             cid = xml.SubElement(cids, '{' + MARLIN_MAS_NAMESPACE + '}MarlinContentId')
             cid.text = 'urn:marlin:kid:' + kid
-    if options.playready_header:
+    if options.playready:
+        xml.register_namespace('mspr', PLAYREADY_MSPR_NAMESPACE)
         if options.encryption_key:
             kid = options.kid_hex
             key = options.key_hex
         else:
             kid = kids[0]
             key = None
-        header_bin = ComputePlayReadyHeader(options.playready_header, kid, key)
-        header_b64 = header_bin.encode('base64').replace('\n', '')
         cp = xml.SubElement(container, 'ContentProtection', schemeIdUri=PLAYREADY_SCHEME_ID_URI)
-        pro = xml.SubElement(cp, '{' + PLAYREADY_MSPR_NAMESPACE + '}pro')
-        pro.text = header_b64
+        if options.playready_header:
+            header_bin = ComputePlayReadyHeader(options.playready_header, kid, key)
+            header_b64 = header_bin.encode('base64').replace('\n', '')
+            pro = xml.SubElement(cp, '{' + PLAYREADY_MSPR_NAMESPACE + '}pro')
+            pro.text = header_b64
                 
 
 #############################################
@@ -229,7 +230,7 @@ def OutputDash(options, audio_tracks, video_tracks):
         else:
             id_ext = ''
         adaptation_set = xml.SubElement(*args, **kwargs)
-        if options.marlin or options.playready_header:
+        if options.marlin or options.playready:
             AddContentProtection(options, adaptation_set, [audio_track])
         representation = xml.SubElement(adaptation_set,
                                         'Representation',
@@ -253,7 +254,7 @@ def OutputDash(options, audio_tracks, video_tracks):
                                     mimeType=VIDEO_MIMETYPE,
                                     segmentAlignment='true',
                                     startWithSAP='1')
-    if options.marlin or options.playready_header:
+    if options.marlin or options.playready:
         AddContentProtection(options, adaptation_set, video_tracks)
     for video_track in video_tracks:
         representation = xml.SubElement(adaptation_set,
@@ -518,8 +519,10 @@ def main():
                       help="Use the original DASH MPD namespace as it was specified in the first published specification")
     parser.add_option('', "--marlin", dest="marlin", action="store_true", default=False,
                       help="Add Marlin signaling to the MPD (requires an encrypted input, or the --encryption-key option)")
+    parser.add_option('', "--playready", dest="playready", action="store_true", default=False,
+                      help="Add PlayReady signaling to the MPD (requires an encrypted input, or the --encryption-key option)")
     parser.add_option('', "--playready-header", dest="playready_header", metavar='<playready-header>', default=None,
-                      help="Add PlayReady signaling to the MPD (requires an encrypted input, or the --encryption-key option). " +
+                      help="Add a PlayReady PRO element in the MPD. The use of this option implied the --playready option." +
                            "The <playready-header> argument can be either: " +
                            "(1) the name of a file containing a PlayReady XML Rights Management Header (<WRMHEADER>) or a PlayReady Header Object (PRO) in binary form,  or "
                            "(2) the character '#' followed by a PlayReady Header Object encoded in Base64, or " +
@@ -569,6 +572,9 @@ def main():
         SEGMENT_TEMPLATE    = PADDED_SEGMENT_TEMPLATE
 
     # post-process some of the options
+    if options.playready_header:
+      options.playready = True
+
     if options.encryption_key:
         if ':' not in options.encryption_key:
             raise Exception('Invalid argument syntax for --encryption-key option')

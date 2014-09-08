@@ -191,7 +191,7 @@ public:
     struct AccessUnitInfo {
         AP4_Array<AP4_DataBuffer*> nal_units;
         bool                       is_idr;
-        AP4_UI32                   decoder_order;
+        AP4_UI32                   decode_order;
         AP4_UI32                   display_order;
     };
     

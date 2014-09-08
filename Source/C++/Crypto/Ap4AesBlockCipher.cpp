@@ -863,8 +863,10 @@ static const aes_32t il_tab[4][256] =
 static const aes_32t ls_tab[256] = { sb_data(w0) };
 #endif
 #ifdef  LS4_SET
+/* GBG: unused? 
 static const aes_32t ls_tab[4][256] =
     { {  sb_data(w0) }, {  sb_data(w1) }, {  sb_data(w2) }, {  sb_data(w3) } };
+*/
 #endif
 
 #ifdef  IM1_SET

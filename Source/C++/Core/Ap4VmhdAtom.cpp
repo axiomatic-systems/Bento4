@@ -51,7 +51,7 @@ AP4_VmhdAtom::Create(AP4_Size size, AP4_ByteStream& stream)
 |   AP4_VmhdAtom::AP4_VmhdAtom
 +---------------------------------------------------------------------*/
 AP4_VmhdAtom::AP4_VmhdAtom(AP4_UI16 graphics_mode, AP4_UI16 r, AP4_UI16 g, AP4_UI16 b) :
-    AP4_Atom(AP4_ATOM_TYPE_VMHD, AP4_FULL_ATOM_HEADER_SIZE+8, 0, 0),
+    AP4_Atom(AP4_ATOM_TYPE_VMHD, AP4_FULL_ATOM_HEADER_SIZE+8, 0, 1),
     m_GraphicsMode(graphics_mode)
 {
     m_OpColor[0] = r;
