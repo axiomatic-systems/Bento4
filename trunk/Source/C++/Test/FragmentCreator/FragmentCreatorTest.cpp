@@ -33,6 +33,9 @@
 #include <stdlib.h>
 
 #include "Ap4.h"
+#if defined(_WIN32)
+#define snprintf _snprintf
+#endif
 
 /*----------------------------------------------------------------------
 |   main

@@ -369,6 +369,9 @@
     <ClCompile Include="..\..\..\..\Source\C++\Codecs\Ap4AvcParser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4SegmentBuilder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4.h">
@@ -748,6 +751,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\..\Source\C++\Codecs\Ap4AvcParser.h">
       <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4SegmentBuilder.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
