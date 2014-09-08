@@ -44,6 +44,7 @@
 			buildPhases = (
 			);
 			dependencies = (
+				CA86EEED19BD6865008A3B00 /* PBXTargetDependency */,
 				CAE7240E0FC3365E008F2905 /* PBXTargetDependency */,
 				CA52643C0F788AD8009D7E0D /* PBXTargetDependency */,
 				CAF479350F0951D5004073ED /* PBXTargetDependency */,
@@ -682,6 +683,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = D2AAC045055464E500DB518D;
 			remoteInfo = Bento4;
+		};
+		CA86EEEC19BD6865008A3B00 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CA86EED619A95DD3008A3B00;
+			remoteInfo = FragmentCreatorTest;
 		};
 		CA8A94D71929A67500836179 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -3683,6 +3691,11 @@
 			target = D2AAC045055464E500DB518D /* Bento4 */;
 			targetProxy = CA86EEE019A95DF0008A3B00 /* PBXContainerItemProxy */;
 		};
+		CA86EEED19BD6865008A3B00 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CA86EED619A95DD3008A3B00 /* FragmentCreatorTest */;
+			targetProxy = CA86EEEC19BD6865008A3B00 /* PBXContainerItemProxy */;
+		};
 		CA8A94D81929A67500836179 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = D2AAC045055464E500DB518D /* Bento4 */;
@@ -4963,6 +4976,7 @@
 				CA86EEDF19A95DD3008A3B00 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		CA8A94D61929A65E00836179 /* Build configuration list for PBXNativeTarget "Mp4Mux" */ = {
 			isa = XCConfigurationList;
