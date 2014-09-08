@@ -188,7 +188,8 @@ single_config_files = [
     ('Documents/SDK','*.pdf','docs'),
     ('Source/Python/utils', 'mp4-dash.py', 'utils'),
     ('Source/Python/utils', 'mp4-dash-clone.py', 'utils'),
-    ('Source/Python/utils', 'mp4utils.py', 'utils')
+    ('Source/Python/utils', 'mp4utils.py', 'utils'),
+    ('Source/Python/utils', 'aes.py', 'utils')
 ]
 CopyFiles(single_config_files)
 

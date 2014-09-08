@@ -69,11 +69,17 @@ class MediaSource:
             if stream['codec_type'] == 'video':
                 self.width = stream['width']
                 self.height = stream['height']
-                if '/' in stream['avg_frame_rate']:
-                    (x,y) = stream['avg_frame_rate'].split('/')
-                    self.frame_rate = float(x)/float(y)
+                frame_rate = stream['avg_frame_rate']
+                if frame_rate == '0/0' or frame_rate == '0':
+                    frame_rate = stream['r_frame_rate']
+                if '/' in frame_rate:
+                    (x,y) = frame_rate.split('/')
+                    if x and y:
+                        self.frame_rate = float(x)/float(y)
+                    else:
+                        raise Exception('unable to obtain frame rate for source movie')
                 else:
-                    self.frame_rate = float(stream['avg_frame_rate'])
+                    self.frame_rate = float(frame_rate)
 
     def __repr__(self):
         return 'Video: resolution='+str(self.width)+'x'+str(self.height)

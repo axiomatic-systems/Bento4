@@ -250,12 +250,14 @@ main(int argc, char** argv)
     if (ftyp) {
         result = ftyp->Write(*output);
         if (AP4_FAILED(result)) {
-            fprintf(stderr, "ERROR: cannot write init segment (%d)\n", result);
+            fprintf(stderr, "ERROR: cannot write ftyp segment (%d)\n", result);
             return 1;
         }
     }
     if (Options.track_filter) {
         AP4_MoovAtom* moov = movie->GetMoovAtom();
+        
+        // only keep the 'trak' atom that we need
         AP4_List<AP4_Atom>::Item* child = moov->GetChildren().FirstItem();
         while (child) {
             AP4_Atom* atom = child->GetData();
@@ -266,6 +268,23 @@ main(int argc, char** argv)
                 if (tkhd && tkhd->GetTrackId() != Options.track_filter) {
                     atom->Detach();
                     delete atom;
+                }
+            }
+        }
+
+        // only keep the 'trex' atom that we need
+        AP4_ContainerAtom* mvex = AP4_DYNAMIC_CAST(AP4_ContainerAtom, moov->GetChild(AP4_ATOM_TYPE_MVEX));
+        if (mvex) {
+            child = mvex->GetChildren().FirstItem();
+            while (child) {
+                AP4_Atom* atom = child->GetData();
+                child = child->GetNext();
+                if (atom->GetType() == AP4_ATOM_TYPE_TREX) {
+                    AP4_TrexAtom* trex = AP4_DYNAMIC_CAST(AP4_TrexAtom, atom);
+                    if (trex && trex->GetTrackId() != Options.track_filter) {
+                        atom->Detach();
+                        delete atom;
+                    }
                 }
             }
         }

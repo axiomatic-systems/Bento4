@@ -786,7 +786,7 @@ AP4_AvcFrameParser::MaybeNewAccessUnit(AccessUnitInfo& access_unit_info)
     // emit the access unit (transfer ownership)
     access_unit_info.nal_units     = m_AccessUnitData;
     access_unit_info.is_idr        = (m_NalUnitType == AP4_AVC_NAL_UNIT_TYPE_CODED_SLICE_OF_IDR_PICTURE);
-    access_unit_info.decoder_order = m_TotalAccessUnitCount;
+    access_unit_info.decode_order  = m_TotalAccessUnitCount;
     access_unit_info.display_order = pic_order_cnt;
     m_AccessUnitData.Clear();
     ++m_TotalAccessUnitCount;
@@ -824,7 +824,7 @@ AP4_AvcFrameParser::Feed(const void*     data,
     // default return values
     access_unit_info.nal_units.Clear();
     access_unit_info.is_idr        = false;
-    access_unit_info.decoder_order = 0;
+    access_unit_info.decode_order  = 0;
     access_unit_info.display_order = 0;
     
     // feed the NAL unit parser

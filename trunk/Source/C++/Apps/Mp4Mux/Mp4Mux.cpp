@@ -35,10 +35,6 @@
 #include <ctype.h>
 
 #include "Ap4.h"
-#include "Ap4AvcParser.h"
-#include "Ap4AdtsParser.h"
-#include "Ap4BitStream.h"
-#include "Ap4ByteStream.h"
 
 /*----------------------------------------------------------------------
 |   constants
@@ -218,8 +214,9 @@ SampleFileStorage::Create(const char* basename, SampleFileStorage*& sample_file_
 static void
 SortSamples(SampleOrder* array, unsigned int n)
 {
-    if (n < 2)
+    if (n < 2) {
         return;
+    }
     SampleOrder pivot = array[n / 2];
     SampleOrder* left  = array;
     SampleOrder* right = array + n - 1;
@@ -432,7 +429,7 @@ AddH264Track(AP4_Movie&            movie,
                 if (Options.verbose) {
                     printf("H264 Access Unit, %d NAL units, decode_order=%d, display_order=%d\n",
                            access_unit_info.nal_units.ItemCount(),
-                           access_unit_info.decoder_order,
+                           access_unit_info.decode_order,
                            access_unit_info.display_order);
                 }
                 
@@ -454,7 +451,7 @@ AddH264Track(AP4_Movie&            movie,
                 sample_table->AddSample(*sample_storage.GetStream(), position, sample_data_size, 1000, 0, 0, 0, access_unit_info.is_idr);
             
                 // remember the sample order
-                sample_orders.Append(SampleOrder(access_unit_info.decoder_order, access_unit_info.display_order));
+                sample_orders.Append(SampleOrder(access_unit_info.decode_order, access_unit_info.display_order));
                 
                 // free the memory buffers
                 for (unsigned int i=0; i<access_unit_info.nal_units.ItemCount(); i++) {
@@ -550,7 +547,7 @@ AddH264Track(AP4_Movie&            movie,
     AP4_UI64 video_track_duration = AP4_ConvertTime(1000*sample_table->GetSampleCount(), media_timescale, movie_timescale);
     AP4_UI64 video_media_duration = 1000*sample_table->GetSampleCount();
 
-    // create an audio track
+    // create a video track
     AP4_Track* track = new AP4_Track(AP4_Track::TYPE_VIDEO,
                                      sample_table,
                                      0,                    // auto-select track id
@@ -772,7 +769,7 @@ main(int argc, char** argv)
     AP4_File file(movie);
 
     // set the file type
-    file.SetFileType(AP4_FILE_BRAND_ISOM, 1, &brands[0], brands.ItemCount());
+    file.SetFileType(AP4_FILE_BRAND_MP42, 1, &brands[0], brands.ItemCount());
 
     // write the file to the output
     AP4_FileWriter::Write(file, *output);

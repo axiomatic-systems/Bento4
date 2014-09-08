@@ -167,6 +167,7 @@ AP4_AdtsParser::Feed(const AP4_UI08* buffer,
     /* see how much data we can write */
     free_space = m_Bits.GetBytesFree();
     if (*buffer_size > free_space) *buffer_size = free_space;
+    if (*buffer_size == 0) return AP4_SUCCESS;
 
     /* write the data */
     return m_Bits.WriteBytes(buffer, *buffer_size); 
