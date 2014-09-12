@@ -72,10 +72,7 @@ AP4_StsdAtom::AP4_StsdAtom(AP4_SampleTable* sample_table) :
         // create an entry for the description
         AP4_SampleDescription* sample_description = sample_table->GetSampleDescription(i);
         AP4_Atom* entry = sample_description->ToAtom();
-        m_Children.Add(entry);
-
-        // update the size
-        m_Size32 += (AP4_UI32)entry->GetSize();
+        AddChild(entry);
     }
 }
 

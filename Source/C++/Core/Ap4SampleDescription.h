@@ -163,12 +163,12 @@ public:
     AP4_IMPLEMENT_DYNAMIC_CAST(AP4_AudioSampleDescription)
 
     // constructor and destructor
-    AP4_AudioSampleDescription(unsigned int sample_rate,
-                               unsigned int sample_size,
-                               unsigned int channel_count) :
-    m_SampleRate((AP4_UI32)sample_rate),
-    m_SampleSize((AP4_UI16)sample_size),
-    m_ChannelCount((AP4_UI16)channel_count) {}
+    AP4_AudioSampleDescription(AP4_UI32 sample_rate,
+                               AP4_UI16 sample_size,
+                               AP4_UI16 channel_count) :
+    m_SampleRate(sample_rate),
+    m_SampleSize(sample_size),
+    m_ChannelCount(channel_count) {}
     virtual ~AP4_AudioSampleDescription() {}
     
     // accessors
