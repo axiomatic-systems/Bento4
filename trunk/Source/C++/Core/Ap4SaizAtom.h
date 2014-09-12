@@ -64,7 +64,7 @@ public:
 private:
     // methods
     AP4_SaizAtom(AP4_UI32        size, 
-                 AP4_UI32        version,
+                 AP4_UI08        version,
                  AP4_UI32        flags,
                  AP4_ByteStream& stream);
 
@@ -73,7 +73,7 @@ private:
     AP4_UI32            m_AuxInfoTypeParameter;
     AP4_UI08            m_DefaultSampleInfoSize;
     AP4_UI32            m_SampleCount;
-    AP4_Array<AP4_UI32> m_Entries;
+    AP4_Array<AP4_UI08> m_Entries;
 };
 
 #endif // _AP4_SAIZ_ATOM_H_

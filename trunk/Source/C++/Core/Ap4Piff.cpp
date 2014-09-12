@@ -53,7 +53,7 @@ AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_PiffTrackEncryptionAtom)
 AP4_PiffTrackEncryptionAtom* 
 AP4_PiffTrackEncryptionAtom::Create(AP4_Size size, AP4_ByteStream& stream)
 {
-    AP4_UI32 version = 0;
+    AP4_UI08 version = 0;
     AP4_UI32 flags   = 0;
     AP4_Result result = ReadFullHeader(stream, version, flags);
     if (AP4_FAILED(result)) return NULL;
@@ -65,7 +65,7 @@ AP4_PiffTrackEncryptionAtom::Create(AP4_Size size, AP4_ByteStream& stream)
 |   AP4_PiffTrackEncryptionAtom::AP4_PiffTrackEncryptionAtom
 +---------------------------------------------------------------------*/
 AP4_PiffTrackEncryptionAtom::AP4_PiffTrackEncryptionAtom(AP4_UI32        size, 
-                                                         AP4_UI32        version,
+                                                         AP4_UI08        version,
                                                          AP4_UI32        flags,
                                                          AP4_ByteStream& stream) :
     AP4_UuidAtom(size, AP4_UUID_PIFF_TRACK_ENCRYPTION_ATOM, version, flags),
@@ -115,7 +115,7 @@ AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_PiffSampleEncryptionAtom)
 AP4_PiffSampleEncryptionAtom* 
 AP4_PiffSampleEncryptionAtom::Create(AP4_Size size, AP4_ByteStream& stream)
 {
-    AP4_UI32 version = 0;
+    AP4_UI08 version = 0;
     AP4_UI32 flags   = 0;
     AP4_Result result = ReadFullHeader(stream, version, flags);
     if (AP4_FAILED(result)) return NULL;
@@ -136,7 +136,7 @@ AP4_PiffSampleEncryptionAtom::AP4_PiffSampleEncryptionAtom(AP4_UI08 iv_size) :
 |   AP4_PiffSampleEncryptionAtom::AP4_PiffSampleEncryptionAtom
 +---------------------------------------------------------------------*/
 AP4_PiffSampleEncryptionAtom::AP4_PiffSampleEncryptionAtom(AP4_UI32        size, 
-                                                           AP4_UI32        version,
+                                                           AP4_UI08        version,
                                                            AP4_UI32        flags,
                                                            AP4_ByteStream& stream) :
     AP4_UuidAtom(size, AP4_UUID_PIFF_SAMPLE_ENCRYPTION_ATOM, version, flags),

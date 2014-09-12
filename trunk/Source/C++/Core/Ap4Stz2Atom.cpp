@@ -44,7 +44,7 @@ AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_Stz2Atom)
 AP4_Stz2Atom*
 AP4_Stz2Atom::Create(AP4_Size size, AP4_ByteStream& stream)
 {
-    AP4_UI32 version;
+    AP4_UI08 version;
     AP4_UI32 flags;
     if (AP4_FAILED(AP4_Atom::ReadFullHeader(stream, version, flags))) return NULL;
     if (version != 0) return NULL;
@@ -68,7 +68,7 @@ AP4_Stz2Atom::AP4_Stz2Atom(AP4_UI08 field_size) :
 |   AP4_Stz2Atom::AP4_Stz2Atom
 +---------------------------------------------------------------------*/
 AP4_Stz2Atom::AP4_Stz2Atom(AP4_UI32        size, 
-                           AP4_UI32        version,
+                           AP4_UI08        version,
                            AP4_UI32        flags,
                            AP4_ByteStream& stream) :
     AP4_Atom(AP4_ATOM_TYPE_STZ2, size, version, flags)
@@ -157,14 +157,14 @@ AP4_Stz2Atom::WriteFields(AP4_ByteStream& stream)
 
         case 8:
             for (AP4_UI32 i=0; i<m_SampleCount; i++) {
-                result = stream.WriteUI08(m_Entries[i]);
+                result = stream.WriteUI08((AP4_UI08)m_Entries[i]);
                 if (AP4_FAILED(result)) return result;
             }
             break;
 
         case 16:
             for (AP4_UI32 i=0; i<m_SampleCount; i++) {
-                result = stream.WriteUI16(m_Entries[i]);
+                result = stream.WriteUI16((AP4_UI16)m_Entries[i]);
                 if (AP4_FAILED(result)) return result;
             }
             break;

@@ -69,7 +69,7 @@ public:
 protected:
     // members
     AP4_UuidAtom(AP4_UI64 size, const AP4_UI08* uuid);
-    AP4_UuidAtom(AP4_UI64 size, const AP4_UI08* uuid, AP4_UI32 version, AP4_UI32 flags);
+    AP4_UuidAtom(AP4_UI64 size, const AP4_UI08* uuid, AP4_UI08 version, AP4_UI32 flags);
     AP4_UuidAtom(AP4_UI64 size, bool is_full, AP4_ByteStream& stream);
     AP4_UI08 m_Uuid[16];
 };

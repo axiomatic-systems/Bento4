@@ -49,7 +49,7 @@ AP4_StsdAtom::Create(AP4_Size         size,
                      AP4_ByteStream&  stream, 
                      AP4_AtomFactory& atom_factory)
 {
-    AP4_UI32 version;
+    AP4_UI08 version;
     AP4_UI32 flags;
     if (AP4_FAILED(AP4_Atom::ReadFullHeader(stream, version, flags))) return NULL;
     if (version > 1) return NULL;
@@ -83,7 +83,7 @@ AP4_StsdAtom::AP4_StsdAtom(AP4_SampleTable* sample_table) :
 |   AP4_StsdAtom::AP4_StsdAtom
 +---------------------------------------------------------------------*/
 AP4_StsdAtom::AP4_StsdAtom(AP4_UI32         size,
-                           AP4_UI32         version,
+                           AP4_UI08         version,
                            AP4_UI32         flags,
                            AP4_ByteStream&  stream,
                            AP4_AtomFactory& atom_factory) :

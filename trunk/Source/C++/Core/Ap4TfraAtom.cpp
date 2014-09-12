@@ -44,7 +44,7 @@ AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_TfraAtom)
 AP4_TfraAtom* 
 AP4_TfraAtom::Create(AP4_Size size, AP4_ByteStream& stream)
 {
-    AP4_UI32 version = 0;
+    AP4_UI08 version = 0;
     AP4_UI32 flags   = 0;
     AP4_Result result = ReadFullHeader(stream, version, flags);
     if (AP4_FAILED(result)) return NULL;
@@ -71,7 +71,7 @@ AP4_TfraAtom::AP4_TfraAtom(AP4_UI32 track_id,
 |   AP4_TfraAtom::AP4_TfraAtom
 +---------------------------------------------------------------------*/
 AP4_TfraAtom::AP4_TfraAtom(AP4_UI32        size, 
-                           AP4_UI32        version, 
+                           AP4_UI08        version, 
                            AP4_UI32        flags, 
                            AP4_ByteStream& stream) :
     AP4_Atom(AP4_ATOM_TYPE_TFRA, size, version, flags)

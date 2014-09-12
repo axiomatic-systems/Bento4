@@ -97,7 +97,7 @@ AP4_Atom::AP4_Atom(Type type, AP4_UI64 size, bool force_64) :
 +---------------------------------------------------------------------*/
 AP4_Atom::AP4_Atom(Type     type, 
                    AP4_UI32 size, 
-                   AP4_UI32 version, 
+                   AP4_UI08 version, 
                    AP4_UI32 flags) :
     m_Type(type),
     m_Size32(size),
@@ -115,7 +115,7 @@ AP4_Atom::AP4_Atom(Type     type,
 AP4_Atom::AP4_Atom(Type     type, 
                    AP4_UI64 size,
                    bool     force_64,
-                   AP4_UI32 version, 
+                   AP4_UI08 version, 
                    AP4_UI32 flags) :
     m_Type(type),
     m_Size32(0),
@@ -133,7 +133,7 @@ AP4_Atom::AP4_Atom(Type     type,
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_Atom::ReadFullHeader(AP4_ByteStream& stream, 
-                         AP4_UI32&       version, 
+                         AP4_UI08&       version, 
                          AP4_UI32&       flags)
 {
     AP4_UI32 header;
@@ -771,7 +771,7 @@ AP4_PrintInspector::~AP4_PrintInspector()
 +---------------------------------------------------------------------*/
 void
 AP4_PrintInspector::StartAtom(const char* name,
-                              AP4_UI32    version,
+                              AP4_UI08    version,
                               AP4_UI32    flags,
                               AP4_Size    header_size,
                               AP4_UI64    size)
@@ -966,7 +966,7 @@ AP4_JsonInspector::~AP4_JsonInspector()
 +---------------------------------------------------------------------*/
 void
 AP4_JsonInspector::StartAtom(const char* name,
-                             AP4_UI32    /*version*/,
+                             AP4_UI08    /*version*/,
                              AP4_UI32    /*flags*/,
                              AP4_Size    header_size,
                              AP4_UI64    size)

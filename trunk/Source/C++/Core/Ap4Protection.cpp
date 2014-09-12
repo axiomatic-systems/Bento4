@@ -682,7 +682,7 @@ AP4_SampleDecrypter::Create(AP4_ProtectedSampleDescription* sample_description,
             return NULL;
     }
 
-    return NULL;
+    // unreachable - return NULL;
 }
 
 /*----------------------------------------------------------------------
@@ -724,7 +724,7 @@ AP4_SampleDecrypter::Create(AP4_ProtectedSampleDescription* sample_description,
             return NULL;
     }
 
-    return NULL;
+    // unreachable - return NULL;
 }
 
 /*----------------------------------------------------------------------

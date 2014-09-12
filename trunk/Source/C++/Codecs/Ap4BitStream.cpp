@@ -181,7 +181,7 @@ AP4_BitStream::ReadBytes(AP4_UI08* bytes,
    /* Gets bytes from the cache */
    ByteAlign();
    while (m_BitsCached > 0 && byte_count > 0) {
-      *bytes = ReadBits(8);
+      *bytes = (AP4_UI08)ReadBits(8);
       ++ bytes;
       -- byte_count;
    }

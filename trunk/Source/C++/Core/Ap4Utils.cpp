@@ -256,9 +256,9 @@ char
 AP4_NibbleHex(unsigned int nibble) 
 {
     if (nibble < 10) {
-        return '0'+nibble;
+        return (char)('0'+nibble);
     } else if (nibble < 16) {
-        return 'A'+(nibble-10);
+        return (char)('A'+(nibble-10));
     } else {
         return ' ';
     }

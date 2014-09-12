@@ -347,7 +347,7 @@ public:
     AP4_3GppLocalizedStringAtom(Type type, const char* language, const char* value);
     AP4_3GppLocalizedStringAtom(Type            type, 
                                 AP4_UI32        size, 
-                                AP4_UI32        version,
+                                AP4_UI08        version,
                                 AP4_UI32        flags,
                                 AP4_ByteStream& stream);
     
@@ -380,7 +380,7 @@ public:
     AP4_DcfStringAtom(Type type, const char* value);
     AP4_DcfStringAtom(Type            type, 
                       AP4_UI32        size, 
-                      AP4_UI32        version,
+                      AP4_UI08        version,
                       AP4_UI32        flags,
                       AP4_ByteStream& stream);
     
@@ -408,7 +408,7 @@ public:
     static AP4_DcfdAtom* Create(AP4_UI32 size, AP4_ByteStream& stream);
      
     // constructors
-    AP4_DcfdAtom(AP4_UI32        version,
+    AP4_DcfdAtom(AP4_UI08        version,
                  AP4_UI32        flags,
                  AP4_ByteStream& stream);
     AP4_DcfdAtom(AP4_UI32 duration);

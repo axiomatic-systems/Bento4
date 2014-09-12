@@ -44,7 +44,7 @@ AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_SaioAtom)
 AP4_SaioAtom*
 AP4_SaioAtom::Create(AP4_Size size, AP4_ByteStream& stream)
 {
-    AP4_UI32 version;
+    AP4_UI08 version;
     AP4_UI32 flags;
     if (AP4_FAILED(AP4_Atom::ReadFullHeader(stream, version, flags))) return NULL;
     if (version > 1) return NULL;
@@ -89,7 +89,7 @@ AP4_SaioAtom::SetEntry(AP4_Ordinal entry_index, AP4_UI64 offset)
 |   AP4_SaioAtom::AP4_SaioAtom
 +---------------------------------------------------------------------*/
 AP4_SaioAtom::AP4_SaioAtom(AP4_UI32        size, 
-                           AP4_UI32        version,
+                           AP4_UI08        version,
                            AP4_UI32        flags,
                            AP4_ByteStream& stream) :
     AP4_Atom(AP4_ATOM_TYPE_SAIO, size, version, flags),

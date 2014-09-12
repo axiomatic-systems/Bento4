@@ -43,7 +43,7 @@ AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_TfdtAtom)
 AP4_TfdtAtom*
 AP4_TfdtAtom::Create(AP4_Size size, AP4_ByteStream& stream)
 {
-    AP4_UI32 version;
+    AP4_UI08 version;
     AP4_UI32 flags;
     if (AP4_FAILED(AP4_Atom::ReadFullHeader(stream, version, flags))) return NULL;
     if (version > 1) return NULL;
@@ -53,7 +53,7 @@ AP4_TfdtAtom::Create(AP4_Size size, AP4_ByteStream& stream)
 /*----------------------------------------------------------------------
 |   AP4_TfhdAtom::AP4_TfhdAtom
 +---------------------------------------------------------------------*/
-AP4_TfdtAtom::AP4_TfdtAtom(AP4_UI32 version, 
+AP4_TfdtAtom::AP4_TfdtAtom(AP4_UI08 version, 
                            AP4_UI64 base_media_decode_time) :
     AP4_Atom(AP4_ATOM_TYPE_TFDT, AP4_FULL_ATOM_HEADER_SIZE+(version==0?4:8), version, 0),
     m_BaseMediaDecodeTime(base_media_decode_time)
@@ -64,7 +64,7 @@ AP4_TfdtAtom::AP4_TfdtAtom(AP4_UI32 version,
 |   AP4_TfhdAtom::AP4_TfhdAtom
 +---------------------------------------------------------------------*/
 AP4_TfdtAtom::AP4_TfdtAtom(AP4_UI32        size, 
-                           AP4_UI32        version,
+                           AP4_UI08        version,
                            AP4_UI32        flags,
                            AP4_ByteStream& stream) :
     AP4_Atom(AP4_ATOM_TYPE_TFDT, size, version, flags)

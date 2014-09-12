@@ -44,7 +44,7 @@ AP4_OddaAtom*
 AP4_OddaAtom::Create(AP4_UI64         size, 
                      AP4_ByteStream&  stream)
 {
-    AP4_UI32 version;
+    AP4_UI08 version;
     AP4_UI32 flags;
     if (AP4_FAILED(AP4_Atom::ReadFullHeader(stream, version, flags))) return NULL;
     if (version != 0) return NULL;
@@ -55,7 +55,7 @@ AP4_OddaAtom::Create(AP4_UI64         size,
 |   AP4_OddaAtom::AP4_OddaAtom
 +---------------------------------------------------------------------*/
 AP4_OddaAtom::AP4_OddaAtom(AP4_UI64        size, 
-                           AP4_UI32        version,
+                           AP4_UI08        version,
                            AP4_UI32        flags,
                            AP4_ByteStream& stream) :
     AP4_Atom(AP4_ATOM_TYPE_ODDA, size, true, version, flags)

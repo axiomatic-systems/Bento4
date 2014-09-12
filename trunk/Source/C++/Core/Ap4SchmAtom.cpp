@@ -46,7 +46,7 @@ AP4_SchmAtom::Create(AP4_Size                   size,
                      AP4_Array<AP4_Atom::Type>* context,
                      AP4_ByteStream&            stream)
 {
-    AP4_UI32 version;
+    AP4_UI08 version;
     AP4_UI32 flags;
     if (AP4_FAILED(AP4_Atom::ReadFullHeader(stream, version, flags))) return NULL;
     if (version != 0) return NULL;
@@ -89,7 +89,7 @@ AP4_SchmAtom::AP4_SchmAtom(AP4_UI32    scheme_type,
 |   AP4_SchmAtom::AP4_SchmAtom
 +---------------------------------------------------------------------*/
 AP4_SchmAtom::AP4_SchmAtom(AP4_UI32        size, 
-                           AP4_UI32        version,
+                           AP4_UI08        version,
                            AP4_UI32        flags,
                            bool            short_form,
                            AP4_ByteStream& stream) :

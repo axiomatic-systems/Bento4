@@ -109,7 +109,7 @@ AP4_Track::AP4_Track(Type             type,
                                   track_duration,
                                   media_time_scale,
                                   media_duration,
-                                  volume, 
+                                  (AP4_UI16)volume, 
                                   language,
                                   width, 
                                   height);

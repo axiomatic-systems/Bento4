@@ -781,9 +781,9 @@ AP4_MarlinIpmpEncryptingProcessor::Initialize(
     // create the OD descriptor update 
     AP4_DescriptorUpdateCommand od_update(AP4_COMMAND_TAG_OBJECT_DESCRIPTOR_UPDATE);
     for (unsigned int i=0; i<mpod->GetTrackIds().ItemCount(); i++) {
-        AP4_ObjectDescriptor* od = new AP4_ObjectDescriptor(AP4_DESCRIPTOR_TAG_MP4_OD, 256+i); // descriptor id = 256+i
-        od->AddSubDescriptor(new AP4_EsIdRefDescriptor(i+1));     // index into mpod (1-based)
-        od->AddSubDescriptor(new AP4_IpmpDescriptorPointer(i+1)); // descriptor id = i+1
+        AP4_ObjectDescriptor* od = new AP4_ObjectDescriptor(AP4_DESCRIPTOR_TAG_MP4_OD, (AP4_UI16)(256+i)); // descriptor id = 256+i
+        od->AddSubDescriptor(new AP4_EsIdRefDescriptor((AP4_UI16)(i+1)));     // index into mpod (1-based)
+        od->AddSubDescriptor(new AP4_IpmpDescriptorPointer((AP4_UI08)(i+1))); // descriptor id = i+1
         od_update.AddDescriptor(od);
     }
     
@@ -791,7 +791,7 @@ AP4_MarlinIpmpEncryptingProcessor::Initialize(
     AP4_DescriptorUpdateCommand ipmp_update(AP4_COMMAND_TAG_IPMP_DESCRIPTOR_UPDATE);
     for (unsigned int i=0; i<mpod->GetTrackIds().ItemCount(); i++) {
         // create the ipmp descriptor
-        AP4_IpmpDescriptor* ipmp_descriptor = new AP4_IpmpDescriptor(i+1, AP4_MARLIN_IPMPS_TYPE_MGSV);
+        AP4_IpmpDescriptor* ipmp_descriptor = new AP4_IpmpDescriptor((AP4_UI08)(i+1), AP4_MARLIN_IPMPS_TYPE_MGSV);
 
         // create the sinf container
         AP4_ContainerAtom* sinf = new AP4_ContainerAtom(AP4_ATOM_TYPE_SINF);
@@ -1097,7 +1097,7 @@ AP4_MkidAtom::AP4_MkidAtom() :
 AP4_MkidAtom*
 AP4_MkidAtom::Create(AP4_Size size, AP4_ByteStream& stream)
 {
-    AP4_UI32 version;
+    AP4_UI08 version;
     AP4_UI32 flags;
     if (AP4_FAILED(AP4_Atom::ReadFullHeader(stream, version, flags))) return NULL;
     if (version > 0) return NULL;
@@ -1108,7 +1108,7 @@ AP4_MkidAtom::Create(AP4_Size size, AP4_ByteStream& stream)
 |   AP4_MkidAtom::AP4_MkidAtom
 +---------------------------------------------------------------------*/
 AP4_MkidAtom::AP4_MkidAtom(AP4_Size        size,
-                           AP4_UI32        version,
+                           AP4_UI08        version,
                            AP4_UI32        flags,
                            AP4_ByteStream& stream) :
     AP4_Atom(AP4_ATOM_TYPE_MKID, size, version, flags)

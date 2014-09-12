@@ -443,7 +443,7 @@ AP4_UI16
 AP4_AudioSampleEntry::GetChannelCount()
 {
     if (m_QtVersion == 2) {
-        return m_QtV2ChannelCount;
+        return (AP4_UI16)m_QtV2ChannelCount;
     } else {
         return m_ChannelCount;
     }
@@ -824,7 +824,7 @@ AP4_VisualSampleEntry::WriteFields(AP4_ByteStream& stream)
     unsigned char compressor_name[32];
     unsigned int name_length = m_CompressorName.GetLength();
     if (name_length > 31) name_length = 31;
-    compressor_name[0] = name_length;
+    compressor_name[0] = (unsigned char)name_length;
     for (unsigned int i=0; i<name_length; i++) {
         compressor_name[i+1] = m_CompressorName[i];
     }
