@@ -126,10 +126,10 @@ AP4_BytesToInt16BE(const unsigned char* bytes)
 inline void
 AP4_BytesFromUInt32BE(unsigned char* bytes, AP4_UI32 value)
 {
-    bytes[0] = (unsigned char)(value >> 24);
-    bytes[1] = (unsigned char)(value >> 16);
-    bytes[2] = (unsigned char)(value >>  8);
-    bytes[3] = (unsigned char)(value      );
+    bytes[0] = (unsigned char)((value >> 24)&0xFF);
+    bytes[1] = (unsigned char)((value >> 16)&0xFF);
+    bytes[2] = (unsigned char)((value >>  8)&0xFF);
+    bytes[3] = (unsigned char)((value      )&0xFF);
 }
 
 /*----------------------------------------------------------------------
@@ -138,9 +138,9 @@ AP4_BytesFromUInt32BE(unsigned char* bytes, AP4_UI32 value)
 inline void
 AP4_BytesFromUInt24BE(unsigned char* bytes, AP4_UI32 value)
 {
-    bytes[0] = (unsigned char)(value >> 16);
-    bytes[1] = (unsigned char)(value >>  8);
-    bytes[2] = (unsigned char)(value      );
+    bytes[0] = (unsigned char)((value >> 16)&0xFF);
+    bytes[1] = (unsigned char)((value >>  8)&0xFF);
+    bytes[2] = (unsigned char)((value      )&0xFF);
 }
 
 /*----------------------------------------------------------------------
@@ -149,8 +149,8 @@ AP4_BytesFromUInt24BE(unsigned char* bytes, AP4_UI32 value)
 inline void
 AP4_BytesFromUInt16BE(unsigned char* bytes, AP4_UI16 value)
 {
-    bytes[0] = (unsigned char)(value >> 8);
-    bytes[1] = (unsigned char)(value     );
+    bytes[0] = (unsigned char)((value >> 8)&0xFF);
+    bytes[1] = (unsigned char)((value     )&0xFF);
 }
 
 /*----------------------------------------------------------------------

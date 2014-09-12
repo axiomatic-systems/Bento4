@@ -140,9 +140,9 @@ AP4_MdhdAtom::WriteFields(AP4_ByteStream& stream)
     AP4_UI08 l0 = m_Language[0]-0x60;
     AP4_UI08 l1 = m_Language[1]-0x60;
     AP4_UI08 l2 = m_Language[2]-0x60;
-    result = stream.WriteUI08(l0<<2 | l1>>3);
+    result = stream.WriteUI08((l0<<2 | l1>>3)&0xFF);
     if (AP4_FAILED(result)) return result;
-    result = stream.WriteUI08(l1<<5 | l2);
+    result = stream.WriteUI08((l1<<5 | l2)&0xFF);
     if (AP4_FAILED(result)) return result;
 
     // pre-defined
