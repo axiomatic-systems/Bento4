@@ -44,7 +44,7 @@ AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_IodsAtom)
 AP4_IodsAtom*
 AP4_IodsAtom::Create(AP4_Size size, AP4_ByteStream& stream)
 {
-    AP4_UI32 version;
+    AP4_UI08 version;
     AP4_UI32 flags;
     if (AP4_FAILED(AP4_Atom::ReadFullHeader(stream, version, flags))) return NULL;
     if (version != 0) return NULL;
@@ -65,7 +65,7 @@ AP4_IodsAtom::AP4_IodsAtom(AP4_ObjectDescriptor* descriptor) :
 |   AP4_IodsAtom::AP4_IodsAtom
 +---------------------------------------------------------------------*/
 AP4_IodsAtom::AP4_IodsAtom(AP4_UI32        size, 
-                           AP4_UI32        version,
+                           AP4_UI08        version,
                            AP4_UI32        flags,
                            AP4_ByteStream& stream) :
     AP4_Atom(AP4_ATOM_TYPE_IODS, size, version, flags)

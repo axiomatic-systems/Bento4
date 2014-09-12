@@ -387,16 +387,16 @@ AP4_AvcSegmentBuilder::WriteInitSegment(AP4_ByteStream& stream)
     // setup the video the sample descripton
     AP4_AvcSampleDescription* sample_description =
         new AP4_AvcSampleDescription(AP4_SAMPLE_FORMAT_AVC1,
-                                     video_width,
-                                     video_height,
+                                     (AP4_UI16)video_width,
+                                     (AP4_UI16)video_height,
                                      24,
                                      "h264",
-                                     sps->profile_idc,
-                                     sps->level_idc,
-                                     sps->constraint_set0_flag<<7 |
-                                     sps->constraint_set1_flag<<6 |
-                                     sps->constraint_set2_flag<<5 |
-                                     sps->constraint_set3_flag<<4,
+                                     (AP4_UI08)sps->profile_idc,
+                                     (AP4_UI08)sps->level_idc,
+                                     (AP4_UI08)(sps->constraint_set0_flag<<7 |
+                                                sps->constraint_set1_flag<<6 |
+                                                sps->constraint_set2_flag<<5 |
+                                                sps->constraint_set3_flag<<4),
                                      4,
                                      sps_array,
                                      pps_array);
@@ -500,8 +500,8 @@ AP4_AacSegmentBuilder::Feed(const void* data,
             unsigned char aac_dsi[2];
 
             unsigned int object_type = 2; // AAC LC by default
-            aac_dsi[0] = (object_type<<3) | (frame.m_Info.m_SamplingFrequencyIndex>>1);
-            aac_dsi[1] = ((frame.m_Info.m_SamplingFrequencyIndex&1)<<7) | (frame.m_Info.m_ChannelConfiguration<<3);
+            aac_dsi[0] = (AP4_UI08)((object_type<<3) | (frame.m_Info.m_SamplingFrequencyIndex>>1));
+            aac_dsi[1] = (AP4_UI08)(((frame.m_Info.m_SamplingFrequencyIndex&1)<<7) | (frame.m_Info.m_ChannelConfiguration<<3));
 
             dsi.SetData(aac_dsi, 2);
             m_SampleDescription =

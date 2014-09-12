@@ -49,7 +49,7 @@ const unsigned int AP4_AINF_MAX_OTHER_SIZE = 16*1024*1024; // 16MB, for sanity
 AP4_AinfAtom*
 AP4_AinfAtom::Create(AP4_Size size, AP4_ByteStream& stream)
 {
-    AP4_UI32 version;
+    AP4_UI08 version;
     AP4_UI32 flags;
     if (AP4_FAILED(AP4_Atom::ReadFullHeader(stream, version, flags))) return NULL;
     if (version > 1) return NULL;
@@ -68,7 +68,7 @@ AP4_AinfAtom::AP4_AinfAtom() :
 |   AP4_AinfAtom::AP4_AinfAtom
 +---------------------------------------------------------------------*/
 AP4_AinfAtom::AP4_AinfAtom(AP4_UI32        size, 
-                           AP4_UI32        version,
+                           AP4_UI08        version,
                            AP4_UI32        flags,
                            AP4_ByteStream& stream) :
     AP4_Atom(AP4_ATOM_TYPE_AINF, size, version, flags)

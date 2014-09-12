@@ -74,7 +74,7 @@ AP4_HintTrackReader::AP4_HintTrackReader(AP4_Track& hint_track,
     srand((int)time(NULL));
 
     // rtp sequence start init TODO!!
-    m_RtpSequenceStart = rand();
+    m_RtpSequenceStart = (AP4_UI16)(rand()&0xFFFF);
 
     // rtp timestamp start init TODO!!
     m_RtpTimeStampStart = rand();

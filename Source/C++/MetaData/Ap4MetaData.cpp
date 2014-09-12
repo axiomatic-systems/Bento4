@@ -801,7 +801,7 @@ AP4_MetaData::Entry::ToAtom(AP4_Atom*& atom) const
         return AP4_SUCCESS;
     }
         
-    return AP4_ERROR_NOT_SUPPORTED;
+    // unreachable - return AP4_ERROR_NOT_SUPPORTED;
 }
 
 /*----------------------------------------------------------------------
@@ -1395,7 +1395,7 @@ AP4_DataAtom::GetValueType()
             return AP4_MetaData::Value::TYPE_BINARY;
     }
     
-    return AP4_MetaData::Value::TYPE_BINARY;
+    // unreachable - return AP4_MetaData::Value::TYPE_BINARY;
 }
 
 /*----------------------------------------------------------------------
@@ -1566,7 +1566,7 @@ AP4_MetaDataStringAtom::InspectFields(AP4_AtomInspector& inspector)
 AP4_3GppLocalizedStringAtom*
 AP4_3GppLocalizedStringAtom::Create(Type type, AP4_UI32 size, AP4_ByteStream& stream) 
 {
-    AP4_UI32 version;
+    AP4_UI08 version;
     AP4_UI32 flags;
     if (AP4_FAILED(AP4_Atom::ReadFullHeader(stream, version, flags))) return NULL;
     if (version != 0) return NULL;
@@ -1595,7 +1595,7 @@ AP4_3GppLocalizedStringAtom::AP4_3GppLocalizedStringAtom(Type        type,
 +---------------------------------------------------------------------*/
 AP4_3GppLocalizedStringAtom::AP4_3GppLocalizedStringAtom(Type            type, 
                                                          AP4_UI32        size, 
-                                                         AP4_UI32        version,
+                                                         AP4_UI08        version,
                                                          AP4_UI32        flags,
                                                          AP4_ByteStream& stream) :
     AP4_Atom(type, size, version, flags)
@@ -1659,7 +1659,7 @@ AP4_3GppLocalizedStringAtom::InspectFields(AP4_AtomInspector& inspector)
 AP4_DcfStringAtom*
 AP4_DcfStringAtom::Create(Type type, AP4_UI32 size, AP4_ByteStream& stream) 
 {
-    AP4_UI32 version;
+    AP4_UI08 version;
     AP4_UI32 flags;
     if (AP4_FAILED(AP4_Atom::ReadFullHeader(stream, version, flags))) return NULL;
     if (version != 0) return NULL;
@@ -1681,7 +1681,7 @@ AP4_DcfStringAtom::AP4_DcfStringAtom(Type type, const char* value) :
 +---------------------------------------------------------------------*/
 AP4_DcfStringAtom::AP4_DcfStringAtom(Type            type, 
                                      AP4_UI32        size, 
-                                     AP4_UI32        version,
+                                     AP4_UI08        version,
                                      AP4_UI32        flags,
                                      AP4_ByteStream& stream) :
     AP4_Atom(type, size, version, flags)
@@ -1721,7 +1721,7 @@ AP4_DcfStringAtom::InspectFields(AP4_AtomInspector& inspector)
 AP4_DcfdAtom*
 AP4_DcfdAtom::Create(AP4_UI32 size, AP4_ByteStream& stream) 
 {
-    AP4_UI32 version;
+    AP4_UI08 version;
     AP4_UI32 flags;
     if (AP4_FAILED(AP4_Atom::ReadFullHeader(stream, version, flags))) return NULL;
     if (version != 0) return NULL;
@@ -1732,7 +1732,7 @@ AP4_DcfdAtom::Create(AP4_UI32 size, AP4_ByteStream& stream)
 /*----------------------------------------------------------------------
 |   AP4_DcfdAtom::AP4_DcfdAtom
 +---------------------------------------------------------------------*/
-AP4_DcfdAtom::AP4_DcfdAtom(AP4_UI32        version,
+AP4_DcfdAtom::AP4_DcfdAtom(AP4_UI08        version,
                            AP4_UI32        flags,
                            AP4_ByteStream& stream) :
     AP4_Atom(AP4_ATOM_TYPE_DCFD, AP4_FULL_ATOM_HEADER_SIZE+4, version, flags),

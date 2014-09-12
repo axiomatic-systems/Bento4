@@ -54,7 +54,7 @@ public:
 private:
     // methods
     AP4_IproAtom(AP4_UI32         size,
-                 AP4_UI32         version,
+                 AP4_UI08         version,
                  AP4_UI32         flags,
                  AP4_ByteStream&  stream,
                  AP4_AtomFactory& atom_factory);

@@ -39,7 +39,7 @@
 AP4_MfroAtom* 
 AP4_MfroAtom::Create(AP4_Size size, AP4_ByteStream& stream)
 {
-    AP4_UI32 version = 0;
+    AP4_UI08 version = 0;
     AP4_UI32 flags   = 0;
     AP4_Result result = ReadFullHeader(stream, version, flags);
     if (AP4_FAILED(result)) return NULL;
@@ -60,7 +60,7 @@ AP4_MfroAtom::AP4_MfroAtom(AP4_UI32 mfra_size) :
 |   AP4_MfroAtom::AP4_MfroAtom
 +---------------------------------------------------------------------*/
 AP4_MfroAtom::AP4_MfroAtom(AP4_UI32        size, 
-                           AP4_UI32        version, 
+                           AP4_UI08        version, 
                            AP4_UI32        flags, 
                            AP4_ByteStream& stream) :
     AP4_Atom(AP4_ATOM_TYPE_MFRO, size, version, flags),

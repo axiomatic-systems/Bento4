@@ -520,7 +520,7 @@ AP4_LinearReader::ReadNextSample(AP4_UI32        track_id,
         if (AP4_FAILED(result)) return result;
     }
         
-    return AP4_ERROR_EOS;
+    // unreachable - return AP4_ERROR_EOS;
 }
 
 /*----------------------------------------------------------------------
@@ -566,7 +566,7 @@ AP4_LinearReader::ReadNextSample(AP4_Sample&     sample,
         if (AP4_FAILED(result)) return result;
     }
     
-    return AP4_ERROR_EOS;
+    // unreachable - return AP4_ERROR_EOS;
 }
 
 /*----------------------------------------------------------------------

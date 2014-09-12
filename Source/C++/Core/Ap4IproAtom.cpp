@@ -44,7 +44,7 @@ AP4_IproAtom::Create(AP4_Size         size,
                      AP4_ByteStream&  stream, 
                      AP4_AtomFactory& atom_factory)
 {
-    AP4_UI32 version;
+    AP4_UI08 version;
     AP4_UI32 flags;
     if (AP4_FAILED(AP4_Atom::ReadFullHeader(stream, version, flags))) return NULL;
     if (version != 0) return NULL;
@@ -55,7 +55,7 @@ AP4_IproAtom::Create(AP4_Size         size,
 |   AP4_IproAtom::AP4_IproAtom
 +---------------------------------------------------------------------*/
 AP4_IproAtom::AP4_IproAtom(AP4_UI32         size,
-                           AP4_UI32         version,
+                           AP4_UI08         version,
                            AP4_UI32         flags,
                            AP4_ByteStream&  stream,
                            AP4_AtomFactory& atom_factory) :
@@ -87,7 +87,7 @@ AP4_IproAtom::WriteFields(AP4_ByteStream& stream)
     AP4_Result result;
 
     // entry count
-    result = stream.WriteUI16(m_Children.ItemCount());
+    result = stream.WriteUI16((AP4_UI16)m_Children.ItemCount());
     if (AP4_FAILED(result)) return result;
 
     // entries

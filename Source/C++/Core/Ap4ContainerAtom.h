@@ -60,9 +60,9 @@ public:
 
     // methods
     explicit AP4_ContainerAtom(Type type);
-    explicit AP4_ContainerAtom(Type type, AP4_UI32 version, AP4_UI32 flags); 
+    explicit AP4_ContainerAtom(Type type, AP4_UI08 version, AP4_UI32 flags); 
     explicit AP4_ContainerAtom(Type type, AP4_UI64 size, bool force_64);
-    explicit AP4_ContainerAtom(Type type, AP4_UI64 size, bool force_64, AP4_UI32 version, AP4_UI32 flags);
+    explicit AP4_ContainerAtom(Type type, AP4_UI64 size, bool force_64, AP4_UI08 version, AP4_UI32 flags);
     AP4_List<AP4_Atom>& GetChildren() { return m_Children; }
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
     virtual AP4_Result InspectChildren(AP4_AtomInspector& inspector);
@@ -79,7 +79,7 @@ protected:
     AP4_ContainerAtom(Type             type, 
                       AP4_UI64         size, 
                       bool             force_64,
-                      AP4_UI32         version,
+                      AP4_UI08         version,
                       AP4_UI32         flags,
                       AP4_ByteStream&  stream,
                       AP4_AtomFactory& atom_factory);

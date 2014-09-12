@@ -111,8 +111,8 @@ MakeAdtsHeader(unsigned char bits[7],
 {
 	bits[0] = 0xFF;
 	bits[1] = 0xF1; // 0xF9 (MPEG2)
-	bits[2] = 0x40 | (sampling_frequency_index << 2) | (channel_configuration >> 2);
-	bits[3] = ((channel_configuration&0x3)<<6) | ((frame_size+7) >> 11);
+	bits[2] = (AP4_UI08)(0x40 | (sampling_frequency_index << 2) | (channel_configuration >> 2));
+	bits[3] = (AP4_UI08)(((channel_configuration&0x3)<<6) | ((frame_size+7) >> 11));
     bits[4] = ((frame_size+7) >> 3)&0xFF;
 	bits[5] = (((frame_size+7) << 5)&0xFF) | 0x1F;
 	bits[6] = 0xFC;
@@ -218,7 +218,7 @@ AP4_Mpeg2TsWriter::Stream::WritePacketHeader(bool            payload_start,
 {
     unsigned char header[4];
     header[0] = AP4_MPEG2TS_SYNC_BYTE;
-    header[1] = ((payload_start?1:0)<<6) | (m_PID >> 8);
+    header[1] = (AP4_UI08)(((payload_start?1:0)<<6) | (m_PID >> 8));
     header[2] = m_PID & 0xFF;
     
     unsigned int adaptation_field_size = 0;
@@ -248,7 +248,7 @@ AP4_Mpeg2TsWriter::Stream::WritePacketHeader(bool            payload_start,
             output.WriteUI08(0);
         } else {
             // two or more bytes (stuffing and/or PCR)
-            output.WriteUI08(adaptation_field_size-1);
+            output.WriteUI08((AP4_UI08)(adaptation_field_size-1));
             output.WriteUI08(with_pcr?(1<<4):0);
             unsigned int pcr_size = 0;
             if (with_pcr) {
@@ -355,8 +355,8 @@ class AP4_Mpeg2TsAudioSampleStream : public AP4_Mpeg2TsWriter::SampleStream
 public:
     static AP4_Result Create(AP4_UI16                          pid, 
                              AP4_UI32                          timescale,
-                             AP4_UI32                          stream_type,
-                             AP4_UI32                          stream_id,
+                             AP4_UI08                          stream_type,
+                             AP4_UI16                          stream_id,
                              AP4_Mpeg2TsWriter::SampleStream*& stream);
     AP4_Result WriteSample(AP4_Sample&            sample,
                            AP4_DataBuffer&        sample_data, 
@@ -365,7 +365,7 @@ public:
                            AP4_ByteStream&        output);
     
 private:
-    AP4_Mpeg2TsAudioSampleStream(AP4_UI16 pid, AP4_UI32 timescale, AP4_UI32 stream_type, AP4_UI32 stream_id) :
+    AP4_Mpeg2TsAudioSampleStream(AP4_UI16 pid, AP4_UI32 timescale, AP4_UI08 stream_type, AP4_UI16 stream_id) :
     AP4_Mpeg2TsWriter::SampleStream(pid, 
                                     stream_type,
                                     stream_id,
@@ -378,8 +378,8 @@ private:
 AP4_Result 
 AP4_Mpeg2TsAudioSampleStream::Create(AP4_UI16                          pid, 
                                      AP4_UI32                          timescale,
-                                     AP4_UI32                          stream_type,
-                                     AP4_UI32                          stream_id,
+                                     AP4_UI08                          stream_type,
+                                     AP4_UI16                          stream_id,
                                      AP4_Mpeg2TsWriter::SampleStream*& stream)
 {
     stream = new AP4_Mpeg2TsAudioSampleStream(pid, timescale, stream_type, stream_id);
@@ -442,8 +442,8 @@ class AP4_Mpeg2TsVideoSampleStream : public AP4_Mpeg2TsWriter::SampleStream
 public:
     static AP4_Result Create(AP4_UI16                          pid, 
                              AP4_UI32                          timescale,
-                             AP4_UI32                          stream_type,
-                             AP4_UI32                          stream_id,
+                             AP4_UI08                          stream_type,
+                             AP4_UI16                          stream_id,
                              AP4_Mpeg2TsWriter::SampleStream*& stream);
     AP4_Result WriteSample(AP4_Sample&            sample, 
                            AP4_DataBuffer&        sample_data,
@@ -452,7 +452,7 @@ public:
                            AP4_ByteStream&        output);
     
 private:
-    AP4_Mpeg2TsVideoSampleStream(AP4_UI16 pid, AP4_UI32 timescale, AP4_UI32 stream_type, AP4_UI32 stream_id) :
+    AP4_Mpeg2TsVideoSampleStream(AP4_UI16 pid, AP4_UI32 timescale, AP4_UI08 stream_type, AP4_UI16 stream_id) :
         AP4_Mpeg2TsWriter::SampleStream(pid, 
                                         stream_type,
                                         stream_id,
@@ -471,8 +471,8 @@ private:
 AP4_Result
 AP4_Mpeg2TsVideoSampleStream::Create(AP4_UI16                          pid, 
                                      AP4_UI32                          timescale,
-                                     AP4_UI32                          stream_type,
-                                     AP4_UI32                          stream_id,
+                                     AP4_UI08                          stream_type,
+                                     AP4_UI16                          stream_id,
                                      AP4_Mpeg2TsWriter::SampleStream*& stream)
 {
     // create the stream object
@@ -693,7 +693,7 @@ AP4_Mpeg2TsVideoSampleStream::WriteSample(AP4_Sample&            sample,
 /*----------------------------------------------------------------------
 |   AP4_Mpeg2TsWriter::AP4_Mpeg2TsWriter
 +---------------------------------------------------------------------*/
-AP4_Mpeg2TsWriter::AP4_Mpeg2TsWriter(unsigned int pmt_pid) :
+AP4_Mpeg2TsWriter::AP4_Mpeg2TsWriter(AP4_UI16 pmt_pid) :
     m_Audio(NULL),
     m_Video(NULL)
 {
@@ -820,10 +820,10 @@ AP4_Mpeg2TsWriter::WritePMT(AP4_ByteStream& output)
 +---------------------------------------------------------------------*/
 AP4_Result 
 AP4_Mpeg2TsWriter::SetAudioStream(AP4_UI32       timescale, 
-                                  AP4_UI32       stream_type,
-                                  AP4_UI32       stream_id,
+                                  AP4_UI08       stream_type,
+                                  AP4_UI16       stream_id,
                                   SampleStream*& stream,
-                                  unsigned int   pid)
+                                  AP4_UI16       pid)
 {
     // default
     stream = NULL;
@@ -843,10 +843,10 @@ AP4_Mpeg2TsWriter::SetAudioStream(AP4_UI32       timescale,
 +---------------------------------------------------------------------*/
 AP4_Result 
 AP4_Mpeg2TsWriter::SetVideoStream(AP4_UI32       timescale,
-                                  AP4_UI32       stream_type,
-                                  AP4_UI32       stream_id,
+                                  AP4_UI08       stream_type,
+                                  AP4_UI16       stream_id,
                                   SampleStream*& stream,
-                                  unsigned int   pid)
+                                  AP4_UI16       pid)
 {
     // default
     stream = NULL;

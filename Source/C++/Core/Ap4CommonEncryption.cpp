@@ -148,8 +148,8 @@ AP4_CencCtrSubSampleEncrypter::GetSubSampleMap(AP4_DataBuffer&      sample_data,
         in += chunk_size;
         
         // store the info
-        bytes_of_cleartext_data.Append(cleartext_size);
-        bytes_of_encrypted_data.Append(block_count*16);
+        bytes_of_cleartext_data.Append((AP4_UI16)cleartext_size);
+        bytes_of_encrypted_data.Append((AP4_UI16)(block_count*16));
     }
     
     return AP4_SUCCESS;
@@ -216,7 +216,7 @@ AP4_CencCtrSubSampleEncrypter::EncryptSampleData(AP4_DataBuffer& data_in,
     unsigned int sample_info_count = bytes_of_cleartext_data.ItemCount();
     sample_infos.SetDataSize(2+sample_info_count*6);
     AP4_UI08* infos = sample_infos.UseData();
-    AP4_BytesFromUInt16BE(infos, sample_info_count);
+    AP4_BytesFromUInt16BE(infos, (AP4_UI16)sample_info_count);
     for (unsigned int i=0; i<sample_info_count; i++) {
         AP4_BytesFromUInt16BE(&infos[2+i*6],   bytes_of_cleartext_data[i]);
         AP4_BytesFromUInt32BE(&infos[2+i*6+2], bytes_of_encrypted_data[i]);
@@ -270,8 +270,8 @@ AP4_CencCbcSubSampleEncrypter::GetSubSampleMap(AP4_DataBuffer&      sample_data,
         in += chunk_size;
         
         // store the info
-        bytes_of_cleartext_data.Append(cleartext_size);
-        bytes_of_encrypted_data.Append(block_count*16);
+        bytes_of_cleartext_data.Append((AP4_UI16)cleartext_size);
+        bytes_of_encrypted_data.Append((AP4_UI16)(block_count*16));
     }
     
     return AP4_SUCCESS;
@@ -369,7 +369,7 @@ AP4_CencCbcSubSampleEncrypter::EncryptSampleData(AP4_DataBuffer& data_in,
     unsigned int sample_info_count = bytes_of_cleartext_data.ItemCount();
     sample_infos.SetDataSize(2+sample_info_count*6);
     AP4_UI08* infos = sample_infos.UseData();
-    AP4_BytesFromUInt16BE(infos, sample_info_count);
+    AP4_BytesFromUInt16BE(infos, (AP4_UI16)sample_info_count);
     for (unsigned int i=0; i<sample_info_count; i++) {
         AP4_BytesFromUInt16BE(&infos[2+i*6],   bytes_of_cleartext_data[i]);
         AP4_BytesFromUInt32BE(&infos[2+i*6+2], bytes_of_encrypted_data[i]);
@@ -661,7 +661,7 @@ AP4_CencFragmentEncrypter::PrepareForSamples(AP4_FragmentSampleTable* sample_tab
         sample_info_size += 2+bytes_of_cleartext_data.ItemCount()*6;
         
         if (m_Saiz) {
-            m_Saiz->SetSampleInfoSize(i, m_SampleEncryptionAtom->GetIvSize()+2+bytes_of_cleartext_data.ItemCount()*6);
+            m_Saiz->SetSampleInfoSize(i, (AP4_UI08)(m_SampleEncryptionAtom->GetIvSize()+2+bytes_of_cleartext_data.ItemCount()*6));
         }
     }
     m_SampleEncryptionAtom->SetSampleInfosSize(sample_info_size);
@@ -2001,7 +2001,7 @@ AP4_CencSampleInfoTable::Create(unsigned int              iv_size,
     }
     
     // create the table
-    AP4_CencSampleInfoTable* table = new AP4_CencSampleInfoTable(sample_info_count, iv_size);
+    AP4_CencSampleInfoTable* table = new AP4_CencSampleInfoTable(sample_info_count, (AP4_UI08)iv_size);
     
     // process each sample's auxiliary info
     AP4_Ordinal    saio_index  = 0;
@@ -2082,7 +2082,7 @@ AP4_CencSampleInfoTable::Create(const AP4_UI08*           serialized,
     if (serialized_size < sample_count*iv_size) {
         return AP4_ERROR_INVALID_FORMAT;
     }
-    AP4_CencSampleInfoTable* table = new AP4_CencSampleInfoTable(sample_count, iv_size);
+    AP4_CencSampleInfoTable* table = new AP4_CencSampleInfoTable(sample_count, (AP4_UI08)iv_size);
     table->m_IvData.SetData(serialized, sample_count*iv_size);
     serialized      += sample_count*iv_size;
     serialized_size -= sample_count*iv_size;
@@ -2424,7 +2424,7 @@ AP4_CencSampleEncryption::CreateSampleInfoTable(AP4_Size                  defaul
 
     // create the table
     AP4_Result result = AP4_ERROR_INVALID_FORMAT;
-    table = new AP4_CencSampleInfoTable(m_SampleInfoCount, iv_size);
+    table = new AP4_CencSampleInfoTable(m_SampleInfoCount, (AP4_UI08)iv_size);
     const AP4_UI08* data      = m_SampleInfos.GetData();
     AP4_UI32        data_size = m_SampleInfos.GetDataSize();
     for (unsigned int i=0; i<m_SampleInfoCount; i++) {

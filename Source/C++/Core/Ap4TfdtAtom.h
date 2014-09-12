@@ -46,7 +46,7 @@ public:
     static AP4_TfdtAtom* Create(AP4_Size size, AP4_ByteStream& stream);
 
     // methods
-    AP4_TfdtAtom(AP4_UI32 version, AP4_UI64 base_media_decode_time);
+    AP4_TfdtAtom(AP4_UI08 version, AP4_UI64 base_media_decode_time);
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
 
@@ -60,7 +60,7 @@ public:
 private:
     // methods
     AP4_TfdtAtom(AP4_UI32        size, 
-                 AP4_UI32        version,
+                 AP4_UI08        version,
                  AP4_UI32        flags,
                  AP4_ByteStream& stream);
 

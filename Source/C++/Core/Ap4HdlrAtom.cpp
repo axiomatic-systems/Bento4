@@ -44,7 +44,7 @@ AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_HdlrAtom)
 AP4_HdlrAtom*
 AP4_HdlrAtom::Create(AP4_Size size, AP4_ByteStream& stream)
 {
-    AP4_UI32 version;
+    AP4_UI08 version;
     AP4_UI32 flags;
     if (AP4_FAILED(AP4_Atom::ReadFullHeader(stream, version, flags))) return NULL;
     if (version != 0) return NULL;
@@ -67,7 +67,7 @@ AP4_HdlrAtom::AP4_HdlrAtom(AP4_Atom::Type hdlr_type, const char* hdlr_name) :
 |   AP4_HdlrAtom::AP4_HdlrAtom
 +---------------------------------------------------------------------*/
 AP4_HdlrAtom::AP4_HdlrAtom(AP4_UI32        size, 
-                           AP4_UI32        version,
+                           AP4_UI08        version,
                            AP4_UI32        flags,
                            AP4_ByteStream& stream) :
     AP4_Atom(AP4_ATOM_TYPE_HDLR, size, version, flags)
@@ -117,7 +117,7 @@ AP4_HdlrAtom::WriteFields(AP4_ByteStream& stream)
     if (AP4_FAILED(result)) return result;
     AP4_UI08 name_size = (AP4_UI08)m_HandlerName.GetLength();
     if (AP4_FULL_ATOM_HEADER_SIZE+20+name_size > m_Size32) {
-        name_size = m_Size32-AP4_FULL_ATOM_HEADER_SIZE+20;
+        name_size = (AP4_UI08)(m_Size32-AP4_FULL_ATOM_HEADER_SIZE+20);
     }
     if (name_size) {
         result = stream.Write(m_HandlerName.GetChars(), name_size);

@@ -50,7 +50,7 @@ AP4_UuidAtom::AP4_UuidAtom(AP4_UI64 size, const AP4_UI08* uuid) :
 /*----------------------------------------------------------------------
 |   AP4_UuidAtom::AP4_UuidAtom
 +---------------------------------------------------------------------*/
-AP4_UuidAtom::AP4_UuidAtom(AP4_UI64 size, const AP4_UI08* uuid, AP4_UI32 version, AP4_UI32 flags) : 
+AP4_UuidAtom::AP4_UuidAtom(AP4_UI64 size, const AP4_UI08* uuid, AP4_UI08 version, AP4_UI32 flags) : 
     AP4_Atom(AP4_ATOM_TYPE_UUID, size, false, version, flags)
 {
     AP4_CopyMemory(m_Uuid, uuid, 16);
@@ -105,7 +105,7 @@ AP4_UuidAtom::WriteHeader(AP4_ByteStream& stream)
     
     // for full atoms, write version and flags
     if (m_IsFull) {
-        result = stream.WriteUI08(m_Version);
+        result = stream.WriteUI08((AP4_UI08)m_Version);
         if (AP4_FAILED(result)) return result;
         result = stream.WriteUI24(m_Flags);
         if (AP4_FAILED(result)) return result;

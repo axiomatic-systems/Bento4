@@ -75,7 +75,7 @@ public:
 private:
     // methods
     AP4_OddaAtom(AP4_UI64         size, 
-                 AP4_UI32         version,
+                 AP4_UI08         version,
                  AP4_UI32         flags,
                  AP4_ByteStream&  stream);
 

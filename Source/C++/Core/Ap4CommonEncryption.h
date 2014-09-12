@@ -217,7 +217,7 @@ public:
     
 private:
     AP4_UI32                m_SampleCount;
-    unsigned int            m_IvSize;
+    AP4_UI08                m_IvSize;
     AP4_DataBuffer          m_IvData;
     AP4_Array<AP4_UI16>     m_BytesOfCleartextData;
     AP4_Array<AP4_UI32>     m_BytesOfEncryptedData;
