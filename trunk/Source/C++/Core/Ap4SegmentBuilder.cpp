@@ -509,7 +509,7 @@ AP4_AacSegmentBuilder::Feed(const void* data,
                 AP4_OTI_MPEG4_AUDIO,   // object type
                 (AP4_UI32)frame.m_Info.m_SamplingFrequency,
                 16,                    // sample size
-                frame.m_Info.m_ChannelConfiguration,
+                (AP4_UI16)frame.m_Info.m_ChannelConfiguration,
                 &dsi,                  // decoder info
                 6144,                  // buffer size
                 128000,                // max bitrate
