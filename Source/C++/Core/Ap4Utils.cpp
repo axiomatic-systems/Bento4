@@ -133,14 +133,14 @@ AP4_BytesFromDoubleBE(unsigned char* bytes, double value)
 void
 AP4_BytesFromUInt64BE(unsigned char* bytes, AP4_UI64 value)
 {
-    bytes[0] = (unsigned char)(value >> 56);
-    bytes[1] = (unsigned char)(value >> 48);
-    bytes[2] = (unsigned char)(value >> 40);
-    bytes[3] = (unsigned char)(value >> 32);
-    bytes[4] = (unsigned char)(value >> 24);
-    bytes[5] = (unsigned char)(value >> 16);
-    bytes[6] = (unsigned char)(value >>  8);
-    bytes[7] = (unsigned char)(value      );
+    bytes[0] = (unsigned char)((value >> 56) & 0xFF);
+    bytes[1] = (unsigned char)((value >> 48) & 0xFF);
+    bytes[2] = (unsigned char)((value >> 40) & 0xFF);
+    bytes[3] = (unsigned char)((value >> 32) & 0xFF);
+    bytes[4] = (unsigned char)((value >> 24) & 0xFF);
+    bytes[5] = (unsigned char)((value >> 16) & 0xFF);
+    bytes[6] = (unsigned char)((value >>  8) & 0xFF);
+    bytes[7] = (unsigned char)((value      ) & 0xFF);
 }
 
 /*----------------------------------------------------------------------
