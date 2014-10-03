@@ -37,7 +37,7 @@
 /**
  * Version number of the SDK
  */
-#define AP4_VERSION        0x01040100
-#define AP4_VERSION_STRING "1.4.1.0"
+#define AP4_VERSION        0x01040200
+#define AP4_VERSION_STRING "1.4.2.0"
 
 #endif // _AP4_VERSION_H_

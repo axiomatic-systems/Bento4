@@ -99,6 +99,7 @@
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4SaizAtom.cpp" />
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4SegmentBuilder.cpp" />
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4SencAtom.cpp" />
+    <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4SidxAtom.cpp" />
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4Stz2Atom.cpp" />
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4TencAtom.cpp" />
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4TfdtAtom.cpp" />
@@ -221,6 +222,7 @@
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4SaizAtom.h" />
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4SegmentBuilder.h" />
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4SencAtom.h" />
+    <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4SidxAtom.h" />
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4Stz2Atom.h" />
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4TencAtom.h" />
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4TfdtAtom.h" />

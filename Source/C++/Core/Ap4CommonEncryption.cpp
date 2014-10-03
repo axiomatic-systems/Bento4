@@ -149,7 +149,7 @@ AP4_CencCtrSubSampleEncrypter::GetSubSampleMap(AP4_DataBuffer&      sample_data,
         
         // store the info
         bytes_of_cleartext_data.Append((AP4_UI16)cleartext_size);
-        bytes_of_encrypted_data.Append((AP4_UI16)(block_count*16));
+        bytes_of_encrypted_data.Append((AP4_UI32)(block_count*16));
     }
     
     return AP4_SUCCESS;
@@ -271,7 +271,7 @@ AP4_CencCbcSubSampleEncrypter::GetSubSampleMap(AP4_DataBuffer&      sample_data,
         
         // store the info
         bytes_of_cleartext_data.Append((AP4_UI16)cleartext_size);
-        bytes_of_encrypted_data.Append((AP4_UI16)(block_count*16));
+        bytes_of_encrypted_data.Append((AP4_UI32)(block_count*16));
     }
     
     return AP4_SUCCESS;

@@ -188,7 +188,7 @@ class Mp4Track:
         if segment_count > 2:
             # do not count the last two segments, which could be shorter
             self.average_segment_duration = reduce(operator.add, self.segment_durations[:-2], 0)/float(segment_count-2)
-        elif segment_count == 1:
+        else:
             self.average_segment_duration = self.segment_durations[0]
     
         # compute the average segment bitrates
@@ -442,6 +442,15 @@ def MakeNewDir(dir, exit_if_exists=False, severity=None):
             sys.exit(1)
     else:
         os.mkdir(dir)        
+
+def GetEncryptionKey(options, spec):
+    if options.debug:
+        print 'Resolving KID and Key from spec:', spec
+    if spec.startswith('skm:'):
+        import skm
+        return skm.ResolveKey(options, spec[4:])
+    else:
+        raise Exception('Key Locator scheme not supported')
 
 def DerivePlayReadyKey(seed, kid, swap=True):
     if len(seed) < 30:

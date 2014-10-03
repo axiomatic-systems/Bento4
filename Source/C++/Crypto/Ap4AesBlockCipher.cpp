@@ -1989,7 +1989,7 @@ AP4_AesBlockCipher::Create(const AP4_UI08*      key,
             
         case AP4_BlockCipher::CTR: {
             aes_enc_key(key, AP4_AES_KEY_LENGTH, context);
-            AP4_BlockCipher::CtrParams* ctr_params = (AP4_BlockCipher::CtrParams*) mode_params;
+            const AP4_BlockCipher::CtrParams* ctr_params = (const AP4_BlockCipher::CtrParams*)mode_params;
             unsigned int counter_size = 16;
             if (ctr_params) {
                 counter_size = ctr_params->counter_size;

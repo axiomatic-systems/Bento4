@@ -222,6 +222,7 @@ def OutputDash(options, audio_tracks, video_tracks):
     # process the audio tracks
     for (language, audio_track) in audio_tracks.iteritems():
         args = [period, 'AdaptationSet']
+        #kwargs = {'mimeType': AUDIO_MIMETYPE, 'startWithSAP': '1', 'segmentAlignment': 'true', 'bitstreamSwitching': 'true'}
         kwargs = {'mimeType': AUDIO_MIMETYPE, 'startWithSAP': '1', 'segmentAlignment': 'true'}
         if language:
             id_ext = '.' + language
@@ -511,8 +512,10 @@ def main():
                       help="Produce an output compatible with the Hippo Media Server")
     parser.add_option('', '--hippo-server-manifest-name', dest="hippo_server_manifest_filename",
                       help="Hippo Media Server Manifest file name", metavar="<filename>", default='stream.msm')
-    parser.add_option('', "--encryption-key", dest="encryption_key", metavar='<KID>:<key>', default=None,
-                      help="Encrypt all audio and video tracks with AES key <key> (in hex) and KID <KID> (in hex). Alternatively, the <key> can be specified as the character '#' followed by a base64-encoded key seed.")
+    parser.add_option('', "--encryption-key", dest="encryption_key", metavar='<key-spec>', default=None,
+                      help="Encrypt all audio and video tracks with MPEG CENC (AES-128), where <key-spec> specifies the KID and Key to use, using one of the following ways: " +
+                           "(1) <KID>:<key> with <KID> as a 32-character hex string and <key> either a 32-character hex string or the character '#' followed by a base64-encoded key seed; or " +
+                           "(2) @<key-locator> where <key-locator> is an expression of one of the supported key locator schemes (see online docs for details)")
     parser.add_option('', "--encryption-args", dest="encryption_args", metavar='<cmdline-arguments>', default=None,
                       help="Pass additional command line arguments to mp4encrypt (separated by spaces)")
     parser.add_option('', "--use-compat-namespace", dest="use_compat_namespace", action="store_true", default=False,
@@ -572,30 +575,38 @@ def main():
         SEGMENT_TEMPLATE    = PADDED_SEGMENT_TEMPLATE
 
     # post-process some of the options
-    if options.playready_header:
-      options.playready = True
+    if options.playready_header or options.playready_add_pssh:
+        options.playready = True
 
+    if options.playready and options.playready_header:
+        options.playready_add_pssh = True
+
+    # compute the KID and encryption key if needed
     if options.encryption_key:
-        if ':' not in options.encryption_key:
-            raise Exception('Invalid argument syntax for --encryption-key option')
-        kid_hex, key_hex = options.encryption_key.split(':')
-        if len(kid_hex) != 32:
-            raise Exception('Invalid argument format for --encryption-key option')
-
-        if key_hex.startswith('#'):
-            if len(key_hex) != 41:
-                raise Exception('Invalid argument format for --encryption-key option')
-            key_seed_bin = key_hex[1:].decode('base64')
-            kid_bin = kid_hex.decode('hex')
-            key_hex = DerivePlayReadyKey(key_seed_bin, kid_bin).encode('hex')
-            if options.verbose:
-                print 'Derived Key =', key_hex
+        if options.encryption_key.startswith('@'):
+            (kid_hex, key_hex) = GetEncryptionKey(options, options.encryption_key[1:])
         else:
-            if len(key_hex) != 32:
+            if ':' not in options.encryption_key:
+                raise Exception('Invalid argument syntax for --encryption-key option')
+            kid_hex, key_hex = options.encryption_key.split(':')
+            if len(kid_hex) != 32:
                 raise Exception('Invalid argument format for --encryption-key option')
+
+            if key_hex.startswith('#'):
+                if len(key_hex) != 41:
+                    raise Exception('Invalid argument format for --encryption-key option')
+                key_seed_bin = key_hex[1:].decode('base64')
+                kid_bin = kid_hex.decode('hex')
+                key_hex = DerivePlayReadyKey(key_seed_bin, kid_bin).encode('hex')
+                if options.verbose:
+                    print 'Derived Key =', key_hex
+            else:
+                if len(key_hex) != 32:
+                    raise Exception('Invalid argument format for --encryption-key option')
         options.key_hex = key_hex
         options.kid_hex = kid_hex
 
+    # process language map options
     if options.language_map:
         mappings = options.language_map.split(',')
         options.language_map = {}
@@ -642,12 +653,13 @@ def main():
             encrypted_file.close() # necessary on Windows
             file_name_map[encrypted_file.name] = encrypted_file.name + ' (Encrypted ' + media_file + ')'
             args = ['--method', 'MPEG-CENC']
-            if (options.smooth):
-                args += ['--global-option', 'mpeg-cenc.piff-compatible:true']
                 
             if options.encryption_args:
                 args += options.encryption_args.split()
-                
+            else:
+                if options.smooth or options.playready:
+                    args += ['--global-option', 'mpeg-cenc.piff-compatible:true']
+
             args.append(media_file)
             args.append(encrypted_file.name)
             for track_id in track_ids:
@@ -811,7 +823,7 @@ def main():
         if audio_coding == 'mp4a':
             audio_codec = 'mp4a.%02x' % (audio_desc['object_type'])
             if audio_desc['object_type'] == 64:
-                audio_codec += '.%02x' % (audio_desc['mpeg_4_audio_object_type'])
+                audio_codec += '.'+str(audio_desc['mpeg_4_audio_object_type'])
         else:
             audio_codec = audio_coding
                 
