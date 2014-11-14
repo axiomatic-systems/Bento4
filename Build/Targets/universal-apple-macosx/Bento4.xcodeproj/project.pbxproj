@@ -367,6 +367,10 @@
 		CAEDC8E80DFF5B1100F070A8 /* Ap4Expandable.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAEDC8E60DFF5B1100F070A8 /* Ap4Expandable.cpp */; };
 		CAEDC8E90DFF5B1100F070A8 /* Ap4Expandable.h in Headers */ = {isa = PBXBuildFile; fileRef = CAEDC8E70DFF5B1100F070A8 /* Ap4Expandable.h */; };
 		CAEDC8FB0DFF61AE00F070A8 /* Ap4Command.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAEDC8FA0DFF61AE00F070A8 /* Ap4Command.cpp */; };
+		CAEF5D2F19EB26DC007B66A8 /* Ap4SbgpAtom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAEF5D2D19EB26DC007B66A8 /* Ap4SbgpAtom.cpp */; };
+		CAEF5D3019EB26DC007B66A8 /* Ap4SbgpAtom.h in Headers */ = {isa = PBXBuildFile; fileRef = CAEF5D2E19EB26DC007B66A8 /* Ap4SbgpAtom.h */; };
+		CAEF5D3319EB2CB5007B66A8 /* Ap4SgpdAtom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAEF5D3119EB2CB5007B66A8 /* Ap4SgpdAtom.cpp */; };
+		CAEF5D3419EB2CB5007B66A8 /* Ap4SgpdAtom.h in Headers */ = {isa = PBXBuildFile; fileRef = CAEF5D3219EB2CB5007B66A8 /* Ap4SgpdAtom.h */; };
 		CAEFE10E0FB6993D00AF6434 /* Ap4MehdAtom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAEFE10C0FB6993D00AF6434 /* Ap4MehdAtom.cpp */; };
 		CAEFE10F0FB6993D00AF6434 /* Ap4MehdAtom.h in Headers */ = {isa = PBXBuildFile; fileRef = CAEFE10D0FB6993D00AF6434 /* Ap4MehdAtom.h */; };
 		CAEFE1340FB69CF600AF6434 /* Ap4TrexAtom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAEFE1320FB69CF600AF6434 /* Ap4TrexAtom.cpp */; };
@@ -1200,6 +1204,10 @@
 		CAEDC8E60DFF5B1100F070A8 /* Ap4Expandable.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4Expandable.cpp; sourceTree = "<group>"; };
 		CAEDC8E70DFF5B1100F070A8 /* Ap4Expandable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4Expandable.h; sourceTree = "<group>"; };
 		CAEDC8FA0DFF61AE00F070A8 /* Ap4Command.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4Command.cpp; sourceTree = "<group>"; };
+		CAEF5D2D19EB26DC007B66A8 /* Ap4SbgpAtom.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4SbgpAtom.cpp; sourceTree = "<group>"; };
+		CAEF5D2E19EB26DC007B66A8 /* Ap4SbgpAtom.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4SbgpAtom.h; sourceTree = "<group>"; };
+		CAEF5D3119EB2CB5007B66A8 /* Ap4SgpdAtom.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4SgpdAtom.cpp; sourceTree = "<group>"; };
+		CAEF5D3219EB2CB5007B66A8 /* Ap4SgpdAtom.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4SgpdAtom.h; sourceTree = "<group>"; };
 		CAEFE10C0FB6993D00AF6434 /* Ap4MehdAtom.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4MehdAtom.cpp; sourceTree = "<group>"; };
 		CAEFE10D0FB6993D00AF6434 /* Ap4MehdAtom.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4MehdAtom.h; sourceTree = "<group>"; };
 		CAEFE1320FB69CF600AF6434 /* Ap4TrexAtom.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4TrexAtom.cpp; sourceTree = "<group>"; };
@@ -1991,6 +1999,8 @@
 				CA15CC32107DCEEF0085F329 /* Ap4SampleSource.h */,
 				CA9366720B437D040067D50B /* Ap4SampleTable.cpp */,
 				CA9366730B437D040067D50B /* Ap4SampleTable.h */,
+				CAEF5D2D19EB26DC007B66A8 /* Ap4SbgpAtom.cpp */,
+				CAEF5D2E19EB26DC007B66A8 /* Ap4SbgpAtom.h */,
 				CA9366740B437D040067D50B /* Ap4SchmAtom.cpp */,
 				CA9366750B437D040067D50B /* Ap4SchmAtom.h */,
 				CA9366760B437D040067D50B /* Ap4SdpAtom.cpp */,
@@ -1999,6 +2009,8 @@
 				CA86EED019A95C68008A3B00 /* Ap4SegmentBuilder.h */,
 				CA5734FB13B5DCFA00953446 /* Ap4SencAtom.cpp */,
 				CA5734FC13B5DCFA00953446 /* Ap4SencAtom.h */,
+				CAEF5D3119EB2CB5007B66A8 /* Ap4SgpdAtom.cpp */,
+				CAEF5D3219EB2CB5007B66A8 /* Ap4SgpdAtom.h */,
 				CA7B647E19D2355F00068D77 /* Ap4SidxAtom.cpp */,
 				CA7B647F19D2355F00068D77 /* Ap4SidxAtom.h */,
 				CA9366780B437D040067D50B /* Ap4SLConfigDescriptor.cpp */,
@@ -2301,6 +2313,7 @@
 				CA9366E40B437D040067D50B /* Ap4Movie.h in Headers */,
 				CA9366E60B437D040067D50B /* Ap4MvhdAtom.h in Headers */,
 				CA9366E80B437D040067D50B /* Ap4NmhdAtom.h in Headers */,
+				CAEF5D3419EB2CB5007B66A8 /* Ap4SgpdAtom.h in Headers */,
 				CA9366EA0B437D040067D50B /* Ap4OdafAtom.h in Headers */,
 				CA9366EC0B437D040067D50B /* Ap4OddaAtom.h in Headers */,
 				CA9366EE0B437D040067D50B /* Ap4OdheAtom.h in Headers */,
@@ -2343,6 +2356,7 @@
 				CA9367380B437D1D0067D50B /* Ap4StreamCipher.h in Headers */,
 				CA93673D0B437D390067D50B /* Ap4MetaData.h in Headers */,
 				CA9367FF0B4383F00067D50B /* Ap4AdtsParser.h in Headers */,
+				CAEF5D3019EB26DC007B66A8 /* Ap4SbgpAtom.h in Headers */,
 				CA9368010B4383F00067D50B /* Ap4BitStream.h in Headers */,
 				F9B1F4FC0B54AD91003F147E /* Ap4AvccAtom.h in Headers */,
 				CA504D5E0C5E8A8A0060E6FE /* Ap4ElstAtom.h in Headers */,
@@ -3436,11 +3450,13 @@
 				CAA033680DF7E2FA0086EC1C /* Ap4Ipmp.cpp in Sources */,
 				CAEDC8E80DFF5B1100F070A8 /* Ap4Expandable.cpp in Sources */,
 				CAEDC8FB0DFF61AE00F070A8 /* Ap4Command.cpp in Sources */,
+				CAEF5D2F19EB26DC007B66A8 /* Ap4SbgpAtom.cpp in Sources */,
 				CAEA9E990E17006D008C396D /* Ap4GrpiAtom.cpp in Sources */,
 				CA0BBBA10F38D10A00DF01DD /* Ap4Results.cpp in Sources */,
 				CA8B6A620F66D20900720A07 /* Ap4MfhdAtom.cpp in Sources */,
 				CA8B6A800F66D82C00720A07 /* Ap4TfhdAtom.cpp in Sources */,
 				CA8B6AA10F66E2DC00720A07 /* Ap4TrunAtom.cpp in Sources */,
+				CAEF5D3319EB2CB5007B66A8 /* Ap4SgpdAtom.cpp in Sources */,
 				CA9CB9BE0F86ABB400063C70 /* Ap48bdlAtom.cpp in Sources */,
 				CAEFE10E0FB6993D00AF6434 /* Ap4MehdAtom.cpp in Sources */,
 				CAEFE1340FB69CF600AF6434 /* Ap4TrexAtom.cpp in Sources */,
@@ -3873,9 +3889,8 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = NO;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.5;
-				ONLY_ACTIVE_ARCH = NO;
 				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos macosx";
-				VALID_ARCHS = "i386 ppc x86_64 armv6 armv7";
+				VALID_ARCHS = "i386 x86_64";
 				"VALID_ARCHS[sdk=iphoneos*]" = "armv6 armv7 armv7s arm64";
 				"VALID_ARCHS[sdk=iphonesimulator*]" = i386;
 			};
@@ -3894,9 +3909,8 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.5;
-				ONLY_ACTIVE_ARCH = NO;
 				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos macosx";
-				VALID_ARCHS = "i386 ppc x86_64 armv6 armv7";
+				VALID_ARCHS = "i386 x86_64";
 				"VALID_ARCHS[sdk=iphoneos*]" = "armv6 armv7 armv7s arm64";
 				"VALID_ARCHS[sdk=iphonesimulator*]" = i386;
 			};

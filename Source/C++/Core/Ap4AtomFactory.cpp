@@ -100,6 +100,8 @@
 #include "Ap4PsshAtom.h"
 #include "Ap4Dec3Atom.h"
 #include "Ap4SidxAtom.h"
+#include "Ap4SbgpAtom.h"
+#include "Ap4SgpdAtom.h"
 
 /*----------------------------------------------------------------------
 |   AP4_AtomFactory::~AP4_AtomFactory
@@ -656,6 +658,16 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
           case AP4_ATOM_TYPE_SIDX:
             if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
             atom = AP4_SidxAtom::Create(size_32, stream);
+            break;
+
+          case AP4_ATOM_TYPE_SBGP:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_SbgpAtom::Create(size_32, stream);
+            break;
+
+          case AP4_ATOM_TYPE_SGPD:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_SgpdAtom::Create(size_32, stream);
             break;
 
           case AP4_ATOM_TYPE_MKID:

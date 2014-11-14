@@ -188,9 +188,11 @@ class Mp4Track:
         if segment_count > 2:
             # do not count the last two segments, which could be shorter
             self.average_segment_duration = reduce(operator.add, self.segment_durations[:-2], 0)/float(segment_count-2)
-        else:
+        elif segment_count > 0:
             self.average_segment_duration = self.segment_durations[0]
-    
+        else:
+            self.average_segment_duration = 0
+            
         # compute the average segment bitrates
         self.media_size = reduce(operator.add, self.segment_sizes, 0)
         if self.total_duration:

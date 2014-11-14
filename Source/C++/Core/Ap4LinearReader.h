@@ -71,6 +71,13 @@ public:
                               AP4_UI32&       track_id);
                               
     /**
+     * Get the next sample in storage order, without reading the sample data, 
+     * from any track. track_id is updated to reflect the track from which the 
+     * sample was read.
+     */
+    AP4_Result GetNextSample(AP4_Sample& sample, AP4_UI32& track_id);
+
+    /**
      * Read the next sample in storage order from a specific track.
      */
     AP4_Result ReadNextSample(AP4_UI32        track_id,
@@ -157,9 +164,12 @@ protected:
     
     // methods
     Tracker*   FindTracker(AP4_UI32 track_id);
-    AP4_Result Advance();
+    AP4_Result Advance(bool read_data = true);
     AP4_Result AdvanceFragment();
-    bool       PopSample(Tracker* tracker, AP4_Sample& sample, AP4_DataBuffer& sample_data);
+    bool       PopSample(Tracker* tracker, AP4_Sample& sample, AP4_DataBuffer* sample_data);
+    AP4_Result ReadNextSample(AP4_Sample&     sample, 
+                              AP4_DataBuffer* sample_data,
+                              AP4_UI32&       track_id);
     void       FlushQueue(Tracker* tracker);
     void       FlushQueues();
     

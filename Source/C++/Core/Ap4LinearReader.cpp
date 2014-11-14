@@ -390,7 +390,7 @@ AP4_LinearReader::AdvanceFragment()
 |   AP4_LinearReader::Advance
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_LinearReader::Advance()
+AP4_LinearReader::Advance(bool read_data)
 {
     // first, check if we have space to advance
     if (m_BufferFullness >= m_MaxBufferFullness) {
@@ -448,15 +448,17 @@ AP4_LinearReader::Advance()
         assert(next_tracker->m_NextSample);
         SampleBuffer* buffer = new SampleBuffer(next_tracker->m_NextSample);
         AP4_Result result;
-        if (next_tracker->m_Reader) {
-            result = next_tracker->m_Reader->ReadSampleData(*buffer->m_Sample, buffer->m_Data);
-        } else {
-            result = buffer->m_Sample->ReadData(buffer->m_Data);
+        if (read_data) {
+            if (next_tracker->m_Reader) {
+                result = next_tracker->m_Reader->ReadSampleData(*buffer->m_Sample, buffer->m_Data);
+            } else {
+                result = buffer->m_Sample->ReadData(buffer->m_Data);
+            }
+            if (AP4_FAILED(result)) return result;
+
+            // detach the sample from its source now that we've read its data
+            buffer->m_Sample->Detach();
         }
-        if (AP4_FAILED(result)) return result;
-        
-        // detach the sample from its source now that we've read its data
-        buffer->m_Sample->Detach();
         
         // add the buffer to the queue
         next_tracker->m_Samples.Add(buffer);
@@ -478,13 +480,15 @@ AP4_LinearReader::Advance()
 bool
 AP4_LinearReader::PopSample(Tracker*        tracker, 
                             AP4_Sample&     sample, 
-                            AP4_DataBuffer& sample_data)
+                            AP4_DataBuffer* sample_data)
 {
     SampleBuffer* head = NULL;
     if (AP4_SUCCEEDED(tracker->m_Samples.PopHead(head)) && head) {
         assert(head->m_Sample);
         sample = *head->m_Sample;
-        sample_data.SetData(head->m_Data.GetData(), head->m_Data.GetDataSize());
+        if (sample_data) {
+            sample_data->SetData(head->m_Data.GetData(), head->m_Data.GetDataSize());
+        }
         assert(m_BufferFullness >= head->m_Data.GetDataSize());
         m_BufferFullness -= head->m_Data.GetDataSize();
         delete head;
@@ -511,7 +515,7 @@ AP4_LinearReader::ReadNextSample(AP4_UI32        track_id,
     if (tracker == NULL) return AP4_ERROR_INVALID_PARAMETERS;
     for(;;) {
         // pop a sample if we can
-        if (PopSample(tracker, sample, sample_data)) return AP4_SUCCESS;
+        if (PopSample(tracker, sample, &sample_data)) return AP4_SUCCESS;
 
         // don't continue if we've reached the end of that tracker
         if (tracker->m_Eos) return AP4_ERROR_EOS;
@@ -528,7 +532,7 @@ AP4_LinearReader::ReadNextSample(AP4_UI32        track_id,
 +---------------------------------------------------------------------*/
 AP4_Result 
 AP4_LinearReader::ReadNextSample(AP4_Sample&     sample,
-                                 AP4_DataBuffer& sample_data,
+                                 AP4_DataBuffer* sample_data,
                                  AP4_UI32&       track_id)
 {
     if (m_Trackers.ItemCount() == 0) {
@@ -562,11 +566,31 @@ AP4_LinearReader::ReadNextSample(AP4_Sample&     sample,
         }
         
         // nothing found, read one more sample
-        AP4_Result result = Advance();
+        AP4_Result result = Advance(sample_data != NULL);
         if (AP4_FAILED(result)) return result;
     }
     
     // unreachable - return AP4_ERROR_EOS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_LinearReader::ReadNextSample
++---------------------------------------------------------------------*/
+AP4_Result 
+AP4_LinearReader::ReadNextSample(AP4_Sample&     sample,
+                                 AP4_DataBuffer& sample_data,
+                                 AP4_UI32&       track_id)
+{
+    return ReadNextSample(sample, &sample_data, track_id);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_LinearReader::GetNextSample
++---------------------------------------------------------------------*/
+AP4_Result 
+AP4_LinearReader::GetNextSample(AP4_Sample& sample, AP4_UI32& track_id)
+{
+    return ReadNextSample(sample, NULL, track_id);
 }
 
 /*----------------------------------------------------------------------

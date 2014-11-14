@@ -489,7 +489,7 @@ AP4_SubStream::WritePartial(const void* buffer,
         bytes_to_write = (AP4_Size)(m_Size - m_Position);
     }
 
-    // check for en of substream
+    // check for end of substream
     if (bytes_to_write == 0) {
         return AP4_ERROR_EOS;
     }
@@ -533,6 +533,119 @@ AP4_SubStream::AddReference()
 +---------------------------------------------------------------------*/
 void
 AP4_SubStream::Release()
+{
+    if (--m_ReferenceCount == 0) {
+        delete this;
+    }
+}
+
+/*----------------------------------------------------------------------
+|   AP4_DupStream::AP4_DupStream
++---------------------------------------------------------------------*/
+AP4_DupStream::AP4_DupStream(AP4_ByteStream& original_stream) :
+    m_OriginalStream(original_stream),
+    m_Position(0),
+    m_ReferenceCount(1)
+{
+    m_OriginalStream.AddReference();
+}
+
+/*----------------------------------------------------------------------
+|   AP4_DupStream::~AP4_DupStream
++---------------------------------------------------------------------*/
+AP4_DupStream::~AP4_DupStream()
+{
+    m_OriginalStream.Release();
+}
+
+/*----------------------------------------------------------------------
+|   AP4_DupStream::ReadPartial
++---------------------------------------------------------------------*/
+AP4_Result 
+AP4_DupStream::ReadPartial(void*     buffer,
+                           AP4_Size  bytes_to_read, 
+                           AP4_Size& bytes_read)
+{
+    // default values
+    bytes_read = 0;
+
+    // shortcut
+    if (bytes_to_read == 0) {
+        return AP4_SUCCESS;
+    }
+
+    // seek to the right position in the original stream
+    m_OriginalStream.Seek(m_Position);
+    
+    // read
+    AP4_Result result = m_OriginalStream.ReadPartial(buffer, bytes_to_read, bytes_read);
+    
+    // adjust our position
+    if (AP4_SUCCEEDED(result)) {
+        m_Position += bytes_read;
+    }
+
+    return result;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_DupStream::WritePartial
++---------------------------------------------------------------------*/
+AP4_Result 
+AP4_DupStream::WritePartial(const void* buffer,
+                            AP4_Size    bytes_to_write, 
+                            AP4_Size&   bytes_written)
+{
+    // default values
+    bytes_written = 0;
+
+    // shortcut
+    if (bytes_to_write == 0) {
+        return AP4_SUCCESS;
+    }
+
+    // seek to the right position in the original stream
+    m_OriginalStream.Seek(m_Position);
+    
+    // read
+    AP4_Result result = m_OriginalStream.WritePartial(buffer, bytes_to_write, bytes_written);
+    
+    // adjust our position
+    if (AP4_SUCCEEDED(result)) {
+        m_Position += bytes_written;
+    }
+
+    return result;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_DupStream::Seek
++---------------------------------------------------------------------*/
+AP4_Result 
+AP4_DupStream::Seek(AP4_Position position)
+{
+    if (position == m_Position) return AP4_SUCCESS;
+    AP4_Result result = m_OriginalStream.Seek(position);
+    if (AP4_SUCCEEDED(result)) {
+        m_Position = position;
+    }
+    return result;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_DupStream::AddReference
++---------------------------------------------------------------------*/
+void
+AP4_DupStream::AddReference()
+{
+    m_ReferenceCount++;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_DupStream::Release
++---------------------------------------------------------------------*/
+void
+AP4_DupStream::Release()
 {
     if (--m_ReferenceCount == 0) {
         delete this;

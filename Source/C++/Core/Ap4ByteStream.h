@@ -122,6 +122,43 @@ class AP4_SubStream : public AP4_ByteStream
 };
 
 /*----------------------------------------------------------------------
+|   AP4_DupStream
++---------------------------------------------------------------------*/
+class AP4_DupStream : public AP4_ByteStream
+{
+ public:
+    AP4_DupStream(AP4_ByteStream& original_stream);
+
+    // AP4_ByteStream methods
+    AP4_Result ReadPartial(void*     buffer, 
+                           AP4_Size  bytes_to_read, 
+                           AP4_Size& bytes_read);
+    AP4_Result WritePartial(const void* buffer, 
+                            AP4_Size    bytes_to_write, 
+                            AP4_Size&   bytes_written);
+    AP4_Result Seek(AP4_Position position);
+    AP4_Result Tell(AP4_Position& position) {
+        position = m_Position;
+        return AP4_SUCCESS;
+    }
+    AP4_Result GetSize(AP4_LargeSize& size) {
+        return m_OriginalStream.GetSize(size);
+    }
+
+    // AP4_Referenceable methods
+    void AddReference();
+    void Release();
+
+ protected:
+    virtual ~AP4_DupStream();
+
+ private:
+    AP4_ByteStream& m_OriginalStream;
+    AP4_Position    m_Position;
+    AP4_Cardinal    m_ReferenceCount;
+};
+
+/*----------------------------------------------------------------------
 |   AP4_MemoryByteStream
 +---------------------------------------------------------------------*/
 class AP4_MemoryByteStream : public AP4_ByteStream

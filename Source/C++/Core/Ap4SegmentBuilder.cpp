@@ -515,7 +515,7 @@ AP4_AacSegmentBuilder::Feed(const void* data,
                 128000,                // max bitrate
                 128000);               // average bitrate
             
-            m_Timescale = frame.m_Info.m_SamplingFrequency;
+            m_Timescale = (AP4_UI32)frame.m_Info.m_SamplingFrequency;
         }
 
         // read and store the sample data
