@@ -35,17 +35,17 @@ MPD_NS                    = 'urn:mpeg:dash:schema:mpd:2011'
 ISOFF_LIVE_PROFILE        = 'urn:mpeg:dash:profile:isoff-live:2011'
 FULL_PROFILE              = 'urn:mpeg:dash:profile:full:2011'
 SPLIT_INIT_SEGMENT_NAME   = 'init.mp4'
-NOSPLIT_INIT_FILE_PATTERN = 'init-%02d-%02d.mp4'
+NOSPLIT_INIT_FILE_PATTERN = 'init-%s.mp4'
 
-PADDED_SEGMENT_PATTERN     = 'seg-%04llu.m4f'
-PADDED_SEGMENT_URL_PATTERN = 'seg-%04d.m4f'
-PADDED_SEGMENT_TEMPLATE    = 'seg-$Number%04d$.m4f'
-NOPAD_SEGMENT_PATTERN      = 'seg-%llu.m4f'
-NOPAD_SEGMENT_URL_PATTERN  = 'seg-%d.m4f'
-NOPAD_SEGMENT_TEMPLATE     = 'seg-$Number$.m4f'
-SEGMENT_PATTERN            = NOPAD_SEGMENT_PATTERN
-SEGMENT_URL_PATTERN        = NOPAD_SEGMENT_URL_PATTERN
-SEGMENT_TEMPLATE           = NOPAD_SEGMENT_TEMPLATE
+PADDED_SEGMENT_PATTERN      = 'seg-%04llu.m4f'
+PADDED_SEGMENT_URL_PATTERN  = 'seg-%04d.m4f'
+PADDED_SEGMENT_URL_TEMPLATE = '$RepresentationID$/seg-$Number%04d$.m4f'
+NOPAD_SEGMENT_PATTERN       = 'seg-%llu.m4f'
+NOPAD_SEGMENT_URL_PATTERN   = 'seg-%d.m4f'
+NOPAD_SEGMENT_URL_TEMPLATE  = '$RepresentationID$/seg-$Number$.m4f'
+SEGMENT_PATTERN             = NOPAD_SEGMENT_PATTERN
+SEGMENT_URL_PATTERN         = NOPAD_SEGMENT_URL_PATTERN
+SEGMENT_URL_TEMPLATE        = NOPAD_SEGMENT_URL_TEMPLATE
 
 MEDIA_FILE_PATTERN        = 'media-%02d.mp4'
 MARLIN_SCHEME_ID_URI      = 'urn:uuid:5E629AF5-38DA-4063-8977-97FFBD9902D4'
@@ -104,16 +104,12 @@ def AddSegmentList(options, container, subdir, track, use_byte_range=False):
 
 
 #############################################
-def AddSegmentTemplate(options, container, subdir, track, stream_name):
-    if subdir:
-        prefix = subdir + '/'
-    else:
-        prefix = ''
-    init_segment_url = prefix + track.init_segment_name
+def AddSegmentTemplate(options, container, init_segment_url, media_url_template_prefix, track, stream_name):
+    if options.use_segment_list:
+        return
 
     if options.use_segment_timeline:
-        url_template = prefix + SEGMENT_TEMPLATE
-        init_segment_url = prefix + track.init_segment_name
+        url_template = SEGMENT_URL_TEMPLATE
         use_template_numbers = True
         if options.smooth:
             url_base = path.basename(options.smooth_server_manifest_filename)
@@ -151,16 +147,13 @@ def AddSegmentTemplate(options, container, subdir, track, stream_name):
                        duration=str(int(track.average_segment_duration*1000)),
                        startNumber='0',
                        initialization=init_segment_url,
-                       media=prefix + SEGMENT_TEMPLATE)
+                       media=SEGMENT_URL_TEMPLATE)
 
 
 #############################################
-def AddSegments(options, container, subdir, track, use_byte_range, stream_name):
+def AddSegments(options, container, subdir, track, use_byte_range):
     if options.use_segment_list:
-        AddSegmentList(options, container, subdir, track, use_byte_range)
-    else:
-        AddSegmentTemplate(options, container, subdir, track, stream_name)
-    
+        AddSegmentList(options, container, subdir, track, use_byte_range)    
 
 #############################################
 def AddContentProtection(options, container, tracks):
@@ -222,32 +215,31 @@ def OutputDash(options, audio_tracks, video_tracks):
     # process the audio tracks
     for (language, audio_track) in audio_tracks.iteritems():
         args = [period, 'AdaptationSet']
-        #kwargs = {'mimeType': AUDIO_MIMETYPE, 'startWithSAP': '1', 'segmentAlignment': 'true', 'bitstreamSwitching': 'true'}
         kwargs = {'mimeType': AUDIO_MIMETYPE, 'startWithSAP': '1', 'segmentAlignment': 'true'}
-        if language:
-            id_ext = '.' + language
-            if language != 'und':
-                kwargs['lang'] = language
-        else:
-            id_ext = ''
+        if language != 'und':
+            kwargs['lang'] = language
+        stream_name = 'audio_' + language
         adaptation_set = xml.SubElement(*args, **kwargs)
         if options.marlin or options.playready:
             AddContentProtection(options, adaptation_set, [audio_track])
+    
+        if options.split:
+            media_subdir                      = 'audio/' + language
+            init_segment_url                  = '$RepresentationID$/' + SPLIT_INIT_SEGMENT_NAME
+            media_segment_url_template_prefix = '$RepresentationID$/'
+        else:
+            media_subdir                      = None
+            init_segment_url                  = NOSPLIT_INIT_FILE_PATTERN % ('$RepresentationID$') 
+            media_segment_url_template_prefix = ''
+
+        AddSegmentTemplate(options, adaptation_set, init_segment_url, media_segment_url_template_prefix, audio_track, stream_name)
+    
         representation = xml.SubElement(adaptation_set,
                                         'Representation',
-                                        id='audio' + id_ext,
+                                        id=audio_track.representation_id,
                                         codecs=audio_track.codec,
                                         bandwidth=str(audio_track.bandwidth))
-        if language:
-            subdir = '/' + language
-            stream_name = 'audio_' + language
-        else:
-            subdir = ''
-            stream_name = 'audio'
-        if options.split:
-            AddSegments(options, representation, 'audio' + subdir, audio_track, False, stream_name)
-        else:
-            AddSegments(options, representation, None, audio_track, True, stream_name)
+        AddSegments(options, representation, media_subdir, audio_track, False)
         
     # process all the video tracks
     adaptation_set = xml.SubElement(period,
@@ -257,10 +249,21 @@ def OutputDash(options, audio_tracks, video_tracks):
                                     startWithSAP='1')
     if options.marlin or options.playready:
         AddContentProtection(options, adaptation_set, video_tracks)
+    
+    if options.split:
+        init_segment_url                  = '$RepresentationID$/' + SPLIT_INIT_SEGMENT_NAME
+        media_segment_url_template_prefix = '$RepresentationID$/'
+    else:
+        init_segment_url                  = NOSPLIT_INIT_FILE_PATTERN % ('$RepresentationID$') 
+        media_segment_url_template_prefix = ''
+
+    if len(video_tracks):
+        AddSegmentTemplate(options, adaptation_set, init_segment_url, media_segment_url_template_prefix, video_tracks[0], 'video')
+    
     for video_track in video_tracks:
         representation = xml.SubElement(adaptation_set,
                                         'Representation',
-                                        id='video.' + str(video_track.parent.index),
+                                        id=video_track.representation_id,
                                         codecs=video_track.codec,
                                         width=str(video_track.width),
                                         height=str(video_track.height),
@@ -269,9 +272,11 @@ def OutputDash(options, audio_tracks, video_tracks):
             representation.set('maxPlayoutRate', video_track.max_playout_rate)
 
         if options.split:
-            AddSegments(options, representation, 'video/' + str(video_track.parent.index), video_track, False, 'video')
+            media_subdir = 'video/' + str(video_track.parent.index)
         else:
-            AddSegments(options, representation, None, video_track, True, 'video')           
+            media_subdir = None
+
+        AddSegments(options, representation, media_subdir, video_track, False)
         
     # save the MPD
     if options.mpd_filename:
@@ -294,10 +299,7 @@ def OutputSmooth(options, audio_tracks, video_tracks):
     # process the audio tracks
     audio_index = 0
     for (language, audio_track) in audio_tracks.iteritems():
-        if language:
-            stream_name = "audio_"+language
-        else:
-            stream_name = "audio"
+        stream_name = "audio_"+language
         audio_url_pattern="QualityLevels({bitrate})/Fragments(%s={start time})" % (stream_name)
         stream_index = xml.SubElement(client_manifest, 
                                       'StreamIndex', 
@@ -307,7 +309,7 @@ def OutputSmooth(options, audio_tracks, video_tracks):
                                       Name=stream_name, 
                                       QualityLevels="1",
                                       TimeScale=str(audio_track.timescale))
-        if language and language != 'und':
+        if language != 'und':
             stream_index.set('Language', language)
         xml.SubElement(stream_index,
                        'QualityLevel',
@@ -315,7 +317,7 @@ def OutputSmooth(options, audio_tracks, video_tracks):
                        SamplingRate=str(audio_track.sample_rate),
                        Channels=str(audio_track.channels),
                        BitsPerSample="16",
-                       PacketSize="4",
+                       PacketSize=str(2*audio_track.channels),
                        AudioTag="255",
                        FourCC="AACL",
                        Index="0",
@@ -569,10 +571,10 @@ def main():
 
     # switch variables
     if options.segment_template_padding:
-        global SEGMENT_PATTERN, SEGMENT_URL_PATTERN, SEGMENT_TEMPLATE
-        SEGMENT_PATTERN     = PADDED_SEGMENT_PATTERN
-        SEGMENT_URL_PATTERN = PADDED_SEGMENT_URL_PATTERN
-        SEGMENT_TEMPLATE    = PADDED_SEGMENT_TEMPLATE
+        global SEGMENT_PATTERN, SEGMENT_URL_PATTERN, SEGMENT_URL_TEMPLATE
+        SEGMENT_PATTERN      = PADDED_SEGMENT_PATTERN
+        SEGMENT_URL_PATTERN  = PADDED_SEGMENT_URL_PATTERN
+        SEGMENT_URL_TEMPLATE = PADDED_SEGMENT_URL_TEMPLATE
 
     # post-process some of the options
     if options.playready_header or options.playready_add_pssh:
@@ -848,18 +850,19 @@ def main():
     # compute the track stream id init segment name for each track
     for (language, audio_track) in audio_tracks.items():
         if options.split:
+            audio_track.representation_id = 'audio/'+language
             audio_track.init_segment_name = SPLIT_INIT_SEGMENT_NAME
         else:
-            audio_track.init_segment_name = NOSPLIT_INIT_FILE_PATTERN % (audio_track.parent.index, audio_track.id)
-        if language:
-            audio_track.stream_id = 'audio_'+language
-        else:
-            audio_track.stream_id = 'audio'
+            audio_track.representation_id = 'audio-'+language
+            audio_track.init_segment_name = NOSPLIT_INIT_FILE_PATTERN % (audio_track.representation_id)
+        audio_track.stream_id = 'audio_'+language
     for video_track in video_tracks:
         if options.split:
+            video_track.representation_id = 'video/'+str(video_track.parent.index)
             video_track.init_segment_name = SPLIT_INIT_SEGMENT_NAME
         else:
-            video_track.init_segment_name = NOSPLIT_INIT_FILE_PATTERN % (video_track.parent.index, video_track.id)
+            video_track.representation_id = 'video-'+str(video_track.parent.index)
+            video_track.init_segment_name = NOSPLIT_INIT_FILE_PATTERN % (video_track.representation_id)
         video_track.stream_id = 'video'
 
     # compute some values if not set
@@ -901,10 +904,8 @@ def main():
         if options.split:
             MakeNewDir(path.join(options.output_dir, 'audio'))
             for (language, audio_track) in audio_tracks.iteritems():
-                out_dir = path.join(options.output_dir, 'audio')
-                if language:
-                    out_dir = path.join(out_dir, language)
-                    MakeNewDir(out_dir)
+                out_dir = path.join(options.output_dir, 'audio', language)
+                MakeNewDir(out_dir)
                 print 'Processing media file (audio)', file_name_map[audio_track.parent.filename]
                 Mp4Split(options,
                          audio_track.parent.filename,

@@ -61,7 +61,7 @@ class MediaSource:
         else:
             quiet = ''
 
-        command = 'ffprobe -of json -show_format -show_streams '+quiet+filename
+        command = 'ffprobe -of json -show_format -show_streams '+quiet+'"'+filename+'"'
         json_probe = run_command(options, command)
         self.json_info = json.loads(json_probe, strict=False)
 
@@ -80,6 +80,7 @@ class MediaSource:
                         raise Exception('unable to obtain frame rate for source movie')
                 else:
                     self.frame_rate = float(frame_rate)
+                break
 
     def __repr__(self):
         return 'Video: resolution='+str(self.width)+'x'+str(self.height)
@@ -106,9 +107,11 @@ def main():
     parser.add_option('-n', '--max-video-bitrate', dest='max_bitrate', type='float',
                       help="Max Video bitrate (default: 2mbps)", default=2000.0),
     parser.add_option('-p', '--video-profile', dest='video_profile',
-                      help="Video Encoding Profile: main or baseline (default)"),
+                      help="Video Encoding Profile: main or baseline (default)")
     parser.add_option('-a', '--audio-bitrate', dest='audio_bitrate', type='int',
                       help="Audio bitrate (default: 128kbps)", default=128)
+    parser.add_option('', '--select-streams', dest='select_streams', 
+                      help="Only encode these streams (comma-separated list of stream indexes or stream sepcifiers)")
     parser.add_option('-s', '--segment-size', dest='segment_size', type='int',
                       help="Video segment size in frames (default: 3*fps)")
     parser.add_option('-t', '--text-overlay', dest='text_overlay', action='store_true', default=False,
@@ -153,9 +156,15 @@ def main():
     for i in range(options.bitrates):
         output_filename = 'video_%05d.mp4' % int(bitrates[i])
         temp_filename = output_filename+'_'
-        base_cmd  = "ffmpeg -i %s -strict experimental -acodec libfdk_aac -ac 2 -ab %dk -profile:v baseline -preset slow -vcodec libx264" % (args[0], options.audio_bitrate)
+        base_cmd  = 'ffmpeg -i "%s" -strict experimental -acodec libfdk_aac -ac 2 -ab %dk -profile:v baseline -preset slow -vcodec libx264' % (args[0], options.audio_bitrate)
         if options.text_overlay:
             base_cmd += ' -vf "drawtext=fontfile=/Library/Fonts/Courier New.ttf: text='+str(int(bitrates[i]))+'kbps '+str(resolutions[i][0])+'*'+str(resolutions[i][1])+': fontsize=50:  x=(w)/8: y=h-(2*lh): fontcolor=white:"'
+        if options.select_streams:
+            specifiers = options.select_streams.split(',')
+            for specifier in specifiers:
+                base_cmd += ' -map 0:'+specifier
+        else:
+            base_cmd += ' -map 0'
         if not options.debug:
             base_cmd += ' -v quiet'
         if options.force_output:
@@ -171,7 +180,7 @@ def main():
             print 'ENCODING bitrate: %d, resolution: %dx%d' % (int(bitrates[i]), resolutions[i][0], resolutions[i][1])
         run_command(options, cmd)
 
-        cmd = 'mp4fragment %s %s' % (temp_filename, output_filename)
+        cmd = 'mp4fragment "%s" "%s"' % (temp_filename, output_filename)
         run_command(options, cmd)
 
         if not options.keep_files:

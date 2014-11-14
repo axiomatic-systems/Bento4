@@ -74,18 +74,69 @@ PrintUsageAndExit()
 }
 
 /*----------------------------------------------------------------------
+|   SampleArray
++---------------------------------------------------------------------*/
+class SampleArray {
+public:
+    SampleArray(AP4_Track* track) :
+        m_Track(track) {}
+    virtual ~SampleArray() {}
+
+    virtual AP4_Cardinal GetSampleCount() {
+        return m_Track->GetSampleCount();
+    }
+    virtual AP4_Result GetSample(AP4_Ordinal index, AP4_Sample& sample) {
+        return m_Track->GetSample(index, sample);
+    }
+    virtual AP4_Result AddSample(AP4_Sample& /*sample*/) {
+        return AP4_ERROR_NOT_SUPPORTED;
+    }
+    
+protected:
+    AP4_Track* m_Track;
+};
+
+/*----------------------------------------------------------------------
+|   CachedSampleArray
++---------------------------------------------------------------------*/
+class CachedSampleArray : public SampleArray {
+public:
+    CachedSampleArray(AP4_Track* track) :
+        SampleArray(track) {}
+
+    virtual AP4_Cardinal GetSampleCount() {
+        return m_Samples.ItemCount();
+    }
+    virtual AP4_Result GetSample(AP4_Ordinal index, AP4_Sample& sample) {
+        if (index >= m_Samples.ItemCount()) {
+            return AP4_ERROR_OUT_OF_RANGE;
+        } else {
+            sample = m_Samples[index];
+            return AP4_SUCCESS;
+        }
+    }
+    virtual AP4_Result AddSample(AP4_Sample& sample) {
+        return m_Samples.Append(sample);
+    }
+    
+protected:
+    AP4_Array<AP4_Sample> m_Samples;
+};
+
+/*----------------------------------------------------------------------
 |   TrackCursor
 +---------------------------------------------------------------------*/
 class TrackCursor
 {
 public:
-    TrackCursor();
+    TrackCursor(AP4_Track* track, SampleArray* samples);
     ~TrackCursor();
     
-    AP4_Result    SetTrack(AP4_Track* track);
+    AP4_Result    Init();
     AP4_Result    SetSampleIndex(AP4_Ordinal sample_index);
     
     AP4_Track*    m_Track;
+    SampleArray*  m_Samples;
     AP4_Ordinal   m_SampleIndex;
     AP4_Ordinal   m_FragmentIndex;
     AP4_Sample    m_Sample;
@@ -98,8 +149,9 @@ public:
 /*----------------------------------------------------------------------
 |   TrackCursor::TrackCursor
 +---------------------------------------------------------------------*/
-TrackCursor::TrackCursor() :
-    m_Track(NULL), 
+TrackCursor::TrackCursor(AP4_Track* track, SampleArray* samples) :
+    m_Track(track),
+    m_Samples(samples),
     m_SampleIndex(0),
     m_FragmentIndex(0),
     m_Timestamp(0),
@@ -115,16 +167,16 @@ TrackCursor::TrackCursor() :
 TrackCursor::~TrackCursor()
 {
     delete m_Tfra;
+    delete m_Samples;
 }
 
 /*----------------------------------------------------------------------
-|   TrackCursor::SetTrack
+|   TrackCursor::Init
 +---------------------------------------------------------------------*/
 AP4_Result
-TrackCursor::SetTrack(AP4_Track* track)
+TrackCursor::Init()
 {
-    m_Track = track;
-    return track->GetSample(0, m_Sample);
+    return m_Samples->GetSample(0, m_Sample);
 }
 
 /*----------------------------------------------------------------------
@@ -136,13 +188,13 @@ TrackCursor::SetSampleIndex(AP4_Ordinal sample_index)
     m_SampleIndex = sample_index;
     
     // check if we're at the end
-    if (sample_index >= m_Track->GetSampleCount()) {
+    if (sample_index >= m_Samples->GetSampleCount()) {
         AP4_UI64 end_dts = m_Sample.GetDts()+m_Sample.GetDuration();
         m_Sample.Reset();
         m_Sample.SetDts(end_dts);
         m_Eos = true;
     } else {
-        return m_Track->GetSample(m_SampleIndex, m_Sample);
+        return m_Samples->GetSample(m_SampleIndex, m_Sample);
     }
     
     return AP4_SUCCESS;
@@ -152,10 +204,11 @@ TrackCursor::SetSampleIndex(AP4_Ordinal sample_index)
 |   Fragment
 +---------------------------------------------------------------------*/
 static void
-Fragment(AP4_File&       input_file,
-         AP4_ByteStream& output_stream,
-         unsigned int    fragment_duration,
-         AP4_UI32        timescale)
+Fragment(AP4_File&                input_file,
+         AP4_ByteStream&          output_stream,
+         AP4_Array<TrackCursor*>& cursors,
+         unsigned int             fragment_duration,
+         AP4_UI32                 timescale)
 {
     AP4_Result result;
     
@@ -173,29 +226,20 @@ Fragment(AP4_File&       input_file,
     AP4_MehdAtom* mehd = new AP4_MehdAtom(0); 
     mvex->AddChild(mehd);
     
-    // create a cusor list to keep track of the tracks we will read from
-    AP4_Array<TrackCursor*> cursors;
-    
     // add an output track for each track in the input file
-    for (AP4_List<AP4_Track>::Item* track_item = input_movie->GetTracks().FirstItem();
-                                    track_item;
-                                    track_item = track_item->GetNext()) {
-        AP4_Track* track = track_item->GetData();
+    for (unsigned int i=0; i<cursors.ItemCount(); i++) {
+        AP4_Track* track = cursors[i]->m_Track;
         
-        if (track->GetSampleCount() == 0) {
-            // ignore this track
-            continue;
+        result = cursors[i]->Init();
+        if (AP4_FAILED(result)) {
+            fprintf(stderr, "ERROR: failed to init sample cursor (%d), skipping track %d\n", result, track->GetId());
+            return;
         }
-        
-        // create a cursor for the track
-        TrackCursor* cursor = new TrackCursor();
-        cursor->m_Tfra->SetTrackId(track->GetId());
-        cursors.Append(cursor);
-                    
+
         // create a sample table (with no samples) to hold the sample description
         AP4_SyntheticSampleTable* sample_table = new AP4_SyntheticSampleTable();
-        for (unsigned int i=0; i<track->GetSampleDescriptionCount(); i++) {
-            AP4_SampleDescription* sample_description = track->GetSampleDescription(i);
+        for (unsigned int j=0; j<track->GetSampleDescriptionCount(); j++) {
+            AP4_SampleDescription* sample_description = track->GetSampleDescription(j);
             sample_table->AddSampleDescription(sample_description, false);
         }
         
@@ -213,14 +257,9 @@ Fragment(AP4_File&       input_file,
                                                 track->GetWidth(),
                                                 track->GetHeight());
         output_movie->AddTrack(output_track);
-        result = cursor->SetTrack(track);
-        if (AP4_FAILED(result)) {
-            fprintf(stderr, "ERROR: failed to read sample (%d)\n", result);
-            return;
-        }
-                
+        
         // add a trex entry to the mvex container
-        AP4_TrexAtom* trex = new AP4_TrexAtom(cursor->m_Track->GetId(),
+        AP4_TrexAtom* trex = new AP4_TrexAtom(track->GetId(),
                                               1,
                                               0,
                                               0,
@@ -228,11 +267,6 @@ Fragment(AP4_File&       input_file,
         mvex->AddChild(trex);
     }
     
-    if (cursors.ItemCount() == 0) {
-        fprintf(stderr, "ERROR: no track found\n");
-        return;
-    }
-
     // select the anchor cursor and set target durations
     TrackCursor* anchor_cursor = NULL;
     for (unsigned int i=0; i<cursors.ItemCount(); i++) {
@@ -328,13 +362,13 @@ Fragment(AP4_File&       input_file,
             }
         }
 
-        unsigned int end_sample_index = cursor->m_Track->GetSampleCount();
+        unsigned int end_sample_index = cursor->m_Samples->GetSampleCount();
         AP4_UI64 smallest_diff = (AP4_UI64)(0xFFFFFFFFFFFFFFFFULL);
         AP4_Sample sample;
-        for (unsigned int i=cursor->m_SampleIndex; i<=cursor->m_Track->GetSampleCount(); i++) {
+        for (unsigned int i=cursor->m_SampleIndex; i<=cursor->m_Samples->GetSampleCount(); i++) {
             AP4_UI64 dts;
-            if (i < cursor->m_Track->GetSampleCount()) {
-                result = cursor->m_Track->GetSample(i, sample);
+            if (i < cursor->m_Samples->GetSampleCount()) {
+                result = cursor->m_Samples->GetSample(i, sample);
                 if (AP4_FAILED(result)) {
                     fprintf(stderr, "ERROR: failed to get sample %d (%d)\n", i, result);
                     return;
@@ -342,7 +376,7 @@ Fragment(AP4_File&       input_file,
                 if (!sample.IsSync()) continue; // only look for sync samples
                 dts = sample.GetDts();
             } else {
-                result = cursor->m_Track->GetSample(i-1, sample);
+                result = cursor->m_Samples->GetSample(i-1, sample);
                 if (AP4_FAILED(result)) {
                     fprintf(stderr, "ERROR: failed to get sample %d (%d)\n", i-1, result);
                     return;
@@ -497,11 +531,21 @@ Fragment(AP4_File&       input_file,
         output_stream.WriteUI32(AP4_ATOM_TYPE_MDAT);
         AP4_DataBuffer sample_data;
         for (unsigned int i=0; i<sample_indexes.ItemCount(); i++) {
-            result = cursor->m_Track->ReadSample(sample_indexes[i], sample, sample_data);
+            // get the sample
+            result = cursor->m_Samples->GetSample(sample_indexes[i], sample);
             if (AP4_FAILED(result)) {
-                fprintf(stderr, "ERROR: failed to read sample %d (%d)\n", sample_indexes[i], result);
+                fprintf(stderr, "ERROR: failed to get sample %d (%d)\n", sample_indexes[i], result);
                 return;
             }
+
+            // read the sample data
+            result = sample.ReadData(sample_data);
+            if (AP4_FAILED(result)) {
+                fprintf(stderr, "ERROR: failed to read sample data for sample %d (%d)\n", sample_indexes[i], result);
+                return;
+            }
+            
+            // write the sample data
             result = output_stream.Write(sample_data.GetData(), sample_data.GetDataSize());
             if (AP4_FAILED(result)) {
                 fprintf(stderr, "ERROR: failed to write sample data (%d)\n", result);
@@ -541,13 +585,13 @@ Fragment(AP4_File&       input_file,
 |   AutoDetectFragmentDuration
 +---------------------------------------------------------------------*/
 static unsigned int 
-AutoDetectFragmentDuration(AP4_Track* track)
+AutoDetectFragmentDuration(TrackCursor* cursor)
 {
     AP4_Sample   sample;
-    unsigned int sample_count = track->GetSampleCount();
+    unsigned int sample_count = cursor->m_Samples->GetSampleCount();
     
     // get the first sample as the starting point
-    AP4_Result result = track->GetSample(0, sample);
+    AP4_Result result = cursor->m_Samples->GetSample(0, sample);
     if (AP4_FAILED(result)) {
         fprintf(stderr, "ERROR: failed to read first sample\n");
         return 0;
@@ -562,7 +606,7 @@ AutoDetectFragmentDuration(AP4_Track* track)
         unsigned int sync_count = 0;
         unsigned int i;
         for (i = 0; i < sample_count; i += interval) {
-            result = track->GetSample(i, sample);
+            result = cursor->m_Samples->GetSample(i, sample);
             if (AP4_FAILED(result)) {
                 fprintf(stderr, "ERROR: failed to read sample %d\n", i);
                 return 0;
@@ -577,7 +621,7 @@ AutoDetectFragmentDuration(AP4_Track* track)
         if (!irregular) {
             // found a pattern
             AP4_UI64 duration = sample.GetDts();
-            double fps = (double)(interval*(sync_count-1))/((double)duration/(double)track->GetMediaTimeScale());
+            double fps = (double)(interval*(sync_count-1))/((double)duration/(double)cursor->m_Track->GetMediaTimeScale());
             if (Options.verbosity > 0) {
                 printf("found regular I-frame interval: %d frames (at %.3f frames per second)\n",
                        interval, (float)fps);
@@ -687,35 +731,89 @@ main(int argc, char** argv)
         return 1;
     }
     if (input_file.GetMovie()->HasFragments()) {
-        fprintf(stderr, "ERROR: file is already fragmented\n");
-        return 1;
+        fprintf(stderr, "NOTICE: file is already fragmented, it will be re-fragmented\n");
     }
-    AP4_Track*   video_track = NULL;
+
+    // create a cusor list to keep track of the tracks we will read from
+    AP4_Array<TrackCursor*> cursors;
+    
+    // iterate over all tracks
+    TrackCursor*  video_track = NULL;
     unsigned int video_track_count = 0;
     unsigned int audio_track_count = 0;
     for (AP4_List<AP4_Track>::Item* track_item = input_file.GetMovie()->GetTracks().FirstItem();
                                     track_item;
                                     track_item = track_item->GetNext()) {
         AP4_Track* track = track_item->GetData();
+
+        if (track->GetSampleCount() == 0 && !input_file.GetMovie()->HasFragments()) {
+            fprintf(stderr, "WARNING: track %d has no samples, it will be skipped\n", track->GetId());
+            continue;
+        }
+
+        // create a sample array for this track
+        SampleArray* sample_array;
+        if (input_file.GetMovie()->HasFragments()) {
+            sample_array = new CachedSampleArray(track);
+        } else {
+            sample_array = new SampleArray(track);
+        }
+
+        // create a cursor for the track
+        TrackCursor* cursor = new TrackCursor(track, sample_array);
+        cursor->m_Tfra->SetTrackId(track->GetId());
+        cursors.Append(cursor);
+
         if (track->GetType() == AP4_Track::TYPE_VIDEO) {
             if (video_track) {
                 fprintf(stderr, "WARNING: more than one video track found\n");
             } else {
-                video_track = track;
+                video_track = cursor;
             }
             video_track_count++;
         } else if (track->GetType() == AP4_Track::TYPE_AUDIO) {
             audio_track_count++;
         }
-        if (track->GetSampleCount() == 0) {
-            fprintf(stderr, "WARNING: track %d has no samples\n", track->GetId());
-        }
     }
+
+    if (cursors.ItemCount() == 0) {
+        fprintf(stderr, "ERROR: no valid track found\n");
+        return 1;
+    }
+    
     if (video_track_count == 0 && audio_track_count == 0) {
         fprintf(stderr, "ERROR: no audio or video track in the file\n");
         return 1;
     }
     
+    // for fragmented input files, we need to populate the sample arrays
+    if (input_file.GetMovie()->HasFragments()) {
+        // remember where the stream was
+        AP4_Position position;
+        input_stream->Tell(position);
+        
+        AP4_LinearReader reader(*input_file.GetMovie(), input_stream);
+        for (unsigned int i=0; i<cursors.ItemCount(); i++) {
+            reader.EnableTrack(cursors[i]->m_Track->GetId());
+        }
+        AP4_UI32 track_id;
+        AP4_Sample sample;
+        do {
+            result = reader.GetNextSample(sample, track_id);
+            if (AP4_SUCCEEDED(result)) {
+                for (unsigned int i=0; i<cursors.ItemCount(); i++) {
+                    if (cursors[i]->m_Track->GetId() == track_id) {
+                        cursors[i]->m_Samples->AddSample(sample);
+                        break;
+                    }
+                }
+            }
+        } while (AP4_SUCCEEDED(result));
+        
+        // return the stream to its original position
+        input_stream->Seek(position);
+    }
+
     // auto-detect the fragment duration if needed
     if (auto_detect_fragment_duration) {
         if (video_track) {
@@ -739,7 +837,7 @@ main(int argc, char** argv)
     }
     
     // fragment the file
-    Fragment(input_file, *output_stream, fragment_duration, timescale);
+    Fragment(input_file, *output_stream, cursors, fragment_duration, timescale);
     
     // cleanup and exit
     if (input_stream)  input_stream->Release();

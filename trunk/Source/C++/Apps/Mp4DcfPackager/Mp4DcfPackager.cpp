@@ -132,7 +132,7 @@ main(int argc, char** argv)
             }
         } else if (!strcmp(arg, "--content-id")) {
             content_id = *++argv;
-            if (content_type == NULL) {
+            if (content_id == NULL) {
                 fprintf(stderr, "ERROR: missing argument for --content-id option\n");
                 return 1;
             }

@@ -388,9 +388,9 @@ def main():
 
     # parse options
     parser = OptionParser(usage="%prog [options] <file-or-http-url> <output-dir>\n")
-    parser.add_option('', '--verbose', dest="verbose",
-                      action='store_true', default=False,
-                      help="Be verbose")
+    parser.add_option('', '--quiet', dest="verbose",
+                      action='store_false', default=True,
+                      help="Be quiet")
     parser.add_option('', "--encrypt", metavar='<KID:KEY>', 
                       dest='encrypt', default=None,
                       help="Encrypt the media, with KID and KEY specified in Hex (32 characters each)")    

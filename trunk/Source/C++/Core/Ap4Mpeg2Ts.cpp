@@ -458,11 +458,13 @@ private:
                                         stream_id,
                                         timescale),
     m_SampleDescriptionIndex(-1),
-    m_NaluLengthSize(0) {}
+    m_NaluLengthSize(0),
+    m_SamplesWritten(0) {}
     
     int            m_SampleDescriptionIndex;
     AP4_DataBuffer m_Prefix;
     unsigned int   m_NaluLengthSize;
+    AP4_UI64       m_SamplesWritten;
 };
 
 /*----------------------------------------------------------------------
@@ -605,7 +607,7 @@ AP4_Mpeg2TsVideoSampleStream::WriteSample(AP4_Sample&            sample,
     
     // decide if we need to emit the prefix
     bool emit_prefix = false;
-    if (sample.IsSync()) {
+    if (sample.IsSync() || m_SamplesWritten == 0) {
         emit_prefix = true;
     }
     
@@ -684,6 +686,9 @@ AP4_Mpeg2TsVideoSampleStream::WriteSample(AP4_Sample&            sample,
     // compute the timestamp
     AP4_UI64 dts = AP4_ConvertTime(sample.GetDts(), m_TimeScale, 90000);
     AP4_UI64 pts = AP4_ConvertTime(sample.GetCts(), m_TimeScale, 90000);
+    
+    // update counters
+    ++m_SamplesWritten;
     
     // write the packet
     return WritePES(pes_data.GetData(), pes_data.GetDataSize(), dts, true, pts, with_pcr, output);
