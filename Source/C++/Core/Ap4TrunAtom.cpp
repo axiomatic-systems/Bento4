@@ -281,26 +281,26 @@ AP4_TrunAtom::InspectFields(AP4_AtomInspector& inspector)
             const char* s3 = "";
             const char* sep = "";
             if (m_Flags & AP4_TRUN_FLAG_SAMPLE_DURATION_PRESENT) {
-                AP4_FormatString(v0, sizeof(v0), "sample duration:%d", m_Entries[i].sample_duration);
+                AP4_FormatString(v0, sizeof(v0), "sample_duration:%d", m_Entries[i].sample_duration);
                 s0 = v0;
                 sep = ", ";
             }
             if (m_Flags & AP4_TRUN_FLAG_SAMPLE_SIZE_PRESENT) {
-                AP4_FormatString(v1, sizeof(v1), "%ssample size:%d", sep, m_Entries[i].sample_size);
+                AP4_FormatString(v1, sizeof(v1), "%ssample_size:%d", sep, m_Entries[i].sample_size);
                 s1 = v1;
                 sep = ", ";
             }
             if (m_Flags & AP4_TRUN_FLAG_SAMPLE_FLAGS_PRESENT) {
-                AP4_FormatString(v2, sizeof(v2), "%ssample flags:%x", sep, m_Entries[i].sample_flags);
+                AP4_FormatString(v2, sizeof(v2), "%ssample_flags:%x", sep, m_Entries[i].sample_flags);
                 s2 = v2;
                 sep = ", ";
             }
             if (m_Flags & AP4_TRUN_FLAG_SAMPLE_COMPOSITION_TIME_OFFSET_PRESENT) {
-                AP4_FormatString(v3, sizeof(v3), "%ssample composition time offset:%d", sep, m_Entries[i].sample_composition_time_offset);
+                AP4_FormatString(v3, sizeof(v3), "%ssample_composition_time_offset:%d", sep, m_Entries[i].sample_composition_time_offset);
                 s3 = v3;
             }
             char value[128];
-            AP4_FormatString(value, sizeof(value), "%s %s %s %s", s0, s1, s2, s3);
+            AP4_FormatString(value, sizeof(value), "%s%s%s%s", s0, s1, s2, s3);
             inspector.AddField(header, value);
         }
     }

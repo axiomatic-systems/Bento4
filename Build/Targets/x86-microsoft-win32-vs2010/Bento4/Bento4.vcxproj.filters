@@ -189,6 +189,9 @@
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4NmhdAtom.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4SthdAtom.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4ObjectDescriptor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -579,6 +582,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4NmhdAtom.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4SthdAtom.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4ObjectDescriptor.h">

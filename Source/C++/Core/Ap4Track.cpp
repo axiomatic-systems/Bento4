@@ -93,6 +93,11 @@ AP4_Track::AP4_Track(Type             type,
             hdlr_name = "Bento4 Text Handler";
             break;
 
+        case TYPE_SUBTITLES:
+            hdlr_type = AP4_HANDLER_TYPE_SUBT;
+            hdlr_name = "Bento4 Subtitle Handler";
+            break;
+
         default:
             hdlr_type = 0;
             hdlr_name = NULL;

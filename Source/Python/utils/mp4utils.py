@@ -2,7 +2,7 @@
 import collections
 
 __author__    = 'Gilles Boccon-Gibod (bok@bok.net)'
-__copyright__ = 'Copyright 2011-2013 Axiomatic Systems, LLC.'
+__copyright__ = 'Copyright 2011-2015 Axiomatic Systems, LLC.'
 
 import sys
 import os
@@ -88,6 +88,9 @@ def Mp4Dump(options, filename, **args):
 
 def Mp4Split(options, filename, **args):
     return Bento4Command(options, 'mp4split', filename, **args)
+
+def Mp4Fragment(options, input_filename, output_filename, **args):
+    return Bento4Command(options, 'mp4fragment', input_filename, output_filename, **args)
 
 def Mp4Encrypt(options, input_filename, output_filename, **args):
     return Bento4Command(options, 'mp4encrypt', input_filename, output_filename, **args)
@@ -551,3 +554,58 @@ def ComputePlayReadyHeader(header_spec, kid_hex, key_hex):
         return WrapPlayreadyHeaderXml(header_xml)
 
     return ""
+
+def WidevineVarInt(value):
+    parts = [value % 128]
+    value >>= 7
+    while value:
+        parts.append(value%128)
+        value >>= 7
+    varint = ''
+    for i in range(len(parts)-1):
+        parts[i] |= (1<<7)
+    varint = ''
+    for x in parts:
+        varint += chr(x)
+    return varint
+
+def WidevineMakeHeader(fields):
+    buffer = ''
+    for (field_num, field_val) in fields:
+        if type(field_val) == int and field_val < 256:
+            wire_type = 0 # varint
+            wire_val = WidevineVarInt(field_val)
+        elif type(field_val) == str:
+            wire_type = 2
+            wire_val = WidevineVarInt(len(field_val))+field_val
+        buffer += chr(field_num<<3 | wire_type) + wire_val
+    return buffer
+
+def ComputeWidevineHeader(header_spec, kid_hex, key_hex):
+    # construct the base64 header
+    if header_spec.startswith('#'):
+        header_b64 = header_spec[1:]
+        header = header_b64.decode('base64')
+        if len(header) == 0:
+            raise Exception('invalid base64 encoding')
+        return header
+    else:
+        try:
+            pairs = header_spec.split('#')
+            fields = {}
+            for pair in pairs:
+                name, value = pair.split(':', 1)
+                fields[name] = value
+        except:
+            raise Exception('invalid syntax for argument')
+
+        protobuf_fields = [(1, 1), (2, kid_hex.decode('hex'))]
+        if 'provider' in fields:
+            protobuf_fields.append((3, fields['provider']))
+        if 'content_id' in fields:
+            protobuf_fields.append((4, fields['content_id'].decode('hex')))
+        if 'policy' in fields:
+            protobuf_fields.append((6, fields['policy'].decode('hex')))
+        return WidevineMakeHeader(protobuf_fields)
+    
+    return ""    

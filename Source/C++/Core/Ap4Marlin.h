@@ -284,7 +284,6 @@ private:
                  AP4_ByteStream& stream);
 
     // members
-    AP4_UI32         m_EntryCount;
     AP4_Array<Entry> m_Entries;
 };
 

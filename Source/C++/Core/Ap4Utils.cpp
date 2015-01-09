@@ -163,7 +163,7 @@ AP4_ConvertTime(AP4_UI64 time_value,
 {
     if (from_time_scale == 0) return 0;
     double ratio = (double)to_time_scale/(double)from_time_scale;
-    return ((AP4_UI64)((double)time_value*ratio));
+    return ((AP4_UI64)(0.5+(double)time_value*ratio));
 }
 
 /*----------------------------------------------------------------------

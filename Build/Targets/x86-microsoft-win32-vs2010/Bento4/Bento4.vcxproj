@@ -159,6 +159,7 @@
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4Mpeg2Ts.cpp" />
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4MvhdAtom.cpp" />
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4NmhdAtom.cpp" />
+    <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4SthdAtom.cpp" />
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4ObjectDescriptor.cpp" />
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4OdafAtom.cpp" />
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4OddaAtom.cpp" />
@@ -290,6 +291,7 @@
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4Mpeg2Ts.h" />
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4MvhdAtom.h" />
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4NmhdAtom.h" />
+    <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4SthdAtom.h" />
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4ObjectDescriptor.h" />
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4OdafAtom.h" />
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4OddaAtom.h" />

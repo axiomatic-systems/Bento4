@@ -33,5 +33,8 @@ def generate(env, gcc_cross_prefix=None, gcc_strict=True, gcc_stop_on_warning=Tr
         env['CC']     = gcc_cross_prefix+'-gcc'
         env['CXX']    = gcc_cross_prefix+'-g++'
         env['LINK']   = gcc_cross_prefix+'-g++'
+    else:
+        env['CC']  = os.getenv('CC')  or env['CC']
+        env['CXX'] = os.getenv('CXX') or env['CXX']
 
     env.Append(CCFLAGS = gcc_extra_options)
