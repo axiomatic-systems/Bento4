@@ -34,6 +34,24 @@
 /*----------------------------------------------------------------------
 |   types
 +---------------------------------------------------------------------*/
+#if defined(__cplusplus)
+class AP4_ByteStream;
+class AP4_DataBuffer;
+class AP4_File;
+class AP4_Movie;
+class AP4_Track;
+class AP4_MetaData;
+class AP4_Sample;
+class AP4_SampleDescription;
+class AP4_AudioSampleDescription;
+class AP4_VideoSampleDescription;
+class AP4_AvcSampleDescription;
+class AP4_MpegSampleDescription;
+class AP4_MpegAudioSampleDescription;
+class AP4_ProtectedSampleDescription;
+class AP4_SyntheticSampleTable;
+class AP4_AtomInspector;
+#else
 typedef struct AP4_ByteStream AP4_ByteStream;
 typedef struct AP4_DataBuffer AP4_DataBuffer;
 typedef struct AP4_File AP4_File;
@@ -50,6 +68,7 @@ typedef struct AP4_MpegAudioSampleDescription AP4_MpegAudioSampleDescription;
 typedef struct AP4_ProtectedSampleDescription AP4_ProtectedSampleDescription;
 typedef struct AP4_SyntheticSampleTable AP4_SyntheticSampleTable;
 typedef struct AP4_AtomInspector AP4_AtomInspector;
+#endif
 
 typedef enum {
     AP4_FALSE = 0,

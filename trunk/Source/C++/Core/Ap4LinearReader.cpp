@@ -256,7 +256,9 @@ AP4_LinearReader::SeekTo(AP4_UI32 time_ms, AP4_UI32* actual_time_ms)
     
     // reset tracker states
     for (unsigned int i=0; i<m_Trackers.ItemCount(); i++) {
-        delete m_Trackers[i]->m_SampleTable;
+        if (m_Trackers[i]->m_SampleTableIsOwned) {
+            delete m_Trackers[i]->m_SampleTable;
+        }
         delete m_Trackers[i]->m_NextSample;
         m_Trackers[i]->m_SampleTable     = NULL;
         m_Trackers[i]->m_NextSample      = NULL;

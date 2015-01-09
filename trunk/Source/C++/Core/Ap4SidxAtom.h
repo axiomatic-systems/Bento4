@@ -44,6 +44,13 @@ public:
 
     // types
     struct Reference {
+        Reference() :
+            m_ReferenceType(0),
+            m_ReferencedSize(0),
+            m_SubsegmentDuration(0),
+            m_StartsWithSap(false),
+            m_SapType(0),
+            m_SapDeltaTime(0) {}
         AP4_UI08 m_ReferenceType;
         AP4_UI32 m_ReferencedSize;
         AP4_UI32 m_SubsegmentDuration;
@@ -55,16 +62,31 @@ public:
     // class methods
     static AP4_SidxAtom* Create(AP4_Size size, AP4_ByteStream& stream);
 
+    // constructor
+    AP4_SidxAtom(AP4_UI32 reference_id,
+                 AP4_UI32 timescale,
+                 AP4_UI64 earliest_presentation_time,
+                 AP4_UI64 first_offset);
+    
     // methods
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
 
     // accessors
-    AP4_UI32              GetReferenceId()              { return m_ReferenceId;              }
-    AP4_UI32              GetTimeScale()                { return m_TimeScale;                }
-    AP4_UI64              GetEarliestPresentationTime() { return m_EarliestPresentationTime; }
-    AP4_UI64              GetFirstOffset()              { return m_FirstOffset;              }
-    AP4_Array<Reference>& GetReferences()               { return m_References;               }
+    AP4_UI32                    GetReferenceId()              { return m_ReferenceId;              }
+    AP4_UI32                    GetTimeScale()                { return m_TimeScale;                }
+    AP4_UI64                    GetEarliestPresentationTime() { return m_EarliestPresentationTime; }
+    AP4_UI64                    GetFirstOffset()              { return m_FirstOffset;              }
+
+    // access to references methods
+    const AP4_Array<Reference>& GetReferences() {
+        return m_References;
+    }
+    void SetReferenceCount(unsigned int count);
+    void SetReference(unsigned int     reference_index,
+                      const Reference& reference) {
+        m_References[reference_index] = reference;
+    }
     
 private:
     // methods

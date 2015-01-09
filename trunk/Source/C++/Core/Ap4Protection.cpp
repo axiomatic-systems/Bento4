@@ -909,8 +909,7 @@ AP4_DecryptingStream::Create(AP4_BlockCipher::CipherMode mode,
     stream_cipher->SetIV(iv);
 
     // create the stream
-    stream = new AP4_DecryptingStream(mode, 
-                                      cleartext_size, 
+    stream = new AP4_DecryptingStream(cleartext_size, 
                                       &encrypted_stream,
                                       encrypted_size,
                                       stream_cipher);
@@ -1166,8 +1165,7 @@ AP4_EncryptingStream::Create(AP4_BlockCipher::CipherMode mode,
     stream_cipher->SetIV(iv);
 
     // create the stream
-    AP4_EncryptingStream* enc_stream = new AP4_EncryptingStream(mode, 
-                                                                cleartext_size,
+    AP4_EncryptingStream* enc_stream = new AP4_EncryptingStream(cleartext_size,
                                                                 &cleartext_stream,
                                                                 encrypted_size, 
                                                                 stream_cipher);

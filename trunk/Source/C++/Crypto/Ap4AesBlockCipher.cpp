@@ -1902,10 +1902,10 @@ class AP4_AesCtrBlockCipher : public AP4_AesBlockCipher
 {
 public:
     AP4_AesCtrBlockCipher(CipherDirection direction,
-                          unsigned int    counter_size,
+                          unsigned int    /*counter_size*/,
                           aes_ctx*        context) :
-        AP4_AesBlockCipher(direction, CTR, context),
-        m_CounterSize(counter_size) {}
+        AP4_AesBlockCipher(direction, CTR, context)
+        /*m_CounterSize(counter_size)*/ {}
         
     // AP4_BlockCipher methods
     virtual AP4_Result Process(const AP4_UI08* input, 
@@ -1913,8 +1913,8 @@ public:
                                AP4_UI08*       output,
                                const AP4_UI08* iv);
 
-private:
-    unsigned int m_CounterSize;
+//private:
+//    unsigned int m_CounterSize;
 };
 
 /*----------------------------------------------------------------------

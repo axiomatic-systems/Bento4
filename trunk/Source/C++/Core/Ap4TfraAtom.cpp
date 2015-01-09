@@ -313,12 +313,11 @@ AP4_TfraAtom::InspectFields(AP4_AtomInspector& inspector)
     inspector.AddField("length_size_of_traf_num",   m_LengthSizeOfTrafNumber);
     inspector.AddField("length_size_of_trun_num",   m_LengthSizeOfTrunNumber);
     inspector.AddField("length_size_of_sample_num", m_LengthSizeOfSampleNumber);
-    inspector.AddField("entry count", m_Entries.ItemCount());
     if (inspector.GetVerbosity() >= 1) {
         for (unsigned int i=0; i<m_Entries.ItemCount(); i++) {
             char name[16];
             char value[256];
-            AP4_FormatString(name, sizeof(name), "[%04d]", i);
+            AP4_FormatString(name, sizeof(name), "entry %04d", i);
             AP4_FormatString(value, sizeof(value), 
                              "time=%lld, moof_offset=%lld, traf_number=%d, trun_number=%d, sample_number=%d",
                              m_Entries[i].m_Time,

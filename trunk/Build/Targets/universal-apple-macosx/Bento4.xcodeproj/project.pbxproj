@@ -13,6 +13,7 @@
 			buildPhases = (
 			);
 			dependencies = (
+				CA00A65E1A1C383E0064B4D3 /* PBXTargetDependency */,
 				CA418B141948F0A300D202E0 /* PBXTargetDependency */,
 				CA418B161948F0A300D202E0 /* PBXTargetDependency */,
 				CAF9812518DBEDEF0001B999 /* PBXTargetDependency */,
@@ -76,6 +77,8 @@
 
 /* Begin PBXBuildFile section */
 		CA00667D1015399A004C0D5F /* Mp42Ts.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA00667C1015399A004C0D5F /* Mp42Ts.cpp */; };
+		CA00A65C1A1C38210064B4D3 /* Mp4Pssh.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA00A65B1A1C38210064B4D3 /* Mp4Pssh.cpp */; };
+		CA00A6611A1C3BD90064B4D3 /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAA7E6C914ACD763008AA54E /* libBento4.a */; };
 		CA00CB8713D9F1EC00C1A140 /* Mp4Compact.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA00CB8613D9F1EC00C1A140 /* Mp4Compact.cpp */; };
 		CA04DFDE1040921500AD5863 /* Ap4KeyWrap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA04DFDC1040921500AD5863 /* Ap4KeyWrap.cpp */; };
 		CA04DFDF1040921500AD5863 /* Ap4KeyWrap.h in Headers */ = {isa = PBXBuildFile; fileRef = CA04DFDD1040921500AD5863 /* Ap4KeyWrap.h */; };
@@ -149,6 +152,8 @@
 		CA8E2B421092B71E0042A0AF /* Ap4Piff.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA8E2B401092B71E0042A0AF /* Ap4Piff.cpp */; };
 		CA8E2B431092B71E0042A0AF /* Ap4Piff.h in Headers */ = {isa = PBXBuildFile; fileRef = CA8E2B411092B71E0042A0AF /* Ap4Piff.h */; };
 		CA8FF65F1083E4500008965B /* Ap4SampleSource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA8FF65E1083E4500008965B /* Ap4SampleSource.cpp */; };
+		CA91A7D71A364BE80057C7B2 /* Ap4SthdAtom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA91A7D51A364BE80057C7B2 /* Ap4SthdAtom.cpp */; };
+		CA91A7D81A364BE80057C7B2 /* Ap4SthdAtom.h in Headers */ = {isa = PBXBuildFile; fileRef = CA91A7D61A364BE80057C7B2 /* Ap4SthdAtom.h */; };
 		CA91A81210A24D38008618FE /* Ap4TfraAtom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA91A81010A24D38008618FE /* Ap4TfraAtom.cpp */; };
 		CA91A81310A24D38008618FE /* Ap4TfraAtom.h in Headers */ = {isa = PBXBuildFile; fileRef = CA91A81110A24D38008618FE /* Ap4TfraAtom.h */; };
 		CA91A84C10A29A56008618FE /* Ap4MfroAtom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA91A84A10A29A56008618FE /* Ap4MfroAtom.cpp */; };
@@ -416,6 +421,20 @@
 			proxyType = 1;
 			remoteGlobalIDString = CA00667210153951004C0D5F;
 			remoteInfo = Mp42Ts;
+		};
+		CA00A65D1A1C383E0064B4D3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CA00A6521A1C36560064B4D3;
+			remoteInfo = Mp4Pssh;
+		};
+		CA00A65F1A1C3BD20064B4D3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D2AAC045055464E500DB518D;
+			remoteInfo = Bento4;
 		};
 		CA00CB8813D9F29100C1A140 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -889,6 +908,15 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		CA00A6511A1C36560064B4D3 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
 		CA00CB7A13D9F13B00C1A140 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -912,6 +940,9 @@
 /* Begin PBXFileReference section */
 		CA00667310153951004C0D5F /* mp42ts */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mp42ts; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA00667C1015399A004C0D5F /* Mp42Ts.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Mp42Ts.cpp; sourceTree = "<group>"; };
+		CA00A6531A1C36560064B4D3 /* mp4pssh */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mp4pssh; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA00A6551A1C36560064B4D3 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		CA00A65B1A1C38210064B4D3 /* Mp4Pssh.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Mp4Pssh.cpp; sourceTree = "<group>"; };
 		CA00CB7C13D9F13B00C1A140 /* mp4compact */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mp4compact; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA00CB8613D9F1EC00C1A140 /* Mp4Compact.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Mp4Compact.cpp; sourceTree = "<group>"; };
 		CA04DFDC1040921500AD5863 /* Ap4KeyWrap.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4KeyWrap.cpp; sourceTree = "<group>"; };
@@ -1006,6 +1037,8 @@
 		CA8E2B401092B71E0042A0AF /* Ap4Piff.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4Piff.cpp; sourceTree = "<group>"; };
 		CA8E2B411092B71E0042A0AF /* Ap4Piff.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4Piff.h; sourceTree = "<group>"; };
 		CA8FF65E1083E4500008965B /* Ap4SampleSource.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4SampleSource.cpp; sourceTree = "<group>"; };
+		CA91A7D51A364BE80057C7B2 /* Ap4SthdAtom.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4SthdAtom.cpp; sourceTree = "<group>"; };
+		CA91A7D61A364BE80057C7B2 /* Ap4SthdAtom.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4SthdAtom.h; sourceTree = "<group>"; };
 		CA91A81010A24D38008618FE /* Ap4TfraAtom.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4TfraAtom.cpp; sourceTree = "<group>"; };
 		CA91A81110A24D38008618FE /* Ap4TfraAtom.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4TfraAtom.h; sourceTree = "<group>"; };
 		CA91A84A10A29A56008618FE /* Ap4MfroAtom.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4MfroAtom.cpp; sourceTree = "<group>"; };
@@ -1249,6 +1282,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				CAA7E6D714ACD7D4008AA54E /* libBento4.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CA00A6501A1C36560064B4D3 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CA00A6611A1C3BD90064B4D3 /* libBento4.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1540,6 +1581,7 @@
 				CA646A9B0CE97B51009699D7 /* Test */,
 				C6A0FF2B0290797F04C91782 /* Documentation */,
 				CA86EED819A95DD3008A3B00 /* FragmentCreatorTest */,
+				CA00A6541A1C36560064B4D3 /* Mp4Pssh */,
 				1AB674ADFE9D54B511CA2CBB /* Products */,
 			);
 			name = Bento4;
@@ -1599,6 +1641,7 @@
 				CAF9812F18DBF34B0001B999 /* mp42hevc */,
 				CA8A94CE1929A65E00836179 /* mp4mux */,
 				CA86EED719A95DD3008A3B00 /* FragmentCreatorTest */,
+				CA00A6531A1C36560064B4D3 /* mp4pssh */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1616,6 +1659,22 @@
 				CA00667C1015399A004C0D5F /* Mp42Ts.cpp */,
 			);
 			path = Mp42Ts;
+			sourceTree = "<group>";
+		};
+		CA00A6541A1C36560064B4D3 /* Mp4Pssh */ = {
+			isa = PBXGroup;
+			children = (
+				CA00A6551A1C36560064B4D3 /* main.cpp */,
+			);
+			path = Mp4Pssh;
+			sourceTree = "<group>";
+		};
+		CA00A65A1A1C38210064B4D3 /* Mp4Pssh */ = {
+			isa = PBXGroup;
+			children = (
+				CA00A65B1A1C38210064B4D3 /* Mp4Pssh.cpp */,
+			);
+			path = Mp4Pssh;
 			sourceTree = "<group>";
 		};
 		CA00CB8513D9F1EC00C1A140 /* Mp4Compact */ = {
@@ -1672,10 +1731,6 @@
 				CA646A870CE97B2D009699D7 /* Aac2Mp4 */,
 				CA3EDA780D7E0B6B007AE943 /* AvcInfo */,
 				CAF9811418DBED310001B999 /* HevcInfo */,
-				CA646A890CE97B2D009699D7 /* Mp42Aac */,
-				CA2E6A361087E07C00F837E2 /* Mp42Avc */,
-				CAF9812918DBF3360001B999 /* Mp42Hevc */,
-				CA00667B1015399A004C0D5F /* Mp42Ts */,
 				CACDDD6716BF5FC200B79B20 /* Mp4AudioClip */,
 				CA00CB8513D9F1EC00C1A140 /* Mp4Compact */,
 				CA44C5260D46371C00173F5F /* Mp4DcfPackager */,
@@ -1687,9 +1742,14 @@
 				CA6103E2128599C20039C7E6 /* Mp4Fragment */,
 				CA646A950CE97B2D009699D7 /* Mp4Info */,
 				CA8A94DA1929A6C100836179 /* Mp4Mux */,
+				CA00A65A1A1C38210064B4D3 /* Mp4Pssh */,
 				CA646A970CE97B2D009699D7 /* Mp4RtpHintInfo */,
 				CAC02A17139DBA6F0034427F /* Mp4Split */,
 				CA646A990CE97B2D009699D7 /* Mp4Tag */,
+				CA646A890CE97B2D009699D7 /* Mp42Aac */,
+				CA2E6A361087E07C00F837E2 /* Mp42Avc */,
+				CAF9812918DBF3360001B999 /* Mp42Hevc */,
+				CA00667B1015399A004C0D5F /* Mp42Ts */,
 			);
 			name = Apps;
 			path = "../../../Source/C++/Apps";
@@ -2019,6 +2079,8 @@
 				CA93667B0B437D040067D50B /* Ap4SmhdAtom.h */,
 				CA93667C0B437D040067D50B /* Ap4StcoAtom.cpp */,
 				CA93667D0B437D040067D50B /* Ap4StcoAtom.h */,
+				CA91A7D51A364BE80057C7B2 /* Ap4SthdAtom.cpp */,
+				CA91A7D61A364BE80057C7B2 /* Ap4SthdAtom.h */,
 				CA93667E0B437D040067D50B /* Ap4String.cpp */,
 				CA93667F0B437D040067D50B /* Ap4String.h */,
 				CA9366800B437D040067D50B /* Ap4StscAtom.cpp */,
@@ -2344,6 +2406,7 @@
 				CA93671B0B437D040067D50B /* Ap4SyntheticSampleTable.h in Headers */,
 				CA93671D0B437D040067D50B /* Ap4TimsAtom.h in Headers */,
 				CA93671F0B437D040067D50B /* Ap4TkhdAtom.h in Headers */,
+				CA91A7D81A364BE80057C7B2 /* Ap4SthdAtom.h in Headers */,
 				CA9367210B437D040067D50B /* Ap4Track.h in Headers */,
 				CA9367230B437D040067D50B /* Ap4TrakAtom.h in Headers */,
 				CA9367250B437D040067D50B /* Ap4TrefTypeAtom.h in Headers */,
@@ -2429,6 +2492,24 @@
 			name = Mp42Ts;
 			productName = Mp42Ts;
 			productReference = CA00667310153951004C0D5F /* mp42ts */;
+			productType = "com.apple.product-type.tool";
+		};
+		CA00A6521A1C36560064B4D3 /* Mp4Pssh */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CA00A6591A1C36560064B4D3 /* Build configuration list for PBXNativeTarget "Mp4Pssh" */;
+			buildPhases = (
+				CA00A64F1A1C36560064B4D3 /* Sources */,
+				CA00A6501A1C36560064B4D3 /* Frameworks */,
+				CA00A6511A1C36560064B4D3 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CA00A6601A1C3BD20064B4D3 /* PBXTargetDependency */,
+			);
+			name = Mp4Pssh;
+			productName = Mp4Pssh;
+			productReference = CA00A6531A1C36560064B4D3 /* mp4pssh */;
 			productType = "com.apple.product-type.tool";
 		};
 		CA00CB7B13D9F13B00C1A140 /* Mp4Compact */ = {
@@ -3037,6 +3118,11 @@
 			isa = PBXProject;
 			attributes = {
 				LastUpgradeCheck = 0510;
+				TargetAttributes = {
+					CA00A6521A1C36560064B4D3 = {
+						CreatedOnToolsVersion = 6.1;
+					};
+				};
 			};
 			buildConfigurationList = 1DEB91EF08733DB70010E9CD /* Build configuration list for PBXProject "Bento4" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -3077,6 +3163,7 @@
 				CA646B500CE97E52009699D7 /* Mp4RtpHintInfo */,
 				CAC8F16F16BE444D00C49741 /* Mp4AudioClip */,
 				CA8A94CD1929A65E00836179 /* Mp4Mux */,
+				CA00A6521A1C36560064B4D3 /* Mp4Pssh */,
 				CA399C9710A3475E0085284B /* Aac2Mp4 */,
 				CAF9811918DBED9B0001B999 /* HevcInfo */,
 				CA3EDA7D0D7E0B81007AE943 /* AvcInfo */,
@@ -3101,6 +3188,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				CA00667D1015399A004C0D5F /* Mp42Ts.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CA00A64F1A1C36560064B4D3 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CA00A65C1A1C38210064B4D3 /* Mp4Pssh.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3481,6 +3576,7 @@
 				CA5733E813B3AB0A00953446 /* Ap4CommonEncryption.cpp in Sources */,
 				CA57340B13B3B9C000953446 /* Ap4TencAtom.cpp in Sources */,
 				CA5734EC13B5DBB100953446 /* Ap4SaioAtom.cpp in Sources */,
+				CA91A7D71A364BE80057C7B2 /* Ap4SthdAtom.cpp in Sources */,
 				CA5734EE13B5DBB100953446 /* Ap4SaizAtom.cpp in Sources */,
 				CA5734FD13B5DCFA00953446 /* Ap4SencAtom.cpp in Sources */,
 				CA15E16D1467D01A00D4EC8B /* Ap4PdinAtom.cpp in Sources */,
@@ -3519,6 +3615,16 @@
 			isa = PBXTargetDependency;
 			target = CA00667210153951004C0D5F /* Mp42Ts */;
 			targetProxy = CA00667E101539BF004C0D5F /* PBXContainerItemProxy */;
+		};
+		CA00A65E1A1C383E0064B4D3 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CA00A6521A1C36560064B4D3 /* Mp4Pssh */;
+			targetProxy = CA00A65D1A1C383E0064B4D3 /* PBXContainerItemProxy */;
+		};
+		CA00A6601A1C3BD20064B4D3 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D2AAC045055464E500DB518D /* Bento4 */;
+			targetProxy = CA00A65F1A1C3BD20064B4D3 /* PBXContainerItemProxy */;
 		};
 		CA00CB8913D9F29100C1A140 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -3930,11 +4036,71 @@
 			};
 			name = Release;
 		};
+		CA00A6571A1C36560064B4D3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				PRODUCT_NAME = mp4pssh;
+			};
+			name = Debug;
+		};
+		CA00A6581A1C36560064B4D3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				PRODUCT_NAME = mp4pssh;
+			};
+			name = Release;
+		};
 		CA00CB8313D9F13B00C1A140 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				COPY_PHASE_STRIP = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
@@ -3948,7 +4114,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				COPY_PHASE_STRIP = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -3959,7 +4124,6 @@
 		CA2E6A3D1087E09400F837E2 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				PRODUCT_NAME = mp42avc;
 			};
 			name = Debug;
@@ -3967,7 +4131,6 @@
 		CA2E6A3E1087E09400F837E2 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				PRODUCT_NAME = mp42avc;
 			};
 			name = Release;
@@ -3976,11 +4139,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				COPY_PHASE_STRIP = NO;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_MODEL_TUNING = G5;
 				GCC_OPTIMIZATION_LEVEL = 0;
-				INSTALL_PATH = /usr/local/bin;
 				PRODUCT_NAME = aac2mp4;
 			};
 			name = Debug;
@@ -3989,9 +4150,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				COPY_PHASE_STRIP = YES;
 				GCC_MODEL_TUNING = G5;
-				INSTALL_PATH = /usr/local/bin;
 				PRODUCT_NAME = aac2mp4;
 				ZERO_LINK = NO;
 			};
@@ -4043,11 +4202,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				COPY_PHASE_STRIP = NO;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_MODEL_TUNING = G5;
 				GCC_OPTIMIZATION_LEVEL = 0;
-				INSTALL_PATH = /usr/local/bin;
 				OTHER_LDFLAGS = (
 					"-framework",
 					Foundation,
@@ -4062,9 +4219,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				COPY_PHASE_STRIP = YES;
 				GCC_MODEL_TUNING = G5;
-				INSTALL_PATH = /usr/local/bin;
 				OTHER_LDFLAGS = (
 					"-framework",
 					Foundation,
@@ -4262,8 +4417,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
-				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
@@ -4274,7 +4427,6 @@
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				COPY_PHASE_STRIP = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
@@ -4287,10 +4439,7 @@
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
-				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = macosx;
 			};
 			name = Debug;
 		};
@@ -4298,8 +4447,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
-				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
@@ -4310,7 +4457,6 @@
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
@@ -4320,9 +4466,7 @@
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = macosx;
 			};
 			name = Release;
 		};
@@ -4330,8 +4474,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
-				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
@@ -4342,7 +4484,6 @@
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				COPY_PHASE_STRIP = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
@@ -4355,8 +4496,6 @@
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
-				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = mp4mux;
 			};
 			name = Debug;
@@ -4365,8 +4504,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
-				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
@@ -4377,7 +4514,6 @@
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
@@ -4387,7 +4523,6 @@
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				PRODUCT_NAME = mp4mux;
 			};
 			name = Release;
@@ -4488,11 +4623,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				COPY_PHASE_STRIP = NO;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_MODEL_TUNING = G5;
 				GCC_OPTIMIZATION_LEVEL = 0;
-				INSTALL_PATH = /usr/local/bin;
 				PRODUCT_NAME = mp4split;
 			};
 			name = Debug;
@@ -4501,9 +4634,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				COPY_PHASE_STRIP = YES;
 				GCC_MODEL_TUNING = G5;
-				INSTALL_PATH = /usr/local/bin;
 				PRODUCT_NAME = mp4split;
 				ZERO_LINK = NO;
 			};
@@ -4513,11 +4644,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
-				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				COPY_PHASE_STRIP = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
@@ -4527,10 +4655,7 @@
 				);
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.8;
-				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = mp4audioclip;
-				SDKROOT = macosx;
 			};
 			name = Debug;
 		};
@@ -4538,18 +4663,13 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
-				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				PRODUCT_NAME = mp4audioclip;
-				SDKROOT = macosx;
 			};
 			name = Release;
 		};
@@ -4603,8 +4723,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
-				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
@@ -4615,7 +4733,6 @@
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				COPY_PHASE_STRIP = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
@@ -4628,8 +4745,6 @@
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.7;
-				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = hevcinfo;
 			};
 			name = Debug;
@@ -4638,8 +4753,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
-				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
@@ -4650,7 +4763,6 @@
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
@@ -4660,7 +4772,6 @@
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				PRODUCT_NAME = hevcinfo;
 			};
 			name = Release;
@@ -4669,8 +4780,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
-				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
@@ -4681,7 +4790,6 @@
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				COPY_PHASE_STRIP = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
@@ -4694,8 +4802,6 @@
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.7;
-				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = mp42hevc;
 			};
 			name = Debug;
@@ -4704,8 +4810,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
-				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
@@ -4716,7 +4820,6 @@
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
@@ -4726,7 +4829,6 @@
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				PRODUCT_NAME = mp42hevc;
 			};
 			name = Release;
@@ -4807,6 +4909,15 @@
 			buildConfigurations = (
 				CA00667510153953004C0D5F /* Debug */,
 				CA00667610153953004C0D5F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CA00A6591A1C36560064B4D3 /* Build configuration list for PBXNativeTarget "Mp4Pssh" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CA00A6571A1C36560064B4D3 /* Debug */,
+				CA00A6581A1C36560064B4D3 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

@@ -47,11 +47,11 @@
 /*----------------------------------------------------------------------
 |   macros
 +---------------------------------------------------------------------*/
-#define AP4_ATOM_TYPE(c1,c2,c3,c4)  \
-   ((((AP4_UI32)c1)<<24) |  \
-    (((AP4_UI32)c2)<<16) |  \
-    (((AP4_UI32)c3)<< 8) |  \
-    (((AP4_UI32)c4)    ))
+#define AP4_ATOM_TYPE(c1,c2,c3,c4)       \
+   (((static_cast<AP4_UI32>(c1))<<24) |  \
+    ((static_cast<AP4_UI32>(c2))<<16) |  \
+    ((static_cast<AP4_UI32>(c3))<< 8) |  \
+    ((static_cast<AP4_UI32>(c4))    ))
 
 /*----------------------------------------------------------------------
 |   constants
@@ -443,6 +443,7 @@ const AP4_Atom::Type AP4_ATOM_TYPE_ELST = AP4_ATOM_TYPE('e','l','s','t');
 const AP4_Atom::Type AP4_ATOM_TYPE_VMHD = AP4_ATOM_TYPE('v','m','h','d');
 const AP4_Atom::Type AP4_ATOM_TYPE_SMHD = AP4_ATOM_TYPE('s','m','h','d');
 const AP4_Atom::Type AP4_ATOM_TYPE_NMHD = AP4_ATOM_TYPE('n','m','h','d');
+const AP4_Atom::Type AP4_ATOM_TYPE_STHD = AP4_ATOM_TYPE('s','t','h','d');
 const AP4_Atom::Type AP4_ATOM_TYPE_HMHD = AP4_ATOM_TYPE('h','m','h','d');
 const AP4_Atom::Type AP4_ATOM_TYPE_FRMA = AP4_ATOM_TYPE('f','r','m','a');
 const AP4_Atom::Type AP4_ATOM_TYPE_MDAT = AP4_ATOM_TYPE('m','d','a','t');

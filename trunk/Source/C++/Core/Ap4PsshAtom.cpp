@@ -203,19 +203,22 @@ AP4_PsshAtom::InspectFields(AP4_AtomInspector& inspector)
 {
     inspector.AddField("system_id", m_SystemId, 16);
     inspector.AddField("data_size", m_Data.GetDataSize());
-    if (inspector.GetVerbosity() >= 1 &&
-        AP4_CompareMemory(m_SystemId, AP4_MARLIN_PSSH_SYSTEM_ID, 16) == 0) {
-        AP4_MemoryByteStream* mbs = new AP4_MemoryByteStream(m_Data);
-        AP4_Atom* atom;
-        AP4_AtomFactory& atom_factory = AP4_DefaultAtomFactory::Instance;
-        while (atom_factory.CreateAtomFromStream(*mbs, atom) == AP4_SUCCESS) {
-            AP4_Position position;
-            mbs->Tell(position);
-            atom->Inspect(inspector);
-            mbs->Seek(position);
-            delete atom;
+    if (inspector.GetVerbosity() >= 1) {
+        if (AP4_CompareMemory(m_SystemId, AP4_MARLIN_PSSH_SYSTEM_ID, 16) == 0) {
+            AP4_MemoryByteStream* mbs = new AP4_MemoryByteStream(m_Data);
+            AP4_Atom* atom;
+            AP4_AtomFactory& atom_factory = AP4_DefaultAtomFactory::Instance;
+            while (atom_factory.CreateAtomFromStream(*mbs, atom) == AP4_SUCCESS) {
+                AP4_Position position;
+                mbs->Tell(position);
+                atom->Inspect(inspector);
+                mbs->Seek(position);
+                delete atom;
+            }
+            mbs->Release();
+        } else {
+            inspector.AddField("data", m_Data.GetData(), m_Data.GetDataSize());
         }
-        mbs->Release();
     }
     return AP4_SUCCESS;
 }

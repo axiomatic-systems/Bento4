@@ -440,12 +440,10 @@ public:
 
 private:
     // private constructor, use the factory instead
-    AP4_DecryptingStream(AP4_BlockCipher::CipherMode mode,
-                         AP4_LargeSize               cleartext_size,
+    AP4_DecryptingStream(AP4_LargeSize               cleartext_size,
                          AP4_ByteStream*             encrypted_stream,
                          AP4_LargeSize               encrypted_size,
                          AP4_StreamCipher*           stream_cipher) :
-        m_Mode(mode),
         m_CleartextSize(cleartext_size),
         m_CleartextPosition(0),
         m_EncryptedStream(encrypted_stream),
@@ -461,7 +459,6 @@ private:
     ~AP4_DecryptingStream();
 
     // members
-    AP4_BlockCipher::CipherMode m_Mode;
     AP4_LargeSize               m_CleartextSize;
     AP4_Position                m_CleartextPosition;
     AP4_ByteStream*             m_EncryptedStream;
@@ -507,12 +504,10 @@ public:
 
 private:
     // private constructor, use the factory instead
-    AP4_EncryptingStream(AP4_BlockCipher::CipherMode mode,
-                         AP4_LargeSize               cleartext_size,
+    AP4_EncryptingStream(AP4_LargeSize               cleartext_size,
                          AP4_ByteStream*             cleartext_stream,
                          AP4_LargeSize               encrypted_size,
                          AP4_StreamCipher*           stream_cipher) :
-        m_Mode(mode),
         m_CleartextSize(cleartext_size),
         m_CleartextPosition(0),
         m_CleartextStream(cleartext_stream),
@@ -528,7 +523,6 @@ private:
     ~AP4_EncryptingStream();
 
     // members
-    AP4_BlockCipher::CipherMode m_Mode;
     AP4_LargeSize               m_CleartextSize;
     AP4_Position                m_CleartextPosition;
     AP4_ByteStream*             m_CleartextStream;

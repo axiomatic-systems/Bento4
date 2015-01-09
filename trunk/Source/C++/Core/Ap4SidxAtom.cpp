@@ -54,6 +54,25 @@ AP4_SidxAtom::Create(AP4_Size size, AP4_ByteStream& stream)
 /*----------------------------------------------------------------------
 |   AP4_SidxAtom::AP4_SidxAtom
 +---------------------------------------------------------------------*/
+AP4_SidxAtom::AP4_SidxAtom(AP4_UI32 reference_id,
+                           AP4_UI32 timescale,
+                           AP4_UI64 earliest_presentation_time,
+                           AP4_UI64 first_offset) :
+    AP4_Atom(AP4_ATOM_TYPE_SIDX, AP4_FULL_ATOM_HEADER_SIZE+20, 0, 0),
+    m_ReferenceId(reference_id),
+    m_TimeScale(timescale),
+    m_EarliestPresentationTime(earliest_presentation_time),
+    m_FirstOffset(first_offset)
+{
+    if ((earliest_presentation_time >> 32) || (first_offset >> 32)) {
+        m_Version = 1;
+        m_Size32 += 8;
+    }
+}
+
+/*----------------------------------------------------------------------
+|   AP4_SidxAtom::AP4_SidxAtom
++---------------------------------------------------------------------*/
 AP4_SidxAtom::AP4_SidxAtom(AP4_UI32        size, 
                            AP4_UI08        version,
                            AP4_UI32        flags,
@@ -139,7 +158,7 @@ AP4_SidxAtom::InspectFields(AP4_AtomInspector& inspector)
         AP4_UI32 reference_count = m_References.ItemCount();
         for (unsigned int i=0; i<reference_count; i++) {
             char header[32];
-            AP4_FormatString(header, sizeof(header), "%04d", i);
+            AP4_FormatString(header, sizeof(header), "entry %04d", i);
             char value[256];
             AP4_FormatString(value, sizeof(value), "reference_type=%d, referenced_size=%u, subsegment_duration=%u, starts_with_SAP=%d, SAP_type=%d, SAP_delta_time=%d",
                              m_References[i].m_ReferenceType,
@@ -153,4 +172,14 @@ AP4_SidxAtom::InspectFields(AP4_AtomInspector& inspector)
     }
     
     return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_SidxAtom::SetReferenceCount
++---------------------------------------------------------------------*/
+void
+AP4_SidxAtom::SetReferenceCount(unsigned int count) {
+    m_Size32 -= m_References.ItemCount()*12;
+    m_References.SetItemCount(count);
+    m_Size32 += m_References.ItemCount()*12;
 }

@@ -122,14 +122,14 @@ AP4_CompactingProcessor::TrackHandler::ProcessTrack()
     // find the stsz atom
     AP4_ContainerAtom* stbl = AP4_DYNAMIC_CAST(AP4_ContainerAtom, m_TrakAtom->FindChild("mdia/minf/stbl"));
     if (stbl == NULL) return AP4_SUCCESS;
-    m_StszAtom = AP4_DYNAMIC_CAST(AP4_StszAtom, stbl->GetChild(AP4_ATOM_TYPE_STSZ));
-    if (m_StszAtom == NULL) return AP4_SUCCESS;
+    AP4_StszAtom* stsz = AP4_DYNAMIC_CAST(AP4_StszAtom, stbl->GetChild(AP4_ATOM_TYPE_STSZ));
+    if (stsz == NULL) return AP4_SUCCESS;
     
     // check if we can reduce the size of stsz by changing it to stz2
     AP4_UI32 max_size = 0;
-    for (unsigned int i=1; i<=m_StszAtom->GetSampleCount(); i++) {
+    for (unsigned int i=1; i<=stsz->GetSampleCount(); i++) {
         AP4_Size sample_size;
-        m_StszAtom->GetSampleSize(i, sample_size);
+        stsz->GetSampleSize(i, sample_size);
         if (sample_size > max_size) {
             max_size = sample_size;
         }
@@ -148,14 +148,15 @@ AP4_CompactingProcessor::TrackHandler::ProcessTrack()
         return AP4_SUCCESS;
     } else {
         if (m_Outer.m_Verbose) {
-            unsigned int reduction = (4-field_size)*m_StszAtom->GetSampleCount();
+            unsigned int reduction = (4-field_size)*stsz->GetSampleCount();
             printf("stz2 reduction = %d bytes\n", reduction);
             m_Outer.m_SizeReduction += reduction;
         }
     }
     
     // detach the original stsz atom so we can destroy it later
-    m_StszAtom->Detach();
+    m_StszAtom = stsz;
+    stsz->Detach();
     
     // create an stz2 atom and populate its entries
     AP4_Stz2Atom* stz2 = new AP4_Stz2Atom(field_size);

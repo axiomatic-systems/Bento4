@@ -44,6 +44,7 @@ CORE_SOURCES = 								\
     Ap4Movie.cpp                            \
     Ap4MvhdAtom.cpp                         \
     Ap4NmhdAtom.cpp                         \
+    Ap4SthdAtom.cpp                         \
     Ap4OdafAtom.cpp                         \
     Ap4OddaAtom.cpp                         \
     Ap4OdheAtom.cpp                         \
