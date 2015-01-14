@@ -1,5 +1,5 @@
-           Bento4 
-           ------
+Bento4 
+======
            
 Bento4/AP4 is a C++ class library designed to read and write ISO-MP4 files. 
 This format is defined in ISO/IEC 14496-12, 14496-14 and 14496-15. 
