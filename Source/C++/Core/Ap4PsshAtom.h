@@ -68,6 +68,9 @@ private:
                  AP4_UI32        flags,
                  AP4_ByteStream& stream);
 
+    AP4_UI32 GetComputedSize();
+    void     RecomputeSize();
+    
     // members
     unsigned char  m_SystemId[16];
     AP4_DataBuffer m_Data;

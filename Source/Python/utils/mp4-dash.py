@@ -22,7 +22,7 @@ from mp4utils import *
 
 # setup main options
 VERSION = "1.4.0"
-SVN_REVISION = "$Revision$"
+SVN_REVISION = "$Revision: 573 $"
 SCRIPT_PATH = path.abspath(path.dirname(__file__))
 sys.path += [SCRIPT_PATH]
 
@@ -56,6 +56,7 @@ WIDEVINE_PSSH_SYSTEM_ID   = 'edef8ba979d64acea3c827dcd51d21ed'
 WIDEVINE_SCHEME_ID_URI    = 'urn:uuid:edef8ba9-79d6-4ace-a3c8-27dcd51d21ed'
 SMOOTH_DEFAULT_TIMESCALE  = 10000000
 SMIL_NAMESPACE            = 'http://www.w3.org/2001/SMIL20/Language'
+CENC_2013_NAMESPACE       = 'urn:mpeg:cenc:2013'
 DASH_MEDIA_SEGMENT_URL_PATTERN_SMOOTH = "/QualityLevels($Bandwidth$)/Fragments(%s=$Time$)"
 DASH_MEDIA_SEGMENT_URL_PATTERN_HIPPO  = '%s/Bitrate($Bandwidth$)/Fragment($Time$)'
 HIPPO_MEDIA_SEGMENT_REGEXP_DEFAULT = '%s/Bitrate\\\\(%d\\\\)/Fragment\\\\((\\\\d+)\\\\)'
@@ -162,10 +163,10 @@ def AddSegmentTemplate(options, container, init_segment_url, media_url_template_
 #############################################
 def AddSegments(options, container, subdir, track):
     if options.use_segment_list:
-        if not options.hippo and not options.smooth:
-            use_byte_range = True
-        else:
+        if options.split:
             use_byte_range = False
+        else:
+            use_byte_range = True
         AddSegmentList(options, container, subdir, track, use_byte_range)    
 
 #############################################
@@ -177,8 +178,15 @@ def AddContentProtection(options, container, tracks):
             PrintErrorAndExit('ERROR: no encryption info found in track '+str(track))
         if kid not in kids:
             kids.append(kid)
-    xml.SubElement(container, 'ContentProtection', schemeIdUri='urn:mpeg:dash:mp4protection:2011', value='cenc')
-    
+    if options.encryption_key:
+        default_kid = options.kid_hex
+    else:
+        default_kid = kids[0]
+    default_kid = (default_kid[0:8]+'-'+default_kid[8:12]+'-'+default_kid[12:16]+'-'+default_kid[16:32]).lower()
+    xml.register_namespace('cenc', CENC_2013_NAMESPACE)
+    cenc_cp = xml.SubElement(container, 'ContentProtection', schemeIdUri='urn:mpeg:dash:mp4protection:2011', value='cenc')
+    cenc_cp.set('{'+CENC_2013_NAMESPACE+'}default_KID', default_kid)
+
     if options.marlin:
         xml.register_namespace('mas', MARLIN_MAS_NAMESPACE)
         cp = xml.SubElement(container, 'ContentProtection', schemeIdUri=MARLIN_SCHEME_ID_URI)
@@ -233,7 +241,7 @@ def OutputDash(options, audio_tracks, video_tracks):
             kwargs['lang'] = language
         stream_name = 'audio_' + language
         adaptation_set = xml.SubElement(*args, **kwargs)
-        if options.marlin or options.playready or options.widevine:
+        if options.encryption_key or options.marlin or options.playready or options.widevine:
             AddContentProtection(options, adaptation_set, [audio_track])
     
         if ISOFF_ON_DEMAND_PROFILE in options.profiles:
@@ -244,6 +252,10 @@ def OutputDash(options, audio_tracks, video_tracks):
                                             bandwidth=str(audio_track.bandwidth))
             base_url = xml.SubElement(representation, 'BaseURL')
             base_url.text = ONDEMAND_MEDIA_FILE_PATTERN % (audio_track.representation_id)
+            sidx_range = (audio_track.sidx_atom.position, audio_track.sidx_atom.position+audio_track.sidx_atom.size-1)
+            init_range = (0, audio_track.moov_atom.position+audio_track.moov_atom.size-1)
+            segment_base = xml.SubElement(representation, 'SegmentBase', indexRange=str(sidx_range[0])+'-'+str(sidx_range[1]))
+            xml.SubElement(segment_base, 'Initialization', range=str(init_range[0])+'-'+str(init_range[1]))
         else:
             if options.split:
                 media_subdir                      = 'audio/' + language
@@ -269,7 +281,7 @@ def OutputDash(options, audio_tracks, video_tracks):
                                     mimeType=VIDEO_MIMETYPE,
                                     segmentAlignment='true',
                                     startWithSAP='1')
-    if options.marlin or options.playready or options.widevine:
+    if options.encryption_key or options.marlin or options.playready or options.widevine:
         AddContentProtection(options, adaptation_set, video_tracks)
     
     if ISOFF_ON_DEMAND_PROFILE in options.profiles:
@@ -285,6 +297,10 @@ def OutputDash(options, audio_tracks, video_tracks):
                 representation.set('maxPlayoutRate', video_track.max_playout_rate)
             base_url = xml.SubElement(representation, 'BaseURL')
             base_url.text = ONDEMAND_MEDIA_FILE_PATTERN % (video_track.representation_id)
+            sidx_range = (video_track.sidx_atom.position, video_track.sidx_atom.position+video_track.sidx_atom.size-1)
+            init_range = (0, video_track.moov_atom.position+video_track.moov_atom.size-1)
+            segment_base = xml.SubElement(representation, 'SegmentBase', indexRange=str(sidx_range[0])+'-'+str(sidx_range[1]))
+            xml.SubElement(segment_base, 'Initialization', range=str(init_range[0])+'-'+str(init_range[1]))
     else:
         if options.split:
             init_segment_url                  = '$RepresentationID$/' + SPLIT_INIT_SEGMENT_NAME
@@ -505,6 +521,104 @@ def OutputHippo(options, audio_tracks, video_tracks):
         open(path.join(options.output_dir, options.hippo_server_manifest_filename), "wb").write(server_manifest)
 
 #############################################
+def SelectTracks(options, media_sources):
+    # parse the media files
+    index = 1
+    mp4_files = {}
+    mp4_media_names = []
+    for media_source in media_sources:
+        media_file = media_source.filename
+        
+        # check if we have already parsed this file
+        if media_file in mp4_files:
+            media_source.mp4_file = mp4_files[media_file]
+            continue
+        
+        # parse the file
+        print 'Parsing media file', str(index)+':', GetMappedFileName(media_file)
+        if not os.path.exists(media_file):
+            PrintErrorAndExit('ERROR: media file ' + media_file + ' does not exist')
+            
+        # get the file info
+        mp4_file = Mp4File(Options, media_file)
+        
+        # set some metadata properties for this file
+        mp4_file.index = index
+        if options.rename_media:
+            mp4_file.media_name = MEDIA_FILE_PATTERN % (mp4_file.index)
+        elif 'media' in media_source.spec:
+            mp4_file.media_name = media_source.spec['media']
+        else:
+            mp4_file.media_name = path.basename(media_source.original_filename)
+            
+        if not options.split:
+            if mp4_file.media_name in mp4_media_names:
+                PrintErrorAndExit('ERROR: output media name %s is not unique, consider using --rename-media'%mp4_file.media_name)
+        
+        # check the file
+        if mp4_file.info['movie']['fragments'] != True:
+            PrintErrorAndExit('ERROR: file '+str(mp4_file.index)+' is not fragmented (use mp4fragment to fragment it)')
+            
+        # set the source property
+        media_source.mp4_file = mp4_file
+        mp4_files[media_file] = mp4_file
+        mp4_media_names.append(mp4_file.media_name)
+        
+        index += 1
+
+    # select tracks
+    audio_tracks = {}
+    video_tracks = []
+    for media_source in media_sources:
+        track_id       = media_source.spec['track']
+        track_type     = media_source.spec['type']
+        track_language = media_source.spec['language']
+        tracks         = []
+        
+        if track_type not in ['', 'audio', 'video']:
+            sys.stderr.write('WARNING: ignoring source '+media_source.name+', unknown type')
+
+        if track_id and track_type:
+            PrintErrorAndExit('ERROR: track ID and track type selections are mutually exclusive')
+
+        if track_id:
+            tracks = [media_source.mp4_file.find_track_by_id(track_id)]
+            if not tracks:
+                PrintErrorAndExit('ERROR: track id not found for media file '+media_source.name)
+        
+        if track_type:
+            tracks = media_source.mp4_file.find_tracks_by_type(track_type)
+            if not tracks:
+                PrintErrorAndExit('ERROR: no ' + track_type + ' found for media file '+media_source.name)
+        
+        if not tracks:
+            tracks = media_source.mp4_file.tracks.values()
+            
+        # process audio tracks
+        for track in [t for t in tracks if t.type == 'audio']:
+            language = LanguageCodeMap.get(track.language, track.language)
+            if track_language and track_language != language and track_language != track.language:
+                continue
+            if options.language_map and language in options.language_map:
+                language = options.language_map[language]
+            if language not in audio_tracks:
+                audio_tracks[language] = track
+
+        # process video tracks
+        video_tracks += [t for t in tracks if t.type == 'video']
+
+    return (audio_tracks, video_tracks, mp4_files)
+
+#############################################
+FileNameMap = {}
+def MapFileName(from_name, to_name):
+    global FileNameMap
+    FileNameMap[from_name] = to_name
+
+def GetMappedFileName(filename):
+    return FileNameMap.get(filename, filename)
+
+#############################################
 Options = None            
 def main():
     # determine the platform binary name
@@ -649,11 +763,6 @@ def main():
         if ISOFF_LIVE_PROFILE not in options.profiles:
             raise Exception('--hippo requires the live profile')
 
-    #if not options.split:
-    #    if not options.smooth and not options.hippo and not options.use_segment_list and ISOFF_ON_DEMAND_PROFILE not in options.profiles:
-    #        sys.stderr.write('WARNING: --no-split requires --use-segment-list, which will be enabled automatically\n')
-    #        options.use_segment_list = True
-
     if options.verbose:
         print 'Profiles:', ','.join(options.profiles)
 
@@ -708,10 +817,26 @@ def main():
     if options.force_output: severity = None
     MakeNewDir(dir=options.output_dir, exit_if_exists = not (options.no_media or options.force_output), severity=severity)
 
-    # keep track of media file names (in case we use temporary files when encrypting)
-    file_name_map = {}
-    for media_source in media_sources:
-        file_name_map[media_source.filename] = media_source.filename
+    # for on-demand, we need to first extract tracks into individual media files
+    if ISOFF_ON_DEMAND_PROFILE in options.profiles:
+        (audio_tracks, video_tracks, mp4_files) = SelectTracks(options, media_sources)
+        for track in audio_tracks.values()+video_tracks:
+            print 'Extracting track', fff, 'from', GetMappedFileName(track.parent.filename)
+            media_filename = path.join(options.output_dir, track.media_name)
+            if not options.force_output and path.exists(media_filename):
+                PrintErrorAndExit('ERROR: file ' + media_filename + ' already exists')
+            Mp4Fragment(options,
+                        track.parent.filename,
+                        media_filename,
+                        track = str(track.id),
+                        index = True,
+                        quiet = True)
+            atoms = WalkAtoms(media_filename, 'moof')
+            for atom in atoms:
+                if atom.type == 'sidx' and not hasattr(track, 'sidx_atom'):
+                    audio_track.sidx_atom = atom
+                if atom.type == 'moov' and not hasattr(track, 'moov_atom'):
+                    audio_track.moov_atom = atom
 
     # encrypt the input files if needed
     if not options.no_media and options.encryption_key:
@@ -739,7 +864,7 @@ def main():
             encrypted_files[media_file] = encrypted_file 
             TempFiles.append(encrypted_file.name)
             encrypted_file.close() # necessary on Windows
-            file_name_map[encrypted_file.name] = encrypted_file.name + ' (Encrypted ' + media_file + ')'
+            MapFileName(encrypted_file.name, encrypted_file.name + ' (Encrypted ' + media_file + ')')
             args = ['--method', 'MPEG-CENC']
                 
             if options.encryption_args:
@@ -780,91 +905,9 @@ def main():
                     message += " - " + str(cmd)
                 raise Exception(message)
             media_source.filename = encrypted_file.name
-            
-    # parse the media files
-    index = 1
-    mp4_files = {}
-    mp4_media_names = []
-    for media_source in media_sources:
-        media_file = media_source.filename
-        
-        # check if we have already parsed this file
-        if media_file in mp4_files:
-            media_source.mp4_file = mp4_files[media_file]
-            continue
-        
-        # parse the file
-        print 'Parsing media file', str(index)+':', file_name_map[media_file]
-        if not os.path.exists(media_file):
-            PrintErrorAndExit('ERROR: media file ' + media_file + ' does not exist')
-            
-        # get the file info
-        mp4_file = Mp4File(Options, media_file)
-        
-        # set some metadata properties for this file
-        mp4_file.index = index
-        if options.rename_media:
-            mp4_file.media_name = MEDIA_FILE_PATTERN % (mp4_file.index)
-        elif 'media' in media_source.spec:
-            mp4_file.media_name = media_source.spec['media']
-        else:
-            mp4_file.media_name = path.basename(media_source.original_filename)
-            
-        if not options.split:
-            if mp4_file.media_name in mp4_media_names:
-                PrintErrorAndExit('ERROR: output media name %s is not unique, consider using --rename-media'%mp4_file.media_name)
-        
-        # check the file
-        if mp4_file.info['movie']['fragments'] != True:
-            PrintErrorAndExit('ERROR: file '+str(mp4_file.index)+' is not fragmented (use mp4fragment to fragment it)')
-            
-        # set the source property
-        media_source.mp4_file = mp4_file
-        mp4_files[media_file] = mp4_file
-        mp4_media_names.append(mp4_file.media_name)
-        
-        index += 1
-        
-    # select the audio and video tracks
-    audio_tracks = {}
-    video_tracks = []
-    for media_source in media_sources:
-        track_id       = media_source.spec['track']
-        track_type     = media_source.spec['type']
-        track_language = media_source.spec['language']
-        tracks         = []
-        
-        if track_type not in ['', 'audio', 'video']:
-            sys.stderr.write('WARNING: ignoring source '+media_source.name+', unknown type')
-
-        if track_id and track_type:
-            PrintErrorAndExit('ERROR: track ID and track type selections are mutually exclusive')
-
-        if track_id:
-            tracks = [media_source.mp4_file.find_track_by_id(track_id)]
-            if not tracks:
-                PrintErrorAndExit('ERROR: track id not found for media file '+media_source.name)
-        
-        if track_type:
-            tracks = media_source.mp4_file.find_tracks_by_type(track_type)
-            if not tracks:
-                PrintErrorAndExit('ERROR: no ' + track_type + ' found for media file '+media_source.name)
-        
-        if not tracks:
-            tracks = media_source.mp4_file.tracks.values()
-            
-        # process audio tracks
-        for track in [t for t in tracks if t.type == 'audio']:
-            language = LanguageCodeMap.get(track.language, track.language)
-            if track_language and track_language != language and track_language != track.language:
-                continue
-            if options.language_map and language in options.language_map:
-                language = options.language_map[language]
-            if language not in audio_tracks:
-                audio_tracks[language] = track
-
-        # process video tracks
-        video_tracks += [t for t in tracks if t.type == 'video']
+                    
+    # parse the media sources and select the audio and video tracks
+    (audio_tracks, video_tracks, mp4_files) = SelectTracks(options, media_sources)
 
     # check that we have at least one audio and one video
     if not audio_tracks:
@@ -1002,7 +1045,7 @@ def main():
             for (language, audio_track) in audio_tracks.iteritems():
                 out_dir = path.join(options.output_dir, 'audio', language)
                 MakeNewDir(out_dir)
-                print 'Splitting media file (audio)', file_name_map[audio_track.parent.filename]
+                print 'Splitting media file (audio)', GetMappedFileName(audio_track.parent.filename)
                 Mp4Split(options,
                          audio_track.parent.filename,
                          track_id               = str(audio_track.id),
@@ -1014,40 +1057,16 @@ def main():
             for video_track in video_tracks:
                 out_dir = path.join(options.output_dir, 'video', str(video_track.parent.index))
                 MakeNewDir(out_dir)
-                print 'Splitting media file (video)', file_name_map[video_track.parent.filename]
+                print 'Splitting media file (video)', GetMappedFileName(video_track.parent.filename)
                 Mp4Split(Options,
                          video_track.parent.filename,
                          track_id               = str(video_track.id),
                          pattern_parameters     = 'N',
                          init_segment           = path.join(out_dir, video_track.init_segment_name),
                          media_segment          = path.join(out_dir, SEGMENT_PATTERN))
-        elif ISOFF_ON_DEMAND_PROFILE in options.profiles:
-            for (language, audio_track) in audio_tracks.iteritems():
-                print 'Processing media file (audio)', file_name_map[audio_track.parent.filename]
-                media_filename = path.join(options.output_dir, audio_track.media_name)
-                if not options.force_output and path.exists(media_filename):
-                    PrintErrorAndExit('ERROR: file ' + media_filename + ' already exists')
-                Mp4Fragment(options,
-                            audio_track.parent.filename,
-                            media_filename,
-                            track = str(audio_track.id),
-                            index = True,
-                            quiet = True)
-        
-            for video_track in video_tracks:
-                print 'Processing media file (video)', file_name_map[video_track.parent.filename]
-                media_filename = path.join(options.output_dir, video_track.media_name)
-                if not options.force_output and path.exists(media_filename):
-                    PrintErrorAndExit('ERROR: file ' + media_filename + ' already exists')
-                Mp4Fragment(Options,
-                            video_track.parent.filename,
-                            media_filename,
-                            track = str(video_track.id),
-                            index = True,
-                            quiet = True)
         else:
             for mp4_file in mp4_files.values():
-                print 'Processing and Copying media file', file_name_map[mp4_file.filename]
+                print 'Processing and Copying media file', GetMappedFileName(mp4_file.filename)
                 media_filename = path.join(options.output_dir, mp4_file.media_name)
                 if not options.force_output and path.exists(media_filename):
                     PrintErrorAndExit('ERROR: file ' + media_filename + ' already exists')

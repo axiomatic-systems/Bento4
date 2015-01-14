@@ -88,11 +88,28 @@ AP4_PsshAtom::AP4_PsshAtom(AP4_UI32        size,
     if (data_size > AP4_PSSH_MAX_DATA_SIZE) return;
     m_Data.SetDataSize(data_size);
     stream.Read(m_Data.UseData(), data_size);
-    if (size > AP4_FULL_ATOM_HEADER_SIZE+16+4+data_size) {
-        unsigned int padding_size = size-(AP4_FULL_ATOM_HEADER_SIZE+16+4+data_size);
+    AP4_UI32 computed_size = GetComputedSize();
+    if (size > computed_size) {
+        unsigned int padding_size = size-computed_size;
         m_Padding.SetDataSize(padding_size);
         stream.Read(m_Padding.UseData(), padding_size);
     }
+}
+
+/*----------------------------------------------------------------------
+|   AP4_PsshAtom::GetComputedSize
++---------------------------------------------------------------------*/
+AP4_UI32
+AP4_PsshAtom::GetComputedSize() {
+    return AP4_FULL_ATOM_HEADER_SIZE + 16 + (m_Version==0?0:4+m_Kids.GetDataSize()) + 4+m_Data.GetDataSize() + m_Padding.GetDataSize();
+}
+
+/*----------------------------------------------------------------------
+|   AP4_PsshAtom::RecomputeSize
++---------------------------------------------------------------------*/
+void
+AP4_PsshAtom::RecomputeSize() {
+    SetSize32(GetComputedSize());
 }
 
 /*----------------------------------------------------------------------
@@ -119,7 +136,7 @@ AP4_PsshAtom::SetData(AP4_Atom& atom)
     }
     AP4_Result result = atom.Write(*memstr);
     memstr->Release();
-    SetSize32(AP4_FULL_ATOM_HEADER_SIZE+16+4 + m_Data.GetDataSize()+m_Padding.GetDataSize());
+    RecomputeSize();
     return result;
 }
 
@@ -130,7 +147,7 @@ AP4_Result
 AP4_PsshAtom::SetData(const unsigned char* data, unsigned int data_size)
 {
     m_Data.SetData(data, data_size);
-    SetSize32(AP4_FULL_ATOM_HEADER_SIZE+16+4 + data_size+m_Padding.GetDataSize());
+    RecomputeSize();
     return AP4_SUCCESS;
 }
 
@@ -143,7 +160,7 @@ AP4_PsshAtom::SetPadding(AP4_Byte* data, unsigned int data_size)
     AP4_Result result;
     result = m_Padding.SetData(data, data_size);
     AP4_CHECK(result);
-    SetSize32(AP4_FULL_ATOM_HEADER_SIZE+16+4 + m_Data.GetDataSize()+m_Padding.GetDataSize());
+    RecomputeSize();
     return AP4_SUCCESS;
 }
 
@@ -162,8 +179,12 @@ AP4_PsshAtom::SetSystemId(const unsigned char system_id[16])
 void
 AP4_PsshAtom::SetKids(const unsigned char* kids, AP4_UI32 kid_count)
 {
+    if (m_Version ==0) {
+        m_Version = 1;
+    }
     m_KidCount = kid_count;
     m_Kids.SetData(kids, 16*kid_count);
+    RecomputeSize();
 }
 
 /*----------------------------------------------------------------------
@@ -203,6 +224,13 @@ AP4_PsshAtom::InspectFields(AP4_AtomInspector& inspector)
 {
     inspector.AddField("system_id", m_SystemId, 16);
     inspector.AddField("data_size", m_Data.GetDataSize());
+    if (m_Version > 0) {
+        for (unsigned int i=0; i<m_KidCount; i++) {
+            char kid_name[32];
+            AP4_FormatString(kid_name, sizeof(kid_name), "kid %d", i);
+            inspector.AddField(kid_name, m_Kids.GetData()+(i*16), 16);
+        }
+    }
     if (inspector.GetVerbosity() >= 1) {
         if (AP4_CompareMemory(m_SystemId, AP4_MARLIN_PSSH_SYSTEM_ID, 16) == 0) {
             AP4_MemoryByteStream* mbs = new AP4_MemoryByteStream(m_Data);

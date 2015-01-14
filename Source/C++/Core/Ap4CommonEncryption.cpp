@@ -53,6 +53,13 @@
 #include "Ap4PsshAtom.h"
 
 /*----------------------------------------------------------------------
+|   constants
++---------------------------------------------------------------------*/
+const AP4_UI08 AP4_EME_COMMON_SYSTEM_ID[16] = {
+    0x10, 0x77, 0xEF, 0xEC, 0xC0, 0xB2, 0x4D, 0x02, 0xAC, 0xE3, 0x3C, 0x1E, 0x52, 0xE2, 0xFB, 0x4B
+};
+
+/*----------------------------------------------------------------------
 |   AP4_CencSampleEncrypter::~AP4_CencSampleEncrypter
 +---------------------------------------------------------------------*/
 AP4_CencSampleEncrypter::~AP4_CencSampleEncrypter()
@@ -818,92 +825,132 @@ AP4_CencEncryptingProcessor::Initialize(AP4_AtomParent&                  top_lev
     AP4_Result result = top_level.AddChild(ftyp, 0);
     if (AP4_FAILED(result)) return result;
     
-    // add pssh atoms if we have some
+    // add pssh atoms if needed
     AP4_ContainerAtom* moov = AP4_DYNAMIC_CAST(AP4_ContainerAtom, top_level.GetChild(AP4_ATOM_TYPE_MOOV));
     if (moov) {
-        for (unsigned int i=0; i<m_PsshAtoms.ItemCount(); i++) {
-            // add the 'pssh' atom at the end of the 'moov' container
-            // but before any 'free' atom, if any
-            int position = -1;
-            int current = 0;
-            for (AP4_List<AP4_Atom>::Item* child = moov->GetChildren().FirstItem();
-                                           child;
-                                           child = child->GetNext(), ++current) {
-                if (child->GetData()->GetType() == AP4_ATOM_TYPE_FREE) {
-                    position = current;
-                }
-            }
-            if (m_PsshAtoms[i]) {
-                moov->AddChild(new AP4_PsshAtom(*m_PsshAtoms[i]), position);
-            }
-        }
-    }
-    
-    // check if we need to create a Marlin 'mkid' table
-    AP4_MkidAtom* mkid = NULL;
-    if (m_Variant == AP4_CENC_VARIANT_MPEG) {
-        const AP4_List<AP4_TrackPropertyMap::Entry>& prop_entries = m_PropertyMap.GetEntries();
-        for (unsigned int i=0; i<prop_entries.ItemCount(); i++) {
-            AP4_TrackPropertyMap::Entry* entry = NULL;
-            prop_entries.Get(i, entry);
-            if (entry && entry->m_Name == "ContentId") {
-                if (mkid == NULL) mkid = new AP4_MkidAtom();
+        // create a 'standard EME' pssh atom
+        AP4_PsshAtom* eme_pssh = NULL;
+        if (m_Variant == AP4_CENC_VARIANT_MPEG) {
+            AP4_DataBuffer kids;
+            AP4_UI32       kid_count = 0;
+            const AP4_List<AP4_TrackPropertyMap::Entry>& prop_entries = m_PropertyMap.GetEntries();
+
+            for (unsigned int i=0; i<prop_entries.ItemCount(); i++) {
+                AP4_TrackPropertyMap::Entry* entry = NULL;
+                prop_entries.Get(i, entry);
                 const char* kid_hex = m_PropertyMap.GetProperty(entry->m_TrackId, "KID");
-                
+                    
                 if (kid_hex && AP4_StringLength(kid_hex) == 32) {
                     AP4_UI08 kid[16];
                     AP4_ParseHex(kid_hex, kid, 16);
                     // only add this entry if there isn't already an entry for this KID
-                    const AP4_Array<AP4_MkidAtom::Entry>& entries = mkid->GetEntries();
                     bool found = false;
-                    for (unsigned int j=0; j<entries.ItemCount() && !found; j++) {
-                        if (AP4_CompareMemory(entries[j].m_KID, kid, 16) == 0) {
+                    for (unsigned int j=0; j<kid_count && !found; j++) {
+                        if (AP4_CompareMemory(kid, kids.GetData()+(j*16), 16) == 0) {
                             found = true;
                         }
                     }
                     if (!found) {
-                        mkid->AddEntry(kid, entry->m_Value.GetChars());
+                        kids.SetDataSize((kid_count+1)*16);
+                        AP4_CopyMemory(kids.UseData()+(kid_count*16), kid, 16);
+                        ++kid_count;
                     }
                 }
             }
-        }
-    }
-    if (mkid && moov) {
-        // create a 'marl' container
-        AP4_ContainerAtom* marl = new AP4_ContainerAtom(AP4_ATOM_TYPE_MARL);
-        marl->AddChild(mkid);
-        
-        // see if we need to pad the 'pssh' container
-        const char* padding_str = m_PropertyMap.GetProperty(0, "PsshPadding");
-        AP4_UI32    padding = 0;
-        if (padding_str) {
-            padding = AP4_ParseIntegerU(padding_str);
-        }
-        
-        // create a 'pssh' atom to contain the 'marl' atom
-        AP4_PsshAtom* pssh = new AP4_PsshAtom(AP4_MARLIN_PSSH_SYSTEM_ID);
-        pssh->SetData(*marl);
-        if (padding > marl->GetSize()+32 && padding < 1024*1024) {
-            padding -= (AP4_UI32)marl->GetSize()+32;
-            AP4_UI08* data = new AP4_UI08[padding];
-            AP4_SetMemory(data, 0, padding);
-            pssh->SetPadding(data, padding);
-            delete[] data;
-        }
-        
-        // add the 'pssh' atom at the end of the 'moov' container
-        // but before any 'free' atom, if any
-        int position = -1;
-        int current = 0;
-        for (AP4_List<AP4_Atom>::Item* child = moov->GetChildren().FirstItem();
-                                       child;
-                                       child = child->GetNext(), ++current) {
-            if (child->GetData()->GetType() == AP4_ATOM_TYPE_FREE) {
-                position = current;
+            if (kid_count) {
+                eme_pssh = new AP4_PsshAtom(AP4_EME_COMMON_SYSTEM_ID);
+                eme_pssh->SetKids(kids.GetData(), kid_count);
             }
         }
-        moov->AddChild(pssh, position);
+
+        // check if we need to create a Marlin 'mkid' table
+        AP4_PsshAtom* marlin_pssh = NULL;
+        if (m_Variant == AP4_CENC_VARIANT_MPEG) {
+            const AP4_List<AP4_TrackPropertyMap::Entry>& prop_entries = m_PropertyMap.GetEntries();
+            AP4_MkidAtom* mkid = NULL;
+            for (unsigned int i=0; i<prop_entries.ItemCount(); i++) {
+                AP4_TrackPropertyMap::Entry* entry = NULL;
+                prop_entries.Get(i, entry);
+                if (entry && entry->m_Name == "ContentId") {
+                    if (mkid == NULL) mkid = new AP4_MkidAtom();
+                    const char* kid_hex = m_PropertyMap.GetProperty(entry->m_TrackId, "KID");
+                    
+                    if (kid_hex && AP4_StringLength(kid_hex) == 32) {
+                        AP4_UI08 kid[16];
+                        AP4_ParseHex(kid_hex, kid, 16);
+                        // only add this entry if there isn't already an entry for this KID
+                        const AP4_Array<AP4_MkidAtom::Entry>& entries = mkid->GetEntries();
+                        bool found = false;
+                        for (unsigned int j=0; j<entries.ItemCount() && !found; j++) {
+                            if (AP4_CompareMemory(entries[j].m_KID, kid, 16) == 0) {
+                                found = true;
+                            }
+                        }
+                        if (!found) {
+                            mkid->AddEntry(kid, entry->m_Value.GetChars());
+                        }
+                    }
+                }
+            }
+
+            if (mkid) {
+                // create a 'marl' container
+                AP4_ContainerAtom* marl = new AP4_ContainerAtom(AP4_ATOM_TYPE_MARL);
+                marl->AddChild(mkid);
+                
+                // see if we need to pad the 'pssh' container
+                const char* padding_str = m_PropertyMap.GetProperty(0, "PsshPadding");
+                AP4_UI32    padding = 0;
+                if (padding_str) {
+                    padding = AP4_ParseIntegerU(padding_str);
+                }
+                
+                // create a 'pssh' atom to contain the 'marl' atom
+                marlin_pssh = new AP4_PsshAtom(AP4_MARLIN_PSSH_SYSTEM_ID);
+                marlin_pssh->SetData(*marl);
+                if (padding > marl->GetSize()+32 && padding < 1024*1024) {
+                    padding -= (AP4_UI32)marl->GetSize()+32;
+                    AP4_UI08* data = new AP4_UI08[padding];
+                    AP4_SetMemory(data, 0, padding);
+                    marlin_pssh->SetPadding(data, padding);
+                    delete[] data;
+                }
+            }
+        }
+
+        // add the 'pssh' atoms at the end of the 'moov' container
+        // but before any 'free' atom, if any
+        int pssh_position = -1;
+        int pssh_current = 0;
+        for (AP4_List<AP4_Atom>::Item* child = moov->GetChildren().FirstItem();
+                                       child;
+                                       child = child->GetNext(), ++pssh_current) {
+            if (child->GetData()->GetType() == AP4_ATOM_TYPE_FREE) {
+                pssh_position = pssh_current;
+            }
+        }
+        if (marlin_pssh) {
+            moov->AddChild(marlin_pssh, pssh_position);
+            if (pssh_position >= 0) {
+                ++pssh_position;
+            }
+        }
+        if (eme_pssh) {
+            moov->AddChild(eme_pssh, pssh_position);
+            if (pssh_position >= 0) {
+                ++pssh_position;
+            }
+        }
+        for (unsigned int i=0; i<m_PsshAtoms.ItemCount(); i++) {
+            if (m_PsshAtoms[i]) {
+                moov->AddChild(new AP4_PsshAtom(*m_PsshAtoms[i]), pssh_position);
+            }
+            if (pssh_position >= 0) {
+                ++pssh_position;
+            }
+        }
     }
+    
     
     return AP4_SUCCESS;
 }

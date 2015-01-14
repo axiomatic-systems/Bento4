@@ -105,7 +105,7 @@ class Mp4Atom:
         return 'ATOM: ' + self.type + ',' + str(self.size) + '@' + str(self.position)
 
 
-def WalkAtoms(filename):
+def WalkAtoms(filename, until=None):
     cursor = 0
     atoms = []
     file = io.FileIO(filename, "rb")
@@ -113,6 +113,8 @@ def WalkAtoms(filename):
         try:
             size = struct.unpack('>I', file.read(4))[0]
             type = file.read(4)
+            if type == until:
+                break
             if size == 1:
                 size = struct.unpack('>Q', file.read(8))[0]
             atoms.append(Mp4Atom(type, size, cursor))
