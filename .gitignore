@@ -1,2 +1,7 @@
 *.pyc
 
+Source/Python/utils/bin/macosx/mp4dump
+Source/Python/utils/bin/macosx/mp4encrypt
+Source/Python/utils/bin/macosx/mp4fragment
+Source/Python/utils/bin/macosx/mp4info
+Source/Python/utils/bin/macosx/mp4split

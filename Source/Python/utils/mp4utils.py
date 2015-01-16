@@ -161,6 +161,7 @@ class Mp4Track:
         self.max_segment_bitrate      = 0
         self.bandwidth                = 0
         self.language                 = ''
+        self.order_index              = 0
         self.id = info['id']
         if info['type'] == 'Audio':
             self.type = 'audio'
@@ -224,13 +225,15 @@ class Mp4Track:
                 self.kid = tenc['default_KID'].strip('[]').replace(' ', '')
 
     def __repr__(self):
-        return 'File '+str(self.parent.index)+'#'+str(self.id)
+        return 'File '+str(self.parent.file_list_index)+'#'+str(self.id)
     
 class Mp4File:
-    def __init__(self, options, filename):
-        self.filename = filename
-        self.tracks   = {}
-                
+    def __init__(self, options, media_source):
+        self.media_source    = media_source
+        self.tracks          = {}
+        self.file_list_index = 0 # used to keep a sequence number just amongst all sources
+
+        filename = media_source.filename
         if options.debug:
             print 'Processing MP4 file', filename
 
@@ -420,7 +423,6 @@ class MediaSource:
         
         # keep a record of our original filename in case it gets changed later
         self.original_filename = self.filename
-        
         
     def __repr__(self):
         return self.name

@@ -2,7 +2,7 @@
 |
 |    Copyright 2002-2008 Axiomatic Systems, LLC
 |
-|    $Id$
+|    $Id: OdafAtom.java 196 2008-10-14 22:59:31Z bok $
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
 |
