@@ -5,18 +5,20 @@ Bento4 is a C++ class library and tools designed to read and write ISO-MP4 files
 This format is defined in international specifications ISO/IEC 14496-12, 14496-14 and 14496-15. 
 The format is a derivative of the Apple Quicktime file format, so Bento4 can be used to read and write most Quicktime files as well.
 
+Visit http://www.bento4.com for details
+
 Features
 --------
 
 A number of formats and features based on the ISO-MP4 format and related technologies are also supported, including:
 
- * MPEG DASH with fragmented MP4 files, as defined in the international specification ISO/IEC 23009-1
- * MPEG Common Encryption (CENC) as specified in the international specification ISO/IEC 23001-7
- * The PIFF (Protected Interoperable File Format) encrypted, fragmented MP4 format specified by Microsoft and used for encrypted HTTP Smooth Streaming is also supported.
+ * MPEG DASH with fragmented MP4 files, as defined in ISO/IEC 23009-1
+ * MPEG Common Encryption (CENC) as specified in ISO/IEC 23001-7
+ * PIFF (Protected Interoperable File Format): encrypted, fragmented MP4 format specified by Microsoft and used for encrypted HTTP Smooth Streaming.
  * Reading and writing 3GPP and iTunes-compatible metadata.
  * ISMA Encrytion and Decryption as defined in the ISMA E&A specification
  * OMA 2.0 and 2.1 DCF/PDCF Encryption and Decryption as defined in the OMA specifications.
- * ISO-MP4 files profiled as part of the  3GPP family of standards.
+ * ISO-MP4 files profiled as part of the 3GPP family of standards.
  * The UltraViolet (DECE) CFF (Common File Format).
  * Parsing and multiplexing of H.264 (AVC) video and AAC audio elementary streams
  * Support for multiple DRM systems that are compatible with MP4-formatted content (usually leveraging CENC Common Encryption), such as Marlin and PlayReady and Widevine.
