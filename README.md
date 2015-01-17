@@ -39,6 +39,8 @@ Included Applications
 
 The Bento4 SDK includes several command-line applications/tools that are built using the SDK API. These include:
 
+|app name       | description
+|---------------|------------------
 |mp4info	    | displays high level info about an MP4 file, including all tracks and codec details                                                              
 |mp4dump	    | displays the entire atom/box structure of an MP4 file                                                                                           
 |mp4edit	    | add/insert/remove/replace atom/box items of an MP4 file                                                                                         
