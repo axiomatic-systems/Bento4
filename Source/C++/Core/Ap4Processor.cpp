@@ -42,6 +42,7 @@
 #include "Ap4TfraAtom.h"
 #include "Ap4TrunAtom.h"
 #include "Ap4TrexAtom.h"
+#include "Ap4SidxAtom.h"
 #include "Ap4DataBuffer.h"
 #include "Ap4Debug.h"
 
@@ -109,12 +110,15 @@ AP4_Result
 AP4_Processor::ProcessFragments(AP4_MoovAtom*              moov, 
                                 AP4_List<AP4_AtomLocator>& atoms, 
                                 AP4_ContainerAtom*         mfra,
+                                AP4_SidxAtom*              sidx,
+                                AP4_Position               sidx_position,
                                 AP4_ByteStream&            input, 
                                 AP4_ByteStream&            output)
 {
+    unsigned int fragment_index = 0;
     for (AP4_List<AP4_AtomLocator>::Item* item = atoms.FirstItem();
                                           item;
-                                          item = item->GetNext()) {
+                                          item = item->GetNext(), ++fragment_index) {
         AP4_AtomLocator*   locator     = item->GetData();
         AP4_Atom*          atom        = locator->m_Atom;
         AP4_UI64           atom_offset = locator->m_Offset;
@@ -289,7 +293,7 @@ AP4_Processor::ProcessFragments(AP4_MoovAtom*              moov,
         output.Seek(moof_out_start);
         moof->Write(output);
         output.Seek(mdat_out_end);
-                
+        
         // update the mfra if we have one
         if (mfra) {
             for (AP4_List<AP4_Atom>::Item* mfra_item = mfra->GetChildren().FirstItem();
@@ -308,6 +312,17 @@ AP4_Processor::ProcessFragments(AP4_MoovAtom*              moov,
             }
         }
 
+        // update the sidx if we have one
+        if (sidx && fragment_index < sidx->GetReferences().ItemCount()) {
+            if (fragment_index == 0) {
+                sidx->SetFirstOffset(moof_out_start-(sidx_position+sidx->GetSize()));
+            }
+            AP4_LargeSize fragment_size = mdat_out_end-moof_out_start;
+            AP4_SidxAtom::Reference& sidx_ref = sidx->UseReferences()[fragment_index];
+            sidx_ref.m_ReferencedSize = fragment_size;
+        }
+        
+        // cleanup
         delete fragment;
         
         for (unsigned int i=0; i<handlers.ItemCount(); i++) {
@@ -358,9 +373,11 @@ AP4_Processor::Process(AP4_ByteStream&   input,
     AP4_AtomParent              top_level;
     AP4_MoovAtom*               moov = NULL;
     AP4_ContainerAtom*          mfra = NULL;
+    AP4_SidxAtom*               sidx = NULL;
     AP4_List<AP4_AtomLocator>   frags;
     AP4_UI64                    stream_offset = 0;
     bool                        in_fragments = false;
+    unsigned int                sidx_count = 0;
     for (AP4_Atom* atom = NULL;
         AP4_SUCCEEDED(atom_factory.CreateAtomFromStream(input, atom));
         input.Tell(stream_offset)) {
@@ -373,6 +390,19 @@ AP4_Processor::Process(AP4_ByteStream&   input,
         } else if (atom->GetType() == AP4_ATOM_TYPE_MFRA) {
             mfra = AP4_DYNAMIC_CAST(AP4_ContainerAtom, atom);
             continue;
+        } else if (atom->GetType() == AP4_ATOM_TYPE_SIDX) {
+            // don't keep the index, it is likely to be invalidated, we will recompute it later
+            ++sidx_count;
+            if (sidx == NULL) {
+                sidx = AP4_DYNAMIC_CAST(AP4_SidxAtom, atom);
+            } else {
+                delete atom;
+                continue;
+            }
+        } else if (atom->GetType() == AP4_ATOM_TYPE_SSIX) {
+            // don't keep the index, it is likely to be invalidated
+            delete atom;
+            continue;
         } else if (!fragments && (in_fragments || atom->GetType() == AP4_ATOM_TYPE_MOOF)) {
             in_fragments = true;
             frags.Add(new AP4_AtomLocator(atom, stream_offset));
@@ -381,6 +411,13 @@ AP4_Processor::Process(AP4_ByteStream&   input,
         top_level.AddChild(atom);
     }
 
+    // check that we have at most one sidx (we can't deal with multi-sidx streams here
+    if (sidx_count > 1) {
+        top_level.RemoveChild(sidx);
+        delete sidx;
+        sidx = NULL;
+    }
+    
     // if we have a fragments stream, get the fragment locators from there
     if (fragments) {
         stream_offset = 0;
@@ -596,9 +633,33 @@ AP4_Processor::Process(AP4_ByteStream&   input,
 #endif
         }
         
+        // find the position of the sidx atom
+        AP4_Position sidx_position = 0;
+        if (sidx) {
+            for (AP4_List<AP4_Atom>::Item* item = top_level.GetChildren().FirstItem();
+                                           item;
+                                           item = item->GetNext()) {
+                AP4_Atom* atom = item->GetData();
+                if (atom->GetType() == AP4_ATOM_TYPE_SIDX) {
+                    break;
+                }
+                sidx_position += atom->GetSize();
+            }
+        }
+        
         // process the fragments, if any
-        result = ProcessFragments(moov, frags, mfra, fragments?*fragments:input, output);
+        result = ProcessFragments(moov, frags, mfra, sidx, sidx_position, fragments?*fragments:input, output);
         if (AP4_FAILED(result)) return result;
+        
+        // update and re-write the sidx if we have one
+        if (sidx && sidx_position) {
+            AP4_Position where = 0;
+            output.Tell(where);
+            output.Seek(sidx_position);
+            result = sidx->Write(output);
+            if (AP4_FAILED(result)) return result;
+            output.Seek(where);
+        }
         
         if (!fragments) {
             // write the mfra atom at the end if we have one

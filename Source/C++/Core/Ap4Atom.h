@@ -504,6 +504,7 @@ const AP4_Atom::Type AP4_ATOM_TYPE_PRFT = AP4_ATOM_TYPE('p','r','f','t');
 const AP4_Atom::Type AP4_ATOM_TYPE_STPP = AP4_ATOM_TYPE('s','t','p','p');
 const AP4_Atom::Type AP4_ATOM_TYPE_DEC3 = AP4_ATOM_TYPE('d','e','c','3');
 const AP4_Atom::Type AP4_ATOM_TYPE_SIDX = AP4_ATOM_TYPE('s','i','d','x');
+const AP4_Atom::Type AP4_ATOM_TYPE_SSIX = AP4_ATOM_TYPE('s','s','i','x');
 const AP4_Atom::Type AP4_ATOM_TYPE_SBGP = AP4_ATOM_TYPE('s','b','g','p');
 const AP4_Atom::Type AP4_ATOM_TYPE_SGPD = AP4_ATOM_TYPE('s','g','p','d');
 

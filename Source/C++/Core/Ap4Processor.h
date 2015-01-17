@@ -2,7 +2,7 @@
 |
 |    AP4 - File Processor
 |
-|    Copyright 2002-2008 Axiomatic Systems, LLC
+|    Copyright 2002-2015 Axiomatic Systems, LLC
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -46,6 +46,7 @@ class AP4_ByteStream;
 class AP4_DataBuffer;
 class AP4_TrakAtom;
 class AP4_TrexAtom;
+class AP4_SidxAtom;
 class AP4_FragmentSampleTable;
 struct AP4_AtomLocator;
 
@@ -259,6 +260,8 @@ protected:
     AP4_Result ProcessFragments(AP4_MoovAtom*              moov, 
                                 AP4_List<AP4_AtomLocator>& atoms, 
                                 AP4_ContainerAtom*         mfra,
+                                AP4_SidxAtom*              sidx,
+                                AP4_Position               sidx_position,
                                 AP4_ByteStream&            input, 
                                 AP4_ByteStream&            output);
     

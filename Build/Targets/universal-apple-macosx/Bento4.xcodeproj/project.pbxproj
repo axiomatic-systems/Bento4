@@ -941,7 +941,6 @@
 		CA00667310153951004C0D5F /* mp42ts */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mp42ts; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA00667C1015399A004C0D5F /* Mp42Ts.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Mp42Ts.cpp; sourceTree = "<group>"; };
 		CA00A6531A1C36560064B4D3 /* mp4pssh */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mp4pssh; sourceTree = BUILT_PRODUCTS_DIR; };
-		CA00A6551A1C36560064B4D3 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		CA00A65B1A1C38210064B4D3 /* Mp4Pssh.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Mp4Pssh.cpp; sourceTree = "<group>"; };
 		CA00CB7C13D9F13B00C1A140 /* mp4compact */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mp4compact; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA00CB8613D9F1EC00C1A140 /* Mp4Compact.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Mp4Compact.cpp; sourceTree = "<group>"; };
@@ -1581,7 +1580,6 @@
 				CA646A9B0CE97B51009699D7 /* Test */,
 				C6A0FF2B0290797F04C91782 /* Documentation */,
 				CA86EED819A95DD3008A3B00 /* FragmentCreatorTest */,
-				CA00A6541A1C36560064B4D3 /* Mp4Pssh */,
 				1AB674ADFE9D54B511CA2CBB /* Products */,
 			);
 			name = Bento4;
@@ -1664,9 +1662,9 @@
 		CA00A6541A1C36560064B4D3 /* Mp4Pssh */ = {
 			isa = PBXGroup;
 			children = (
-				CA00A6551A1C36560064B4D3 /* main.cpp */,
 			);
-			path = Mp4Pssh;
+			name = Mp4Pssh;
+			path = "../../../Build/Targets/universal-apple-macosx/Mp4Pssh";
 			sourceTree = "<group>";
 		};
 		CA00A65A1A1C38210064B4D3 /* Mp4Pssh */ = {
@@ -1742,6 +1740,7 @@
 				CA6103E2128599C20039C7E6 /* Mp4Fragment */,
 				CA646A950CE97B2D009699D7 /* Mp4Info */,
 				CA8A94DA1929A6C100836179 /* Mp4Mux */,
+				CA00A6541A1C36560064B4D3 /* Mp4Pssh */,
 				CA00A65A1A1C38210064B4D3 /* Mp4Pssh */,
 				CA646A970CE97B2D009699D7 /* Mp4RtpHintInfo */,
 				CAC02A17139DBA6F0034427F /* Mp4Split */,

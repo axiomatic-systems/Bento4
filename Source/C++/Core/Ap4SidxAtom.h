@@ -78,8 +78,16 @@ public:
     AP4_UI64                    GetEarliestPresentationTime() { return m_EarliestPresentationTime; }
     AP4_UI64                    GetFirstOffset()              { return m_FirstOffset;              }
 
+    void SetReferenceId(AP4_UI32 reference_id)      { m_ReferenceId = reference_id;        }
+    void SetTimeScale(AP4_UI32 timescale)           { m_TimeScale = timescale;             }
+    void SetEarliestPresentationTime(AP4_UI64 time) { m_EarliestPresentationTime = time;   }
+    void SetFirstOffset(AP4_UI64 offset)            { m_FirstOffset              = offset; }
+
     // access to references methods
     const AP4_Array<Reference>& GetReferences() {
+        return m_References;
+    }
+    AP4_Array<Reference>& UseReferences() {
         return m_References;
     }
     void SetReferenceCount(unsigned int count);

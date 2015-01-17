@@ -91,6 +91,7 @@ public:
     AP4_Result   Clear();
     AP4_Result   Add(T* data);
     AP4_Result   Add(Item* item);
+    AP4_Result   Remove(Item* item);
     AP4_Result   Remove(T* data);
     AP4_Result   Insert(Item* where, T* data);
     AP4_Result   Get(AP4_Ordinal idx, T*& data) const;
@@ -190,6 +191,45 @@ AP4_List<T>::Add(Item* item)
 +---------------------------------------------------------------------*/
 template <typename T>
 AP4_Result
+AP4_List<T>::Remove(Item* item)
+{
+    if (item->m_Prev) {
+        // item is not the head
+        if (item->m_Next) {
+            // item is not the tail
+            item->m_Next->m_Prev = item->m_Prev;
+            item->m_Prev->m_Next = item->m_Next;
+        } else {
+            // item is the tail
+            m_Tail = item->m_Prev;
+            m_Tail->m_Next = NULL;
+        }
+    } else {
+        // item is the head
+        m_Head = item->m_Next;
+        if (m_Head) {
+            // item is not the tail
+            m_Head->m_Prev = NULL;
+        } else {
+            // item is also the tail
+            m_Tail = NULL;
+        }
+    }
+
+    // delete the item
+    delete item;
+
+    // one less item in the list now
+    m_ItemCount--;
+
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_List<T>::Remove
++---------------------------------------------------------------------*/
+template <typename T>
+AP4_Result
 AP4_List<T>::Remove(T* data)
 {
     Item* item = m_Head;
@@ -197,36 +237,7 @@ AP4_List<T>::Remove(T* data)
     while (item) {
         if (item->m_Data == data) {
             // delete item
-            if (item->m_Prev) {
-                // item is not the head
-                if (item->m_Next) {
-                    // item is not the tail
-                    item->m_Next->m_Prev = item->m_Prev;
-                    item->m_Prev->m_Next = item->m_Next;
-                } else {
-                    // item is the tail
-                    m_Tail = item->m_Prev;
-                    m_Tail->m_Next = NULL;
-                }
-            } else {
-                // item is the head
-                m_Head = item->m_Next;
-                if (m_Head) {
-                    // item is not the tail
-                    m_Head->m_Prev = NULL;
-                } else {
-                    // item is also the tail
-                    m_Tail = NULL;
-                }
-            }
-
-            // delete the item
-            delete item;
-
-            // one less item in the list now
-            m_ItemCount--;
-
-            return AP4_SUCCESS;
+            return Remove(item);
         }
         item = item->m_Next;
     }

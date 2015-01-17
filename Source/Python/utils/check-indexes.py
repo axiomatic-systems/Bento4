@@ -23,7 +23,7 @@ options.exec_dir = path.join(SCRIPT_PATH, 'bin', platform)
 
 class Sidx(object): pass
 
-mp4_file = mp4utils.Mp4File(options, sys.argv[1])
+mp4_file = mp4utils.Mp4File(options, mp4utils.MediaSource(sys.argv[1]))
 moof_offsets = []
 sidx_anchors = []
 for atom in mp4_file.atoms:
