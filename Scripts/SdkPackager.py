@@ -34,18 +34,12 @@ def GetVersion():
     return '0-0-0'
 
 #############################################################
-# GetSvnRevision
+# GetSdkRevision
 #############################################################
-def GetSvnRevision():
-    cmd = 'svn info'
+def GetSdkRevision():
+    cmd = 'git rev-list HEAD --count'
     revision = 0
-    lines = os.popen(cmd).readlines()
-    for line in lines:
-        if line.startswith('Revision: '):
-            revision = line[10:] 
-    if revision == 0:
-        raise "unable to obtain SVN revision"
-    return revision.strip()
+    return os.popen(cmd).readlines()[0].strip()
 
 #############################################################
 # File Copy
@@ -155,7 +149,7 @@ print "TARGET = " + SDK_TARGET
 BENTO4_VERSION = GetVersion()
 
 # compute paths
-SDK_REVISION = GetSvnRevision()
+SDK_REVISION = GetSdkRevision()
 SDK_NAME='Bento4-SDK-'+BENTO4_VERSION+'-'+SDK_REVISION+'.'+SDK_TARGET
 SDK_BUILD_ROOT=BENTO4_HOME+'/SDK'
 SDK_ROOT=SDK_BUILD_ROOT+'/'+SDK_NAME

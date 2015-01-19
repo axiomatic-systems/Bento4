@@ -534,13 +534,13 @@ def SelectTracks(options, media_sources):
             continue
         
         # parse the file
-        print 'Parsing media file', str(file_list_index)+':', GetMappedFileName(media_file)
         if not os.path.exists(media_file):
             PrintErrorAndExit('ERROR: media file ' + media_file + ' does not exist')
             
         # get the file info
+        print 'Parsing media file', str(file_list_index)+':', GetMappedFileName(media_file)
         mp4_file = Mp4File(Options, media_source)
-        
+
         # set some metadata properties for this file
         mp4_file.file_list_index = file_list_index
         file_list_index += 1
@@ -937,9 +937,11 @@ def main():
         prev_track = track
         
     # check that the video segments match
-    for track in video_tracks:
-        if track.sample_counts[:-1] != video_tracks[0].sample_counts[:-1]:
-            PrintErrorAndExit('ERROR: video tracks are not aligned ("'+str(track)+'" differs)')
+    if len(video_tracks) > 1:
+        anchor = video_tracks[0]
+        for track in video_tracks[1:]:
+            if track.sample_counts[:-1] != anchor.sample_counts[:-1]:
+                PrintErrorAndExit('ERROR: video tracks are not aligned ("'+str(track)+'" differs from '+str(anchor)+')')
                
     # check that the video segment durations are almost all equal
     if not options.use_segment_timeline:
