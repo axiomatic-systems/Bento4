@@ -22,7 +22,7 @@ from mp4utils import *
 
 # setup main options
 VERSION = "1.5.0"
-SDK_REVISION = '580'
+SDK_REVISION = '583'
 SCRIPT_PATH = path.abspath(path.dirname(__file__))
 sys.path += [SCRIPT_PATH]
 
