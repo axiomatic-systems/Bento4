@@ -319,7 +319,7 @@ AP4_Processor::ProcessFragments(AP4_MoovAtom*              moov,
             }
             AP4_LargeSize fragment_size = mdat_out_end-moof_out_start;
             AP4_SidxAtom::Reference& sidx_ref = sidx->UseReferences()[fragment_index];
-            sidx_ref.m_ReferencedSize = fragment_size;
+            sidx_ref.m_ReferencedSize = (AP4_UI32)fragment_size;
         }
         
         // cleanup
