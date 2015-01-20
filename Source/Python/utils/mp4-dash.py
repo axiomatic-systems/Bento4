@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 __author__    = 'Gilles Boccon-Gibod (bok@bok.net)'
-__copyright__ = 'Copyright 2011-2013 Axiomatic Systems, LLC.'
+__copyright__ = 'Copyright 2011-2015 Axiomatic Systems, LLC.'
 
 ###
 # NOTE: this script needs Bento4 command line binaries to run
@@ -21,8 +21,8 @@ import tempfile
 from mp4utils import *
 
 # setup main options
-VERSION = "1.4.0"
-SVN_REVISION = "$Revision: 575 $"
+VERSION = "1.5.0"
+SDK_REVISION = '580'
 SCRIPT_PATH = path.abspath(path.dirname(__file__))
 sys.path += [SCRIPT_PATH]
 
@@ -230,7 +230,7 @@ def OutputDash(options, audio_tracks, video_tracks):
                       minBufferTime="PT%.02fS" % options.min_buffer_time,
                       mediaPresentationDuration=XmlDuration(int(presentation_duration)),
                       type='static')
-    mpd.append(xml.Comment(' Created with Bento4 mp4-dash.py, VERSION=' + VERSION + '-' + SVN_REVISION[11:-1] + ' '))
+    mpd.append(xml.Comment(' Created with Bento4 mp4-dash.py, VERSION=' + VERSION + '-' + SDK_REVISION + ' '))
     period = xml.SubElement(mpd, 'Period')
 
     # process the audio tracks
@@ -349,7 +349,7 @@ def OutputSmooth(options, audio_tracks, video_tracks):
                                   MinorVersion="0",
                                   TimeScale="10000000",
                                   Duration=str(int(presentation_duration*10000000.0)))
-    client_manifest.append(xml.Comment(' Created with Bento4 mp4-dash.py, VERSION='+VERSION+'-'+SVN_REVISION[11:-1]+' '))
+    client_manifest.append(xml.Comment(' Created with Bento4 mp4-dash.py, VERSION='+VERSION+'-'+SDK_REVISION+' '))
     
     # process the audio tracks
     for (language, audio_track) in audio_tracks.iteritems():
@@ -633,7 +633,7 @@ def main():
                 
     # parse options
     parser = OptionParser(usage="%prog [options] <media-file> [<media-file> ...]",
-                          description="Each <media-file> is the path to a fragmented MP4 file, optionally prefixed with a stream selector delimited by [ and ]. The same input MP4 file may be repeated, provided that the stream selector prefixes select different streams. Version " + VERSION + " r" + SVN_REVISION[-5:-2])
+                          description="Each <media-file> is the path to a fragmented MP4 file, optionally prefixed with a stream selector delimited by [ and ]. The same input MP4 file may be repeated, provided that the stream selector prefixes select different streams. Version " + VERSION + " r" + SDK_REVISION)
     parser.add_option('-v', '--verbose', dest="verbose", action='store_true', default=False,
                       help="Be verbose")
     parser.add_option('-d', '--debug', dest="debug", action='store_true', default=False,
