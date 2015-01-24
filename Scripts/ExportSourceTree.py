@@ -9,6 +9,16 @@ import re
 # GetSdkRevision
 #############################################################
 def GetSdkRevision():
+    cmd = 'git status --porcelain -b'
+    lines = os.popen(cmd).readlines()
+    if not lines[0].startswith('## master'):
+        print 'ERROR: not on master branch'
+        return None
+    if len(lines) > 1:
+        print 'ERROR: git status not empty'
+        print ''.join(lines)
+        return None
+
     cmd = 'git tag --contains HEAD'
     tags = os.popen(cmd).readlines()
     if len(tags) != 1:
@@ -34,27 +44,11 @@ def GetVersion():
     return '0-0-0'
 
 #############################################################
-# CheckGitStatus
-#############################################################
-def CheckGitStatus():
-    cmd = 'git status --porcelain -b'
-    lines = os.popen(cmd).readlines()
-    if not lines[0].startswith('## master'):
-        print 'ERROR: not on master branch'
-        sys.exit(1)
-    if len(lines) > 1:
-        print 'ERROR: git status not empty'
-        print ''.join(lines)
-        sys.exit(1)
-
-#############################################################
 # Main
 #############################################################
 script_dir  = os.path.abspath(os.path.dirname(__file__))
 BENTO4_HOME = os.path.join(script_dir,'..')
 BENTO4_VERSION = GetVersion()
-
-CheckGitStatus()
 
 SDK_REVISION = GetSdkRevision()
 if SDK_REVISION == None:

@@ -37,9 +37,26 @@ def GetVersion():
 # GetSdkRevision
 #############################################################
 def GetSdkRevision():
-    cmd = 'git rev-list HEAD --count'
-    revision = 0
-    return os.popen(cmd).readlines()[0].strip()
+    cmd = 'git status --porcelain -b'
+    lines = os.popen(cmd).readlines()
+    if not lines[0].startswith('## master'):
+        print 'ERROR: not on master branch'
+        return None
+    if len(lines) > 1:
+        print 'ERROR: git status not empty'
+        print ''.join(lines)
+        return None
+
+    cmd = 'git tag --contains HEAD'
+    tags = os.popen(cmd).readlines()
+    if len(tags) != 1:
+        print 'ERROR: expected exactly one tag for HEAD, found', len(tags), ':', tags
+        return None
+    version = tags[0].strip()
+    sep = version.find('-')
+    if sep < 0:
+        print 'ERROR: unrecognized version string format:', version
+    return version[sep+1:]
 
 #############################################################
 # File Copy
@@ -150,6 +167,8 @@ BENTO4_VERSION = GetVersion()
 
 # compute paths
 SDK_REVISION = GetSdkRevision()
+if SDK_REVISION is None:
+    sys.exit(1)
 SDK_NAME='Bento4-SDK-'+BENTO4_VERSION+'-'+SDK_REVISION+'.'+SDK_TARGET
 SDK_BUILD_ROOT=BENTO4_HOME+'/SDK'
 SDK_ROOT=SDK_BUILD_ROOT+'/'+SDK_NAME
