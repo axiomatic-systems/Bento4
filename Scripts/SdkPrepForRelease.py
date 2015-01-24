@@ -16,24 +16,17 @@ import shutil
 import platform
 
 #############################################################
-# GetSdkRevision
-#############################################################
-def GetSdkRevision():
-    cmd = 'git rev-list HEAD --count'
-    revision = 0
-    return os.popen(cmd).readlines()[0].strip()
-
-#############################################################
 # Main
 #############################################################
 # parse the command line
-if len(sys.argv) > 1:
-    SDK_TARGET = sys.argv[1]
-else:
-    SDK_TARGET = None
+if len(sys.argv) < 2:
+    print 'ERROR: SDK revision # expected as first argument'
+    sys.exit(1)
+    
+SDK_REVISION = sys.argv[1]
 
-if len(sys.argv) > 2:
-    BENTO4_HOME = sys.argv[1]
+if len(sys.argv) >= 3:
+    BENTO4_HOME = sys.argv[2]
 else:
     script_dir  = os.path.abspath(os.path.dirname(__file__))
     BENTO4_HOME = os.path.join(script_dir,'..')
@@ -44,9 +37,6 @@ if not os.path.exists(BENTO4_HOME) :
     sys.exit(1)
 else :
     print 'BENTO4_HOME = ' + BENTO4_HOME
-
-# compute paths
-SDK_REVISION = GetSdkRevision()
 
 # patch files
 filename = os.path.join(BENTO4_HOME, "Source", "Python", "utils", "mp4-dash.py")
