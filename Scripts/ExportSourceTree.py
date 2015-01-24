@@ -14,7 +14,11 @@ def GetSdkRevision():
     if len(tags) != 1:
         print 'ERROR: expected exactly one tag for HEAD, found', len(tags), ':', tags
         return None
-    return tags[0].strip()
+    version = tags[0].strip()
+    sep = version.find('-')
+    if sep < 0:
+        print 'ERROR: unrecognized version string format:', version
+    return version[sep+1:]
 
 #############################################################
 # GetVersion
