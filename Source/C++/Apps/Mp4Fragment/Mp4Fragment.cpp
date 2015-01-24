@@ -458,7 +458,7 @@ Fragment(AP4_File&                input_file,
         }
         
         // emit a fragment for the selected track
-        if (Options.verbosity > 0) {
+        if (Options.verbosity > 1) {
             printf("fragment: track ID %d ", cursor->m_Track->GetId());
         }
 
@@ -559,7 +559,7 @@ Fragment(AP4_File&                input_file,
                 break; // done with this fragment
             }
         }
-        if (Options.verbosity) {
+        if (Options.verbosity > 1) {
             printf(" %d samples\n", sample_count);
         }
                 
@@ -784,7 +784,7 @@ main(int argc, char** argv)
     AP4_UI32     timescale = 0;
     AP4_Result   result;
 
-    Options.verbosity = 0;
+    Options.verbosity = 1;
     Options.debug     = false;
     
     // parse the command line
