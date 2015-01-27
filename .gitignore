@@ -1,5 +1,5 @@
 *.pyc
-
+.DS_Store
 SDK
 Source/Python/utils/bin/macosx/mp4dump
 Source/Python/utils/bin/macosx/mp4encrypt
