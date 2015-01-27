@@ -609,7 +609,7 @@ def ComputeWidevineHeader(header_spec, kid_hex, key_hex):
         if 'content_id' in fields:
             protobuf_fields.append((4, fields['content_id'].decode('hex')))
         if 'policy' in fields:
-            protobuf_fields.append((6, fields['policy'].decode('hex')))
+            protobuf_fields.append((6, fields['policy']))
         return WidevineMakeHeader(protobuf_fields)
     
     return ""    

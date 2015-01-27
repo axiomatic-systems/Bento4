@@ -830,7 +830,7 @@ AP4_CencEncryptingProcessor::Initialize(AP4_AtomParent&                  top_lev
     if (moov) {
         // create a 'standard EME' pssh atom
         AP4_PsshAtom* eme_pssh = NULL;
-        if (m_Variant == AP4_CENC_VARIANT_MPEG) {
+        if (m_Variant == AP4_CENC_VARIANT_MPEG && AP4_GlobalOptions::GetBool("mpeg-cenc.eme-pssh")) {
             AP4_DataBuffer kids;
             AP4_UI32       kid_count = 0;
             const AP4_List<AP4_TrackPropertyMap::Entry>& prop_entries = m_PropertyMap.GetEntries();

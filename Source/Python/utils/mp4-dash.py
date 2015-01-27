@@ -700,8 +700,8 @@ def main():
     parser.add_option('', "--widevine", dest="widevine", action="store_true", default=False,
                       help="Add Widevine signaling to the MPD (requires an encrypted input, or the --encryption-key option)")
     parser.add_option('', "--widevine-header", dest="widevine_header", metavar='<widevine-header>', default=None,
-                      help="Add a Widevine entry in the MPD, and a Widevine PSSH box in the init segments. The use of this option implies the --widevine option." +
-                           "The <widebine-header> argument can be either: " +
+                      help="Add a Widevine entry in the MPD, and a Widevine PSSH box in the init segments. The use of this option implies the --widevine option. " +
+                           "The <widevine-header> argument can be either: " +
                            "(1) the character '#' followed by a Widevine header encoded in Base64, or " +
                            "(2) one or more <name>:<value> pair(s) (separated by '#' if more than one) specifying fields of a Widevine header (field names include 'provider' [string], 'content_id' [byte array in hex], 'policy' [string])")
     parser.add_option('', "--exec-dir", metavar="<exec_dir>", dest="exec_dir", default=path.join(SCRIPT_PATH, 'bin', platform),
@@ -719,6 +719,7 @@ def main():
         options.use_segment_timeline = True
         if options.use_segment_list:
             raise Exception('ERROR: --smooth and --use-segment-list are mutually exclusive')
+            
     if options.hippo:
         options.split = False
         options.use_segment_timeline = True
