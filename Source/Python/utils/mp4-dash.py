@@ -133,8 +133,6 @@ def AddSegmentTemplate(options, container, init_segment_url, media_url_template_
         kwargs = {'timescale': str(track.timescale),
                   'initialization': init_segment_url,
                   'media': url_template}
-        if use_template_numbers:
-            kwargs['startNumber'] = '0'
         segment_template = xml.SubElement(*args, **kwargs)
         segment_timeline = xml.SubElement(segment_template, 'SegmentTimeline')
         repeat_count = 0
@@ -155,7 +153,6 @@ def AddSegmentTemplate(options, container, init_segment_url, media_url_template_
                        'SegmentTemplate',
                        timescale='1000',
                        duration=str(int(track.average_segment_duration*1000)),
-                       startNumber='0',
                        initialization=init_segment_url,
                        media=SEGMENT_URL_TEMPLATE)
 
@@ -1070,6 +1067,7 @@ def main():
                          audio_track.parent.media_source.filename,
                          track_id               = str(audio_track.id),
                          pattern_parameters     = 'N',
+                         start_number           = '1',
                          init_segment           = path.join(out_dir, audio_track.init_segment_name),
                          media_segment          = path.join(out_dir, SEGMENT_PATTERN))
         
@@ -1082,6 +1080,7 @@ def main():
                          video_track.parent.media_source.filename,
                          track_id               = str(video_track.id),
                          pattern_parameters     = 'N',
+                         start_number           = '1',
                          init_segment           = path.join(out_dir, video_track.init_segment_name),
                          media_segment          = path.join(out_dir, SEGMENT_PATTERN))
         else:
