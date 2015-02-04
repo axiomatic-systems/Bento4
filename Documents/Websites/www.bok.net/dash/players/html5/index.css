@@ -1,0 +1,14 @@
+td {
+  padding: 2px;
+}
+
+td.heading {
+  font-weight: bold;
+  text-decoration: underline;
+  font-size: 120%;
+}
+
+tr {
+  padding: 2px;
+}
+

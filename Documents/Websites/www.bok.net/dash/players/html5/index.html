@@ -1,0 +1,59 @@
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>DASH Test Player</title>
+    <link rel="stylesheet" href="index.css"></link>
+    <script src="shaka-player.compiled.js"></script>
+    <script src="app.js"></script>
+  </head>
+  <body>
+    <table>
+      <tr class="http">
+        <td>Media URL:</td>
+        <td><input id="mediaUrlInput" type="text"></input></td>
+      </tr>
+
+      <tr class="dash">
+        <td>DASH manifest:</td>
+        <td>
+          <select id="mpdList" onchange="app.onMpdChange()">
+            <option value="http://www.bok.net/dash/tears_of_steel/cleartext/stream.mpd">Tears Of Steel, isoff-live</option>
+            <option value="http://www.bok.net/dash/tears_of_steel/cenc_08/stream.mpd">Tears Of Steel, isoff-live, CENC, 8-bit IV</option>
+            <option value="">(custom)</option>
+          </select>
+        </td>
+      </tr>
+      <tr class="dash">
+        <td>Custom manifest URL:</td>
+        <td>
+          <input id="manifestUrlInput" type="text" style="width: 98%;" oninput="app.onMpdCustom()"></input>
+        </td>
+      </tr>
+
+      <tr class="dash">
+        <td>
+          Clear Key (&lt;kid:key&gt; in hex)
+        </td>
+        <td>
+          <input id="clearKeyInput" type="text" style="width: 98%;"></input>
+        </td>
+      </tr>
+
+      <!-- Common rows -->
+      <tr>
+        <td colspan="2">
+          <button onclick="app.loadStream();">Load stream</button>
+        </td>
+      </tr>
+    </table>
+
+    <br>
+
+    <div>
+      <video id="video" 
+             width="600" height="400"
+             crossorigin="anonymous"
+             autoplay controls></video>
+    </div>
+  </body>
+</html>
