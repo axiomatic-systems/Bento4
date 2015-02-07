@@ -385,7 +385,15 @@ Fragment(AP4_File&                input_file,
         // decide how many samples go into this fragment
         AP4_UI64 target_dts;
         if (cursor == anchor_cursor) {
-            target_dts = AP4_ConvertTime(fragment_duration*(cursor->m_FragmentIndex+1),
+            // compute the current dts in milliseconds
+            AP4_UI64 anchor_dts_ms = AP4_ConvertTime(cursor->m_Sample.GetDts(),
+                                                     cursor->m_Track->GetMediaTimeScale(),
+                                                     1000);
+            // round to the nearest multiple of fragment_duration
+            AP4_UI64 anchor_position = (anchor_dts_ms + (fragment_duration/2))/fragment_duration;
+            
+            // pick the next fragment_duration multiple at our target
+            target_dts = AP4_ConvertTime(fragment_duration*(anchor_position+1),
                                          1000,
                                          cursor->m_Track->GetMediaTimeScale());
         } else {
@@ -410,7 +418,7 @@ Fragment(AP4_File&                input_file,
         unsigned int end_sample_index = cursor->m_Samples->GetSampleCount();
         AP4_UI64 smallest_diff = (AP4_UI64)(0xFFFFFFFFFFFFFFFFULL);
         AP4_Sample sample;
-        for (unsigned int i=cursor->m_SampleIndex; i<=cursor->m_Samples->GetSampleCount(); i++) {
+        for (unsigned int i=cursor->m_SampleIndex+1; i<=cursor->m_Samples->GetSampleCount(); i++) {
             AP4_UI64 dts;
             if (i < cursor->m_Samples->GetSampleCount()) {
                 result = cursor->m_Samples->GetSample(i, sample);
