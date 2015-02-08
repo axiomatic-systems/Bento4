@@ -8,14 +8,9 @@
   </head>
   <body>
     <table>
-      <tr class="http">
-        <td>Media URL:</td>
-        <td><input id="mediaUrlInput" type="text"></input></td>
-      </tr>
-
       <tr class="dash">
         <td>DASH manifest:</td>
-        <td>
+        <td width=600>
           <select id="mpdList" onchange="app.onMpdChange()">
             <option value="http://www.bok.net/dash/tears_of_steel/cleartext/stream.mpd">Tears Of Steel, isoff-live</option>
             <option value="http://www.bok.net/dash/tears_of_steel/cenc_08/stream.mpd">Tears Of Steel, isoff-live, CENC, 8-bit IV</option>
@@ -32,7 +27,7 @@
 
       <tr class="dash">
         <td>
-          Clear Key (&lt;kid:key&gt; in hex)
+          Force Clear Key (&lt;kid&gt;:&lt;key&gt; in hex)
         </td>
         <td>
           <input id="clearKeyInput" type="text" style="width: 98%;"></input>

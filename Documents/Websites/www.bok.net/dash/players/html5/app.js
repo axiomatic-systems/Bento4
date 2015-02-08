@@ -326,34 +326,28 @@ app.interpretContentProtection_ = function(contentProtection) {
         'com.widevine.alpha', true, licenseServerUrl, false, null, null);
   }
 
-if (contentProtection.schemeIdUri == 'urn:mpeg:dash:mp4protection:2011' && contentProtection.value == "cenc") {
-    var keyid = null;
-    var key = null;
+  var clearkey = document.getElementById('clearKeyInput');
+  if (clearkey.value) {
+    var Uint8ArrayUtils = shaka.util.Uint8ArrayUtils;
 
-    var clearkey = document.getElementById('clearKeyInput');
-    if (clearkey.value) {
-        //keyid = StringUtils.fromHex(clearkey.value.substring(0,32));
-        //key   = StringUtils.fromHex(clearkey.value.substring(33));
-    } else {
-      console.warn("No clearkey set");
-      return null;
-    }
-    console.log(keyid, key);
+    var keyid = Uint8ArrayUtils.fromHex(clearkey.value.substring(0,32));
+    var key   = Uint8ArrayUtils.fromHex(clearkey.value.substring(33));
+    console.log("Clear Key: ", keyid, key);
 
-    var child = contentProtection.children[0];
     var keyObj = {
       kty: 'oct',
-      kid: StringUtils.toBase64(keyid, false),
-      k: StringUtils.toBase64(key, false)
+      alg: 'A128KW',
+      kid: Uint8ArrayUtils.toBase64(keyid, false),
+      k: Uint8ArrayUtils.toBase64(key, false)
     };
     var jwkSet = {keys: [keyObj]};
     var license = JSON.stringify(jwkSet);
     var initData = {
-      initData: StringUtils.toUint8Array(keyid),
+      initData: keyid,
       initDataType: 'cenc'
     };
     var licenseServerUrl = 'data:application/json;base64,' +
-        StringUtils.toBase64(license);
+        window.btoa(license);
     return new shaka.player.DrmSchemeInfo(
         'org.w3.clearkey', false, licenseServerUrl, false, initData, null);
   }
