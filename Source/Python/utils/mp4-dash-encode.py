@@ -106,8 +106,8 @@ def main():
                       help="Minimum bitrate (default: 500kbps)", default=500.0)
     parser.add_option('-n', '--max-video-bitrate', dest='max_bitrate', type='float',
                       help="Max Video bitrate (default: 2mbps)", default=2000.0),
-    parser.add_option('-p', '--video-profile', dest='video_profile',
-                      help="Video Encoding Profile: main or baseline (default)")
+    parser.add_option('-c', '--video-codec', dest='video_codec', default='libx264',
+                      help="Video Codec: libx264 (default) or libx265")
     parser.add_option('-a', '--audio-bitrate', dest='audio_bitrate', type='int',
                       help="Audio bitrate (default: 128kbps)", default=128)
     parser.add_option('', '--select-streams', dest='select_streams', 
@@ -132,10 +132,6 @@ def main():
     if options.min_bitrate > options.max_bitrate:
         raise Exception('ERROR: max bitrate must be >= min bitrate')
 
-    if options.video_profile:
-        if not options.video_profile in ['main', 'baseline']:
-            raise Exception('ERROR: unknown video encoding profile')
-
     if options.verbose:
         print 'Encoding', options.bitrates, 'bitrates, min bitrate =', options.min_bitrate, 'max bitrate =', options.max_bitrate
 
@@ -156,7 +152,9 @@ def main():
     for i in range(options.bitrates):
         output_filename = 'video_%05d.mp4' % int(bitrates[i])
         temp_filename = output_filename+'_'
-        base_cmd  = 'ffmpeg -i "%s" -strict experimental -acodec libfdk_aac -ac 2 -ab %dk -profile:v baseline -preset slow -vcodec libx264' % (args[0], options.audio_bitrate)
+        base_cmd  = 'ffmpeg -i "%s" -strict experimental -codec:a libfdk_aac -ac 2 -ab %dk -preset slow -codec:v %s' % (args[0], options.audio_bitrate, options.video_codec)
+        if options.video_codec == 'libx264':
+            base_cmd += ' -profile:v baseline'
         if options.text_overlay:
             base_cmd += ' -vf "drawtext=fontfile=/Library/Fonts/Courier New.ttf: text='+str(int(bitrates[i]))+'kbps '+str(resolutions[i][0])+'*'+str(resolutions[i][1])+': fontsize=50:  x=(w)/8: y=h-(2*lh): fontcolor=white:"'
         if options.select_streams:
@@ -169,13 +167,14 @@ def main():
             base_cmd += ' -v quiet'
         if options.force_output:
             base_cmd += ' -y'
-        if options.video_profile:
-            base_cmd += ' -profile:v '+options.video_profile
 
         #x264_opts = "-x264opts keyint=%d:min-keyint=%d:scenecut=0:rc-lookahead=%d" % (options.segment_size, options.segment_size, options.segment_size)
-        x264_opts = "-force_key_frames 'expr:eq(mod(n,%d),0)' -x264opts rc-lookahead=%d" % (options.segment_size, options.segment_size)
-        x264_opts += ':vbv-bufsize=%d:vbv-maxrate=%d' % (bitrates[i], int(bitrates[i]*1.5))
-        cmd = base_cmd+' '+x264_opts+' -s '+str(resolutions[i][0])+'x'+str(resolutions[i][1])+' -f mp4 '+temp_filename
+        #video_opts = "-g %d" % (options.segment_size)
+        video_opts = "-force_key_frames 'expr:eq(mod(n,%d),0)'" % (options.segment_size)
+        video_opts += " -bufsize %dk -maxrate %dk" % (bitrates[i], int(bitrates[i]*1.5))
+        if options.video_codec == 'libx264':
+            video_opts += " -x264opts rc-lookahead=%d" % (options.segment_size)
+        cmd = base_cmd+' '+video_opts+' -s '+str(resolutions[i][0])+'x'+str(resolutions[i][1])+' -f mp4 '+temp_filename
         if options.verbose:
             print 'ENCODING bitrate: %d, resolution: %dx%d' % (int(bitrates[i]), resolutions[i][0], resolutions[i][1])
         run_command(options, cmd)
