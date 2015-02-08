@@ -169,11 +169,11 @@ AP4_HvccAtom::AP4_HvccAtom(AP4_UI32 size, const AP4_UI08* payload) :
     m_GeneralProfileSpace    = (payload[1]>>6) & 0x03;
     m_GeneralTierFlag        = (payload[1]>>5) & 0x01;
     m_GeneralProfile         = (payload[1]   ) & 0x1F;
-    m_GeneralProfileCompatibilityFlags = AP4_BytesToInt32BE(&payload[2]);
-    m_GeneralConstraintIndicatorFlags  = (((AP4_UI64)AP4_BytesToInt32BE(&payload[6]))<<16) | AP4_BytesToInt16BE(&payload[10]);
+    m_GeneralProfileCompatibilityFlags = AP4_BytesToUInt32BE(&payload[2]);
+    m_GeneralConstraintIndicatorFlags  = (((AP4_UI64)AP4_BytesToUInt32BE(&payload[6]))<<16) | AP4_BytesToUInt16BE(&payload[10]);
     m_GeneralLevel           = payload[12];
     m_Reserved1              = (payload[13]>>4) & 0x0F;
-    m_MinSpatialSegmentation = AP4_BytesToInt16BE(&payload[13]) & 0x0FFF;
+    m_MinSpatialSegmentation = AP4_BytesToUInt16BE(&payload[13]) & 0x0FFF;
     m_Reserved2              = (payload[15]>>2) & 0x3F;
     m_ParallelismType        = payload[15] & 0x03;
     m_Reserved3              = (payload[16]>>2) & 0x3F;
@@ -250,6 +250,7 @@ AP4_HvccAtom::InspectFields(AP4_AtomInspector& inspector)
     }
     inspector.AddField("Tier", m_GeneralTierFlag);
     inspector.AddField("Profile Compatibility", m_GeneralProfileCompatibilityFlags, AP4_AtomInspector::HINT_HEX);
+    inspector.AddField("Constraint", m_GeneralConstraintIndicatorFlags, AP4_AtomInspector::HINT_HEX);
     inspector.AddField("Level", m_GeneralLevel);
     inspector.AddField("Min Spatial Segmentation", m_MinSpatialSegmentation);
     inspector.AddField("Parallelism Type", m_ParallelismType);

@@ -971,7 +971,7 @@ def main():
         audio_desc = audio_track.info['sample_descriptions'][0]
         audio_coding = audio_desc['coding']
         if audio_coding == 'mp4a':
-            audio_codec = 'mp4a.%02x' % (audio_desc['object_type'])
+            audio_codec = 'mp4a.%02X' % (audio_desc['object_type'])
             if audio_desc['object_type'] == 64:
                 audio_codec += '.'+str(audio_desc['mpeg_4_audio_object_type'])
         else:
@@ -982,10 +982,8 @@ def main():
     # compute the video codecs and dimensions
     for video_track in video_tracks:
         video_desc = video_track.info['sample_descriptions'][0]
-        if video_desc['coding'].startswith('avc'):
-            video_codec = video_desc['coding'] + '.%02x%02x%02x' % (video_desc['avc_profile'],
-                                                                    video_desc['avc_profile_compat'],
-                                                                    video_desc['avc_level'])
+        if 'codecs_string' in video_desc:
+            video_codec = video_desc['codecs_string']
         else:
             video_codec = video_desc['coding']
 

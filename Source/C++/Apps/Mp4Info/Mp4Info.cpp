@@ -2,7 +2,7 @@
 |
 |    AP4 - MP4 File Info
 |
-|    Copyright 2002-2008 Axiomatic Systems, LLC
+|    Copyright 2002-2015 Axiomatic Systems, LLC
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -40,9 +40,9 @@
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-#define BANNER "MP4 File Info - Version 1.3.2\n"\
+#define BANNER "MP4 File Info - Version 1.3.3\n"\
                "(Bento4 Version " AP4_VERSION_STRING ")\n"\
-               "(c) 2002-2010 Axiomatic Systems, LLC"
+               "(c) 2002-2015 Axiomatic Systems, LLC"
  
 /*----------------------------------------------------------------------
 |   globals
@@ -109,6 +109,62 @@ ShowData(const AP4_DataBuffer& data)
     for (unsigned int i=0; i<data.GetDataSize(); i++) {
         printf("%02x", (unsigned char)data.GetData()[i]);
     }
+}
+
+/*----------------------------------------------------------------------
+|   ShowAvcCodecsString
++---------------------------------------------------------------------*/
+static void
+ShowAvcCodecsString(AP4_AvcSampleDescription& avc_desc) {
+    char coding[5];
+    AP4_FormatFourChars(coding, avc_desc.GetFormat());
+    printf("%s.%02X%02X%02X",
+           coding,
+           avc_desc.GetProfile(),
+           avc_desc.GetProfileCompatibility(),
+           avc_desc.GetLevel());
+}
+
+/*----------------------------------------------------------------------
+|   ReverseBits
++---------------------------------------------------------------------*/
+AP4_UI32
+ReverseBits(AP4_UI32 bits)
+{
+    unsigned int count = sizeof(bits) * 8;
+    AP4_UI32 reverse_bits = 0;
+     
+    while (bits) {
+       reverse_bits = (reverse_bits << 1) | (bits & 1);
+       bits >>= 1;
+       count--;
+    }
+    return reverse_bits << count;
+}
+
+/*----------------------------------------------------------------------
+|   ShowHevcCodecsString
++---------------------------------------------------------------------*/
+static void
+ShowHevcCodecsString(AP4_HevcSampleDescription& avc_desc) {
+    char coding[5];
+    AP4_FormatFourChars(coding, avc_desc.GetFormat());
+    char profile_space[2] = {0,0};
+    if (avc_desc.GetGeneralProfileSpace() > 0 && avc_desc.GetGeneralProfileSpace() <= 3) {
+        profile_space[0] = 'A'+avc_desc.GetGeneralProfileSpace()-1;
+    }
+    printf("%s.%s%d.%X.%c%d.",
+           coding,
+           profile_space,
+           avc_desc.GetGeneralProfile(),
+           ReverseBits(avc_desc.GetGeneralProfileCompatibilityFlags()),
+           avc_desc.GetGeneralTierFlag()?'H':'L',
+           avc_desc.GetGeneralLevel());
+    AP4_UI64 constraints = avc_desc.GetGeneralConstraintIndicatorFlags();
+    while (constraints && ((constraints & 0xFF) == 0)) {
+        constraints >>= 8;
+    }
+    printf("%llX", constraints);
 }
 
 /*----------------------------------------------------------------------
@@ -463,10 +519,14 @@ ShowSampleDescription_Text(AP4_SampleDescription& description, bool verbose)
             sep = ", ";
         }
         printf("]\n");
+        printf("    Codecs String: ");
+        ShowAvcCodecsString(*avc_desc);
+        printf("\n");
     } else if (desc->GetType() == AP4_SampleDescription::TYPE_HEVC) {
         // HEVC Sample Description
         AP4_HevcSampleDescription* hevc_desc = AP4_DYNAMIC_CAST(AP4_HevcSampleDescription, desc);
         const char* profile_name = AP4_HvccAtom::GetProfileName(hevc_desc->GetGeneralProfileSpace(), hevc_desc->GetGeneralProfile());
+        printf("    HEVC Profile Space:       %d\n", hevc_desc->GetGeneralProfileSpace());
         printf("    HEVC Profile:             %d", hevc_desc->GetGeneralProfile());
         if (profile_name) printf(" (%s)", profile_name);
         printf("\n");
@@ -499,6 +559,9 @@ ShowSampleDescription_Text(AP4_SampleDescription& description, bool verbose)
             }
             printf("\n      }\n");
         }
+        printf("    Codecs String: ");
+        ShowHevcCodecsString(*hevc_desc);
+        printf("\n");
     }
 
     
@@ -609,8 +672,60 @@ ShowSampleDescription_Json(AP4_SampleDescription& description, bool verbose)
             printf("\"");
             sep = ", ";
         }
-        printf("]");
+        printf("],\n");
+        printf("\"codecs_string\":\"");
+        ShowAvcCodecsString(*avc_desc);
+        printf("\"");
+    } else if (desc->GetType() == AP4_SampleDescription::TYPE_HEVC) {
+        // HEVC Sample Description
+        AP4_HevcSampleDescription* hevc_desc = AP4_DYNAMIC_CAST(AP4_HevcSampleDescription, desc);
+        printf(",\n");
+        printf("\"hevc_profile_space\":%d,\n", hevc_desc->GetGeneralProfileSpace());
+        printf("\"hevc_profile\":%d,\n", hevc_desc->GetGeneralProfile());
+        const char* profile_name = AP4_HvccAtom::GetProfileName(hevc_desc->GetGeneralProfileSpace(), hevc_desc->GetGeneralProfile());
+        if (profile_name) printf("\"hevc_profile_name\":\"%s\",\n", profile_name);
+        printf("\"hevc_profile_compat\":%d,\n", hevc_desc->GetGeneralProfileCompatibilityFlags());
+        printf("\"hevc_constraints\":%llu,\n", hevc_desc->GetGeneralConstraintIndicatorFlags());
+        printf("\"hevc_level\":%d,\n", hevc_desc->GetGeneralLevel());
+        printf("\"hevc_level_name\":\"%d.%d\",\n", hevc_desc->GetGeneralLevel()/30, (hevc_desc->GetGeneralLevel()%30)/3);
+        printf("\"hevc_tier\":%d,\n", hevc_desc->GetGeneralTierFlag());
+        printf("\"hevc_chroma_format\":%d,\n", hevc_desc->GetChromaFormat());
+        const char* chroma_format_name = AP4_HvccAtom::GetChromaFormatName(hevc_desc->GetChromaFormat());
+        if (chroma_format_name) printf("\"hevc_chroma_format_name\":\"%s\",\n", chroma_format_name);
+        printf("\"hevc_chroma_bit_depth\":%d,\n", hevc_desc->GetChromaBitDepth());
+        printf("\"hevc_lunma_bit_depth\":%d,\n", hevc_desc->GetLumaBitDepth());
+        printf("\"hevc_average_frame_rate\":%d,\n", hevc_desc->GetAverageFrameRate());
+        printf("\"hevc_constant_frame_rate\":%d,\n", hevc_desc->GetConstantFrameRate());
+        printf("\"hevc_nalu_length_size\":%d,\n", hevc_desc->GetNaluLengthSize());
+        printf("\"hevc_sequences\": [\n");
+        const char* seq_sep = "";
+        for (unsigned int i=0; i<hevc_desc->GetSequences().ItemCount(); i++) {
+            const AP4_HvccAtom::Sequence& seq = hevc_desc->GetSequences()[i];
+            printf("%s      {\n", seq_sep);
+            printf("        \"array_completeness\":%d,\n", seq.m_ArrayCompleteness);
+            printf("        \"type\":%d,\n", seq.m_NaluType);
+            const char* nalu_type_name = AP4_HevcParser::NaluTypeName(seq.m_NaluType);
+            if (nalu_type_name) {
+                printf("        \"type_name\":\"%s\",\n", nalu_type_name);
+            }
+            printf("        \"data\":[");
+            const char* sep = "";
+            for (unsigned int j=0; j<seq.m_Nalus.ItemCount(); j++) {
+                printf("%s", sep);
+                printf("\"");
+                ShowData(seq.m_Nalus[j]);
+                printf("\"");
+                sep = ", ";
+            }
+            printf("]\n      }");
+            seq_sep = ",\n";
+        }
+        printf("\n],\n");
+        printf("\"codecs_string\":\"");
+        ShowHevcCodecsString(*hevc_desc);
+        printf("\"");
     }
+
     
     printf("\n}");
 }
