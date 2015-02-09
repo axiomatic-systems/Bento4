@@ -70,7 +70,7 @@ PrintUsageAndExit()
             "  --quiet don't print out notice messages\n"
             "  --fragment-duration <milliseconds> (default = automatic)\n"
             "  --timescale <n> (use 10000000 for Smooth Streaming compatibility)\n"
-            "  --track <track-id or type> only include media from one track (pass a track ID or 'audio' or 'video')\n"
+            "  --track <track-id or type> only include media from one track (pass a track ID, 'audio', 'video' or 'subtitles')\n"
             "  --index (re)create the segment index\n"
             );
     exit(1);
@@ -321,6 +321,13 @@ Fragment(AP4_File&                input_file,
         // no video track to anchor with, pick the first audio track
         for (unsigned int i=0; i<cursors.ItemCount(); i++) {
             if (cursors[i]->m_Track->GetType() == AP4_Track::TYPE_AUDIO) {
+                anchor_cursor = cursors[i];
+                break;
+            }
+        }
+        // no audio track to anchor with, pick the first subtitles track
+        for (unsigned int i=0; i<cursors.ItemCount(); i++) {
+            if (cursors[i]->m_Track->GetType() == AP4_Track::TYPE_SUBTITLES) {
                 anchor_cursor = cursors[i];
                 break;
             }
@@ -891,8 +898,10 @@ main(int argc, char** argv)
     // iterate over all tracks
     TrackCursor*  video_track = NULL;
     TrackCursor*  audio_track = NULL;
+    TrackCursor*  subtitles_track = NULL;
     unsigned int video_track_count = 0;
     unsigned int audio_track_count = 0;
+    unsigned int subtitles_track_count = 0;
     for (AP4_List<AP4_Track>::Item* track_item = input_file.GetMovie()->GetTracks().FirstItem();
                                     track_item;
                                     track_item = track_item->GetNext()) {
@@ -929,6 +938,11 @@ main(int argc, char** argv)
                 audio_track = cursor;
             }
             audio_track_count++;
+        } else if (track->GetType() == AP4_Track::TYPE_SUBTITLES) {
+            if (subtitles_track == NULL) {
+                subtitles_track = cursor;
+            }
+            subtitles_track_count++;
         }
     }
 
@@ -952,6 +966,13 @@ main(int argc, char** argv)
                 fprintf(stderr, "ERROR: no video track found\n");
                 return 1;
             }
+        } else if (!strncmp("subtitles", track_selector, 9)) {
+            if (subtitles_track) {
+                selected_track_id = subtitles_track->m_Track->GetId();
+            } else {
+                fprintf(stderr, "ERROR: no subtitles track found\n");
+                return 1;
+            }
         } else {
             selected_track_id = (AP4_UI32)strtol(track_selector, NULL, 10);
             bool found = false;
@@ -968,8 +989,8 @@ main(int argc, char** argv)
         }
     }
     
-    if (video_track_count == 0 && audio_track_count == 0) {
-        fprintf(stderr, "ERROR: no audio or video track in the file\n");
+    if (video_track_count == 0 && audio_track_count == 0 && subtitles_track_count == 0) {
+        fprintf(stderr, "ERROR: no audio, video, or subtitles track in the file\n");
         return 1;
     }
     

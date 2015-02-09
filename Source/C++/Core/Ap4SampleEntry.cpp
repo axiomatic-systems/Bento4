@@ -1147,6 +1147,7 @@ AP4_SubtitleSampleEntry::AP4_SubtitleSampleEntry(
     m_SchemaLocation(schema_location),
     m_ImageMimeType(image_mime_type)
 {
+    SetSize(m_Size32+m_Namespace.GetLength()+1+m_SchemaLocation.GetLength()+1+m_ImageMimeType.GetLength()+1);
 }
 
 /*----------------------------------------------------------------------
