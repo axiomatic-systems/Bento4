@@ -394,7 +394,8 @@ ShowMpegAudioSampleDescription(AP4_MpegAudioSampleDescription& mpeg_audio_desc)
 
                         printf(",\n");
                         printf("  \"extension\":{\n");
-                        printf("    \"object_type\":\"%s\",\n", object_type_string);
+                        printf("    \"object_type\":%d,\n", dec_config.m_Extension.m_ObjectType);
+                        printf("    \"object_type_name\":\"%s\",\n", object_type_string);
                         printf("    \"sbr_present\":%s,\n", dec_config.m_Extension.m_SbrPresent?"true":"false");
                         printf("    \"ps_present\":%s,\n",   dec_config.m_Extension.m_PsPresent?"true":"false");
                         printf("    \"sampling_frequency\":%d\n", dec_config.m_Extension.m_SamplingFrequency);

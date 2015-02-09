@@ -18,6 +18,7 @@ import shutil
 import xml.etree.ElementTree as xml
 from xml.dom.minidom import parseString
 import tempfile
+import fractions
 from mp4utils import *
 
 # setup main options
@@ -46,31 +47,35 @@ SEGMENT_PATTERN             = NOPAD_SEGMENT_PATTERN
 SEGMENT_URL_PATTERN         = NOPAD_SEGMENT_URL_PATTERN
 SEGMENT_URL_TEMPLATE        = NOPAD_SEGMENT_URL_TEMPLATE
 
-MEDIA_FILE_PATTERN        = 'media-%02d.mp4'
-MARLIN_SCHEME_ID_URI      = 'urn:uuid:5E629AF5-38DA-4063-8977-97FFBD9902D4'
-MARLIN_MAS_NAMESPACE      = 'urn:marlin:mas:1-0:services:schemas:mpd'
-PLAYREADY_PSSH_SYSTEM_ID  = '9a04f07998404286ab92e65be0885f95'
-PLAYREADY_SCHEME_ID_URI   = 'urn:uuid:9a04f079-9840-4286-ab92-e65be0885f95'
-PLAYREADY_MSPR_NAMESPACE  = 'urn:microsoft:playready'
-WIDEVINE_PSSH_SYSTEM_ID   = 'edef8ba979d64acea3c827dcd51d21ed'
-WIDEVINE_SCHEME_ID_URI    = 'urn:uuid:edef8ba9-79d6-4ace-a3c8-27dcd51d21ed'
-SMOOTH_DEFAULT_TIMESCALE  = 10000000
-SMIL_NAMESPACE            = 'http://www.w3.org/2001/SMIL20/Language'
-CENC_2013_NAMESPACE       = 'urn:mpeg:cenc:2013'
+MEDIA_FILE_PATTERN          = 'media-%02d.mp4'
+MARLIN_SCHEME_ID_URI        = 'urn:uuid:5E629AF5-38DA-4063-8977-97FFBD9902D4'
+MARLIN_MAS_NAMESPACE        = 'urn:marlin:mas:1-0:services:schemas:mpd'
+PLAYREADY_PSSH_SYSTEM_ID    = '9a04f07998404286ab92e65be0885f95'
+PLAYREADY_SCHEME_ID_URI     = 'urn:uuid:9a04f079-9840-4286-ab92-e65be0885f95'
+PLAYREADY_SCHEME_ID_URI_V10 = 'urn:uuid:79f0049a-4098-8642-ab92-e65be0885f95'
+PLAYREADY_MSPR_NAMESPACE    = 'urn:microsoft:playready'
+WIDEVINE_PSSH_SYSTEM_ID     = 'edef8ba979d64acea3c827dcd51d21ed'
+WIDEVINE_SCHEME_ID_URI      = 'urn:uuid:edef8ba9-79d6-4ace-a3c8-27dcd51d21ed'
+SMOOTH_DEFAULT_TIMESCALE    = 10000000
+SMIL_NAMESPACE              = 'http://www.w3.org/2001/SMIL20/Language'
+CENC_2013_NAMESPACE         = 'urn:mpeg:cenc:2013'
 DASH_MEDIA_SEGMENT_URL_PATTERN_SMOOTH = "/QualityLevels($Bandwidth$)/Fragments(%s=$Time$)"
 DASH_MEDIA_SEGMENT_URL_PATTERN_HIPPO  = '%s/Bitrate($Bandwidth$)/Fragment($Time$)'
 HIPPO_MEDIA_SEGMENT_REGEXP_DEFAULT = '%s/Bitrate\\\\(%d\\\\)/Fragment\\\\((\\\\d+)\\\\)'
 HIPPO_MEDIA_SEGMENT_GROUPS_DEFAULT = '["time"]'
 HIPPO_MEDIA_SEGMENT_REGEXP_SMOOTH  = 'QualityLevels\\\\(%d\\\\)/Fragments\\\\(%s=(\\\\d+)\\\\)'
 HIPPO_MEDIA_SEGMENT_GROUPS_SMOOTH  = '["time"]'
+AUDIO_CHANNEL_CONFIGURATION_SCHEME_ID_URI = 'urn:mpeg:dash:23003:3:audio_channel_configuration:2011'
 
 ISOFF_MAIN_PROFILE        = 'urn:mpeg:dash:profile:isoff-main:2011'
 ISOFF_LIVE_PROFILE        = 'urn:mpeg:dash:profile:isoff-live:2011'
 ISOFF_ON_DEMAND_PROFILE   = 'urn:mpeg:dash:profile:isoff-on-demand:2011'
+HBBTV_15_LIVE_PROFILE     = 'urn:hbbtv:dash:profile:isoff-live:2012'
 ProfileAliases = {
   'main':      ISOFF_MAIN_PROFILE,
   'live':      ISOFF_LIVE_PROFILE,
-  'on-demand': ISOFF_ON_DEMAND_PROFILE
+  'on-demand': ISOFF_ON_DEMAND_PROFILE,
+  'hbbtv-1.5': HBBTV_15_LIVE_PROFILE
 }
 
 TempFiles = []
@@ -199,7 +204,11 @@ def AddContentProtection(options, container, tracks):
         else:
             kid = kids[0]
             key = None
-        cp = xml.SubElement(container, 'ContentProtection', schemeIdUri=PLAYREADY_SCHEME_ID_URI)
+        if 'hbbtv-1.5' in options.profiles:
+            playread_scheme_id_uri = PLAYREADY_SCHEME_ID_URI_V10
+        else:
+            playread_scheme_id_uri = PLAYREADY_SCHEME_ID_URI
+        cp = xml.SubElement(container, 'ContentProtection', schemeIdUri=playread_scheme_id_uri)
         if options.playready_header:
             header_bin = ComputePlayReadyHeader(options.playready_header, kid, key)
             header_b64 = header_bin.encode('base64').replace('\n', '')
@@ -234,19 +243,25 @@ def OutputDash(options, audio_tracks, video_tracks):
     for (language, audio_track) in audio_tracks.iteritems():
         args = [period, 'AdaptationSet']
         kwargs = {'mimeType': AUDIO_MIMETYPE, 'startWithSAP': '1', 'segmentAlignment': 'true'}
-        if language != 'und':
+        if (language != 'und') or (HBBTV_15_LIVE_PROFILE in options.profiles):
             kwargs['lang'] = language
         stream_name = 'audio_' + language
         adaptation_set = xml.SubElement(*args, **kwargs)
         if options.encryption_key or options.marlin or options.playready or options.widevine:
             AddContentProtection(options, adaptation_set, [audio_track])
     
+        representation = xml.SubElement(adaptation_set,
+                                        'Representation',
+                                        id=audio_track.representation_id,
+                                        codecs=audio_track.codec,
+                                        bandwidth=str(audio_track.bandwidth),
+                                        audioSamplingRate=str(audio_track.sample_rate))
+        audio_channel_config = xml.SubElement(representation,
+                                              'AudioChannelConfiguration',
+                                              schemeIdUri=AUDIO_CHANNEL_CONFIGURATION_SCHEME_ID_URI,
+                                              value=str(audio_track.channels))            
+
         if ISOFF_ON_DEMAND_PROFILE in options.profiles:
-            representation = xml.SubElement(adaptation_set,
-                                            'Representation',
-                                            id=audio_track.representation_id,
-                                            codecs=audio_track.codec,
-                                            bandwidth=str(audio_track.bandwidth))
             base_url = xml.SubElement(representation, 'BaseURL')
             base_url.text = ONDEMAND_MEDIA_FILE_PATTERN % (audio_track.representation_id)
             sidx_range = (audio_track.sidx_atom.position, audio_track.sidx_atom.position+audio_track.sidx_atom.size-1)
@@ -264,12 +279,6 @@ def OutputDash(options, audio_tracks, video_tracks):
                 media_segment_url_template_prefix = ''
 
             AddSegmentTemplate(options, adaptation_set, init_segment_url, media_segment_url_template_prefix, audio_track, stream_name)
-    
-            representation = xml.SubElement(adaptation_set,
-                                            'Representation',
-                                            id=audio_track.representation_id,
-                                            codecs=audio_track.codec,
-                                            bandwidth=str(audio_track.bandwidth))
             AddSegments(options, representation, media_subdir, audio_track)
         
     # process all the video tracks
@@ -281,45 +290,36 @@ def OutputDash(options, audio_tracks, video_tracks):
     if options.encryption_key or options.marlin or options.playready or options.widevine:
         AddContentProtection(options, adaptation_set, video_tracks)
     
-    if ISOFF_ON_DEMAND_PROFILE in options.profiles:
-        for video_track in video_tracks:
-            representation = xml.SubElement(adaptation_set,
-                                            'Representation',
-                                            id=video_track.representation_id,
-                                            codecs=video_track.codec,
-                                            width=str(video_track.width),
-                                            height=str(video_track.height),
-                                            bandwidth=str(video_track.bandwidth))
-            if hasattr(video_track, 'max_playout_rate'):
-                representation.set('maxPlayoutRate', video_track.max_playout_rate)
-            base_url = xml.SubElement(representation, 'BaseURL')
-            base_url.text = ONDEMAND_MEDIA_FILE_PATTERN % (video_track.representation_id)
-            sidx_range = (video_track.sidx_atom.position, video_track.sidx_atom.position+video_track.sidx_atom.size-1)
-            init_range = (0, video_track.moov_atom.position+video_track.moov_atom.size-1)
-            segment_base = xml.SubElement(representation, 'SegmentBase', indexRange=str(sidx_range[0])+'-'+str(sidx_range[1]))
-            xml.SubElement(segment_base, 'Initialization', range=str(init_range[0])+'-'+str(init_range[1]))
-    else:
+    if len(video_tracks) and ISOFF_ON_DEMAND_PROFILE not in options.profiles:
         if options.split:
             init_segment_url                  = '$RepresentationID$/' + SPLIT_INIT_SEGMENT_NAME
             media_segment_url_template_prefix = '$RepresentationID$/'
         else:
             init_segment_url                  = NOSPLIT_INIT_FILE_PATTERN % ('$RepresentationID$') 
             media_segment_url_template_prefix = ''
+        AddSegmentTemplate(options, adaptation_set, init_segment_url, media_segment_url_template_prefix, video_tracks[0], 'video')
 
-        if len(video_tracks):
-            AddSegmentTemplate(options, adaptation_set, init_segment_url, media_segment_url_template_prefix, video_tracks[0], 'video')
-        
-        for video_track in video_tracks:
-            representation = xml.SubElement(adaptation_set,
-                                            'Representation',
-                                            id=video_track.representation_id,
-                                            codecs=video_track.codec,
-                                            width=str(video_track.width),
-                                            height=str(video_track.height),
-                                            bandwidth=str(video_track.bandwidth))
-            if hasattr(video_track, 'max_playout_rate'):
-                representation.set('maxPlayoutRate', video_track.max_playout_rate)
+    for video_track in video_tracks:
+        representation = xml.SubElement(adaptation_set,
+                                        'Representation',
+                                        id=video_track.representation_id,
+                                        codecs=video_track.codec,
+                                        width=str(video_track.width),
+                                        height=str(video_track.height),
+                                        scanType=video_track.scan_type,
+                                        frameRate=video_track.frame_rate_ratio,
+                                        bandwidth=str(video_track.bandwidth))
+        if hasattr(video_track, 'max_playout_rate'):
+            representation.set('maxPlayoutRate', video_track.max_playout_rate)
 
+        if ISOFF_ON_DEMAND_PROFILE in options.profiles:
+            base_url = xml.SubElement(representation, 'BaseURL')
+            base_url.text = ONDEMAND_MEDIA_FILE_PATTERN % (video_track.representation_id)
+            sidx_range = (video_track.sidx_atom.position, video_track.sidx_atom.position+video_track.sidx_atom.size-1)
+            init_range = (0, video_track.moov_atom.position+video_track.moov_atom.size-1)
+            segment_base = xml.SubElement(representation, 'SegmentBase', indexRange=str(sidx_range[0])+'-'+str(sidx_range[1]))
+            xml.SubElement(segment_base, 'Initialization', range=str(init_range[0])+'-'+str(init_range[1]))
+        else:        
             if options.split:
                 media_subdir = 'video/' + str(video_track.order_index)
             else:
@@ -694,6 +694,8 @@ def main():
                            "(3) one or more <name>:<value> pair(s) (separated by '#' if more than one) specifying fields of a PlayReady Header Object (field names include LA_URL, LUI_URL and DS_ID)")
     parser.add_option('', "--playready-add-pssh", dest="playready_add_pssh", action="store_true", default=False,
                       help="Store the PlayReady header in a 'pssh' box in the init segment(s) [deprecated: this is now implicitly on by default when the --playready-header option is used]")
+    parser.add_option('', "--playready-no-pssh", dest="playready_no_pssh", action="store_true", default=False,
+                      help="Do not store the PlayReady header in a 'pssh' box in the init segment(s)")
     parser.add_option('', "--widevine", dest="widevine", action="store_true", default=False,
                       help="Add Widevine signaling to the MPD (requires an encrypted input, or the --encryption-key option)")
     parser.add_option('', "--widevine-header", dest="widevine_header", metavar='<widevine-header>', default=None,
@@ -777,6 +779,9 @@ def main():
 
     if options.playready and options.playready_header:
         options.playready_add_pssh = True
+
+    if options.playready_no_pssh:
+        options.playready_add_pssh = False
 
     if options.widevine_header:
         options.widevine = True
@@ -973,7 +978,19 @@ def main():
         if audio_coding == 'mp4a':
             audio_codec = 'mp4a.%02X' % (audio_desc['object_type'])
             if audio_desc['object_type'] == 64:
-                audio_codec += '.'+str(audio_desc['mpeg_4_audio_object_type'])
+                # this is MP4 audio
+                mpeg_4_audio_object_type = audio_desc['mpeg_4_audio_object_type']
+
+                # check if this may be HE-AAC with implicit signaling
+                if mpeg_4_audio_object_type == 2 and 'extension' in audio_desc['mpeg_4_audio_decoder_config']:
+                    extension = audio_desc['mpeg_4_audio_decoder_config']['extension']
+                    if extension['ps_present']:
+                        # HE-AAC-V2
+                        mpeg_4_audio_object_type = 29
+                    elif extension['sbr_present']:
+                        # HE-AAC
+                        mpeg_4_audio_object_type = 5
+                audio_codec += '.'+str(mpeg_4_audio_object_type)
         else:
             audio_codec = audio_coding
                 
@@ -983,15 +1000,24 @@ def main():
     for video_track in video_tracks:
         video_desc = video_track.info['sample_descriptions'][0]
         if 'codecs_string' in video_desc:
-            video_codec = video_desc['codecs_string']
+            video_track.codec = video_desc['codecs_string']
         else:
-            video_codec = video_desc['coding']
-
-        video_track.codec = video_codec
+            video_track.codec = video_desc['coding']
 
         # get the width and height
         video_track.width  = video_desc['width']
         video_track.height = video_desc['height']
+
+        # compute the frame rate
+        if video_track.total_duration:
+            video_track.frame_rate = video_track.total_sample_count / video_track.total_duration
+            video_track.frame_rate_ratio = str(fractions.Fraction(str(video_track.frame_rate)).limit_denominator(100000))
+        else:
+            video_track.frame_rate = 0.0
+            video_track.frame_rate_ratio = "0"
+
+        # set the scan type (hardcoded for now)
+        video_track.scan_type = 'progressive'
 
     # compute the track stream id init segment name for each track
     for (language, audio_track) in audio_tracks.items():
