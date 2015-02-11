@@ -22,7 +22,7 @@ import fractions
 from mp4utils import *
 
 # setup main options
-VERSION = "1.5.0"
+VERSION = "1.6.0"
 SDK_REVISION = '587'
 SCRIPT_PATH = path.abspath(path.dirname(__file__))
 sys.path += [SCRIPT_PATH]
@@ -67,15 +67,15 @@ HIPPO_MEDIA_SEGMENT_REGEXP_SMOOTH  = 'QualityLevels\\\\(%d\\\\)/Fragments\\\\(%s
 HIPPO_MEDIA_SEGMENT_GROUPS_SMOOTH  = '["time"]'
 AUDIO_CHANNEL_CONFIGURATION_SCHEME_ID_URI = 'urn:mpeg:dash:23003:3:audio_channel_configuration:2011'
 
-ISOFF_MAIN_PROFILE        = 'urn:mpeg:dash:profile:isoff-main:2011'
-ISOFF_LIVE_PROFILE        = 'urn:mpeg:dash:profile:isoff-live:2011'
-ISOFF_ON_DEMAND_PROFILE   = 'urn:mpeg:dash:profile:isoff-on-demand:2011'
-HBBTV_15_LIVE_PROFILE     = 'urn:hbbtv:dash:profile:isoff-live:2012'
+ISOFF_MAIN_PROFILE          = 'urn:mpeg:dash:profile:isoff-main:2011'
+ISOFF_LIVE_PROFILE          = 'urn:mpeg:dash:profile:isoff-live:2011'
+ISOFF_ON_DEMAND_PROFILE     = 'urn:mpeg:dash:profile:isoff-on-demand:2011'
+HBBTV_15_ISOFF_LIVE_PROFILE = 'urn:hbbtv:dash:profile:isoff-live:2012'
 ProfileAliases = {
   'main':      ISOFF_MAIN_PROFILE,
   'live':      ISOFF_LIVE_PROFILE,
   'on-demand': ISOFF_ON_DEMAND_PROFILE,
-  'hbbtv-1.5': HBBTV_15_LIVE_PROFILE
+  'hbbtv-1.5': HBBTV_15_ISOFF_LIVE_PROFILE
 }
 
 TempFiles = []
@@ -243,7 +243,7 @@ def OutputDash(options, audio_tracks, video_tracks):
     for (language, audio_track) in audio_tracks.iteritems():
         args = [period, 'AdaptationSet']
         kwargs = {'mimeType': AUDIO_MIMETYPE, 'startWithSAP': '1', 'segmentAlignment': 'true'}
-        if (language != 'und') or (HBBTV_15_LIVE_PROFILE in options.profiles):
+        if (language != 'und') or (HBBTV_15_ISOFF_LIVE_PROFILE in options.profiles):
             kwargs['lang'] = language
         stream_name = 'audio_' + language
         adaptation_set = xml.SubElement(*args, **kwargs)
@@ -664,6 +664,8 @@ def main():
                       help="Max Playout Rate setting strategy for trick-play support. Supported strategies: lowest:X"),
     parser.add_option('', "--language-map", dest="language_map", metavar="<lang_from>:<lang_to>[,...]",
                       help="Remap language code <lang_from> to <lang_to>. Multiple mappings can be specified, separated by ','")
+    parser.add_option('', "--subtitles", dest=subtitles, action="store_true", default=False,
+                      help="Enable Subtitles")
     parser.add_option('', "--smooth", dest="smooth", default=False, action="store_true", 
                       help="Produce an output compatible with Smooth Streaming")
     parser.add_option('', '--smooth-client-manifest-name', dest="smooth_client_manifest_filename",
