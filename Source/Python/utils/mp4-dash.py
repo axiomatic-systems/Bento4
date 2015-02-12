@@ -34,7 +34,7 @@ MPD_NS_COMPAT               = 'urn:mpeg:DASH:schema:MPD:2011'
 MPD_NS                      = 'urn:mpeg:dash:schema:mpd:2011'
 SPLIT_INIT_SEGMENT_NAME     = 'init.mp4'
 NOSPLIT_INIT_FILE_PATTERN   = 'init-%s.mp4'
-ONDEMAND_MEDIA_FILE_PATTERN = 'media-%s.mp4'
+ONDEMAND_MEDIA_FILE_PATTERN = '%s-%s.mp4'
 
 PADDED_SEGMENT_PATTERN      = 'seg-%04llu.m4f'
 PADDED_SEGMENT_URL_PATTERN  = 'seg-%04d.m4f'
@@ -194,6 +194,7 @@ def AddContentProtection(options, container, tracks):
         for kid in kids:
             cid = xml.SubElement(cids, '{' + MARLIN_MAS_NAMESPACE + '}MarlinContentId')
             cid.text = 'urn:marlin:kid:' + kid
+
     if options.playready:
         xml.register_namespace('mspr', PLAYREADY_MSPR_NAMESPACE)
         if options.encryption_key:
@@ -251,7 +252,7 @@ def OutputDash(options, audio_tracks, video_tracks):
                                             codecs=audio_track.codec,
                                             bandwidth=str(audio_track.bandwidth))
             base_url = xml.SubElement(representation, 'BaseURL')
-            base_url.text = ONDEMAND_MEDIA_FILE_PATTERN % (audio_track.representation_id)
+            base_url.text = ONDEMAND_MEDIA_FILE_PATTERN % (options.media_filename, audio_track.representation_id)
             sidx_range = (audio_track.sidx_atom.position, audio_track.sidx_atom.position+audio_track.sidx_atom.size-1)
             init_range = (0, audio_track.moov_atom.position+audio_track.moov_atom.size-1)
             segment_base = xml.SubElement(representation, 'SegmentBase', indexRange=str(sidx_range[0])+'-'+str(sidx_range[1]))
@@ -296,7 +297,7 @@ def OutputDash(options, audio_tracks, video_tracks):
             if hasattr(video_track, 'max_playout_rate'):
                 representation.set('maxPlayoutRate', video_track.max_playout_rate)
             base_url = xml.SubElement(representation, 'BaseURL')
-            base_url.text = ONDEMAND_MEDIA_FILE_PATTERN % (video_track.representation_id)
+            base_url.text = ONDEMAND_MEDIA_FILE_PATTERN % (options.media_filename, video_track.representation_id)
             sidx_range = (video_track.sidx_atom.position, video_track.sidx_atom.position+video_track.sidx_atom.size-1)
             init_range = (0, video_track.moov_atom.position+video_track.moov_atom.size-1)
             segment_base = xml.SubElement(representation, 'SegmentBase', indexRange=str(sidx_range[0])+'-'+str(sidx_range[1]))
@@ -646,6 +647,8 @@ def main():
                       help="Initialization segment name", metavar="<filename>", default='init.mp4')
     parser.add_option('', '--mpd-name', dest="mpd_filename",
                       help="MPD file name", metavar="<filename>", default='stream.mpd')
+    parser.add_option('', '--media-name', dest="media_filename",
+                      help="Media file name", metavar="<filename>", default='media')
     parser.add_option('', '--profiles', dest='profiles', 
                       help="Comma-separated list of one or more profile(s). Complete profile names can be used, or profile aliases ('live'='"+ISOFF_LIVE_PROFILE+"', 'on-demand'='"+ISOFF_ON_DEMAND_PROFILE+"'). (default='live')",
                       metavar="<profiles>")
@@ -1006,7 +1009,7 @@ def main():
         else:
             audio_track.representation_id = 'audio-'+language
             if ISOFF_ON_DEMAND_PROFILE in options.profiles:
-                audio_track.parent.media_name = ONDEMAND_MEDIA_FILE_PATTERN % (audio_track.representation_id)
+                audio_track.parent.media_name = ONDEMAND_MEDIA_FILE_PATTERN % (options.media_filename, audio_track.representation_id)
             else:
                 audio_track.init_segment_name = NOSPLIT_INIT_FILE_PATTERN % (audio_track.representation_id)
         audio_track.stream_id = 'audio_'+language
@@ -1017,7 +1020,7 @@ def main():
         else:
             video_track.representation_id = 'video-'+str(video_track.order_index)
             if ISOFF_ON_DEMAND_PROFILE in options.profiles:
-                video_track.parent.media_name= ONDEMAND_MEDIA_FILE_PATTERN % (video_track.representation_id)
+                video_track.parent.media_name= ONDEMAND_MEDIA_FILE_PATTERN % (options.media_filename, video_track.representation_id)
             else:
                 video_track.init_segment_name = NOSPLIT_INIT_FILE_PATTERN % (video_track.representation_id)
         video_track.stream_id = 'video'
