@@ -29,6 +29,7 @@ sys.path += [SCRIPT_PATH]
 
 VIDEO_MIMETYPE              = 'video/mp4'
 AUDIO_MIMETYPE              = 'audio/mp4'
+SUBTITLES_MIMETYPE          = 'application/mp4'
 VIDEO_DIR                   = 'video'
 AUDIO_DIR                   = 'audio'
 MPD_NS_COMPAT               = 'urn:mpeg:DASH:schema:MPD:2011'
@@ -123,7 +124,7 @@ def AddSegmentTemplate(options, container, init_segment_url, media_url_template_
     if options.use_segment_list:
         return
 
-    if options.use_segment_timeline:
+    if options.use_segment_timeline or track.type == 'subtitles':
         url_template = SEGMENT_URL_TEMPLATE
         use_template_numbers = True
         if options.smooth:
@@ -218,12 +219,16 @@ def AddContentProtection(options, container, tracks):
         cp = xml.SubElement(container, 'ContentProtection', schemeIdUri=WIDEVINE_SCHEME_ID_URI)
 
 #############################################
-def OutputDash(options, audio_tracks, video_tracks):
+def OutputDash(options, audio_tracks, video_tracks, subtitles_tracks):
     # compute the total duration (we take the duration of the video)
     if len(video_tracks):
         presentation_duration = video_tracks[0].total_duration
-    else:
+    elif len(audio_tracks):
         presentation_duration = audio_tracks.values()[0].total_duration
+    elif len(subtitles_tracks):
+        presentation_duration = subtitles_tracks.values()[0].total_duration
+    else:
+        return
 
     # create the MPD
     if options.use_compat_namespace:
@@ -282,51 +287,88 @@ def OutputDash(options, audio_tracks, video_tracks):
             AddSegments(options, representation, media_subdir, audio_track)
         
     # process all the video tracks
-    adaptation_set = xml.SubElement(period,
-                                    'AdaptationSet',
-                                    mimeType=VIDEO_MIMETYPE,
-                                    segmentAlignment='true',
-                                    startWithSAP='1')
-    if options.encryption_key or options.marlin or options.playready or options.widevine:
-        AddContentProtection(options, adaptation_set, video_tracks)
-    
-    if len(video_tracks) and ISOFF_ON_DEMAND_PROFILE not in options.profiles:
-        if options.split:
-            init_segment_url                  = '$RepresentationID$/' + SPLIT_INIT_SEGMENT_NAME
-            media_segment_url_template_prefix = '$RepresentationID$/'
-        else:
-            init_segment_url                  = NOSPLIT_INIT_FILE_PATTERN % ('$RepresentationID$') 
-            media_segment_url_template_prefix = ''
-        AddSegmentTemplate(options, adaptation_set, init_segment_url, media_segment_url_template_prefix, video_tracks[0], 'video')
-
-    for video_track in video_tracks:
-        representation = xml.SubElement(adaptation_set,
-                                        'Representation',
-                                        id=video_track.representation_id,
-                                        codecs=video_track.codec,
-                                        width=str(video_track.width),
-                                        height=str(video_track.height),
-                                        scanType=video_track.scan_type,
-                                        frameRate=video_track.frame_rate_ratio,
-                                        bandwidth=str(video_track.bandwidth))
-        if hasattr(video_track, 'max_playout_rate'):
-            representation.set('maxPlayoutRate', video_track.max_playout_rate)
-
-        if ISOFF_ON_DEMAND_PROFILE in options.profiles:
-            base_url = xml.SubElement(representation, 'BaseURL')
-            base_url.text = ONDEMAND_MEDIA_FILE_PATTERN % (video_track.representation_id)
-            sidx_range = (video_track.sidx_atom.position, video_track.sidx_atom.position+video_track.sidx_atom.size-1)
-            init_range = (0, video_track.moov_atom.position+video_track.moov_atom.size-1)
-            segment_base = xml.SubElement(representation, 'SegmentBase', indexRange=str(sidx_range[0])+'-'+str(sidx_range[1]))
-            xml.SubElement(segment_base, 'Initialization', range=str(init_range[0])+'-'+str(init_range[1]))
-        else:        
-            if options.split:
-                media_subdir = 'video/' + str(video_track.order_index)
-            else:
-                media_subdir = None
-
-            AddSegments(options, representation, media_subdir, video_track)
+    if len(video_tracks):
+        adaptation_set = xml.SubElement(period,
+                                        'AdaptationSet',
+                                        mimeType=VIDEO_MIMETYPE,
+                                        segmentAlignment='true',
+                                        startWithSAP='1')
+        if options.encryption_key or options.marlin or options.playready or options.widevine:
+            AddContentProtection(options, adaptation_set, video_tracks)
         
+        if len(video_tracks) and ISOFF_ON_DEMAND_PROFILE not in options.profiles:
+            if options.split:
+                init_segment_url                  = '$RepresentationID$/' + SPLIT_INIT_SEGMENT_NAME
+                media_segment_url_template_prefix = '$RepresentationID$/'
+            else:
+                init_segment_url                  = NOSPLIT_INIT_FILE_PATTERN % ('$RepresentationID$') 
+                media_segment_url_template_prefix = ''
+            AddSegmentTemplate(options, adaptation_set, init_segment_url, media_segment_url_template_prefix, video_tracks[0], 'video')
+
+        for video_track in video_tracks:
+            representation = xml.SubElement(adaptation_set,
+                                            'Representation',
+                                            id=video_track.representation_id,
+                                            codecs=video_track.codec,
+                                            width=str(video_track.width),
+                                            height=str(video_track.height),
+                                            scanType=video_track.scan_type,
+                                            frameRate=video_track.frame_rate_ratio,
+                                            bandwidth=str(video_track.bandwidth))
+            if hasattr(video_track, 'max_playout_rate'):
+                representation.set('maxPlayoutRate', video_track.max_playout_rate)
+
+            if ISOFF_ON_DEMAND_PROFILE in options.profiles:
+                base_url = xml.SubElement(representation, 'BaseURL')
+                base_url.text = ONDEMAND_MEDIA_FILE_PATTERN % (video_track.representation_id)
+                sidx_range = (video_track.sidx_atom.position, video_track.sidx_atom.position+video_track.sidx_atom.size-1)
+                init_range = (0, video_track.moov_atom.position+video_track.moov_atom.size-1)
+                segment_base = xml.SubElement(representation, 'SegmentBase', indexRange=str(sidx_range[0])+'-'+str(sidx_range[1]))
+                xml.SubElement(segment_base, 'Initialization', range=str(init_range[0])+'-'+str(init_range[1]))
+            else:        
+                if options.split:
+                    media_subdir = 'video/' + str(video_track.order_index)
+                else:
+                    media_subdir = None
+
+                AddSegments(options, representation, media_subdir, video_track)
+        
+    # process all the subtitles tracks
+    if options.subtitles and len(subtitles_tracks):
+        for (language, subtitles_track) in subtitles_tracks.iteritems():
+            args = [period, 'AdaptationSet']
+            kwargs = {'mimeType': SUBTITLES_MIMETYPE, 'startWithSAP': '1'}
+            if (language != 'und') or (HBBTV_15_ISOFF_LIVE_PROFILE in options.profiles):
+                kwargs['lang'] = language
+            stream_name = 'subtitles_' + language
+            adaptation_set = xml.SubElement(*args, **kwargs)
+        
+            representation = xml.SubElement(adaptation_set,
+                                            'Representation',
+                                            id=subtitles_track.representation_id,
+                                            codecs=subtitles_track.codec,
+                                            bandwidth=str(subtitles_track.bandwidth))
+
+            if ISOFF_ON_DEMAND_PROFILE in options.profiles:
+                base_url = xml.SubElement(representation, 'BaseURL')
+                base_url.text = ONDEMAND_MEDIA_FILE_PATTERN % (subtitles_track.representation_id)
+                sidx_range = (subtitles_track.sidx_atom.position, subtitles_track.sidx_atom.position+subtitles_track.sidx_atom.size-1)
+                init_range = (0, subtitles_track.moov_atom.position+subtitles_track.moov_atom.size-1)
+                segment_base = xml.SubElement(representation, 'SegmentBase', indexRange=str(sidx_range[0])+'-'+str(sidx_range[1]))
+                xml.SubElement(segment_base, 'Initialization', range=str(init_range[0])+'-'+str(init_range[1]))
+            else:
+                if options.split:
+                    media_subdir                      = 'subtitles/' + language
+                    init_segment_url                  = '$RepresentationID$/' + SPLIT_INIT_SEGMENT_NAME
+                    media_segment_url_template_prefix = '$RepresentationID$/'
+                else:
+                    media_subdir                      = None
+                    init_segment_url                  = NOSPLIT_INIT_FILE_PATTERN % ('$RepresentationID$') 
+                    media_segment_url_template_prefix = ''
+
+                AddSegmentTemplate(options, adaptation_set, init_segment_url, media_segment_url_template_prefix, subtitles_track, stream_name)
+                AddSegments(options, representation, media_subdir, subtitles_track)
+
     # save the MPD
     if options.mpd_filename:
         open(path.join(options.output_dir, options.mpd_filename), "wb").write(parseString(xml.tostring(mpd)).toprettyxml("  "))
@@ -563,15 +605,16 @@ def SelectTracks(options, media_sources):
         
 
     # select tracks
-    audio_tracks = {}
-    video_tracks = []
+    audio_tracks     = {}
+    video_tracks     = []
+    subtitles_tracks = {}
     for media_source in media_sources:
         track_id       = media_source.spec['track']
         track_type     = media_source.spec['type']
         track_language = media_source.spec['language']
         tracks         = []
         
-        if track_type not in ['', 'audio', 'video']:
+        if track_type not in ['', 'audio', 'video', 'subtitles']:
             sys.stderr.write('WARNING: ignoring source '+media_source.name+', unknown type')
 
         if track_id and track_type:
@@ -602,12 +645,22 @@ def SelectTracks(options, media_sources):
                 track.order_index = len(audio_tracks.values())
 
         # process video tracks
-        for track in tracks:
-            if track.type == 'video':
-                video_tracks.append(track)
-                track.order_index = len(video_tracks)
+        for track in [t for t in tracks if t.type == 'video']:
+            video_tracks.append(track)
+            track.order_index = len(video_tracks)
 
-    return (audio_tracks, video_tracks, mp4_files)
+        # process subtitle tracks
+        for track in [t for t in tracks if t.type == 'subtitles']:
+            language = LanguageCodeMap.get(track.language, track.language)
+            if track_language and track_language != language and track_language != track.language:
+                continue
+            if options.language_map and language in options.language_map:
+                language = options.language_map[language]
+            if language not in subtitles_tracks:
+                subtitles_tracks[language] = track
+                track.order_index = len(subtitles_tracks.values())
+
+    return (audio_tracks, video_tracks, subtitles_tracks, mp4_files)
 
 #############################################
 FileNameMap = {}
@@ -664,7 +717,7 @@ def main():
                       help="Max Playout Rate setting strategy for trick-play support. Supported strategies: lowest:X"),
     parser.add_option('', "--language-map", dest="language_map", metavar="<lang_from>:<lang_to>[,...]",
                       help="Remap language code <lang_from> to <lang_to>. Multiple mappings can be specified, separated by ','")
-    parser.add_option('', "--subtitles", dest=subtitles, action="store_true", default=False,
+    parser.add_option('', "--subtitles", dest="subtitles", action="store_true", default=False,
                       help="Enable Subtitles")
     parser.add_option('', "--smooth", dest="smooth", default=False, action="store_true", 
                       help="Produce an output compatible with Smooth Streaming")
@@ -832,7 +885,7 @@ def main():
 
     # for on-demand, we need to first extract tracks into individual media files
     if ISOFF_ON_DEMAND_PROFILE in options.profiles:
-        (audio_tracks, video_tracks, mp4_files) = SelectTracks(options, media_sources)
+        (audio_tracks, video_tracks, subtitles_tracks, mp4_files) = SelectTracks(options, media_sources)
         media_sources = []
         for track in audio_tracks.values()+video_tracks:
             print 'Extracting track', track.id, 'from', GetMappedFileName(track.parent.media_source.filename)
@@ -921,17 +974,16 @@ def main():
             media_source.filename = encrypted_file.name
                     
     # parse the media sources and select the audio and video tracks
-    (audio_tracks, video_tracks, mp4_files) = SelectTracks(options, media_sources)
+    (audio_tracks, video_tracks, subtitles_tracks, mp4_files) = SelectTracks(options, media_sources)
 
     # check that we have at least one audio and one video
-    if not audio_tracks:
-        PrintErrorAndExit('ERROR: no audio track selected')
-    #if not video_tracks:
-    #    PrintErrorAndExit('ERROR: no video track selected')
+    if len(audio_tracks) == 0 and len(video_tracks) == 0 and len(subtitles_tracks) == 0:
+        PrintErrorAndExit('ERROR: no track selected')
         
     if Options.verbose:
-        print 'Audio:', audio_tracks
-        print 'Video:', video_tracks
+        print 'Audio:',     audio_tracks
+        print 'Video:',     video_tracks
+        print 'Subtitles:', subtitles_tracks
         
     # check that segments are consistent between files
     prev_track = None
@@ -1021,6 +1073,12 @@ def main():
         # set the scan type (hardcoded for now)
         video_track.scan_type = 'progressive'
 
+    # compute the subtitles codecs
+    for subtitles_track in subtitles_tracks.values(): 
+        subtitles_desc = subtitles_track.info['sample_descriptions'][0]
+        subtitles_coding = subtitles_desc['coding']
+        subtitles_track.codec = subtitles_coding
+
     # compute the track stream id init segment name for each track
     for (language, audio_track) in audio_tracks.items():
         if options.split:
@@ -1044,6 +1102,17 @@ def main():
             else:
                 video_track.init_segment_name = NOSPLIT_INIT_FILE_PATTERN % (video_track.representation_id)
         video_track.stream_id = 'video'
+    for (language, subtitles_track) in subtitles_tracks.items():
+        if options.split:
+            subtitles_track.representation_id = 'subtitles/'+language
+            subtitles_track.init_segment_name = SPLIT_INIT_SEGMENT_NAME
+        else:
+            subtitles_track.representation_id = 'subtitles-'+language
+            if ISOFF_ON_DEMAND_PROFILE in options.profiles:
+                subtitles_track.parent.media_name = ONDEMAND_MEDIA_FILE_PATTERN % (subtitles_track.representation_id)
+            else:
+                subtitles_track.init_segment_name = NOSPLIT_INIT_FILE_PATTERN % (subtitles_track.representation_id)
+        subtitles_track.stream_id = 'subtitles_'+language
 
     # compute index and init offsets for the on-demand profile
     if ISOFF_ON_DEMAND_PROFILE in options.profiles:
@@ -1126,7 +1195,7 @@ def main():
                              init_segment = path.join(options.output_dir, track.init_segment_name))
 
     # output the DASH MPD
-    OutputDash(options, audio_tracks, video_tracks)
+    OutputDash(options, audio_tracks, video_tracks, subtitles_tracks)
 
     # output the Smooth Manifests
     if options.smooth:

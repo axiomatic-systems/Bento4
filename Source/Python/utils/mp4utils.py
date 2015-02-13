@@ -167,6 +167,8 @@ class Mp4Track:
             self.type = 'audio'
         elif info['type'] == 'Video':
             self.type = 'video'
+        elif info['type'] == 'Subtitles':
+            self.type = 'subtitles'
         else:
             self.type = 'other'
         
