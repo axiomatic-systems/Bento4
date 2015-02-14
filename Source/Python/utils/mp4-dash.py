@@ -37,7 +37,7 @@ MPD_NS_COMPAT               = 'urn:mpeg:DASH:schema:MPD:2011'
 MPD_NS                      = 'urn:mpeg:dash:schema:mpd:2011'
 SPLIT_INIT_SEGMENT_NAME     = 'init.mp4'
 NOSPLIT_INIT_FILE_PATTERN   = 'init-%s.mp4'
-ONDEMAND_MEDIA_FILE_PATTERN = 'media-%s.mp4'
+ONDEMAND_MEDIA_FILE_PATTERN = '%s-%s.mp4'
 
 PADDED_SEGMENT_PATTERN      = 'seg-%04llu.m4f'
 PADDED_SEGMENT_URL_PATTERN  = 'seg-%04d.m4f'
@@ -49,7 +49,7 @@ SEGMENT_PATTERN             = NOPAD_SEGMENT_PATTERN
 SEGMENT_URL_PATTERN         = NOPAD_SEGMENT_URL_PATTERN
 SEGMENT_URL_TEMPLATE        = NOPAD_SEGMENT_URL_TEMPLATE
 
-MEDIA_FILE_PATTERN          = 'media-%02d.mp4'
+MEDIA_FILE_PATTERN          = '%s-%02d.mp4'
 MARLIN_SCHEME_ID_URI        = 'urn:uuid:5E629AF5-38DA-4063-8977-97FFBD9902D4'
 MARLIN_MAS_NAMESPACE        = 'urn:marlin:mas:1-0:services:schemas:mpd'
 PLAYREADY_PSSH_SYSTEM_ID    = '9a04f07998404286ab92e65be0885f95'
@@ -269,7 +269,7 @@ def OutputDash(options, audio_tracks, video_tracks, subtitles_tracks):
 
         if ISOFF_ON_DEMAND_PROFILE in options.profiles:
             base_url = xml.SubElement(representation, 'BaseURL')
-            base_url.text = ONDEMAND_MEDIA_FILE_PATTERN % (audio_track.representation_id)
+            base_url.text = ONDEMAND_MEDIA_FILE_PATTERN % (options.media_prefix, audio_track.representation_id)
             sidx_range = (audio_track.sidx_atom.position, audio_track.sidx_atom.position+audio_track.sidx_atom.size-1)
             init_range = (0, audio_track.moov_atom.position+audio_track.moov_atom.size-1)
             segment_base = xml.SubElement(representation, 'SegmentBase', indexRange=str(sidx_range[0])+'-'+str(sidx_range[1]))
@@ -321,7 +321,7 @@ def OutputDash(options, audio_tracks, video_tracks, subtitles_tracks):
 
             if ISOFF_ON_DEMAND_PROFILE in options.profiles:
                 base_url = xml.SubElement(representation, 'BaseURL')
-                base_url.text = ONDEMAND_MEDIA_FILE_PATTERN % (video_track.representation_id)
+                base_url.text = ONDEMAND_MEDIA_FILE_PATTERN % (options.media_prefix, video_track.representation_id)
                 sidx_range = (video_track.sidx_atom.position, video_track.sidx_atom.position+video_track.sidx_atom.size-1)
                 init_range = (0, video_track.moov_atom.position+video_track.moov_atom.size-1)
                 segment_base = xml.SubElement(representation, 'SegmentBase', indexRange=str(sidx_range[0])+'-'+str(sidx_range[1]))
@@ -352,7 +352,7 @@ def OutputDash(options, audio_tracks, video_tracks, subtitles_tracks):
 
             if ISOFF_ON_DEMAND_PROFILE in options.profiles:
                 base_url = xml.SubElement(representation, 'BaseURL')
-                base_url.text = ONDEMAND_MEDIA_FILE_PATTERN % (subtitles_track.representation_id)
+                base_url.text = ONDEMAND_MEDIA_FILE_PATTERN % (options.media_prefix, subtitles_track.representation_id)
                 sidx_range = (subtitles_track.sidx_atom.position, subtitles_track.sidx_atom.position+subtitles_track.sidx_atom.size-1)
                 init_range = (0, subtitles_track.moov_atom.position+subtitles_track.moov_atom.size-1)
                 segment_base = xml.SubElement(representation, 'SegmentBase', indexRange=str(sidx_range[0])+'-'+str(sidx_range[1]))
@@ -588,7 +588,7 @@ def SelectTracks(options, media_sources):
         mp4_file.file_list_index = file_list_index
         file_list_index += 1
         if options.rename_media:
-            mp4_file.media_name = MEDIA_FILE_PATTERN % (mp4_file.file_list_index)
+            mp4_file.media_name = MEDIA_FILE_PATTERN % (options.media_prefix, mp4_file.file_list_index)
         elif 'media' in media_source.spec:
             mp4_file.media_name = media_source.spec['media']
         else:
@@ -707,6 +707,8 @@ def main():
                       help="Do not output media files (MPD/Manifests only)")
     parser.add_option('', '--rename-media', dest='rename_media', action='store_true', default=False,
                       help = 'Use a file name pattern instead of the base name of input files for output media files.')
+    parser.add_option('', '--media-prefix', dest='media_prefix', metavar='<prefix>', default='media',
+                      help='Use this prefix for prefixed media file names (instead of the default prefix "media")')
     parser.add_option('', "--no-split", action="store_false", dest="split", default=True,
                       help="Do not split the file into individual segment files")
     parser.add_option('', "--use-segment-list", action="store_true", dest="use_segment_list", default=False,
@@ -1091,7 +1093,7 @@ def main():
         else:
             audio_track.representation_id = 'audio-'+language
             if ISOFF_ON_DEMAND_PROFILE in options.profiles:
-                audio_track.parent.media_name = ONDEMAND_MEDIA_FILE_PATTERN % (audio_track.representation_id)
+                audio_track.parent.media_name = ONDEMAND_MEDIA_FILE_PATTERN % (options.media_prefix, audio_track.representation_id)
             else:
                 audio_track.init_segment_name = NOSPLIT_INIT_FILE_PATTERN % (audio_track.representation_id)
         audio_track.stream_id = 'audio_'+language
@@ -1102,7 +1104,7 @@ def main():
         else:
             video_track.representation_id = 'video-'+str(video_track.order_index)
             if ISOFF_ON_DEMAND_PROFILE in options.profiles:
-                video_track.parent.media_name= ONDEMAND_MEDIA_FILE_PATTERN % (video_track.representation_id)
+                video_track.parent.media_name= ONDEMAND_MEDIA_FILE_PATTERN % (options.media_prefix, video_track.representation_id)
             else:
                 video_track.init_segment_name = NOSPLIT_INIT_FILE_PATTERN % (video_track.representation_id)
         video_track.stream_id = 'video'
@@ -1113,7 +1115,7 @@ def main():
         else:
             subtitles_track.representation_id = 'subtitles-'+language
             if ISOFF_ON_DEMAND_PROFILE in options.profiles:
-                subtitles_track.parent.media_name = ONDEMAND_MEDIA_FILE_PATTERN % (subtitles_track.representation_id)
+                subtitles_track.parent.media_name = ONDEMAND_MEDIA_FILE_PATTERN % (options.media_prefix, subtitles_track.representation_id)
             else:
                 subtitles_track.init_segment_name = NOSPLIT_INIT_FILE_PATTERN % (subtitles_track.representation_id)
         subtitles_track.stream_id = 'subtitles_'+language
