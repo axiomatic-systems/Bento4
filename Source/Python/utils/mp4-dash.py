@@ -19,6 +19,7 @@ import xml.etree.ElementTree as xml
 from xml.dom.minidom import parseString
 import tempfile
 import fractions
+import re
 from mp4utils import *
 
 # setup main options
@@ -371,7 +372,10 @@ def OutputDash(options, audio_tracks, video_tracks, subtitles_tracks):
 
     # save the MPD
     if options.mpd_filename:
-        open(path.join(options.output_dir, options.mpd_filename), "wb").write(parseString(xml.tostring(mpd)).toprettyxml("  "))
+        mpd_xml = parseString(xml.tostring(mpd)).toprettyxml("  ")
+        # use a regex to fix a bug in toprettyxml() that inserts newlines in text content
+        mpd_xml = re.sub(r'((?<=>)(\n[\s]*)(?=[^<\s]))|(?<=[^>\s])(\n[\s]*)(?=<)', '', mpd_xml)
+        open(path.join(options.output_dir, options.mpd_filename), "wb").write(mpd_xml)
 
 
 #############################################
