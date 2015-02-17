@@ -12,7 +12,7 @@
 ##########################################################################
 #VPATH += $(AP4_BUILD_CONFIG)
 
-COMPILE_CPP_OPTIONS = $(WARNINGS_CPP) 
+COMPILE_CPP_OPTIONS = $(PIC_CPP) $(WARNINGS_CPP) 
 
 ifeq ($(AP4_BUILD_CONFIG),Profile)
 COMPILE_CPP_OPTIONS += $(PROFILE_CPP)

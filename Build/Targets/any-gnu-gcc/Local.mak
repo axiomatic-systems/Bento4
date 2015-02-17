@@ -41,6 +41,9 @@ DEBUG_CPP = -g
 # profiling flags
 PROFILE_CPP = -pg
 
+# position independent code flags
+PIC_CPP = -fPIC
+
 # compilation flags
 ifneq ($(AP4_PLATFORM_BYTE_ORDER),)
 DEFINES_CPP_BYTE_ORDER = -DAP4_PLATFORM_BYTE_ORDER=$(AP4_PLATFORM_BYTE_ORDER)

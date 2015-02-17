@@ -35,6 +35,7 @@ export OPTIMIZE_CPP
 export PROFILE_CPP
 export DEFINES_CPP
 export WARNINGS_CPP
+export PIC_CPP
 export INCLUDES_CPP
 export LIBRARIES_CPP
 
