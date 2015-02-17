@@ -701,7 +701,7 @@ def main():
     parser.add_option('', '--mpd-name', dest="mpd_filename",
                       help="MPD file name", metavar="<filename>", default='stream.mpd')
     parser.add_option('', '--profiles', dest='profiles', 
-                      help="Comma-separated list of one or more profile(s). Complete profile names can be used, or profile aliases ('live'='"+ISOFF_LIVE_PROFILE+"', 'on-demand'='"+ISOFF_ON_DEMAND_PROFILE+"'). (default='live')",
+                      help="Comma-separated list of one or more profile(s). Complete profile names can be used, or profile aliases ('live'='"+ISOFF_LIVE_PROFILE+"', 'on-demand'='"+ISOFF_ON_DEMAND_PROFILE+"', 'hbbtv-1.5='"+HBBTV_15_ISOFF_LIVE_PROFILE+"')", default='live',
                       metavar="<profiles>")
     parser.add_option('', '--no-media', dest="no_media", action='store_true', default=False,
                       help="Do not output media files (MPD/Manifests only)")
@@ -825,6 +825,11 @@ def main():
         options.split = False
         if ISOFF_LIVE_PROFILE in options.profiles:
             raise Exception('on-demand and live profiles are mutually exclusive')
+    if HBBTV_15_ISOFF_LIVE_PROFILE in options.profiles:
+        options.playready_no_pssh = True
+        if options.playready_add_pssh:
+            sys.stderr.write('INFO: since hbbtv-1.5 profile is selected, no PlayReady PSSH box will be added to the init segments\n')
+
     if options.smooth:
         if ISOFF_LIVE_PROFILE not in options.profiles:
             raise Exception('--smooth requires the live profile')
