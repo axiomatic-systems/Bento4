@@ -52,12 +52,15 @@ const AP4_UI32 AP4_SEGMENT_BUILDER_DEFAULT_TIMESCALE = 1000;
 /*----------------------------------------------------------------------
 |   AP4_SegmentBuilder::AP4_SegmentBuilder
 +---------------------------------------------------------------------*/
-AP4_SegmentBuilder::AP4_SegmentBuilder(AP4_Track::Type track_type, AP4_UI32 track_id) :
+AP4_SegmentBuilder::AP4_SegmentBuilder(AP4_Track::Type track_type,
+                                       AP4_UI32        track_id,
+                                       AP4_UI64        media_time_origin) :
     m_TrackType(track_type),
     m_TrackId(track_id),
     m_TrackLanguage("und"),
     m_Timescale(AP4_SEGMENT_BUILDER_DEFAULT_TIMESCALE),
     m_SampleStartNumber(0),
+    m_MediaTimeOrigin(media_time_origin),
     m_MediaStartTime(0),
     m_MediaDuration(0)
 {
@@ -88,8 +91,9 @@ AP4_SegmentBuilder::AddSample(AP4_Sample& sample)
 |   AP4_FeedSegmentBuilder::AP4_FeedSegmentBuilder
 +---------------------------------------------------------------------*/
 AP4_FeedSegmentBuilder::AP4_FeedSegmentBuilder(AP4_Track::Type track_type,
-                                               AP4_UI32        track_id) :
-    AP4_SegmentBuilder(track_type, track_id)
+                                               AP4_UI32        track_id,
+                                               AP4_UI64        media_time_origin) :
+    AP4_SegmentBuilder(track_type, track_id, media_time_origin)
 {
 }
 
@@ -97,8 +101,9 @@ AP4_FeedSegmentBuilder::AP4_FeedSegmentBuilder(AP4_Track::Type track_type,
 |   AP4_AvcSegmentBuilder::AP4_AvcSegmentBuilder
 +---------------------------------------------------------------------*/
 AP4_AvcSegmentBuilder::AP4_AvcSegmentBuilder(AP4_UI32 track_id,
-                                             double   frames_per_second) :
-    AP4_FeedSegmentBuilder(AP4_Track::TYPE_VIDEO, track_id),
+                                             double   frames_per_second,
+                                             AP4_UI64 media_time_origin) :
+    AP4_FeedSegmentBuilder(AP4_Track::TYPE_VIDEO, track_id, media_time_origin),
     m_FramesPerSecond(frames_per_second)
 {
     m_Timescale = (unsigned int)(frames_per_second*1000.0);
@@ -132,7 +137,7 @@ AP4_SegmentBuilder::WriteMediaSegment(AP4_ByteStream& stream, unsigned int seque
     }
     
     traf->AddChild(tfhd);
-    AP4_TfdtAtom* tfdt = new AP4_TfdtAtom(1, m_MediaStartTime);
+    AP4_TfdtAtom* tfdt = new AP4_TfdtAtom(1, m_MediaTimeOrigin+m_MediaStartTime);
     traf->AddChild(tfdt);
     AP4_UI32 trun_flags = AP4_TRUN_FLAG_DATA_OFFSET_PRESENT     |
                           AP4_TRUN_FLAG_SAMPLE_DURATION_PRESENT |
@@ -465,8 +470,8 @@ AP4_AvcSegmentBuilder::WriteInitSegment(AP4_ByteStream& stream)
 /*----------------------------------------------------------------------
 |   AP4_AacSegmentBuilder::AP4_AacSegmentBuilder
 +---------------------------------------------------------------------*/
-AP4_AacSegmentBuilder::AP4_AacSegmentBuilder(AP4_UI32 track_id) :
-    AP4_FeedSegmentBuilder(AP4_Track::TYPE_AUDIO, track_id),
+AP4_AacSegmentBuilder::AP4_AacSegmentBuilder(AP4_UI32 track_id, AP4_UI64 media_time_origin) :
+    AP4_FeedSegmentBuilder(AP4_Track::TYPE_AUDIO, track_id, media_time_origin),
     m_SampleDescription(NULL)
 {
     m_Timescale = 0; // we will compute the real value when we get the first audio frame

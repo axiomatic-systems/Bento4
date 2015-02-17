@@ -53,7 +53,9 @@ class AP4_SegmentBuilder
 {
 public:
     // constructor and destructor
-    AP4_SegmentBuilder(AP4_Track::Type track_type, AP4_UI32 track_id);
+    AP4_SegmentBuilder(AP4_Track::Type track_type,
+                       AP4_UI32        track_id,
+                       AP4_UI64        media_time_origin = 0);
     virtual ~AP4_SegmentBuilder();
     
     // accessors
@@ -75,6 +77,7 @@ protected:
     AP4_String            m_TrackLanguage;
     AP4_UI32              m_Timescale;
     AP4_UI64              m_SampleStartNumber;
+    AP4_UI64              m_MediaTimeOrigin;
     AP4_UI64              m_MediaStartTime;
     AP4_UI64              m_MediaDuration;
     AP4_Array<AP4_Sample> m_Samples;
@@ -87,7 +90,9 @@ class AP4_FeedSegmentBuilder : public AP4_SegmentBuilder
 {
 public:
     // constructor
-    AP4_FeedSegmentBuilder(AP4_Track::Type track_type, AP4_UI32 track_id);
+    AP4_FeedSegmentBuilder(AP4_Track::Type track_type,
+                           AP4_UI32        track_id,
+                           AP4_UI64        media_time_origin = 0);
     
     // methods
     virtual AP4_Result Feed(const void* data,
@@ -102,7 +107,9 @@ class AP4_AvcSegmentBuilder : public AP4_FeedSegmentBuilder
 {
 public:
     // constructor
-    AP4_AvcSegmentBuilder(AP4_UI32 track_id, double frames_per_second);
+    AP4_AvcSegmentBuilder(AP4_UI32 track_id,
+                          double   frames_per_second,
+                          AP4_UI64 media_time_origin = 0);
     
     // AP4_SegmentBuilder methods
     virtual AP4_Result WriteMediaSegment(AP4_ByteStream& stream, unsigned int sequence_number);
@@ -139,7 +146,7 @@ class AP4_AacSegmentBuilder : public AP4_FeedSegmentBuilder
 {
 public:
     // constructor
-    AP4_AacSegmentBuilder(AP4_UI32 track_id);
+    AP4_AacSegmentBuilder(AP4_UI32 track_id, AP4_UI64 media_time_origin = 0);
     ~AP4_AacSegmentBuilder();
     
     // AP4_SegmentBuilder methods
