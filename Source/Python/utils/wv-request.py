@@ -8,8 +8,8 @@ from optparse import OptionParser
 
 WV_DEFAULT_SERVER_URL  = 'https://license.uat.widevine.com/cenc/getcontentkey'
 WV_DEFAULT_PROVIDER    = 'widevine_test'
-WV_DEFAULT_SIGNING_KEY = '1ae8ccd0e7985cc0b6203a55855a1034afc252980e970ca90e5202689f947ab9'.decode('hex')
-WV_DEFAULT_SIGNING_IV  = 'd58ce954203b7c9a9a9d467f59839249'.decode('hex')
+WV_DEFAULT_SIGNING_KEY = '1ae8ccd0e7985cc0b6203a55855a1034afc252980e970ca90e5202689f947ab9'
+WV_DEFAULT_SIGNING_IV  = 'd58ce954203b7c9a9a9d467f59839249'
 
 try:
 	import requests
@@ -64,7 +64,7 @@ if options.debug:
 
 sha1_hasher = hashlib.sha1()
 sha1_hasher.update(rq_payload_json)
-rq_payload_signature = aes.cbc_encrypt(sha1_hasher.digest(), options.aes_signing_key, options.aes_signing_iv)
+rq_payload_signature = aes.cbc_encrypt(sha1_hasher.digest(), options.aes_signing_key.decode('hex'), options.aes_signing_iv.decode('hex'))
 
 post_body = {
 	"request":base64_encode(rq_payload_json),
