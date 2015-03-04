@@ -179,26 +179,23 @@ AP4_AdtsParser::Feed(const AP4_UI08* buffer,
 AP4_Result
 AP4_AdtsParser::FindHeader(AP4_UI08* header)
 {
-   int          available = m_Bits.GetBytesAvailable();
-   unsigned int sync = 0;
-   long         nbr_skipped_bytes = 0;
+    AP4_Size available = m_Bits.GetBytesAvailable();
 
-   /* look for the sync pattern */
-   while (available-- >= AP4_ADTS_HEADER_SIZE) {
-      sync = (m_Bits.ReadByte() << 8) | m_Bits.PeekByte();
+    /* look for the sync pattern */
+    while (available-- >= AP4_ADTS_HEADER_SIZE) {
+        m_Bits.PeekBytes(header, 2);
 
-      if ((sync & AP4_ADTS_SYNC_MASK) == AP4_ADTS_SYNC_PATTERN) {
-         /* found a sync pattern, read the rest of the header */
-         header[0] = (sync >> 8) & 0xFF;
-         m_Bits.ReadBytes(&header[1], AP4_ADTS_HEADER_SIZE-1);
+        if ((((header[0] << 8) | header[1]) & AP4_ADTS_SYNC_MASK) == AP4_ADTS_SYNC_PATTERN) {
+            /* found a sync pattern, read the entire the header */
+            m_Bits.PeekBytes(header, AP4_ADTS_HEADER_SIZE);
+            
+           return AP4_SUCCESS;
+        } else {
+            m_Bits.ReadByte(); // skip
+        }
+    }
 
-         return AP4_SUCCESS;
-      } else {
-         ++ nbr_skipped_bytes;
-      }
-   }
-
-   return AP4_ERROR_NOT_ENOUGH_DATA;
+    return AP4_ERROR_NOT_ENOUGH_DATA;
 }
 
 /*----------------------------------------------------------------------+
@@ -226,17 +223,14 @@ AP4_AdtsParser::FindFrame(AP4_AacFrame& frame)
     if (AP4_FAILED(result)) goto fail;
     
     /* check if we have enough data to peek at the next header */
-    available = AP4_ADTS_HEADER_SIZE + m_Bits.GetBytesAvailable();
+    available = m_Bits.GetBytesAvailable();
     if (available >= adts_header.m_FrameLength+AP4_ADTS_HEADER_SIZE) {
         // enough to peek at the header of the next frame
         unsigned char peek_raw_header[AP4_ADTS_HEADER_SIZE];
 
-        if (available < adts_header.m_FrameLength+AP4_ADTS_HEADER_SIZE) {
-            return AP4_ERROR_NOT_ENOUGH_DATA;
-        } 
-        m_Bits.SkipBytes(adts_header.m_FrameLength-AP4_ADTS_HEADER_SIZE);
+        m_Bits.SkipBytes(adts_header.m_FrameLength);
         m_Bits.PeekBytes(peek_raw_header, AP4_ADTS_HEADER_SIZE);
-        m_Bits.SkipBytes(-((int)adts_header.m_FrameLength-AP4_ADTS_HEADER_SIZE));
+        m_Bits.SkipBytes(-((int)adts_header.m_FrameLength));
 
         /* check the header */
         AP4_AdtsHeader peek_adts_header(peek_raw_header);
@@ -252,6 +246,8 @@ AP4_AdtsParser::FindFrame(AP4_AacFrame& frame)
         // not enough for a frame, or not at the end (in which case we'll want to peek at the next header)
         return AP4_ERROR_NOT_ENOUGH_DATA;
     }
+
+    m_Bits.SkipBytes(AP4_ADTS_HEADER_SIZE);
 
     /* fill in the frame info */
     frame.m_Info.m_Standard = (adts_header.m_Id == 1 ? 

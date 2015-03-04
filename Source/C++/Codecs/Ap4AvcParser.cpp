@@ -822,10 +822,7 @@ AP4_AvcFrameParser::Feed(const void*     data,
     const AP4_DataBuffer* nal_unit = NULL;
 
     // default return values
-    access_unit_info.nal_units.Clear();
-    access_unit_info.is_idr        = false;
-    access_unit_info.decode_order  = 0;
-    access_unit_info.display_order = 0;
+    access_unit_info.Reset();
     
     // feed the NAL unit parser
     AP4_Result result = m_NalParser.Feed(data, data_size, bytes_consumed, nal_unit, eos);
@@ -933,7 +930,7 @@ AP4_AvcFrameParser::Feed(const void*     data,
     }
     
     // flush if needed
-    if (eos && bytes_consumed == data_size) {
+    if (eos && bytes_consumed == data_size && access_unit_info.nal_units.ItemCount() == 0) {
         DBG_PRINTF_0("------ last unit\n");
         MaybeNewAccessUnit(access_unit_info);
     }
@@ -941,3 +938,17 @@ AP4_AvcFrameParser::Feed(const void*     data,
     return AP4_SUCCESS;
 }
 
+/*----------------------------------------------------------------------
+|   AP4_AvcFrameParser::AccessUnitInfo::Reset
++---------------------------------------------------------------------*/
+void
+AP4_AvcFrameParser::AccessUnitInfo::Reset()
+{
+    for (unsigned int i=0; i<nal_units.ItemCount(); i++) {
+        delete nal_units[i];
+    }
+    nal_units.Clear();
+    is_idr = false;
+    decode_order = 0;
+    display_order = 0;
+}

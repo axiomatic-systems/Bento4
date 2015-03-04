@@ -193,6 +193,8 @@ public:
         bool                       is_idr;
         AP4_UI32                   decode_order;
         AP4_UI32                   display_order;
+        
+        void Reset();
     };
     
     // methods
@@ -207,9 +209,10 @@ public:
      * data pointer.
      * @param bytes_consumed: Number of bytes from the data buffer that were
      * consumed and stored by the parser.
-     * @param nalu: Reference to a pointer to a buffer object that contains
-     * a NAL unit found in the previously fed data, or a NULL pointer if no 
-     * NAL unit can be found so far.
+     * @param access_unit_info: Reference to a AccessUnitInfo structure that will
+     * contain information about any access unit found in the data. If no
+     * access unit was found, the nal_units field of this structure will be an
+     * empty array.
      * @param eos: Boolean flag that indicates if this buffer is the last
      * buffer in the stream/file (End Of Stream).
      *
@@ -220,7 +223,14 @@ public:
      * returns, the caller should inspect the value of bytes_consumed and
      * advance the input stream source accordingly, such that the next
      * buffer passed to this method will be exactly bytes_consumed bytes
-     * after what was passed in this call.
+     * after what was passed in this call. After all the input data has
+     * been supplied to the parser (eos=true), the caller also should
+     * this method with an empty buffer (data=NULL and/or data_size=0) until
+     * no more data is returned, because there may be buffered data still
+     * available.
+     *
+     * When data is returned in the access_unit_info structure, the caller is
+     * responsible for freeing this data by calling AccessUnitInfo::Reset()
      */
     AP4_Result Feed(const void*     data,
                     AP4_Size        data_size,

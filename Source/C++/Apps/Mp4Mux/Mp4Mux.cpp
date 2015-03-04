@@ -411,9 +411,11 @@ AddH264Track(AP4_Movie&            movie,
             break;
         }
         AP4_Size offset = 0;
+        bool     found_access_unit = false;
         do {
             AP4_AvcFrameParser::AccessUnitInfo access_unit_info;
             
+            found_access_unit = false;
             AP4_Size bytes_consumed = 0;
             result = parser.Feed(&input_buffer[offset],
                                  bytes_in_buffer,
@@ -426,6 +428,7 @@ AddH264Track(AP4_Movie&            movie,
             }
             if (access_unit_info.nal_units.ItemCount()) {
                 // we got one access unit
+                found_access_unit = true;
                 if (Options.verbose) {
                     printf("H264 Access Unit, %d NAL units, decode_order=%d, display_order=%d\n",
                            access_unit_info.nal_units.ItemCount(),
@@ -454,15 +457,12 @@ AddH264Track(AP4_Movie&            movie,
                 sample_orders.Append(SampleOrder(access_unit_info.decode_order, access_unit_info.display_order));
                 
                 // free the memory buffers
-                for (unsigned int i=0; i<access_unit_info.nal_units.ItemCount(); i++) {
-                    delete access_unit_info.nal_units[i];
-                }
-                access_unit_info.nal_units.Clear();
+                access_unit_info.Reset();
             }
         
             offset += bytes_consumed;
             bytes_in_buffer -= bytes_consumed;
-        } while (bytes_in_buffer);
+        } while (bytes_in_buffer || found_access_unit);
         if (eos) break;
     }
     
