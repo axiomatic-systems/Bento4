@@ -52,6 +52,7 @@ SEGMENT_URL_TEMPLATE        = NOPAD_SEGMENT_URL_TEMPLATE
 MEDIA_FILE_PATTERN          = '%s-%02d.mp4'
 MARLIN_SCHEME_ID_URI        = 'urn:uuid:5E629AF5-38DA-4063-8977-97FFBD9902D4'
 MARLIN_MAS_NAMESPACE        = 'urn:marlin:mas:1-0:services:schemas:mpd'
+MARLIN_PSSH_SYSTEM_ID       = '69f908af481646ea910ccd5dcccb0a3a'
 PLAYREADY_PSSH_SYSTEM_ID    = '9a04f07998404286ab92e65be0885f95'
 PLAYREADY_SCHEME_ID_URI     = 'urn:uuid:9a04f079-9840-4286-ab92-e65be0885f95'
 PLAYREADY_SCHEME_ID_URI_V10 = 'urn:uuid:79f0049a-4098-8642-ab92-e65be0885f95'
@@ -139,7 +140,9 @@ def AddSegmentTemplate(options, container, init_segment_url, media_url_template_
         args = [container, 'SegmentTemplate']
         kwargs = {'timescale': str(track.timescale),
                   'initialization': init_segment_url,
-                  'media': url_template}
+                  'media': url_template,
+                  'startNumner': '1'} # (keep the @startNumber, even if not needed, because some clients like Silverlight want it)
+        
         segment_template = xml.SubElement(*args, **kwargs)
         segment_timeline = xml.SubElement(segment_template, 'SegmentTimeline')
         repeat_count = 0
@@ -161,8 +164,8 @@ def AddSegmentTemplate(options, container, init_segment_url, media_url_template_
                        timescale='1000',
                        duration=str(int(track.average_segment_duration*1000)),
                        initialization=init_segment_url,
-                       media=SEGMENT_URL_TEMPLATE)
-
+                       media=SEGMENT_URL_TEMPLATE,
+                       startNumber='1') # (keep the @startNumber, even if not needed, because some clients like Silverlight want it)
 
 #############################################
 def AddSegments(options, container, subdir, track):
@@ -745,6 +748,8 @@ def main():
                       help="Use the original DASH MPD namespace as it was specified in the first published specification")
     parser.add_option('', "--marlin", dest="marlin", action="store_true", default=False,
                       help="Add Marlin signaling to the MPD (requires an encrypted input, or the --encryption-key option)")
+    parser.add_option('', "--marlin-add-pssh", dest="marlin_add_pssh", action="store_true", default=False,
+                      help="Add an (optional) Marlin 'pssh' box in the init segment(s)")
     parser.add_option('', "--playready", dest="playready", action="store_true", default=False,
                       help="Add PlayReady signaling to the MPD (requires an encrypted input, or the --encryption-key option)")
     parser.add_option('', "--playready-header", dest="playready_header", metavar='<playready-header>', default=None,
@@ -956,6 +961,14 @@ def main():
             for track_id in track_ids:
                 args += ['--key', str(track_id)+':'+key_hex+':random', '--property', str(track_id)+':KID:'+kid_hex]
             
+            if options.marlin_add_pssh:
+                marlin_pssh = ComputeMarlinPssh(options)
+                pssh_file = tempfile.NamedTemporaryFile(dir = options.output_dir, delete=False)
+                pssh_file.write(marlin_pssh)
+                TempFiles.append(pssh_file.name)
+                pssh_file.close() # necessary on Windows
+                args += ['--pssh', MARLIN_PSSH_SYSTEM_ID+':'+pssh_file.name]
+
             if options.playready_add_pssh:
                 playready_header = ComputePlayReadyHeader(options.playready_header, kid_hex, key_hex)
                 pssh_file = tempfile.NamedTemporaryFile(dir = options.output_dir, delete=False)

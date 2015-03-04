@@ -463,6 +463,10 @@ def GetEncryptionKey(options, spec):
     else:
         raise Exception('Key Locator scheme not supported')
 
+def ComputeMarlinPssh(options):
+    # create a dummy (empty) Marlin PSSH
+    return struct.pack('>I4sI4sII', 24, 'marl', 16, 'mkid', 0, 0)
+
 def DerivePlayReadyKey(seed, kid, swap=True):
     if len(seed) < 30:
         raise Exception('seed must be  >= 30 bytes')
@@ -510,6 +514,8 @@ def WrapPlayreadyHeaderXml(header_xml):
 
 def ComputePlayReadyHeader(header_spec, kid_hex, key_hex):
     # construct the base64 header
+    if header_spec is None:
+        header_spec = ''
     if header_spec.startswith('#'):
         header_b64 = header_spec[1:]
         header = header_b64.decode('base64')
@@ -534,6 +540,7 @@ def ComputePlayReadyHeader(header_spec, kid_hex, key_hex):
             pairs = header_spec.split('#')
             fields = {}
             for pair in pairs:
+                if len(pair) == 0: continue
                 name, value = pair.split(':', 1)
                 fields[name] = value
         except:
