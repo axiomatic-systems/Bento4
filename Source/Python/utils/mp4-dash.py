@@ -141,7 +141,7 @@ def AddSegmentTemplate(options, container, init_segment_url, media_url_template_
         kwargs = {'timescale': str(track.timescale),
                   'initialization': init_segment_url,
                   'media': url_template,
-                  'startNumner': '1'} # (keep the @startNumber, even if not needed, because some clients like Silverlight want it)
+                  'startNumber': '1'} # (keep the @startNumber, even if not needed, because some clients like Silverlight want it)
         
         segment_template = xml.SubElement(*args, **kwargs)
         segment_timeline = xml.SubElement(segment_template, 'SegmentTimeline')
@@ -1177,7 +1177,8 @@ def main():
     # create the directories and split/copy/process the media if needed
     if not options.no_media:
         if options.split:
-            MakeNewDir(path.join(options.output_dir, 'audio'))
+            if len(audio_tracks):
+                MakeNewDir(path.join(options.output_dir, 'audio'))
             for (language, audio_track) in audio_tracks.iteritems():
                 out_dir = path.join(options.output_dir, 'audio', language)
                 MakeNewDir(out_dir)
@@ -1190,7 +1191,8 @@ def main():
                          init_segment           = path.join(out_dir, audio_track.init_segment_name),
                          media_segment          = path.join(out_dir, SEGMENT_PATTERN))
         
-            MakeNewDir(path.join(options.output_dir, 'video'))
+            if len(video_tracks):
+                MakeNewDir(path.join(options.output_dir, 'video'))
             for video_track in video_tracks:
                 out_dir = path.join(options.output_dir, 'video', str(video_track.order_index))
                 MakeNewDir(out_dir)
@@ -1201,6 +1203,19 @@ def main():
                          pattern_parameters     = 'N',
                          start_number           = '1',
                          init_segment           = path.join(out_dir, video_track.init_segment_name),
+                         media_segment          = path.join(out_dir, SEGMENT_PATTERN))
+            if len(subtitles_tracks):
+                MakeNewDir(path.join(options.output_dir, 'subtitles'))
+            for (language, subtitles_track) in subtitles_tracks.iteritems():
+                out_dir = path.join(options.output_dir, 'subtitles', language)
+                MakeNewDir(out_dir)
+                print 'Splitting media file (subtitles)', GetMappedFileName(subtitles_track.parent.media_source.filename)
+                Mp4Split(Options,
+                         subtitles_track.parent.media_source.filename,
+                         track_id               = str(subtitles_track.id),
+                         pattern_parameters     = 'N',
+                         start_number           = '1',
+                         init_segment           = path.join(out_dir, subtitles_track.init_segment_name),
                          media_segment          = path.join(out_dir, SEGMENT_PATTERN))
         else:
             for mp4_file in mp4_files.values():
