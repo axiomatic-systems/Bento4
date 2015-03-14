@@ -228,9 +228,9 @@ def OutputDash(options, audio_tracks, video_tracks, subtitles_tracks):
     if len(video_tracks):
         presentation_duration = video_tracks[0].total_duration
     elif len(audio_tracks):
-        presentation_duration = audio_tracks.values()[0].total_duration
+        presentation_duration = audio_tracks[0].total_duration
     elif len(subtitles_tracks):
-        presentation_duration = subtitles_tracks.values()[0].total_duration
+        presentation_duration = subtitles_tracks[0].total_duration
     else:
         return
 
@@ -249,12 +249,12 @@ def OutputDash(options, audio_tracks, video_tracks, subtitles_tracks):
     period = xml.SubElement(mpd, 'Period')
 
     # process the audio tracks
-    for (language, audio_track) in audio_tracks.iteritems():
+    for audio_track in audio_tracks:
         args = [period, 'AdaptationSet']
         kwargs = {'mimeType': AUDIO_MIMETYPE, 'startWithSAP': '1', 'segmentAlignment': 'true'}
-        if (language != 'und') or (HBBTV_15_ISOFF_LIVE_PROFILE in options.profiles):
-            kwargs['lang'] = language
-        stream_name = 'audio_' + language
+        if (audio_track.language != 'und') or (HBBTV_15_ISOFF_LIVE_PROFILE in options.profiles):
+            kwargs['lang'] = audio_track.language
+        stream_name = 'audio_' + audio_track.language
         adaptation_set = xml.SubElement(*args, **kwargs)
         if options.encryption_key or options.marlin or options.playready or options.widevine:
             AddContentProtection(options, adaptation_set, [audio_track])
@@ -279,7 +279,7 @@ def OutputDash(options, audio_tracks, video_tracks, subtitles_tracks):
             xml.SubElement(segment_base, 'Initialization', range=str(init_range[0])+'-'+str(init_range[1]))
         else:
             if options.split:
-                media_subdir                      = 'audio/' + language
+                media_subdir                      = 'audio/' + audio_track.language
                 init_segment_url                  = '$RepresentationID$/' + SPLIT_INIT_SEGMENT_NAME
                 media_segment_url_template_prefix = '$RepresentationID$/'
             else:
@@ -339,12 +339,12 @@ def OutputDash(options, audio_tracks, video_tracks, subtitles_tracks):
         
     # process all the subtitles tracks
     if options.subtitles and len(subtitles_tracks):
-        for (language, subtitles_track) in subtitles_tracks.iteritems():
+        for subtitles_track in subtitles_tracks:
             args = [period, 'AdaptationSet']
             kwargs = {'mimeType': SUBTITLES_MIMETYPE, 'startWithSAP': '1'}
-            if (language != 'und') or (HBBTV_15_ISOFF_LIVE_PROFILE in options.profiles):
-                kwargs['lang'] = language
-            stream_name = 'subtitles_' + language
+            if (subtitles_track.language != 'und') or (HBBTV_15_ISOFF_LIVE_PROFILE in options.profiles):
+                kwargs['lang'] = subtitles_track.language
+            stream_name = 'subtitles_' + subtitles_track.language
             adaptation_set = xml.SubElement(*args, **kwargs)
         
             representation = xml.SubElement(adaptation_set,
@@ -362,7 +362,7 @@ def OutputDash(options, audio_tracks, video_tracks, subtitles_tracks):
                 xml.SubElement(segment_base, 'Initialization', range=str(init_range[0])+'-'+str(init_range[1]))
             else:
                 if options.split:
-                    media_subdir                      = 'subtitles/' + language
+                    media_subdir                      = 'subtitles/' + subtitles_track.language
                     init_segment_url                  = '$RepresentationID$/' + SPLIT_INIT_SEGMENT_NAME
                     media_segment_url_template_prefix = '$RepresentationID$/'
                 else:
@@ -387,7 +387,7 @@ def OutputSmooth(options, audio_tracks, video_tracks):
     if len(video_tracks):
         presentation_duration = video_tracks[0].total_duration
     else:
-        presentation_duration = audio_tracks.values()[0].total_duration
+        presentation_duration = audio_tracks[0].total_duration
 
     # create the Client Manifest
     client_manifest = xml.Element('SmoothStreamingMedia', 
@@ -398,8 +398,8 @@ def OutputSmooth(options, audio_tracks, video_tracks):
     client_manifest.append(xml.Comment(' Created with Bento4 mp4-dash.py, VERSION='+VERSION+'-'+SDK_REVISION+' '))
     
     # process the audio tracks
-    for (language, audio_track) in audio_tracks.iteritems():
-        stream_name = "audio_"+language
+    for audio_track in audio_tracks:
+        stream_name = "audio_"+audio_track.language
         audio_url_pattern="QualityLevels({bitrate})/Fragments(%s={start time})" % (stream_name)
         stream_index = xml.SubElement(client_manifest, 
                                       'StreamIndex', 
@@ -409,8 +409,8 @@ def OutputSmooth(options, audio_tracks, video_tracks):
                                       Name=stream_name, 
                                       QualityLevels="1",
                                       TimeScale=str(audio_track.timescale))
-        if language != 'und':
-            stream_index.set('Language', language)
+        if audio_track.language != 'und':
+            stream_index.set('Language', audio_track.language)
         xml.SubElement(stream_index,
                        'QualityLevel',
                        Bitrate=str(audio_track.bandwidth),
@@ -466,7 +466,7 @@ def OutputSmooth(options, audio_tracks, video_tracks):
             if len(video_tracks):
                 kid = video_tracks[0].kid
             else:
-                kid = audio_tracks.values()[0].kid
+                kid = audio_tracks[0].kid
             key = None
         header_bin = ComputePlayReadyHeader(options.playready_header, kid, key)
         header_b64 = header_bin.encode('base64').replace('\n', '')
@@ -489,7 +489,7 @@ def OutputSmooth(options, audio_tracks, video_tracks):
                    content=path.basename(options.smooth_client_manifest_filename))
     server_manifest_body = xml.SubElement(server_manifest, 'body')
     server_manifest_switch = xml.SubElement(server_manifest_body, 'switch')
-    for (language, audio_track) in audio_tracks.iteritems():
+    for audio_track in audio_tracks:
         audio_entry = xml.SubElement(server_manifest_switch,
                                      'audio',
                                      src=audio_track.parent.media_name,
@@ -499,11 +499,11 @@ def OutputSmooth(options, audio_tracks, video_tracks):
                        name='trackID',
                        value=str(audio_track.id),
                        valueType='data')
-        if language:
+        if audio_track.language:
             xml.SubElement(audio_entry,
                            'param',
                            name='trackName',
-                           value="audio_" + language,
+                           value="audio_" + audio_track.language,
                            valueType='data')
         if audio_track.timescale != SMOOTH_DEFAULT_TIMESCALE:
             xml.SubElement(audio_entry,
@@ -538,7 +538,7 @@ def OutputHippo(options, audio_tracks, video_tracks):
     # create the Server Manifest file
     server_manifest = '{\n  "media": [\n'
     sep = ''
-    for track in audio_tracks.values()+video_tracks:
+    for track in audio_tracks+video_tracks:
         server_manifest += sep+'    {\n'
         server_manifest += '      "trackId": '+ str(track.id) + ',\n'
         server_manifest += '      "mediaSegments": {\n'
@@ -612,9 +612,9 @@ def SelectTracks(options, media_sources):
         
 
     # select tracks
-    audio_tracks     = {}
+    audio_tracks     = []
     video_tracks     = []
-    subtitles_tracks = {}
+    subtitles_tracks = []
     for media_source in media_sources:
         track_id       = media_source.spec['track']
         track_type     = media_source.spec['type']
@@ -640,16 +640,21 @@ def SelectTracks(options, media_sources):
         if not tracks:
             tracks = media_source.mp4_file.tracks.values()
             
-        # process audio tracks
-        for track in [t for t in tracks if t.type == 'audio']:
+        # remap track languages if necessary
+        for track in tracks:
             language = LanguageCodeMap.get(track.language, track.language)
             if track_language and track_language != language and track_language != track.language:
                 continue
             if options.language_map and language in options.language_map:
                 language = options.language_map[language]
-            if language not in audio_tracks:
-                audio_tracks[language] = track
-                track.order_index = len(audio_tracks.values())
+            track.language = language
+
+        # process audio tracks
+        for track in [t for t in tracks if t.type == 'audio']:
+            if len([et for et in audio_tracks if et.language == track.language]):
+                continue # only accept one track for each language
+            audio_tracks.append(track)
+            track.order_index = len(audio_tracks)
 
         # process video tracks
         for track in [t for t in tracks if t.type == 'video']:
@@ -658,14 +663,10 @@ def SelectTracks(options, media_sources):
 
         # process subtitle tracks
         for track in [t for t in tracks if t.type == 'subtitles']:
-            language = LanguageCodeMap.get(track.language, track.language)
-            if track_language and track_language != language and track_language != track.language:
-                continue
-            if options.language_map and language in options.language_map:
-                language = options.language_map[language]
-            if language not in subtitles_tracks:
-                subtitles_tracks[language] = track
-                track.order_index = len(subtitles_tracks.values())
+            if len([et for et in subtitles_tracks if et.language == track.language]):
+                continue # only accept one track for each language
+            subtitles_tracks.append(track)
+            track.order_index = len(subtitles_tracks)
 
     return (audio_tracks, video_tracks, subtitles_tracks, mp4_files)
 
@@ -903,7 +904,7 @@ def main():
     if ISOFF_ON_DEMAND_PROFILE in options.profiles:
         (audio_tracks, video_tracks, subtitles_tracks, mp4_files) = SelectTracks(options, media_sources)
         media_sources = []
-        for track in audio_tracks.values()+video_tracks:
+        for track in audio_tracks+video_tracks:
             print 'Extracting track', track.id, 'from', GetMappedFileName(track.parent.media_source.filename)
             track_file = tempfile.NamedTemporaryFile(dir = options.output_dir, delete=False)
             TempFiles.append(track_file.name)
@@ -1032,7 +1033,7 @@ def main():
                 if ratio > 1.1 or ratio < 0.9:
                     sys.stderr.write('WARNING: video segment durations for "' + str(video_track) + '" vary by more than 10% (consider using --use-segment-timeline)\n')
                     break
-        for audio_track in audio_tracks.values():
+        for audio_track in audio_tracks:
             for segment_duration in audio_track.segment_durations[:-2]:
                 ratio = segment_duration/audio_track.average_segment_duration
                 if ratio > 1.1 or ratio < 0.9:
@@ -1041,7 +1042,7 @@ def main():
     
     # round the audio segment durations to be equal to the video segment durations
     if len(video_tracks):
-        for audio_track in audio_tracks.values():
+        for audio_track in audio_tracks:
             ratio = audio_track.average_segment_duration/video_tracks[0].average_segment_duration
             if abs(ratio-1.0) < 0.05:
                 # within 5%, make it equal
@@ -1050,7 +1051,7 @@ def main():
                 audio_track.average_segment_duration = video_tracks[0].average_segment_duration
 
     # compute the audio codecs
-    for audio_track in audio_tracks.values(): 
+    for audio_track in audio_tracks: 
         audio_desc = audio_track.info['sample_descriptions'][0]
         audio_coding = audio_desc['coding']
         if audio_coding == 'mp4a':
@@ -1098,23 +1099,23 @@ def main():
         video_track.scan_type = 'progressive'
 
     # compute the subtitles codecs
-    for subtitles_track in subtitles_tracks.values(): 
+    for subtitles_track in subtitles_tracks: 
         subtitles_desc = subtitles_track.info['sample_descriptions'][0]
         subtitles_coding = subtitles_desc['coding']
         subtitles_track.codec = subtitles_coding
 
     # compute the track stream id init segment name for each track
-    for (language, audio_track) in audio_tracks.items():
+    for audio_track in audio_tracks:
         if options.split:
-            audio_track.representation_id = 'audio/'+language
+            audio_track.representation_id = 'audio/'+audio_track.language
             audio_track.init_segment_name = SPLIT_INIT_SEGMENT_NAME
         else:
-            audio_track.representation_id = 'audio-'+language
+            audio_track.representation_id = 'audio-'+audio_track.language
             if ISOFF_ON_DEMAND_PROFILE in options.profiles:
                 audio_track.parent.media_name = ONDEMAND_MEDIA_FILE_PATTERN % (options.media_prefix, audio_track.representation_id)
             else:
                 audio_track.init_segment_name = NOSPLIT_INIT_FILE_PATTERN % (audio_track.representation_id)
-        audio_track.stream_id = 'audio_'+language
+        audio_track.stream_id = 'audio_'+audio_track.language
     for video_track in video_tracks:
         if options.split:
             video_track.representation_id = 'video/'+str(video_track.order_index)
@@ -1126,21 +1127,21 @@ def main():
             else:
                 video_track.init_segment_name = NOSPLIT_INIT_FILE_PATTERN % (video_track.representation_id)
         video_track.stream_id = 'video'
-    for (language, subtitles_track) in subtitles_tracks.items():
+    for subtitles_track in subtitles_tracks:
         if options.split:
-            subtitles_track.representation_id = 'subtitles/'+language
+            subtitles_track.representation_id = 'subtitles/'+subtitles_track.language
             subtitles_track.init_segment_name = SPLIT_INIT_SEGMENT_NAME
         else:
-            subtitles_track.representation_id = 'subtitles-'+language
+            subtitles_track.representation_id = 'subtitles-'+subtitles_track.language
             if ISOFF_ON_DEMAND_PROFILE in options.profiles:
                 subtitles_track.parent.media_name = ONDEMAND_MEDIA_FILE_PATTERN % (options.media_prefix, subtitles_track.representation_id)
             else:
                 subtitles_track.init_segment_name = NOSPLIT_INIT_FILE_PATTERN % (subtitles_track.representation_id)
-        subtitles_track.stream_id = 'subtitles_'+language
+        subtitles_track.stream_id = 'subtitles_'+subtitles_track.language
 
     # compute index and init offsets for the on-demand profile
     if ISOFF_ON_DEMAND_PROFILE in options.profiles:
-        for track in audio_tracks.values()+video_tracks:
+        for track in audio_tracks+video_tracks+subtitles_track:
             atoms = WalkAtoms(track.parent.media_source.filename, 'moof')
             for atom in atoms:
                 if atom.type == 'sidx' and not hasattr(track, 'sidx_atom'):
@@ -1153,11 +1154,11 @@ def main():
         if len(video_tracks):
             options.min_buffer_time = video_tracks[0].average_segment_duration
         else:
-            options.min_buffer_time = audio_tracks.values()[0].average_segment_duration
+            options.min_buffer_time = audio_tracks[0].average_segment_duration
                 
     # print info about the tracks
     if options.verbose:
-        for audio_track in audio_tracks.itervalues():
+        for audio_track in audio_tracks:
             print 'Audio Track: ' + str(audio_track) + ' - max bitrate=%d, avg bitrate=%d, req bandwidth=%d' % (audio_track.max_segment_bitrate, audio_track.average_segment_bitrate, audio_track.bandwidth)
         for video_track in video_tracks:
             print 'Video Track: ' + str(video_track) + ' - max bitrate=%d, avg bitrate=%d, req bandwidth=%d' % (video_track.max_segment_bitrate, video_track.average_segment_bitrate, video_track.bandwidth)
@@ -1179,8 +1180,8 @@ def main():
         if options.split:
             if len(audio_tracks):
                 MakeNewDir(path.join(options.output_dir, 'audio'))
-            for (language, audio_track) in audio_tracks.iteritems():
-                out_dir = path.join(options.output_dir, 'audio', language)
+            for audio_track in audio_tracks:
+                out_dir = path.join(options.output_dir, 'audio', audio_track.language)
                 MakeNewDir(out_dir)
                 print 'Splitting media file (audio)', GetMappedFileName(audio_track.parent.media_source.filename)
                 Mp4Split(options,
@@ -1206,8 +1207,8 @@ def main():
                          media_segment          = path.join(out_dir, SEGMENT_PATTERN))
             if len(subtitles_tracks):
                 MakeNewDir(path.join(options.output_dir, 'subtitles'))
-            for (language, subtitles_track) in subtitles_tracks.iteritems():
-                out_dir = path.join(options.output_dir, 'subtitles', language)
+            for subtitles_track in subtitles_tracks:
+                out_dir = path.join(options.output_dir, 'subtitles', subtitles_track.language)
                 MakeNewDir(out_dir)
                 print 'Splitting media file (subtitles)', GetMappedFileName(subtitles_track.parent.media_source.filename)
                 Mp4Split(Options,
@@ -1226,7 +1227,7 @@ def main():
                     
                 shutil.copyfile(mp4_file.media_source.filename, media_filename)
             if options.smooth or options.hippo:
-                for track in audio_tracks.values() + video_tracks:
+                for track in audio_tracks+video_tracks+subtitles_tracks:
                     Mp4Split(options,
                              track.parent.media_source.filename,
                              track_id     = str(track.id),
