@@ -681,7 +681,7 @@ Fragment(AP4_File&                input_file,
                                            item;
                                            item = item->GetNext()) {
             FragmentInfo* fragment = item->GetData();
-            reference.m_ReferencedSize     = fragment->m_Moof->GetSize()+fragment->m_MdatSize;
+            reference.m_ReferencedSize     = (AP4_UI32)(fragment->m_Moof->GetSize()+fragment->m_MdatSize);
             reference.m_SubsegmentDuration = fragment->m_Duration;
             reference.m_StartsWithSap      = true;
             sidx->SetReference(segment_index++, reference);
