@@ -463,7 +463,7 @@ Fragment(AP4_File&                input_file,
             } else {
                 printf("----");
             }
-            printf(" Track ID %d - dts = %lld, target = %lld, pos = %d, end = %d/%d\n",
+            printf(" Track ID %d - dts=%lld, target=%lld, start=%d, end=%d/%d\n",
                    cursor->m_Track->GetId(),
                    cursor->m_Sample.GetDts(),
                    target_dts,

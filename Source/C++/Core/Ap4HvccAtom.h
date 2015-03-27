@@ -38,7 +38,10 @@
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-const AP4_UI08 AP4_HEVC_PROFILE_MAIN     = 1;
+const AP4_UI08 AP4_HEVC_PROFILE_MAIN               = 1;
+const AP4_UI08 AP4_HEVC_PROFILE_MAIN_10            = 2;
+const AP4_UI08 AP4_HEVC_PROFILE_MAIN_STILL_PICTURE = 3;
+const AP4_UI08 AP4_HEVC_PROFILE_REXT               = 4;
 
 const AP4_UI08 AP4_HEVC_CHROMA_FORMAT_MONOCHROME = 0;
 const AP4_UI08 AP4_HEVC_CHROMA_FORMAT_420        = 1;
