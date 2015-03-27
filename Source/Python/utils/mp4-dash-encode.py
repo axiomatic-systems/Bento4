@@ -111,11 +111,13 @@ def main():
     parser.add_option('-a', '--audio-bitrate', dest='audio_bitrate', type='int',
                       help="Audio bitrate (default: 128kbps)", default=128)
     parser.add_option('', '--select-streams', dest='select_streams', 
-                      help="Only encode these streams (comma-separated list of stream indexes or stream sepcifiers)")
+                      help="Only encode these streams (comma-separated list of stream indexes or stream specifiers)")
     parser.add_option('-s', '--segment-size', dest='segment_size', type='int',
                       help="Video segment size in frames (default: 3*fps)")
     parser.add_option('-t', '--text-overlay', dest='text_overlay', action='store_true', default=False,
                       help="Add a text overlay with the bitrate")
+    parser.add_option('-e', '--encoder-params', dest='encoder_params', 
+                      help="Extra encoder parameters")
     parser.add_option('-f', '--force', dest="force_output", action="store_true",
                       help="Overwrite output files if they already exist", default=False)
     (options, args) = parser.parse_args()
@@ -152,7 +154,7 @@ def main():
     for i in range(options.bitrates):
         output_filename = 'video_%05d.mp4' % int(bitrates[i])
         temp_filename = output_filename+'_'
-        base_cmd  = 'ffmpeg -i "%s" -strict experimental -codec:a libfdk_aac -ac 2 -ab %dk -preset slow -codec:v %s' % (args[0], options.audio_bitrate, options.video_codec)
+        base_cmd  = 'ffmpeg -i "%s" -strict experimental -codec:a libfdk_aac -ac 2 -ab %dk -preset slow -map_metadata -1 -codec:v %s' % (args[0], options.audio_bitrate, options.video_codec)
         if options.video_codec == 'libx264':
             base_cmd += ' -profile:v baseline'
         if options.text_overlay:
@@ -174,6 +176,10 @@ def main():
         video_opts += " -bufsize %dk -maxrate %dk" % (bitrates[i], int(bitrates[i]*1.5))
         if options.video_codec == 'libx264':
             video_opts += " -x264opts rc-lookahead=%d" % (options.segment_size)
+        elif options.video_codec == 'libx265':
+            video_opts += ' -x265-params "no-open-gop=1:keyint=%d:no-scenecut=1:profile=main"' % (options.segment_size)
+        if options.encoder_params:
+            video_opts += ' ' + options.encoder_params
         cmd = base_cmd+' '+video_opts+' -s '+str(resolutions[i][0])+'x'+str(resolutions[i][1])+' -f mp4 '+temp_filename
         if options.verbose:
             print 'ENCODING bitrate: %d, resolution: %dx%d' % (int(bitrates[i]), resolutions[i][0], resolutions[i][1])
