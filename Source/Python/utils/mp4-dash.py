@@ -249,58 +249,65 @@ def OutputDash(options, audio_tracks, video_tracks, subtitles_tracks):
     period = xml.SubElement(mpd, 'Period')
 
     # process the audio tracks
-    for audio_track in audio_tracks:
-        args = [period, 'AdaptationSet']
-        kwargs = {'mimeType': AUDIO_MIMETYPE, 'startWithSAP': '1', 'segmentAlignment': 'true'}
-        if (audio_track.language != 'und') or (HBBTV_15_ISOFF_LIVE_PROFILE in options.profiles):
-            kwargs['lang'] = audio_track.language
-        stream_name = 'audio_' + audio_track.language
-        adaptation_set = xml.SubElement(*args, **kwargs)
-        if options.encryption_key or options.marlin or options.playready or options.widevine:
-            AddContentProtection(options, adaptation_set, [audio_track])
-    
-        representation = xml.SubElement(adaptation_set,
-                                        'Representation',
-                                        id=audio_track.representation_id,
-                                        codecs=audio_track.codec,
-                                        bandwidth=str(audio_track.bandwidth),
-                                        audioSamplingRate=str(audio_track.sample_rate))
-        audio_channel_config = xml.SubElement(representation,
-                                              'AudioChannelConfiguration',
-                                              schemeIdUri=AUDIO_CHANNEL_CONFIGURATION_SCHEME_ID_URI,
-                                              value=str(audio_track.channels))            
+    if len(audio_tracks):
+        for audio_track in audio_tracks:
+            args = [period, 'AdaptationSet']
+            kwargs = {'mimeType': AUDIO_MIMETYPE, 'startWithSAP': '1', 'segmentAlignment': 'true'}
+            if (audio_track.language != 'und') or (HBBTV_15_ISOFF_LIVE_PROFILE in options.profiles):
+                kwargs['lang'] = audio_track.language
+            stream_name = 'audio_' + audio_track.language
+            adaptation_set = xml.SubElement(*args, **kwargs)
 
-        if ISOFF_ON_DEMAND_PROFILE in options.profiles:
-            base_url = xml.SubElement(representation, 'BaseURL')
-            base_url.text = ONDEMAND_MEDIA_FILE_PATTERN % (options.media_prefix, audio_track.representation_id)
-            sidx_range = (audio_track.sidx_atom.position, audio_track.sidx_atom.position+audio_track.sidx_atom.size-1)
-            init_range = (0, audio_track.moov_atom.position+audio_track.moov_atom.size-1)
-            segment_base = xml.SubElement(representation, 'SegmentBase', indexRange=str(sidx_range[0])+'-'+str(sidx_range[1]))
-            xml.SubElement(segment_base, 'Initialization', range=str(init_range[0])+'-'+str(init_range[1]))
-        else:
-            if options.split:
-                media_subdir                      = 'audio/' + audio_track.language
-                init_segment_url                  = '$RepresentationID$/' + SPLIT_INIT_SEGMENT_NAME
-                media_segment_url_template_prefix = '$RepresentationID$/'
-            else:
-                media_subdir                      = None
-                init_segment_url                  = NOSPLIT_INIT_FILE_PATTERN % ('$RepresentationID$') 
-                media_segment_url_template_prefix = ''
-
-            AddSegmentTemplate(options, adaptation_set, init_segment_url, media_segment_url_template_prefix, audio_track, stream_name)
-            AddSegments(options, representation, media_subdir, audio_track)
+            if options.encryption_key or options.marlin or options.playready or options.widevine:
+                AddContentProtection(options, adaptation_set, [audio_track])
         
-    # process all the video tracks
+            if ISOFF_ON_DEMAND_PROFILE not in options.profiles:
+                if options.split:
+                    init_segment_url                  = '$RepresentationID$/' + SPLIT_INIT_SEGMENT_NAME
+                    media_segment_url_template_prefix = '$RepresentationID$/'
+                else:
+                    init_segment_url                  = NOSPLIT_INIT_FILE_PATTERN % ('$RepresentationID$') 
+                    media_segment_url_template_prefix = ''
+                AddSegmentTemplate(options, adaptation_set, init_segment_url, media_segment_url_template_prefix, audio_track, stream_name)
+
+            representation = xml.SubElement(adaptation_set,
+                                            'Representation',
+                                            id=audio_track.representation_id,
+                                            codecs=audio_track.codec,
+                                            bandwidth=str(audio_track.bandwidth),
+                                            audioSamplingRate=str(audio_track.sample_rate))
+            audio_channel_config = xml.SubElement(representation,
+                                                  'AudioChannelConfiguration',
+                                                  schemeIdUri=AUDIO_CHANNEL_CONFIGURATION_SCHEME_ID_URI,
+                                                  value=str(audio_track.channels))            
+
+            if ISOFF_ON_DEMAND_PROFILE in options.profiles:
+                base_url = xml.SubElement(representation, 'BaseURL')
+                base_url.text = ONDEMAND_MEDIA_FILE_PATTERN % (options.media_prefix, audio_track.representation_id)
+                sidx_range = (audio_track.sidx_atom.position, audio_track.sidx_atom.position+audio_track.sidx_atom.size-1)
+                init_range = (0, audio_track.moov_atom.position+audio_track.moov_atom.size-1)
+                segment_base = xml.SubElement(representation, 'SegmentBase', indexRange=str(sidx_range[0])+'-'+str(sidx_range[1]))
+                xml.SubElement(segment_base, 'Initialization', range=str(init_range[0])+'-'+str(init_range[1]))
+            else:
+                if options.split:
+                    media_subdir = 'audio/' + audio_track.language
+                else:
+                    media_subdir = None
+
+                AddSegments(options, representation, media_subdir, audio_track)
+        
+    # process the video tracks
     if len(video_tracks):
         adaptation_set = xml.SubElement(period,
                                         'AdaptationSet',
                                         mimeType=VIDEO_MIMETYPE,
                                         segmentAlignment='true',
                                         startWithSAP='1')
+
         if options.encryption_key or options.marlin or options.playready or options.widevine:
             AddContentProtection(options, adaptation_set, video_tracks)
         
-        if len(video_tracks) and ISOFF_ON_DEMAND_PROFILE not in options.profiles:
+        if ISOFF_ON_DEMAND_PROFILE not in options.profiles:
             if options.split:
                 init_segment_url                  = '$RepresentationID$/' + SPLIT_INIT_SEGMENT_NAME
                 media_segment_url_template_prefix = '$RepresentationID$/'
@@ -592,7 +599,9 @@ def SelectTracks(options, media_sources):
         file_list_index += 1
         if options.rename_media:
             mp4_file.media_name = MEDIA_FILE_PATTERN % (options.media_prefix, mp4_file.file_list_index)
-        elif 'media' in media_source.spec:
+        elif '+media' in media_source.spec:
+            mp4_file.media_name = media_source.spec['+media']
+        elif 'media' in media_source.spec: # we still accept the form without the '+' sign, for legacy support
             mp4_file.media_name = media_source.spec['media']
         else:
             mp4_file.media_name = path.basename(media_source.original_filename)
@@ -640,14 +649,21 @@ def SelectTracks(options, media_sources):
         if not tracks:
             tracks = media_source.mp4_file.tracks.values()
             
-        # remap track languages if necessary
+        # pre-process the track metadata
         for track in tracks:
+            # track language
             language = LanguageCodeMap.get(track.language, track.language)
             if track_language and track_language != language and track_language != track.language:
                 continue
-            if options.language_map and language in options.language_map:
+            remap_language = media_source.spec.get('+language')
+            if remap_language:
+                language = remap_language
+            elif options.language_map and language in options.language_map:
                 language = options.language_map[language]
             track.language = language
+
+            # role
+            track.dash_role = media_source.spec.get('+role')
 
         # process audio tracks
         for track in [t for t in tracks if t.type == 'audio']:
@@ -760,7 +776,7 @@ def main():
                            "(2) the character '#' followed by a PlayReady Header Object encoded in Base64, or " +
                            "(3) one or more <name>:<value> pair(s) (separated by '#' if more than one) specifying fields of a PlayReady Header Object (field names include LA_URL, LUI_URL and DS_ID)")
     parser.add_option('', "--playready-add-pssh", dest="playready_add_pssh", action="store_true", default=False,
-                      help="Store the PlayReady header in a 'pssh' box in the init segment(s) [deprecated: this is now implicitly on by default when the --playready-header option is used]")
+                      help="Store the PlayReady header in a 'pssh' box in the init segment(s) [deprecated: this is now implicitly on by default when the --playready or --playready-header option is used]")
     parser.add_option('', "--playready-no-pssh", dest="playready_no_pssh", action="store_true", default=False,
                       help="Do not store the PlayReady header in a 'pssh' box in the init segment(s)")
     parser.add_option('', "--widevine", dest="widevine", action="store_true", default=False,
@@ -849,7 +865,7 @@ def main():
     if options.playready_header or options.playready_add_pssh:
         options.playready = True
 
-    if options.playready and options.playready_header:
+    if options.playready:
         options.playready_add_pssh = True
 
     if options.playready_no_pssh:
@@ -1141,7 +1157,7 @@ def main():
 
     # compute index and init offsets for the on-demand profile
     if ISOFF_ON_DEMAND_PROFILE in options.profiles:
-        for track in audio_tracks+video_tracks+subtitles_track:
+        for track in audio_tracks+video_tracks+subtitles_tracks:
             atoms = WalkAtoms(track.parent.media_source.filename, 'moof')
             for atom in atoms:
                 if atom.type == 'sidx' and not hasattr(track, 'sidx_atom'):
@@ -1158,10 +1174,8 @@ def main():
                 
     # print info about the tracks
     if options.verbose:
-        for audio_track in audio_tracks:
-            print 'Audio Track: ' + str(audio_track) + ' - max bitrate=%d, avg bitrate=%d, req bandwidth=%d' % (audio_track.max_segment_bitrate, audio_track.average_segment_bitrate, audio_track.bandwidth)
-        for video_track in video_tracks:
-            print 'Video Track: ' + str(video_track) + ' - max bitrate=%d, avg bitrate=%d, req bandwidth=%d' % (video_track.max_segment_bitrate, video_track.average_segment_bitrate, video_track.bandwidth)
+        for track in audio_tracks+video_tracks+subtitles_tracks:
+            print ('%s track: ' + str(track) + ' - language=%s, max bitrate=%d, avg bitrate=%d, req bandwidth=%d, codec=%s') % (track.type, track.language, track.max_segment_bitrate, track.average_segment_bitrate, track.bandwidth, track.codec)
 
     # deal with the max playout strategy if set
     if options.max_playout_rate_strategy:

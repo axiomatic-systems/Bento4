@@ -419,9 +419,9 @@ class MediaSource:
             self.filename = name
             self.spec = {}
             
-        if 'type'     not in self.spec: self.spec['type']     = ''
-        if 'track'    not in self.spec: self.spec['track']    = 0
-        if 'language' not in self.spec: self.spec['language'] = ''
+        if 'type'           not in self.spec: self.spec['type']     = ''
+        if 'track'          not in self.spec: self.spec['track']    = 0
+        if 'language'       not in self.spec: self.spec['language'] = ''
         
         # keep a record of our original filename in case it gets changed later
         self.original_filename = self.filename
