@@ -61,3 +61,26 @@ The Bento4 SDK includes several command-line applications/tools that are built u
 |mp4-dash	    | creates an MPEG DASH output from one or more MP4 files, including encryption.                                                                   
 |mp4-dash-clone	| creates a local clone of a remote or local MPEG DASH presentation, optionally encrypting the segments as they are cloned.
 
+#Building
+Use cmake to generate Makefiles, Xcode project files, or Visual Studios project files.
+##Make
+```
+mkdir builds
+cd builds
+cmake -DCMAKE_BUILD_TYPE=Release ..
+make
+```
+##Xcode
+```
+mkdir builds
+cd builds
+cmake -G Xcode -DCMAKE_BUILD_TYPE=Release ..
+```
+
+##Visual Studios
+```
+mkdir builds
+cd builds
+cmake -G "Visual Studio 10 Win64" -DCMAKE_BUILD_TYPE=Release ..
+```
+
