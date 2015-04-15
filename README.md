@@ -61,26 +61,60 @@ The Bento4 SDK includes several command-line applications/tools that are built u
 |mp4-dash	    | creates an MPEG DASH output from one or more MP4 files, including encryption.                                                                   
 |mp4-dash-clone	| creates a local clone of a remote or local MPEG DASH presentation, optionally encrypting the segments as they are cloned.
 
-#Building
-Use cmake to generate Makefiles, Xcode project files, or Visual Studios project files.
-##Make
-```
-mkdir builds
-cd builds
-cmake -DCMAKE_BUILD_TYPE=Release ..
-make
-```
-##Xcode
-```
-mkdir builds
-cd builds
-cmake -G Xcode -DCMAKE_BUILD_TYPE=Release ..
-```
+Building
+--------
 
-##Visual Studios
-```
-mkdir builds
-cd builds
-cmake -G "Visual Studio 10 Win64" -DCMAKE_BUILD_TYPE=Release ..
-```
+The code can be built either by using the pre-configured IDE project files (Mac OSX, iOS and Windows), or compiled/cross-compiled using the SCons build system or CMake, or compiled using Make.
+Target platform specific build files and configurations are located under subdirectories Buid/Targets/xxxx where xxxx takes the form <architecture>-<vendor>-<os>. For example, the Linux x86 target specific files are located under Build/Targets/x86-unknown-linux. The XCode project files for Mac OSX are located under Build/Targets/universal-apple-macosx
+
+### Mac OSX and iOS
+Open the XCode project file Build/Targets/universal-apple-macosx/Bento4.xcodeproj and build
+
+### Windows
+Open the Visual Studio solution file Build/Targets/x86-microsoft-win32-vs2010/Bento4.sln and build
+
+### Using SCons
+Make sure you the the SCons build tool installed on your host machine (http://www.scons.org).
+To build the Debug configuration, simply enter the command:
+```scons -u```
+in a terminal from any directory (either from the top level directory where you downloaded the Bento4 distribution, or from the Build/Targets/xxx subdirectory for your specific target).
+
+To build the Release configuration, enter use the command:
+```scons -u build_config=Release```
+
+To cross-compile for a target other than your host architecture, specify target=xxxx as an argument to the scons build command.
+Example:
+```scons -u build_config=Release target=arm-unknown-linux```
+
+### Using CMake
+CMake can generate Makefiles, Xcode project files, or Visual Studios project files.
+ #### Make
+	```
+	mkdir cmakebuild
+	cd cmakebuild
+	cmake -DCMAKE_BUILD_TYPE=Release ..
+	make
+	```
+
+ #### Xcode
+	```
+	mkdir cmakebuild
+	cd cmakebuild
+	cmake -G Xcode -DCMAKE_BUILD_TYPE=Release ..
+	```
+
+  #### Visual Studio
+	```
+	mkdir cmakebuild
+	cd cmakebuild
+	cmake -G "Visual Studio 10 Win64" -DCMAKE_BUILD_TYPE=Release ..
+	```
+
+
+### Using Make
+From a command shell, go to your build target directory.
+For Debug builds:
+	```make```
+For Release builds:
+```make AP4_BUILD_CONFIG=Release```
 

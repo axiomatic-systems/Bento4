@@ -261,7 +261,7 @@ def OutputDash(options, audio_tracks, video_tracks, subtitles_tracks):
             if options.encryption_key or options.marlin or options.playready or options.widevine:
                 AddContentProtection(options, adaptation_set, [audio_track])
         
-            if ISOFF_ON_DEMAND_PROFILE not in options.profiles:
+            if not options.on_demand:
                 if options.split:
                     init_segment_url                  = '$RepresentationID$/' + SPLIT_INIT_SEGMENT_NAME
                     media_segment_url_template_prefix = '$RepresentationID$/'
@@ -281,7 +281,7 @@ def OutputDash(options, audio_tracks, video_tracks, subtitles_tracks):
                                                   schemeIdUri=AUDIO_CHANNEL_CONFIGURATION_SCHEME_ID_URI,
                                                   value=str(audio_track.channels))            
 
-            if ISOFF_ON_DEMAND_PROFILE in options.profiles:
+            if options.on_demand:
                 base_url = xml.SubElement(representation, 'BaseURL')
                 base_url.text = ONDEMAND_MEDIA_FILE_PATTERN % (options.media_prefix, audio_track.representation_id)
                 sidx_range = (audio_track.sidx_atom.position, audio_track.sidx_atom.position+audio_track.sidx_atom.size-1)
@@ -307,7 +307,7 @@ def OutputDash(options, audio_tracks, video_tracks, subtitles_tracks):
         if options.encryption_key or options.marlin or options.playready or options.widevine:
             AddContentProtection(options, adaptation_set, video_tracks)
         
-        if ISOFF_ON_DEMAND_PROFILE not in options.profiles:
+        if not options.on_demand:
             if options.split:
                 init_segment_url                  = '$RepresentationID$/' + SPLIT_INIT_SEGMENT_NAME
                 media_segment_url_template_prefix = '$RepresentationID$/'
@@ -329,7 +329,7 @@ def OutputDash(options, audio_tracks, video_tracks, subtitles_tracks):
             if hasattr(video_track, 'max_playout_rate'):
                 representation.set('maxPlayoutRate', video_track.max_playout_rate)
 
-            if ISOFF_ON_DEMAND_PROFILE in options.profiles:
+            if options.on_demand:
                 base_url = xml.SubElement(representation, 'BaseURL')
                 base_url.text = ONDEMAND_MEDIA_FILE_PATTERN % (options.media_prefix, video_track.representation_id)
                 sidx_range = (video_track.sidx_atom.position, video_track.sidx_atom.position+video_track.sidx_atom.size-1)
@@ -360,7 +360,7 @@ def OutputDash(options, audio_tracks, video_tracks, subtitles_tracks):
                                             codecs=subtitles_track.codec,
                                             bandwidth=str(subtitles_track.bandwidth))
 
-            if ISOFF_ON_DEMAND_PROFILE in options.profiles:
+            if options.on_demand:
                 base_url = xml.SubElement(representation, 'BaseURL')
                 base_url.text = ONDEMAND_MEDIA_FILE_PATTERN % (options.media_prefix, subtitles_track.representation_id)
                 sidx_range = (subtitles_track.sidx_atom.position, subtitles_track.sidx_atom.position+subtitles_track.sidx_atom.size-1)
@@ -795,6 +795,9 @@ def main():
     global Options
     Options = options
     
+    # set some synthetix (not from command line) options
+    options.on_demand = False
+
     # check the consistency of the options
     if options.smooth:
         options.split = False
@@ -808,11 +811,6 @@ def main():
         if options.use_segment_list:
             raise Exception('ERROR: --hippo and --use-segment-list are mutually exclusive')
                     
-    if not options.split:
-        if not options.smooth and not options.hippo and not options.use_segment_list:
-            sys.stderr.write('WARNING: --no-split requires --use-segment-list, which will be enabled automatically\n')
-            options.use_segment_list = True
-
     if not path.exists(Options.exec_dir):
         PrintErrorAndExit('Executable directory does not exist ('+Options.exec_dir+'), use --exec-dir')
 
@@ -841,9 +839,8 @@ def main():
                 profile = ProfileAliases[profile]
             profiles.append(profile)
         options.profiles = profiles
-        if ISOFF_LIVE_PROFILE in options.profiles and options.use_segment_list:
-            raise Exception('segment lists cannot be used with the live profile')
     if ISOFF_ON_DEMAND_PROFILE in options.profiles:
+        options.on_demand = True
         options.split = False
         if ISOFF_LIVE_PROFILE in options.profiles:
             raise Exception('on-demand and live profiles are mutually exclusive')
@@ -851,6 +848,14 @@ def main():
         options.playready_no_pssh = True
         if options.playready_add_pssh:
             sys.stderr.write('INFO: since hbbtv-1.5 profile is selected, no PlayReady PSSH box will be added to the init segments\n')
+
+    if not options.split:
+        if not options.smooth and not options.hippo and not options.on_demand and not options.use_segment_list:
+            sys.stderr.write('WARNING: --no-split requires --use-segment-list, which will be enabled automatically\n')
+            options.use_segment_list = True
+
+    if options.on_demand and options.use_segment_list:
+        raise Exception('segment lists cannot be used with the on-demand profile')
 
     if options.smooth:
         if ISOFF_LIVE_PROFILE not in options.profiles:
@@ -917,7 +922,7 @@ def main():
     MakeNewDir(dir=options.output_dir, exit_if_exists = not (options.no_media or options.force_output), severity=severity)
 
     # for on-demand, we need to first extract tracks into individual media files
-    if ISOFF_ON_DEMAND_PROFILE in options.profiles:
+    if options.on_demand:
         (audio_tracks, video_tracks, subtitles_tracks, mp4_files) = SelectTracks(options, media_sources)
         media_sources = []
         for track in audio_tracks+video_tracks:
@@ -1127,7 +1132,7 @@ def main():
             audio_track.init_segment_name = SPLIT_INIT_SEGMENT_NAME
         else:
             audio_track.representation_id = 'audio-'+audio_track.language
-            if ISOFF_ON_DEMAND_PROFILE in options.profiles:
+            if options.on_demand:
                 audio_track.parent.media_name = ONDEMAND_MEDIA_FILE_PATTERN % (options.media_prefix, audio_track.representation_id)
             else:
                 audio_track.init_segment_name = NOSPLIT_INIT_FILE_PATTERN % (audio_track.representation_id)
@@ -1138,7 +1143,7 @@ def main():
             video_track.init_segment_name = SPLIT_INIT_SEGMENT_NAME
         else:
             video_track.representation_id = 'video-'+str(video_track.order_index)
-            if ISOFF_ON_DEMAND_PROFILE in options.profiles:
+            if options.on_demand:
                 video_track.parent.media_name= ONDEMAND_MEDIA_FILE_PATTERN % (options.media_prefix, video_track.representation_id)
             else:
                 video_track.init_segment_name = NOSPLIT_INIT_FILE_PATTERN % (video_track.representation_id)
@@ -1149,14 +1154,14 @@ def main():
             subtitles_track.init_segment_name = SPLIT_INIT_SEGMENT_NAME
         else:
             subtitles_track.representation_id = 'subtitles-'+subtitles_track.language
-            if ISOFF_ON_DEMAND_PROFILE in options.profiles:
+            if options.on_demand:
                 subtitles_track.parent.media_name = ONDEMAND_MEDIA_FILE_PATTERN % (options.media_prefix, subtitles_track.representation_id)
             else:
                 subtitles_track.init_segment_name = NOSPLIT_INIT_FILE_PATTERN % (subtitles_track.representation_id)
         subtitles_track.stream_id = 'subtitles_'+subtitles_track.language
 
     # compute index and init offsets for the on-demand profile
-    if ISOFF_ON_DEMAND_PROFILE in options.profiles:
+    if options.on_demand:
         for track in audio_tracks+video_tracks+subtitles_tracks:
             atoms = WalkAtoms(track.parent.media_source.filename, 'moof')
             for atom in atoms:
