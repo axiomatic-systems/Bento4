@@ -45,7 +45,7 @@
 |   constants
 +---------------------------------------------------------------------*/
 const unsigned int AP4_FRAGMENTER_DEFAULT_FRAGMENT_DURATION   = 2000; // ms
-const unsigned int AP4_FRAGMENTER_MAX_AUTO_FRAGMENT_DURATION  = 15000; 
+const unsigned int AP4_FRAGMENTER_MAX_AUTO_FRAGMENT_DURATION  = 40000;
 
 /*----------------------------------------------------------------------
 |   options
@@ -778,6 +778,61 @@ AutoDetectFragmentDuration(TrackCursor* cursor)
 }
 
 /*----------------------------------------------------------------------
+|   AutoDetectAudioFragmentDuration
++---------------------------------------------------------------------*/
+static unsigned int 
+AutoDetectAudioFragmentDuration(AP4_ByteStream& stream, TrackCursor* cursor)
+{
+    // remember where we are in the stream
+    AP4_Position where = 0;
+    stream.Tell(where);
+    AP4_LargeSize stream_size = 0;
+    stream.GetSize(stream_size);
+    AP4_LargeSize bytes_available = stream_size-where;
+    
+    AP4_UI64  fragment_count = 0;
+    AP4_UI32  last_fragment_size = 0;
+    AP4_Atom* atom = NULL;
+    while (AP4_SUCCEEDED(AP4_DefaultAtomFactory::Instance.CreateAtomFromStream(stream, bytes_available, atom))) {
+        if (atom && atom->GetType() == AP4_ATOM_TYPE_MOOF) {
+            AP4_ContainerAtom* moof = AP4_DYNAMIC_CAST(AP4_ContainerAtom, atom);
+            AP4_TfhdAtom* tfhd = AP4_DYNAMIC_CAST(AP4_TfhdAtom, moof->FindChild("traf/tfhd"));
+            if (tfhd && tfhd->GetTrackId() == cursor->m_Track->GetId()) {
+                ++fragment_count;
+                AP4_TrunAtom* trun = AP4_DYNAMIC_CAST(AP4_TrunAtom, moof->FindChild("traf/trun"));
+                if (trun) {
+                    last_fragment_size = trun->GetEntries().ItemCount();
+                }
+            }
+        }
+        delete atom;
+        atom = NULL;
+    }
+    
+    // restore the stream to its original position
+    stream.Seek(where);
+    
+    // decide if we can infer an fragment size
+    if (fragment_count == 0 || cursor->m_Samples->GetSampleCount() == 0) {
+        return 0;
+    }
+    // don't count the last fragment if we have more than one
+    if (fragment_count > 1 && last_fragment_size) {
+        --fragment_count;
+    }
+    if (fragment_count <= 1 || cursor->m_Samples->GetSampleCount() < last_fragment_size) {
+        last_fragment_size = 0;
+    }
+    AP4_Sample sample;
+    AP4_UI64 total_duration = 0;
+    for (unsigned int i=0; i<cursor->m_Samples->GetSampleCount()-last_fragment_size; i++) {
+        cursor->m_Samples->GetSample(i, sample);
+        total_duration += sample.GetDuration();
+    }
+    return AP4_ConvertTime(total_duration/fragment_count, cursor->m_Track->GetMediaTimeScale(), 1000);
+}
+
+/*----------------------------------------------------------------------
 |   main
 +---------------------------------------------------------------------*/
 int
@@ -1026,14 +1081,12 @@ main(int argc, char** argv)
     if (auto_detect_fragment_duration) {
         if (video_track) {
             fragment_duration = AutoDetectFragmentDuration(video_track);
-        } else {
-            if (Options.verbosity > 0) {
-                fprintf(stderr, "no video track, cannot autodetect fragment duration\n");
-            }
+        } else if (audio_track && input_file.GetMovie()->HasFragments()) {
+            fragment_duration = AutoDetectAudioFragmentDuration(*input_stream, audio_track);
         }
         if (fragment_duration == 0) {
             if (Options.verbosity > 0) {
-                fprintf(stderr, "unable to detect fragment duration, using default\n");
+                fprintf(stderr, "unable to autodetect fragment duration, using default\n");
             }
             fragment_duration = AP4_FRAGMENTER_DEFAULT_FRAGMENT_DURATION;
         } else if (fragment_duration > AP4_FRAGMENTER_MAX_AUTO_FRAGMENT_DURATION) {
