@@ -529,9 +529,12 @@ def ComputePlayReadyHeader(header_spec, kid_hex, key_hex):
         if (ord(header[0]) == 0xff and ord(header[1]) == 0xfe) or (ord(header[0]) == 0xfe and ord(header[1]) == 0xff):
             # this is UTF-16 XML
             header_xml = header.decode('utf-16')
-        elif header[0] == '<':
+        elif header[0] == '<' and ord(header[1]) != 0x00:
             # this is ASCII or UTF-8 XML
             header_xml = header.decode('utf-8')
+        elif header[0] == '<' and ord(header[1]) == 0x00:
+            # this UTF-16LE XML without charset header
+            header_xml = header.decode('utf-16-le')
         if header_xml is not None:
             header = WrapPlayreadyHeaderXml(header_xml)
         return header

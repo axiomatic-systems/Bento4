@@ -637,7 +637,10 @@ AddMp4Tracks(AP4_Movie&            movie,
     while (track_item) {
         AP4_Track* track = track_item->GetData();
         if (track_id == 0 || track->GetId() == track_id) {
-            movie.AddTrack(track->Clone());
+            track = track->Clone();
+            // reset the track ID so that it can be re-assigned
+            track->SetId(0);
+            movie.AddTrack(track);
         }
         track_item = track_item->GetNext();
     }

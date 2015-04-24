@@ -75,13 +75,13 @@ private:
 /*----------------------------------------------------------------------
 |   AP4_Movie::AP4_Movie
 +---------------------------------------------------------------------*/
-AP4_Movie::AP4_Movie(AP4_UI32 time_scale) :
+AP4_Movie::AP4_Movie(AP4_UI32 time_scale, AP4_UI64 duration) :
     m_MoovAtomIsOwned(true)
 {
     m_MoovAtom = new AP4_MoovAtom();
     m_MvhdAtom = new AP4_MvhdAtom(0, 0, 
                                   time_scale, 
-                                  0, 
+                                  duration,
                                   0x00010000,
                                   0x0100);
     m_MoovAtom->AddChild(m_MvhdAtom);

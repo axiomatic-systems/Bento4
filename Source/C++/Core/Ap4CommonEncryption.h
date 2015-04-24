@@ -502,7 +502,7 @@ public:
                              AP4_CencSingleSampleDecrypter*& decrypter);
     
     // methods
-    AP4_CencSingleSampleDecrypter(AP4_StreamCipher* cipher) : m_Cipher(cipher) {}
+    AP4_CencSingleSampleDecrypter(AP4_StreamCipher* cipher) : m_Cipher(cipher), m_FullBlocksOnly(false) {}
     virtual ~AP4_CencSingleSampleDecrypter();
     virtual AP4_Result DecryptSampleData(AP4_DataBuffer& data_in,
                                          AP4_DataBuffer& data_out,

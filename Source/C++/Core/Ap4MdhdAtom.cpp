@@ -66,6 +66,11 @@ AP4_MdhdAtom::AP4_MdhdAtom(AP4_UI32    creation_time,
     m_Duration(duration)
 {
     m_Language.Assign(language, 3);
+
+    if (duration > 0xFFFFFFFF) {
+        m_Version = 1;
+        m_Size32 += 12;
+    }
 }
 
 /*----------------------------------------------------------------------
