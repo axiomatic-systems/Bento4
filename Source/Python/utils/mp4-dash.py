@@ -1081,7 +1081,7 @@ def main():
                 # this is MP4 audio
                 mpeg_4_audio_object_type = audio_desc['mpeg_4_audio_object_type']
 
-                # check if this may be HE-AAC with implicit signaling
+                # check if this may be HE-AAC with explicit signaling
                 if mpeg_4_audio_object_type == 2 and 'extension' in audio_desc['mpeg_4_audio_decoder_config']:
                     extension = audio_desc['mpeg_4_audio_decoder_config']['extension']
                     if extension['ps_present']:

@@ -5,7 +5,7 @@ Bento4 is a C++ class library and tools designed to read and write ISO-MP4 files
 This format is defined in international specifications ISO/IEC 14496-12, 14496-14 and 14496-15. 
 The format is a derivative of the Apple Quicktime file format, so Bento4 can be used to read and write most Quicktime files as well.
 
-Visit http://www.bento4.com for details
+Visit [www.bento4.com](http://www.bento4.com) for details
 
 Features
 --------
@@ -21,7 +21,7 @@ A number of formats and features based on the ISO-MP4 format and related technol
  * ISO-MP4 files profiled as part of the 3GPP family of standards.
  * The UltraViolet (DECE) CFF (Common File Format).
  * Parsing and multiplexing of H.264 (AVC) video and AAC audio elementary streams
- * Support for multiple DRM systems that are compatible with MP4-formatted content (usually leveraging CENC Common Encryption), such as Marlin and PlayReady and Widevine.
+ * Support for multiple DRM systems that are compatible with MP4-formatted content (usually leveraging CENC Common Encryption), such as Marlin, PlayReady and Widevine.
  * Support for a wide range of codecs, including H.264 (AVC), H.265 (HEVC), AAC, AC3 and eAC3 (Dolby Digital), DTS, ALAC, and many more.
 
 Design
@@ -65,7 +65,7 @@ Building
 --------
 
 The code can be built either by using the pre-configured IDE project files (Mac OSX, iOS and Windows), or compiled/cross-compiled using the SCons build system or CMake, or compiled using Make.
-Target platform specific build files and configurations are located under subdirectories Buid/Targets/xxxx where xxxx takes the form <architecture>-<vendor>-<os>. For example, the Linux x86 target specific files are located under Build/Targets/x86-unknown-linux. The XCode project files for Mac OSX are located under Build/Targets/universal-apple-macosx
+Target platform specific build files and configurations are located under subdirectories Buid/Targets/xxxx where xxxx takes the form ```<architecture>-<vendor>-<os>```. For example, the Linux x86 target specific files are located under ```Build/Targets/x86-unknown-linux```. The XCode project files for Mac OSX are located under ```Build/Targets/universal-apple-macosx```.
 
 ### Mac OSX and iOS using XCode
 Open the XCode project file Build/Targets/universal-apple-macosx/Bento4.xcodeproj and build
@@ -76,41 +76,39 @@ Open the Visual Studio solution file Build/Targets/x86-microsoft-win32-vs2010/Be
 ### Using SCons
 Make sure you the the SCons build tool installed on your host machine (http://www.scons.org).
 To build the Debug configuration, simply enter the command:
+
 ```scons -u```
+
 in a terminal from any directory (either from the top level directory where you downloaded the Bento4 distribution, or from the Build/Targets/xxx subdirectory for your specific target).
 
 To build the Release configuration, use the command:
+
 ```scons -u build_config=Release```
 
 To cross-compile for a target other than your host architecture, specify target=xxxx as an argument to the scons build command.
 
 Example:
+
 ```scons -u build_config=Release target=arm-unknown-linux```
 
 ### Using CMake
 CMake can generate Makefiles, Xcode project files, or Visual Studios project files.
 
-#### Make
-	```
+#### CMake/Make
 	mkdir cmakebuild
 	cd cmakebuild
 	cmake -DCMAKE_BUILD_TYPE=Release ..
 	make
-	```
 
-#### Xcode
-	```
+#### CMake/Xcode
 	mkdir cmakebuild
 	cd cmakebuild
 	cmake -G Xcode -DCMAKE_BUILD_TYPE=Release ..
-	```
 
-#### Visual Studio
-	```
+#### CMake/Visual Studio
 	mkdir cmakebuild
 	cd cmakebuild
 	cmake -G "Visual Studio 10 Win64" -DCMAKE_BUILD_TYPE=Release ..
-	```
 
 
 ### Using Make
