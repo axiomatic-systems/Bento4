@@ -48,11 +48,12 @@ struct Options {
     unsigned int pmt_pid;
     unsigned int audio_pid;
     unsigned int video_pid;
-    unsigned int segment;
     bool         verbose;
     const char*  playlist;
+    unsigned int playlist_hls_version;
     const char*  input;
     const char*  output;
+    unsigned int segment_duration;
     unsigned int segment_duration_threshold;
 } Options;
 
@@ -80,7 +81,9 @@ PrintUsageAndExit()
             "  --segment-duration-threshold in ms (default = 50)\n"
             "    [only used with the --segment option]\n"
             "  --verbose\n"
-            "  --playlist <filename>\n",'%');
+            "  --playlist <filename>\n"
+            "  --playlist-hls-version <n> (default=3)\n"
+            ,'%');
     exit(1);
 }
 
@@ -170,7 +173,7 @@ ReadSample(SampleReader&   reader,
            AP4_Track&      track,
            AP4_Sample&     sample,
            AP4_DataBuffer& sample_data, 
-           AP4_UI64&       ts,
+           double&         ts,
            bool&           eos)
 {
     AP4_Result result = reader.ReadSample(sample, sample_data);
@@ -181,7 +184,7 @@ ReadSample(SampleReader&   reader,
             return result;
         }
     }
-    ts = AP4_ConvertTime(sample.GetDts(), track.GetMediaTimeScale(), 1000);
+    ts = (double)sample.GetDts()/(double)track.GetMediaTimeScale();
     
     return AP4_SUCCESS;
 }
@@ -199,24 +202,24 @@ WriteSamples(AP4_Mpeg2TsWriter&               writer,
              AP4_Mpeg2TsWriter::SampleStream* video_stream,
              unsigned int                     segment_duration_threshold)
 {
-    AP4_Sample      audio_sample;
-    AP4_DataBuffer  audio_sample_data;
-    unsigned int    audio_sample_count = 0;
-    AP4_UI64        audio_ts = 0;
-    bool            audio_eos = false;
-    AP4_Sample      video_sample;
-    AP4_DataBuffer  video_sample_data;
-    unsigned int    video_sample_count = 0;
-    AP4_UI64        video_ts = 0;
-    bool            video_eos = false;
-    AP4_UI64        last_ts = 0;
-    unsigned int    segment_number = 0;
-    AP4_UI64        segment_duration = 0;
-    AP4_ByteStream* output = NULL;
-    AP4_ByteStream* playlist = NULL;
-    char            string_buffer[32];
-    AP4_Result      result = AP4_SUCCESS;
-    AP4_Array<unsigned int> segment_durations;
+    AP4_Sample        audio_sample;
+    AP4_DataBuffer    audio_sample_data;
+    unsigned int      audio_sample_count = 0;
+    double            audio_ts = 0.0;
+    bool              audio_eos = false;
+    AP4_Sample        video_sample;
+    AP4_DataBuffer    video_sample_data;
+    unsigned int      video_sample_count = 0;
+    double            video_ts = 0.0;
+    bool              video_eos = false;
+    double            last_ts = 0.0;
+    unsigned int      segment_number = 0;
+    double            segment_duration = 0.0;
+    AP4_ByteStream*   output = NULL;
+    AP4_ByteStream*   playlist = NULL;
+    char              string_buffer[32];
+    AP4_Result        result = AP4_SUCCESS;
+    AP4_Array<double> segment_durations;
     
     // prime the samples
     if (audio_reader) {
@@ -250,25 +253,24 @@ WriteSamples(AP4_Mpeg2TsWriter&               writer,
         if (chosen_track == NULL) break;
         
         // check if we need to start a new segment
-        if (Options.segment && sync_sample) {
+        if (Options.segment_duration && sync_sample) {
             if (video_track) {
                 segment_duration = video_ts - last_ts;
             } else {
                 segment_duration = audio_ts - last_ts;
             }
-            if (segment_duration >= (AP4_UI64)Options.segment*1000 - segment_duration_threshold) {
+            if (segment_duration >= (double)Options.segment_duration - (double)segment_duration_threshold/1000.0) {
                 if (video_track) {
                     last_ts = video_ts;
                 } else {
                     last_ts = audio_ts;
                 }
                 if (output) {
-                    unsigned int segment_duration_s = (unsigned int)((segment_duration+500)/1000);
-                    segment_durations.Append(segment_duration_s);
+                    segment_durations.Append(segment_duration);
                     if (Options.verbose) {
-                        printf("Segment %d, duration=%d, %d audio samples, %d video samples\n", 
+                        printf("Segment %d, duration=%.2f, %d audio samples, %d video samples\n",
                                segment_number, 
-                               segment_duration_s, 
+                               segment_duration,
                                audio_sample_count, 
                                video_sample_count);
                     }
@@ -322,12 +324,11 @@ WriteSamples(AP4_Mpeg2TsWriter&               writer,
         } else {
             segment_duration = audio_ts - last_ts;
         }
-        unsigned int segment_duration_s = (unsigned int)((segment_duration+500)/1000);
-        segment_durations.Append(segment_duration_s);
+        segment_durations.Append(segment_duration);
         if (Options.verbose) {
-            printf("Segment %d, duration=%d, %d audio samples, %d video samples\n", 
+            printf("Segment %d, duration=%.2f, %d audio samples, %d video samples\n",
                    segment_number, 
-                   segment_duration_s, 
+                   segment_duration,
                    audio_sample_count, 
                    video_sample_count);
         }
@@ -345,19 +346,27 @@ WriteSamples(AP4_Mpeg2TsWriter&               writer,
 
         unsigned int target_duration = 0;
         for (unsigned int i=0; i<segment_durations.ItemCount(); i++) {
-            if (segment_durations[i] > target_duration) {
+            if ((unsigned int)(segment_durations[i]+0.5) > target_duration) {
                 target_duration = segment_durations[i];
             }
         }
 
         playlist->WriteString("#EXTM3U\r\n");
+        if (Options.playlist_hls_version > 1) {
+            sprintf(string_buffer, "#EXT-X-VERSION:%d,\r\n", Options.playlist_hls_version);
+            playlist->WriteString(string_buffer);
+        }
         playlist->WriteString("#EXT-X-MEDIA-SEQUENCE:0\r\n");
         playlist->WriteString("#EXT-X-TARGETDURATION:");
         sprintf(string_buffer, "%d\r\n\r\n", target_duration);
         playlist->WriteString(string_buffer);
 
         for (unsigned int i=0; i<segment_durations.ItemCount(); i++) {
-            sprintf(string_buffer, "#EXTINF:%d,\r\n", segment_durations[i]);
+            if (Options.playlist_hls_version >= 3) {
+                sprintf(string_buffer, "#EXTINF:%f,\r\n", segment_durations[i]);
+            } else {
+                sprintf(string_buffer, "#EXTINF:%u,\r\n", (unsigned int)(segment_durations[i]+0.5));
+            }
             playlist->WriteString(string_buffer);
             sprintf(string_buffer, Options.output, i);
             playlist->WriteString(string_buffer);
@@ -368,16 +377,14 @@ WriteSamples(AP4_Mpeg2TsWriter&               writer,
         playlist->Release();
     }    
 
-    if (!Options.segment && Options.verbose) {
+    if (Options.verbose) {
         if (video_track) {
             segment_duration = video_ts - last_ts;
         } else {
             segment_duration = audio_ts - last_ts;
         }
-        printf("Conversion complete, duration=%d secs, %d audio samples, %d video samples\n", 
-               (unsigned int)(segment_duration/1000), 
-               audio_sample_count, 
-               video_sample_count);
+        printf("Conversion complete, duration=%.2f secs\n",
+               segment_duration);
     }
     
 end:
@@ -397,12 +404,13 @@ main(int argc, char** argv)
     }
     
     // default options
-    Options.segment                    = 0;
+    Options.segment_duration           = 0;
     Options.pmt_pid                    = 0x100;
     Options.audio_pid                  = 0x101;
     Options.video_pid                  = 0x102;
     Options.verbose                    = false;
     Options.playlist                   = NULL;
+    Options.playlist_hls_version       = 3;
     Options.input                      = NULL;
     Options.output                     = NULL;
     Options.segment_duration_threshold = DefaultSegmentDurationThreshold;
@@ -416,7 +424,7 @@ main(int argc, char** argv)
                 fprintf(stderr, "ERROR: --segment requires a number\n");
                 return 1;
             }
-            Options.segment = strtoul(*args++, NULL, 10);
+            Options.segment_duration = strtoul(*args++, NULL, 10);
         } else if (!strcmp(arg, "--segment-duration-threshold")) {
             if (*args == NULL) {
                 fprintf(stderr, "ERROR: --segment-duration-threshold requires a number\n");
@@ -449,6 +457,16 @@ main(int argc, char** argv)
                 return 1;
             }
             Options.playlist = *args++;
+        } else if (!strcmp(arg, "--playlist-hls-version")) {
+            if (*args == NULL) {
+                fprintf(stderr, "ERROR: --playlist-hls-version requires a number\n");
+                return 1;
+            }
+            Options.playlist_hls_version = strtoul(*args++, NULL, 10);
+            if (Options.playlist_hls_version ==0) {
+                fprintf(stderr, "ERROR: --playlist-hls-version requires number > 0\n");
+                return 1;
+            }
         } else if (Options.input == NULL) {
             Options.input = arg;
         } else if (Options.output == NULL) {
