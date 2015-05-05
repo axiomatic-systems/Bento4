@@ -102,9 +102,11 @@ AP4_SgpdAtom::AP4_SgpdAtom(AP4_UI32         size,
             }
         }
         if (description_length <= bytes_available) {
-            AP4_DataBuffer* payload = new AP4_DataBuffer(description_length);
-            payload->SetDataSize(description_length);
-            stream.Read(payload->UseData(), description_length);
+            AP4_DataBuffer* payload = new AP4_DataBuffer();
+            if (description_length) {
+                payload->SetDataSize(description_length);
+                stream.Read(payload->UseData(), description_length);
+            }
             m_Entries.Add(payload);
         }
     }

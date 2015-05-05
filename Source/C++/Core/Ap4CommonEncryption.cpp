@@ -2617,3 +2617,12 @@ AP4_CencSampleEncryption::DoWriteFields(AP4_ByteStream& stream)
     return AP4_SUCCESS;
 }
 
+/*----------------------------------------------------------------------
+|   AP4_CencSampleEncryptionInformationGroupEntry::AP4_CencSampleEncryptionInformationGroupEntry
++---------------------------------------------------------------------*/
+AP4_CencSampleEncryptionInformationGroupEntry::AP4_CencSampleEncryptionInformationGroupEntry(const AP4_UI08* data)
+{
+    m_IsEncrypted = ((data[2] & 1) != 0);
+    m_IvSize      = data[3];
+    AP4_CopyMemory(m_KID, data+4, 16);
+}

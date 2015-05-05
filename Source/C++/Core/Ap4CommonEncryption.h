@@ -582,4 +582,23 @@ protected:
     AP4_Ordinal                    m_SampleCursor;
 };
 
+/*----------------------------------------------------------------------
+|   AP4_CencSampleEncryptionInformationGroupEntry
++---------------------------------------------------------------------*/
+class AP4_CencSampleEncryptionInformationGroupEntry {
+public:
+    AP4_CencSampleEncryptionInformationGroupEntry(const AP4_UI08* data);
+    
+    // accessors
+    bool            IsEncrypted() const { return m_IsEncrypted; }
+    AP4_UI08        GetIvSize()   const { return m_IvSize;      }
+    const AP4_UI08* GetKid()      const { return &m_KID[9];     }
+    
+private:
+    // members
+    bool     m_IsEncrypted;
+    AP4_UI08 m_IvSize;
+    AP4_UI08 m_KID[16];
+};
+
 #endif // _AP4_COMMON_ENCRYPTION_H_

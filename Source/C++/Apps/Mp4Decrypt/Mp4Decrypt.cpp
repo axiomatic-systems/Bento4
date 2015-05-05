@@ -37,9 +37,9 @@
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-#define BANNER "MP4 Decrypter - Version 1.3\n"\
+#define BANNER "MP4 Decrypter - Version 1.4\n"\
                "(Bento4 Version " AP4_VERSION_STRING ")\n"\
-               "(c) 2002-2012 Axiomatic Systems, LLC"
+               "(c) 2002-2015 Axiomatic Systems, LLC"
  
 /*----------------------------------------------------------------------
 |   PrintUsageAndExit
@@ -53,11 +53,13 @@ PrintUsageAndExit()
             "usage: mp4decrypt [options] <input> <output>\n"
             "Options are:\n"
             "  --show-progress : show progress details\n"
-            "  --key <n>:<k>\n"
-            "      <n> is a track index, <k> a 128-bit key in hex\n"
-            "      (several --key options can be used, one for each track)\n"
+            "  --key <id>:<k>\n"
+            "      <id> is either a track ID in decimal or a 128-bit KID in hex,\n"
+            "      <k> is a 128-bit key in hex\n"
+            "      (several --key options can be used, one for each track or KID)\n"
             "      note: for dcf files, use 1 as the track index\n"
-            "      note: for Marlin IPMP/ACGK, use 0 as the track index\n"
+            "      note: for Marlin IPMP/ACGK, use 0 as the track ID\n"
+            "      note: KIDs are only applicable to some encryption methods like MPEG-CENC\n"
             "  --fragments-info <filename>\n"
             "      Decrypt the fragments read from <input>, with track info read\n"
             "      from <filename>.\n"
@@ -108,20 +110,37 @@ main(int argc, char** argv)
                 fprintf(stderr, "ERROR: missing argument after --key option\n");
                 return 1;
             }
-            char* track_ascii = NULL;
-            char* key_ascii = NULL;
-            if (AP4_SplitArgs(arg, track_ascii, key_ascii)) {
+            char* keyid_text = NULL;
+            char* key_text = NULL;
+            if (AP4_SplitArgs(arg, keyid_text, key_text)) {
                 fprintf(stderr, "ERROR: invalid argument for --key option\n");
                 return 1;
             }
             unsigned char key[16];
-            unsigned int track = strtoul(track_ascii, NULL, 10);
-            if (AP4_ParseHex(key_ascii, key, 16)) {
+            unsigned int  track_id = 0;
+            unsigned char kid[16];
+            if (strlen(keyid_text) == 32) {
+                if (AP4_ParseHex(keyid_text, kid, 16)) {
+                    fprintf(stderr, "ERROR: invalid hex format for key id\n");
+                    return 1;
+                }
+            } else {
+                track_id = strtoul(keyid_text, NULL, 10);
+                if (track_id == 0) {
+                    fprintf(stderr, "ERROR: invalid key id\n");
+                    return 1;
+                }
+            }
+            if (AP4_ParseHex(key_text, key, 16)) {
                 fprintf(stderr, "ERROR: invalid hex format for key\n");
                 return 1;
             }
             // set the key in the map
-            key_map.SetKey(track, key, 16);
+            if (track_id) {
+                key_map.SetKey(track_id, key, 16);
+            } else {
+                key_map.SetKeyForKid(kid, key, 16);
+            }
         } else if (!strcmp(arg, "--fragments-info")) {
             arg = *++argv;
             if (arg == NULL) {

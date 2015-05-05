@@ -345,6 +345,26 @@ AP4_ProtectionKeyMap::SetKey(AP4_UI32        track_id,
 }
 
 /*----------------------------------------------------------------------
+|   AP4_ProtectionKeyMap::SetKeyForKid
++---------------------------------------------------------------------*/
+AP4_Result 
+AP4_ProtectionKeyMap::SetKeyForKid(const AP4_UI08* kid,
+                                   const AP4_UI08* key,
+                                   AP4_Size        key_size,
+                                   const AP4_UI08* iv,
+                                   AP4_Size        iv_size)
+{
+    KeyEntry* entry = GetEntryByKid(kid);
+    if (entry == NULL) {
+        m_KeyEntries.Add(new KeyEntry(kid, key, key_size, iv, iv_size));
+    } else {
+        entry->SetKey(key, key_size, iv, iv_size);
+    }
+
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
 |   AP4_ProtectionKeyMap::SetKey
 +---------------------------------------------------------------------*/
 AP4_Result 
@@ -364,7 +384,7 @@ AP4_ProtectionKeyMap::SetKeys(const AP4_ProtectionKeyMap& key_map)
 }
 
 /*----------------------------------------------------------------------
-|   AP4_ProtectionKeyMap::GetKeyIv
+|   AP4_ProtectionKeyMap::GetKeyAndIv
 +---------------------------------------------------------------------*/
 AP4_Result 
 AP4_ProtectionKeyMap::GetKeyAndIv(AP4_UI32               track_id, 
@@ -372,6 +392,26 @@ AP4_ProtectionKeyMap::GetKeyAndIv(AP4_UI32               track_id,
                                   const AP4_DataBuffer*& iv)
 {
     KeyEntry* entry = GetEntry(track_id);
+    if (entry) {
+        key = &entry->m_Key;
+        iv = &entry->m_IV;
+        return AP4_SUCCESS;
+    } else {
+        key = NULL;
+        iv = NULL;
+        return AP4_ERROR_NO_SUCH_ITEM;
+    }
+}
+
+/*----------------------------------------------------------------------
+|   AP4_ProtectionKeyMap::GetKeyAndIvByKid
++---------------------------------------------------------------------*/
+AP4_Result 
+AP4_ProtectionKeyMap::GetKeyAndIvByKid(const AP4_UI08*        kid,
+                                       const AP4_DataBuffer*& key,
+                                       const AP4_DataBuffer*& iv)
+{
+    KeyEntry* entry = GetEntryByKid(kid);
     if (entry) {
         key = &entry->m_Key;
         iv = &entry->m_IV;
@@ -398,6 +438,20 @@ AP4_ProtectionKeyMap::GetKey(AP4_UI32 track_id) const
 }
 
 /*----------------------------------------------------------------------
+|   AP4_ProtectionKeyMap::GetKeyByKid
++---------------------------------------------------------------------*/
+const AP4_DataBuffer* 
+AP4_ProtectionKeyMap::GetKeyByKid(const AP4_UI08* kid) const
+{
+    KeyEntry* entry = GetEntryByKid(kid);
+    if (entry) {
+        return &entry->m_Key;
+    } else {
+        return NULL;
+    }
+}
+
+/*----------------------------------------------------------------------
 |   AP4_ProtectionKeyMap::GetEntry
 +---------------------------------------------------------------------*/
 AP4_ProtectionKeyMap::KeyEntry*
@@ -414,6 +468,22 @@ AP4_ProtectionKeyMap::GetEntry(AP4_UI32 track_id) const
 }
 
 /*----------------------------------------------------------------------
+|   AP4_ProtectionKeyMap::GetEntryByKid
++---------------------------------------------------------------------*/
+AP4_ProtectionKeyMap::KeyEntry*
+AP4_ProtectionKeyMap::GetEntryByKid(const AP4_UI08* kid) const
+{
+    AP4_List<KeyEntry>::Item* item = m_KeyEntries.FirstItem();
+    while (item) {
+        KeyEntry* entry = item->GetData();
+        if (AP4_CompareMemory(entry->m_KID, kid, 16) == 0) return entry;
+        item = item->GetNext();
+    }
+
+    return NULL;
+}
+
+/*----------------------------------------------------------------------
 |   AP4_ProtectionKeyMap::KeyEntry::KeyEntry
 +---------------------------------------------------------------------*/
 AP4_ProtectionKeyMap::KeyEntry::KeyEntry(AP4_UI32        track_id, 
@@ -423,6 +493,21 @@ AP4_ProtectionKeyMap::KeyEntry::KeyEntry(AP4_UI32        track_id,
                                          AP4_Size        iv_size) :
     m_TrackId(track_id)
 {
+    AP4_SetMemory(m_KID, 0, 16);
+    SetKey(key, key_size, iv, iv_size);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_ProtectionKeyMap::KeyEntry::KeyEntry
++---------------------------------------------------------------------*/
+AP4_ProtectionKeyMap::KeyEntry::KeyEntry(const AP4_UI08* kid,
+                                         const AP4_UI08* key, 
+                                         AP4_Size        key_size,
+                                         const AP4_UI08* iv,
+                                         AP4_Size        iv_size) :
+    m_TrackId(0)
+{
+    AP4_CopyMemory(m_KID, kid, 16);
     SetKey(key, key_size, iv, iv_size);
 }
 
