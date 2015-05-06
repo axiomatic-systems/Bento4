@@ -40,7 +40,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -Wextra")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall -Wextra -O3")
 
 # Apps
-set(BENTO4_APPS "Aac2Mp4;Mp42Aac;Mp42Ts;Mp4Compact;Mp4DcfPackager;Mp4Decrypt;Mp4Dump;Mp4Edit;Mp4Encrypt;Mp4Extract;Mp4Fragment;Mp4Info;Mp4Mux;Mp4Split;Mp4Tag")
+set(BENTO4_APPS "Aac2Mp4;Mp42Aac;Mp42Ts;Mp42Hls;Mp4Compact;Mp4DcfPackager;Mp4Decrypt;Mp4Dump;Mp4Edit;Mp4Encrypt;Mp4Extract;Mp4Fragment;Mp4Info;Mp4Mux;Mp4Split;Mp4Tag")
 foreach(app ${BENTO4_APPS})
   string(TOLOWER ${app} binary_name)
   add_executable(${binary_name} ${SOURCE_ROOT}/Apps/${app}/${app}.cpp)

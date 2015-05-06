@@ -1,8 +1,8 @@
 /*****************************************************************
 |
-|    AP4 - MP4 to MPEG2-TS File Converter
+|    AP4 - MP4 to HLS File Converter
 |
-|    Copyright 2002-2009 Axiomatic Systems, LLC
+|    Copyright 2002-2015 Axiomatic Systems, LLC
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -33,28 +33,46 @@
 #include <stdlib.h>
 
 #include "Ap4.h"
+#include "Ap4StreamCipher.h"
 
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-#define BANNER "MP4 To MPEG2-TS File Converter - Version 1.2\n"\
+#define BANNER "MP4 To HLS File Converter - Version 1.0\n"\
                "(Bento4 Version " AP4_VERSION_STRING ")\n"\
-               "(c) 2002-2014 Axiomatic Systems, LLC"
+               "(c) 2002-2015 Axiomatic Systems, LLC"
  
 /*----------------------------------------------------------------------
 |   options
 +---------------------------------------------------------------------*/
+typedef enum {
+    ENCRYPTION_MODE_NONE,
+    ENCRYPTION_MODE_AES_128,
+    ENCRYPTION_MODE_AES_SAMPLE
+} EncryptionMode;
+
+typedef enum {
+    ENCRYPTION_IV_MODE_SEQUENCE,
+    ENCRYPTION_IV_MODE_RANDOM
+} EncryptionIvMode;
+
 struct Options {
-    unsigned int pmt_pid;
-    unsigned int audio_pid;
-    unsigned int video_pid;
-    bool         verbose;
-    const char*  playlist;
-    unsigned int playlist_hls_version;
-    const char*  input;
-    const char*  output;
-    unsigned int segment_duration;
-    unsigned int segment_duration_threshold;
+    const char*      input;
+    bool             verbose;
+    unsigned int     hls_version;
+    unsigned int     pmt_pid;
+    unsigned int     audio_pid;
+    unsigned int     video_pid;
+    const char*      index_filename;
+    const char*      segment_filename_template;
+    const char*      segment_url_template;
+    unsigned int     segment_duration;
+    unsigned int     segment_duration_threshold;
+    const char*      encryption_key_hex;
+    AP4_UI08         encryption_key[16];
+    EncryptionMode   encryption_mode;
+    EncryptionIvMode encryption_iv_mode;
+    const char*      encryption_key_uri;
 } Options;
 
 /*----------------------------------------------------------------------
@@ -70,20 +88,38 @@ PrintUsageAndExit()
 {
     fprintf(stderr, 
             BANNER 
-            "\n\nusage: mp42ts [options] <input> <output>\n"
+            "\n\nusage: mp42hls [options] <input>\n"
             "Options:\n"
-            "  --pmt-pid <pid>   (default: 0x100)\n"
-            "  --audio-pid <pid> (default: 0x101)\n"
-            "  --video-pid <pid> (default: 0x102)\n"
-            "  --segment <segment-duration-in-seconds>\n"
-            "    [with this option, the <output> name must be a 'printf' template,\n"
-            "     like \"seg-%cd.ts\"]\n"
-            "  --segment-duration-threshold in ms (default = 50)\n"
-            "    [only used with the --segment option]\n"
             "  --verbose\n"
-            "  --playlist <filename>\n"
-            "  --playlist-hls-version <n> (default=3)\n"
-            ,'%');
+            "  --hls-version <n> (default: 3)\n"
+            "  --pmt-pid <pid>\n"
+            "    PID to use for the PMT (default: 0x100)\n"
+            "  --audio-pid <pid>\n"
+            "    PID to use for audio packets (default: 0x101)\n"
+            "  --video-pid <pid>\n"
+            "    PID to use for video packets (default: 0x102)\n"
+            "  --segment-duration <n>\n"
+            "    Target segment duration in seconds (default: 10)\n"
+            "  --segment-duration-threshold <t>\n"
+            "    Segment duration threshold in milliseconds (default: 50)\n"
+            "  --index-filename <filename>\n"
+            "    Filename to use for the playlist/index (default: stream.m3u8)\n"
+            "  --segment-filename-template <pattern>\n"
+            "    Filename pattern to use for the segments. Use a printf-style pattern with\n"
+            "    one number field for the segment number (default: segment-%%d.ts)\n"
+            "  --segment-url-template <pattern>\n"
+            "    URL pattern to use for the segments. Use a printf-style pattern with\n"
+            "    one number field for the segment number. (may be a realtive or absolute URI).\n"
+            "    (default: segment-%%d.ts)\n"
+            "  --encryption-mode <mode>\n"
+            "    Encryption mode (only used when --encryption-key is specified). (default: AES-128)\n"
+            "  --encryption-key <key>\n"
+            "    Encryption key in hexadecimal (default: no encryption)\n"
+            "  --encryption-iv-mode <mode>\n"
+            "    Encryption IV mode: 'sequence' or 'random' (default: sequence)\n"
+            "  --encryption-key-uri <uri>\n"
+            "    Encryption key URI (may be a realtive or absolute URI). (default: key.bin)\n"
+            );
     exit(1);
 }
 
@@ -154,7 +190,7 @@ static AP4_ByteStream*
 OpenOutput(const char* filename_pattern, unsigned int segment_number)
 {
     AP4_ByteStream* output = NULL;
-    char filename[1024];
+    char filename[4096];
     sprintf(filename, filename_pattern, segment_number);
     AP4_Result result = AP4_FileByteStream::Create(filename, AP4_FileByteStream::STREAM_MODE_WRITE, output);
     if (AP4_FAILED(result)) {
@@ -164,6 +200,94 @@ OpenOutput(const char* filename_pattern, unsigned int segment_number)
     
     return output;
 }
+
+/*----------------------------------------------------------------------
+|   EncryptingStream
++---------------------------------------------------------------------*/
+class EncryptingStream: public AP4_ByteStream {
+public:
+    static AP4_Result Create(const AP4_UI08* key, const AP4_UI08* iv, AP4_ByteStream* output, EncryptingStream*& stream);
+    virtual AP4_Result ReadPartial(void* , AP4_Size, AP4_Size&) {
+        return AP4_ERROR_NOT_SUPPORTED;
+    }
+    virtual AP4_Result WritePartial(const void* buffer,
+                                    AP4_Size    bytes_to_write, 
+                                    AP4_Size&   bytes_written) {
+        AP4_UI08* out = new AP4_UI08[bytes_to_write+16];
+        AP4_Size  out_size = bytes_to_write+16;
+        AP4_Result result = m_StreamCipher->ProcessBuffer((const AP4_UI08*)buffer,
+                                                          bytes_to_write,
+                                                          out,
+                                                          &out_size);
+        if (AP4_SUCCEEDED(result)) {
+            result = m_Output->Write(out, out_size);
+            bytes_written = bytes_to_write;
+        } else {
+            bytes_written = 0;
+        }
+        delete[] out;
+        return result;
+    }
+    virtual AP4_Result Flush() {
+        AP4_UI08 trailer[16];
+        AP4_Size trailer_size = sizeof(trailer);
+        AP4_Result result = m_StreamCipher->ProcessBuffer(NULL, 0, trailer, &trailer_size, true);
+        if (AP4_SUCCEEDED(result) && trailer_size) {
+            m_Output->Write(trailer, trailer_size);
+        }
+        
+        return AP4_SUCCESS;
+    }
+    virtual AP4_Result Seek(AP4_Position) { return AP4_ERROR_NOT_SUPPORTED; }
+    virtual AP4_Result Tell(AP4_Position& position) { position = 0; return AP4_ERROR_NOT_SUPPORTED; }
+    virtual AP4_Result GetSize(AP4_LargeSize& size) { size = 0; return AP4_ERROR_NOT_SUPPORTED; }
+    
+    void AddReference() {
+        ++m_ReferenceCount;
+    }
+    void Release() {
+        if (--m_ReferenceCount == 0) {
+            delete this;
+        }
+    }
+
+private:
+    EncryptingStream(AP4_CbcStreamCipher* stream_cipher, AP4_ByteStream* output):
+        m_ReferenceCount(1),
+        m_StreamCipher(stream_cipher),
+        m_Output(output) {
+        output->AddReference();
+    }
+    ~EncryptingStream() {
+        m_Output->Release();
+        delete m_StreamCipher;
+    }
+    unsigned int         m_ReferenceCount;
+    AP4_CbcStreamCipher* m_StreamCipher;
+    AP4_ByteStream*      m_Output;
+};
+
+/*----------------------------------------------------------------------
+|   EncryptingStream::Create
++---------------------------------------------------------------------*/
+AP4_Result
+EncryptingStream::Create(const AP4_UI08* key, const AP4_UI08* iv, AP4_ByteStream* output, EncryptingStream*& stream) {
+    stream = NULL;
+    AP4_BlockCipher* block_cipher = NULL;
+    AP4_Result result = AP4_DefaultBlockCipherFactory::Instance.CreateCipher(AP4_BlockCipher::AES_128,
+                                                                             AP4_BlockCipher::ENCRYPT,
+                                                                             AP4_BlockCipher::CBC,
+                                                                             NULL,
+                                                                             key,
+                                                                             16,
+                                                                             block_cipher);
+    if (AP4_FAILED(result)) return result;
+    AP4_CbcStreamCipher* stream_cipher = new AP4_CbcStreamCipher(block_cipher);
+    stream_cipher->SetIV(iv);
+    stream = new EncryptingStream(stream_cipher, output);
+    
+    return AP4_SUCCESS;
+};
 
 /*----------------------------------------------------------------------
 |   ReadSample
@@ -217,18 +341,18 @@ WriteSamples(AP4_Mpeg2TsWriter&               writer,
     double            segment_duration = 0.0;
     AP4_ByteStream*   output = NULL;
     AP4_ByteStream*   playlist = NULL;
-    char              string_buffer[32];
+    char              string_buffer[4096];
     AP4_Result        result = AP4_SUCCESS;
     AP4_Array<double> segment_durations;
     
     // prime the samples
     if (audio_reader) {
         result = ReadSample(*audio_reader, *audio_track, audio_sample, audio_sample_data, audio_ts, audio_eos);
-        if (AP4_FAILED(result)) goto end;
+        if (AP4_FAILED(result)) return result;
     }
     if (video_reader) {
         result = ReadSample(*video_reader, *video_track, video_sample, video_sample_data, video_ts, video_eos);
-        if (AP4_FAILED(result)) goto end;
+        if (AP4_FAILED(result)) return result;
     }
     
     for (;;) {
@@ -274,6 +398,7 @@ WriteSamples(AP4_Mpeg2TsWriter&               writer,
                                audio_sample_count, 
                                video_sample_count);
                     }
+                    output->Flush();
                     output->Release();
                     output = NULL;
                     ++segment_number;
@@ -283,8 +408,23 @@ WriteSamples(AP4_Mpeg2TsWriter&               writer,
             }
         }
         if (output == NULL) {
-            output = OpenOutput(Options.output, segment_number);
+            output = OpenOutput(Options.segment_filename_template, segment_number);
             if (output == NULL) return AP4_ERROR_CANNOT_OPEN_FILE;
+            if (Options.encryption_mode == ENCRYPTION_MODE_AES_128) {
+                EncryptingStream* encrypting_stream = NULL;
+                AP4_UI08 iv[16];
+                AP4_SetMemory(iv, 0, sizeof(iv));
+                if (Options.encryption_iv_mode == ENCRYPTION_IV_MODE_SEQUENCE) {
+                    AP4_BytesFromUInt32BE(&iv[12], segment_number);
+                }
+                result = EncryptingStream::Create(Options.encryption_key, iv, output, encrypting_stream);
+                if (AP4_FAILED(result)) {
+                    fprintf(stderr, "ERROR: failed to create encrypting stream (%d)\n", result);
+                    return 1;
+                }
+                output->Release();
+                output = encrypting_stream;
+            }
             writer.WritePAT(*output);
             writer.WritePMT(*output);
         }
@@ -314,7 +454,7 @@ WriteSamples(AP4_Mpeg2TsWriter&               writer,
             ++video_sample_count;
         } else {
             break;
-        }        
+        }
     }
     
     // finish the last segment
@@ -332,6 +472,7 @@ WriteSamples(AP4_Mpeg2TsWriter&               writer,
                    audio_sample_count, 
                    video_sample_count);
         }
+        output->Flush();
         output->Release();
         output = NULL;
         ++segment_number;
@@ -339,43 +480,48 @@ WriteSamples(AP4_Mpeg2TsWriter&               writer,
         video_sample_count = 0;
     }
 
-    // create the playlist file if needed 
-    if (Options.playlist) {
-        playlist = OpenOutput(Options.playlist, 0);
-        if (playlist == NULL) return AP4_ERROR_CANNOT_OPEN_FILE;
+    // create the playlist/index file
+    playlist = OpenOutput(Options.index_filename, 0);
+    if (playlist == NULL) return AP4_ERROR_CANNOT_OPEN_FILE;
 
-        unsigned int target_duration = 0;
-        for (unsigned int i=0; i<segment_durations.ItemCount(); i++) {
-            if ((unsigned int)(segment_durations[i]+0.5) > target_duration) {
-                target_duration = segment_durations[i];
-            }
+    unsigned int target_duration = 0;
+    for (unsigned int i=0; i<segment_durations.ItemCount(); i++) {
+        if ((unsigned int)(segment_durations[i]+0.5) > target_duration) {
+            target_duration = segment_durations[i];
         }
+    }
 
-        playlist->WriteString("#EXTM3U\r\n");
-        if (Options.playlist_hls_version > 1) {
-            sprintf(string_buffer, "#EXT-X-VERSION:%d\r\n", Options.playlist_hls_version);
-            playlist->WriteString(string_buffer);
-        }
-        playlist->WriteString("#EXT-X-MEDIA-SEQUENCE:0\r\n");
-        playlist->WriteString("#EXT-X-TARGETDURATION:");
-        sprintf(string_buffer, "%d\r\n\r\n", target_duration);
+    playlist->WriteString("#EXTM3U\r\n");
+    if (Options.hls_version > 1) {
+        sprintf(string_buffer, "#EXT-X-VERSION:%d\r\n", Options.hls_version);
         playlist->WriteString(string_buffer);
+    }
+    playlist->WriteString("#EXT-X-PLAYLIST-TYPE:VOD\r\n");
+    playlist->WriteString("#EXT-X-INDEPENDENT-SEGMENTS\r\n");
+    playlist->WriteString("#EXT-X-TARGETDURATION:");
+    sprintf(string_buffer, "%d\r\n", target_duration);
+    playlist->WriteString(string_buffer);
+    playlist->WriteString("#EXT-X-MEDIA-SEQUENCE:0\r\n");
 
-        for (unsigned int i=0; i<segment_durations.ItemCount(); i++) {
-            if (Options.playlist_hls_version >= 3) {
-                sprintf(string_buffer, "#EXTINF:%f,\r\n", segment_durations[i]);
-            } else {
-                sprintf(string_buffer, "#EXTINF:%u,\r\n", (unsigned int)(segment_durations[i]+0.5));
-            }
-            playlist->WriteString(string_buffer);
-            sprintf(string_buffer, Options.output, i);
-            playlist->WriteString(string_buffer);
-            playlist->WriteString("\r\n");
+    if (Options.encryption_mode == ENCRYPTION_MODE_AES_128) {
+        playlist->WriteString("#EXT-X-KEY:METHOD=AES-128,URI=\"");
+        playlist->WriteString(Options.encryption_key_uri);
+        playlist->WriteString("\"\r\n");
+    }
+    for (unsigned int i=0; i<segment_durations.ItemCount(); i++) {
+        if (Options.hls_version >= 3) {
+            sprintf(string_buffer, "#EXTINF:%f,\r\n", segment_durations[i]);
+        } else {
+            sprintf(string_buffer, "#EXTINF:%u,\r\n", (unsigned int)(segment_durations[i]+0.5));
         }
-                        
-        playlist->WriteString("\r\n#EXT-X-ENDLIST\r\n");
-        playlist->Release();
-    }    
+        playlist->WriteString(string_buffer);
+        sprintf(string_buffer, Options.segment_filename_template, i);
+        playlist->WriteString(string_buffer);
+        playlist->WriteString("\r\n");
+    }
+                    
+    playlist->WriteString("#EXT-X-ENDLIST\r\n");
+    playlist->Release();
 
     if (Options.verbose) {
         if (video_track) {
@@ -383,11 +529,9 @@ WriteSamples(AP4_Mpeg2TsWriter&               writer,
         } else {
             segment_duration = audio_ts - last_ts;
         }
-        printf("Conversion complete, duration=%.2f secs\n",
-               segment_duration);
+        printf("Conversion complete, duration=%.2f secs\n", segment_duration);
     }
     
-end:
     if (output) output->Release();
     
     return result;
@@ -404,24 +548,41 @@ main(int argc, char** argv)
     }
     
     // default options
-    Options.segment_duration           = 0;
+    Options.input                      = NULL;
+    Options.verbose                    = false;
+    Options.hls_version                = 3;
     Options.pmt_pid                    = 0x100;
     Options.audio_pid                  = 0x101;
     Options.video_pid                  = 0x102;
-    Options.verbose                    = false;
-    Options.playlist                   = NULL;
-    Options.playlist_hls_version       = 3;
-    Options.input                      = NULL;
-    Options.output                     = NULL;
+    Options.index_filename             = "stream.m3u8";
+    Options.segment_filename_template  = "segment-%d.ts";
+    Options.segment_url_template       = "segment-%d.ts";
+    Options.segment_duration           = 10;
     Options.segment_duration_threshold = DefaultSegmentDurationThreshold;
+    Options.encryption_key_hex         = NULL;
+    Options.encryption_mode            = ENCRYPTION_MODE_NONE;
+    Options.encryption_iv_mode         = ENCRYPTION_IV_MODE_SEQUENCE;
+    Options.encryption_key_uri         = "key.bin";
     
     // parse command line
     AP4_Result result;
     char** args = argv+1;
     while (const char* arg = *args++) {
-        if (!strcmp(arg, "--segment")) {
+        if (!strcmp(arg, "--verbose")) {
+            Options.verbose = true;
+        } else if (!strcmp(arg, "--hls-version")) {
             if (*args == NULL) {
-                fprintf(stderr, "ERROR: --segment requires a number\n");
+                fprintf(stderr, "ERROR: --hls-version requires a number\n");
+                return 1;
+            }
+            Options.hls_version = strtoul(*args++, NULL, 10);
+            if (Options.hls_version ==0) {
+                fprintf(stderr, "ERROR: --hls-version requires number > 0\n");
+                return 1;
+            }
+        } else if (!strcmp(arg, "--segment-duration")) {
+            if (*args == NULL) {
+                fprintf(stderr, "ERROR: --segment-duration requires a number\n");
                 return 1;
             }
             Options.segment_duration = strtoul(*args++, NULL, 10);
@@ -431,8 +592,18 @@ main(int argc, char** argv)
                 return 1;
             }
             Options.segment_duration_threshold = strtoul(*args++, NULL, 10);
-        } else if (!strcmp(arg, "--verbose")) {
-            Options.verbose = true;
+        } else if (!strcmp(arg, "--segment-filename-template")) {
+            if (*args == NULL) {
+                fprintf(stderr, "ERROR: --segment-filename-template requires an argument\n");
+                return 1;
+            }
+            Options.segment_filename_template = *args++;
+        } else if (!strcmp(arg, "--segment-url-template")) {
+            if (*args == NULL) {
+                fprintf(stderr, "ERROR: --segment-url-template requires an argument\n");
+                return 1;
+            }
+            Options.segment_url_template = *args++;
         } else if (!strcmp(arg, "--pmt-pid")) {
             if (*args == NULL) {
                 fprintf(stderr, "ERROR: --pmt-pid requires a number\n");
@@ -451,26 +622,60 @@ main(int argc, char** argv)
                 return 1;
             }
             Options.video_pid = strtoul(*args++, NULL, 10);
-        } else if (!strcmp(arg, "--playlist")) {
+        } else if (!strcmp(arg, "--index-filename")) {
             if (*args == NULL) {
-                fprintf(stderr, "ERROR: --playlist requires a filename\n");
+                fprintf(stderr, "ERROR: --index-filename requires a filename\n");
                 return 1;
             }
-            Options.playlist = *args++;
-        } else if (!strcmp(arg, "--playlist-hls-version")) {
+            Options.index_filename = *args++;
+        } else if (!strcmp(arg, "--encryption-key")) {
             if (*args == NULL) {
-                fprintf(stderr, "ERROR: --playlist-hls-version requires a number\n");
+                fprintf(stderr, "ERROR: --encryption-key requires an argument\n");
                 return 1;
             }
-            Options.playlist_hls_version = strtoul(*args++, NULL, 10);
-            if (Options.playlist_hls_version ==0) {
-                fprintf(stderr, "ERROR: --playlist-hls-version requires number > 0\n");
+            Options.encryption_key_hex = *args++;
+            result = AP4_ParseHex(Options.encryption_key_hex, Options.encryption_key, 16);
+            if (AP4_FAILED(result)) {
+                fprintf(stderr, "ERROR: invalid hex key\n");
                 return 1;
             }
+            if (Options.encryption_mode == ENCRYPTION_MODE_NONE) {
+                Options.encryption_mode = ENCRYPTION_MODE_AES_128;
+            }
+        } else if (!strcmp(arg, "--encryption-mode")) {
+            if (*args == NULL) {
+                fprintf(stderr, "ERROR: --encryption-mode requires an argument\n");
+                return 1;
+            }
+            if (strncmp(*args, "aes-128", 7) == 0) {
+                Options.encryption_mode = ENCRYPTION_MODE_AES_128;
+            } else {
+                fprintf(stderr, "ERROR: unknown encryption mode\n");
+                return 1;
+            }
+            ++args;
+        } else if (!strcmp(arg, "--encryption-iv")) {
+            if (*args == NULL) {
+                fprintf(stderr, "ERROR: --encryption-iv requires an argument\n");
+                return 1;
+            }
+            if (strncmp(*args, "sequence", 8) == 0) {
+                Options.encryption_iv_mode = ENCRYPTION_IV_MODE_SEQUENCE;
+            } else if (strncmp(*args, "random", 6) == 0) {
+                Options.encryption_iv_mode = ENCRYPTION_IV_MODE_RANDOM;
+            } else {
+                fprintf(stderr, "ERROR: unknown encryption IV mode\n");
+                return 1;
+            }
+            ++args;
+        } else if (!strcmp(arg, "--encryption-key-uri")) {
+            if (*args == NULL) {
+                fprintf(stderr, "ERROR: --encryption-key-uri requires an argument\n");
+                return 1;
+            }
+            Options.encryption_key_uri = *args++;
         } else if (Options.input == NULL) {
             Options.input = arg;
-        } else if (Options.output == NULL) {
-            Options.output = arg;
         } else {
             fprintf(stderr, "ERROR: unexpected argument\n");
             return 1;
@@ -482,8 +687,8 @@ main(int argc, char** argv)
         fprintf(stderr, "ERROR: missing input file name\n");
         return 1;
     }
-    if (Options.output == NULL) {
-        fprintf(stderr, "ERROR: missing output file name\n");
+    if (Options.encryption_mode != ENCRYPTION_MODE_NONE && Options.encryption_key_hex == NULL) {
+        fprintf(stderr, "ERROR: no encryption key specified\n");
         return 1;
     }
     

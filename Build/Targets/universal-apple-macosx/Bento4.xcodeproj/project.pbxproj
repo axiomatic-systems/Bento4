@@ -362,6 +362,8 @@
 		CAD6A7C40F7AFFD800456513 /* Ap4DynamicCast.h in Headers */ = {isa = PBXBuildFile; fileRef = CAD6A7C30F7AFFD800456513 /* Ap4DynamicCast.h */; };
 		CAE03ABF1034AE0D006FAFD7 /* Ap4Hmac.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAE03ABD1034AE0D006FAFD7 /* Ap4Hmac.cpp */; };
 		CAE03AC01034AE0D006FAFD7 /* Ap4Hmac.h in Headers */ = {isa = PBXBuildFile; fileRef = CAE03ABE1034AE0D006FAFD7 /* Ap4Hmac.h */; };
+		CAE1FBF21AF8493E00607B3C /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAA7E6C914ACD763008AA54E /* libBento4.a */; };
+		CAE1FBFA1AF84AB200607B3C /* Mp42Hls.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAE1FBF91AF84AB200607B3C /* Mp42Hls.cpp */; };
 		CAE723FF0FC33618008F2905 /* Ap4LinearReader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAE723FD0FC33618008F2905 /* Ap4LinearReader.cpp */; };
 		CAE724000FC33618008F2905 /* Ap4LinearReader.h in Headers */ = {isa = PBXBuildFile; fileRef = CAE723FE0FC33618008F2905 /* Ap4LinearReader.h */; };
 		CAE724290FC337C0008F2905 /* LinearReaderTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAE724020FC3362B008F2905 /* LinearReaderTest.cpp */; };
@@ -800,6 +802,13 @@
 			remoteGlobalIDString = D2AAC045055464E500DB518D;
 			remoteInfo = Bento4;
 		};
+		CAE1FBEE1AF8493E00607B3C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D2AAC045055464E500DB518D;
+			remoteInfo = Bento4;
+		};
 		CAE7240A0FC3364E008F2905 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
@@ -1224,6 +1233,8 @@
 		CAD6A7C30F7AFFD800456513 /* Ap4DynamicCast.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4DynamicCast.h; sourceTree = "<group>"; };
 		CAE03ABD1034AE0D006FAFD7 /* Ap4Hmac.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4Hmac.cpp; sourceTree = "<group>"; };
 		CAE03ABE1034AE0D006FAFD7 /* Ap4Hmac.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4Hmac.h; sourceTree = "<group>"; };
+		CAE1FBF61AF8493E00607B3C /* mp42hls */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mp42hls; sourceTree = BUILT_PRODUCTS_DIR; };
+		CAE1FBF91AF84AB200607B3C /* Mp42Hls.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Mp42Hls.cpp; sourceTree = "<group>"; };
 		CAE723FD0FC33618008F2905 /* Ap4LinearReader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4LinearReader.cpp; sourceTree = "<group>"; };
 		CAE723FE0FC33618008F2905 /* Ap4LinearReader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4LinearReader.h; sourceTree = "<group>"; };
 		CAE724020FC3362B008F2905 /* LinearReaderTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LinearReaderTest.cpp; sourceTree = "<group>"; };
@@ -1499,6 +1510,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		CAE1FBF11AF8493E00607B3C /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CAE1FBF21AF8493E00607B3C /* libBento4.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		CAE724040FC33645008F2905 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -1640,6 +1659,7 @@
 				CA8A94CE1929A65E00836179 /* mp4mux */,
 				CA86EED719A95DD3008A3B00 /* FragmentCreatorTest */,
 				CA00A6531A1C36560064B4D3 /* mp4pssh */,
+				CAE1FBF61AF8493E00607B3C /* mp42hls */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1748,6 +1768,7 @@
 				CA646A890CE97B2D009699D7 /* Mp42Aac */,
 				CA2E6A361087E07C00F837E2 /* Mp42Avc */,
 				CAF9812918DBF3360001B999 /* Mp42Hevc */,
+				CAE1FBF81AF84AB200607B3C /* Mp42Hls */,
 				CA00667B1015399A004C0D5F /* Mp42Ts */,
 			);
 			name = Apps;
@@ -2237,6 +2258,14 @@
 				CACDDD6816BF5FC200B79B20 /* Mp4AudioClip.cpp */,
 			);
 			path = Mp4AudioClip;
+			sourceTree = "<group>";
+		};
+		CAE1FBF81AF84AB200607B3C /* Mp42Hls */ = {
+			isa = PBXGroup;
+			children = (
+				CAE1FBF91AF84AB200607B3C /* Mp42Hls.cpp */,
+			);
+			path = Mp42Hls;
 			sourceTree = "<group>";
 		};
 		CAE724010FC3362B008F2905 /* LinearReader */ = {
@@ -2955,6 +2984,23 @@
 			productReference = CAC8F17016BE444D00C49741 /* mp4audioclip */;
 			productType = "com.apple.product-type.tool";
 		};
+		CAE1FBEC1AF8493E00607B3C /* Mp42Hls */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CAE1FBF31AF8493E00607B3C /* Build configuration list for PBXNativeTarget "Mp42Hls" */;
+			buildPhases = (
+				CAE1FBEF1AF8493E00607B3C /* Sources */,
+				CAE1FBF11AF8493E00607B3C /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CAE1FBED1AF8493E00607B3C /* PBXTargetDependency */,
+			);
+			name = Mp42Hls;
+			productName = Mp42Ts;
+			productReference = CAE1FBF61AF8493E00607B3C /* mp42hls */;
+			productType = "com.apple.product-type.tool";
+		};
 		CAE724050FC33645008F2905 /* LinearReaderTest */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = CAE724220FC33682008F2905 /* Build configuration list for PBXNativeTarget "LinearReaderTest" */;
@@ -3159,6 +3205,7 @@
 				CAF9812E18DBF34B0001B999 /* Mp42Hevc */,
 				CA2E6A3A1087E09200F837E2 /* Mp42Avc */,
 				CA00667210153951004C0D5F /* Mp42Ts */,
+				CAE1FBEC1AF8493E00607B3C /* Mp42Hls */,
 				CA646B500CE97E52009699D7 /* Mp4RtpHintInfo */,
 				CAC8F16F16BE444D00C49741 /* Mp4AudioClip */,
 				CA8A94CD1929A65E00836179 /* Mp4Mux */,
@@ -3403,6 +3450,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				CACDDD6916BF5FE500B79B20 /* Mp4AudioClip.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CAE1FBEF1AF8493E00607B3C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CAE1FBFA1AF84AB200607B3C /* Mp42Hls.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3884,6 +3939,11 @@
 			isa = PBXTargetDependency;
 			target = D2AAC045055464E500DB518D /* Bento4 */;
 			targetProxy = CAC8F17A16BE447A00C49741 /* PBXContainerItemProxy */;
+		};
+		CAE1FBED1AF8493E00607B3C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D2AAC045055464E500DB518D /* Bento4 */;
+			targetProxy = CAE1FBEE1AF8493E00607B3C /* PBXContainerItemProxy */;
 		};
 		CAE7240B0FC3364E008F2905 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -4672,6 +4732,20 @@
 			};
 			name = Release;
 		};
+		CAE1FBF41AF8493E00607B3C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = mp42hls;
+			};
+			name = Debug;
+		};
+		CAE1FBF51AF8493E00607B3C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = mp42hls;
+			};
+			name = Release;
+		};
 		CAE724080FC33646008F2905 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -5178,6 +5252,15 @@
 			buildConfigurations = (
 				CAC8F17716BE444E00C49741 /* Debug */,
 				CAC8F17816BE444E00C49741 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CAE1FBF31AF8493E00607B3C /* Build configuration list for PBXNativeTarget "Mp42Hls" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CAE1FBF41AF8493E00607B3C /* Debug */,
+				CAE1FBF51AF8493E00607B3C /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
