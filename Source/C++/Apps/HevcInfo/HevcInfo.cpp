@@ -79,12 +79,12 @@ main(int argc, char** argv)
         return 1;
     }
 
-    AP4_ByteStream* input;
-    try {
-        input = new AP4_FileByteStream(filename,
-                               AP4_FileByteStream::STREAM_MODE_READ);
-    } catch (AP4_Exception) {
-        fprintf(stderr, "ERROR: cannot open input file (%s)\n", argv[1]);
+    AP4_ByteStream* input = NULL;
+    AP4_Result result = AP4_FileByteStream::Create(filename, 
+                                                   AP4_FileByteStream::STREAM_MODE_READ, 
+                                                   input);
+    if (AP4_FAILED(result)) {
+        fprintf(stderr, "ERROR: cannot open input file %s (%d)\n", filename, result);
         return 1;
     }
 
