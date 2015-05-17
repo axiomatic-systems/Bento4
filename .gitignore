@@ -27,3 +27,5 @@ Build/Targets/universal-apple-macosx/Bento4.xcodeproj/project.xcworkspace/xcuser
 .svn
 .sconsign.dblite
 Bento4.xccheckout
+Build/Targets/arm-android-linux
+Build/Targets/universal-apple-macosx/cov-int

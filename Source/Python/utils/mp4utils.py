@@ -49,9 +49,9 @@ def PrintErrorAndExit(message):
     sys.exit(1)
     
 def XmlDuration(d):
-    h  = d/3600
+    h  = int(d)/3600
     d -= h*3600
-    m  = d/60
+    m  = int(d)/60
     s  = d-m*60
     xsd = 'PT'
     if h:
@@ -59,7 +59,7 @@ def XmlDuration(d):
     if h or m:
         xsd += str(m)+'M'
     if s:
-        xsd += str(s)+'S'
+        xsd += ('%.2fS' % (s))
     return xsd
     
 def Bento4Command(options, name, *args, **kwargs):

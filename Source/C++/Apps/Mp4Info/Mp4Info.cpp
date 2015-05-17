@@ -337,7 +337,7 @@ ShowProtectedSampleDescription_Json(AP4_ProtectedSampleDescription& desc, bool v
             ShowProtectionSchemeInfo_Json(desc.GetSchemeType(), *schi, verbose);
         }
     }
-    printf("},\n");
+    printf("}");
 }
 
 /*----------------------------------------------------------------------
@@ -586,7 +586,10 @@ ShowSampleDescription_Json(AP4_SampleDescription& description, bool verbose)
     AP4_SampleDescription* desc = &description;
     if (desc->GetType() == AP4_SampleDescription::TYPE_PROTECTED) {
         AP4_ProtectedSampleDescription* prot_desc = AP4_DYNAMIC_CAST(AP4_ProtectedSampleDescription, desc);
-        if (prot_desc) ShowProtectedSampleDescription_Json(*prot_desc, verbose);
+        if (prot_desc) {
+            ShowProtectedSampleDescription_Json(*prot_desc, verbose);
+            printf(",\n");
+        }
         desc = prot_desc->GetOriginalSampleDescription();
     }
     char coding[5];
@@ -1125,10 +1128,13 @@ ShowTrackInfo_Json(AP4_Movie& movie, AP4_Track& track, AP4_ByteStream& stream, b
     // show all sample descriptions
     printf("  \"sample_descriptions\":[\n");
     //AP4_AvcSampleDescription* avc_desc = NULL;
+    sep = "";
     for (unsigned int desc_index=0;
         AP4_SampleDescription* sample_desc = track.GetSampleDescription(desc_index);
         desc_index++) {
+        printf("%s", sep);
         ShowSampleDescription(*sample_desc, verbose);
+        sep = ",\n";
         //if (sample_desc->GetFormat() == AP4_SAMPLE_FORMAT_AVC1) {
         //    avc_desc = AP4_DYNAMIC_CAST(AP4_AvcSampleDescription, sample_desc);
         //}

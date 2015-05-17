@@ -414,7 +414,7 @@ Fragment(AP4_File&                input_file,
                                             cursor->m_Track->GetMediaTimeScale());
                 
                 if (target_dts <= cursor->m_Sample.GetDts()) {
-                    // we're still behind, there may have been a alignment/rounding error, just advance by one segment duration
+                    // we're still behind, there may have been an alignment/rounding error, just advance by one segment duration
                     target_dts = cursor->m_Sample.GetDts()+AP4_ConvertTime(fragment_duration,
                                                                            1000,
                                                                            cursor->m_Track->GetMediaTimeScale());
@@ -566,7 +566,7 @@ Fragment(AP4_File&                input_file,
             sample_count++;
             if (cursor->m_Eos) {
                 if (Options.debug) {
-                    printf("[has reached the end]");
+                    printf("[has reached the end]\n");
                 }
                 break;
             }

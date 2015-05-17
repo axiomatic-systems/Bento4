@@ -20,6 +20,7 @@ from xml.dom.minidom import parseString
 import tempfile
 import fractions
 import re
+import platform
 from mp4utils import *
 
 # setup main options
@@ -243,7 +244,7 @@ def OutputDash(options, audio_tracks, video_tracks, subtitles_tracks):
                       xmlns=mpd_ns, 
                       profiles=','.join(options.profiles),
                       minBufferTime="PT%.02fS" % options.min_buffer_time,
-                      mediaPresentationDuration=XmlDuration(int(presentation_duration)),
+                      mediaPresentationDuration=XmlDuration(presentation_duration),
                       type='static')
     mpd.append(xml.Comment(' Created with Bento4 mp4-dash.py, VERSION=' + VERSION + '-' + SDK_REVISION + ' '))
     period = xml.SubElement(mpd, 'Period')
@@ -699,12 +700,24 @@ def GetMappedFileName(filename):
 Options = None            
 def main():
     # determine the platform binary name
-    platform = sys.platform
-    if platform.startswith('linux'):
-        platform = 'linux-x86'
-    elif platform.startswith('darwin'):
-        platform = 'macosx'
-                
+    host_platform = ''
+    if platform.system() == 'Linux':
+        if platform.processor() == 'x86_64':
+            host_platform = 'linux-x86_64'
+        else:
+            host_platform = 'linux-x86'
+    elif platform.system() == 'Darwin':
+        host_platform = 'macosx'
+    elif platform.system() == 'Windows':
+        host_platform = 'x86-microsoft-win32'
+    default_exec_dir = path.join(SCRIPT_PATH, 'bin', host_platform)
+    if not path.exists(default_exec_dir):
+        default_exec_dir = path.join(SCRIPT_PATH, 'bin')
+    if not path.exists(default_exec_dir):
+        default_exec_dir = path.join(SCRIPT_PATH, '..', 'bin', 'Release')
+    if not path.exists(default_exec_dir):
+        default_exec_dir = path.join(SCRIPT_PATH, '..', 'bin')
+
     # parse options
     parser = OptionParser(usage="%prog [options] <media-file> [<media-file> ...]",
                           description="Each <media-file> is the path to a fragmented MP4 file, optionally prefixed with a stream selector delimited by [ and ]. The same input MP4 file may be repeated, provided that the stream selector prefixes select different streams. Version " + VERSION + " r" + SDK_REVISION)
@@ -786,7 +799,7 @@ def main():
                            "The <widevine-header> argument can be either: " +
                            "(1) the character '#' followed by a Widevine header encoded in Base64, or " +
                            "(2) one or more <name>:<value> pair(s) (separated by '#' if more than one) specifying fields of a Widevine header (field names include 'provider' [string], 'content_id' [byte array in hex], 'policy' [string])")
-    parser.add_option('', "--exec-dir", metavar="<exec_dir>", dest="exec_dir", default=path.join(SCRIPT_PATH, 'bin', platform),
+    parser.add_option('', "--exec-dir", metavar="<exec_dir>", dest="exec_dir", default=default_exec_dir,
                       help="Directory where the Bento4 executables are located")
     (options, args) = parser.parse_args()
     if len(args) == 0:
@@ -1269,7 +1282,7 @@ if __name__ == '__main__':
     try:
         main()
     except Exception, err:
-        if Options.debug:
+        if Options and Options.debug:
             raise
         else:
             PrintErrorAndExit('ERROR: %s\n' % str(err))

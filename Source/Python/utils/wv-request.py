@@ -28,9 +28,9 @@ parser.add_option('-v', '--verbose', dest="verbose", action='store_true', defaul
 parser.add_option('-d', '--debug', dest="debug", action='store_true', default=False,
                       help="Print debug information")
 parser.add_option('-u', '--url', dest="server_url", default=WV_DEFAULT_SERVER_URL,
-                  help="Widevine Server URL")
+                  help="Widevine Server URL (default: "+WV_DEFAULT_SERVER_URL+")")
 parser.add_option('-p', '--provider', dest="provider", default=WV_DEFAULT_PROVIDER,
-                  help="Widevine provider/signer name")
+                  help="Widevine provider/signer name (default: "+WV_DEFAULT_PROVIDER+")")
 parser.add_option('-k', '--aes-signing-key', dest="aes_signing_key", default=WV_DEFAULT_SIGNING_KEY,
                   help="AES signing key")
 parser.add_option('-i', '--aes-signing-iv', dest="aes_signing_iv", default=WV_DEFAULT_SIGNING_IV,
@@ -43,6 +43,9 @@ parser.add_option('-l', '--policy', dest="policy", default='',
                   help="Policy")
 
 (options, args) = parser.parse_args()
+if len(args) == 0:
+        parser.print_help()
+        sys.exit(1)
 if not options.content_id:
 	print 'ERROR: missing --content-id option'
 	sys.exit(1)
