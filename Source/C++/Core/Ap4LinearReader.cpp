@@ -456,7 +456,10 @@ AP4_LinearReader::Advance(bool read_data)
             } else {
                 result = buffer->m_Sample->ReadData(buffer->m_Data);
             }
-            if (AP4_FAILED(result)) return result;
+            if (AP4_FAILED(result)) {
+                delete buffer;
+                return result;
+            }
 
             // detach the sample from its source now that we've read its data
             buffer->m_Sample->Detach();

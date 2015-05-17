@@ -847,11 +847,12 @@ AP4_MarlinIpmpEncryptingProcessor::Initialize(
             if (group_key) {
                 AP4_DataBuffer wrapped_key;
                 result = AP4_AesKeyWrap(group_key->GetData(), key->GetData(), key->GetDataSize(), wrapped_key);
-                if (AP4_FAILED(result)) return result;
-                AP4_UnknownAtom* gkey = new AP4_UnknownAtom(AP4_ATOM_TYPE_GKEY, 
-                                                            wrapped_key.GetData(), 
-                                                            wrapped_key.GetDataSize());
-                schi->AddChild(gkey);
+                if (AP4_SUCCEEDED(result)) {
+                    AP4_UnknownAtom* gkey = new AP4_UnknownAtom(AP4_ATOM_TYPE_GKEY,
+                                                                wrapped_key.GetData(), 
+                                                                wrapped_key.GetDataSize());
+                    schi->AddChild(gkey);
+                }
             }
         }
                 

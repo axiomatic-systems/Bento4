@@ -616,12 +616,9 @@ AP4_AacSegmentBuilder::WriteInitSegment(AP4_ByteStream& stream)
     
     // write the moov atom
     result = output_movie->GetMoovAtom()->Write(stream);
-    if (AP4_FAILED(result)) {
-        return result;
-    }
     
     // cleanup
     delete output_movie;
     
-    return AP4_SUCCESS;
+    return result;
 }

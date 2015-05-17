@@ -116,6 +116,7 @@ AP4_Processor::ProcessFragments(AP4_MoovAtom*              moov,
                                 AP4_ByteStream&            output)
 {
     unsigned int fragment_index = 0;
+    
     for (AP4_List<AP4_AtomLocator>::Item* item = atoms.FirstItem();
                                           item;
                                           item = item->GetNext(), ++fragment_index) {
@@ -322,6 +323,7 @@ AP4_Processor::ProcessFragments(AP4_MoovAtom*              moov,
             sidx_ref.m_ReferencedSize = (AP4_UI32)fragment_size;
         }
         
+cleanup:
         // cleanup
         delete fragment;
         
