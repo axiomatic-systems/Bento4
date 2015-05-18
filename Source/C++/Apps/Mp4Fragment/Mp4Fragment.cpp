@@ -829,7 +829,7 @@ AutoDetectAudioFragmentDuration(AP4_ByteStream& stream, TrackCursor* cursor)
         cursor->m_Samples->GetSample(i, sample);
         total_duration += sample.GetDuration();
     }
-    return AP4_ConvertTime(total_duration/fragment_count, cursor->m_Track->GetMediaTimeScale(), 1000);
+    return (unsigned int)AP4_ConvertTime(total_duration/fragment_count, cursor->m_Track->GetMediaTimeScale(), 1000);
 }
 
 /*----------------------------------------------------------------------

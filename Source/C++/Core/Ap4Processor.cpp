@@ -323,7 +323,6 @@ AP4_Processor::ProcessFragments(AP4_MoovAtom*              moov,
             sidx_ref.m_ReferencedSize = (AP4_UI32)fragment_size;
         }
         
-cleanup:
         // cleanup
         delete fragment;
         
