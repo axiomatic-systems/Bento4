@@ -94,7 +94,7 @@ main(int argc, char** argv)
         bool eos;
         unsigned char input_buffer[4096];
         AP4_Size bytes_in_buffer = 0;
-        AP4_Result result = input->ReadPartial(input_buffer, sizeof(input_buffer), bytes_in_buffer);
+        result = input->ReadPartial(input_buffer, sizeof(input_buffer), bytes_in_buffer);
         if (AP4_SUCCEEDED(result)) {
             eos = false;
         } else if (result == AP4_ERROR_EOS) {
