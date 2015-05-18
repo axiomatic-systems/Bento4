@@ -287,7 +287,7 @@ EncryptingStream::Create(const AP4_UI08* key, const AP4_UI08* iv, AP4_ByteStream
     stream = new EncryptingStream(stream_cipher, output);
     
     return AP4_SUCCESS;
-};
+}
 
 /*----------------------------------------------------------------------
 |   ReadSample
