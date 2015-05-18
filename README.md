@@ -57,7 +57,8 @@ The Bento4 SDK includes several command-line applications/tools that are built u
 |mp4mux	        | multiplexes one or more elementary streams (H264, AAC) into an MP4 file                                                                         
 |mp42aac	    | extract a raw AAC elementary stream from an MP4 file                                                                                            
 |mp42avc	    | extract a raw AVC/H.264 elementary stream from an MP4 file                                                                                      
-|mp42ts	        | converts an MP4 file to an MPEG2-TS file, including support for fragmentation and generation of HTTP Live Streaming (HLS) playlists/manifests.
+|mp42hls	    | converts an MP4 file to an HLS (HTTP Live Streaming) presentation, including the generation of the segments and .m3u8 playlist.
+|mp42ts	        | converts an MP4 file to an MPEG2-TS file.
 |mp4-dash	    | creates an MPEG DASH output from one or more MP4 files, including encryption.                                                                   
 |mp4-dash-clone	| creates a local clone of a remote or local MPEG DASH presentation, optionally encrypting the segments as they are cloned.
 
