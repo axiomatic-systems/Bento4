@@ -249,6 +249,7 @@ multi_config_files = [
     (SDK_TARGET_DIR,'mp4mux','bin'),
     (SDK_TARGET_DIR,'aac2mp4','bin'),
     (SDK_TARGET_DIR,'mp42ts','bin'),
+    (SDK_TARGET_DIR,'mp42hls','bin'),
     (SDK_TARGET_DIR,'*.a','lib'),
     (SDK_TARGET_DIR,'*.dll','bin'),        
     (SDK_TARGET_DIR,'*.dylib','bin'),
