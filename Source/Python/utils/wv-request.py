@@ -43,12 +43,10 @@ parser.add_option('-l', '--policy', dest="policy", default='',
                   help="Policy")
 
 (options, args) = parser.parse_args()
-if len(args) == 0:
-        parser.print_help()
-        sys.exit(1)
 if not options.content_id:
-	print 'ERROR: missing --content-id option'
-	sys.exit(1)
+    print 'ERROR: missing --content-id option'
+    parser.print_help()
+    sys.exit(1)
 
 rq_payload = {
 	'content_id': base64_encode(options.content_id.decode('hex')),
