@@ -85,7 +85,14 @@ class AP4_Track {
               const char*      language,
               AP4_UI32         width,            // in 16.16 fixed point
               AP4_UI32         height);          // in 16.16 fixed point
-    AP4_Track(AP4_TrakAtom&   atom, 
+    AP4_Track(AP4_SampleTable* sample_table,     // ownership is transfered to the AP4_Track object
+              AP4_UI32         track_id, 
+              AP4_UI32         movie_time_scale, // 0 = use default
+              AP4_UI64         track_duration,   // in the movie timescale
+              AP4_UI32         media_time_scale,
+              AP4_UI64         media_duration,   // in the media timescale
+              const AP4_Track* track_prototype); // prototype for the type and other track fields
+    AP4_Track(AP4_TrakAtom&   atom,
               AP4_ByteStream& sample_stream,
               AP4_UI32        movie_time_scale);
     virtual ~AP4_Track();
@@ -97,15 +104,15 @@ class AP4_Track {
      */
     AP4_Track* Clone(AP4_Result* result = NULL);
     
-    AP4_UI32     GetFlags();
+    AP4_UI32     GetFlags() const;
     AP4_Result   SetFlags(AP4_UI32 flags);
-    AP4_Track::Type GetType() { return m_Type; }
-    AP4_UI32     GetHandlerType();
-    AP4_UI64     GetDuration();   // in the timescale of the movie
-    AP4_UI32     GetDurationMs(); // in milliseconds
-    AP4_UI32     GetWidth();      // in 16.16 fixed point
-    AP4_UI32     GetHeight();     // in 16.16 fixed point
-    AP4_Cardinal GetSampleCount();
+    AP4_Track::Type GetType() const { return m_Type; }
+    AP4_UI32     GetHandlerType() const;
+    AP4_UI64     GetDuration() const;   // in the timescale of the movie
+    AP4_UI32     GetDurationMs() const; // in milliseconds
+    AP4_UI32     GetWidth() const;      // in 16.16 fixed point
+    AP4_UI32     GetHeight() const;     // in 16.16 fixed point
+    AP4_Cardinal GetSampleCount() const;
     AP4_Result   GetSample(AP4_Ordinal index, AP4_Sample& sample);
     AP4_Result   ReadSample(AP4_Ordinal     index, 
                             AP4_Sample&     sample,
@@ -116,15 +123,16 @@ class AP4_Track {
     AP4_SampleDescription* GetSampleDescription(AP4_Ordinal index);
     AP4_Cardinal           GetSampleDescriptionCount();
     AP4_SampleTable*       GetSampleTable() { return m_SampleTable; }
-    AP4_UI32      GetId();
+    AP4_UI32      GetId() const;
     AP4_Result    SetId(AP4_UI32 track_id);
-    AP4_TrakAtom* GetTrakAtom() { return m_TrakAtom; }
+    const AP4_TrakAtom* GetTrakAtom() const { return m_TrakAtom; }
+    AP4_TrakAtom* UseTrakAtom()             { return m_TrakAtom; }
     AP4_Result    SetMovieTimeScale(AP4_UI32 time_scale);
-    AP4_UI32      GetMovieTimeScale() { return m_MovieTimeScale; }
-    AP4_UI32      GetMediaTimeScale();
-    AP4_UI64      GetMediaDuration(); // in the timescale of the media
-    const char*   GetTrackName();
-    const char*   GetTrackLanguage();
+    AP4_UI32      GetMovieTimeScale() const { return m_MovieTimeScale; }
+    AP4_UI32      GetMediaTimeScale() const;
+    AP4_UI64      GetMediaDuration() const; // in the timescale of the media
+    const char*   GetTrackName() const;
+    const char*   GetTrackLanguage() const;
     AP4_Result    Attach(AP4_MoovAtom* moov);
 
  protected:

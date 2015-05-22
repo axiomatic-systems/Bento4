@@ -60,7 +60,7 @@ AP4_HintTrackReader::AP4_HintTrackReader(AP4_Track& hint_track,
     m_RtpTimeScale(0)
 {
     // get the media track
-    AP4_TrakAtom* hint_trak_atom = hint_track.GetTrakAtom();
+    AP4_TrakAtom* hint_trak_atom = hint_track.UseTrakAtom();
     AP4_Atom* atom = hint_trak_atom->FindChild("tref/hint");
     if (atom != NULL) {
         AP4_UI32 media_track_id = AP4_DYNAMIC_CAST(AP4_TrefTypeAtom, atom)->GetTrackIds()[0];
@@ -179,7 +179,7 @@ AP4_HintTrackReader::Rewind()
 AP4_Result
 AP4_HintTrackReader::GetSdpText(AP4_String& sdp_text)
 {
-    AP4_Atom* sdp_atom = m_HintTrack.GetTrakAtom()->FindChild("udta/hnti/sdp ");
+    AP4_Atom* sdp_atom = m_HintTrack.UseTrakAtom()->FindChild("udta/hnti/sdp ");
     if (sdp_atom == NULL) return AP4_FAILURE;
 
     // C cast is OK because we know the type of the atom

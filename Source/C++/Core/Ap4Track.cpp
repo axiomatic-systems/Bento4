@@ -123,6 +123,81 @@ AP4_Track::AP4_Track(Type             type,
 /*----------------------------------------------------------------------
 |   AP4_Track::AP4_Track
 +---------------------------------------------------------------------*/
+AP4_Track::AP4_Track(AP4_SampleTable* sample_table,
+                     AP4_UI32         track_id, 
+                     AP4_UI32         movie_time_scale, // 0 = use default
+                     AP4_UI64         track_duration,   // in the movie timescale
+                     AP4_UI32         media_time_scale,
+                     AP4_UI64         media_duration,   // in the media timescale
+                     const AP4_Track* track_prototype) :
+    m_TrakAtomIsOwned(true),
+    m_SampleTable(sample_table),
+    m_SampleTableIsOwned(true),
+    m_MovieTimeScale(movie_time_scale ? 
+                     movie_time_scale : 
+                     AP4_TRACK_DEFAULT_MOVIE_TIMESCALE)
+{
+    // compute the handler type and name
+    AP4_Atom::Type hdlr_type;
+    const char* hdlr_name;
+    switch (track_prototype->GetType()) {
+        case TYPE_AUDIO:
+            hdlr_type = AP4_HANDLER_TYPE_SOUN;
+            hdlr_name = "Bento4 Sound Handler";
+            break;
+
+        case TYPE_VIDEO:
+            hdlr_type = AP4_HANDLER_TYPE_VIDE;
+            hdlr_name = "Bento4 Video Handler";
+            break;
+
+        case TYPE_HINT:
+            hdlr_type = AP4_HANDLER_TYPE_HINT;
+            hdlr_name = "Bento4 Hint Handler";
+            break;
+
+        case TYPE_TEXT:
+            hdlr_type = AP4_HANDLER_TYPE_TEXT;
+            hdlr_name = "Bento4 Text Handler";
+            break;
+
+        case TYPE_SUBTITLES:
+            hdlr_type = AP4_HANDLER_TYPE_SUBT;
+            hdlr_name = "Bento4 Subtitle Handler";
+            break;
+
+        default:
+            hdlr_type = track_prototype->GetHandlerType();
+            hdlr_name = track_prototype->GetTrackLanguage();
+            break;
+    }
+
+    // create a trak atom
+    const AP4_TkhdAtom* tkhd = NULL;
+    if (track_prototype->GetTrakAtom()) {
+        tkhd = track_prototype->GetTrakAtom()->GetTkhdAtom();
+    }
+    m_TrakAtom = new AP4_TrakAtom(sample_table,
+                                  hdlr_type, 
+                                  hdlr_name,
+                                  track_id, 
+                                  0, 
+                                  0, 
+                                  track_duration,
+                                  media_time_scale,
+                                  media_duration,
+                                  tkhd?tkhd->GetVolume():(track_prototype->GetType() == TYPE_AUDIO?0x100:0),
+                                  track_prototype->GetTrackLanguage(),
+                                  track_prototype->GetWidth(),
+                                  track_prototype->GetHeight(),
+                                  tkhd?tkhd->GetLayer():0,
+                                  tkhd?tkhd->GetAlternateGroup():0,
+                                  tkhd?tkhd->GetMatrix():NULL);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_Track::AP4_Track
++---------------------------------------------------------------------*/
 AP4_Track::AP4_Track(AP4_TrakAtom&   atom, 
                      AP4_ByteStream& sample_stream, 
                      AP4_UI32        movie_time_scale) :
@@ -211,16 +286,13 @@ AP4_Track::Clone(AP4_Result* result)
     }    
     
     // create the cloned track
-    AP4_Track* clone = new AP4_Track(GetType(),
-                                     sample_table,
+    AP4_Track* clone = new AP4_Track(sample_table,
                                      GetId(),
                                      GetMovieTimeScale(),
                                      GetDuration(),
                                      GetMediaTimeScale(),
                                      GetMediaDuration(),
-                                     GetTrackLanguage(),
-                                     GetWidth(),
-                                     GetHeight());
+                                     this);
                                      
     return clone;
 }
@@ -242,7 +314,7 @@ AP4_Track::Attach(AP4_MoovAtom* moov)
 |   AP4_Track::GetFlags
 +---------------------------------------------------------------------*/
 AP4_UI32
-AP4_Track::GetFlags()
+AP4_Track::GetFlags() const
 {
     if (m_TrakAtom) {
         AP4_TkhdAtom* tkhd = AP4_DYNAMIC_CAST(AP4_TkhdAtom, m_TrakAtom->FindChild("tkhd"));
@@ -273,7 +345,7 @@ AP4_Track::SetFlags(AP4_UI32 flags)
 |   AP4_Track::GetHandlerType
 +---------------------------------------------------------------------*/
 AP4_UI32
-AP4_Track::GetHandlerType()
+AP4_Track::GetHandlerType() const
 {
     if (m_TrakAtom) {
         AP4_HdlrAtom* hdlr = AP4_DYNAMIC_CAST(AP4_HdlrAtom, m_TrakAtom->FindChild("mdia/hdlr"));
@@ -288,7 +360,7 @@ AP4_Track::GetHandlerType()
 |   AP4_Track::GetId
 +---------------------------------------------------------------------*/
 AP4_UI32
-AP4_Track::GetId()
+AP4_Track::GetId() const
 {
     return m_TrakAtom->GetId();
 }
@@ -297,7 +369,7 @@ AP4_Track::GetId()
 |   AP4_Track::GetWidth
 +---------------------------------------------------------------------*/
 AP4_UI32
-AP4_Track::GetWidth()
+AP4_Track::GetWidth() const
 {
     return m_TrakAtom->GetWidth();
 }
@@ -306,7 +378,7 @@ AP4_Track::GetWidth()
 |   AP4_Track::GetHeight
 +---------------------------------------------------------------------*/
 AP4_UI32
-AP4_Track::GetHeight()
+AP4_Track::GetHeight() const
 {
     return m_TrakAtom->GetHeight();
 }
@@ -326,7 +398,7 @@ AP4_Track::SetId(AP4_UI32 id)
 |   AP4_Track::GetDuration
 +---------------------------------------------------------------------*/
 AP4_UI64
-AP4_Track::GetDuration()
+AP4_Track::GetDuration() const
 {
     return m_TrakAtom->GetDuration();
 }
@@ -335,7 +407,7 @@ AP4_Track::GetDuration()
 |   AP4_Track::GetDurationMs
 +---------------------------------------------------------------------*/
 AP4_UI32
-AP4_Track::GetDurationMs()
+AP4_Track::GetDurationMs() const
 {
     AP4_UI64 duration = m_TrakAtom->GetDuration();
     return AP4_DurationMsFromUnits(duration, m_MovieTimeScale);
@@ -345,7 +417,7 @@ AP4_Track::GetDurationMs()
 |   AP4_Track::GetSampleCount
 +---------------------------------------------------------------------*/
 AP4_Cardinal
-AP4_Track::GetSampleCount()
+AP4_Track::GetSampleCount() const
 {
     // delegate to the sample table
     return m_SampleTable ? m_SampleTable->GetSampleCount() : 0;
@@ -445,7 +517,7 @@ AP4_Track::SetMovieTimeScale(AP4_UI32 time_scale)
 |   AP4_Track::GetMediaTimeScale
 +---------------------------------------------------------------------*/
 AP4_UI32
-AP4_Track::GetMediaTimeScale()
+AP4_Track::GetMediaTimeScale() const
 {
     return m_TrakAtom?m_TrakAtom->GetMediaTimeScale():0;
 }
@@ -454,7 +526,7 @@ AP4_Track::GetMediaTimeScale()
 |   AP4_Track::GetMediaDuration
 +---------------------------------------------------------------------*/
 AP4_UI64
-AP4_Track::GetMediaDuration()
+AP4_Track::GetMediaDuration() const
 {
     return m_TrakAtom?m_TrakAtom->GetMediaDuration():0;
 }
@@ -463,7 +535,7 @@ AP4_Track::GetMediaDuration()
 |   AP4_Track::GetTrackName
 +---------------------------------------------------------------------*/
 const char*
-AP4_Track::GetTrackName()
+AP4_Track::GetTrackName() const
 {
     if (AP4_HdlrAtom* hdlr = AP4_DYNAMIC_CAST(AP4_HdlrAtom, m_TrakAtom->FindChild("mdia/hdlr"))) {
         return hdlr->GetHandlerName().GetChars();
@@ -475,7 +547,7 @@ AP4_Track::GetTrackName()
 |   AP4_Track::GetTrackLanguage
 +---------------------------------------------------------------------*/
 const char*
-AP4_Track::GetTrackLanguage()
+AP4_Track::GetTrackLanguage() const
 {
     if (AP4_MdhdAtom* mdhd = AP4_DYNAMIC_CAST(AP4_MdhdAtom, m_TrakAtom->FindChild("mdia/mdhd"))) {
         return mdhd->GetLanguage().GetChars();

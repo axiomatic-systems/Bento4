@@ -83,7 +83,7 @@ AP4_FileWriter::Write(AP4_File& file, AP4_ByteStream& stream, Interleaving /* in
          track_item;
          track_item = track_item->GetNext()) {
         AP4_Track*    track = track_item->GetData();
-        AP4_TrakAtom* trak  = track->GetTrakAtom();
+        AP4_TrakAtom* trak  = track->UseTrakAtom();
         
         // backup the chunk offsets
         AP4_Array<AP4_UI64>* chunk_offsets_backup = new AP4_Array<AP4_UI64>();
@@ -126,7 +126,7 @@ AP4_FileWriter::Write(AP4_File& file, AP4_ByteStream& stream, Interleaving /* in
          track_item;
          track_item = track_item->GetNext(), ++t) {
         AP4_Track*    track = track_item->GetData();
-        AP4_TrakAtom* trak  = track->GetTrakAtom();
+        AP4_TrakAtom* trak  = track->UseTrakAtom();
         
         // restore the backed-up chunk offsets
         result = trak->SetChunkOffsets(*trak_chunk_offsets_backup[t]);

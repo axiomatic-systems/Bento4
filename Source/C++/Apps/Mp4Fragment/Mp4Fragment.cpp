@@ -82,11 +82,13 @@ PrintUsageAndExit()
 class SampleArray {
 public:
     SampleArray(AP4_Track* track) :
-        m_Track(track) {}
+        m_Track(track) {
+        m_SampleCount = m_Track->GetSampleCount();
+    }
     virtual ~SampleArray() {}
 
     virtual AP4_Cardinal GetSampleCount() {
-        return m_Track->GetSampleCount();
+        return m_SampleCount;
     }
     virtual AP4_Result GetSample(AP4_Ordinal index, AP4_Sample& sample) {
         return m_Track->GetSample(index, sample);
@@ -96,7 +98,8 @@ public:
     }
     
 protected:
-    AP4_Track* m_Track;
+    AP4_Track*   m_Track;
+    AP4_Cardinal m_SampleCount;
 };
 
 /*----------------------------------------------------------------------
@@ -278,8 +281,7 @@ Fragment(AP4_File&                input_file,
         }
         
         // create the track
-        AP4_Track* output_track = new AP4_Track(track->GetType(),
-                                                sample_table,
+        AP4_Track* output_track = new AP4_Track(sample_table,
                                                 track->GetId(),
                                                 timescale?timescale:1000,
                                                 AP4_ConvertTime(track->GetDuration(),
@@ -287,9 +289,7 @@ Fragment(AP4_File&                input_file,
                                                                 timescale?timescale:1000),
                                                 timescale?timescale:track->GetMediaTimeScale(),
                                                 0,//track->GetMediaDuration(),
-                                                track->GetTrackLanguage(),
-                                                track->GetWidth(),
-                                                track->GetHeight());
+                                                track);
         output_movie->AddTrack(output_track);
         
         // add a trex entry to the mvex container
@@ -449,10 +449,10 @@ Fragment(AP4_File&                input_file,
                 // this sample is the closest to the target so far
                 end_sample_index = i;
                 smallest_diff = abs_diff;
-                if (diff >= 0) {
-                    // this sample is past the target, it is not going to get any better, stop looking
-                    break;
-                }
+            }
+            if (diff >= 0) {
+                // this sample is past the target, it is not going to get any better, stop looking
+                break;
             }
         }
         if (cursor->m_Eos) continue;

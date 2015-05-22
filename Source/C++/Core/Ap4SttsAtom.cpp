@@ -102,7 +102,7 @@ AP4_SttsAtom::GetDts(AP4_Ordinal sample, AP4_UI64& dts, AP4_UI32* duration)
     if (sample == 0) return AP4_ERROR_OUT_OF_RANGE;
 
     // check the lookup cache
-    AP4_Ordinal lookup_start  = 0;
+    AP4_Ordinal lookup_start = 0;
     AP4_Ordinal sample_start = 0;
     AP4_UI64    dts_start    = 0;
     if (sample >= m_LookupCache.sample) {

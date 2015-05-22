@@ -56,7 +56,7 @@ AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_TrakAtom)
 +---------------------------------------------------------------------*/
 AP4_TrakAtom::AP4_TrakAtom(AP4_SampleTable* sample_table,
                            AP4_Atom::Type   hdlr_type,
-                           const char*      hdlr_name, 
+                           const char*      hdlr_name,
                            AP4_UI32         track_id,
                            AP4_UI32         creation_time,
                            AP4_UI32         modification_time,
@@ -66,19 +66,25 @@ AP4_TrakAtom::AP4_TrakAtom(AP4_SampleTable* sample_table,
                            AP4_UI16         volume,
                            const char*      language,
                            AP4_UI32         width,
-                           AP4_UI32         height) :
+                           AP4_UI32         height,
+                           AP4_UI16         layer,
+                           AP4_UI16         alternate_group,
+                           const AP4_SI32*  matrix) :
     AP4_ContainerAtom(AP4_ATOM_TYPE_TRAK)
 {
     AP4_Result result;
 
     // create a tkhd atom
-    m_TkhdAtom = new AP4_TkhdAtom(creation_time, 
-                                  modification_time, 
+    m_TkhdAtom = new AP4_TkhdAtom(creation_time,
+                                  modification_time,
                                   track_id,
-                                  track_duration, 
-                                  volume, 
-                                  width, 
-                                  height);
+                                  track_duration,
+                                  volume,
+                                  width,
+                                  height,
+                                  layer,
+                                  alternate_group,
+                                  matrix);
 
     // create an edts
 

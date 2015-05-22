@@ -54,21 +54,24 @@ AP4_TkhdAtom::Create(AP4_Size size, AP4_ByteStream& stream)
 /*----------------------------------------------------------------------
 |   AP4_TkhdAtom::AP4_TkhdAtom
 +---------------------------------------------------------------------*/
-AP4_TkhdAtom::AP4_TkhdAtom(AP4_UI32 creation_time,
-                           AP4_UI32 modification_time,
-                           AP4_UI32 track_id,
-                           AP4_UI64 duration,
-                           AP4_UI16 volume,
-                           AP4_UI32 width,
-                           AP4_UI32 height) :
+AP4_TkhdAtom::AP4_TkhdAtom(AP4_UI32        creation_time,
+                           AP4_UI32        modification_time,
+                           AP4_UI32        track_id,
+                           AP4_UI64        duration,
+                           AP4_UI16        volume,
+                           AP4_UI32        width,
+                           AP4_UI32        height,
+                           AP4_UI16        layer,
+                           AP4_UI16        alternate_group,
+                           const AP4_SI32* matrix) :
     AP4_Atom(AP4_ATOM_TYPE_TKHD, AP4_FULL_ATOM_HEADER_SIZE+80, 0, 0),
     m_CreationTime(creation_time),
     m_ModificationTime(modification_time),
     m_TrackId(track_id),
     m_Reserved1(0),
     m_Duration(duration),
-    m_Layer(0),
-    m_AlternateGroup(0),
+    m_Layer(layer),
+    m_AlternateGroup(alternate_group),
     m_Volume(volume),
     m_Reserved3(0),
     m_Width(width),
@@ -76,16 +79,23 @@ AP4_TkhdAtom::AP4_TkhdAtom(AP4_UI32 creation_time,
 {
     m_Flags = AP4_TKHD_FLAG_DEFAULTS;
 
-    m_Matrix[0] = 0x00010000;
-    m_Matrix[1] = 0;
-    m_Matrix[2] = 0;
-    m_Matrix[3] = 0;
-    m_Matrix[4] = 0x00010000;
-    m_Matrix[5] = 0;
-    m_Matrix[6] = 0;
-    m_Matrix[7] = 0;
-    m_Matrix[8] = 0x40000000;
-
+    if (matrix) {
+        for (unsigned int i=0; i<9; i++) {
+            m_Matrix[i] = matrix[i];
+        }
+    } else {
+        // default matrix
+        m_Matrix[0] = 0x00010000;
+        m_Matrix[1] = 0;
+        m_Matrix[2] = 0;
+        m_Matrix[3] = 0;
+        m_Matrix[4] = 0x00010000;
+        m_Matrix[5] = 0;
+        m_Matrix[6] = 0;
+        m_Matrix[7] = 0;
+        m_Matrix[8] = 0x40000000;
+    }
+    
     m_Reserved2[0] = 0;
     m_Reserved2[1] = 0;
 
@@ -131,7 +141,9 @@ AP4_TkhdAtom::AP4_TkhdAtom(AP4_UI32        size,
     stream.ReadUI16(m_Volume);
     stream.ReadUI16(m_Reserved3);
     for (int i=0; i<9; i++) {
-        stream.ReadUI32(m_Matrix[i]);
+        AP4_UI32 coefficient = 0;
+        stream.ReadUI32(coefficient);
+        m_Matrix[i] = (AP4_SI32)coefficient;
     }
     stream.ReadUI32(m_Width);
     stream.ReadUI32(m_Height);
@@ -210,8 +222,22 @@ AP4_TkhdAtom::InspectFields(AP4_AtomInspector& inspector)
     inspector.AddField("enabled", ((m_Flags & AP4_TKHD_FLAG_TRACK_ENABLED) ? 1 : 0), AP4_AtomInspector::HINT_BOOLEAN);
     inspector.AddField("id", m_TrackId);
     inspector.AddField("duration", m_Duration);
-    inspector.AddFieldF("width", (float)m_Width/65536.0f);
-    inspector.AddFieldF("height", (float)m_Height/65536.0f);
+    if (inspector.GetVerbosity() > 0) {
+        inspector.AddField("volume", m_Volume);
+        inspector.AddField("layer", m_Layer);
+        inspector.AddField("alternate_group", m_AlternateGroup);
+        inspector.AddFieldF("matrix_0", (float)m_Matrix[0]/65536.0f);
+        inspector.AddFieldF("matrix_1", (float)m_Matrix[1]/65536.0f);
+        inspector.AddFieldF("matrix_2", (float)m_Matrix[2]/65536.0f);
+        inspector.AddFieldF("matrix_3", (float)m_Matrix[3]/65536.0f);
+        inspector.AddFieldF("matrix_4", (float)m_Matrix[4]/65536.0f);
+        inspector.AddFieldF("matrix_5", (float)m_Matrix[5]/65536.0f);
+        inspector.AddFieldF("matrix_6", (float)m_Matrix[6]/65536.0f);
+        inspector.AddFieldF("matrix_7", (float)m_Matrix[7]/65536.0f);
+        inspector.AddFieldF("matrix_8", (float)m_Matrix[8]/65536.0f);
+    }
+    inspector.AddFieldF("width",    (float)m_Width/65536.0f);
+    inspector.AddFieldF("height",   (float)m_Height/65536.0f);
     
     return AP4_SUCCESS;
 }

@@ -59,20 +59,24 @@ class AP4_TrakAtom : public AP4_ContainerAtom
     }
 
     // methods
-    AP4_TrakAtom(AP4_SampleTable* sample_table,
-                 AP4_Atom::Type   hdlr_type,
-                 const char*      hdlr_name,
-                 AP4_UI32         track_id, 
-                 AP4_UI32         creation_time,
-                 AP4_UI32         modification_time,
-                 AP4_UI64         track_duration,
-                 AP4_UI32         media_time_scale,
-                 AP4_UI64         media_duration,
-                 AP4_UI16         volume,
-                 const char*      language,
-                 AP4_UI32         width,
-                 AP4_UI32         heigh);
-    AP4_TkhdAtom* GetTkhdAtom() { return m_TkhdAtom; }
+    AP4_TrakAtom(AP4_SampleTable*    sample_table,
+                 AP4_Atom::Type      hdlr_type,
+                 const char*         hdlr_name,
+                 AP4_UI32            track_id,
+                 AP4_UI32            creation_time,
+                 AP4_UI32            modification_time,
+                 AP4_UI64            track_duration,
+                 AP4_UI32            media_time_scale,
+                 AP4_UI64            media_duration,
+                 AP4_UI16            volume,
+                 const char*         language,
+                 AP4_UI32            width,
+                 AP4_UI32            heigh,
+                 AP4_UI16            layer = 0,
+                 AP4_UI16            alternate_group = 0,
+                 const AP4_SI32*     matrix = NULL);
+    const AP4_TkhdAtom* GetTkhdAtom() const { return m_TkhdAtom; }
+    AP4_TkhdAtom* UseTkhdAtom() { return m_TkhdAtom; }
     AP4_Result AdjustChunkOffsets(AP4_SI64 delta);
     AP4_Result GetChunkOffsets(AP4_Array<AP4_UI64>& chunk_offsets);
     AP4_Result SetChunkOffsets(const AP4_Array<AP4_UI64>& chunk_offsets);
