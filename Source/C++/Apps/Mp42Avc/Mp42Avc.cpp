@@ -64,26 +64,31 @@ WriteSample(const AP4_DataBuffer& sample_data,
             unsigned int          nalu_length_size, 
             AP4_ByteStream*       output)
 {
-    // allocate a buffer for the PES packet
-    AP4_DataBuffer frame_data;
-    frame_data.SetDataSize(6+prefix.GetDataSize());
-    unsigned char* frame_buffer = frame_data.UseData();
-    
-    // start of access unit
-    frame_buffer[0] = 0;
-    frame_buffer[1] = 0;
-    frame_buffer[2] = 0;
-    frame_buffer[3] = 1;
-    frame_buffer[4] = 9;    // NAL type = Access Unit Delimiter;
-    frame_buffer[5] = 0xE0; // Slice types = ANY
-    
-    // copy the prefix
-    AP4_CopyMemory(frame_buffer+6, prefix.GetData(), prefix.GetDataSize());
-    
-    // write the NAL units
     const unsigned char* data      = sample_data.GetData();
     unsigned int         data_size = sample_data.GetDataSize();
+
+    // allocate a buffer for the PES packet
+    AP4_DataBuffer frame_data;
+    unsigned char* frame_buffer = NULL;
+
+    // add a delimiter if we don't already have one
+    bool have_access_unit_delimiter = (data_size != 0 && data[0] == 9);
+    if (!have_access_unit_delimiter) {
+        AP4_Size frame_data_size = frame_data.GetDataSize();
+        frame_data.SetDataSize(frame_data_size+6);
+        frame_buffer = frame_data.UseData()+frame_data_size;
     
+        // start of access unit
+        frame_buffer[0] = 0;
+        frame_buffer[1] = 0;
+        frame_buffer[2] = 0;
+        frame_buffer[3] = 1;
+        frame_buffer[4] = 9;    // NAL type = Access Unit Delimiter;
+        frame_buffer[5] = 0xE0; // Slice types = ANY
+    }
+    
+    // write the NAL units
+    bool prefix_added = false;
     while (data_size) {
         // sanity check
         if (data_size < nalu_length_size) break;
@@ -106,15 +111,33 @@ WriteSample(const AP4_DataBuffer& sample_data,
         }
         if (nalu_size > data_size) break;
         
+        // add the prefix if needed
+        if (prefix.GetDataSize() && !prefix_added && !have_access_unit_delimiter) {
+            AP4_Size frame_data_size = frame_data.GetDataSize();
+            frame_data.SetDataSize(frame_data_size+prefix.GetDataSize());
+            frame_buffer = frame_data.UseData()+frame_data_size;
+            AP4_CopyMemory(frame_buffer, prefix.GetData(), prefix.GetDataSize());
+            prefix_added = true;
+        }
+    
         // add a start code before the NAL unit
-        unsigned int offset = frame_data.GetDataSize(); 
-        frame_data.SetDataSize(offset+3+nalu_size);
-        frame_buffer = frame_data.UseData()+offset;
+        AP4_Size frame_data_size = frame_data.GetDataSize();
+        frame_data.SetDataSize(frame_data_size+3+nalu_size);
+        frame_buffer = frame_data.UseData()+frame_data_size;
         frame_buffer[0] = 0;
         frame_buffer[1] = 0;
         frame_buffer[2] = 1;
         AP4_CopyMemory(frame_buffer+3, data, nalu_size);
         
+        // add the prefix if needed
+        if (prefix.GetDataSize() && !prefix_added) {
+            AP4_Size frame_data_size = frame_data.GetDataSize();
+            frame_data.SetDataSize(frame_data_size+prefix.GetDataSize());
+            frame_buffer = frame_data.UseData()+frame_data_size;
+            AP4_CopyMemory(frame_buffer, prefix.GetData(), prefix.GetDataSize());
+            prefix_added = true;
+        }
+
         // move to the next NAL unit
         data      += nalu_size;
         data_size -= nalu_size;
@@ -133,6 +156,11 @@ MakeFramePrefix(AP4_SampleDescription* sdesc, AP4_DataBuffer& prefix, unsigned i
     if (avc_desc == NULL) {
         fprintf(stderr, "ERROR: track does not contain an AVC stream\n");
         return AP4_FAILURE;
+    }
+    
+    if (sdesc->GetFormat() == AP4_SAMPLE_FORMAT_AVC3 || sdesc->GetFormat() == AP4_SAMPLE_FORMAT_AVC4) {
+        // no need for a prefix, SPS/PPS NALs should be in the elementary stream already
+        return AP4_SUCCESS;
     }
     
     // make the SPS/PPS prefix

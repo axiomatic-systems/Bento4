@@ -65,14 +65,12 @@ WriteSample(const AP4_DataBuffer& sample_data,
             unsigned int          nalu_length_size, 
             AP4_ByteStream*       output)
 {
-    // allocate a buffer for the frame data
-    AP4_DataBuffer frame_data;
-    frame_data.SetData(prefix.GetData(), prefix.GetDataSize());
-    
-    // write the NAL units
     const unsigned char* data      = sample_data.GetData();
     unsigned int         data_size = sample_data.GetDataSize();
-    
+
+    // detect if we have VPS/SPS/PPS and/or AUD NAL units already
+    bool have_param_sets = false;
+    bool have_access_unit_delimiter = false;
     while (data_size) {
         // sanity check
         if (data_size < nalu_length_size) break;
@@ -95,15 +93,95 @@ WriteSample(const AP4_DataBuffer& sample_data,
         }
         if (nalu_size > data_size) break;
         
+        unsigned int nal_unit_type = (data[0]>>1)&0x3F;
+        if (nal_unit_type == AP4_HEVC_NALU_TYPE_AUD_NUT) {
+            have_access_unit_delimiter = true;
+        }
+        if (nal_unit_type == AP4_HEVC_NALU_TYPE_VPS_NUT ||
+            nal_unit_type == AP4_HEVC_NALU_TYPE_SPS_NUT ||
+            nal_unit_type == AP4_HEVC_NALU_TYPE_PPS_NUT) {
+            have_param_sets = true;
+            break;
+        }
+        
+        // move to the next NAL unit
+        data      += nalu_size;
+        data_size -= nalu_size;
+    } 
+    data      = sample_data.GetData();
+    data_size = sample_data.GetDataSize();
+
+    // allocate a buffer for the frame data
+    AP4_DataBuffer frame_data;
+    unsigned char* frame_buffer = NULL;
+    
+    // add a delimiter if we don't already have one
+    if (data_size && !have_access_unit_delimiter) {
+        AP4_Size frame_data_size = frame_data.GetDataSize();
+        frame_data.SetDataSize(frame_data_size+7);
+        frame_buffer = frame_data.UseData()+frame_data_size;
+    
+        // start of access unit
+        frame_buffer[0] = 0;
+        frame_buffer[1] = 0;
+        frame_buffer[2] = 0;
+        frame_buffer[3] = 1;
+        frame_buffer[4] = AP4_HEVC_NALU_TYPE_AUD_NUT<<1;
+        frame_buffer[5] = 1;
+        frame_buffer[6] = 0x40; // pic_type = 2 (B,P,I)
+    }
+    
+    // write the NAL units
+    bool prefix_added = false;
+    while (data_size) {
+        // sanity check
+        if (data_size < nalu_length_size) break;
+        
+        // get the next NAL unit
+        AP4_UI32 nalu_size;
+        if (nalu_length_size == 1) {
+            nalu_size = *data++;
+            data_size--;
+        } else if (nalu_length_size == 2) {
+            nalu_size = AP4_BytesToInt16BE(data);
+            data      += 2;
+            data_size -= 2;
+        } else if (nalu_length_size == 4) {
+            nalu_size = AP4_BytesToInt32BE(data);
+            data      += 4;
+            data_size -= 4;
+        } else {
+            break;
+        }
+        if (nalu_size > data_size) break;
+        
+        // add the prefix if needed
+        if (!have_param_sets && !prefix_added && !have_access_unit_delimiter) {
+            AP4_Size frame_data_size = frame_data.GetDataSize();
+            frame_data.SetDataSize(frame_data_size+prefix.GetDataSize());
+            frame_buffer = frame_data.UseData()+frame_data_size;
+            AP4_CopyMemory(frame_buffer, prefix.GetData(), prefix.GetDataSize());
+            prefix_added = true;
+        }
+        
         // add a start code before the NAL unit
-        unsigned int offset = frame_data.GetDataSize(); 
-        frame_data.SetDataSize(offset+3+nalu_size);
-        unsigned char* frame_buffer = frame_data.UseData()+offset;
+        AP4_Size frame_data_size = frame_data.GetDataSize();
+        frame_data.SetDataSize(frame_data_size+3+nalu_size);
+        frame_buffer = frame_data.UseData()+frame_data_size;
         frame_buffer[0] = 0;
         frame_buffer[1] = 0;
         frame_buffer[2] = 1;
         AP4_CopyMemory(frame_buffer+3, data, nalu_size);
         
+        // add the prefix if needed
+        if (!have_param_sets && !prefix_added) {
+            AP4_Size frame_data_size = frame_data.GetDataSize();
+            frame_data.SetDataSize(frame_data_size+prefix.GetDataSize());
+            frame_buffer = frame_data.UseData()+frame_data_size;
+            AP4_CopyMemory(frame_buffer, prefix.GetData(), prefix.GetDataSize());
+            prefix_added = true;
+        }
+
         // move to the next NAL unit
         data      += nalu_size;
         data_size -= nalu_size;
