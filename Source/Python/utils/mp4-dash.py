@@ -104,7 +104,7 @@ def AddSegmentList(options, container, subdir, track, use_byte_range=False):
         xml.SubElement(segment_list,
                        'Initialization',
                        sourceURL=prefix + track.init_segment_name)
-    i = 0
+    i = 1
     for segment_index in track.moofs:
         segment = track.parent.segments[segment_index]
         segment_offset = segment[0].position
