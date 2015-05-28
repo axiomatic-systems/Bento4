@@ -222,7 +222,12 @@ def AddContentProtection(options, container, tracks):
             pro.text = header_b64
     if options.widevine:
         cp = xml.SubElement(container, 'ContentProtection', schemeIdUri=WIDEVINE_SCHEME_ID_URI)
-
+        if options.widevine_header:
+            header_bin = ComputeWidevineHeader(options.widevine_header, kid, key)
+            header_b64 = header_bin.encode('base64').replace('\n', '')
+            pssh = xml.SubElement(cp, 'cenc:pssh')
+            pssh.text = header_b64
+  
 #############################################
 def OutputDash(options, audio_tracks, video_tracks, subtitles_tracks):
     # compute the total duration (we take the duration of the video)
@@ -795,7 +800,7 @@ def main():
     parser.add_option('', "--widevine", dest="widevine", action="store_true", default=False,
                       help="Add Widevine signaling to the MPD (requires an encrypted input, or the --encryption-key option)")
     parser.add_option('', "--widevine-header", dest="widevine_header", metavar='<widevine-header>', default=None,
-                      help="Add a Widevine entry in the MPD, and a Widevine PSSH box in the init segments. The use of this option implies the --widevine option. " +
+                      help="Add a Widevine cenc:pssh entry in the MPD, and a Widevine PSSH box in the init segments. The use of this option implies the --widevine option. " +
                            "The <widevine-header> argument can be either: " +
                            "(1) the character '#' followed by a Widevine header encoded in Base64, or " +
                            "(2) one or more <name>:<value> pair(s) (separated by '#' if more than one) specifying fields of a Widevine header (field names include 'provider' [string], 'content_id' [byte array in hex], 'policy' [string])")
