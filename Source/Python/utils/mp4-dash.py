@@ -104,7 +104,7 @@ def AddSegmentList(options, container, subdir, track, use_byte_range=False):
         xml.SubElement(segment_list,
                        'Initialization',
                        sourceURL=prefix + track.init_segment_name)
-    i = 0
+    i = 1
     for segment_index in track.moofs:
         segment = track.parent.segments[segment_index]
         segment_offset = segment[0].position
@@ -190,12 +190,19 @@ def AddContentProtection(options, container, tracks):
         default_kid = options.kid_hex
     else:
         default_kid = kids[0]
-    default_kid = (default_kid[0:8]+'-'+default_kid[8:12]+'-'+default_kid[12:16]+'-'+default_kid[16:32]).lower()
+    default_kid_with_dashes = (default_kid[0:8]+'-'+default_kid[8:12]+'-'+default_kid[12:16]+'-'+default_kid[16:32]).lower()
+    container.append(xml.Comment(' Common Encryption '))
     xml.register_namespace('cenc', CENC_2013_NAMESPACE)
     cenc_cp = xml.SubElement(container, 'ContentProtection', schemeIdUri='urn:mpeg:dash:mp4protection:2011', value='cenc')
-    cenc_cp.set('{'+CENC_2013_NAMESPACE+'}default_KID', default_kid)
+    cenc_cp.set('{'+CENC_2013_NAMESPACE+'}default_KID', default_kid_with_dashes)
+
+    if options.encryption_key:
+        key = options.key_hex
+    else:
+        key = None
 
     if options.marlin:
+        container.append(xml.Comment(' Marlin '))
         xml.register_namespace('mas', MARLIN_MAS_NAMESPACE)
         cp = xml.SubElement(container, 'ContentProtection', schemeIdUri=MARLIN_SCHEME_ID_URI)
         cids = xml.SubElement(cp, '{' + MARLIN_MAS_NAMESPACE + '}MarlinContentIds')
@@ -203,25 +210,26 @@ def AddContentProtection(options, container, tracks):
             cid = xml.SubElement(cids, '{' + MARLIN_MAS_NAMESPACE + '}MarlinContentId')
             cid.text = 'urn:marlin:kid:' + kid
     if options.playready:
+        container.append(xml.Comment(' PlayReady '))
         xml.register_namespace('mspr', PLAYREADY_MSPR_NAMESPACE)
-        if options.encryption_key:
-            kid = options.kid_hex
-            key = options.key_hex
-        else:
-            kid = kids[0]
-            key = None
         if 'hbbtv-1.5' in options.profiles:
             playread_scheme_id_uri = PLAYREADY_SCHEME_ID_URI_V10
         else:
             playread_scheme_id_uri = PLAYREADY_SCHEME_ID_URI
         cp = xml.SubElement(container, 'ContentProtection', schemeIdUri=playread_scheme_id_uri)
         if options.playready_header:
-            header_bin = ComputePlayReadyHeader(options.playready_header, kid, key)
+            header_bin = ComputePlayReadyHeader(options.playready_header, default_kid, key)
             header_b64 = header_bin.encode('base64').replace('\n', '')
             pro = xml.SubElement(cp, '{' + PLAYREADY_MSPR_NAMESPACE + '}pro')
             pro.text = header_b64
     if options.widevine:
+        container.append(xml.Comment(' Widevine '))
         cp = xml.SubElement(container, 'ContentProtection', schemeIdUri=WIDEVINE_SCHEME_ID_URI)
+        if options.widevine_header:
+            header_bin = ComputeWidevineHeader(options.widevine_header, default_kid, key)
+            header_b64 = header_bin.encode('base64').replace('\n', '')
+            pssh = xml.SubElement(cp, '{' + CENC_2013_NAMESPACE + '}pssh')
+            pssh.text = header_b64
 
 #############################################
 def OutputDash(options, audio_tracks, video_tracks, subtitles_tracks):
@@ -251,6 +259,7 @@ def OutputDash(options, audio_tracks, video_tracks, subtitles_tracks):
 
     # process the audio tracks
     if len(audio_tracks):
+        period.append(xml.Comment(' Audio '))
         for audio_track in audio_tracks:
             args = [period, 'AdaptationSet']
             kwargs = {'mimeType': AUDIO_MIMETYPE, 'startWithSAP': '1', 'segmentAlignment': 'true'}
@@ -299,6 +308,7 @@ def OutputDash(options, audio_tracks, video_tracks, subtitles_tracks):
         
     # process the video tracks
     if len(video_tracks):
+        period.append(xml.Comment(' Video '))
         adaptation_set = xml.SubElement(period,
                                         'AdaptationSet',
                                         mimeType=VIDEO_MIMETYPE,
