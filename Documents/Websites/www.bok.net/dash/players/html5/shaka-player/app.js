@@ -20,44 +20,8 @@
 /** @class */
 var app = function() {};
 
-
-/**
- * The video element owned by the app.
- *
- * @private {HTMLVideoElement}
- */
 app.video_ = null;
-
-
-/**
- * The video resolution debug element owned by the app.
- *
- * @private {Element}
- */
-app.videoResDebug_ = null;
-
-
-/**
- * True if the aspect ratio has been set for this playback.
- *
- * @private {boolean}
- */
-app.aspectRatioSet_ = false;
-
-
-/**
- * The player object owned by the app.
- *
- * @private {shaka.player.Player}
- */
 app.player_ = null;
-
-
-/**
- * True if polyfills have been installed.
- *
- * @private {boolean}
- */
 app.polyfillsInstalled_ = false;
 
 
@@ -76,24 +40,6 @@ app.init = function() {
     params[kv[0]] = kv[1];
   }
 
-  if ('prefixed' in params) {
-    document.getElementById('forcePrefixed').checked = true;
-  }
-  if ('lang' in params) {
-    document.getElementById('preferredLanguage').value = params['lang'];
-  }
-  if ('nocenc' in params) {
-    document.getElementById('mpdList').value =
-        'assets/car-20120827-manifest.mpd';
-  }
-  if ('vp9' in params) {
-    document.getElementById('mpdList').value =
-        'assets/feelings_vp9-20130806-manifest.mpd';
-  }
-  if ('tng' in params) {
-    document.getElementById('mpdList').value =
-        'assets/angel_one.mpd';
-  }
   if ('debug' in params && shaka.log) {
     shaka.log.setLevel(shaka.log.Level.DEBUG);
   }
@@ -102,117 +48,18 @@ app.init = function() {
   }
 
   app.onMpdChange();
-
-  if ('dash' in params) {
-    document.getElementById('streamTypeList').value = 'dash';
-    app.onStreamTypeChange();
-    app.loadStream();
-  } else if ('http' in params) {
-    document.getElementById('streamTypeList').value = 'http';
-    app.onStreamTypeChange();
-    app.loadStream();
-  }
 };
 
-
-/**
- * Called when the stream type is changed.
- */
-app.onStreamTypeChange = function() {
-  var type = document.getElementById('streamTypeList').value;
-  var on;
-  var off;
-
-  if (type == 'http') {
-    on = document.getElementsByClassName('http');
-    off = document.getElementsByClassName('dash');
-  } else {
-    on = document.getElementsByClassName('dash');
-    off = document.getElementsByClassName('http');
-  }
-
-  for (var i = 0; i < on.length; ++i) {
-    on[i].style.display = 'table-row';
-  }
-  for (var i = 0; i < off.length; ++i) {
-    off[i].style.display = 'none';
-  }
-};
-
-
-/**
- * Called when a new MPD is selected.
- */
 app.onMpdChange = function() {
-  document.getElementById('manifestUrlInput').value =
-      document.getElementById('mpdList').value;
+  document.getElementById('manifestUrlInput').value = document.getElementById('mpdList').value;
 };
 
 
-/**
- * Called when the custom MPD field is used.
- */
 app.onMpdCustom = function() {
   document.getElementById('mpdList').value = '';
 };
 
-
-/**
- * A very lazy demo function to cycle through audio tracks.
- */
-app.cycleAudio = function() {
-  var intervalId = window.setInterval(function() {
-    // On EOF, the video goes into a paused state.
-    if (app.video_.paused) {
-      window.clearInterval(intervalId);
-      return;
-    }
-
-    var audioTracks = document.getElementById('audioTracks');
-    var option = audioTracks.selectedOptions[0];
-    option = option.nextElementSibling || audioTracks.firstElementChild;
-    audioTracks.value = option.value;
-    app.onAudioChange();
-  }, 3000);
-};
-
-
-/**
- * Loads whatever stream type is selected.
- */
 app.loadStream = function() {
-    app.loadDashStream();
-};
-
-
-/**
- * Loads an http stream.
- */
-app.loadHttpStream = function() {
-  if (!app.player_) {
-    app.installPolyfills_();
-    app.initPlayer_();
-  }
-
-  var mediaUrl = document.getElementById('mediaUrlInput').value;
-  var keySystem = document.getElementById('keySystemList').value;
-  var licenseServerUrl = document.getElementById('licenseServerUrlInput').value;
-  var subtitlesUrl = document.getElementById('subtitlesUrlInput').value;
-  var drmSchemeInfo = null;
-  if (keySystem) {
-    drmSchemeInfo = new shaka.player.DrmSchemeInfo(
-        keySystem, false, licenseServerUrl, false, null, null);
-  }
-
-  app.load_(new shaka.player.HttpVideoSource(mediaUrl, subtitlesUrl,
-                                             drmSchemeInfo));
-};
-
-
-/**
- * Loads a dash stream.
- */
-app.loadDashStream = function() {
   if (!app.player_) {
     app.installPolyfills_();
     app.initPlayer_();
@@ -225,22 +72,6 @@ app.loadDashStream = function() {
           mediaUrl,
           app.interpretContentProtection_));
 };
-
-
-/**
- * Exceptions thrown in 'then' handlers are not seen until catch.
- * Promises can therefore mask what would otherwise be uncaught exceptions.
- * As a utility to work around this, wrap the function in setTimeout so that
- * it is called outside of the Promise's 'then' handler.
- *
- * @param {function(...)} fn
- * @return {function(...)}
- * @private
- */
-app.breakOutOfPromise_ = function(fn) {
-  return window.setTimeout.bind(window, fn, 0);
-};
-
 
 /**
  * Loads the given video source into the player.
@@ -320,10 +151,9 @@ app.interpretContentProtection_ = function(contentProtection) {
 
   if (contentProtection.schemeIdUri ==
       'urn:uuid:edef8ba9-79d6-4ace-a3c8-27dcd51d21ed') {
-    // This is the UUID which represents Widevine in the edash-packager.
     var licenseServerUrl = '//widevine-proxy.appspot.com/proxy';
     return new shaka.player.DrmSchemeInfo(
-        'com.widevine.alpha', true, licenseServerUrl, false, null, null);
+        'com.widevine.alpha', licenseServerUrl, false, null, null);
   }
 
   var clearkey = document.getElementById('clearKeyInput');

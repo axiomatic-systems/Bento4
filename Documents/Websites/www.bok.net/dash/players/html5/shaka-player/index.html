@@ -1,7 +1,7 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <title>DASH Test Player</title>
+    <title>Sample DASH Player using Shaka-Player</title>
     <link rel="stylesheet" href="index.css"></link>
     <script src="shaka-player.compiled.js"></script>
     <script src="app.js"></script>
@@ -13,7 +13,7 @@
         <td width=600>
           <select id="mpdList" onchange="app.onMpdChange()">
             <option value="http://www.bok.net/dash/tears_of_steel/cleartext/stream.mpd">Tears Of Steel, isoff-live</option>
-            <option value="http://www.bok.net/dash/tears_of_steel/cenc_08/stream.mpd">Tears Of Steel, isoff-live, CENC, 8-bit IV</option>
+            <option value="http://www.bok.net/dash/multi_drm_example/stream.mpd">Tears Of Steel, isoff-live, CENC, Multi-DRM</option>
             <option value="">(custom)</option>
           </select>
         </td>
@@ -34,7 +34,6 @@
         </td>
       </tr>
 
-      <!-- Common rows -->
       <tr>
         <td colspan="2">
           <button onclick="app.loadStream();">Load stream</button>

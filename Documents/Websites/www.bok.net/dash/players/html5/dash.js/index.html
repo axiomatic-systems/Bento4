@@ -1,0 +1,52 @@
+<html>
+<head>
+    <title>Sample DASH Player using dash.js</title>
+    <script src="dash.debug.js"></script>
+    <script src="app.js"></script>
+</head>
+<body>
+
+<table>
+  <tr class="dash">
+    <td>DASH manifest:</td>
+    <td width=600>
+      <select id="mpdList" onchange="app.onMpdChange()">
+        <option value="http://www.bok.net/dash/tears_of_steel/cleartext/stream.mpd">Tears Of Steel, isoff-live</option>
+        <option value="http://www.bok.net/dash/multi_drm_example/stream.mpd">Tears Of Steel, isoff-live, CENC, Multi-DRM</option>
+        <option value="">(custom)</option>
+      </select>
+    </td>
+  </tr>
+  <tr class="dash">
+    <td>Custom manifest URL:</td>
+    <td>
+      <input id="manifestUrlInput" type="text" style="width: 98%;" oninput="app.onMpdCustom()"></input>
+    </td>
+  </tr>
+
+  <tr class="dash">
+    <td>
+      Force Clear Key (&lt;kid&gt;:&lt;key&gt; in hex)
+    </td>
+    <td>
+      <input id="clearKeyInput" type="text" style="width: 98%;"></input>
+    </td>
+  </tr>
+
+  <tr>
+    <td colspan="2">
+      <button onclick="app.loadStream();">Load stream</button>
+    </td>
+  </tr>
+</table>
+<br>
+<div>
+  <video id="videoPlayer" 
+         width="600" height="400"
+         crossorigin="anonymous"
+         autoplay controls>
+  </video>
+</div>
+
+</body>
+</html>
