@@ -67,6 +67,9 @@ class AP4_SampleEntry : public AP4_ContainerAtom
     virtual AP4_Result Inspect(AP4_AtomInspector& inspector);
     virtual AP4_SampleDescription* ToSampleDescription();
 
+    // AP4_Atom methods
+    virtual AP4_Atom*  Clone();
+
     // AP4_AtomParent methods
     virtual void OnChildChanged(AP4_Atom* child);
 

@@ -42,6 +42,7 @@
 #include "Ap4TfraAtom.h"
 #include "Ap4TrunAtom.h"
 #include "Ap4TrexAtom.h"
+#include "Ap4TkhdAtom.h"
 #include "Ap4SidxAtom.h"
 #include "Ap4DataBuffer.h"
 #include "Ap4Debug.h"
@@ -147,6 +148,24 @@ AP4_Processor::ProcessFragments(AP4_MoovAtom*              moov,
             AP4_ContainerAtom* traf = AP4_DYNAMIC_CAST(AP4_ContainerAtom, child);
             AP4_TfhdAtom* tfhd = AP4_DYNAMIC_CAST(AP4_TfhdAtom, traf->GetChild(AP4_ATOM_TYPE_TFHD));
             
+            // find the 'trak' for this track
+            AP4_TrakAtom* trak = NULL;
+            for (AP4_List<AP4_Atom>::Item* child_item = moov->GetChildren().FirstItem();
+                                           child_item;
+                                           child_item = child_item->GetNext()) {
+                AP4_Atom* child_atom = child_item->GetData();
+                if (child_atom->GetType() == AP4_ATOM_TYPE_TRAK) {
+                    trak = AP4_DYNAMIC_CAST(AP4_TrakAtom, child_atom);
+                    if (trak) {
+                        AP4_TkhdAtom* tkhd = AP4_DYNAMIC_CAST(AP4_TkhdAtom, trak->GetChild(AP4_ATOM_TYPE_TKHD));
+                        if (tkhd && tkhd->GetTrackId() == tfhd->GetTrackId()) {
+                            break;
+                        }
+                    }
+                    trak = NULL;
+                }
+            }
+            
             // find the 'trex' for this track
             AP4_ContainerAtom* mvex = NULL;
             AP4_TrexAtom*      trex = NULL;
@@ -158,14 +177,16 @@ AP4_Processor::ProcessFragments(AP4_MoovAtom*              moov,
                     AP4_Atom* child_atom = child_item->GetData();
                     if (child_atom->GetType() == AP4_ATOM_TYPE_TREX) {
                         trex = AP4_DYNAMIC_CAST(AP4_TrexAtom, child_atom);
-                        if (trex && trex->GetTrackId() == tfhd->GetTrackId()) break;
+                        if (trex && trex->GetTrackId() == tfhd->GetTrackId()) {
+                            break;
+                        }
                         trex = NULL;
                     }
                 }
             }
-            
+
             // create the handler for this traf
-            AP4_Processor::FragmentHandler* handler = CreateFragmentHandler(trex, traf, input, atom_offset);
+            AP4_Processor::FragmentHandler* handler = CreateFragmentHandler(trak, trex, traf, input, atom_offset);
             if (handler) {
                 result = handler->ProcessFragment();
                 if (AP4_FAILED(result)) return result;
@@ -341,7 +362,8 @@ AP4_Processor::ProcessFragments(AP4_MoovAtom*              moov,
 |   AP4_Processor::CreateFragmentHandler
 +---------------------------------------------------------------------*/
 AP4_Processor::FragmentHandler* 
-AP4_Processor::CreateFragmentHandler(AP4_TrexAtom*      /* trex */,
+AP4_Processor::CreateFragmentHandler(AP4_TrakAtom*      /* trak */,
+                                     AP4_TrexAtom*      /* trex */,
                                      AP4_ContainerAtom* traf,
                                      AP4_ByteStream&    /* moof_data   */,
                                      AP4_Position       /* moof_offset */)

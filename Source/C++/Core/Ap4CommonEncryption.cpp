@@ -507,7 +507,8 @@ public:
     // constructor
     AP4_CencFragmentEncrypter(AP4_CencVariant                         variant,
                               AP4_ContainerAtom*                      traf,
-                              AP4_CencEncryptingProcessor::Encrypter* encrypter);
+                              AP4_CencEncryptingProcessor::Encrypter* encrypter,
+                              AP4_UI32                                cleartext_sample_description_index);
 
     // methods
     virtual AP4_Result ProcessFragment();
@@ -525,6 +526,7 @@ private:
     AP4_SaizAtom*                           m_Saiz;
     AP4_SaioAtom*                           m_Saio;
     AP4_CencEncryptingProcessor::Encrypter* m_Encrypter;
+    AP4_UI32                                m_CleartextSampleDescriptionIndex;
 };
 
 /*----------------------------------------------------------------------
@@ -532,14 +534,16 @@ private:
 +---------------------------------------------------------------------*/
 AP4_CencFragmentEncrypter::AP4_CencFragmentEncrypter(AP4_CencVariant                         variant,
                                                      AP4_ContainerAtom*                      traf,
-                                                     AP4_CencEncryptingProcessor::Encrypter* encrypter) :
+                                                     AP4_CencEncryptingProcessor::Encrypter* encrypter,
+                                                     AP4_UI32                                cleartext_sample_description_index) :
     m_Variant(variant),
     m_Traf(traf),
     m_SampleEncryptionAtom(NULL),
     m_SampleEncryptionAtomShadow(NULL),
     m_Saiz(NULL),
     m_Saio(NULL),
-    m_Encrypter(encrypter)
+    m_Encrypter(encrypter),
+    m_CleartextSampleDescriptionIndex(cleartext_sample_description_index)
 {
 }
 
@@ -549,11 +553,31 @@ AP4_CencFragmentEncrypter::AP4_CencFragmentEncrypter(AP4_CencVariant            
 AP4_Result   
 AP4_CencFragmentEncrypter::ProcessFragment()
 {
-    // create a sample encryption atom
     m_SampleEncryptionAtom       = NULL;
     m_SampleEncryptionAtomShadow = NULL;
     m_Saiz = NULL;
     m_Saio = NULL;
+
+    // set the default-base-is-moof flag
+    AP4_TfhdAtom* tfhd = AP4_DYNAMIC_CAST(AP4_TfhdAtom, m_Traf->GetChild(AP4_ATOM_TYPE_TFHD));
+    if (tfhd) {
+        if (m_Variant != AP4_CENC_VARIANT_PIFF_CBC && m_Variant != AP4_CENC_VARIANT_PIFF_CTR) {
+            tfhd->SetFlags(tfhd->GetFlags() | AP4_TFHD_FLAG_DEFAULT_BASE_IS_MOOF);
+        }
+    }
+    
+    // if we're still in the cleartext lead, update the tfhd and stop
+    if (m_Encrypter->m_CurrentFragment < m_Encrypter->m_CleartextFragments && m_CleartextSampleDescriptionIndex) {
+        if (tfhd) {
+            tfhd->SetSampleDescriptionIndex(m_CleartextSampleDescriptionIndex);
+            tfhd->SetFlags(tfhd->GetFlags() | AP4_TFHD_FLAG_SAMPLE_DESCRIPTION_INDEX_PRESENT);
+            tfhd->SetSize(AP4_TfhdAtom::ComputeSize(tfhd->GetFlags()));
+            m_Traf->OnChildChanged(tfhd);
+        }
+        return AP4_SUCCESS;
+    }
+    
+    // create a sample encryption atom
     switch (m_Variant) {
         case AP4_CENC_VARIANT_PIFF_CBC:
             m_SampleEncryptionAtom = new AP4_PiffSampleEncryptionAtom(16);
@@ -610,12 +634,6 @@ AP4_CencFragmentEncrypter::ProcessFragment()
         m_Traf->AddChild(&m_SampleEncryptionAtomShadow->GetOuter());
     }
     
-    // set the default-base-is-moof flag
-    AP4_TfhdAtom* tfhd = AP4_DYNAMIC_CAST(AP4_TfhdAtom, m_Traf->GetChild(AP4_ATOM_TYPE_TFHD));
-    if (tfhd && m_Variant != AP4_CENC_VARIANT_PIFF_CBC && m_Variant != AP4_CENC_VARIANT_PIFF_CTR) {
-        tfhd->SetFlags(tfhd->GetFlags() | AP4_TFHD_FLAG_DEFAULT_BASE_IS_MOOF);
-    }
-    
     return AP4_SUCCESS;
 }
 
@@ -623,7 +641,12 @@ AP4_CencFragmentEncrypter::ProcessFragment()
 |   AP4_CencFragmentEncrypter::PrepareForSamples
 +---------------------------------------------------------------------*/
 AP4_Result 
-AP4_CencFragmentEncrypter::PrepareForSamples(AP4_FragmentSampleTable* sample_table) { 
+AP4_CencFragmentEncrypter::PrepareForSamples(AP4_FragmentSampleTable* sample_table) {
+    // do nothing if we're still in the clear lead part
+    if (m_Encrypter->m_CurrentFragment < m_Encrypter->m_CleartextFragments) {
+        return AP4_SUCCESS;
+    }
+
     AP4_Cardinal sample_count = sample_table->GetSampleCount();
 
     // resize the saio atom if we have one
@@ -686,6 +709,12 @@ AP4_Result
 AP4_CencFragmentEncrypter::ProcessSample(AP4_DataBuffer& data_in,
                                          AP4_DataBuffer& data_out)
 {
+    // just copy data if we're still in the clear lead part
+    if (m_Encrypter->m_CurrentFragment < m_Encrypter->m_CleartextFragments) {
+        data_out.SetData(data_in.GetData(), data_in.GetDataSize());
+        return AP4_SUCCESS;
+    }
+    
     // copy the current IV
     AP4_UI08 iv[16];
     AP4_CopyMemory(iv, m_Encrypter->m_SampleEncrypter->GetIv(), 16);
@@ -710,6 +739,10 @@ AP4_CencFragmentEncrypter::ProcessSample(AP4_DataBuffer& data_in,
 AP4_Result 
 AP4_CencFragmentEncrypter::FinishFragment()
 {
+    if (m_Encrypter->m_CurrentFragment++ < m_Encrypter->m_CleartextFragments) {
+        return AP4_SUCCESS;
+    }
+
     if (!m_Saio) return AP4_SUCCESS;
 
     // compute the saio offsets
@@ -976,7 +1009,7 @@ AP4_CencEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
         if (entry == NULL) return NULL;
         entries.Append(entry);
     }
-        
+
     // create a handler for this track if we have a key for it and we know
     // how to map the type
     const AP4_DataBuffer* key;
@@ -1133,8 +1166,19 @@ AP4_CencEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
             break;
     }
     sample_encrypter->SetIv(iv->GetData());
-    m_Encrypters.Add(new Encrypter(trak->GetId(), sample_encrypter));
 
+    // if we need to leave some samples unencrypted, create clones of the sample descriptions
+    const char* clear_lead = m_PropertyMap.GetProperty(trak->GetId(), "ClearLeadFragments");
+    AP4_UI32 clear_fragments = 0;
+    if (clear_lead) {
+        clear_fragments = AP4_ParseIntegerU(clear_lead);
+        unsigned int sample_description_count = stsd->GetSampleDescriptionCount();
+        for (unsigned int i=0; i<sample_description_count; i++) {
+            stsd->AddChild(stsd->GetSampleEntry(i)->Clone());
+        }
+    }
+    
+    m_Encrypters.Add(new Encrypter(trak->GetId(), clear_fragments, sample_encrypter));
     return track_encrypter;
 }
 
@@ -1142,7 +1186,8 @@ AP4_CencEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
 |   AP4_CencEncryptingProcessor:CreateFragmentHandler
 +---------------------------------------------------------------------*/
 AP4_Processor::FragmentHandler* 
-AP4_CencEncryptingProcessor::CreateFragmentHandler(AP4_TrexAtom*      /* trex */,
+AP4_CencEncryptingProcessor::CreateFragmentHandler(AP4_TrakAtom*      trak,
+                                                   AP4_TrexAtom*      trex,
                                                    AP4_ContainerAtom* traf,
                                                    AP4_ByteStream&    /* moof_data   */,
                                                    AP4_Position       /* moof_offset */)
@@ -1162,7 +1207,28 @@ AP4_CencEncryptingProcessor::CreateFragmentHandler(AP4_TrexAtom*      /* trex */
         }
     }
     if (encrypter == NULL) return NULL;
-    return new AP4_CencFragmentEncrypter(m_Variant, traf, encrypter);
+    
+    AP4_UI32 clear_sample_description_index = 0;
+    const char* clear_lead = m_PropertyMap.GetProperty(trak->GetId(), "ClearLeadFragments");
+    if (clear_lead) {
+        if (encrypter->m_CurrentFragment < encrypter->m_CleartextFragments) {
+            // find the stsd atom
+            AP4_StsdAtom* stsd = AP4_DYNAMIC_CAST(AP4_StsdAtom, trak->FindChild("mdia/minf/stbl/stsd"));
+            if (stsd) {
+                AP4_UI32 tfhd_flags = tfhd->GetFlags();
+                AP4_UI32 sample_description_index = 0;
+                if (tfhd_flags & AP4_TFHD_FLAG_SAMPLE_DESCRIPTION_INDEX_PRESENT) {
+                    sample_description_index = tfhd->GetSampleDescriptionIndex();
+                } else {
+                    sample_description_index = trex->GetDefaultSampleDescriptionIndex();
+                }
+                if (sample_description_index > 0) {
+                    clear_sample_description_index = sample_description_index+stsd->GetSampleDescriptionCount()/2;
+                }
+            }
+        }
+    }
+    return new AP4_CencFragmentEncrypter(m_Variant, traf, encrypter, clear_sample_description_index);
 }
 
 /*----------------------------------------------------------------------
@@ -1755,7 +1821,8 @@ AP4_CencDecryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
 |   AP4_CencDecryptingProcessor::CreateFragmentHandler
 +---------------------------------------------------------------------*/
 AP4_Processor::FragmentHandler* 
-AP4_CencDecryptingProcessor::CreateFragmentHandler(AP4_TrexAtom*      trex,
+AP4_CencDecryptingProcessor::CreateFragmentHandler(AP4_TrakAtom*    /*trak*/,
+                                                   AP4_TrexAtom*      trex,
                                                    AP4_ContainerAtom* traf,
                                                    AP4_ByteStream&    moof_data,
                                                    AP4_Position       moof_offset)

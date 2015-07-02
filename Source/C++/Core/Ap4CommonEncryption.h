@@ -428,11 +428,15 @@ class AP4_CencEncryptingProcessor : public AP4_Processor
 public:
     // types
     struct Encrypter {
-        Encrypter(AP4_UI32 track_id, AP4_CencSampleEncrypter* sample_encrypter) :
+        Encrypter(AP4_UI32 track_id, AP4_UI32 cleartext_fragments, AP4_CencSampleEncrypter* sample_encrypter) :
             m_TrackId(track_id),
+            m_CleartextFragments(cleartext_fragments),
+            m_CurrentFragment(0),
             m_SampleEncrypter(sample_encrypter) {}
         ~Encrypter() { delete m_SampleEncrypter; }
         AP4_UI32                 m_TrackId;
+        AP4_UI32                 m_CurrentFragment;
+        AP4_UI32                 m_CleartextFragments;
         AP4_CencSampleEncrypter* m_SampleEncrypter;
     };
 
@@ -451,7 +455,8 @@ public:
                                   AP4_ByteStream&   stream,
                                   AP4_Processor::ProgressListener* listener = NULL);
     virtual AP4_Processor::TrackHandler*    CreateTrackHandler(AP4_TrakAtom* trak);
-    virtual AP4_Processor::FragmentHandler* CreateFragmentHandler(AP4_TrexAtom*      trex,
+    virtual AP4_Processor::FragmentHandler* CreateFragmentHandler(AP4_TrakAtom*      trak,
+                                                                  AP4_TrexAtom*      trex,
                                                                   AP4_ContainerAtom* traf,
                                                                   AP4_ByteStream&    moof_data,
                                                                   AP4_Position       moof_offset);
@@ -478,7 +483,8 @@ public:
 
     // AP4_Processor methods
     virtual AP4_Processor::TrackHandler*    CreateTrackHandler(AP4_TrakAtom* trak);
-    virtual AP4_Processor::FragmentHandler* CreateFragmentHandler(AP4_TrexAtom*      trex,
+    virtual AP4_Processor::FragmentHandler* CreateFragmentHandler(AP4_TrakAtom*      trak,
+                                                                  AP4_TrexAtom*      trex,
                                                                   AP4_ContainerAtom* traf,
                                                                   AP4_ByteStream&    moof_data,
                                                                   AP4_Position       moof_offset);

@@ -228,13 +228,14 @@ public:
     /**
      * This method can be overridden by concrete subclasses.
      * It is called once for each fragment in the input file.
+     * @param trak Pointer to the 'trak' atom that matches the track for this fragment
      * @param trex Pointer to the 'trex' atom that defines the defaults for this track fragment
-     * @param track Pointer to the fragment for which a handler should be
-     * created. 
+     * @param traf Pointer to the fragment for which a handler should be created.
      * @return A pointer to a fragment handler, or NULL if no handler 
      * needs to be created for that fragment.
      */
-    virtual FragmentHandler* CreateFragmentHandler(AP4_TrexAtom*      trex,
+    virtual FragmentHandler* CreateFragmentHandler(AP4_TrakAtom*      trak,
+                                                   AP4_TrexAtom*      trex,
                                                    AP4_ContainerAtom* traf,
                                                    AP4_ByteStream&    moof_data,
                                                    AP4_Position       moof_offset);
