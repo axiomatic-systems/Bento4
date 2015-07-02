@@ -232,30 +232,31 @@ if script_bin_dir:
     CopyFiles(script_files)
     
 # binaries
+bin_in = SDK_TARGET_DIR+'/Release'
 bin_files = [
-    (SDK_TARGET_DIR,'mp4*.exe','bin'),
-    (SDK_TARGET_DIR,'aac2mp4.exe','bin'),
-    (SDK_TARGET_DIR,'mp42aac','bin'),
-    (SDK_TARGET_DIR,'mp4dcfpackager','bin'),
-    (SDK_TARGET_DIR,'mp4decrypt','bin'),
-    (SDK_TARGET_DIR,'mp4dump','bin'),
-    (SDK_TARGET_DIR,'mp4edit','bin'),
-    (SDK_TARGET_DIR,'mp4encrypt','bin'),
-    (SDK_TARGET_DIR,'mp4extract','bin'),
-    (SDK_TARGET_DIR,'mp4fragment','bin'),
-    (SDK_TARGET_DIR,'mp4split','bin'),
-    (SDK_TARGET_DIR,'mp4compact','bin'),
-    (SDK_TARGET_DIR,'mp4info','bin'),
-    (SDK_TARGET_DIR,'mp4rtphintinfo','bin'),
-    (SDK_TARGET_DIR,'mp4tag','bin'),
-    (SDK_TARGET_DIR,'mp4mux','bin'),
-    (SDK_TARGET_DIR,'aac2mp4','bin'),
-    (SDK_TARGET_DIR,'mp42ts','bin'),
-    (SDK_TARGET_DIR,'mp42hls','bin'),
-    (SDK_TARGET_DIR,'*.a','lib'),
-    (SDK_TARGET_DIR,'*.dll','bin'),        
-    (SDK_TARGET_DIR,'*.dylib','bin'),
-    (SDK_TARGET_DIR,'*.so','bin')
+    (bin_in,'mp4*.exe','bin'),
+    (bin_in,'aac2mp4.exe','bin'),
+    (bin_in,'mp42aac','bin'),
+    (bin_in,'mp4dcfpackager','bin'),
+    (bin_in,'mp4decrypt','bin'),
+    (bin_in,'mp4dump','bin'),
+    (bin_in,'mp4edit','bin'),
+    (bin_in,'mp4encrypt','bin'),
+    (bin_in,'mp4extract','bin'),
+    (bin_in,'mp4fragment','bin'),
+    (bin_in,'mp4split','bin'),
+    (bin_in,'mp4compact','bin'),
+    (bin_in,'mp4info','bin'),
+    (bin_in,'mp4rtphintinfo','bin'),
+    (bin_in,'mp4tag','bin'),
+    (bin_in,'mp4mux','bin'),
+    (bin_in,'aac2mp4','bin'),
+    (bin_in,'mp42ts','bin'),
+    (bin_in,'mp42hls','bin'),
+    (bin_in,'*.a','lib'),
+    (bin_in,'*.dll','bin'),        
+    (bin_in,'*.dylib','bin'),
+    (bin_in,'*.so','bin')
 ]
 CopyFiles(bin_files)
 
