@@ -196,7 +196,6 @@ misc_files = [
     ('Documents','*.txt','docs'),
     ('Documents/Doxygen','*.chm','docs'),
     ('Documents/Doxygen','*.zip','docs'),
-    ('Documents/Misc','*.doc','docs'),
     ('Documents/SDK','*.doc','docs'),
     ('Documents/SDK','*.pdf','docs'),
     ('Source/Python/utils', '*.py', 'utils')
