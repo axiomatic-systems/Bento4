@@ -185,8 +185,8 @@ print SDK_NAME
 if os.path.exists(SDK_ROOT):
     shutil.rmtree(SDK_ROOT)
     
-# copy single-config files
-single_config_files = [
+# copy headers, docs and utils
+misc_files = [
     ('Source/C++/Core','*.h','include'),
     ('Source/C++/Adapters','*.h','include'),
     ('Source/C++/CApi','*.h','include'),
@@ -201,7 +201,7 @@ single_config_files = [
     ('Documents/SDK','*.pdf','docs'),
     ('Source/Python/utils', '*.py', 'utils')
 ]
-CopyFiles(single_config_files)
+CopyFiles(misc_files)
 
 if SDK_TARGET == 'universal-apple-macosx':
     script_bin_dir = 'macosx'
@@ -209,6 +209,8 @@ elif SDK_TARGET.startswith('x86-microsoft-win32'):
     script_bin_dir = 'win32'
 elif SDK_TARGET == 'x86-unknown-linux':
     script_bin_dir = 'linux-x86'
+elif SDK_TARGET == 'x86-unknown-linux':
+    script_bin_dir = 'linux-x86_64'
 else:
     script_bin_dir = None
 
@@ -229,8 +231,8 @@ if script_bin_dir:
     ]
     CopyFiles(script_files)
     
-# copy multi-config files
-multi_config_files = [
+# binaries
+bin_files = [
     (SDK_TARGET_DIR,'mp4*.exe','bin'),
     (SDK_TARGET_DIR,'aac2mp4.exe','bin'),
     (SDK_TARGET_DIR,'mp42aac','bin'),
@@ -255,7 +257,7 @@ multi_config_files = [
     (SDK_TARGET_DIR,'*.dylib','bin'),
     (SDK_TARGET_DIR,'*.so','bin')
 ]
-CopyFiles(multi_config_files, configs=['Debug','Release'])
+CopyFiles(bin_files)
 
 # remove any previous zip file
 ZipIt(SDK_BUILD_ROOT, SDK_NAME)

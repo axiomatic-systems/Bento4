@@ -719,12 +719,10 @@ def main():
     elif platform.system() == 'Darwin':
         host_platform = 'macosx'
     elif platform.system() == 'Windows':
-        host_platform = 'x86-microsoft-win32'
+        host_platform = 'win32'
     default_exec_dir = path.join(SCRIPT_PATH, 'bin', host_platform)
     if not path.exists(default_exec_dir):
         default_exec_dir = path.join(SCRIPT_PATH, 'bin')
-    if not path.exists(default_exec_dir):
-        default_exec_dir = path.join(SCRIPT_PATH, '..', 'bin', 'Release')
     if not path.exists(default_exec_dir):
         default_exec_dir = path.join(SCRIPT_PATH, '..', 'bin')
 
