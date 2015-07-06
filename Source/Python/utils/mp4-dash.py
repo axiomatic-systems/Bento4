@@ -21,6 +21,7 @@ import tempfile
 import fractions
 import re
 import platform
+import sys
 from mp4utils import *
 
 # setup main options
@@ -226,10 +227,11 @@ def AddContentProtection(options, container, tracks):
         container.append(xml.Comment(' Widevine '))
         cp = xml.SubElement(container, 'ContentProtection', schemeIdUri=WIDEVINE_SCHEME_ID_URI)
         if options.widevine_header:
-            header_bin = ComputeWidevineHeader(options.widevine_header, default_kid, key)
-            header_b64 = header_bin.encode('base64').replace('\n', '')
+            pssh_payload = ComputeWidevineHeader(options.widevine_header, default_kid, key)
+            pssh_box = MakePsshBox(WIDEVINE_PSSH_SYSTEM_ID.decode('hex'), pssh_payload)
+            pssh_b64 = pssh_box.encode('base64').replace('\n', '')
             pssh = xml.SubElement(cp, '{' + CENC_2013_NAMESPACE + '}pssh')
-            pssh.text = header_b64
+            pssh.text = pssh_b64
 
 #############################################
 def OutputDash(options, audio_tracks, video_tracks, subtitles_tracks):
@@ -1286,6 +1288,11 @@ def main():
         OutputHippo(options, audio_tracks, video_tracks)
 
 ###########################
+if sys.version_info[0] != 2:
+    sys.stderr.write("ERROR: This tool must be run with Python 2.x\n")
+    sys.stderr.write("You are running Python version: "+sys.version+"\n")
+    exit(1)
+
 if __name__ == '__main__':
     try:
         main()

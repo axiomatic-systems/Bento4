@@ -454,6 +454,10 @@ def MakeNewDir(dir, exit_if_exists=False, severity=None):
     else:
         os.mkdir(dir)        
 
+def MakePsshBox(system_id, payload):
+    pssh_size = 12+16+4+len(payload)
+    return struct.pack('>I', pssh_size)+'pssh'+struct.pack('>I',0)+system_id+struct.pack('>I', len(payload))+payload
+
 def GetEncryptionKey(options, spec):
     if options.debug:
         print 'Resolving KID and Key from spec:', spec
