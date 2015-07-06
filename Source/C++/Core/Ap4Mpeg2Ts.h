@@ -33,6 +33,7 @@
 |   includes
 +---------------------------------------------------------------------*/
 #include "Ap4Types.h"
+#include "Ap4DataBuffer.h"
 
 /*----------------------------------------------------------------------
 |   classes
@@ -40,7 +41,6 @@
 class AP4_ByteStream;
 class AP4_Sample;
 class AP4_SampleDescription;
-class AP4_DataBuffer;
 
 /*----------------------------------------------------------------------
 |   constants
@@ -91,11 +91,15 @@ public:
     
     class SampleStream : public Stream {
     public:
-        SampleStream(AP4_UI16 pid, AP4_UI08 stream_type, AP4_UI16 stream_id, AP4_UI32 timescale) :
+        SampleStream(AP4_UI16 pid, AP4_UI08 stream_type, AP4_UI16 stream_id, AP4_UI32 timescale, const AP4_UI08* descriptor, AP4_Size descriptor_length) :
             Stream(pid), 
             m_StreamType(stream_type),
             m_StreamId(stream_id),
-            m_TimeScale(timescale) {}
+            m_TimeScale(timescale) {
+                if (descriptor && descriptor_length) {
+                    m_Descriptor.SetData(descriptor, descriptor_length);
+                }
+            }
         
         virtual AP4_Result WritePES(const unsigned char* data, 
                                     unsigned int         data_size, 
@@ -118,9 +122,10 @@ public:
         
         void SetType(AP4_UI08 type) {m_StreamType = type;}
 
-        AP4_UI08 m_StreamType;
-        AP4_UI16 m_StreamId;
-        AP4_UI32 m_TimeScale;
+        AP4_UI08       m_StreamType;
+        AP4_UI16       m_StreamId;
+        AP4_UI32       m_TimeScale;
+        AP4_DataBuffer m_Descriptor;
     };
     
     // constructor
@@ -131,8 +136,20 @@ public:
     Stream* GetPMT() { return m_PMT; }
     AP4_Result WritePAT(AP4_ByteStream& output);
     AP4_Result WritePMT(AP4_ByteStream& output);
-    AP4_Result SetAudioStream(AP4_UI32 timescale, AP4_UI08 stream_type, AP4_UI16 stream_id, SampleStream*& stream, AP4_UI16 pid = AP4_MPEG2_TS_DEFAULT_PID_AUDIO);
-    AP4_Result SetVideoStream(AP4_UI32 timescale, AP4_UI08 stream_type, AP4_UI16 stream_id, SampleStream*& stream, AP4_UI16 pid = AP4_MPEG2_TS_DEFAULT_PID_VIDEO);
+    AP4_Result SetAudioStream(AP4_UI32        timescale,
+                              AP4_UI08        stream_type,
+                              AP4_UI16        stream_id,
+                              SampleStream*&  stream,
+                              AP4_UI16        pid = AP4_MPEG2_TS_DEFAULT_PID_AUDIO,
+                              const AP4_UI08* descriptor = NULL,
+                              AP4_Size        descriptor_length = 0);
+    AP4_Result SetVideoStream(AP4_UI32        timescale,
+                              AP4_UI08        stream_type,
+                              AP4_UI16        stream_id,
+                              SampleStream*&  stream,
+                              AP4_UI16        pid = AP4_MPEG2_TS_DEFAULT_PID_VIDEO,
+                              const AP4_UI08* descriptor = NULL,
+                              AP4_Size        descriptor_length = 0);
     
 private:
     Stream*       m_PAT;

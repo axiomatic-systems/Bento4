@@ -58,6 +58,7 @@ class AP4_DataBuffer
     AP4_Size        GetDataSize() const { return m_DataSize; }
     AP4_Result      SetDataSize(AP4_Size size);
     AP4_Result      SetData(const AP4_Byte* data, AP4_Size data_size);
+    AP4_Result      AppendData(const AP4_Byte* data, AP4_Size data_size);
 
     // memory management
     AP4_Result      Reserve(AP4_Size size);

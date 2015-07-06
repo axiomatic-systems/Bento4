@@ -34,11 +34,12 @@
 
 #include "Ap4.h"
 #include "Ap4StreamCipher.h"
+#include "Ap4Mp4AudioInfo.h"
 
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-#define BANNER "MP4 To HLS File Converter - Version 1.0\n"\
+#define BANNER "MP4 To HLS File Converter - Version 1.1\n"\
                "(Bento4 Version " AP4_VERSION_STRING ")\n"\
                "(c) 2002-2015 Axiomatic Systems, LLC"
  
@@ -48,7 +49,7 @@
 typedef enum {
     ENCRYPTION_MODE_NONE,
     ENCRYPTION_MODE_AES_128,
-    ENCRYPTION_MODE_AES_SAMPLE
+    ENCRYPTION_MODE_SAMPLE_AES
 } EncryptionMode;
 
 typedef enum {
@@ -79,6 +80,12 @@ struct Options {
 |   constants
 +---------------------------------------------------------------------*/
 static const unsigned int DefaultSegmentDurationThreshold = 50; // milliseconds
+
+const AP4_UI08 AP4_MPEG2_STREAM_TYPE_SAMPLE_AES_AVC             = 0xDB;
+const AP4_UI08 AP4_MPEG2_STREAM_TYPE_SAMPLE_AES_ISO_IEC_13818_7 = 0xCF;
+const AP4_UI08 AP4_MPEG2_STREAM_TYPE_SAMPLE_AES_ATSC_AC3        = 0xC1;
+const AP4_UI08 AP4_MPEG2_PRIVATE_DATA_INDICATOR_DESCRIPTOR_TAG  = 15;
+const AP4_UI08 AP4_MPEG2_REGISTRATION_DESCRIPTOR_TAG            = 5;
 
 /*----------------------------------------------------------------------
 |   PrintUsageAndExit
@@ -112,7 +119,7 @@ PrintUsageAndExit()
             "    one number field for the segment number. (may be a realtive or absolute URI).\n"
             "    (default: segment-%%d.ts)\n"
             "  --encryption-mode <mode>\n"
-            "    Encryption mode (only used when --encryption-key is specified). (default: AES-128)\n"
+            "    Encryption mode (only used when --encryption-key is specified). AES-128 or SAMPLE-AES (default: AES-128)\n"
             "  --encryption-key <key>\n"
             "    Encryption key in hexadecimal (default: no encryption)\n"
             "  --encryption-iv-mode <mode>\n"
@@ -199,6 +206,37 @@ OpenOutput(const char* filename_pattern, unsigned int segment_number)
     }
     
     return output;
+}
+
+/*----------------------------------------------------------------------
+|   PreventStartCodeEmulation
++---------------------------------------------------------------------*/
+static void
+PreventStartCodeEmulation(const AP4_UI08* payload, AP4_Size payload_size, AP4_DataBuffer& output)
+{
+    output.Reserve(payload_size*2); // more than enough
+    AP4_Size  output_size = 0;
+    AP4_UI08* buffer = output.UseData();
+    
+	unsigned int zero_counter = 0;
+	for (unsigned int i = 0; i < payload_size; i++) {
+		if (zero_counter == 2) {
+            if (payload[i] == 0 || payload[i] == 1 || payload[i] == 2 || payload[i] == 3) {
+                buffer[output_size++] = 3;
+                zero_counter = 0;
+            }
+		}
+
+        buffer[output_size++] = payload[i];
+
+		if (payload[i] == 0) {
+			++zero_counter;
+		} else {
+			zero_counter = 0;
+		}		
+	}
+
+    output.SetDataSize(output_size);
 }
 
 /*----------------------------------------------------------------------
@@ -290,6 +328,163 @@ EncryptingStream::Create(const AP4_UI08* key, const AP4_UI08* iv, AP4_ByteStream
 }
 
 /*----------------------------------------------------------------------
+|   SampleEncrypter
++---------------------------------------------------------------------*/
+class SampleEncrypter {
+public:
+    static AP4_Result Create(const AP4_UI08* key, const AP4_UI08* iv, SampleEncrypter*& encrypter);
+    ~SampleEncrypter() {
+        delete m_StreamCipher;
+    }
+
+    void EncryptAudioSample(AP4_DataBuffer& sample);
+    void EncryptVideoSample(AP4_DataBuffer& sample, AP4_UI08 nalu_length_size);
+    
+private:
+    SampleEncrypter(AP4_CbcStreamCipher* stream_cipher, const AP4_UI08* iv):
+        m_StreamCipher(stream_cipher) {
+        AP4_CopyMemory(m_IV, iv, 16);
+    }
+
+    AP4_CbcStreamCipher* m_StreamCipher;
+    AP4_UI08             m_IV[16];
+};
+
+/*----------------------------------------------------------------------
+|   SampleEncrypter::Create
++---------------------------------------------------------------------*/
+AP4_Result
+SampleEncrypter::Create(const AP4_UI08* key, const AP4_UI08* iv, SampleEncrypter*& encrypter) {
+    encrypter = NULL;
+    AP4_BlockCipher* block_cipher = NULL;
+    AP4_Result result = AP4_DefaultBlockCipherFactory::Instance.CreateCipher(AP4_BlockCipher::AES_128,
+                                                                             AP4_BlockCipher::ENCRYPT,
+                                                                             AP4_BlockCipher::CBC,
+                                                                             NULL,
+                                                                             key,
+                                                                             16,
+                                                                             block_cipher);
+    if (AP4_FAILED(result)) return result;
+    AP4_CbcStreamCipher* stream_cipher = new AP4_CbcStreamCipher(block_cipher);
+    encrypter = new SampleEncrypter(stream_cipher, iv);
+    
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   SampleEncrypter::EncryptAudioSample
+|
+|   [ADTS header if AAC]
+|   unencrypted_leader                 // 16 bytes
+|   while (bytes_remaining() >= 16) {
+|       protected_block                // 16 bytes
+|   }
+|   unencrypted_trailer                // 0-15 bytes
++---------------------------------------------------------------------*/
+void
+SampleEncrypter::EncryptAudioSample(AP4_DataBuffer& sample)
+{
+    if (sample.GetDataSize() <= 16) {
+        return;
+    }
+    unsigned int encrypted_block_count = (sample.GetDataSize()-16)/16;
+    AP4_Size encrypted_size = encrypted_block_count*16;
+    m_StreamCipher->SetIV(m_IV);
+    m_StreamCipher->ProcessBuffer(sample.UseData()+16, encrypted_size, sample.UseData()+16, &encrypted_size);
+}
+
+/*----------------------------------------------------------------------
+|   SampleEncrypter::EncryptVideoSample
+|
+|   Sequence of NAL Units:
+|   NAL_unit_type_byte                // 1 byte
+|   unencrypted_leader                // 31 bytes
+|   while (bytes_remaining() > 16) {
+|       protected_block_one_in_ten    // 16 bytes
+|   }
+|   unencrypted_trailer               // 1-16 bytes
++---------------------------------------------------------------------*/
+void
+SampleEncrypter::EncryptVideoSample(AP4_DataBuffer& sample, AP4_UI08 nalu_length_size)
+{
+    AP4_DataBuffer encrypted;
+    
+    AP4_UI08* nalu = sample.UseData();
+    AP4_Size  bytes_remaining = sample.GetDataSize();
+    while (bytes_remaining > nalu_length_size) {
+        AP4_Size nalu_length = 0;
+        switch (nalu_length_size) {
+            case 1:
+                nalu_length = nalu[0];
+                break;
+                
+            case 2:
+                nalu_length = AP4_BytesToUInt16BE(nalu);
+                break;
+    
+            case 4:
+                nalu_length = AP4_BytesToUInt32BE(nalu);
+                break;
+                
+            default:
+                break;
+        }
+        
+        if (bytes_remaining < nalu_length_size+nalu_length) {
+            break;
+        }
+        
+        AP4_UI08 nalu_type = nalu[nalu_length_size] & 0x1F;
+        if (nalu_length > 48 && (nalu_type == 1 || nalu_type == 5)) {
+            AP4_Size encrypted_size = 16*((nalu_length-32)/16);
+            if ((nalu_length%16) == 0) {
+                encrypted_size -= 16;
+            }
+            m_StreamCipher->SetIV(m_IV);
+            for (unsigned int i=0; i<encrypted_size; i += 10*16) {
+                AP4_Size one_block_size = 16;
+                m_StreamCipher->ProcessBuffer(nalu+nalu_length_size+32+i, one_block_size,
+                                              nalu+nalu_length_size+32+i, &one_block_size);
+            }
+
+            // perform startcode emulation prevention
+            AP4_DataBuffer escaped_nalu;
+            PreventStartCodeEmulation(nalu+nalu_length_size, nalu_length, escaped_nalu);
+            
+            // the size may have changed
+            // FIXME: this could overflow
+            switch (nalu_length_size) {
+                case 1:
+                    nalu[0] = (AP4_UI08)(escaped_nalu.GetDataSize()&0xFF);
+                    break;
+                    
+                case 2:
+                    AP4_BytesFromUInt16BE(nalu, escaped_nalu.GetDataSize());
+                    break;
+        
+                case 4:
+                    AP4_BytesFromUInt32BE(nalu, escaped_nalu.GetDataSize());
+                    break;
+                    
+                default:
+                    break;
+            }
+
+            encrypted.AppendData(nalu, nalu_length_size);
+            encrypted.AppendData(escaped_nalu.GetData(), escaped_nalu.GetDataSize());
+        } else {
+            encrypted.AppendData(nalu, nalu_length_size);
+            encrypted.AppendData(nalu+nalu_length_size, nalu_length);
+        }
+        
+        nalu            += nalu_length_size+nalu_length;
+        bytes_remaining -= nalu_length_size+nalu_length;
+    }
+    
+    sample.SetData(encrypted.GetData(), encrypted.GetDataSize());
+}
+
+/*----------------------------------------------------------------------
 |   ReadSample
 +---------------------------------------------------------------------*/
 static AP4_Result
@@ -324,7 +519,8 @@ WriteSamples(AP4_Mpeg2TsWriter&               writer,
              AP4_Track*                       video_track,
              SampleReader*                    video_reader, 
              AP4_Mpeg2TsWriter::SampleStream* video_stream,
-             unsigned int                     segment_duration_threshold)
+             unsigned int                     segment_duration_threshold,
+             AP4_UI08                         nalu_length_size)
 {
     AP4_Sample        audio_sample;
     AP4_DataBuffer    audio_sample_data;
@@ -344,6 +540,7 @@ WriteSamples(AP4_Mpeg2TsWriter&               writer,
     char              string_buffer[4096];
     AP4_Result        result = AP4_SUCCESS;
     AP4_Array<double> segment_durations;
+    SampleEncrypter*  sample_encrypter = NULL;
     
     // prime the samples
     if (audio_reader) {
@@ -424,13 +621,32 @@ WriteSamples(AP4_Mpeg2TsWriter&               writer,
                 }
                 output->Release();
                 output = encrypting_stream;
+            } else if (Options.encryption_mode == ENCRYPTION_MODE_SAMPLE_AES) {
+                delete sample_encrypter;
+                sample_encrypter = NULL;
+                AP4_UI08 iv[16];
+                AP4_SetMemory(iv, 0, sizeof(iv));
+                if (Options.encryption_iv_mode == ENCRYPTION_IV_MODE_SEQUENCE) {
+                    AP4_BytesFromUInt32BE(&iv[12], segment_number);
+                }
+                result = SampleEncrypter::Create(Options.encryption_key, iv, sample_encrypter);
+                if (AP4_FAILED(result)) {
+                    fprintf(stderr, "ERROR: failed to create sample encrypter (%d)\n", result);
+                    return 1;
+                }
             }
             writer.WritePAT(*output);
             writer.WritePMT(*output);
         }
-        
+
         // write the samples out and advance to the next sample
         if (chosen_track == audio_track) {
+            // perform sample-level encryption if needed
+            if (sample_encrypter) {
+                sample_encrypter->EncryptAudioSample(audio_sample_data);
+            }
+            
+            // write the sample data
             result = audio_stream->WriteSample(audio_sample, 
                                                audio_sample_data,
                                                audio_track->GetSampleDescription(audio_sample.GetDescriptionIndex()), 
@@ -442,6 +658,12 @@ WriteSamples(AP4_Mpeg2TsWriter&               writer,
             if (AP4_FAILED(result)) return result;
             ++audio_sample_count;
         } else if (chosen_track == video_track) {
+            // perform sample-level encryption if needed
+            if (sample_encrypter) {
+                sample_encrypter->EncryptVideoSample(video_sample_data, nalu_length_size);
+            }
+
+            // write the sample data
             result = video_stream->WriteSample(video_sample,
                                                video_sample_data, 
                                                video_track->GetSampleDescription(video_sample.GetDescriptionIndex()),
@@ -507,7 +729,12 @@ WriteSamples(AP4_Mpeg2TsWriter&               writer,
         playlist->WriteString("#EXT-X-KEY:METHOD=AES-128,URI=\"");
         playlist->WriteString(Options.encryption_key_uri);
         playlist->WriteString("\"\r\n");
+    } else if (Options.encryption_mode == ENCRYPTION_MODE_SAMPLE_AES) {
+        playlist->WriteString("#EXT-X-KEY:METHOD=SAMPLE-AES,URI=\"");
+        playlist->WriteString(Options.encryption_key_uri);
+        playlist->WriteString("\"\r\n");
     }
+
     for (unsigned int i=0; i<segment_durations.ItemCount(); i++) {
         if (Options.hls_version >= 3) {
             sprintf(string_buffer, "#EXTINF:%f,\r\n", segment_durations[i]);
@@ -533,6 +760,7 @@ WriteSamples(AP4_Mpeg2TsWriter&               writer,
     }
     
     if (output) output->Release();
+    delete sample_encrypter;
     
     return result;
 }
@@ -543,14 +771,14 @@ WriteSamples(AP4_Mpeg2TsWriter&               writer,
 int
 main(int argc, char** argv)
 {
-    if (argc < 3) {
+    if (argc < 2) {
         PrintUsageAndExit();
     }
     
     // default options
     Options.input                      = NULL;
     Options.verbose                    = false;
-    Options.hls_version                = 3;
+    Options.hls_version                = 0;
     Options.pmt_pid                    = 0x100;
     Options.audio_pid                  = 0x101;
     Options.video_pid                  = 0x102;
@@ -647,8 +875,10 @@ main(int argc, char** argv)
                 fprintf(stderr, "ERROR: --encryption-mode requires an argument\n");
                 return 1;
             }
-            if (strncmp(*args, "aes-128", 7) == 0) {
+            if (strncmp(*args, "AES-128", 7) == 0) {
                 Options.encryption_mode = ENCRYPTION_MODE_AES_128;
+            } else if (strncmp(*args, "SAMPLE-AES", 10) == 0) {
+                Options.encryption_mode = ENCRYPTION_MODE_SAMPLE_AES;
             } else {
                 fprintf(stderr, "ERROR: unknown encryption mode\n");
                 return 1;
@@ -690,6 +920,18 @@ main(int argc, char** argv)
     if (Options.encryption_mode != ENCRYPTION_MODE_NONE && Options.encryption_key_hex == NULL) {
         fprintf(stderr, "ERROR: no encryption key specified\n");
         return 1;
+    }
+    if (Options.encryption_mode == ENCRYPTION_MODE_SAMPLE_AES && Options.hls_version > 0 && Options.hls_version < 5) {
+        Options.hls_version = 5;
+        fprintf(stderr, "WARNING: forcing version to 5 in order to support SAMPLE-AES encryption\n");
+    }
+    if (Options.hls_version == 0) {
+        // default version is 3 for cleartext or AES-128 encryption, and 5 for SAMPLE-AES
+        if (Options.encryption_mode == ENCRYPTION_MODE_SAMPLE_AES) {
+            Options.hls_version = 5;
+        } else {
+            Options.hls_version = 3;
+        }
     }
     
 	// create the input stream
@@ -750,7 +992,8 @@ main(int argc, char** argv)
     AP4_Mpeg2TsWriter writer(Options.pmt_pid);
     AP4_Mpeg2TsWriter::SampleStream* audio_stream = NULL;
     AP4_Mpeg2TsWriter::SampleStream* video_stream = NULL;
-    
+    AP4_UI08 nalu_length_size = 0;
+
     // add the audio stream
     if (audio_track) {
         sample_description = audio_track->GetSampleDescription(0);
@@ -762,22 +1005,110 @@ main(int argc, char** argv)
         unsigned int stream_type = 0;
         unsigned int stream_id   = 0;
         if (sample_description->GetFormat() == AP4_SAMPLE_FORMAT_MP4A) {
-            stream_type = AP4_MPEG2_STREAM_TYPE_ISO_IEC_13818_7;
+            if (Options.encryption_mode == ENCRYPTION_MODE_SAMPLE_AES) {
+                stream_type = AP4_MPEG2_STREAM_TYPE_SAMPLE_AES_ISO_IEC_13818_7;
+            } else {
+                stream_type = AP4_MPEG2_STREAM_TYPE_ISO_IEC_13818_7;
+            }
             stream_id   = AP4_MPEG2_TS_DEFAULT_STREAM_ID_AUDIO;
         } else if (sample_description->GetFormat() == AP4_SAMPLE_FORMAT_AC_3 ||
                    sample_description->GetFormat() == AP4_SAMPLE_FORMAT_EC_3) {
-            stream_type = AP4_MPEG2_STREAM_TYPE_ATSC_AC3;
+            if (Options.encryption_mode == ENCRYPTION_MODE_SAMPLE_AES) {
+                stream_type = AP4_MPEG2_STREAM_TYPE_SAMPLE_AES_ATSC_AC3;
+            } else {
+                stream_type = AP4_MPEG2_STREAM_TYPE_ATSC_AC3;
+            }
             stream_id   = AP4_MPEG2_TS_STREAM_ID_PRIVATE_STREAM_1;
         } else {
             fprintf(stderr, "ERROR: audio codec not supported\n");
             return 1;
         }
 
+        // construct an extra descriptor if needed
+        AP4_DataBuffer descriptor;
+        if (Options.encryption_mode == ENCRYPTION_MODE_SAMPLE_AES) {
+            // descriptor
+            descriptor.SetDataSize(6);
+            AP4_UI08* payload = descriptor.UseData();
+            payload[0] = AP4_MPEG2_PRIVATE_DATA_INDICATOR_DESCRIPTOR_TAG;
+            payload[1] = 4;
+            if (sample_description->GetFormat() == AP4_SAMPLE_FORMAT_MP4A) {
+                payload[2] = 'a';
+                payload[3] = 'a';
+                payload[4] = 'c';
+                payload[5] = 'd';
+            } else if (sample_description->GetFormat() == AP4_SAMPLE_FORMAT_AC_3 ||
+                       sample_description->GetFormat() == AP4_SAMPLE_FORMAT_EC_3) {
+                payload[2] = 'a';
+                payload[3] = 'c';
+                payload[4] = '3';
+                payload[5] = 'd';
+            }
+
+            // audio info
+            if (sample_description->GetFormat() == AP4_SAMPLE_FORMAT_MP4A) {
+                AP4_MpegAudioSampleDescription* mpeg_audio_desc = AP4_DYNAMIC_CAST(AP4_MpegAudioSampleDescription, sample_description);
+                if (mpeg_audio_desc == NULL ||
+                    !(mpeg_audio_desc->GetObjectTypeId() == AP4_OTI_MPEG4_AUDIO          ||
+                      mpeg_audio_desc->GetObjectTypeId() == AP4_OTI_MPEG2_AAC_AUDIO_LC   ||
+                      mpeg_audio_desc->GetObjectTypeId() == AP4_OTI_MPEG2_AAC_AUDIO_MAIN)) {
+                    fprintf(stderr, "ERROR: only AAC audio is supported\n");
+                    return 1;
+                }
+                const AP4_DataBuffer& dsi = mpeg_audio_desc->GetDecoderInfo();
+                AP4_Mp4AudioDecoderConfig dec_config;
+                AP4_Result result = dec_config.Parse(dsi.GetData(), dsi.GetDataSize());
+                if (AP4_FAILED(result)) {
+                    fprintf(stderr, "ERROR: failed to parse decoder specific info (%d)\n", result);
+                    return 1;
+                }
+                descriptor.SetDataSize(descriptor.GetDataSize()+14+dsi.GetDataSize());
+                payload = descriptor.UseData()+6;
+                payload[0] = AP4_MPEG2_REGISTRATION_DESCRIPTOR_TAG;
+                payload[1] = 12+dsi.GetDataSize();
+                payload[2] = 'a';
+                payload[3] = 'p';
+                payload[4] = 'a';
+                payload[5] = 'd';
+                payload += 6;
+                if (dec_config.m_Extension.m_SbrPresent || dec_config.m_Extension.m_PsPresent) {
+                    if (dec_config.m_Extension.m_PsPresent) {
+                        payload[0] = 'z';
+                        payload[1] = 'a';
+                        payload[2] = 'c';
+                        payload[3] = 'p';
+                    } else {
+                        payload[0] = 'z';
+                        payload[1] = 'a';
+                        payload[2] = 'c';
+                        payload[3] = 'h';
+                    }
+                } else {
+                    payload[0] = 'z';
+                    payload[1] = 'a';
+                    payload[2] = 'a';
+                    payload[3] = 'c';
+                }
+                payload[4] = 0; // priming
+                payload[5] = 0; // priming
+                payload[6] = 1; // version
+                payload[7] = dsi.GetDataSize(); // setup_data_length
+                AP4_CopyMemory(&payload[8], dsi.GetData(), dsi.GetDataSize());
+            } else if (sample_description->GetFormat() == AP4_SAMPLE_FORMAT_AC_3 ||
+                       sample_description->GetFormat() == AP4_SAMPLE_FORMAT_EC_3) {
+                fprintf(stderr, "ERROR: AC3 support not fully implemented yet\n");
+                return 1;
+            }
+        }
+
+        // setup the audio stream
         result = writer.SetAudioStream(audio_track->GetMediaTimeScale(),
                                        stream_type,
                                        stream_id,
                                        audio_stream,
-                                       Options.audio_pid);
+                                       Options.audio_pid,
+                                       descriptor.GetDataSize()?descriptor.GetData():NULL,
+                                       descriptor.GetDataSize());
         if (AP4_FAILED(result)) {
             fprintf(stderr, "could not create audio stream (%d)\n", result);
             goto end;
@@ -799,7 +1130,17 @@ main(int argc, char** argv)
             sample_description->GetFormat() == AP4_SAMPLE_FORMAT_AVC2 ||
             sample_description->GetFormat() == AP4_SAMPLE_FORMAT_AVC3 ||
             sample_description->GetFormat() == AP4_SAMPLE_FORMAT_AVC4) {
-            stream_type = AP4_MPEG2_STREAM_TYPE_AVC;
+            if (Options.encryption_mode == ENCRYPTION_MODE_SAMPLE_AES) {
+                stream_type = AP4_MPEG2_STREAM_TYPE_SAMPLE_AES_AVC;
+                AP4_AvcSampleDescription* avc_desc = AP4_DYNAMIC_CAST(AP4_AvcSampleDescription, sample_description);
+                if (avc_desc == NULL) {
+                    fprintf(stderr, "ERROR: not a proper AVC track\n");
+                    return 1;
+                }
+                nalu_length_size = avc_desc->GetNaluLengthSize();
+            } else {
+                stream_type = AP4_MPEG2_STREAM_TYPE_AVC;
+            }
         } else if (sample_description->GetFormat() == AP4_SAMPLE_FORMAT_HEV1 ||
                    sample_description->GetFormat() == AP4_SAMPLE_FORMAT_HVC1) {
             stream_type = AP4_MPEG2_STREAM_TYPE_HEVC;
@@ -807,11 +1148,34 @@ main(int argc, char** argv)
             fprintf(stderr, "ERROR: video codec not supported\n");
             return 1;
         }
+        if (Options.encryption_mode == ENCRYPTION_MODE_SAMPLE_AES) {
+            if (stream_type != AP4_MPEG2_STREAM_TYPE_SAMPLE_AES_AVC) {
+                fprintf(stderr, "ERROR: AES-SAMPLE encryption can only be used with H.264 video\n");
+                return 1;
+            }
+        }
+        
+        // construct an extra descriptor if needed
+        AP4_DataBuffer descriptor;
+        if (Options.encryption_mode == ENCRYPTION_MODE_SAMPLE_AES) {
+            descriptor.SetDataSize(6);
+            AP4_UI08* payload = descriptor.UseData();
+            payload[0] = AP4_MPEG2_PRIVATE_DATA_INDICATOR_DESCRIPTOR_TAG;
+            payload[1] = 4;
+            payload[2] = 'z';
+            payload[3] = 'a';
+            payload[4] = 'v';
+            payload[5] = 'c';
+        }
+
+        // setup the video stream
         result = writer.SetVideoStream(video_track->GetMediaTimeScale(),
                                        stream_type,
                                        stream_id,
                                        video_stream,
-                                       Options.video_pid);
+                                       Options.video_pid,
+                                       descriptor.GetDataSize()?descriptor.GetData():NULL,
+                                       descriptor.GetDataSize());
         if (AP4_FAILED(result)) {
             fprintf(stderr, "could not create video stream (%d)\n", result);
             goto end;
@@ -821,7 +1185,8 @@ main(int argc, char** argv)
     result = WriteSamples(writer,
                           audio_track, audio_reader, audio_stream,
                           video_track, video_reader, video_stream,
-                          Options.segment_duration_threshold);
+                          Options.segment_duration_threshold,
+                          nalu_length_size);
     if (AP4_FAILED(result)) {
         fprintf(stderr, "ERROR: failed to write samples (%d)\n", result);
     }

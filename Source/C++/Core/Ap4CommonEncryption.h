@@ -430,8 +430,8 @@ public:
     struct Encrypter {
         Encrypter(AP4_UI32 track_id, AP4_UI32 cleartext_fragments, AP4_CencSampleEncrypter* sample_encrypter) :
             m_TrackId(track_id),
-            m_CleartextFragments(cleartext_fragments),
             m_CurrentFragment(0),
+            m_CleartextFragments(cleartext_fragments),
             m_SampleEncrypter(sample_encrypter) {}
         ~Encrypter() { delete m_SampleEncrypter; }
         AP4_UI32                 m_TrackId;

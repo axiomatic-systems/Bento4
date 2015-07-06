@@ -357,7 +357,9 @@ public:
                              AP4_UI32                          timescale,
                              AP4_UI08                          stream_type,
                              AP4_UI16                          stream_id,
-                             AP4_Mpeg2TsWriter::SampleStream*& stream);
+                             AP4_Mpeg2TsWriter::SampleStream*& stream,
+                             const AP4_UI08*                   descriptor,
+                             AP4_Size                          descriptor_length);
     AP4_Result WriteSample(AP4_Sample&            sample,
                            AP4_DataBuffer&        sample_data, 
                            AP4_SampleDescription* sample_description,
@@ -365,11 +367,18 @@ public:
                            AP4_ByteStream&        output);
     
 private:
-    AP4_Mpeg2TsAudioSampleStream(AP4_UI16 pid, AP4_UI32 timescale, AP4_UI08 stream_type, AP4_UI16 stream_id) :
-    AP4_Mpeg2TsWriter::SampleStream(pid, 
-                                    stream_type,
-                                    stream_id,
-                                    timescale) {}
+    AP4_Mpeg2TsAudioSampleStream(AP4_UI16        pid,
+                                 AP4_UI32        timescale,
+                                 AP4_UI08        stream_type,
+                                 AP4_UI16        stream_id,
+                                 const AP4_UI08* descriptor,
+                                 AP4_Size        descriptor_length) :
+        AP4_Mpeg2TsWriter::SampleStream(pid,
+                                        stream_type,
+                                        stream_id,
+                                        timescale,
+                                        descriptor,
+                                        descriptor_length) {}
 };
 
 /*----------------------------------------------------------------------
@@ -380,9 +389,11 @@ AP4_Mpeg2TsAudioSampleStream::Create(AP4_UI16                          pid,
                                      AP4_UI32                          timescale,
                                      AP4_UI08                          stream_type,
                                      AP4_UI16                          stream_id,
-                                     AP4_Mpeg2TsWriter::SampleStream*& stream)
+                                     AP4_Mpeg2TsWriter::SampleStream*& stream,
+                                     const AP4_UI08*                   descriptor,
+                                     AP4_Size                          descriptor_length)
 {
-    stream = new AP4_Mpeg2TsAudioSampleStream(pid, timescale, stream_type, stream_id);
+    stream = new AP4_Mpeg2TsAudioSampleStream(pid, timescale, stream_type, stream_id, descriptor, descriptor_length);
     return AP4_SUCCESS;
 }
                                                        
@@ -447,22 +458,31 @@ public:
                              AP4_UI32                          timescale,
                              AP4_UI08                          stream_type,
                              AP4_UI16                          stream_id,
-                             AP4_Mpeg2TsWriter::SampleStream*& stream);
-    AP4_Result WriteSample(AP4_Sample&            sample, 
+                             AP4_Mpeg2TsWriter::SampleStream*& stream,
+                             const AP4_UI08*                   descriptor,
+                             AP4_Size                          descriptor_length);
+    AP4_Result WriteSample(AP4_Sample&            sample,
                            AP4_DataBuffer&        sample_data,
                            AP4_SampleDescription* sample_description,
                            bool                   with_pcr, 
                            AP4_ByteStream&        output);
     
 private:
-    AP4_Mpeg2TsVideoSampleStream(AP4_UI16 pid, AP4_UI32 timescale, AP4_UI08 stream_type, AP4_UI16 stream_id) :
+    AP4_Mpeg2TsVideoSampleStream(AP4_UI16        pid,
+                                 AP4_UI32        timescale,
+                                 AP4_UI08        stream_type,
+                                 AP4_UI16        stream_id,
+                                 const AP4_UI08* descriptor,
+                                 AP4_Size        descriptor_size) :
         AP4_Mpeg2TsWriter::SampleStream(pid, 
                                         stream_type,
                                         stream_id,
-                                        timescale),
-    m_SampleDescriptionIndex(-1),
-    m_NaluLengthSize(0),
-    m_SamplesWritten(0) {}
+                                        timescale,
+                                        descriptor,
+                                        descriptor_size),
+        m_SampleDescriptionIndex(-1),
+        m_NaluLengthSize(0),
+        m_SamplesWritten(0) {}
     
     int            m_SampleDescriptionIndex;
     AP4_DataBuffer m_Prefix;
@@ -478,10 +498,12 @@ AP4_Mpeg2TsVideoSampleStream::Create(AP4_UI16                          pid,
                                      AP4_UI32                          timescale,
                                      AP4_UI08                          stream_type,
                                      AP4_UI16                          stream_id,
-                                     AP4_Mpeg2TsWriter::SampleStream*& stream)
+                                     AP4_Mpeg2TsWriter::SampleStream*& stream,
+                                     const AP4_UI08*                   descriptor,
+                                     AP4_Size                          descriptor_length)
 {
     // create the stream object
-    stream = new AP4_Mpeg2TsVideoSampleStream(pid, timescale, stream_type, stream_id);
+    stream = new AP4_Mpeg2TsVideoSampleStream(pid, timescale, stream_type, stream_id, descriptor, descriptor_length);
     return AP4_SUCCESS;
 }
 
@@ -774,11 +796,11 @@ AP4_Mpeg2TsWriter::WritePMT(AP4_ByteStream& output)
     unsigned int section_length = 13;
     unsigned int pcr_pid = 0;
     if (m_Audio) {
-        section_length += 5;
+        section_length += 5+m_Audio->m_Descriptor.GetDataSize();
         pcr_pid = m_Audio->GetPID();
     } 
     if (m_Video) {
-        section_length += 5;
+        section_length += 5+m_Video->m_Descriptor.GetDataSize();;
         pcr_pid = m_Video->GetPID();
     }
 
@@ -800,19 +822,25 @@ AP4_Mpeg2TsWriter::WritePMT(AP4_ByteStream& output)
     writer.Write(0, 12);       // program_info_length
     
     if (m_Audio) {
-        writer.Write(m_Audio->m_StreamType, 8); // stream_type 
-        writer.Write(0x7, 3);                   // reserved
-        writer.Write(m_Audio->GetPID(), 13);    // elementary_PID
-        writer.Write(0xF, 4);                   // reserved
-        writer.Write(0, 12);                    // ES_info_length
+        writer.Write(m_Audio->m_StreamType, 8);                // stream_type
+        writer.Write(0x7, 3);                                  // reserved
+        writer.Write(m_Audio->GetPID(), 13);                   // elementary_PID
+        writer.Write(0xF, 4);                                  // reserved
+        writer.Write(m_Audio->m_Descriptor.GetDataSize(), 12); // ES_info_length
+        for (unsigned int i=0; i<m_Audio->m_Descriptor.GetDataSize(); i++) {
+            writer.Write(m_Audio->m_Descriptor.GetData()[i], 8);
+        }
     }
     
     if (m_Video) {
-        writer.Write(m_Video->m_StreamType, 8); // stream_type
-        writer.Write(0x7, 3);                   // reserved
-        writer.Write(m_Video->GetPID(), 13);    // elementary_PID
-        writer.Write(0xF, 4);                   // reserved
-        writer.Write(0, 12);                    // ES_info_length
+        writer.Write(m_Video->m_StreamType, 8);                // stream_type
+        writer.Write(0x7, 3);                                  // reserved
+        writer.Write(m_Video->GetPID(), 13);                   // elementary_PID
+        writer.Write(0xF, 4);                                  // reserved
+        writer.Write(m_Video->m_Descriptor.GetDataSize(), 12); // ES_info_length
+        for (unsigned int i=0; i<m_Video->m_Descriptor.GetDataSize(); i++) {
+            writer.Write(m_Video->m_Descriptor.GetData()[i], 8);
+        }
     }
     
     writer.Write(ComputeCRC(writer.GetData()+1, section_length-1), 32); // CRC
@@ -827,11 +855,13 @@ AP4_Mpeg2TsWriter::WritePMT(AP4_ByteStream& output)
 |   AP4_Mpeg2TsWriter::SetAudioStream
 +---------------------------------------------------------------------*/
 AP4_Result 
-AP4_Mpeg2TsWriter::SetAudioStream(AP4_UI32       timescale, 
-                                  AP4_UI08       stream_type,
-                                  AP4_UI16       stream_id,
-                                  SampleStream*& stream,
-                                  AP4_UI16       pid)
+AP4_Mpeg2TsWriter::SetAudioStream(AP4_UI32        timescale,
+                                  AP4_UI08        stream_type,
+                                  AP4_UI16        stream_id,
+                                  SampleStream*&  stream,
+                                  AP4_UI16        pid,
+                                  const AP4_UI08* descriptor,
+                                  AP4_Size        descriptor_length)
 {
     // default
     stream = NULL;
@@ -840,7 +870,9 @@ AP4_Mpeg2TsWriter::SetAudioStream(AP4_UI32       timescale,
                                                              timescale,
                                                              stream_type,
                                                              stream_id,
-                                                             m_Audio);
+                                                             m_Audio,
+                                                             descriptor,
+                                                             descriptor_length);
     if (AP4_FAILED(result)) return result;
     stream = m_Audio;
     return AP4_SUCCESS;
@@ -850,11 +882,13 @@ AP4_Mpeg2TsWriter::SetAudioStream(AP4_UI32       timescale,
 |   AP4_Mpeg2TsWriter::SetVideoStream
 +---------------------------------------------------------------------*/
 AP4_Result 
-AP4_Mpeg2TsWriter::SetVideoStream(AP4_UI32       timescale,
-                                  AP4_UI08       stream_type,
-                                  AP4_UI16       stream_id,
-                                  SampleStream*& stream,
-                                  AP4_UI16       pid)
+AP4_Mpeg2TsWriter::SetVideoStream(AP4_UI32        timescale,
+                                  AP4_UI08        stream_type,
+                                  AP4_UI16        stream_id,
+                                  SampleStream*&  stream,
+                                  AP4_UI16        pid,
+                                  const AP4_UI08* descriptor,
+                                  AP4_Size        descriptor_length)
 {
     // default
     stream = NULL;
@@ -863,7 +897,9 @@ AP4_Mpeg2TsWriter::SetVideoStream(AP4_UI32       timescale,
                                                              timescale,
                                                              stream_type,
                                                              stream_id,
-                                                             m_Video);
+                                                             m_Video,
+                                                             descriptor,
+                                                             descriptor_length);
     if (AP4_FAILED(result)) return result;
     stream = m_Video;
     return AP4_SUCCESS;

@@ -178,6 +178,20 @@ AP4_DataBuffer::SetData(const AP4_Byte* data, AP4_Size size)
     return AP4_SUCCESS;
 }
 
+/*----------------------------------------------------------------------
+|   AP4_DataBuffer::AppendData
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_DataBuffer::AppendData(const AP4_Byte* data, AP4_Size data_size)
+{
+    AP4_Size existing_size = m_DataSize;
+    AP4_Result result = SetDataSize(existing_size+data_size);
+    if (AP4_FAILED(result)) {
+        return result;
+    }
+    AP4_CopyMemory(m_Buffer+existing_size, data, data_size);
+    return AP4_SUCCESS;
+}
 
 /*----------------------------------------------------------------------
 |   AP4_DataBuffer::ReallocateBuffer
