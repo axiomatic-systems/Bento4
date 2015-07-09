@@ -44,7 +44,7 @@
 /*----------------------------------------------------------------------
 |   options
 +---------------------------------------------------------------------*/
-struct Options {
+struct {
     unsigned int pmt_pid;
     unsigned int audio_pid;
     unsigned int video_pid;

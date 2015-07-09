@@ -72,7 +72,7 @@ WriteSample(const AP4_DataBuffer& sample_data,
     unsigned char* frame_buffer = NULL;
 
     // add a delimiter if we don't already have one
-    bool have_access_unit_delimiter = (data_size != 0 && data[0] == 9);
+    bool have_access_unit_delimiter = (data_size >  nalu_length_size) && ((data[nalu_length_size] & 0x1F) == AP4_AVC_NAL_UNIT_TYPE_ACCESS_UNIT_DELIMITER);
     if (!have_access_unit_delimiter) {
         AP4_Size frame_data_size = frame_data.GetDataSize();
         frame_data.SetDataSize(frame_data_size+6);

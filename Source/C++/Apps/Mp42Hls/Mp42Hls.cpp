@@ -57,7 +57,7 @@ typedef enum {
     ENCRYPTION_IV_MODE_RANDOM
 } EncryptionIvMode;
 
-struct Options {
+struct {
     const char*      input;
     bool             verbose;
     unsigned int     hls_version;
@@ -452,7 +452,7 @@ SampleEncrypter::EncryptVideoSample(AP4_DataBuffer& sample, AP4_UI08 nalu_length
             PreventStartCodeEmulation(nalu+nalu_length_size, nalu_length, escaped_nalu);
             
             // the size may have changed
-            // FIXME: this could overflow
+            // FIXME: this could overflow if nalu_length_size is too small
             switch (nalu_length_size) {
                 case 1:
                     nalu[0] = (AP4_UI08)(escaped_nalu.GetDataSize()&0xFF);

@@ -2,7 +2,7 @@
 |
 |    AP4 - MPEG2 Transport Streams
 |
-|    Copyright 2002-2009 Axiomatic Systems, LLC
+|    Copyright 2002-2015 Axiomatic Systems, LLC
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -35,6 +35,7 @@
 #include "Ap4SampleDescription.h"
 #include "Ap4Utils.h"
 #include "Ap4Mp4AudioInfo.h"
+#include "Ap4AvcParser.h"
 
 /*----------------------------------------------------------------------
 |   constants
@@ -508,18 +509,6 @@ AP4_Mpeg2TsVideoSampleStream::Create(AP4_UI16                          pid,
 }
 
 /*----------------------------------------------------------------------
-|   AppendData
-+---------------------------------------------------------------------*/
-static void
-AppendData(AP4_DataBuffer& buffer, const unsigned char* data, unsigned int data_size)
-{
-    if (data_size == 0) return;
-    unsigned int buffer_data_size = buffer.GetDataSize();
-    buffer.SetDataSize(buffer_data_size+data_size);
-    AP4_CopyMemory(buffer.UseData()+buffer_data_size, data, data_size);
-}    
-
-/*----------------------------------------------------------------------
 |   AP4_Mpeg2TsVideoSampleStream::WriteSample
 +---------------------------------------------------------------------*/
 AP4_Result
@@ -667,29 +656,27 @@ AP4_Mpeg2TsVideoSampleStream::WriteSample(AP4_Sample&            sample,
         if (nalu_size > data_size) break;
         
         // check if we need to add a delimiter before the NALU
-        if (nalu_count == 0) {
-            if (sample_description->GetType() == AP4_SampleDescription::TYPE_AVC) {
-                if (nalu_size != 2 || data[0] != 9) {
-                    // this is not an Access Unit Delimiter, we need to add one
-                    unsigned char delimiter[6];
-                    delimiter[0] = 0;
-                    delimiter[1] = 0;
-                    delimiter[2] = 0;
-                    delimiter[3] = 1;
-                    delimiter[4] = 9;    // NAL type = Access Unit Delimiter;
-                    delimiter[5] = 0xF0; // Slice types = ANY
-                    AppendData(pes_data, delimiter, 6);
-                }
+        if (nalu_count == 0 && sample_description->GetType() == AP4_SampleDescription::TYPE_AVC) {
+            if (nalu_size != 2 || (data[0] & 0x1F) != AP4_AVC_NAL_UNIT_TYPE_ACCESS_UNIT_DELIMITER) {
+                // the first NAL unit is not an Access Unit Delimiter, we need to add one
+                unsigned char delimiter[6];
+                delimiter[0] = 0;
+                delimiter[1] = 0;
+                delimiter[2] = 0;
+                delimiter[3] = 1;
+                delimiter[4] = 9;    // NAL type = Access Unit Delimiter;
+                delimiter[5] = 0xF0; // Slice types = ANY
+                pes_data.AppendData(delimiter, 6);
 
                 if (emit_prefix) {
-                    AppendData(pes_data, m_Prefix.GetData(), m_Prefix.GetDataSize());
+                    pes_data.AppendData(m_Prefix.GetData(), m_Prefix.GetDataSize());
                     emit_prefix = false;
                 }
-            } else if (sample_description->GetType() == AP4_SampleDescription::TYPE_HEVC) {
-                if (emit_prefix) {
-                    AppendData(pes_data, m_Prefix.GetData(), m_Prefix.GetDataSize());
-                    emit_prefix = false;
-                }
+            }
+        } else {
+            if (emit_prefix) {
+                pes_data.AppendData(m_Prefix.GetData(), m_Prefix.GetDataSize());
+                emit_prefix = false;
             }
         }
         
@@ -698,11 +685,17 @@ AP4_Mpeg2TsVideoSampleStream::WriteSample(AP4_Sample&            sample,
         start_code[0] = 0;
         start_code[1] = 0;
         start_code[2] = 1;
-        AppendData(pes_data, start_code, 3);
+        pes_data.AppendData(start_code, 3);
         
         // add the NALU
-        AppendData(pes_data, data, nalu_size);
+        pes_data.AppendData(data, nalu_size);
         
+        // for AVC streams that do start with a NAL unit delimiter, we need to add the prefix now
+        if (emit_prefix) {
+            pes_data.AppendData(m_Prefix.GetData(), m_Prefix.GetDataSize());
+            emit_prefix = false;
+        }
+
         // move to the next NAL unit
         data      += nalu_size;
         data_size -= nalu_size;
