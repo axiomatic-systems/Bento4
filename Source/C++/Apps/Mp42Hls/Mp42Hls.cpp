@@ -57,7 +57,7 @@ typedef enum {
     ENCRYPTION_IV_MODE_RANDOM
 } EncryptionIvMode;
 
-struct {
+struct _Options {
     const char*      input;
     bool             verbose;
     unsigned int     hls_version;
