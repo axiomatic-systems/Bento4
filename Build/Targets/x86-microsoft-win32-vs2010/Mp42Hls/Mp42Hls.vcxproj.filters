@@ -18,5 +18,8 @@
     <ClCompile Include="..\..\..\..\Source\C++\Apps\Mp42Hls\Mp42Hls.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\Source\C++\System\Win32\Ap4Win32Random.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

@@ -53,8 +53,10 @@ typedef enum {
 } EncryptionMode;
 
 typedef enum {
+    ENCRYPTION_IV_MODE_NONE,
     ENCRYPTION_IV_MODE_SEQUENCE,
-    ENCRYPTION_IV_MODE_RANDOM
+    ENCRYPTION_IV_MODE_RANDOM,
+    ENCRYPTION_IV_MODE_FPS
 } EncryptionIvMode;
 
 struct _Options {
@@ -65,15 +67,19 @@ struct _Options {
     unsigned int     audio_pid;
     unsigned int     video_pid;
     const char*      index_filename;
+    bool             output_single_file;
     const char*      segment_filename_template;
     const char*      segment_url_template;
     unsigned int     segment_duration;
     unsigned int     segment_duration_threshold;
     const char*      encryption_key_hex;
     AP4_UI08         encryption_key[16];
+    AP4_UI08         encryption_iv[16];
     EncryptionMode   encryption_mode;
     EncryptionIvMode encryption_iv_mode;
     const char*      encryption_key_uri;
+    const char*      encryption_key_format;
+    const char*      encryption_key_format_versions;
 } Options;
 
 /*----------------------------------------------------------------------
@@ -113,19 +119,31 @@ PrintUsageAndExit()
             "    Filename to use for the playlist/index (default: stream.m3u8)\n"
             "  --segment-filename-template <pattern>\n"
             "    Filename pattern to use for the segments. Use a printf-style pattern with\n"
-            "    one number field for the segment number (default: segment-%%d.ts)\n"
+            "    one number field for the segment number, unless using single file mode\n"
+            "    (default: segment-%%d.ts for separate segment files, or stream.ts for single file)\n"
             "  --segment-url-template <pattern>\n"
             "    URL pattern to use for the segments. Use a printf-style pattern with\n"
-            "    one number field for the segment number. (may be a realtive or absolute URI).\n"
-            "    (default: segment-%%d.ts)\n"
+            "    one number field for the segment number unless unsing single file mode.\n"
+            "    (may be a relative or absolute URI).\n"
+            "    (default: segment-%%d.ts for separate segment files, or stream.ts for single file)\n"
+            "  --output-single-file\n"
+            "    Output all the media in a single file instead of separate segment files.\n"
+            "    The segment filename template and segment URL template must be simple strings\n"
+            "    without '%%d' or other printf-style patterns\n"
             "  --encryption-mode <mode>\n"
             "    Encryption mode (only used when --encryption-key is specified). AES-128 or SAMPLE-AES (default: AES-128)\n"
             "  --encryption-key <key>\n"
             "    Encryption key in hexadecimal (default: no encryption)\n"
             "  --encryption-iv-mode <mode>\n"
-            "    Encryption IV mode: 'sequence' or 'random' (default: sequence)\n"
+            "    Encryption IV mode: 'sequence', 'random' or 'fps' (default: sequence)\n"
+            "    (when the mode is 'fps', the encryption key must be 32 bytes: 16 bytes for the key\n"
+            "    followed by 16 bytes for the IV).\n"
             "  --encryption-key-uri <uri>\n"
             "    Encryption key URI (may be a realtive or absolute URI). (default: key.bin)\n"
+            "  --encryption-key-format <format>\n"
+            "    Encryption key format. (default: 'identity')\n"
+            "  --encryption-key-format-versions <versions>\n"
+            "    Encryption key format versions.\n"
             );
     exit(1);
 }
@@ -260,6 +278,7 @@ public:
         if (AP4_SUCCEEDED(result)) {
             result = m_Output->Write(out, out_size);
             bytes_written = bytes_to_write;
+            m_Size     += out_size;
         } else {
             bytes_written = 0;
         }
@@ -272,13 +291,14 @@ public:
         AP4_Result result = m_StreamCipher->ProcessBuffer(NULL, 0, trailer, &trailer_size, true);
         if (AP4_SUCCEEDED(result) && trailer_size) {
             m_Output->Write(trailer, trailer_size);
+            m_Size += trailer_size;
         }
         
         return AP4_SUCCESS;
     }
     virtual AP4_Result Seek(AP4_Position) { return AP4_ERROR_NOT_SUPPORTED; }
-    virtual AP4_Result Tell(AP4_Position& position) { position = 0; return AP4_ERROR_NOT_SUPPORTED; }
-    virtual AP4_Result GetSize(AP4_LargeSize& size) { size = 0; return AP4_ERROR_NOT_SUPPORTED; }
+    virtual AP4_Result Tell(AP4_Position& position) { position = m_Size; return AP4_SUCCESS; }
+    virtual AP4_Result GetSize(AP4_LargeSize& size) { size = m_Size;     return AP4_SUCCESS; }
     
     void AddReference() {
         ++m_ReferenceCount;
@@ -293,7 +313,8 @@ private:
     EncryptingStream(AP4_CbcStreamCipher* stream_cipher, AP4_ByteStream* output):
         m_ReferenceCount(1),
         m_StreamCipher(stream_cipher),
-        m_Output(output) {
+        m_Output(output),
+        m_Size(0) {
         output->AddReference();
     }
     ~EncryptingStream() {
@@ -303,6 +324,7 @@ private:
     unsigned int         m_ReferenceCount;
     AP4_CbcStreamCipher* m_StreamCipher;
     AP4_ByteStream*      m_Output;
+    AP4_LargeSize        m_Size;
 };
 
 /*----------------------------------------------------------------------
@@ -522,25 +544,29 @@ WriteSamples(AP4_Mpeg2TsWriter&               writer,
              unsigned int                     segment_duration_threshold,
              AP4_UI08                         nalu_length_size)
 {
-    AP4_Sample        audio_sample;
-    AP4_DataBuffer    audio_sample_data;
-    unsigned int      audio_sample_count = 0;
-    double            audio_ts = 0.0;
-    bool              audio_eos = false;
-    AP4_Sample        video_sample;
-    AP4_DataBuffer    video_sample_data;
-    unsigned int      video_sample_count = 0;
-    double            video_ts = 0.0;
-    bool              video_eos = false;
-    double            last_ts = 0.0;
-    unsigned int      segment_number = 0;
-    double            segment_duration = 0.0;
-    AP4_ByteStream*   output = NULL;
-    AP4_ByteStream*   playlist = NULL;
-    char              string_buffer[4096];
-    AP4_Result        result = AP4_SUCCESS;
-    AP4_Array<double> segment_durations;
-    SampleEncrypter*  sample_encrypter = NULL;
+    AP4_Sample          audio_sample;
+    AP4_DataBuffer      audio_sample_data;
+    unsigned int        audio_sample_count = 0;
+    double              audio_ts = 0.0;
+    bool                audio_eos = false;
+    AP4_Sample          video_sample;
+    AP4_DataBuffer      video_sample_data;
+    unsigned int        video_sample_count = 0;
+    double              video_ts = 0.0;
+    bool                video_eos = false;
+    double              last_ts = 0.0;
+    AP4_Position        segment_start = 0;
+    unsigned int        segment_number = 0;
+    double              segment_duration = 0.0;
+    AP4_ByteStream*     output = NULL;
+    AP4_ByteStream*     raw_output = NULL;
+    AP4_ByteStream*     playlist = NULL;
+    char                string_buffer[4096];
+    AP4_Array<double>   segment_durations;
+    AP4_Array<AP4_UI32> segment_sizes;
+    bool                new_segment = true;
+    SampleEncrypter*    sample_encrypter = NULL;
+    AP4_Result          result = AP4_SUCCESS;
     
     // prime the samples
     if (audio_reader) {
@@ -587,34 +613,61 @@ WriteSamples(AP4_Mpeg2TsWriter&               writer,
                     last_ts = audio_ts;
                 }
                 if (output) {
+                    output->Flush();
+                    AP4_UI32 segment_size = 0;
+                    if (Options.encryption_mode == ENCRYPTION_MODE_AES_128) {
+                        AP4_LargeSize segment_end = 0;
+                        output->GetSize(segment_end);
+                        segment_size = (AP4_UI32)(segment_end-segment_start);
+                    } else {
+                        AP4_Position segment_end = 0;
+                        output->Tell(segment_end);
+                        segment_size = (AP4_UI32)(segment_end-segment_start);
+                    }
+                    segment_sizes.Append(segment_size);
                     segment_durations.Append(segment_duration);
                     if (Options.verbose) {
-                        printf("Segment %d, duration=%.2f, %d audio samples, %d video samples\n",
+                        printf("Segment %d, duration=%.2f, %d audio samples, %d video samples, %d bytes\n",
                                segment_number, 
                                segment_duration,
                                audio_sample_count, 
-                               video_sample_count);
+                               video_sample_count,
+                               segment_size);
                     }
-                    output->Flush();
-                    output->Release();
-                    output = NULL;
+                    if (Options.output_single_file) {
+                        if (Options.encryption_mode == ENCRYPTION_MODE_AES_128) {
+                            segment_start = 0;
+                        } else {
+                            output->Tell(segment_start);
+                        }
+                    } else {
+                        output->Release();
+                        output = NULL;
+                        segment_start = 0;
+                    }
                     ++segment_number;
                     audio_sample_count = 0;
                     video_sample_count = 0;
                 }
+                new_segment = true;
             }
         }
-        if (output == NULL) {
-            output = OpenOutput(Options.segment_filename_template, segment_number);
-            if (output == NULL) return AP4_ERROR_CANNOT_OPEN_FILE;
+        if (new_segment) {
+            new_segment = false;
+            if (output == NULL) {
+                output = OpenOutput(Options.segment_filename_template, segment_number);
+                raw_output = output;
+                if (output == NULL) return AP4_ERROR_CANNOT_OPEN_FILE;
+            }
+            if (Options.encryption_mode != ENCRYPTION_MODE_NONE) {
+                if (Options.encryption_iv_mode == ENCRYPTION_IV_MODE_SEQUENCE) {
+                    AP4_SetMemory(Options.encryption_iv, 0, sizeof(Options.encryption_iv));
+                    AP4_BytesFromUInt32BE(&Options.encryption_iv[12], segment_number);
+                }
+            }
             if (Options.encryption_mode == ENCRYPTION_MODE_AES_128) {
                 EncryptingStream* encrypting_stream = NULL;
-                AP4_UI08 iv[16];
-                AP4_SetMemory(iv, 0, sizeof(iv));
-                if (Options.encryption_iv_mode == ENCRYPTION_IV_MODE_SEQUENCE) {
-                    AP4_BytesFromUInt32BE(&iv[12], segment_number);
-                }
-                result = EncryptingStream::Create(Options.encryption_key, iv, output, encrypting_stream);
+                result = EncryptingStream::Create(Options.encryption_key, Options.encryption_iv, raw_output, encrypting_stream);
                 if (AP4_FAILED(result)) {
                     fprintf(stderr, "ERROR: failed to create encrypting stream (%d)\n", result);
                     return 1;
@@ -624,12 +677,7 @@ WriteSamples(AP4_Mpeg2TsWriter&               writer,
             } else if (Options.encryption_mode == ENCRYPTION_MODE_SAMPLE_AES) {
                 delete sample_encrypter;
                 sample_encrypter = NULL;
-                AP4_UI08 iv[16];
-                AP4_SetMemory(iv, 0, sizeof(iv));
-                if (Options.encryption_iv_mode == ENCRYPTION_IV_MODE_SEQUENCE) {
-                    AP4_BytesFromUInt32BE(&iv[12], segment_number);
-                }
-                result = SampleEncrypter::Create(Options.encryption_key, iv, sample_encrypter);
+                result = SampleEncrypter::Create(Options.encryption_key, Options.encryption_iv, sample_encrypter);
                 if (AP4_FAILED(result)) {
                     fprintf(stderr, "ERROR: failed to create sample encrypter (%d)\n", result);
                     return 1;
@@ -686,15 +734,27 @@ WriteSamples(AP4_Mpeg2TsWriter&               writer,
         } else {
             segment_duration = audio_ts - last_ts;
         }
+        output->Flush();
+        AP4_UI32 segment_size = 0;
+        if (Options.encryption_mode == ENCRYPTION_MODE_AES_128) {
+            AP4_LargeSize segment_end = 0;
+            output->GetSize(segment_end);
+            segment_size = (AP4_UI32)(segment_end-segment_start);
+        } else {
+            AP4_Position segment_end = 0;
+            output->Tell(segment_end);
+            segment_size = (AP4_UI32)(segment_end-segment_start);
+        }
+        segment_sizes.Append(segment_size);
         segment_durations.Append(segment_duration);
         if (Options.verbose) {
-            printf("Segment %d, duration=%.2f, %d audio samples, %d video samples\n",
+            printf("Segment %d, duration=%.2f, %d audio samples, %d video samples, %d bytes\n",
                    segment_number, 
                    segment_duration,
                    audio_sample_count, 
-                   video_sample_count);
+                   video_sample_count,
+                   segment_size);
         }
-        output->Flush();
         output->Release();
         output = NULL;
         ++segment_number;
@@ -725,16 +785,37 @@ WriteSamples(AP4_Mpeg2TsWriter&               writer,
     playlist->WriteString(string_buffer);
     playlist->WriteString("#EXT-X-MEDIA-SEQUENCE:0\r\n");
 
-    if (Options.encryption_mode == ENCRYPTION_MODE_AES_128) {
-        playlist->WriteString("#EXT-X-KEY:METHOD=AES-128,URI=\"");
+    if (Options.encryption_mode != ENCRYPTION_MODE_NONE) {
+        playlist->WriteString("#EXT-X-KEY:METHOD=");
+        if (Options.encryption_mode == ENCRYPTION_MODE_AES_128) {
+            playlist->WriteString("AES-128");
+        } else if (Options.encryption_mode == ENCRYPTION_MODE_SAMPLE_AES) {
+            playlist->WriteString("SAMPLE-AES");
+        }
+        playlist->WriteString(",URI=\"");
         playlist->WriteString(Options.encryption_key_uri);
-        playlist->WriteString("\"\r\n");
-    } else if (Options.encryption_mode == ENCRYPTION_MODE_SAMPLE_AES) {
-        playlist->WriteString("#EXT-X-KEY:METHOD=SAMPLE-AES,URI=\"");
-        playlist->WriteString(Options.encryption_key_uri);
-        playlist->WriteString("\"\r\n");
+        playlist->WriteString("\"");
+        if (Options.encryption_iv_mode == ENCRYPTION_IV_MODE_RANDOM) {
+            playlist->WriteString(",IV=0x");
+            char iv_hex[33];
+            iv_hex[32] = 0;
+            AP4_FormatHex(Options.encryption_iv, 16, iv_hex);
+            playlist->WriteString(iv_hex);
+        }
+        if (Options.encryption_key_format) {
+            playlist->WriteString(",KEYFORMAT=\"");
+            playlist->WriteString(Options.encryption_key_format);
+            playlist->WriteString("\"");
+        }
+        if (Options.encryption_key_format_versions) {
+            playlist->WriteString(",KEYFORMATVERSIONS=\"");
+            playlist->WriteString(Options.encryption_key_format_versions);
+            playlist->WriteString("\"");
+        }
+        playlist->WriteString("\r\n");
     }
-
+    
+    AP4_UI64 segment_position = 0;
     for (unsigned int i=0; i<segment_durations.ItemCount(); i++) {
         if (Options.hls_version >= 3) {
             sprintf(string_buffer, "#EXTINF:%f,\r\n", segment_durations[i]);
@@ -742,6 +823,11 @@ WriteSamples(AP4_Mpeg2TsWriter&               writer,
             sprintf(string_buffer, "#EXTINF:%u,\r\n", (unsigned int)(segment_durations[i]+0.5));
         }
         playlist->WriteString(string_buffer);
+        if (Options.output_single_file) {
+            sprintf(string_buffer, "#EXT-X-BYTERANGE:%d@%lld\r\n", segment_sizes[i], segment_position);
+            segment_position += segment_sizes[i];
+            playlist->WriteString(string_buffer);
+        }
         sprintf(string_buffer, Options.segment_filename_template, i);
         playlist->WriteString(string_buffer);
         playlist->WriteString("\r\n");
@@ -776,21 +862,26 @@ main(int argc, char** argv)
     }
     
     // default options
-    Options.input                      = NULL;
-    Options.verbose                    = false;
-    Options.hls_version                = 0;
-    Options.pmt_pid                    = 0x100;
-    Options.audio_pid                  = 0x101;
-    Options.video_pid                  = 0x102;
-    Options.index_filename             = "stream.m3u8";
-    Options.segment_filename_template  = "segment-%d.ts";
-    Options.segment_url_template       = "segment-%d.ts";
-    Options.segment_duration           = 10;
-    Options.segment_duration_threshold = DefaultSegmentDurationThreshold;
-    Options.encryption_key_hex         = NULL;
-    Options.encryption_mode            = ENCRYPTION_MODE_NONE;
-    Options.encryption_iv_mode         = ENCRYPTION_IV_MODE_SEQUENCE;
-    Options.encryption_key_uri         = "key.bin";
+    Options.input                          = NULL;
+    Options.verbose                        = false;
+    Options.hls_version                    = 0;
+    Options.pmt_pid                        = 0x100;
+    Options.audio_pid                      = 0x101;
+    Options.video_pid                      = 0x102;
+    Options.output_single_file             = false;
+    Options.index_filename                 = "stream.m3u8";
+    Options.segment_filename_template      = NULL;
+    Options.segment_url_template           = NULL;
+    Options.segment_duration               = 10;
+    Options.segment_duration_threshold     = DefaultSegmentDurationThreshold;
+    Options.encryption_key_hex             = NULL;
+    Options.encryption_mode                = ENCRYPTION_MODE_NONE;
+    Options.encryption_iv_mode             = ENCRYPTION_IV_MODE_NONE;
+    Options.encryption_key_uri             = "key.bin";
+    Options.encryption_key_format          = NULL;
+    Options.encryption_key_format_versions = NULL;
+    AP4_SetMemory(Options.encryption_key, 0, sizeof(Options.encryption_key));
+    AP4_SetMemory(Options.encryption_iv,  0, sizeof(Options.encryption_iv));
     
     // parse command line
     AP4_Result result;
@@ -850,6 +941,8 @@ main(int argc, char** argv)
                 return 1;
             }
             Options.video_pid = strtoul(*args++, NULL, 10);
+        } else if (!strcmp(arg, "--output-single-file")) {
+            Options.output_single_file = true;
         } else if (!strcmp(arg, "--index-filename")) {
             if (*args == NULL) {
                 fprintf(stderr, "ERROR: --index-filename requires a filename\n");
@@ -884,15 +977,17 @@ main(int argc, char** argv)
                 return 1;
             }
             ++args;
-        } else if (!strcmp(arg, "--encryption-iv")) {
+        } else if (!strcmp(arg, "--encryption-iv-mode")) {
             if (*args == NULL) {
-                fprintf(stderr, "ERROR: --encryption-iv requires an argument\n");
+                fprintf(stderr, "ERROR: --encryption-iv-mode requires an argument\n");
                 return 1;
             }
             if (strncmp(*args, "sequence", 8) == 0) {
                 Options.encryption_iv_mode = ENCRYPTION_IV_MODE_SEQUENCE;
             } else if (strncmp(*args, "random", 6) == 0) {
                 Options.encryption_iv_mode = ENCRYPTION_IV_MODE_RANDOM;
+            } else if (strncmp(*args, "fps", 6) == 0) {
+                Options.encryption_iv_mode = ENCRYPTION_IV_MODE_FPS;
             } else {
                 fprintf(stderr, "ERROR: unknown encryption IV mode\n");
                 return 1;
@@ -904,10 +999,22 @@ main(int argc, char** argv)
                 return 1;
             }
             Options.encryption_key_uri = *args++;
+        } else if (!strcmp(arg, "--encryption-key-format")) {
+            if (*args == NULL) {
+                fprintf(stderr, "ERROR: --encryption-key-format requires an argument\n");
+                return 1;
+            }
+            Options.encryption_key_format = *args++;
+        } else if (!strcmp(arg, "--encryption-key-format-versions")) {
+            if (*args == NULL) {
+                fprintf(stderr, "ERROR: --encryption-key-format-versions requires an argument\n");
+                return 1;
+            }
+            Options.encryption_key_format_versions = *args++;
         } else if (Options.input == NULL) {
             Options.input = arg;
         } else {
-            fprintf(stderr, "ERROR: unexpected argument\n");
+            fprintf(stderr, "ERROR: unexpected argument: %s\n", arg);
             return 1;
         }
     }
@@ -925,12 +1032,59 @@ main(int argc, char** argv)
         Options.hls_version = 5;
         fprintf(stderr, "WARNING: forcing version to 5 in order to support SAMPLE-AES encryption\n");
     }
+    if (Options.encryption_iv_mode == ENCRYPTION_IV_MODE_NONE) {
+        Options.encryption_iv_mode = ENCRYPTION_IV_MODE_SEQUENCE;
+    }
+    if ((Options.encryption_key_format || Options.encryption_key_format_versions) && Options.hls_version > 0 && Options.hls_version < 5) {
+        Options.hls_version = 5;
+        fprintf(stderr, "WARNING: forcing version to 5 in order to support KEYFORMAT and/or KEYFORMATVERSIONS\n");
+    }
+    if (Options.output_single_file && Options.hls_version > 0 && Options.hls_version < 4) {
+        Options.hls_version = 4;
+        fprintf(stderr, "WARNING: forcing version to 4 in order to support single file output\n");
+    }
     if (Options.hls_version == 0) {
         // default version is 3 for cleartext or AES-128 encryption, and 5 for SAMPLE-AES
         if (Options.encryption_mode == ENCRYPTION_MODE_SAMPLE_AES) {
             Options.hls_version = 5;
+        } else if (Options.output_single_file) {
+            Options.hls_version = 4;
         } else {
             Options.hls_version = 3;
+        }
+    }
+    
+    // compute some derived values
+    if (Options.segment_filename_template == NULL) {
+        if (Options.output_single_file) {
+            Options.segment_filename_template = "stream.ts";
+        } else {
+            Options.segment_filename_template = "segment-%d.ts";
+        }
+    }
+    if (Options.segment_url_template == NULL) {
+        if (Options.output_single_file) {
+            Options.segment_url_template = "stream.ts";
+        } else {
+            Options.segment_url_template = "segment-%d.ts";
+        }
+    }
+    
+    if (Options.encryption_iv_mode == ENCRYPTION_IV_MODE_FPS) {
+        if (AP4_StringLength(Options.encryption_key_hex) != 64) {
+            fprintf(stderr, "ERROR: 'fps' IV mode requires a 32 byte key value (64 characters in hex)\n");
+            return 1;
+        }
+        result = AP4_ParseHex(Options.encryption_key_hex+32, Options.encryption_iv, 16);
+        if (AP4_FAILED(result)) {
+            fprintf(stderr, "ERROR: invalid hex IV\n");
+            return 1;
+        }
+    } else if (Options.encryption_iv_mode == ENCRYPTION_IV_MODE_RANDOM) {
+        AP4_Result result = AP4_System_GenerateRandomBytes(Options.encryption_iv, sizeof(Options.encryption_iv));
+        if (AP4_FAILED(result)) {
+            fprintf(stderr, "ERROR: failed to get random IV (%d)\n", result);
+            return 1;
         }
     }
     

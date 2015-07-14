@@ -86,6 +86,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\..\Source\C++\Apps\Mp42Hls\Mp42Hls.cpp" />
+    <ClCompile Include="..\..\..\..\Source\C++\System\Win32\Ap4Win32Random.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
