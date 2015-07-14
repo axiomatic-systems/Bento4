@@ -59,7 +59,7 @@ def XmlDuration(d):
     if h or m:
         xsd += str(m)+'M'
     if s:
-        xsd += ('%.2fS' % (s))
+        xsd += ('%.3fS' % (s))
     return xsd
     
 def Bento4Command(options, name, *args, **kwargs):

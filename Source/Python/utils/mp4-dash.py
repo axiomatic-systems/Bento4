@@ -213,7 +213,7 @@ def AddContentProtection(options, container, tracks):
     if options.playready:
         container.append(xml.Comment(' PlayReady '))
         xml.register_namespace('mspr', PLAYREADY_MSPR_NAMESPACE)
-        if 'hbbtv-1.5' in options.profiles:
+        if HBBTV_15_ISOFF_LIVE_PROFILE in options.profiles:
             playread_scheme_id_uri = PLAYREADY_SCHEME_ID_URI_V10
         else:
             playread_scheme_id_uri = PLAYREADY_SCHEME_ID_URI
