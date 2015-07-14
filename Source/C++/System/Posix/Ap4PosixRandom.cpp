@@ -2,7 +2,7 @@
 |
 |    AP4 - Posix Random Byte Generator implementation
 |
-|    Copyright 2002-2010 Axiomatic Systems, LLC
+|    Copyright 2002-2015 Axiomatic Systems, LLC
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -41,7 +41,7 @@ AP4_Result
 AP4_System_GenerateRandomBytes(AP4_UI08* buffer, AP4_Size buffer_size)
 {
     AP4_SetMemory(buffer, 0, buffer_size);
-    int random = open("/dev/random", O_RDONLY);
+    int random = open("/dev/urandom", O_RDONLY);
     if (random < 0) {
         return AP4_FAILURE;
     }
