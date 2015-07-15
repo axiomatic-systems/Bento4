@@ -828,7 +828,7 @@ WriteSamples(AP4_Mpeg2TsWriter&               writer,
             segment_position += segment_sizes[i];
             playlist->WriteString(string_buffer);
         }
-        sprintf(string_buffer, Options.segment_filename_template, i);
+        sprintf(string_buffer, Options.segment_url_template, i);
         playlist->WriteString(string_buffer);
         playlist->WriteString("\r\n");
     }
