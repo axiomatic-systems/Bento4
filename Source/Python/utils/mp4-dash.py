@@ -470,7 +470,7 @@ def OutputSmooth(options, audio_tracks, video_tracks):
                            Bitrate=str(video_track.bandwidth),
                            MaxWidth=str(video_track.width),
                            MaxHeight=str(video_track.height),
-                           FourCC="H264",
+                           FourCC=options.smooth_h264_fourcc,
                            CodecPrivateData=codec_private_data,
                            Index=str(qindex))
             qindex += 1
@@ -774,6 +774,8 @@ def main():
                       help="Smooth Streaming Client Manifest file name", metavar="<filename>", default='stream.ismc')
     parser.add_option('', '--smooth-server-manifest-name', dest="smooth_server_manifest_filename",
                       help="Smooth Streaming Server Manifest file name", metavar="<filename>", default='stream.ism')
+    parser.add_option('', '--smooth-h264-fourcc', dest='smooth_h264_fourcc', 
+                      help="Smooth Streaming FourCC value for H.264 video (default=AVC1)", metavar="<fourcc>", default='AVC1')
     parser.add_option('', "--hippo", dest="hippo", default=False, action="store_true",
                       help="Produce an output compatible with the Hippo Media Server")
     parser.add_option('', '--hippo-server-manifest-name', dest="hippo_server_manifest_filename",
