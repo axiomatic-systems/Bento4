@@ -259,5 +259,16 @@ bin_files = [
 ]
 CopyFiles(bin_files)
 
+# wrappers
+if '-microsoft-' in SDK_TARGET:
+    wrapper_files = [
+        ('Source/Python/wrappers', 'mp4dash.bat','bin')
+    ]
+else:
+    wrapper_files = [
+        ('Source/Python/wrappers', 'mp4dash','bin')
+    ]    
+CopyFiles(wrapper_files)
+
 # remove any previous zip file
 ZipIt(SDK_BUILD_ROOT, SDK_NAME)
