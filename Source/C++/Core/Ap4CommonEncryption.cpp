@@ -51,6 +51,8 @@
 #include "Ap4TrunAtom.h"
 #include "Ap4Marlin.h"
 #include "Ap4PsshAtom.h"
+#include "Ap4AvcParser.h"
+#include "Ap4HevcParser.h"
 
 /*----------------------------------------------------------------------
 |   constants
@@ -58,6 +60,8 @@
 const AP4_UI08 AP4_EME_COMMON_SYSTEM_ID[16] = {
     0x10, 0x77, 0xEF, 0xEC, 0xC0, 0xB2, 0x4D, 0x02, 0xAC, 0xE3, 0x3C, 0x1E, 0x52, 0xE2, 0xFB, 0x4B
 };
+
+const unsigned int AP4_CENC_NAL_UNIT_ENCRYPTION_MIN_SIZE = 112;
 
 /*----------------------------------------------------------------------
 |   AP4_CencSampleEncrypter::~AP4_CencSampleEncrypter
@@ -139,24 +143,60 @@ AP4_CencCtrSubSampleEncrypter::GetSubSampleMap(AP4_DataBuffer&      sample_data,
                 return AP4_ERROR_INVALID_FORMAT;
         }
 
-        unsigned int chunk_size     = m_NaluLengthSize+nalu_length;
-        unsigned int cleartext_size = chunk_size%16;
-        unsigned int block_count    = chunk_size/16;
-        if (in+chunk_size > in_end) {
+        unsigned int nalu_size = m_NaluLengthSize+nalu_length;
+        if (in+nalu_size > in_end) {
             return AP4_ERROR_INVALID_FORMAT;
         }
-        if (cleartext_size < m_NaluLengthSize+1) {
-            AP4_ASSERT(block_count);
-            --block_count;
-            cleartext_size += 16;
+
+        // skip encryption if the NAL unit is smaller than the threshold (DECE CFF spec)
+        // or should be left unencrypted for this specific format/type
+        bool skip = false;
+        if (nalu_size < AP4_CENC_NAL_UNIT_ENCRYPTION_MIN_SIZE) {
+            skip = true;
+        } else if (m_Format == AP4_SAMPLE_FORMAT_AVC1 ||
+                   m_Format == AP4_SAMPLE_FORMAT_AVC2 ||
+                   m_Format == AP4_SAMPLE_FORMAT_AVC3 ||
+                   m_Format == AP4_SAMPLE_FORMAT_AVC4) {
+            unsigned int nalu_type = in[m_NaluLengthSize] & 0x1F;
+            if (nalu_type != AP4_AVC_NAL_UNIT_TYPE_CODED_SLICE_OF_NON_IDR_PICTURE &&
+                nalu_type != AP4_AVC_NAL_UNIT_TYPE_CODED_SLICE_DATA_PARTITION_A   &&
+                nalu_type != AP4_AVC_NAL_UNIT_TYPE_CODED_SLICE_DATA_PARTITION_B   &&
+                nalu_type != AP4_AVC_NAL_UNIT_TYPE_CODED_SLICE_DATA_PARTITION_C   &&
+                nalu_type != AP4_AVC_NAL_UNIT_TYPE_CODED_SLICE_OF_IDR_PICTURE) {
+                // this NAL unit is not a VCL NAL unit
+                skip = true;
+            }
+        } else if (m_Format == AP4_SAMPLE_FORMAT_HEV1 ||
+                   m_Format == AP4_SAMPLE_FORMAT_HVC1) {
+            unsigned int nalu_type = (in[m_NaluLengthSize] >> 1) & 0x3F;
+            if (nalu_type >= 32) {
+                // this NAL unit is not a VCL NAL unit
+                skip = true;
+            }
+        }
+
+        if (skip) {
+            // use cleartext regions to cover the entire NAL unit
+            unsigned int range = nalu_size;
+            while (range) {
+                AP4_UI16 cleartext_size = (range <= 0xFFFF) ? range : 0xFFFF;
+                bytes_of_cleartext_data.Append(cleartext_size);
+                bytes_of_encrypted_data.Append(0);
+                range -= cleartext_size;
+            }
+        } else {
+            // leave some cleartext bytes at the start and encrypt the rest (multiple of blocks)
+            unsigned int encrypted_size = nalu_size-(AP4_CENC_NAL_UNIT_ENCRYPTION_MIN_SIZE-16);
+            encrypted_size -= (encrypted_size % 16);
+            unsigned int cleartext_size = nalu_size-encrypted_size;
+            AP4_ASSERT(encrypted_size >= 16);
+            AP4_ASSERT(cleartext_size >= m_NaluLengthSize);
+            bytes_of_cleartext_data.Append(cleartext_size);
+            bytes_of_encrypted_data.Append(encrypted_size);
         }
                 
         // move the pointers
-        in += chunk_size;
-        
-        // store the info
-        bytes_of_cleartext_data.Append((AP4_UI16)cleartext_size);
-        bytes_of_encrypted_data.Append((AP4_UI32)(block_count*16));
+        in += nalu_size;
     }
     
     return AP4_SUCCESS;
@@ -1021,10 +1061,11 @@ AP4_CencEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
         return NULL;
     }
     
-    AP4_UI32 format = 0;
-    switch (entries[0]->GetType()) { // only look at the type of the first entry
+    AP4_UI32 format = entries[0]->GetType(); // only look at the type of the first entry
+    AP4_UI32 enc_format = 0;
+    switch (format) {
         case AP4_ATOM_TYPE_MP4A:
-            format = AP4_ATOM_TYPE_ENCA;
+            enc_format = AP4_ATOM_TYPE_ENCA;
             break;
 
         case AP4_ATOM_TYPE_MP4V:
@@ -1034,7 +1075,7 @@ AP4_CencEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
         case AP4_ATOM_TYPE_AVC4:
         case AP4_ATOM_TYPE_HEV1:
         case AP4_ATOM_TYPE_HVC1:
-            format = AP4_ATOM_TYPE_ENCV;
+            enc_format = AP4_ATOM_TYPE_ENCV;
             break;
             
         default: {
@@ -1043,18 +1084,18 @@ AP4_CencEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
             if (hdlr) {
                 switch (hdlr->GetHandlerType()) {
                     case AP4_HANDLER_TYPE_SOUN:
-                        format = AP4_ATOM_TYPE_ENCA;
+                        enc_format = AP4_ATOM_TYPE_ENCA;
                         break;
 
                     case AP4_HANDLER_TYPE_VIDE:
-                        format = AP4_ATOM_TYPE_ENCV;
+                        enc_format = AP4_ATOM_TYPE_ENCV;
                         break;
                 }
             }
             break;
         }
     }
-    if (format == 0) return NULL;
+    if (enc_format == 0) return NULL;
          
     // get the track properties
     AP4_UI08 kid[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
@@ -1094,7 +1135,7 @@ AP4_CencEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
                                                  iv_size,
                                                  kid,
                                                  entries, 
-                                                 format);
+                                                 enc_format);
         
     // create a block cipher
     AP4_BlockCipher*            block_cipher = NULL;
@@ -1129,18 +1170,18 @@ AP4_CencEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
     switch (algorithm_id) {
         case AP4_CENC_ALGORITHM_ID_CBC:
             stream_cipher = new AP4_CbcStreamCipher(block_cipher);
-            if (entries[0]->GetType() == AP4_ATOM_TYPE_AVC1 ||
-                entries[0]->GetType() == AP4_ATOM_TYPE_AVC2 ||
-                entries[0]->GetType() == AP4_ATOM_TYPE_AVC3 ||
-                entries[0]->GetType() == AP4_ATOM_TYPE_AVC4) {
+            if (format == AP4_ATOM_TYPE_AVC1 ||
+                format == AP4_ATOM_TYPE_AVC2 ||
+                format == AP4_ATOM_TYPE_AVC3 ||
+                format == AP4_ATOM_TYPE_AVC4) {
                 AP4_AvccAtom* avcc = AP4_DYNAMIC_CAST(AP4_AvccAtom, entries[0]->GetChild(AP4_ATOM_TYPE_AVCC));
                 if (avcc == NULL) return NULL;
-                sample_encrypter = new AP4_CencCbcSubSampleEncrypter(stream_cipher, avcc->GetNaluLengthSize());
-            } else if (entries[0]->GetType() == AP4_ATOM_TYPE_HEV1 ||
-                       entries[0]->GetType() == AP4_ATOM_TYPE_HVC1) {
+                sample_encrypter = new AP4_CencCbcSubSampleEncrypter(stream_cipher, avcc->GetNaluLengthSize(), format);
+            } else if (format == AP4_ATOM_TYPE_HEV1 ||
+                       format == AP4_ATOM_TYPE_HVC1) {
                 AP4_HvccAtom* hvcc = AP4_DYNAMIC_CAST(AP4_HvccAtom, entries[0]->GetChild(AP4_ATOM_TYPE_HVCC));
                 if (hvcc == NULL) return NULL;
-                sample_encrypter = new AP4_CencCbcSubSampleEncrypter(stream_cipher, hvcc->GetNaluLengthSize());
+                sample_encrypter = new AP4_CencCbcSubSampleEncrypter(stream_cipher, hvcc->GetNaluLengthSize(), format);
             } else {
                 sample_encrypter = new AP4_CencCbcSampleEncrypter(stream_cipher);
             }
@@ -1148,18 +1189,18 @@ AP4_CencEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
             
         case AP4_CENC_ALGORITHM_ID_CTR:
             stream_cipher = new AP4_CtrStreamCipher(block_cipher, 16);
-            if (entries[0]->GetType() == AP4_ATOM_TYPE_AVC1 ||
-                entries[0]->GetType() == AP4_ATOM_TYPE_AVC2 ||
-                entries[0]->GetType() == AP4_ATOM_TYPE_AVC3 ||
-                entries[0]->GetType() == AP4_ATOM_TYPE_AVC4) {
+            if (format == AP4_ATOM_TYPE_AVC1 ||
+                format == AP4_ATOM_TYPE_AVC2 ||
+                format == AP4_ATOM_TYPE_AVC3 ||
+                format == AP4_ATOM_TYPE_AVC4) {
                 AP4_AvccAtom* avcc = AP4_DYNAMIC_CAST(AP4_AvccAtom, entries[0]->GetChild(AP4_ATOM_TYPE_AVCC));
                 if (avcc == NULL) return NULL;
-                sample_encrypter = new AP4_CencCtrSubSampleEncrypter(stream_cipher, avcc->GetNaluLengthSize(), iv_size);
-            } else if (entries[0]->GetType() == AP4_ATOM_TYPE_HEV1 ||
-                       entries[0]->GetType() == AP4_ATOM_TYPE_HVC1) {
+                sample_encrypter = new AP4_CencCtrSubSampleEncrypter(stream_cipher, avcc->GetNaluLengthSize(), iv_size, format);
+            } else if (format == AP4_ATOM_TYPE_HEV1 ||
+                       format == AP4_ATOM_TYPE_HVC1) {
                 AP4_HvccAtom* hvcc = AP4_DYNAMIC_CAST(AP4_HvccAtom, entries[0]->GetChild(AP4_ATOM_TYPE_HVCC));
                 if (hvcc == NULL) return NULL;
-                sample_encrypter = new AP4_CencCtrSubSampleEncrypter(stream_cipher, hvcc->GetNaluLengthSize(), iv_size);
+                sample_encrypter = new AP4_CencCtrSubSampleEncrypter(stream_cipher, hvcc->GetNaluLengthSize(), iv_size, format);
             } else {
                 sample_encrypter = new AP4_CencCtrSampleEncrypter(stream_cipher, iv_size);
             }

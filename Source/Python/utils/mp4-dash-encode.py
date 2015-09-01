@@ -1,6 +1,7 @@
 from optparse import OptionParser
 from mp4utils import *
 from subprocess import check_output, CalledProcessError
+import os
 import json
 import math
 
@@ -97,7 +98,7 @@ def main():
     parser.add_option('-k', '--keep-files', dest="keep_files", action='store_true', default=False,
                       help="Keep intermediate files")
     parser.add_option('-o', '--output-dir', dest="output_dir",
-                      help="Output directory", metavar="<output-dir>", default='output')
+                      help="Output directory", metavar="<output-dir>", default='')
     parser.add_option('-b', '--bitrates', dest="bitrates",
                       help="Number of bitrates (default: 1)", default=1, type='int')
     parser.add_option('-r', '--resolution', dest='resolution',
@@ -116,6 +117,8 @@ def main():
                       help="Video segment size in frames (default: 3*fps)")
     parser.add_option('-t', '--text-overlay', dest='text_overlay', action='store_true', default=False,
                       help="Add a text overlay with the bitrate")
+    parser.add_option('', '--text-overlay-font', dest='text_overlay_font', default=None,
+                      help="Specify a TTF font file to use for the text overlay")
     parser.add_option('-e', '--encoder-params', dest='encoder_params', 
                       help="Extra encoder parameters")
     parser.add_option('-f', '--force', dest="force_output", action="store_true",
@@ -133,6 +136,9 @@ def main():
 
     if options.min_bitrate > options.max_bitrate:
         raise Exception('ERROR: max bitrate must be >= min bitrate')
+
+    if options.output_dir:
+        MakeNewDir(dir=options.output_dir, exit_if_exists = not (options.force_output), severity='ERROR')
 
     if options.verbose:
         print 'Encoding', options.bitrates, 'bitrates, min bitrate =', options.min_bitrate, 'max bitrate =', options.max_bitrate
@@ -152,13 +158,21 @@ def main():
     (bitrates, resolutions) = compute_bitrates_and_resolutions(options)
 
     for i in range(options.bitrates):
-        output_filename = 'video_%05d.mp4' % int(bitrates[i])
+        output_filename = os.path.join(options.output_dir, 'video_%05d.mp4' % int(bitrates[i]))
         temp_filename = output_filename+'_'
         base_cmd  = 'ffmpeg -i "%s" -strict experimental -codec:a libfdk_aac -ac 2 -ab %dk -preset slow -map_metadata -1 -codec:v %s' % (args[0], options.audio_bitrate, options.video_codec)
         if options.video_codec == 'libx264':
             base_cmd += ' -profile:v baseline'
         if options.text_overlay:
-            base_cmd += ' -vf "drawtext=fontfile=/Library/Fonts/Courier New.ttf: text='+str(int(bitrates[i]))+'kbps '+str(resolutions[i][0])+'*'+str(resolutions[i][1])+': fontsize=50:  x=(w)/8: y=h-(2*lh): fontcolor=white:"'
+            if not options.text_overlay_font:
+                font_file = "/Library/Fonts/Courier New.ttf"
+                if os.path.exists(font_file):
+                    options.text_overlay_font = font_file;
+                else:
+                    raise Exception('ERROR: no default font file, please use the --text-overlay-font option')
+            if not os.path.exists(options.text_overlay_font):
+                raise Exception('ERROR: font file "'+options.text_overlay_font+'" does not exist')
+            base_cmd += ' -vf "drawtext=fontfile='+options.text_overlay_font+': text='+str(int(bitrates[i]))+'kbps '+str(resolutions[i][0])+'*'+str(resolutions[i][1])+': fontsize=50:  x=(w)/8: y=h-(2*lh): fontcolor=white:"'
         if options.select_streams:
             specifiers = options.select_streams.split(',')
             for specifier in specifiers:

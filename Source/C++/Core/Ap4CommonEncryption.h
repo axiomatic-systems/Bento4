@@ -364,15 +364,18 @@ class AP4_CencSubSampleEncrypter : public AP4_CencSampleEncrypter
 public:
     // constructor and destructor
     AP4_CencSubSampleEncrypter(AP4_StreamCipher* cipher,
-                               AP4_Size          nalu_length_size) :
+                               AP4_Size          nalu_length_size,
+                               AP4_UI32          format) :
         AP4_CencSampleEncrypter(cipher),
-        m_NaluLengthSize(nalu_length_size) {}
+        m_NaluLengthSize(nalu_length_size),
+        m_Format(format) {}
 
     // methods
     virtual bool UseSubSamples() { return true;}
                                          
     // members
     AP4_Size m_NaluLengthSize;
+    AP4_UI32 m_Format;
 };
 
 /*----------------------------------------------------------------------
@@ -384,8 +387,9 @@ public:
     // constructor and destructor
     AP4_CencCtrSubSampleEncrypter(AP4_StreamCipher* cipher,
                                   AP4_Size          nalu_length_size,
-                                  unsigned int      iv_size) :
-        AP4_CencSubSampleEncrypter(cipher, nalu_length_size),
+                                  unsigned int      iv_size,
+                                  AP4_UI32          format) :
+        AP4_CencSubSampleEncrypter(cipher, nalu_length_size, format),
         m_IvSize(iv_size) {}
 
     // methods
@@ -408,8 +412,9 @@ class AP4_CencCbcSubSampleEncrypter : public AP4_CencSubSampleEncrypter
 public:
     // constructor and destructor
     AP4_CencCbcSubSampleEncrypter(AP4_StreamCipher* cipher,
-                                  AP4_Size          nalu_length_size) :
-        AP4_CencSubSampleEncrypter(cipher, nalu_length_size) {}
+                                  AP4_Size          nalu_length_size,
+                                  AP4_UI32          format) :
+        AP4_CencSubSampleEncrypter(cipher, nalu_length_size, format) {}
 
     // methods
     virtual AP4_Result GetSubSampleMap(AP4_DataBuffer&      sample_data, 
