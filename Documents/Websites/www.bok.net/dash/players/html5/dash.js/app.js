@@ -14,20 +14,36 @@ app.onMpdCustom = function() {
 
 app.loadStream = function() {
     if (!app.player) {
-        app.player = new MediaPlayer(new Dash.di.DashContext());    
+        app.player = new MediaPlayer(new Dash.di.DashContext());
         app.player.startup();
         app.player.attachView(document.querySelector("#videoPlayer"));
     }
     var protectionData = {
-		// "org.w3.clearkey": {
-  //           "clearkeys": {
-  //               "IAAAACAAIAAgACAAAAAAAg" : "5t1CjnbMFURBou087OSj2w"
-  //           }
-  //       },
-        "com.widevine.alpha": {
-            "laURL": "https://widevine-proxy.appspot.com/proxy"
-        }    	
     };
+    var laUrl = document.getElementById('laUrlInput').value;
+    if (laUrl) {
+      protectionData['com.widevine.alpha'] = {
+        'serverURL': laUrl
+      }
+      protectionData['com.microsoft.playready'] = {
+        'serverURL': laUrl
+      }
+    } else {
+      protectionData['com.widevine.alpha'] = {
+          'serverURL': 'https://widevine-proxy.appspot.com/proxy'
+      }
+    }
+
+    var clearKey = document.getElementById('clearKeyInput').value;
+    if (clearKey) {
+      var clearKeys = clearKey.split(':');
+      var clearKeysField = {}
+      clearKeysField[clearKeys[0]] = clearKeys[1];
+      protectionData['org.w3.clearkey'] = {
+        'clearkeys': clearKeysField
+      }
+    }
+
     var mediaUrl = document.getElementById('manifestUrlInput').value;
     app.player.attachSource(mediaUrl, null, protectionData);
 }
