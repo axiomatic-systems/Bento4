@@ -3161,7 +3161,7 @@
 		08FB7793FE84155DC02AAC07 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0510;
+				LastUpgradeCheck = 0700;
 				TargetAttributes = {
 					CA00A6521A1C36560064B4D3 = {
 						CreatedOnToolsVersion = 6.1;
@@ -4030,6 +4030,7 @@
 		1DEB91EC08733DB70010E9CD /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
 				PRODUCT_NAME = Bento4;
 			};
 			name = Debug;
@@ -4037,6 +4038,7 @@
 		1DEB91ED08733DB70010E9CD /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
 				PRODUCT_NAME = Bento4;
 			};
 			name = Release;
@@ -4044,6 +4046,7 @@
 		1DEB91F008733DB70010E9CD /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ENABLE_TESTABILITY = YES;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = AP4_DEBUG;
@@ -4663,6 +4666,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_MODEL_TUNING = G5;
@@ -4678,6 +4682,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = YES;
 				GCC_MODEL_TUNING = G5;
 				INSTALL_PATH = /usr/local/lib;
@@ -4828,6 +4833,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ATOMIX_HOME = "$(SRCROOT)/../../../../Atomix";
+				COMBINE_HIDPI_IMAGES = YES;
 				PRODUCT_NAME = Bento4Atomix;
 				USER_HEADER_SEARCH_PATHS = "$(ATOMIX_HOME)/**";
 			};
@@ -4837,6 +4843,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ATOMIX_HOME = "$(SRCROOT)/../../../../Atomix";
+				COMBINE_HIDPI_IMAGES = YES;
 				PRODUCT_NAME = Bento4Atomix;
 				USER_HEADER_SEARCH_PATHS = "$(ATOMIX_HOME)/**";
 			};
@@ -5011,6 +5018,7 @@
 		F9FDDA2F0EA799000061DCB2 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
 				EXECUTABLE_PREFIX = lib;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
@@ -5022,6 +5030,7 @@
 		F9FDDA300EA799000061DCB2 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
 				EXECUTABLE_PREFIX = lib;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
