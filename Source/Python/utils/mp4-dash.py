@@ -52,24 +52,36 @@ SEGMENT_URL_PATTERN         = NOPAD_SEGMENT_URL_PATTERN
 SEGMENT_URL_TEMPLATE        = NOPAD_SEGMENT_URL_TEMPLATE
 
 MEDIA_FILE_PATTERN          = '%s-%02d.mp4'
+
 MARLIN_SCHEME_ID_URI        = 'urn:uuid:5E629AF5-38DA-4063-8977-97FFBD9902D4'
 MARLIN_MAS_NAMESPACE        = 'urn:marlin:mas:1-0:services:schemas:mpd'
 MARLIN_PSSH_SYSTEM_ID       = '69f908af481646ea910ccd5dcccb0a3a'
+
 PLAYREADY_PSSH_SYSTEM_ID    = '9a04f07998404286ab92e65be0885f95'
 PLAYREADY_SCHEME_ID_URI     = 'urn:uuid:9a04f079-9840-4286-ab92-e65be0885f95'
 PLAYREADY_SCHEME_ID_URI_V10 = 'urn:uuid:79f0049a-4098-8642-ab92-e65be0885f95'
 PLAYREADY_MSPR_NAMESPACE    = 'urn:microsoft:playready'
+
 WIDEVINE_PSSH_SYSTEM_ID     = 'edef8ba979d64acea3c827dcd51d21ed'
 WIDEVINE_SCHEME_ID_URI      = 'urn:uuid:edef8ba9-79d6-4ace-a3c8-27dcd51d21ed'
+
+PRIMETIME_SCHEME_ID_URI     = 'urn:uuid:F239E769-EFA3-4850-9C16-A903C6932EFB'
+PRIMETIME_PSSH_SYSTEM_ID    = 'f239e769efa348509c16a903c6932efb'
+
 SMOOTH_DEFAULT_TIMESCALE    = 10000000
+
 SMIL_NAMESPACE              = 'http://www.w3.org/2001/SMIL20/Language'
+
 CENC_2013_NAMESPACE         = 'urn:mpeg:cenc:2013'
+
 DASH_MEDIA_SEGMENT_URL_PATTERN_SMOOTH = "/QualityLevels($Bandwidth$)/Fragments(%s=$Time$)"
 DASH_MEDIA_SEGMENT_URL_PATTERN_HIPPO  = '%s/Bitrate($Bandwidth$)/Fragment($Time$)'
+
 HIPPO_MEDIA_SEGMENT_REGEXP_DEFAULT = '%s/Bitrate\\\\(%d\\\\)/Fragment\\\\((\\\\d+)\\\\)'
 HIPPO_MEDIA_SEGMENT_GROUPS_DEFAULT = '["time"]'
 HIPPO_MEDIA_SEGMENT_REGEXP_SMOOTH  = 'QualityLevels\\\\(%d\\\\)/Fragments\\\\(%s=(\\\\d+)\\\\)'
 HIPPO_MEDIA_SEGMENT_GROUPS_SMOOTH  = '["time"]'
+
 AUDIO_CHANNEL_CONFIGURATION_SCHEME_ID_URI = 'urn:mpeg:dash:23003:3:audio_channel_configuration:2011'
 
 ISOFF_MAIN_PROFILE          = 'urn:mpeg:dash:profile:isoff-main:2011'
@@ -210,6 +222,7 @@ def AddContentProtection(options, container, tracks):
         for kid in kids:
             cid = xml.SubElement(cids, '{' + MARLIN_MAS_NAMESPACE + '}MarlinContentId')
             cid.text = 'urn:marlin:kid:' + kid
+
     if options.playready:
         container.append(xml.Comment(' PlayReady '))
         xml.register_namespace('mspr', PLAYREADY_MSPR_NAMESPACE)
@@ -223,12 +236,23 @@ def AddContentProtection(options, container, tracks):
             header_b64 = header_bin.encode('base64').replace('\n', '')
             pro = xml.SubElement(cp, '{' + PLAYREADY_MSPR_NAMESPACE + '}pro')
             pro.text = header_b64
+
     if options.widevine:
         container.append(xml.Comment(' Widevine '))
         cp = xml.SubElement(container, 'ContentProtection', schemeIdUri=WIDEVINE_SCHEME_ID_URI)
         if options.widevine_header:
             pssh_payload = ComputeWidevineHeader(options.widevine_header, default_kid, key)
             pssh_box = MakePsshBox(WIDEVINE_PSSH_SYSTEM_ID.decode('hex'), pssh_payload)
+            pssh_b64 = pssh_box.encode('base64').replace('\n', '')
+            pssh = xml.SubElement(cp, '{' + CENC_2013_NAMESPACE + '}pssh')
+            pssh.text = pssh_b64
+
+    if options.primetime:
+        container.append(xml.Comment(' Primetime '))
+        cp = xml.SubElement(container, 'ContentProtection', schemeIdUri=PRIMETIME_SCHEME_ID_URI)
+        if options.primetime_metadata:
+            pssh_payload = ComputePrimetimeData(options.primetime_metadata)
+            pssh_box = MakePsshBox(PRIMETIME_PSSH_SYSTEM_ID.decode('hex'), pssh_payload)
             pssh_b64 = pssh_box.encode('base64').replace('\n', '')
             pssh = xml.SubElement(cp, '{' + CENC_2013_NAMESPACE + '}pssh')
             pssh.text = pssh_b64
@@ -795,9 +819,9 @@ def main():
     parser.add_option('', "--playready", dest="playready", action="store_true", default=False,
                       help="Add PlayReady signaling to the MPD (requires an encrypted input, or the --encryption-key option)")
     parser.add_option('', "--playready-header", dest="playready_header", metavar='<playready-header>', default=None,
-                      help="Add a PlayReady PRO element in the MPD and a PlayReady PSSH boxe in the init segments. The use of this option implies the --playready option." +
+                      help="Add a PlayReady PRO element in the MPD and a PlayReady PSSH box in the init segments. The use of this option implies the --playready option." +
                            "The <playready-header> argument can be either: " +
-                           "(1) the name of a file containing a PlayReady XML Rights Management Header (<WRMHEADER>) or a PlayReady Header Object (PRO) in binary form,  or "
+                           "(1) the character '@' followed by the name of a file containing a PlayReady XML Rights Management Header (<WRMHEADER>) or a PlayReady Header Object (PRO) in binary form,  or "
                            "(2) the character '#' followed by a PlayReady Header Object encoded in Base64, or " +
                            "(3) one or more <name>:<value> pair(s) (separated by '#' if more than one) specifying fields of a PlayReady Header Object (field names include LA_URL, LUI_URL and DS_ID)")
     parser.add_option('', "--playready-add-pssh", dest="playready_add_pssh", action="store_true", default=False,
@@ -811,6 +835,13 @@ def main():
                            "The <widevine-header> argument can be either: " +
                            "(1) the character '#' followed by a Widevine header encoded in Base64, or " +
                            "(2) one or more <name>:<value> pair(s) (separated by '#' if more than one) specifying fields of a Widevine header (field names include 'provider' [string], 'content_id' [byte array in hex], 'policy' [string])")
+    parser.add_option('', "--primetime", dest="primetime", action="store_true", default=False,
+                      help="Add Primetime signaling to the MPD (requires an encrypted input, or the --encryption-key option)")
+    parser.add_option('', "--primetime-metadata", dest="primetime_metadata", metavar='<primetime-metadata>', default=None,
+                      help="Add Primetime metadata in a PSSH box in the init segments. The use of this option implies the --primetime option." +
+                           "The <primetime-data> argument can be either: " +
+                           "(1) the character '@' followed by the name of a file containing the Primetime data to use"
+                           "(2) the character '#' followed by the Primetime data encoded in Base64")
     parser.add_option('', "--exec-dir", metavar="<exec_dir>", dest="exec_dir", default=default_exec_dir,
                       help="Directory where the Bento4 executables are located")
     (options, args) = parser.parse_args()
@@ -903,6 +934,9 @@ def main():
 
     if options.widevine_header:
         options.widevine = True
+
+    if options.primetime_metadata:
+        options.primetime = True
 
     # compute the KID and encryption key if needed
     if options.encryption_key:
@@ -1031,6 +1065,14 @@ def main():
                 TempFiles.append(pssh_file.name)
                 pssh_file.close() # necessary on Windows
                 args += ['--pssh', WIDEVINE_PSSH_SYSTEM_ID+':'+pssh_file.name]
+
+            if options.primetime_metadata:
+                primetime_metadata = ComputePrimetimeMetaData(options.primetime_metadata)
+                pssh_file = tempfile.NamedTemporaryFile(dir = options.output_dir, delete=False)
+                pssh_file.write(primetime_metadata)
+                TempFiles.append(pssh_file.name)
+                pssh_file.close() # necessary on Windows
+                args += ['--pssh', PRIMETIME_PSSH_SYSTEM_ID+':'+pssh_file.name]
 
             cmd = [path.join(Options.exec_dir, 'mp4encrypt')] + args
             if options.debug:

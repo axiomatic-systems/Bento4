@@ -43,11 +43,11 @@ LanguageCodeMap = {
     'ven': 've', 'vie': 'vi', 'vol': 'vo', 'wel': 'cy', 'wln': 'wa', 'wol': 'wo', 'xho': 'xh', 'yid': 'yi',
     'yor': 'yo', 'zha': 'za', 'zho': 'zh', 'zul': 'zu', '```': 'und'
 }
- 
+
 def PrintErrorAndExit(message):
     sys.stderr.write(message+'\n')
     sys.exit(1)
-    
+
 def XmlDuration(d):
     h  = int(d)/3600
     d -= h*3600
@@ -61,7 +61,7 @@ def XmlDuration(d):
     if s:
         xsd += ('%.3fS' % (s))
     return xsd
-    
+
 def Bento4Command(options, name, *args, **kwargs):
     cmd = [path.join(options.exec_dir, name)]
     for kwarg in kwargs:
@@ -73,13 +73,13 @@ def Bento4Command(options, name, *args, **kwargs):
     if options.debug:
         print 'COMMAND: ', cmd
     try:
-        return check_output(cmd) 
+        return check_output(cmd)
     except CalledProcessError, e:
         message = "binary tool failed with error %d" % e.returncode
         if options.verbose:
             message += " - " + str(cmd)
         raise Exception(message)
-    
+
 def Mp4Info(options, filename, **args):
     return Bento4Command(options, 'mp4info', filename, **args)
 
@@ -122,7 +122,7 @@ def WalkAtoms(filename, until=None):
             file.seek(cursor)
         except:
             break
-        
+
     return atoms
 
 
@@ -171,7 +171,7 @@ class Mp4Track:
             self.type = 'subtitles'
         else:
             self.type = 'other'
-        
+
         sample_desc = info['sample_descriptions'][0]
         if self.type == 'video':
             # get the width and height
@@ -181,16 +181,16 @@ class Mp4Track:
         if self.type == 'audio':
             self.sample_rate = sample_desc['sample_rate']
             self.channels = sample_desc['channels']
-                        
+
         self.language = info['language']
-        
+
     def update(self, options):
         # compute the total number of samples
         self.total_sample_count = reduce(operator.add, self.sample_counts, 0)
-        
+
         # compute the total duration
         self.total_duration = reduce(operator.add, self.segment_durations, 0)
-        
+
         # compute the average segment durations
         segment_count = len(self.segment_durations)
         if segment_count > 2:
@@ -200,7 +200,7 @@ class Mp4Track:
             self.average_segment_duration = self.segment_durations[0]
         else:
             self.average_segment_duration = 0
-            
+
         # compute the average segment bitrates
         self.media_size = reduce(operator.add, self.segment_sizes, 0)
         if self.total_duration:
@@ -208,8 +208,8 @@ class Mp4Track:
 
         # compute the max segment bitrates
         if len(self.segment_bitrates) > 1:
-            self.max_segment_bitrate = max(self.segment_bitrates[:-1])            
-        
+            self.max_segment_bitrate = max(self.segment_bitrates[:-1])
+
         # compute bandwidth
         if options.min_buffer_time == 0.0:
             options.min_buffer_time = self.average_segment_duration
@@ -228,7 +228,7 @@ class Mp4Track:
 
     def __repr__(self):
         return 'File '+str(self.parent.file_list_index)+'#'+str(self.id)
-    
+
 class Mp4File:
     def __init__(self, options, media_source):
         self.media_source    = media_source
@@ -256,7 +256,7 @@ class Mp4File:
         #print self.segments
         if options.debug:
             print '  found', len(self.segments), 'segments'
-                        
+
         # get the mp4 file info
         json_info = Mp4Info(options, filename, format='json', fast=True)
         self.info = json.loads(json_info, strict=False, object_pairs_hook=collections.OrderedDict)
@@ -268,11 +268,11 @@ class Mp4File:
         json_dump = Mp4Dump(options, filename, format='json', verbosity='1')
         #print json_dump
         self.tree = json.loads(json_dump, strict=False, object_pairs_hook=collections.OrderedDict)
-        
+
         # look for KIDs
         for track in self.tracks.itervalues():
             track.compute_kid()
-                
+
         # compute default sample durations and timescales
         for atom in self.tree:
             if atom['name'] == 'moov':
@@ -339,7 +339,7 @@ class Mp4File:
                         segment_bitrate = 0
                     track.segment_bitrates.append(segment_bitrate)
                 segment_size = 0
-                                                
+
         # parse the 'mfra' index if there is one and update segment durations.
         # this is needed to deal with input files that have an 'mfra' index that
         # does not exactly match the sample durations (because of rounding errors),
@@ -380,7 +380,7 @@ class Mp4File:
         # compute the total numer of samples for each track
         for track_id in self.tracks:
             self.tracks[track_id].update(options)
-                                                   
+
         # print debug info if requested
         if options.debug:
             for track in self.tracks.itervalues():
@@ -397,12 +397,12 @@ class Mp4File:
         for track_id in self.tracks:
             if track_id_to_find == 0 or track_id_to_find == track_id:
                 return self.tracks[track_id]
-        
+
         return None
 
     def find_tracks_by_type(self, track_type_to_find):
         return [track for track in self.tracks.values() if track_type_to_find == '' or track_type_to_find == track.type]
-            
+
 class MediaSource:
     def __init__(self, name):
         self.name = name
@@ -418,14 +418,14 @@ class MediaSource:
         else:
             self.filename = name
             self.spec = {}
-            
+
         if 'type'           not in self.spec: self.spec['type']     = ''
         if 'track'          not in self.spec: self.spec['track']    = 0
         if 'language'       not in self.spec: self.spec['language'] = ''
-        
+
         # keep a record of our original filename in case it gets changed later
         self.original_filename = self.filename
-        
+
     def __repr__(self):
         return self.name
 
@@ -443,7 +443,7 @@ def ComputeBandwidth(buffer_time, sizes, durations):
                 bandwidth = 8.0*(accu_size-buffer_size)/accu_duration
                 break
     return int(bandwidth)
-    
+
 def MakeNewDir(dir, exit_if_exists=False, severity=None):
     if os.path.exists(dir):
         if severity:
@@ -452,7 +452,7 @@ def MakeNewDir(dir, exit_if_exists=False, severity=None):
         if exit_if_exists:
             sys.exit(1)
     else:
-        os.mkdir(dir)        
+        os.mkdir(dir)
 
 def MakePsshBox(system_id, payload):
     pssh_size = 12+16+4+len(payload)
@@ -476,7 +476,7 @@ def DerivePlayReadyKey(seed, kid, swap=True):
         raise Exception('seed must be  >= 30 bytes')
     if len(kid) != 16:
         raise Exception('kid must be 16 bytes')
-    
+
     if swap:
         kid = kid[3]+kid[2]+kid[1]+kid[0]+kid[5]+kid[4]+kid[7]+kid[6]+kid[8:]
 
@@ -486,20 +486,20 @@ def DerivePlayReadyKey(seed, kid, swap=True):
     sha.update(seed)
     sha.update(kid)
     sha_A = [ord(x) for x in sha.digest()]
-    
+
     sha = hashlib.sha256()
     sha.update(seed)
     sha.update(kid)
     sha.update(seed)
     sha_B = [ord(x) for x in sha.digest()]
-    
+
     sha = hashlib.sha256()
     sha.update(seed)
     sha.update(kid)
     sha.update(seed)
     sha.update(kid)
     sha_C = [ord(x) for x in sha.digest()]
-        
+
     content_key = ""
     for i in range(16):
         content_key += chr(sha_A[i] ^ sha_A[i+16] ^ sha_B[i] ^ sha_B[i+16] ^ sha_C[i] ^ sha_C[i+16])
@@ -526,7 +526,13 @@ def ComputePlayReadyHeader(header_spec, kid_hex, key_hex):
         if len(header) == 0:
             raise Exception('invalid base64 encoding')
         return header
-    elif os.path.exists(header_spec):
+    elif header_spec.startswith('@') or os.path.exists(header_spec):
+        # check that the file exists
+        if header_spec.startswith('@'):
+            header_spec = header_spec[1:]
+            if not os.path.exists(header_spec):
+                raise Exception('header data file does not exist')
+
         # read the header from the file
         header = open(header_spec, 'rb').read()
         header_xml = None
@@ -572,6 +578,29 @@ def ComputePlayReadyHeader(header_spec, kid_hex, key_hex):
 
         header_xml += '</DATA></WRMHEADER>'
         return WrapPlayreadyHeaderXml(header_xml)
+
+    return ""
+
+def ComputePrimetimeMetaData(header_spec):
+    # construct the base64 header
+    if header_spec is None:
+        header_spec = ''
+    if header_spec.startswith('#'):
+        header_b64 = header_spec[1:]
+        header = header_b64.decode('base64')
+        if len(header) == 0:
+            raise Exception('invalid base64 encoding')
+        return header
+    elif header_spec.startswith('@'):
+        # check that the file exists
+        if header_spec.startswith('@'):
+            header_spec = header_spec[1:]
+            if not os.path.exists(header_spec):
+                raise Exception('data file does not exist')
+
+        # read the header from the file
+        header = open(header_spec, 'rb').read()
+        return header
 
     return ""
 
@@ -627,5 +656,5 @@ def ComputeWidevineHeader(header_spec, kid_hex, key_hex):
         if 'policy' in fields:
             protobuf_fields.append((6, fields['policy']))
         return WidevineMakeHeader(protobuf_fields)
-    
-    return ""    
+
+    return ""

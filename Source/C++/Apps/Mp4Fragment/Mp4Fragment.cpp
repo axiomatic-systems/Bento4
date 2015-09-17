@@ -52,6 +52,7 @@ const unsigned int AP4_FRAGMENTER_MAX_AUTO_FRAGMENT_DURATION  = 40000;
 +---------------------------------------------------------------------*/
 struct _Options {
     unsigned int verbosity;
+    bool         trim;
     bool         debug;
 } Options;
 
@@ -72,6 +73,7 @@ PrintUsageAndExit()
             "  --timescale <n> (use 10000000 for Smooth Streaming compatibility)\n"
             "  --track <track-id or type> only include media from one track (pass a track ID, 'audio', 'video' or 'subtitles')\n"
             "  --index (re)create the segment index\n"
+            "  --trim trim excess media in longer tracks\n"
             );
     exit(1);
 }
@@ -370,17 +372,19 @@ Fragment(AP4_File&                input_file,
         if (cursor == NULL) {
             // the anchor should be used in this round, check if we can use it
             if (anchor_cursor->m_Eos) {
-                // the anchor is done, pick a new anchor
+                // the anchor is done, pick a new anchor unless we need to trim
                 anchor_cursor = NULL;
-                for (unsigned int i=0; i<cursors.ItemCount(); i++) {
-                    if (track_id && cursors[i]->m_Track->GetId() != track_id) continue;
-                    if (cursors[i]->m_Eos) continue;
-                    if (anchor_cursor == NULL ||
-                        cursors[i]->m_Track->GetType() == AP4_Track::TYPE_VIDEO ||
-                        cursors[i]->m_Track->GetType() == AP4_Track::TYPE_AUDIO) {
-                        anchor_cursor = cursors[i];
-                        if (Options.debug) {
-                            printf("+++ New anchor: Track ID %d\n", anchor_cursor->m_Track->GetId());
+                if (!Options.trim) {
+                    for (unsigned int i=0; i<cursors.ItemCount(); i++) {
+                        if (track_id && cursors[i]->m_Track->GetId() != track_id) continue;
+                        if (cursors[i]->m_Eos) continue;
+                        if (anchor_cursor == NULL ||
+                            cursors[i]->m_Track->GetType() == AP4_Track::TYPE_VIDEO ||
+                            cursors[i]->m_Track->GetType() == AP4_Track::TYPE_AUDIO) {
+                            anchor_cursor = cursors[i];
+                            if (Options.debug) {
+                                printf("+++ New anchor: Track ID %d\n", anchor_cursor->m_Track->GetId());
+                            }
                         }
                     }
                 }
@@ -566,7 +570,7 @@ Fragment(AP4_File&                input_file,
             sample_count++;
             if (cursor->m_Eos) {
                 if (Options.debug) {
-                    printf("[has reached the end]\n");
+                    printf("[Track ID %d has reached the end]\n", cursor->m_Track->GetId());
                 }
                 break;
             }
@@ -856,6 +860,7 @@ main(int argc, char** argv)
 
     Options.verbosity = 1;
     Options.debug     = false;
+    Options.trim      = false;
     
     // parse the command line
     argv++;
@@ -874,6 +879,8 @@ main(int argc, char** argv)
             create_segment_index = true;
         } else if (!strcmp(arg, "--quiet")) {
             quiet = true;
+        } else if (!strcmp(arg, "--trim")) {
+            Options.trim = true;
         } else if (!strcmp(arg, "--fragment-duration")) {
             arg = *argv++;
             if (arg == NULL) {
