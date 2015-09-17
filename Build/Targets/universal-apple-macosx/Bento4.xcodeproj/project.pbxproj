@@ -4091,6 +4091,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				PRODUCT_NAME = mp42ts;
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Debug;
 		};
@@ -4098,6 +4099,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				PRODUCT_NAME = mp42ts;
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Release;
 		};
@@ -4130,6 +4132,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				PRODUCT_NAME = mp4pssh;
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Debug;
 		};
@@ -4159,6 +4162,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				PRODUCT_NAME = mp4pssh;
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Release;
 		};
@@ -4172,6 +4176,7 @@
 				GCC_PREPROCESSOR_DEFINITIONS = DEBUG;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				PRODUCT_NAME = mp4compact;
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Debug;
 		};
@@ -4183,6 +4188,7 @@
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				PRODUCT_NAME = mp4compact;
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Release;
 		};
@@ -4190,6 +4196,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				PRODUCT_NAME = mp42avc;
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Debug;
 		};
@@ -4197,6 +4204,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				PRODUCT_NAME = mp42avc;
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Release;
 		};
@@ -4208,6 +4216,7 @@
 				GCC_MODEL_TUNING = G5;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				PRODUCT_NAME = aac2mp4;
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Debug;
 		};
@@ -4217,6 +4226,7 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				GCC_MODEL_TUNING = G5;
 				PRODUCT_NAME = aac2mp4;
+				SUPPORTED_PLATFORMS = macosx;
 				ZERO_LINK = NO;
 			};
 			name = Release;
@@ -4225,6 +4235,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				PRODUCT_NAME = avcinfo;
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Debug;
 		};
@@ -4232,6 +4243,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				PRODUCT_NAME = avcinfo;
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Release;
 		};
@@ -4239,6 +4251,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				PRODUCT_NAME = BasicTest;
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Debug;
 		};
@@ -4246,6 +4259,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				PRODUCT_NAME = BasicTest;
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Release;
 		};
@@ -4253,6 +4267,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				PRODUCT_NAME = mp4dcfpackager;
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Debug;
 		};
@@ -4260,6 +4275,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				PRODUCT_NAME = mp4dcfpackager;
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Release;
 		};
@@ -4277,6 +4293,7 @@
 					AppKit,
 				);
 				PRODUCT_NAME = mp4fragment;
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Debug;
 		};
@@ -4292,6 +4309,7 @@
 					AppKit,
 				);
 				PRODUCT_NAME = mp4fragment;
+				SUPPORTED_PLATFORMS = macosx;
 				ZERO_LINK = NO;
 			};
 			name = Release;
@@ -4300,6 +4318,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				PRODUCT_NAME = mp4dump;
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Debug;
 		};
@@ -4307,6 +4326,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				PRODUCT_NAME = mp4dump;
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Release;
 		};
@@ -4328,6 +4348,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				PRODUCT_NAME = mp4info;
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Debug;
 		};
@@ -4335,6 +4356,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				PRODUCT_NAME = mp4info;
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Release;
 		};
@@ -4342,6 +4364,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				PRODUCT_NAME = mp4encrypt;
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Debug;
 		};
@@ -4349,6 +4372,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				PRODUCT_NAME = mp4encrypt;
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Release;
 		};
@@ -4356,6 +4380,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				PRODUCT_NAME = mp4decrypt;
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Debug;
 		};
@@ -4363,6 +4388,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				PRODUCT_NAME = mp4decrypt;
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Release;
 		};
@@ -4370,6 +4396,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				PRODUCT_NAME = mp4edit;
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Debug;
 		};
@@ -4377,6 +4404,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				PRODUCT_NAME = mp4edit;
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Release;
 		};
@@ -4384,6 +4412,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				PRODUCT_NAME = mp4extract;
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Debug;
 		};
@@ -4391,6 +4420,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				PRODUCT_NAME = mp4extract;
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Release;
 		};
@@ -4398,6 +4428,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				PRODUCT_NAME = mp4tag;
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Debug;
 		};
@@ -4405,6 +4436,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				PRODUCT_NAME = mp4tag;
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Release;
 		};
@@ -4412,6 +4444,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				PRODUCT_NAME = mp42aac;
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Debug;
 		};
@@ -4419,6 +4452,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				PRODUCT_NAME = mp42aac;
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Release;
 		};
@@ -4426,6 +4460,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				PRODUCT_NAME = mp4rtphintinfo;
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Debug;
 		};
@@ -4433,6 +4468,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				PRODUCT_NAME = mp4rtphintinfo;
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Release;
 		};
@@ -4440,6 +4476,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				PRODUCT_NAME = cryptotest;
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Debug;
 		};
@@ -4447,6 +4484,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				PRODUCT_NAME = cryptotest;
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Release;
 		};
@@ -4468,6 +4506,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				PRODUCT_NAME = CompareFilesTest;
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Debug;
 		};
@@ -4475,6 +4514,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				PRODUCT_NAME = CompareFilesTest;
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Release;
 		};
@@ -4505,6 +4545,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Debug;
 		};
@@ -4532,6 +4573,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Release;
 		};
@@ -4562,6 +4604,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				PRODUCT_NAME = mp4mux;
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Debug;
 		};
@@ -4589,6 +4632,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				PRODUCT_NAME = mp4mux;
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Release;
 		};
@@ -4600,6 +4644,7 @@
 				GCC_MODEL_TUNING = G5;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				PRODUCT_NAME = PassthroughWriterTest;
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Debug;
 		};
@@ -4609,6 +4654,7 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				GCC_MODEL_TUNING = G5;
 				PRODUCT_NAME = PassthroughWriterTest;
+				SUPPORTED_PLATFORMS = macosx;
 				ZERO_LINK = NO;
 			};
 			name = Release;
@@ -4660,6 +4706,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				PRODUCT_NAME = BufferedStreamTest;
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Debug;
 		};
@@ -4667,6 +4714,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				PRODUCT_NAME = BufferedStreamTest;
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Release;
 		};
@@ -4674,6 +4722,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				PRODUCT_NAME = TracksTest;
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Debug;
 		};
@@ -4681,6 +4730,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				PRODUCT_NAME = TracksTest;
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Release;
 		};
@@ -4692,6 +4742,7 @@
 				GCC_MODEL_TUNING = G5;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				PRODUCT_NAME = mp4split;
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Debug;
 		};
@@ -4701,6 +4752,7 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				GCC_MODEL_TUNING = G5;
 				PRODUCT_NAME = mp4split;
+				SUPPORTED_PLATFORMS = macosx;
 				ZERO_LINK = NO;
 			};
 			name = Release;
@@ -4721,6 +4773,7 @@
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				PRODUCT_NAME = mp4audioclip;
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Debug;
 		};
@@ -4735,6 +4788,7 @@
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				PRODUCT_NAME = mp4audioclip;
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Release;
 		};
@@ -4742,6 +4796,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				PRODUCT_NAME = mp42hls;
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Debug;
 		};
@@ -4749,6 +4804,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				PRODUCT_NAME = mp42hls;
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Release;
 		};
@@ -4756,6 +4812,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				PRODUCT_NAME = LinearReaderTest;
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Debug;
 		};
@@ -4763,6 +4820,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				PRODUCT_NAME = LinearReaderTest;
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Release;
 		};
@@ -4788,6 +4846,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				PRODUCT_NAME = BenchmarksTest;
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Debug;
 		};
@@ -4795,6 +4854,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				PRODUCT_NAME = BenchmarksTest;
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Release;
 		};
@@ -4825,6 +4885,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				PRODUCT_NAME = hevcinfo;
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Debug;
 		};
@@ -4852,6 +4913,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				PRODUCT_NAME = hevcinfo;
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Release;
 		};
@@ -4882,6 +4944,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				PRODUCT_NAME = mp42hevc;
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Debug;
 		};
@@ -4909,6 +4972,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				PRODUCT_NAME = mp42hevc;
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Release;
 		};
@@ -4916,6 +4980,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				PRODUCT_NAME = FragmentParserTest;
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Debug;
 		};
@@ -4923,6 +4988,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				PRODUCT_NAME = FragmentParserTest;
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Release;
 		};
@@ -4930,6 +4996,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				PRODUCT_NAME = AvcTrackWriterTest;
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Debug;
 		};
@@ -4937,6 +5004,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				PRODUCT_NAME = AvcTrackWriterTest;
+				SUPPORTED_PLATFORMS = macosx;
 			};
 			name = Release;
 		};
