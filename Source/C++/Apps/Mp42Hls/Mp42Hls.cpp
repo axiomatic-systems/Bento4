@@ -59,15 +59,19 @@ typedef enum {
     ENCRYPTION_IV_MODE_FPS
 } EncryptionIvMode;
 
-struct _Options {
+static struct _Options {
     const char*      input;
     bool             verbose;
     unsigned int     hls_version;
     unsigned int     pmt_pid;
     unsigned int     audio_pid;
     unsigned int     video_pid;
+    int              audio_track_id;
+    int              video_track_id;
     const char*      index_filename;
+    const char*      iframe_index_filename;
     bool             output_single_file;
+    bool             show_info;
     const char*      segment_filename_template;
     const char*      segment_url_template;
     unsigned int     segment_duration;
@@ -81,6 +85,16 @@ struct _Options {
     const char*      encryption_key_format;
     const char*      encryption_key_format_versions;
 } Options;
+
+static struct _Stats {
+    AP4_UI64 segments_total_size;
+    double   segments_total_duration;
+    AP4_UI32 segment_count;
+    double   max_segment_bitrate;
+    AP4_UI64 iframes_total_size;
+    AP4_UI32 iframe_count;
+    double   max_iframe_bitrate;
+} Stats;
 
 /*----------------------------------------------------------------------
 |   constants
@@ -111,6 +125,10 @@ PrintUsageAndExit()
             "    PID to use for audio packets (default: 0x101)\n"
             "  --video-pid <pid>\n"
             "    PID to use for video packets (default: 0x102)\n"
+            "  --audio-track-id <n>\n"
+            "    Read audio from track ID <n> (0 means no audio)\n"
+            "  --video-track-id <n>\n"
+            "    Read video from track ID <n> (0 means no video)\n"
             "  --segment-duration <n>\n"
             "    Target segment duration in seconds (default: 10)\n"
             "  --segment-duration-threshold <t>\n"
@@ -126,6 +144,8 @@ PrintUsageAndExit()
             "    one number field for the segment number unless unsing single file mode.\n"
             "    (may be a relative or absolute URI).\n"
             "    (default: segment-%%d.ts for separate segment files, or stream.ts for single file)\n"
+            "  --iframe-index-filename <filename>\n"
+            "    Filename to use for the I-Frame playlist (default: iframes.m3u8 when HLS version >= 4)\n"
             "  --output-single-file\n"
             "    Output all the media in a single file instead of separate segment files.\n"
             "    The segment filename template and segment URL template must be simple strings\n"
@@ -278,7 +298,7 @@ public:
         if (AP4_SUCCEEDED(result)) {
             result = m_Output->Write(out, out_size);
             bytes_written = bytes_to_write;
-            m_Size     += out_size;
+            m_Size       += bytes_to_write;
         } else {
             bytes_written = 0;
         }
@@ -291,7 +311,7 @@ public:
         AP4_Result result = m_StreamCipher->ProcessBuffer(NULL, 0, trailer, &trailer_size, true);
         if (AP4_SUCCEEDED(result) && trailer_size) {
             m_Output->Write(trailer, trailer_size);
-            m_Size += trailer_size;
+            m_Size += 16-(m_Size%16);
         }
         
         return AP4_SUCCESS;
@@ -515,17 +535,20 @@ ReadSample(SampleReader&   reader,
            AP4_Sample&     sample,
            AP4_DataBuffer& sample_data, 
            double&         ts,
+           double&         duration,
            bool&           eos)
 {
     AP4_Result result = reader.ReadSample(sample, sample_data);
     if (AP4_FAILED(result)) {
         if (result == AP4_ERROR_EOS) {
+            ts += duration;
             eos = true;
         } else {
             return result;
         }
     }
     ts = (double)sample.GetDts()/(double)track.GetMediaTimeScale();
+    duration = sample.GetDuration()/(double)track.GetMediaTimeScale();
     
     return AP4_SUCCESS;
 }
@@ -544,37 +567,44 @@ WriteSamples(AP4_Mpeg2TsWriter&               writer,
              unsigned int                     segment_duration_threshold,
              AP4_UI08                         nalu_length_size)
 {
-    AP4_Sample          audio_sample;
-    AP4_DataBuffer      audio_sample_data;
-    unsigned int        audio_sample_count = 0;
-    double              audio_ts = 0.0;
-    bool                audio_eos = false;
-    AP4_Sample          video_sample;
-    AP4_DataBuffer      video_sample_data;
-    unsigned int        video_sample_count = 0;
-    double              video_ts = 0.0;
-    bool                video_eos = false;
-    double              last_ts = 0.0;
-    AP4_Position        segment_start = 0;
-    unsigned int        segment_number = 0;
-    double              segment_duration = 0.0;
-    AP4_ByteStream*     output = NULL;
-    AP4_ByteStream*     raw_output = NULL;
-    AP4_ByteStream*     playlist = NULL;
-    char                string_buffer[4096];
-    AP4_Array<double>   segment_durations;
-    AP4_Array<AP4_UI32> segment_sizes;
-    bool                new_segment = true;
-    SampleEncrypter*    sample_encrypter = NULL;
-    AP4_Result          result = AP4_SUCCESS;
+    AP4_Sample              audio_sample;
+    AP4_DataBuffer          audio_sample_data;
+    unsigned int            audio_sample_count = 0;
+    double                  audio_ts = 0.0;
+    double                  audio_frame_duration = 0.0;
+    bool                    audio_eos = false;
+    AP4_Sample              video_sample;
+    AP4_DataBuffer          video_sample_data;
+    unsigned int            video_sample_count = 0;
+    double                  video_ts = 0.0;
+    double                  video_frame_duration = 0.0;
+    bool                    video_eos = false;
+    double                  last_ts = 0.0;
+    unsigned int            segment_number = 0;
+    AP4_ByteStream*         segment_output = NULL;
+    double                  segment_duration = 0.0;
+    AP4_Array<double>       segment_durations;
+    AP4_Array<AP4_UI32>     segment_sizes;
+    AP4_Position            segment_position = 0;
+    AP4_Array<AP4_Position> segment_positions;
+    AP4_Array<AP4_Position> iframe_positions;
+    AP4_Array<AP4_UI32>     iframe_sizes;
+    AP4_Array<double>       iframe_times;
+    AP4_Array<AP4_UI32>     iframe_segment_indexes;
+    bool                    new_segment = true;
+    AP4_ByteStream*         raw_output = NULL;
+    AP4_ByteStream*         playlist = NULL;
+    char                    string_buffer[4096];
+    SampleEncrypter*        sample_encrypter = NULL;
+    AP4_Result              result = AP4_SUCCESS;
     
     // prime the samples
     if (audio_reader) {
-        result = ReadSample(*audio_reader, *audio_track, audio_sample, audio_sample_data, audio_ts, audio_eos);
+        result = ReadSample(*audio_reader, *audio_track, audio_sample, audio_sample_data, audio_ts, audio_frame_duration, audio_eos);
         if (AP4_FAILED(result)) return result;
     }
     if (video_reader) {
-        result = ReadSample(*video_reader, *video_track, video_sample, video_sample_data, video_ts, video_eos);
+        result = ReadSample(*video_reader, *video_track, video_sample, video_sample_data, video_ts, video_frame_duration, video_eos);
         if (AP4_FAILED(result)) return result;
     }
     
@@ -597,53 +627,58 @@ WriteSamples(AP4_Mpeg2TsWriter&               writer,
                 sync_sample = true;
             }
         }
-        if (chosen_track == NULL) break;
         
         // check if we need to start a new segment
-        if (Options.segment_duration && sync_sample) {
+        if (Options.segment_duration && (sync_sample || chosen_track == NULL)) {
             if (video_track) {
                 segment_duration = video_ts - last_ts;
             } else {
                 segment_duration = audio_ts - last_ts;
             }
-            if (segment_duration >= (double)Options.segment_duration - (double)segment_duration_threshold/1000.0) {
+            if ((segment_duration >= (double)Options.segment_duration - (double)segment_duration_threshold/1000.0) ||
+                chosen_track == NULL) {
                 if (video_track) {
                     last_ts = video_ts;
                 } else {
                     last_ts = audio_ts;
                 }
-                if (output) {
-                    output->Flush();
+                if (segment_output) {
+                    // compute the segment size (not including padding)
+                    AP4_Position segment_end = 0;
+                    segment_output->Tell(segment_end);
                     AP4_UI32 segment_size = 0;
                     if (Options.encryption_mode == ENCRYPTION_MODE_AES_128) {
-                        AP4_LargeSize segment_end = 0;
-                        output->GetSize(segment_end);
-                        segment_size = (AP4_UI32)(segment_end-segment_start);
-                    } else {
-                        AP4_Position segment_end = 0;
-                        output->Tell(segment_end);
-                        segment_size = (AP4_UI32)(segment_end-segment_start);
+                        segment_size = (AP4_UI32)segment_end;
+                    } else if (segment_end > segment_position) {
+                        segment_size = (AP4_UI32)(segment_end-segment_position);
                     }
+                    
+                    // flush the output stream
+                    segment_output->Flush();
+                    
+                    // update counters
                     segment_sizes.Append(segment_size);
+                    segment_positions.Append(segment_position);
                     segment_durations.Append(segment_duration);
+            
+                    if (segment_duration != 0.0) {
+                        double segment_bitrate = 8.0*(double)segment_size/segment_duration;
+                        if (segment_bitrate > Stats.max_segment_bitrate) {
+                            Stats.max_segment_bitrate = segment_bitrate;
+                        }
+                    }
                     if (Options.verbose) {
-                        printf("Segment %d, duration=%.2f, %d audio samples, %d video samples, %d bytes\n",
+                        printf("Segment %d, duration=%.2f, %d audio samples, %d video samples, %d bytes @%lld\n",
                                segment_number, 
                                segment_duration,
                                audio_sample_count, 
                                video_sample_count,
-                               segment_size);
+                               segment_size,
+                               segment_position);
                     }
-                    if (Options.output_single_file) {
-                        if (Options.encryption_mode == ENCRYPTION_MODE_AES_128) {
-                            segment_start = 0;
-                        } else {
-                            output->Tell(segment_start);
-                        }
-                    } else {
-                        output->Release();
-                        output = NULL;
-                        segment_start = 0;
+                    if (!Options.output_single_file) {
+                        segment_output->Release();
+                        segment_output = NULL;
                     }
                     ++segment_number;
                     audio_sample_count = 0;
@@ -652,12 +687,26 @@ WriteSamples(AP4_Mpeg2TsWriter&               writer,
                 new_segment = true;
             }
         }
+
+        // check if we're done
+        if (chosen_track == NULL) break;
+        
         if (new_segment) {
             new_segment = false;
-            if (output == NULL) {
-                output = OpenOutput(Options.segment_filename_template, segment_number);
-                raw_output = output;
-                if (output == NULL) return AP4_ERROR_CANNOT_OPEN_FILE;
+            
+            // compute the new segment position
+            segment_position = 0;
+            if (Options.output_single_file) {
+                if (raw_output) {
+                    raw_output->Tell(segment_position);
+                }
+            }
+            
+            // manage the new segment stream
+            if (segment_output == NULL) {
+                segment_output = OpenOutput(Options.segment_filename_template, segment_number);
+                raw_output = segment_output;
+                if (segment_output == NULL) return AP4_ERROR_CANNOT_OPEN_FILE;
             }
             if (Options.encryption_mode != ENCRYPTION_MODE_NONE) {
                 if (Options.encryption_iv_mode == ENCRYPTION_IV_MODE_SEQUENCE) {
@@ -672,8 +721,8 @@ WriteSamples(AP4_Mpeg2TsWriter&               writer,
                     fprintf(stderr, "ERROR: failed to create encrypting stream (%d)\n", result);
                     return 1;
                 }
-                output->Release();
-                output = encrypting_stream;
+                segment_output->Release();
+                segment_output = encrypting_stream;
             } else if (Options.encryption_mode == ENCRYPTION_MODE_SAMPLE_AES) {
                 delete sample_encrypter;
                 sample_encrypter = NULL;
@@ -683,8 +732,10 @@ WriteSamples(AP4_Mpeg2TsWriter&               writer,
                     return 1;
                 }
             }
-            writer.WritePAT(*output);
-            writer.WritePMT(*output);
+            
+            // write the PAT and PMT
+            writer.WritePAT(*segment_output);
+            writer.WritePMT(*segment_output);
         }
 
         // write the samples out and advance to the next sample
@@ -699,10 +750,10 @@ WriteSamples(AP4_Mpeg2TsWriter&               writer,
                                                audio_sample_data,
                                                audio_track->GetSampleDescription(audio_sample.GetDescriptionIndex()), 
                                                video_track==NULL, 
-                                               *output);
+                                               *segment_output);
             if (AP4_FAILED(result)) return result;
             
-            result = ReadSample(*audio_reader, *audio_track, audio_sample, audio_sample_data, audio_ts, audio_eos);
+            result = ReadSample(*audio_reader, *audio_track, audio_sample, audio_sample_data, audio_ts, audio_frame_duration, audio_eos);
             if (AP4_FAILED(result)) return result;
             ++audio_sample_count;
         } else if (chosen_track == video_track) {
@@ -712,14 +763,37 @@ WriteSamples(AP4_Mpeg2TsWriter&               writer,
             }
 
             // write the sample data
+            AP4_Position frame_start = 0;
+            segment_output->Tell(frame_start);
             result = video_stream->WriteSample(video_sample,
                                                video_sample_data, 
                                                video_track->GetSampleDescription(video_sample.GetDescriptionIndex()),
                                                true, 
-                                               *output);
+                                               *segment_output);
             if (AP4_FAILED(result)) return result;
-
-            result = ReadSample(*video_reader, *video_track, video_sample, video_sample_data, video_ts, video_eos);
+            AP4_Position frame_end = 0;
+            segment_output->Tell(frame_end);
+            
+            // measure I frames
+            if (video_sample.IsSync()) {
+                AP4_UI64 frame_size = 0;
+                if (frame_end > frame_start) {
+                    frame_size = frame_end-frame_start;
+                }
+                if (Options.encryption_mode == ENCRYPTION_MODE_AES_128) {
+                    frame_start += segment_position;
+                }
+                iframe_positions.Append(frame_start);
+                iframe_sizes.Append((AP4_UI32)frame_size);
+                iframe_times.Append(video_ts);
+                iframe_segment_indexes.Append(segment_number);
+                if (Options.verbose) {
+                    printf("I-Frame: %d@%lld, t=%f\n", (AP4_UI32)frame_size, frame_start, video_ts);
+                }
+            }
+            
+            // read the next sample
+            result = ReadSample(*video_reader, *video_track, video_sample, video_sample_data, video_ts, video_frame_duration, video_eos);
             if (AP4_FAILED(result)) return result;
             ++video_sample_count;
         } else {
@@ -727,50 +801,17 @@ WriteSamples(AP4_Mpeg2TsWriter&               writer,
         }
     }
     
-    // finish the last segment
-    if (output) {
-        if (video_track) {
-            segment_duration = video_ts - last_ts;
-        } else {
-            segment_duration = audio_ts - last_ts;
-        }
-        output->Flush();
-        AP4_UI32 segment_size = 0;
-        if (Options.encryption_mode == ENCRYPTION_MODE_AES_128) {
-            AP4_LargeSize segment_end = 0;
-            output->GetSize(segment_end);
-            segment_size = (AP4_UI32)(segment_end-segment_start);
-        } else {
-            AP4_Position segment_end = 0;
-            output->Tell(segment_end);
-            segment_size = (AP4_UI32)(segment_end-segment_start);
-        }
-        segment_sizes.Append(segment_size);
-        segment_durations.Append(segment_duration);
-        if (Options.verbose) {
-            printf("Segment %d, duration=%.2f, %d audio samples, %d video samples, %d bytes\n",
-                   segment_number, 
-                   segment_duration,
-                   audio_sample_count, 
-                   video_sample_count,
-                   segment_size);
-        }
-        output->Release();
-        output = NULL;
-        ++segment_number;
-        audio_sample_count = 0;
-        video_sample_count = 0;
-    }
-
-    // create the playlist/index file
+    // create the media playlist/index file
     playlist = OpenOutput(Options.index_filename, 0);
     if (playlist == NULL) return AP4_ERROR_CANNOT_OPEN_FILE;
 
     unsigned int target_duration = 0;
+    double       total_duration = 0.0;
     for (unsigned int i=0; i<segment_durations.ItemCount(); i++) {
         if ((unsigned int)(segment_durations[i]+0.5) > target_duration) {
             target_duration = segment_durations[i];
         }
+        total_duration += segment_durations[i];
     }
 
     playlist->WriteString("#EXTM3U\r\n");
@@ -815,7 +856,6 @@ WriteSamples(AP4_Mpeg2TsWriter&               writer,
         playlist->WriteString("\r\n");
     }
     
-    AP4_UI64 segment_position = 0;
     for (unsigned int i=0; i<segment_durations.ItemCount(); i++) {
         if (Options.hls_version >= 3) {
             sprintf(string_buffer, "#EXTINF:%f,\r\n", segment_durations[i]);
@@ -824,8 +864,7 @@ WriteSamples(AP4_Mpeg2TsWriter&               writer,
         }
         playlist->WriteString(string_buffer);
         if (Options.output_single_file) {
-            sprintf(string_buffer, "#EXT-X-BYTERANGE:%d@%lld\r\n", segment_sizes[i], segment_position);
-            segment_position += segment_sizes[i];
+            sprintf(string_buffer, "#EXT-X-BYTERANGE:%d@%lld\r\n", segment_sizes[i], segment_positions[i]);
             playlist->WriteString(string_buffer);
         }
         sprintf(string_buffer, Options.segment_url_template, i);
@@ -836,16 +875,109 @@ WriteSamples(AP4_Mpeg2TsWriter&               writer,
     playlist->WriteString("#EXT-X-ENDLIST\r\n");
     playlist->Release();
 
+    // create the iframe playlist/index file
+    if (video_track && Options.hls_version >= 4) {
+        playlist = OpenOutput(Options.iframe_index_filename, 0);
+        if (playlist == NULL) return AP4_ERROR_CANNOT_OPEN_FILE;
+
+        playlist->WriteString("#EXTM3U\r\n");
+        if (Options.hls_version > 1) {
+            sprintf(string_buffer, "#EXT-X-VERSION:%d\r\n", Options.hls_version);
+            playlist->WriteString(string_buffer);
+        }
+        playlist->WriteString("#EXT-X-PLAYLIST-TYPE:VOD\r\n");
+        playlist->WriteString("#EXT-X-I-FRAMES-ONLY\r\n");
+        playlist->WriteString("#EXT-X-INDEPENDENT-SEGMENTS\r\n");
+        playlist->WriteString("#EXT-X-TARGETDURATION:");
+        sprintf(string_buffer, "%d\r\n", Options.segment_duration);
+        playlist->WriteString(string_buffer);
+        playlist->WriteString("#EXT-X-MEDIA-SEQUENCE:0\r\n");
+
+        if (Options.encryption_mode != ENCRYPTION_MODE_NONE) {
+            playlist->WriteString("#EXT-X-KEY:METHOD=");
+            if (Options.encryption_mode == ENCRYPTION_MODE_AES_128) {
+                playlist->WriteString("AES-128");
+            } else if (Options.encryption_mode == ENCRYPTION_MODE_SAMPLE_AES) {
+                playlist->WriteString("SAMPLE-AES");
+            }
+            playlist->WriteString(",URI=\"");
+            playlist->WriteString(Options.encryption_key_uri);
+            playlist->WriteString("\"");
+            if (Options.encryption_iv_mode == ENCRYPTION_IV_MODE_RANDOM) {
+                playlist->WriteString(",IV=0x");
+                char iv_hex[33];
+                iv_hex[32] = 0;
+                AP4_FormatHex(Options.encryption_iv, 16, iv_hex);
+                playlist->WriteString(iv_hex);
+            }
+            if (Options.encryption_key_format) {
+                playlist->WriteString(",KEYFORMAT=\"");
+                playlist->WriteString(Options.encryption_key_format);
+                playlist->WriteString("\"");
+            }
+            if (Options.encryption_key_format_versions) {
+                playlist->WriteString(",KEYFORMATVERSIONS=\"");
+                playlist->WriteString(Options.encryption_key_format_versions);
+                playlist->WriteString("\"");
+            }
+            playlist->WriteString("\r\n");
+        }
+        
+        for (unsigned int i=0; i<iframe_positions.ItemCount(); i++) {
+            double iframe_duration = 0.0;
+            if (i+1 < iframe_positions.ItemCount()) {
+                iframe_duration = iframe_times[i+1]-iframe_times[i];
+            } else if (total_duration > iframe_times[i]) {
+                iframe_duration = total_duration-iframe_times[i];
+            }
+            sprintf(string_buffer, "#EXTINF:%f,\r\n", iframe_duration);
+            playlist->WriteString(string_buffer);
+            sprintf(string_buffer, "#EXT-X-BYTERANGE:%d@%lld\r\n", iframe_sizes[i], iframe_positions[i]);
+            playlist->WriteString(string_buffer);
+            sprintf(string_buffer, Options.segment_url_template, iframe_segment_indexes[i]);
+            playlist->WriteString(string_buffer);
+            playlist->WriteString("\r\n");
+        }
+                        
+        playlist->WriteString("#EXT-X-ENDLIST\r\n");
+        playlist->Release();
+    }
+    
+    // update stats
+    Stats.segment_count = segment_sizes.ItemCount();
+    for (unsigned int i=0; i<segment_sizes.ItemCount(); i++) {
+        Stats.segments_total_size += segment_sizes[i];
+        Stats.segments_total_duration += segment_durations[i];
+    }
+    Stats.iframe_count = iframe_sizes.ItemCount();
+    for (unsigned int i=0; i<iframe_sizes.ItemCount(); i++) {
+        Stats.iframes_total_size += iframe_sizes[i];
+    }
+    for (unsigned int i=0; i<iframe_positions.ItemCount(); i++) {
+        double iframe_duration = 0.0;
+        if (i+1 < iframe_positions.ItemCount()) {
+            iframe_duration = iframe_times[i+1]-iframe_times[i];
+        } else if (total_duration > iframe_times[i]) {
+            iframe_duration = total_duration-iframe_times[i];
+        }
+        if (iframe_duration != 0.0) {
+            double iframe_bitrate = 8.0*(double)iframe_sizes[i]/iframe_duration;
+            if (iframe_bitrate > Stats.max_iframe_bitrate) {
+                Stats.max_iframe_bitrate = iframe_bitrate;
+            }
+        }
+    }
+    
     if (Options.verbose) {
         if (video_track) {
             segment_duration = video_ts - last_ts;
         } else {
             segment_duration = audio_ts - last_ts;
         }
-        printf("Conversion complete, duration=%.2f secs\n", segment_duration);
+        printf("Conversion complete, total duration=%.2f secs\n", total_duration);
     }
     
-    if (output) output->Release();
+    if (segment_output) segment_output->Release();
     delete sample_encrypter;
     
     return result;
@@ -868,8 +1000,12 @@ main(int argc, char** argv)
     Options.pmt_pid                        = 0x100;
     Options.audio_pid                      = 0x101;
     Options.video_pid                      = 0x102;
+    Options.audio_track_id                 = -1;
+    Options.video_track_id                 = -1;
     Options.output_single_file             = false;
+    Options.show_info                      = false;
     Options.index_filename                 = "stream.m3u8";
+    Options.iframe_index_filename          = NULL;
     Options.segment_filename_template      = NULL;
     Options.segment_url_template           = NULL;
     Options.segment_duration               = 10;
@@ -882,7 +1018,8 @@ main(int argc, char** argv)
     Options.encryption_key_format_versions = NULL;
     AP4_SetMemory(Options.encryption_key, 0, sizeof(Options.encryption_key));
     AP4_SetMemory(Options.encryption_iv,  0, sizeof(Options.encryption_iv));
-    
+    AP4_SetMemory(&Stats, 0, sizeof(Stats));
+
     // parse command line
     AP4_Result result;
     char** args = argv+1;
@@ -941,6 +1078,18 @@ main(int argc, char** argv)
                 return 1;
             }
             Options.video_pid = strtoul(*args++, NULL, 10);
+        } else if (!strcmp(arg, "--audio-track-id")) {
+            if (*args == NULL) {
+                fprintf(stderr, "ERROR: --audio-track-id requires a number\n");
+                return 1;
+            }
+            Options.audio_track_id = strtoul(*args++, NULL, 10);
+        } else if (!strcmp(arg, "--video-track-id")) {
+            if (*args == NULL) {
+                fprintf(stderr, "ERROR: --video-track-id requires a number\n");
+                return 1;
+            }
+            Options.video_track_id = strtoul(*args++, NULL, 10);
         } else if (!strcmp(arg, "--output-single-file")) {
             Options.output_single_file = true;
         } else if (!strcmp(arg, "--index-filename")) {
@@ -949,6 +1098,14 @@ main(int argc, char** argv)
                 return 1;
             }
             Options.index_filename = *args++;
+        } else if (!strcmp(arg, "--iframe-index-filename")) {
+            if (*args == NULL) {
+                fprintf(stderr, "ERROR: --iframe-index-filename requires a filename\n");
+                return 1;
+            }
+            Options.iframe_index_filename = *args++;
+        } else if (!strcmp(arg, "--show-info")) {
+            Options.show_info = true;
         } else if (!strcmp(arg, "--encryption-key")) {
             if (*args == NULL) {
                 fprintf(stderr, "ERROR: --encryption-key requires an argument\n");
@@ -1032,8 +1189,17 @@ main(int argc, char** argv)
         Options.hls_version = 5;
         fprintf(stderr, "WARNING: forcing version to 5 in order to support SAMPLE-AES encryption\n");
     }
-    if (Options.encryption_iv_mode == ENCRYPTION_IV_MODE_NONE) {
-        Options.encryption_iv_mode = ENCRYPTION_IV_MODE_SEQUENCE;
+    if (Options.iframe_index_filename && Options.hls_version > 0 && Options.hls_version < 4) {
+        fprintf(stderr, "WARNING: forcing version to 4 in order to support I-FRAME-ONLY playlists\n");
+        Options.hls_version = 4;
+    }
+    if (Options.encryption_iv_mode == ENCRYPTION_IV_MODE_NONE && Options.encryption_mode != ENCRYPTION_MODE_NONE) {
+        if (Options.encryption_mode == ENCRYPTION_MODE_SAMPLE_AES) {
+            // sequence-mode IVs don't work well with i-frame only playlists, use random instead
+            Options.encryption_iv_mode = ENCRYPTION_IV_MODE_RANDOM;
+        } else {
+            Options.encryption_iv_mode = ENCRYPTION_IV_MODE_SEQUENCE;
+        }
     }
     if ((Options.encryption_key_format || Options.encryption_key_format_versions) && Options.hls_version > 0 && Options.hls_version < 5) {
         Options.hls_version = 5;
@@ -1047,13 +1213,18 @@ main(int argc, char** argv)
         // default version is 3 for cleartext or AES-128 encryption, and 5 for SAMPLE-AES
         if (Options.encryption_mode == ENCRYPTION_MODE_SAMPLE_AES) {
             Options.hls_version = 5;
-        } else if (Options.output_single_file) {
+        } else if (Options.output_single_file || Options.iframe_index_filename) {
             Options.hls_version = 4;
         } else {
             Options.hls_version = 3;
         }
     }
     
+    if (Options.verbose && Options.show_info) {
+        fprintf(stderr, "WARNING: --verbose will be ignored because --show-info is selected\n");
+        Options.verbose = false;
+    }
+
     // compute some derived values
     if (Options.segment_filename_template == NULL) {
         if (Options.output_single_file) {
@@ -1067,6 +1238,11 @@ main(int argc, char** argv)
             Options.segment_url_template = "stream.ts";
         } else {
             Options.segment_url_template = "segment-%d.ts";
+        }
+    }
+    if (Options.iframe_index_filename == NULL) {
+        if (Options.hls_version >= 4) {
+            Options.iframe_index_filename = "iframes.m3u8";
         }
     }
     
@@ -1108,8 +1284,34 @@ main(int argc, char** argv)
     }
 
     // get the audio and video tracks
-    AP4_Track* audio_track = movie->GetTrack(AP4_Track::TYPE_AUDIO);
-    AP4_Track* video_track = movie->GetTrack(AP4_Track::TYPE_VIDEO);
+    AP4_Track* audio_track = NULL;
+    if (Options.audio_track_id == -1) {
+        audio_track = movie->GetTrack(AP4_Track::TYPE_AUDIO);
+    } else if (Options.audio_track_id > 0) {
+        audio_track = movie->GetTrack((AP4_UI32)Options.audio_track_id);
+        if (audio_track == NULL) {
+            fprintf(stderr, "ERROR: audio track ID %d not found\n", Options.audio_track_id);
+            return 1;
+        }
+        if (audio_track->GetType() != AP4_Track::TYPE_AUDIO) {
+            fprintf(stderr, "ERROR: audio track ID %d is not an audio track\n", Options.audio_track_id);
+            return 1;
+        }
+    }
+    AP4_Track* video_track = NULL;
+    if (Options.video_track_id == -1) {
+        video_track = movie->GetTrack(AP4_Track::TYPE_VIDEO);
+    } else if (Options.video_track_id > 0) {
+        video_track = movie->GetTrack((AP4_UI32)Options.video_track_id);
+        if (video_track == NULL) {
+            fprintf(stderr, "ERROR: audio track ID %d not found\n", Options.video_track_id);
+            return 1;
+        }
+        if (video_track->GetType() != AP4_Track::TYPE_VIDEO) {
+            fprintf(stderr, "ERROR: audio track ID %d is not a video track\n", Options.video_track_id);
+            return 1;
+        }
+    }
     if (audio_track == NULL && video_track == NULL) {
         fprintf(stderr, "ERROR: no suitable tracks found\n");
         delete input_file;
@@ -1345,6 +1547,68 @@ main(int argc, char** argv)
         fprintf(stderr, "ERROR: failed to write samples (%d)\n", result);
     }
 
+    if (Options.show_info) {
+        double average_segment_bitrate = 0.0;
+        if (Stats.segments_total_duration != 0.0) {
+            average_segment_bitrate = 8.0*(double)Stats.segments_total_size/Stats.segments_total_duration;
+        }
+        double average_iframe_bitrate = 0.0;
+        if (Stats.segments_total_duration != 0.0) {
+            average_iframe_bitrate = 8.0*(double)Stats.iframes_total_size/Stats.segments_total_duration;
+        }
+        printf(
+            "{\n"
+        );
+        printf(
+            "  \"stats\": {\n"
+            "    \"avg_segment_bitrate\": %f,\n"
+            "    \"max_segment_bitrate\": %f,\n"
+            "    \"avg_iframe_bitrate\": %f,\n"
+            "    \"max_iframe_bitrate\": %f\n"
+            "  }",
+            average_segment_bitrate,
+            Stats.max_segment_bitrate,
+            average_iframe_bitrate,
+            Stats.max_iframe_bitrate
+        );
+        if (audio_track) {
+            AP4_String codec;
+            AP4_SampleDescription* sdesc = audio_track->GetSampleDescription(0);
+            if (sdesc) {
+                sdesc->GetCodecString(codec);
+            }
+            printf(
+                ",\n"
+                "  \"audio\": {\n"
+                "    \"codec\": \"%s\"\n"
+                "  }",
+                codec.GetChars()
+            );
+        }
+        if (video_track) {
+            AP4_String codec;
+            AP4_SampleDescription* sdesc = video_track->GetSampleDescription(0);
+            if (sdesc) {
+                sdesc->GetCodecString(codec);
+            }
+            printf(
+                ",\n"
+                "  \"video\": {\n"
+                "    \"codec\": \"%s\",\n"
+                "    \"width\": %f,\n"
+                "    \"height\": %f\n"
+                "  }",
+                codec.GetChars(),
+                (float)video_track->GetWidth()/65536.0,
+                (float)video_track->GetHeight()/65536.0
+            );
+        }
+        printf(
+            "\n"
+            "}\n"
+        );
+    }
+    
 end:
     delete input_file;
     input->Release();

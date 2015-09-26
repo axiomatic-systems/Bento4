@@ -35,6 +35,8 @@
 #include "Ap4SampleEntry.h"
 #include "Ap4AvccAtom.h"
 #include "Ap4HvccAtom.h"
+#include "Ap4Utils.h"
+#include "Ap4Mp4AudioInfo.h"
 
 /*----------------------------------------------------------------------
 |   dynamic cast support
@@ -179,6 +181,16 @@ AP4_Atom*
 AP4_SampleDescription::ToAtom() const
 {
     return new AP4_SampleEntry(m_Format);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_SampleDescription::GetCodecString
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_SampleDescription::GetCodecString(AP4_String& codec)
+{
+    codec = "";
+    return AP4_SUCCESS;
 }
 
 /*----------------------------------------------------------------------
@@ -343,6 +355,26 @@ AP4_AvcSampleDescription::AP4_AvcSampleDescription(AP4_UI32        format,
 }
 
 /*----------------------------------------------------------------------
+|   AP4_AvcSampleDescription::GetCodecString
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_AvcSampleDescription::GetCodecString(AP4_String& codec) {
+    char coding[5];
+    AP4_FormatFourChars(coding, GetFormat());
+    char workspace[64];
+    AP4_FormatString(workspace,
+                     sizeof(workspace),
+                     "%s.%02X%02X%02X",
+                     coding,
+                     GetProfile(),
+                     GetProfileCompatibility(),
+                     GetLevel());
+    codec = workspace;
+    
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
 |   AP4_AvcSampleDescription::ToAtom
 +---------------------------------------------------------------------*/
 AP4_Atom*
@@ -398,6 +430,54 @@ AP4_HevcSampleDescription::AP4_HevcSampleDescription(AP4_UI32        format,
         m_HvccAtom = new AP4_HvccAtom();
     }
     m_Details.AddChild(m_HvccAtom);
+}
+
+/*----------------------------------------------------------------------
+|   ReverseBits
++---------------------------------------------------------------------*/
+static AP4_UI32
+ReverseBits(AP4_UI32 bits)
+{
+    unsigned int count = sizeof(bits) * 8;
+    AP4_UI32 reverse_bits = 0;
+     
+    while (bits) {
+       reverse_bits = (reverse_bits << 1) | (bits & 1);
+       bits >>= 1;
+       count--;
+    }
+    return reverse_bits << count;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_HevcSampleDescription:GetCodecString
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_HevcSampleDescription::GetCodecString(AP4_String& codec) {
+    char coding[5];
+    AP4_FormatFourChars(coding, GetFormat());
+    char profile_space[2] = {0,0};
+    if (GetGeneralProfileSpace() > 0 && GetGeneralProfileSpace() <= 3) {
+        profile_space[0] = 'A'+GetGeneralProfileSpace()-1;
+    }
+    AP4_UI64 constraints = GetGeneralConstraintIndicatorFlags();
+    while (constraints && ((constraints & 0xFF) == 0)) {
+        constraints >>= 8;
+    }
+    char workspace[64];
+    AP4_FormatString(workspace,
+                     sizeof(workspace),
+                     "%s.%s%d.%X.%c%d.%llx",
+                     coding,
+                     profile_space,
+                     GetGeneralProfile(),
+                     ReverseBits(GetGeneralProfileCompatibilityFlags()),
+                     GetGeneralTierFlag()?'H':'L',
+                     GetGeneralLevel(),
+                     constraints);
+    codec = workspace;
+    
+    return AP4_SUCCESS;
 }
 
 /*----------------------------------------------------------------------
@@ -582,6 +662,43 @@ AP4_MpegAudioSampleDescription::ToAtom() const
                                    m_SampleSize,
                                    m_ChannelCount,
                                    CreateEsDescriptor());
+}
+
+/*----------------------------------------------------------------------
+|   AP4_MpegAudioSampleDescription::GetCodecString
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_MpegAudioSampleDescription::GetCodecString(AP4_String& codec)
+{
+    char coding[5];
+    AP4_FormatFourChars(coding, GetFormat());
+    char workspace[64];
+    workspace[0] = 0;
+    if (GetFormat() == AP4_SAMPLE_FORMAT_MP4A) {
+        if (GetObjectTypeId() == AP4_OTI_MPEG4_AUDIO) {
+            Mpeg4AudioObjectType object_type = GetMpeg4AudioObjectType();
+            if (object_type == AP4_MPEG4_AUDIO_OBJECT_TYPE_AAC_LC) {
+                const AP4_DataBuffer& dsi = GetDecoderInfo();
+                if (dsi.GetDataSize()) {
+                    AP4_Mp4AudioDecoderConfig dec_config;
+                    AP4_Result result = dec_config.Parse(dsi.GetData(), dsi.GetDataSize());
+                    if (AP4_SUCCEEDED(result)) {
+                        if (dec_config.m_Extension.m_PsPresent) {
+                            object_type = AP4_MPEG4_AUDIO_OBJECT_TYPE_PS;
+                        } else if (dec_config.m_Extension.m_SbrPresent) {
+                            object_type = AP4_MPEG4_AUDIO_OBJECT_TYPE_SBR;
+                        }
+                    }
+                }
+            }
+            AP4_FormatString(workspace, sizeof(workspace), "%s.%02X.%d", coding, (int)GetObjectTypeId(), object_type);
+        } else {
+            AP4_FormatString(workspace, sizeof(workspace), "%s.%02X", coding, (int)GetObjectTypeId());
+        }
+    }
+    
+    codec = workspace;
+    return AP4_SUCCESS;
 }
 
 /*----------------------------------------------------------------------

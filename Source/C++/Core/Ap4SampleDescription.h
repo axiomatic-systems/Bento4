@@ -122,7 +122,10 @@ class AP4_SampleDescription
     Type                  GetType()    const { return m_Type;    }
     AP4_UI32              GetFormat()  const { return m_Format;  }
     const AP4_AtomParent& GetDetails() const { return m_Details; }
-    
+
+    // info
+    virtual AP4_Result GetCodecString(AP4_String& codec);
+
     // factories
     virtual AP4_Atom* ToAtom() const;
 
@@ -309,6 +312,7 @@ public:
     
     // inherited from AP4_SampleDescription
     virtual AP4_Atom* ToAtom() const;
+    virtual AP4_Result GetCodecString(AP4_String& codec);
     
     // static methods
     static const char* GetProfileName(AP4_UI08 profile) {
@@ -366,6 +370,7 @@ public:
     
     // inherited from AP4_SampleDescription
     virtual AP4_Atom* ToAtom() const;
+    virtual AP4_Result GetCodecString(AP4_String& codec);
     
     // static methods
     static const char* GetProfileName(AP4_UI08 profile_space, AP4_UI08 profile) {
@@ -476,7 +481,8 @@ public:
                                    AP4_UI32              max_bitrate,
                                    AP4_UI32              avg_bitrate);
 
-    // methods
+    // inherited from AP4_SampleDescription
+    virtual AP4_Result GetCodecString(AP4_String& codec);
     AP4_Atom* ToAtom() const;
 
     /**

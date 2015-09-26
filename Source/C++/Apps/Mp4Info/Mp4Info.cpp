@@ -112,62 +112,6 @@ ShowData(const AP4_DataBuffer& data)
 }
 
 /*----------------------------------------------------------------------
-|   ShowAvcCodecsString
-+---------------------------------------------------------------------*/
-static void
-ShowAvcCodecsString(AP4_AvcSampleDescription& avc_desc) {
-    char coding[5];
-    AP4_FormatFourChars(coding, avc_desc.GetFormat());
-    printf("%s.%02X%02X%02X",
-           coding,
-           avc_desc.GetProfile(),
-           avc_desc.GetProfileCompatibility(),
-           avc_desc.GetLevel());
-}
-
-/*----------------------------------------------------------------------
-|   ReverseBits
-+---------------------------------------------------------------------*/
-AP4_UI32
-ReverseBits(AP4_UI32 bits)
-{
-    unsigned int count = sizeof(bits) * 8;
-    AP4_UI32 reverse_bits = 0;
-     
-    while (bits) {
-       reverse_bits = (reverse_bits << 1) | (bits & 1);
-       bits >>= 1;
-       count--;
-    }
-    return reverse_bits << count;
-}
-
-/*----------------------------------------------------------------------
-|   ShowHevcCodecsString
-+---------------------------------------------------------------------*/
-static void
-ShowHevcCodecsString(AP4_HevcSampleDescription& avc_desc) {
-    char coding[5];
-    AP4_FormatFourChars(coding, avc_desc.GetFormat());
-    char profile_space[2] = {0,0};
-    if (avc_desc.GetGeneralProfileSpace() > 0 && avc_desc.GetGeneralProfileSpace() <= 3) {
-        profile_space[0] = 'A'+avc_desc.GetGeneralProfileSpace()-1;
-    }
-    printf("%s.%s%d.%X.%c%d.",
-           coding,
-           profile_space,
-           avc_desc.GetGeneralProfile(),
-           ReverseBits(avc_desc.GetGeneralProfileCompatibilityFlags()),
-           avc_desc.GetGeneralTierFlag()?'H':'L',
-           avc_desc.GetGeneralLevel());
-    AP4_UI64 constraints = avc_desc.GetGeneralConstraintIndicatorFlags();
-    while (constraints && ((constraints & 0xFF) == 0)) {
-        constraints >>= 8;
-    }
-    printf("%llX", constraints);
-}
-
-/*----------------------------------------------------------------------
 |   ShowProtectionSchemeInfo_Text
 +---------------------------------------------------------------------*/
 static void
@@ -349,12 +293,17 @@ ShowMpegAudioSampleDescription(AP4_MpegAudioSampleDescription& mpeg_audio_desc)
     AP4_MpegAudioSampleDescription::Mpeg4AudioObjectType object_type = 
         mpeg_audio_desc.GetMpeg4AudioObjectType();
     const char* object_type_string = AP4_MpegAudioSampleDescription::GetMpeg4AudioObjectTypeString(object_type);
+    AP4_String codec_string;
+    mpeg_audio_desc.GetCodecString(codec_string);
+    
     switch (Options.format) {
         case TEXT_FORMAT:
+            printf("    Codecs String: %s\n", codec_string.GetChars());
             printf("    MPEG-4 Audio Object Type: %d (%s)\n", object_type, object_type_string);
             break;
 
         case JSON_FORMAT:
+            printf("\"codecs_string\": \"%s\",\n", codec_string.GetChars());
             printf("\"mpeg_4_audio_object_type\":%d,\n",          object_type);
             printf("\"mpeg_4_audio_object_type_name\":\"%s\"", object_type_string);
             break;
@@ -521,7 +470,9 @@ ShowSampleDescription_Text(AP4_SampleDescription& description, bool verbose)
         }
         printf("]\n");
         printf("    Codecs String: ");
-        ShowAvcCodecsString(*avc_desc);
+        AP4_String codec;
+        avc_desc->GetCodecString(codec);
+        printf("%s", codec.GetChars());
         printf("\n");
     } else if (desc->GetType() == AP4_SampleDescription::TYPE_HEVC) {
         // HEVC Sample Description
@@ -561,7 +512,9 @@ ShowSampleDescription_Text(AP4_SampleDescription& description, bool verbose)
             printf("\n      }\n");
         }
         printf("    Codecs String: ");
-        ShowHevcCodecsString(*hevc_desc);
+        AP4_String codec;
+        hevc_desc->GetCodecString(codec);
+        printf("%s", codec.GetChars());
         printf("\n");
     }
 
@@ -678,7 +631,9 @@ ShowSampleDescription_Json(AP4_SampleDescription& description, bool verbose)
         }
         printf("],\n");
         printf("\"codecs_string\":\"");
-        ShowAvcCodecsString(*avc_desc);
+        AP4_String codec;
+        avc_desc->GetCodecString(codec);
+        printf("%s", codec.GetChars());
         printf("\"");
     } else if (desc->GetType() == AP4_SampleDescription::TYPE_HEVC) {
         // HEVC Sample Description
@@ -726,7 +681,9 @@ ShowSampleDescription_Json(AP4_SampleDescription& description, bool verbose)
         }
         printf("\n],\n");
         printf("\"codecs_string\":\"");
-        ShowHevcCodecsString(*hevc_desc);
+        AP4_String codec;
+        hevc_desc->GetCodecString(codec);
+        printf("%s", codec.GetChars());
         printf("\"");
     }
 
