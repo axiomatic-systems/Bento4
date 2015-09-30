@@ -105,8 +105,8 @@ const char*
 AP4_HevcParser::SliceTypeName(unsigned int slice_type)
 {
 	switch (slice_type) {
-        case 0: return "P";
-        case 1: return "B";
+        case 0: return "B";
+        case 1: return "P";
         case 2: return "I";
         default: return NULL;
     }
