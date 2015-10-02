@@ -115,6 +115,11 @@
 #define AP4_CONFIG_NO_EXCEPTIONS
 #endif
 
+/* Emscripten */
+#ifdef __EMSCRIPTEN__
+#define AP4_PLATFORM_BYTE_ORDER AP4_PLATFORM_BYTE_ORDER_LITTLE_ENDIAN
+#endif
+
 /*----------------------------------------------------------------------
 |    defaults
 +---------------------------------------------------------------------*/
