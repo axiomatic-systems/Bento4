@@ -62,7 +62,7 @@ class MediaSource:
         else:
             quiet = ''
 
-        command = 'ffprobe -of json -show_format -show_streams '+quiet+'"'+filename+'"'
+        command = 'ffprobe -of json -loglevel quiet -show_format -show_streams '+quiet+'"'+filename+'"'
         json_probe = run_command(options, command)
         self.json_info = json.loads(json_probe, strict=False)
 
@@ -111,7 +111,7 @@ def main():
                       help="Video Codec: libx264 (default) or libx265")
     parser.add_option('-a', '--audio-bitrate', dest='audio_bitrate', type='int',
                       help="Audio bitrate (default: 128kbps)", default=128)
-    parser.add_option('', '--select-streams', dest='select_streams', 
+    parser.add_option('', '--select-streams', dest='select_streams',
                       help="Only encode these streams (comma-separated list of stream indexes or stream specifiers)")
     parser.add_option('-s', '--segment-size', dest='segment_size', type='int',
                       help="Video segment size in frames (default: 3*fps)")
@@ -119,7 +119,7 @@ def main():
                       help="Add a text overlay with the bitrate")
     parser.add_option('', '--text-overlay-font', dest='text_overlay_font', default=None,
                       help="Specify a TTF font file to use for the text overlay")
-    parser.add_option('-e', '--encoder-params', dest='encoder_params', 
+    parser.add_option('-e', '--encoder-params', dest='encoder_params',
                       help="Extra encoder parameters")
     parser.add_option('-f', '--force', dest="force_output", action="store_true",
                       help="Overwrite output files if they already exist", default=False)

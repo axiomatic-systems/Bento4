@@ -59,6 +59,11 @@ typedef enum {
     ENCRYPTION_IV_MODE_FPS
 } EncryptionIvMode;
 
+typedef enum {
+    AUDIO_FORMAT_TS,
+    AUDIO_FORMAT_PACKED
+} AudioFormat;
+
 static struct _Options {
     const char*      input;
     bool             verbose;
@@ -68,6 +73,7 @@ static struct _Options {
     unsigned int     video_pid;
     int              audio_track_id;
     int              video_track_id;
+    AudioFormat      audio_format;
     const char*      index_filename;
     const char*      iframe_index_filename;
     bool             output_single_file;
@@ -99,7 +105,7 @@ static struct _Stats {
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-static const unsigned int DefaultSegmentDurationThreshold = 50; // milliseconds
+static const unsigned int DefaultSegmentDurationThreshold = 15; // milliseconds
 
 const AP4_UI08 AP4_MPEG2_STREAM_TYPE_SAMPLE_AES_AVC             = 0xDB;
 const AP4_UI08 AP4_MPEG2_STREAM_TYPE_SAMPLE_AES_ISO_IEC_13818_7 = 0xCF;
@@ -129,10 +135,12 @@ PrintUsageAndExit()
             "    Read audio from track ID <n> (0 means no audio)\n"
             "  --video-track-id <n>\n"
             "    Read video from track ID <n> (0 means no video)\n"
+            "  --audio-format <format>\n"
+            "    Format to use for audio-only segments: 'ts' or 'packed' (default: 'ts')\n"
             "  --segment-duration <n>\n"
             "    Target segment duration in seconds (default: 10)\n"
             "  --segment-duration-threshold <t>\n"
-            "    Segment duration threshold in milliseconds (default: 50)\n"
+            "    Segment duration threshold in milliseconds (default: 15)\n"
             "  --index-filename <filename>\n"
             "    Filename to use for the playlist/index (default: stream.m3u8)\n"
             "  --segment-filename-template <pattern>\n"
@@ -527,6 +535,158 @@ SampleEncrypter::EncryptVideoSample(AP4_DataBuffer& sample, AP4_UI08 nalu_length
 }
 
 /*----------------------------------------------------------------------
+|   GetSamplingFrequencyIndex
++---------------------------------------------------------------------*/
+static unsigned int
+GetSamplingFrequencyIndex(unsigned int sampling_frequency)
+{
+    switch (sampling_frequency) {
+        case 96000: return 0;
+        case 88200: return 1;
+        case 64000: return 2;
+        case 48000: return 3;
+        case 44100: return 4;
+        case 32000: return 5;
+        case 24000: return 6;
+        case 22050: return 7;
+        case 16000: return 8;
+        case 12000: return 9;
+        case 11025: return 10;
+        case 8000:  return 11;
+        case 7350:  return 12;
+        default:    return 0;
+    }
+}
+
+/*----------------------------------------------------------------------
+|   WriteAdtsHeader
++---------------------------------------------------------------------*/
+static AP4_Result
+WriteAdtsHeader(AP4_ByteStream& output,
+                unsigned int    frame_size,
+                unsigned int    sampling_frequency_index,
+                unsigned int    channel_configuration)
+{
+	unsigned char bits[7];
+
+	bits[0] = 0xFF;
+	bits[1] = 0xF1; // 0xF9 (MPEG2)
+    bits[2] = 0x40 | (sampling_frequency_index << 2) | (channel_configuration >> 2);
+    bits[3] = ((channel_configuration&0x3)<<6) | ((frame_size+7) >> 11);
+    bits[4] = ((frame_size+7) >> 3)&0xFF;
+	bits[5] = (((frame_size+7) << 5)&0xFF) | 0x1F;
+	bits[6] = 0xFC;
+
+	return output.Write(bits, 7);
+
+	/*
+        0:  syncword 12 always: '111111111111' 
+        12: ID 1 0: MPEG-4, 1: MPEG-2 
+        13: layer 2 always: '00' 
+        15: protection_absent 1  
+        16: profile 2  
+        18: sampling_frequency_index 4  
+        22: private_bit 1  
+        23: channel_configuration 3  
+        26: original/copy 1  
+        27: home 1  
+        28: emphasis 2 only if ID == 0 
+
+        ADTS Variable header: these can change from frame to frame 
+        28: copyright_identification_bit 1  
+        29: copyright_identification_start 1  
+        30: aac_frame_length 13 length of the frame including header (in bytes) 
+        43: adts_buffer_fullness 11 0x7FF indicates VBR 
+        54: no_raw_data_blocks_in_frame 2  
+        ADTS Error check 
+        crc_check 16 only if protection_absent == 0 
+   */
+}
+
+/*----------------------------------------------------------------------
+|   PackedAudioWriter
++---------------------------------------------------------------------*/
+class PackedAudioWriter {
+public:
+    AP4_Result WriteHeader(double timestamp, AP4_ByteStream& output);
+    AP4_Result WriteSample(AP4_Sample&            sample,
+                           AP4_DataBuffer&        sample_data,
+                           AP4_SampleDescription* sample_description,
+                           AP4_ByteStream&        output);
+    
+};
+
+/*----------------------------------------------------------------------
+|   PackedAudioWriter::WriteHeader
++---------------------------------------------------------------------*/
+AP4_Result
+PackedAudioWriter::WriteHeader(double timestamp, AP4_ByteStream& output)
+{
+    AP4_UI08 header[10+10+45+8];
+    
+    /* ID3 Tag Header
+     ID3v2/file identifier      "ID3"
+     ID3v2 version              $04 00
+     ID3v2 flags                %abcd0000
+     ID3v2 size                 4 * %0xxxxxxx
+    */
+    header[0] = 'I';
+    header[1] = 'D';
+    header[2] = '3';
+    header[3] = 4;
+    header[4] = 0;
+    header[5] = 0;
+    header[6] = 0;
+    header[7] = 0;
+    header[8] = 0;
+    header[9] = 10+45+8;
+    
+    /* PRIV frame
+     Frame ID   $xx xx xx xx  (four characters)
+     Size       $xx xx xx xx
+     Flags      $xx xx
+     
+     Owner identifier      <text string> $00
+     The private data      <binary data>    
+    */
+    header[10] = 'P';
+    header[11] = 'R';
+    header[12] = 'I';
+    header[13] = 'V';
+    header[14] = 0;
+    header[15] = 0;
+    header[16] = 0;
+    header[17] = 45+8;
+    header[18] = 0;
+    header[19] = 0;
+    AP4_CopyMemory(&header[20], "com.apple.streaming.transportStreamTimestamp", 45);
+    AP4_UI64 mpeg_ts = (AP4_UI64)(timestamp*90000.0);
+    AP4_BytesFromUInt64BE(&header[10+10+45], mpeg_ts);
+
+    return output.Write(header, sizeof(header));
+}
+
+/*----------------------------------------------------------------------
+|   PackedAudioWriter::WriteSample
++---------------------------------------------------------------------*/
+AP4_Result
+PackedAudioWriter::WriteSample(AP4_Sample&            sample,
+                               AP4_DataBuffer&        sample_data,
+                               AP4_SampleDescription* sample_description,
+                               AP4_ByteStream&        output)
+{
+    AP4_AudioSampleDescription* audio_desc = AP4_DYNAMIC_CAST(AP4_AudioSampleDescription, sample_description);
+    if (audio_desc == NULL) {
+        return AP4_ERROR_INVALID_FORMAT;
+    }
+    unsigned int sampling_frequency_index = GetSamplingFrequencyIndex(audio_desc->GetSampleRate());
+    unsigned int channel_configuration    = audio_desc->GetChannelCount();
+
+    WriteAdtsHeader(output, sample.GetSize(), sampling_frequency_index, channel_configuration);
+    return output.Write(sample_data.GetData(), sample_data.GetDataSize());
+}
+
+/*----------------------------------------------------------------------
 |   ReadSample
 +---------------------------------------------------------------------*/
 static AP4_Result
@@ -557,7 +717,8 @@ ReadSample(SampleReader&   reader,
 |   WriteSamples
 +---------------------------------------------------------------------*/
 static AP4_Result
-WriteSamples(AP4_Mpeg2TsWriter&               writer,
+WriteSamples(AP4_Mpeg2TsWriter*               ts_writer,
+             PackedAudioWriter*               packed_writer,
              AP4_Track*                       audio_track,
              SampleReader*                    audio_reader, 
              AP4_Mpeg2TsWriter::SampleStream* audio_stream,
@@ -734,8 +895,12 @@ WriteSamples(AP4_Mpeg2TsWriter&               writer,
             }
             
             // write the PAT and PMT
-            writer.WritePAT(*segment_output);
-            writer.WritePMT(*segment_output);
+            if (ts_writer) {
+                ts_writer->WritePAT(*segment_output);
+                ts_writer->WritePMT(*segment_output);
+            } else if (packed_writer) {
+                packed_writer->WriteHeader(audio_ts, *segment_output);
+            }
         }
 
         // write the samples out and advance to the next sample
@@ -746,11 +911,20 @@ WriteSamples(AP4_Mpeg2TsWriter&               writer,
             }
             
             // write the sample data
-            result = audio_stream->WriteSample(audio_sample, 
-                                               audio_sample_data,
-                                               audio_track->GetSampleDescription(audio_sample.GetDescriptionIndex()), 
-                                               video_track==NULL, 
-                                               *segment_output);
+            if (audio_stream) {
+                result = audio_stream->WriteSample(audio_sample,
+                                                   audio_sample_data,
+                                                   audio_track->GetSampleDescription(audio_sample.GetDescriptionIndex()), 
+                                                   video_track==NULL, 
+                                                   *segment_output);
+            } else if (packed_writer) {
+                result = packed_writer->WriteSample(audio_sample,
+                                                    audio_sample_data,
+                                                    audio_track->GetSampleDescription(audio_sample.GetDescriptionIndex()),
+                                                    *segment_output);
+            } else {
+                return AP4_ERROR_INTERNAL;
+            }
             if (AP4_FAILED(result)) return result;
             
             result = ReadSample(*audio_reader, *audio_track, audio_sample, audio_sample_data, audio_ts, audio_frame_duration, audio_eos);
@@ -820,7 +994,9 @@ WriteSamples(AP4_Mpeg2TsWriter&               writer,
         playlist->WriteString(string_buffer);
     }
     playlist->WriteString("#EXT-X-PLAYLIST-TYPE:VOD\r\n");
-    playlist->WriteString("#EXT-X-INDEPENDENT-SEGMENTS\r\n");
+    if (video_track) {
+        playlist->WriteString("#EXT-X-INDEPENDENT-SEGMENTS\r\n");
+    }
     playlist->WriteString("#EXT-X-TARGETDURATION:");
     sprintf(string_buffer, "%d\r\n", target_duration);
     playlist->WriteString(string_buffer);
@@ -1002,6 +1178,7 @@ main(int argc, char** argv)
     Options.video_pid                      = 0x102;
     Options.audio_track_id                 = -1;
     Options.video_track_id                 = -1;
+    Options.audio_format                   = AUDIO_FORMAT_TS;
     Options.output_single_file             = false;
     Options.show_info                      = false;
     Options.index_filename                 = "stream.m3u8";
@@ -1084,6 +1261,20 @@ main(int argc, char** argv)
                 return 1;
             }
             Options.audio_track_id = strtoul(*args++, NULL, 10);
+        } else if (!strcmp(arg, "--audio-format")) {
+            if (*args == NULL) {
+                fprintf(stderr, "ERROR: --audio-format requires an argument\n");
+                return 1;
+            }
+            const char* format = *args++;
+            if (!strcmp(format, "ts")) {
+                Options.audio_format = AUDIO_FORMAT_TS;
+            } else if (!strcmp(format, "packed")) {
+                Options.audio_format = AUDIO_FORMAT_PACKED;
+            } else {
+                fprintf(stderr, "ERROR: unknown audio format\n");
+                return 1;
+            }
         } else if (!strcmp(arg, "--video-track-id")) {
             if (*args == NULL) {
                 fprintf(stderr, "ERROR: --video-track-id requires a number\n");
@@ -1228,16 +1419,32 @@ main(int argc, char** argv)
     // compute some derived values
     if (Options.segment_filename_template == NULL) {
         if (Options.output_single_file) {
-            Options.segment_filename_template = "stream.ts";
+            if (Options.audio_format == AUDIO_FORMAT_PACKED) {
+                Options.segment_filename_template = "stream.aac";
+            } else {
+                Options.segment_filename_template = "stream.ts";
+            }
         } else {
-            Options.segment_filename_template = "segment-%d.ts";
+            if (Options.audio_format == AUDIO_FORMAT_PACKED) {
+                Options.segment_filename_template = "segment-%d.aac";
+            } else {
+                Options.segment_filename_template = "segment-%d.ts";
+            }
         }
     }
     if (Options.segment_url_template == NULL) {
         if (Options.output_single_file) {
-            Options.segment_url_template = "stream.ts";
+            if (Options.audio_format == AUDIO_FORMAT_PACKED) {
+                Options.segment_url_template = "stream.aac";
+            } else {
+                Options.segment_url_template = "stream.ts";
+            }
         } else {
-            Options.segment_url_template = "segment-%d.ts";
+            if (Options.audio_format == AUDIO_FORMAT_PACKED) {
+                Options.segment_url_template = "segment-%d.aac";
+            } else {
+                Options.segment_url_template = "segment-%d.ts";
+            }
         }
     }
     if (Options.iframe_index_filename == NULL) {
@@ -1294,7 +1501,7 @@ main(int argc, char** argv)
             return 1;
         }
         if (audio_track->GetType() != AP4_Track::TYPE_AUDIO) {
-            fprintf(stderr, "ERROR: audio track ID %d is not an audio track\n", Options.audio_track_id);
+            fprintf(stderr, "ERROR: track ID %d is not an audio track\n", Options.audio_track_id);
             return 1;
         }
     }
@@ -1304,11 +1511,11 @@ main(int argc, char** argv)
     } else if (Options.video_track_id > 0) {
         video_track = movie->GetTrack((AP4_UI32)Options.video_track_id);
         if (video_track == NULL) {
-            fprintf(stderr, "ERROR: audio track ID %d not found\n", Options.video_track_id);
+            fprintf(stderr, "ERROR: video track ID %d not found\n", Options.video_track_id);
             return 1;
         }
         if (video_track->GetType() != AP4_Track::TYPE_VIDEO) {
-            fprintf(stderr, "ERROR: audio track ID %d is not a video track\n", Options.video_track_id);
+            fprintf(stderr, "ERROR: track ID %d is not a video track\n", Options.video_track_id);
             return 1;
         }
     }
@@ -1318,7 +1525,19 @@ main(int argc, char** argv)
         input->Release();
         return 1;
     }
-
+    if (Options.audio_format == AUDIO_FORMAT_PACKED && video_track != NULL) {
+        if (audio_track == NULL) {
+            fprintf(stderr, "ERROR: packed audio format requires an audio track\n");
+            return 1;
+        }
+        fprintf(stderr, "WARNING: ignoring video track because of the packed audio format\n");
+        video_track = NULL;
+        return 1;
+    }
+    if (video_track == NULL) {
+        Options.segment_duration_threshold = 0;
+    }
+    
     // create the appropriate readers
     AP4_LinearReader* linear_reader = NULL;
     SampleReader*     audio_reader  = NULL;
@@ -1344,201 +1563,207 @@ main(int argc, char** argv)
         }
     }
     
-    // create an MPEG2 TS Writer
-    AP4_Mpeg2TsWriter writer(Options.pmt_pid);
+    AP4_Mpeg2TsWriter*               ts_writer = NULL;
     AP4_Mpeg2TsWriter::SampleStream* audio_stream = NULL;
     AP4_Mpeg2TsWriter::SampleStream* video_stream = NULL;
-    AP4_UI08 nalu_length_size = 0;
+    AP4_UI08                         nalu_length_size = 0;
+    PackedAudioWriter*               packed_writer = NULL;
+    if (Options.audio_format == AUDIO_FORMAT_PACKED) {
+        packed_writer = new PackedAudioWriter();
+    } else {
+        // create an MPEG2 TS Writer
+        ts_writer = new AP4_Mpeg2TsWriter(Options.pmt_pid);
 
-    // add the audio stream
-    if (audio_track) {
-        sample_description = audio_track->GetSampleDescription(0);
-        if (sample_description == NULL) {
-            fprintf(stderr, "ERROR: unable to parse audio sample description\n");
-            goto end;
-        }
-
-        unsigned int stream_type = 0;
-        unsigned int stream_id   = 0;
-        if (sample_description->GetFormat() == AP4_SAMPLE_FORMAT_MP4A) {
-            if (Options.encryption_mode == ENCRYPTION_MODE_SAMPLE_AES) {
-                stream_type = AP4_MPEG2_STREAM_TYPE_SAMPLE_AES_ISO_IEC_13818_7;
-            } else {
-                stream_type = AP4_MPEG2_STREAM_TYPE_ISO_IEC_13818_7;
+        // add the audio stream
+        if (audio_track) {
+            sample_description = audio_track->GetSampleDescription(0);
+            if (sample_description == NULL) {
+                fprintf(stderr, "ERROR: unable to parse audio sample description\n");
+                goto end;
             }
-            stream_id   = AP4_MPEG2_TS_DEFAULT_STREAM_ID_AUDIO;
-        } else if (sample_description->GetFormat() == AP4_SAMPLE_FORMAT_AC_3 ||
-                   sample_description->GetFormat() == AP4_SAMPLE_FORMAT_EC_3) {
-            if (Options.encryption_mode == ENCRYPTION_MODE_SAMPLE_AES) {
-                stream_type = AP4_MPEG2_STREAM_TYPE_SAMPLE_AES_ATSC_AC3;
-            } else {
-                stream_type = AP4_MPEG2_STREAM_TYPE_ATSC_AC3;
-            }
-            stream_id   = AP4_MPEG2_TS_STREAM_ID_PRIVATE_STREAM_1;
-        } else {
-            fprintf(stderr, "ERROR: audio codec not supported\n");
-            return 1;
-        }
 
-        // construct an extra descriptor if needed
-        AP4_DataBuffer descriptor;
-        if (Options.encryption_mode == ENCRYPTION_MODE_SAMPLE_AES) {
-            // descriptor
-            descriptor.SetDataSize(6);
-            AP4_UI08* payload = descriptor.UseData();
-            payload[0] = AP4_MPEG2_PRIVATE_DATA_INDICATOR_DESCRIPTOR_TAG;
-            payload[1] = 4;
+            unsigned int stream_type = 0;
+            unsigned int stream_id   = 0;
             if (sample_description->GetFormat() == AP4_SAMPLE_FORMAT_MP4A) {
-                payload[2] = 'a';
-                payload[3] = 'a';
-                payload[4] = 'c';
-                payload[5] = 'd';
+                if (Options.encryption_mode == ENCRYPTION_MODE_SAMPLE_AES) {
+                    stream_type = AP4_MPEG2_STREAM_TYPE_SAMPLE_AES_ISO_IEC_13818_7;
+                } else {
+                    stream_type = AP4_MPEG2_STREAM_TYPE_ISO_IEC_13818_7;
+                }
+                stream_id   = AP4_MPEG2_TS_DEFAULT_STREAM_ID_AUDIO;
             } else if (sample_description->GetFormat() == AP4_SAMPLE_FORMAT_AC_3 ||
                        sample_description->GetFormat() == AP4_SAMPLE_FORMAT_EC_3) {
-                payload[2] = 'a';
-                payload[3] = 'c';
-                payload[4] = '3';
-                payload[5] = 'd';
+                if (Options.encryption_mode == ENCRYPTION_MODE_SAMPLE_AES) {
+                    stream_type = AP4_MPEG2_STREAM_TYPE_SAMPLE_AES_ATSC_AC3;
+                } else {
+                    stream_type = AP4_MPEG2_STREAM_TYPE_ATSC_AC3;
+                }
+                stream_id   = AP4_MPEG2_TS_STREAM_ID_PRIVATE_STREAM_1;
+            } else {
+                fprintf(stderr, "ERROR: audio codec not supported\n");
+                return 1;
             }
 
-            // audio info
-            if (sample_description->GetFormat() == AP4_SAMPLE_FORMAT_MP4A) {
-                AP4_MpegAudioSampleDescription* mpeg_audio_desc = AP4_DYNAMIC_CAST(AP4_MpegAudioSampleDescription, sample_description);
-                if (mpeg_audio_desc == NULL ||
-                    !(mpeg_audio_desc->GetObjectTypeId() == AP4_OTI_MPEG4_AUDIO          ||
-                      mpeg_audio_desc->GetObjectTypeId() == AP4_OTI_MPEG2_AAC_AUDIO_LC   ||
-                      mpeg_audio_desc->GetObjectTypeId() == AP4_OTI_MPEG2_AAC_AUDIO_MAIN)) {
-                    fprintf(stderr, "ERROR: only AAC audio is supported\n");
-                    return 1;
+            // construct an extra descriptor if needed
+            AP4_DataBuffer descriptor;
+            if (Options.encryption_mode == ENCRYPTION_MODE_SAMPLE_AES) {
+                // descriptor
+                descriptor.SetDataSize(6);
+                AP4_UI08* payload = descriptor.UseData();
+                payload[0] = AP4_MPEG2_PRIVATE_DATA_INDICATOR_DESCRIPTOR_TAG;
+                payload[1] = 4;
+                if (sample_description->GetFormat() == AP4_SAMPLE_FORMAT_MP4A) {
+                    payload[2] = 'a';
+                    payload[3] = 'a';
+                    payload[4] = 'c';
+                    payload[5] = 'd';
+                } else if (sample_description->GetFormat() == AP4_SAMPLE_FORMAT_AC_3 ||
+                           sample_description->GetFormat() == AP4_SAMPLE_FORMAT_EC_3) {
+                    payload[2] = 'a';
+                    payload[3] = 'c';
+                    payload[4] = '3';
+                    payload[5] = 'd';
                 }
-                const AP4_DataBuffer& dsi = mpeg_audio_desc->GetDecoderInfo();
-                AP4_Mp4AudioDecoderConfig dec_config;
-                AP4_Result result = dec_config.Parse(dsi.GetData(), dsi.GetDataSize());
-                if (AP4_FAILED(result)) {
-                    fprintf(stderr, "ERROR: failed to parse decoder specific info (%d)\n", result);
-                    return 1;
-                }
-                descriptor.SetDataSize(descriptor.GetDataSize()+14+dsi.GetDataSize());
-                payload = descriptor.UseData()+6;
-                payload[0] = AP4_MPEG2_REGISTRATION_DESCRIPTOR_TAG;
-                payload[1] = 12+dsi.GetDataSize();
-                payload[2] = 'a';
-                payload[3] = 'p';
-                payload[4] = 'a';
-                payload[5] = 'd';
-                payload += 6;
-                if (dec_config.m_Extension.m_SbrPresent || dec_config.m_Extension.m_PsPresent) {
-                    if (dec_config.m_Extension.m_PsPresent) {
-                        payload[0] = 'z';
-                        payload[1] = 'a';
-                        payload[2] = 'c';
-                        payload[3] = 'p';
+
+                // audio info
+                if (sample_description->GetFormat() == AP4_SAMPLE_FORMAT_MP4A) {
+                    AP4_MpegAudioSampleDescription* mpeg_audio_desc = AP4_DYNAMIC_CAST(AP4_MpegAudioSampleDescription, sample_description);
+                    if (mpeg_audio_desc == NULL ||
+                        !(mpeg_audio_desc->GetObjectTypeId() == AP4_OTI_MPEG4_AUDIO          ||
+                          mpeg_audio_desc->GetObjectTypeId() == AP4_OTI_MPEG2_AAC_AUDIO_LC   ||
+                          mpeg_audio_desc->GetObjectTypeId() == AP4_OTI_MPEG2_AAC_AUDIO_MAIN)) {
+                        fprintf(stderr, "ERROR: only AAC audio is supported\n");
+                        return 1;
+                    }
+                    const AP4_DataBuffer& dsi = mpeg_audio_desc->GetDecoderInfo();
+                    AP4_Mp4AudioDecoderConfig dec_config;
+                    AP4_Result result = dec_config.Parse(dsi.GetData(), dsi.GetDataSize());
+                    if (AP4_FAILED(result)) {
+                        fprintf(stderr, "ERROR: failed to parse decoder specific info (%d)\n", result);
+                        return 1;
+                    }
+                    descriptor.SetDataSize(descriptor.GetDataSize()+14+dsi.GetDataSize());
+                    payload = descriptor.UseData()+6;
+                    payload[0] = AP4_MPEG2_REGISTRATION_DESCRIPTOR_TAG;
+                    payload[1] = 12+dsi.GetDataSize();
+                    payload[2] = 'a';
+                    payload[3] = 'p';
+                    payload[4] = 'a';
+                    payload[5] = 'd';
+                    payload += 6;
+                    if (dec_config.m_Extension.m_SbrPresent || dec_config.m_Extension.m_PsPresent) {
+                        if (dec_config.m_Extension.m_PsPresent) {
+                            payload[0] = 'z';
+                            payload[1] = 'a';
+                            payload[2] = 'c';
+                            payload[3] = 'p';
+                        } else {
+                            payload[0] = 'z';
+                            payload[1] = 'a';
+                            payload[2] = 'c';
+                            payload[3] = 'h';
+                        }
                     } else {
                         payload[0] = 'z';
                         payload[1] = 'a';
-                        payload[2] = 'c';
-                        payload[3] = 'h';
+                        payload[2] = 'a';
+                        payload[3] = 'c';
                     }
-                } else {
-                    payload[0] = 'z';
-                    payload[1] = 'a';
-                    payload[2] = 'a';
-                    payload[3] = 'c';
-                }
-                payload[4] = 0; // priming
-                payload[5] = 0; // priming
-                payload[6] = 1; // version
-                payload[7] = dsi.GetDataSize(); // setup_data_length
-                AP4_CopyMemory(&payload[8], dsi.GetData(), dsi.GetDataSize());
-            } else if (sample_description->GetFormat() == AP4_SAMPLE_FORMAT_AC_3 ||
-                       sample_description->GetFormat() == AP4_SAMPLE_FORMAT_EC_3) {
-                fprintf(stderr, "ERROR: AC3 support not fully implemented yet\n");
-                return 1;
-            }
-        }
-
-        // setup the audio stream
-        result = writer.SetAudioStream(audio_track->GetMediaTimeScale(),
-                                       stream_type,
-                                       stream_id,
-                                       audio_stream,
-                                       Options.audio_pid,
-                                       descriptor.GetDataSize()?descriptor.GetData():NULL,
-                                       descriptor.GetDataSize());
-        if (AP4_FAILED(result)) {
-            fprintf(stderr, "could not create audio stream (%d)\n", result);
-            goto end;
-        }
-    }
-    
-    // add the video stream
-    if (video_track) {
-        sample_description = video_track->GetSampleDescription(0);
-        if (sample_description == NULL) {
-            fprintf(stderr, "ERROR: unable to parse video sample description\n");
-            goto end;
-        }
-        
-        // decide on the stream type
-        unsigned int stream_type = 0;
-        unsigned int stream_id   = AP4_MPEG2_TS_DEFAULT_STREAM_ID_VIDEO;
-        if (sample_description->GetFormat() == AP4_SAMPLE_FORMAT_AVC1 ||
-            sample_description->GetFormat() == AP4_SAMPLE_FORMAT_AVC2 ||
-            sample_description->GetFormat() == AP4_SAMPLE_FORMAT_AVC3 ||
-            sample_description->GetFormat() == AP4_SAMPLE_FORMAT_AVC4) {
-            if (Options.encryption_mode == ENCRYPTION_MODE_SAMPLE_AES) {
-                stream_type = AP4_MPEG2_STREAM_TYPE_SAMPLE_AES_AVC;
-                AP4_AvcSampleDescription* avc_desc = AP4_DYNAMIC_CAST(AP4_AvcSampleDescription, sample_description);
-                if (avc_desc == NULL) {
-                    fprintf(stderr, "ERROR: not a proper AVC track\n");
+                    payload[4] = 0; // priming
+                    payload[5] = 0; // priming
+                    payload[6] = 1; // version
+                    payload[7] = dsi.GetDataSize(); // setup_data_length
+                    AP4_CopyMemory(&payload[8], dsi.GetData(), dsi.GetDataSize());
+                } else if (sample_description->GetFormat() == AP4_SAMPLE_FORMAT_AC_3 ||
+                           sample_description->GetFormat() == AP4_SAMPLE_FORMAT_EC_3) {
+                    fprintf(stderr, "ERROR: AC3 support not fully implemented yet\n");
                     return 1;
                 }
-                nalu_length_size = avc_desc->GetNaluLengthSize();
-            } else {
-                stream_type = AP4_MPEG2_STREAM_TYPE_AVC;
             }
-        } else if (sample_description->GetFormat() == AP4_SAMPLE_FORMAT_HEV1 ||
-                   sample_description->GetFormat() == AP4_SAMPLE_FORMAT_HVC1) {
-            stream_type = AP4_MPEG2_STREAM_TYPE_HEVC;
-        } else {
-            fprintf(stderr, "ERROR: video codec not supported\n");
-            return 1;
-        }
-        if (Options.encryption_mode == ENCRYPTION_MODE_SAMPLE_AES) {
-            if (stream_type != AP4_MPEG2_STREAM_TYPE_SAMPLE_AES_AVC) {
-                fprintf(stderr, "ERROR: AES-SAMPLE encryption can only be used with H.264 video\n");
-                return 1;
+
+            // setup the audio stream
+            result = ts_writer->SetAudioStream(audio_track->GetMediaTimeScale(),
+                                               stream_type,
+                                               stream_id,
+                                               audio_stream,
+                                               Options.audio_pid,
+                                               descriptor.GetDataSize()?descriptor.GetData():NULL,
+                                               descriptor.GetDataSize());
+            if (AP4_FAILED(result)) {
+                fprintf(stderr, "could not create audio stream (%d)\n", result);
+                goto end;
             }
         }
         
-        // construct an extra descriptor if needed
-        AP4_DataBuffer descriptor;
-        if (Options.encryption_mode == ENCRYPTION_MODE_SAMPLE_AES) {
-            descriptor.SetDataSize(6);
-            AP4_UI08* payload = descriptor.UseData();
-            payload[0] = AP4_MPEG2_PRIVATE_DATA_INDICATOR_DESCRIPTOR_TAG;
-            payload[1] = 4;
-            payload[2] = 'z';
-            payload[3] = 'a';
-            payload[4] = 'v';
-            payload[5] = 'c';
-        }
+        // add the video stream
+        if (video_track) {
+            sample_description = video_track->GetSampleDescription(0);
+            if (sample_description == NULL) {
+                fprintf(stderr, "ERROR: unable to parse video sample description\n");
+                goto end;
+            }
+            
+            // decide on the stream type
+            unsigned int stream_type = 0;
+            unsigned int stream_id   = AP4_MPEG2_TS_DEFAULT_STREAM_ID_VIDEO;
+            if (sample_description->GetFormat() == AP4_SAMPLE_FORMAT_AVC1 ||
+                sample_description->GetFormat() == AP4_SAMPLE_FORMAT_AVC2 ||
+                sample_description->GetFormat() == AP4_SAMPLE_FORMAT_AVC3 ||
+                sample_description->GetFormat() == AP4_SAMPLE_FORMAT_AVC4) {
+                if (Options.encryption_mode == ENCRYPTION_MODE_SAMPLE_AES) {
+                    stream_type = AP4_MPEG2_STREAM_TYPE_SAMPLE_AES_AVC;
+                    AP4_AvcSampleDescription* avc_desc = AP4_DYNAMIC_CAST(AP4_AvcSampleDescription, sample_description);
+                    if (avc_desc == NULL) {
+                        fprintf(stderr, "ERROR: not a proper AVC track\n");
+                        return 1;
+                    }
+                    nalu_length_size = avc_desc->GetNaluLengthSize();
+                } else {
+                    stream_type = AP4_MPEG2_STREAM_TYPE_AVC;
+                }
+            } else if (sample_description->GetFormat() == AP4_SAMPLE_FORMAT_HEV1 ||
+                       sample_description->GetFormat() == AP4_SAMPLE_FORMAT_HVC1) {
+                stream_type = AP4_MPEG2_STREAM_TYPE_HEVC;
+            } else {
+                fprintf(stderr, "ERROR: video codec not supported\n");
+                return 1;
+            }
+            if (Options.encryption_mode == ENCRYPTION_MODE_SAMPLE_AES) {
+                if (stream_type != AP4_MPEG2_STREAM_TYPE_SAMPLE_AES_AVC) {
+                    fprintf(stderr, "ERROR: AES-SAMPLE encryption can only be used with H.264 video\n");
+                    return 1;
+                }
+            }
+            
+            // construct an extra descriptor if needed
+            AP4_DataBuffer descriptor;
+            if (Options.encryption_mode == ENCRYPTION_MODE_SAMPLE_AES) {
+                descriptor.SetDataSize(6);
+                AP4_UI08* payload = descriptor.UseData();
+                payload[0] = AP4_MPEG2_PRIVATE_DATA_INDICATOR_DESCRIPTOR_TAG;
+                payload[1] = 4;
+                payload[2] = 'z';
+                payload[3] = 'a';
+                payload[4] = 'v';
+                payload[5] = 'c';
+            }
 
-        // setup the video stream
-        result = writer.SetVideoStream(video_track->GetMediaTimeScale(),
-                                       stream_type,
-                                       stream_id,
-                                       video_stream,
-                                       Options.video_pid,
-                                       descriptor.GetDataSize()?descriptor.GetData():NULL,
-                                       descriptor.GetDataSize());
-        if (AP4_FAILED(result)) {
-            fprintf(stderr, "could not create video stream (%d)\n", result);
-            goto end;
+            // setup the video stream
+            result = ts_writer->SetVideoStream(video_track->GetMediaTimeScale(),
+                                               stream_type,
+                                               stream_id,
+                                               video_stream,
+                                               Options.video_pid,
+                                               descriptor.GetDataSize()?descriptor.GetData():NULL,
+                                               descriptor.GetDataSize());
+            if (AP4_FAILED(result)) {
+                fprintf(stderr, "could not create video stream (%d)\n", result);
+                goto end;
+            }
         }
     }
     
-    result = WriteSamples(writer,
+    result = WriteSamples(ts_writer, packed_writer,
                           audio_track, audio_reader, audio_stream,
                           video_track, video_reader, video_stream,
                           Options.segment_duration_threshold,
@@ -1610,6 +1835,8 @@ main(int argc, char** argv)
     }
     
 end:
+    delete ts_writer;
+    delete packed_writer;
     delete input_file;
     input->Release();
     delete linear_reader;

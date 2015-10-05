@@ -56,8 +56,8 @@ PrintUsageAndExit()
 }
 
 /*----------------------------------------------------------------------
- |   GetSamplingFrequencyIndex
- +---------------------------------------------------------------------*/
+|   GetSamplingFrequencyIndex
++---------------------------------------------------------------------*/
 static unsigned int
 GetSamplingFrequencyIndex(unsigned int sampling_frequency)
 {
