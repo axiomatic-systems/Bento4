@@ -37,7 +37,7 @@
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-#define BANNER "MP4 Fragmenter - Version 1.5\n"\
+#define BANNER "MP4 Fragmenter - Version 1.5.1\n"\
                "(Bento4 Version " AP4_VERSION_STRING ")\n"\
                "(c) 2002-2015 Axiomatic Systems, LLC"
 
@@ -54,6 +54,7 @@ struct _Options {
     unsigned int verbosity;
     bool         trim;
     bool         debug;
+    bool         no_tdft;
 } Options;
 
 /*----------------------------------------------------------------------
@@ -74,6 +75,7 @@ PrintUsageAndExit()
             "  --track <track-id or type> only include media from one track (pass a track ID, 'audio', 'video' or 'subtitles')\n"
             "  --index (re)create the segment index\n"
             "  --trim trim excess media in longer tracks\n"
+            "  --no-tdft don't add 'tdft' boxes in the fragments (may be needed for legacy Smooth Streaming clients)\n"
             );
     exit(1);
 }
@@ -511,8 +513,10 @@ Fragment(AP4_File&                input_file,
         }
         
         traf->AddChild(tfhd);
-        AP4_TfdtAtom* tfdt = new AP4_TfdtAtom(1, cursor->m_Timestamp);
-        traf->AddChild(tfdt);
+        if (!Options.no_tdft) {
+            AP4_TfdtAtom* tfdt = new AP4_TfdtAtom(1, cursor->m_Timestamp);
+            traf->AddChild(tfdt);
+        }
         AP4_UI32 trun_flags = AP4_TRUN_FLAG_DATA_OFFSET_PRESENT     |
                               AP4_TRUN_FLAG_SAMPLE_DURATION_PRESENT |
                               AP4_TRUN_FLAG_SAMPLE_SIZE_PRESENT;
@@ -861,6 +865,7 @@ main(int argc, char** argv)
     Options.verbosity = 1;
     Options.debug     = false;
     Options.trim      = false;
+    Options.no_tdft   = false;
     
     // parse the command line
     argv++;
@@ -881,6 +886,8 @@ main(int argc, char** argv)
             quiet = true;
         } else if (!strcmp(arg, "--trim")) {
             Options.trim = true;
+        } else if (!strcmp(arg, "--no-tdft")) {
+            Options.no_tdft = true;
         } else if (!strcmp(arg, "--fragment-duration")) {
             arg = *argv++;
             if (arg == NULL) {

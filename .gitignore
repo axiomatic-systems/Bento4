@@ -2,11 +2,7 @@
 .DS_Store
 SDK
 cmakebuild
-Source/Python/utils/bin/macosx/mp4dump
-Source/Python/utils/bin/macosx/mp4encrypt
-Source/Python/utils/bin/macosx/mp4fragment
-Source/Python/utils/bin/macosx/mp4info
-Source/Python/utils/bin/macosx/mp4split
+Source/Python/utils/bin
 Build/Targets/x86-unknown-linux/Debug
 Build/Targets/x86-unknown-linux/Release
 Build/Targets/x86_64-unknown-linux/Debug

@@ -26,7 +26,7 @@ from mp4utils import *
 
 # setup main options
 VERSION = "1.6.0"
-SDK_REVISION = '600'
+SDK_REVISION = '601'
 SCRIPT_PATH = path.abspath(path.dirname(__file__))
 sys.path += [SCRIPT_PATH]
 
