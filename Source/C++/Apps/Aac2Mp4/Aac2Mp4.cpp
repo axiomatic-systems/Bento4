@@ -143,31 +143,32 @@ main(int argc, char** argv)
             sample_table->AddSample(*sample_data, 0, frame.m_Info.m_FrameLength, 1024, sample_description_index, 0, 0, true);
             sample_data->Release();
             sample_count++;
-        } else {
-            if (eos) break;
-        }
-
-        // read some data and feed the parser
-        AP4_UI08 input_buffer[4096];
-        AP4_Size to_read = parser.GetBytesFree();
-        if (to_read) {
-            AP4_Size bytes_read = 0;
-            if (to_read > sizeof(input_buffer)) to_read = sizeof(input_buffer);
-            result = input->ReadPartial(input_buffer, to_read, bytes_read);
-            if (AP4_SUCCEEDED(result)) {
-                AP4_Size to_feed = bytes_read;
-                result = parser.Feed(input_buffer, &to_feed);
-                if (AP4_FAILED(result)) {
-                    AP4_Debug("ERROR: parser.Feed() failed (%d)\n", result);
-                    return 1;
-                }
-            } else {
-                if (result == AP4_ERROR_EOS) {
-                    eos = true;
+        } else if (!eos) {
+            // read some data and feed the parser
+            AP4_UI08 input_buffer[4096];
+            AP4_Size to_read = parser.GetBytesFree();
+            if (to_read) {
+                AP4_Size bytes_read = 0;
+                if (to_read > sizeof(input_buffer)) to_read = sizeof(input_buffer);
+                result = input->ReadPartial(input_buffer, to_read, bytes_read);
+                if (AP4_SUCCEEDED(result)) {
+                    AP4_Size to_feed = bytes_read;
+                    result = parser.Feed(input_buffer, &to_feed);
+                    if (AP4_FAILED(result)) {
+                        AP4_Debug("ERROR: parser.Feed() failed (%d)\n", result);
+                        return 1;
+                    }
+                } else {
+                    if (result == AP4_ERROR_EOS) {
+                        eos = true;
+                        parser.Feed(NULL, 0, true);
+                    }
                 }
             }
+        } else {
+            break;
         }
-   }
+    }
 
     // create a movie
     AP4_Movie* movie = new AP4_Movie();
