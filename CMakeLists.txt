@@ -14,6 +14,10 @@ set(SOURCE_SYSTEM ${SOURCE_ROOT}/System)
 # Compiler warning and optimization flags
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 
+if (EMSCRIPTEN)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-warn-absolute-paths")
+endif()
+
 # AP4 Library
 file(GLOB AP4_SOURCES
   ${SOURCE_CODECS}/*.cpp
