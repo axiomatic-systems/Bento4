@@ -73,6 +73,11 @@ AP4_ContainerAtom::Create(Type             type,
                     
                     // create a non-full container
                     return new AP4_ContainerAtom(type, size, force_64, stream, atom_factory);
+                } else {
+                    // rewind the stream by 4 bytes
+                    AP4_Position position;
+                    stream.Tell(position);
+                    stream.Seek(position-4);
                 }
             }
         }
