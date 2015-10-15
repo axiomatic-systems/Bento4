@@ -4065,7 +4065,7 @@
 				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos macosx";
 				VALID_ARCHS = "i386 x86_64";
 				"VALID_ARCHS[sdk=iphoneos*]" = "armv6 armv7 armv7s arm64";
-				"VALID_ARCHS[sdk=iphonesimulator*]" = i386;
+				"VALID_ARCHS[sdk=iphonesimulator*]" = "i386 x86_64";
 			};
 			name = Debug;
 		};
@@ -4086,7 +4086,7 @@
 				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos macosx";
 				VALID_ARCHS = "i386 x86_64";
 				"VALID_ARCHS[sdk=iphoneos*]" = "armv6 armv7 armv7s arm64";
-				"VALID_ARCHS[sdk=iphonesimulator*]" = i386;
+				"VALID_ARCHS[sdk=iphonesimulator*]" = "i386 x86_64";
 			};
 			name = Release;
 		};
