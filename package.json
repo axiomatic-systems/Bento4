@@ -9,6 +9,9 @@
     "Documents/LICENSE.txt",
     "builds/mp4dump.js"
   ],
+  "scripts": {
+    "build": "rm -rf builds && mkdir builds && cd builds && emcmake cmake -DCMAKE_BUILD_TYPE=Release .. && make && echo '#!/usr/bin/env node' | cat - mp4dump.js > /tmp/out && mv /tmp/out mp4dump.js && chmod +x mp4dump.js && echo 'done'"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/axiomatic-systems/Bento4.git"

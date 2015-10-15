@@ -135,11 +135,23 @@ runtime](https://nodejs.org/en/download/).
 You'll usually need to reload your shell (bash, zsh, etc) to autocomplete the
 newly installed command line tool.
 
-You'll need to have the .mp4 file in the same working directory as mp4dump.js,
-due to limitations in Emscripten's virtual filesystem. ex.
+You'll need to have the current working directory be equal to the directory of
+the mp4 you're looking to dump, due to limitations in Emscripten's virtual
+filesystem. Relative and absolute file paths will not work. ex.
 
 ```
-cp ~/Movies/hello.mp4 .
+$ cd ~/Movies
+$ mp4dump hello.mp4
+...
+```
 
+### Publishing a new NPM module
+
+```
+$ npm run build # creates a new optimized build
+$ npm version patch # increment the version's patch number
+$ git commit -am "..."
+$ git push
+$ npm publish
 ```
 
