@@ -121,3 +121,25 @@ For Debug builds:
 For Release builds:
 ```make AP4_BUILD_CONFIG=Release```
 
+## Using Node.js
+
+mp4dump has been cross compiled with
+[Emscripten](https://kripken.github.io/emscripten-site/) and
+[published](https://www.npmjs.com/package/bento4) through node package manager
+([NPM](https://www.npmjs.com/)). This allows you to use mp4dump without needing
+a C++ compiler, though you'll need the [Node.js
+runtime](https://nodejs.org/en/download/).
+
+`npm install -g bento4`
+
+You'll usually need to reload your shell (bash, zsh, etc) to autocomplete the
+newly installed command line tool.
+
+You'll need to have the .mp4 file in the same working directory as mp4dump.js,
+due to limitations in Emscripten's virtual filesystem. ex.
+
+```
+cp ~/Movies/hello.mp4 .
+
+```
+
