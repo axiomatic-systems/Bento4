@@ -1,0 +1,29 @@
+{
+  "name": "bento4",
+  "version": "1.0.0",
+  "description": "Full-featured MP4 format and MPEG DASH library and tools",
+  "bin": {
+    "mp4dump": "builds/mp4dump.js"
+  },
+  "files": [
+    "Documents/LICENSE.txt",
+    "builds/mp4dump.js"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/axiomatic-systems/Bento4.git"
+  },
+  "keywords": [
+    "mp4",
+    "info",
+    "mpeg4",
+    "part",
+    "14"
+  ],
+  "author": "https://github.com/axiomatic-systems/Bento4/graphs/contributors",
+  "license": "GPL-2.0",
+  "bugs": {
+    "url": "https://github.com/axiomatic-systems/Bento4/issues"
+  },
+  "homepage": "https://github.com/axiomatic-systems/Bento4#readme"
+}
