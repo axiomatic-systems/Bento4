@@ -54,7 +54,8 @@ struct _Options {
     unsigned int verbosity;
     bool         trim;
     bool         debug;
-    bool         no_tdft;
+    bool         no_tfdt;
+    bool         force_i_frame_sync;
 } Options;
 
 /*----------------------------------------------------------------------
@@ -75,7 +76,8 @@ PrintUsageAndExit()
             "  --track <track-id or type> only include media from one track (pass a track ID, 'audio', 'video' or 'subtitles')\n"
             "  --index (re)create the segment index\n"
             "  --trim trim excess media in longer tracks\n"
-            "  --no-tdft don't add 'tdft' boxes in the fragments (may be needed for legacy Smooth Streaming clients)\n"
+            "  --no-tfdt don't add 'tfdt' boxes in the fragments (may be needed for legacy Smooth Streaming clients)\n"
+            "  --force-i-frame-sync treat all I-frames as sync samples (for open-gop sequences)\n"
             );
     exit(1);
 }
@@ -88,22 +90,41 @@ public:
     SampleArray(AP4_Track* track) :
         m_Track(track) {
         m_SampleCount = m_Track->GetSampleCount();
+        if (m_SampleCount) {
+            m_ForcedSync = new bool[m_SampleCount];
+        } else {
+            m_ForcedSync = NULL;
+        }
     }
-    virtual ~SampleArray() {}
+    virtual ~SampleArray() {
+        delete[] m_ForcedSync;
+    }
 
     virtual AP4_Cardinal GetSampleCount() {
         return m_SampleCount;
     }
     virtual AP4_Result GetSample(AP4_Ordinal index, AP4_Sample& sample) {
-        return m_Track->GetSample(index, sample);
+        AP4_Result result = m_Track->GetSample(index, sample);
+        if (AP4_SUCCEEDED(result)) {
+            if (m_ForcedSync[index]) {
+                sample.SetSync(true);
+            }
+        }
+        return result;
     }
     virtual AP4_Result AddSample(AP4_Sample& /*sample*/) {
         return AP4_ERROR_NOT_SUPPORTED;
+    }
+    virtual void ForceSync(AP4_Ordinal index) {
+        if (index < m_SampleCount) {
+            m_ForcedSync[index] = true;
+        }
     }
     
 protected:
     AP4_Track*   m_Track;
     AP4_Cardinal m_SampleCount;
+    bool*        m_ForcedSync;
 };
 
 /*----------------------------------------------------------------------
@@ -513,7 +534,7 @@ Fragment(AP4_File&                input_file,
         }
         
         traf->AddChild(tfhd);
-        if (!Options.no_tdft) {
+        if (!Options.no_tfdt) {
             AP4_TfdtAtom* tfdt = new AP4_TfdtAtom(1, cursor->m_Timestamp);
             traf->AddChild(tfdt);
         }
@@ -841,6 +862,81 @@ AutoDetectAudioFragmentDuration(AP4_ByteStream& stream, TrackCursor* cursor)
 }
 
 /*----------------------------------------------------------------------
+|   ReadGolomb
++---------------------------------------------------------------------*/
+static unsigned int
+ReadGolomb(AP4_BitStream& bits)
+{
+    unsigned int leading_zeros = 0;
+    while (bits.ReadBit() == 0) {
+        leading_zeros++;
+    }
+    if (leading_zeros) {
+        return (1<<leading_zeros)-1+bits.ReadBits(leading_zeros);
+    } else {
+        return 0;
+    }
+}
+
+/*----------------------------------------------------------------------
+|   IsIFrame
++---------------------------------------------------------------------*/
+static bool
+IsIFrame(AP4_Sample& sample, AP4_AvcSampleDescription* avc_desc) {
+    AP4_DataBuffer sample_data;
+    if (AP4_FAILED(sample.ReadData(sample_data))) {
+        return false;
+    }
+
+    const unsigned char* data = sample_data.GetData();
+    AP4_Size             size = sample_data.GetDataSize();
+
+    while (size >= avc_desc->GetNaluLengthSize()) {
+        unsigned int nalu_length = 0;
+        if (avc_desc->GetNaluLengthSize() == 1) {
+            nalu_length = *data++;
+            --size;
+        } else if (avc_desc->GetNaluLengthSize() == 2) {
+            nalu_length = AP4_BytesToUInt16BE(data);
+            data += 2;
+            size -= 2;
+        } else if (avc_desc->GetNaluLengthSize() == 4) {
+            nalu_length = AP4_BytesToUInt32BE(data);
+            data += 4;
+            size -= 4;
+        } else {
+            return false;
+        }
+        if (nalu_length <= size) {
+            size -= nalu_length;
+        } else {
+            size = 0;
+        }
+        
+        switch (*data & 0x1F) {
+            case 1: {
+                AP4_BitStream bits;
+                bits.WriteBytes(data+1, 8);
+                ReadGolomb(bits);
+                unsigned int slice_type = ReadGolomb(bits);
+                if (slice_type == 2 || slice_type == 7) {
+                    return true;
+                } else {
+                    return false; // only show first slice type
+                }
+            }
+            
+            case 5: 
+                return true;
+        }
+        
+        data += nalu_length;
+    }
+ 
+    return false;
+}
+
+/*----------------------------------------------------------------------
 |   main
 +---------------------------------------------------------------------*/
 int
@@ -862,10 +958,11 @@ main(int argc, char** argv)
     AP4_UI32     timescale = 0;
     AP4_Result   result;
 
-    Options.verbosity = 1;
-    Options.debug     = false;
-    Options.trim      = false;
-    Options.no_tdft   = false;
+    Options.verbosity          = 1;
+    Options.debug              = false;
+    Options.trim               = false;
+    Options.no_tfdt            = false;
+    Options.force_i_frame_sync = false;
     
     // parse the command line
     argv++;
@@ -886,8 +983,10 @@ main(int argc, char** argv)
             quiet = true;
         } else if (!strcmp(arg, "--trim")) {
             Options.trim = true;
-        } else if (!strcmp(arg, "--no-tdft")) {
-            Options.no_tdft = true;
+        } else if (!strcmp(arg, "--no-tfdt")) {
+            Options.no_tfdt = true;
+        } else if (!strcmp(arg, "--force-i-frame-sync")) {
+            Options.force_i_frame_sync = true;
         } else if (!strcmp(arg, "--fragment-duration")) {
             arg = *argv++;
             if (arg == NULL) {
@@ -960,7 +1059,7 @@ main(int argc, char** argv)
     if (!quiet && input_file.GetMovie()->HasFragments()) {
         fprintf(stderr, "NOTICE: file is already fragmented, it will be re-fragmented\n");
     }
-
+    
     // create a cusor list to keep track of the tracks we will read from
     AP4_Array<TrackCursor*> cursors;
     
@@ -1062,13 +1161,25 @@ main(int argc, char** argv)
         fprintf(stderr, "ERROR: no audio, video, or subtitles track in the file\n");
         return 1;
     }
+    AP4_AvcSampleDescription* avc_desc = NULL;
+    if (video_track && Options.force_i_frame_sync) {
+        // that feature is only supported for AVC
+        AP4_SampleDescription* sdesc = video_track->m_Track->GetSampleDescription(0);
+        if (sdesc) {
+            avc_desc = AP4_DYNAMIC_CAST(AP4_AvcSampleDescription, sdesc);
+        }
+        if (avc_desc == NULL) {
+            fprintf(stderr, "--force-i-frame-sync can only be used with AVC/H.264 video\n");
+            return 1;
+        }
+    }
     
+    // remember where the stream was
+    AP4_Position position;
+    input_stream->Tell(position);
+
     // for fragmented input files, we need to populate the sample arrays
     if (input_file.GetMovie()->HasFragments()) {
-        // remember where the stream was
-        AP4_Position position;
-        input_stream->Tell(position);
-        
         AP4_LinearReader reader(*input_file.GetMovie(), input_stream);
         for (unsigned int i=0; i<cursors.ItemCount(); i++) {
             reader.EnableTrack(cursors[i]->m_Track->GetId());
@@ -1087,9 +1198,19 @@ main(int argc, char** argv)
             }
         } while (AP4_SUCCEEDED(result));
         
-        // return the stream to its original position
-        input_stream->Seek(position);
+    } else if (video_track && Options.force_i_frame_sync) {
+        AP4_Sample sample;
+        for (unsigned int i=0; i<video_track->m_Samples->GetSampleCount(); i++) {
+            if (AP4_SUCCEEDED(video_track->m_Samples->GetSample(i, sample))) {
+                if (IsIFrame(sample, avc_desc)) {
+                    video_track->m_Samples->ForceSync(i);
+                }
+            }
+        }
     }
+
+    // return the stream to its original position
+    input_stream->Seek(position);
 
     // auto-detect the fragment duration if needed
     if (auto_detect_fragment_duration) {

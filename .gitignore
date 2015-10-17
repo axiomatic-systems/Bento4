@@ -26,3 +26,4 @@ Bento4.xccheckout
 Build/Targets/arm-android-linux
 Build/Targets/universal-apple-macosx/cov-int
 Bento4.xcscmblueprint
+Build/Targets/cmake
