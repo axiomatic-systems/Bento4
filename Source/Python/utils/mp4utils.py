@@ -95,6 +95,9 @@ def Mp4Fragment(options, input_filename, output_filename, **args):
 def Mp4Encrypt(options, input_filename, output_filename, **args):
     return Bento4Command(options, 'mp4encrypt', input_filename, output_filename, **args)
 
+def Mp42Hls(options, input_filename, **args):
+    return Bento4Command(options, 'mp42hls', input_filename, **args)
+
 class Mp4Atom:
     def __init__(self, type, size, position):
         self.type     = type

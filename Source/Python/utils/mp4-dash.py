@@ -851,7 +851,7 @@ def main():
     global Options
     Options = options
 
-    # set some synthetix (not from command line) options
+    # set some synthetic (not from command line) options
     options.on_demand = False
 
     # check the consistency of the options
@@ -1141,27 +1141,10 @@ def main():
     # compute the audio codecs
     for audio_track in audio_tracks:
         audio_desc = audio_track.info['sample_descriptions'][0]
-        audio_coding = audio_desc['coding']
-        if audio_coding == 'mp4a':
-            audio_codec = 'mp4a.%02X' % (audio_desc['object_type'])
-            if audio_desc['object_type'] == 64:
-                # this is MP4 audio
-                mpeg_4_audio_object_type = audio_desc['mpeg_4_audio_object_type']
-
-                # check if this may be HE-AAC with explicit signaling
-                if mpeg_4_audio_object_type == 2 and 'extension' in audio_desc['mpeg_4_audio_decoder_config']:
-                    extension = audio_desc['mpeg_4_audio_decoder_config']['extension']
-                    if extension['ps_present']:
-                        # HE-AAC-V2
-                        mpeg_4_audio_object_type = 29
-                    elif extension['sbr_present']:
-                        # HE-AAC
-                        mpeg_4_audio_object_type = 5
-                audio_codec += '.'+str(mpeg_4_audio_object_type)
+        if 'codecs_string' in audio_desc:
+            audio_track.codec = audio_desc['codecs_string']
         else:
-            audio_codec = audio_coding
-
-        audio_track.codec = audio_codec
+            audio_track.codec = audio_desc['coding']
 
     # compute the video codecs and dimensions
     for video_track in video_tracks:
