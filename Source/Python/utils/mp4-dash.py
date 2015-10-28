@@ -106,7 +106,7 @@ def AddSegmentList(options, container, subdir, track, use_byte_range=False):
     segment_list = xml.SubElement(container,
                                   'SegmentList',
                                   timescale='1000',
-                                  duration=str(int(track.average_segment_duration*1000)))
+                                  duration=str(int(round(track.average_segment_duration*1000))))
     if use_byte_range:
         byte_range = str(track.parent.init_segment.position)+'-'+str(track.parent.init_segment.position+track.parent.init_segment.size-1)
         xml.SubElement(segment_list,
@@ -176,7 +176,7 @@ def AddSegmentTemplate(options, container, init_segment_url, media_url_template_
         xml.SubElement(container,
                        'SegmentTemplate',
                        timescale='1000',
-                       duration=str(int(track.average_segment_duration*1000)),
+                       duration=str(int(round(track.average_segment_duration*1000))),
                        initialization=init_segment_url,
                        media=SEGMENT_URL_TEMPLATE,
                        startNumber='1') # (keep the @startNumber, even if not needed, because some clients like Silverlight want it)
@@ -438,7 +438,7 @@ def OutputSmooth(options, audio_tracks, video_tracks):
                                   MajorVersion="2",
                                   MinorVersion="0",
                                   TimeScale="10000000",
-                                  Duration=str(int(presentation_duration*10000000.0)))
+                                  Duration=str(int(round(presentation_duration*10000000.0))))
     client_manifest.append(xml.Comment(' Created with Bento4 mp4-dash.py, VERSION='+VERSION+'-'+SDK_REVISION+' '))
 
     # process the audio tracks
