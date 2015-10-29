@@ -584,28 +584,33 @@ def ComputePlayReadyHeader(header_spec, kid_hex, key_hex):
 
     return ""
 
-def ComputePrimetimeMetaData(header_spec):
+def ComputePrimetimeMetaData(metadata_spec, kid_hex):
     # construct the base64 header
-    if header_spec is None:
-        header_spec = ''
-    if header_spec.startswith('#'):
-        header_b64 = header_spec[1:]
-        header = header_b64.decode('base64')
-        if len(header) == 0:
+    if metadata_spec is None:
+        metadata_spec = ''
+    if metadata_spec.startswith('#'):
+        metadata_b64 = metadata_spec[1:]
+        metadata = metadata_b64.decode('base64')
+        if len(metadata) == 0:
             raise Exception('invalid base64 encoding')
-        return header
-    elif header_spec.startswith('@'):
-        # check that the file exists
-        if header_spec.startswith('@'):
-            header_spec = header_spec[1:]
-            if not os.path.exists(header_spec):
-                raise Exception('data file does not exist')
+    elif metadata_spec.startswith('@'):
+        metadata_filename = metadata_spec[1:]
+        if not os.path.exists(metadata_filename):
+            raise Exception('data file does not exist')
 
         # read the header from the file
-        header = open(header_spec, 'rb').read()
-        return header
+        metadata = open(metadata_filename, 'rb').read()
 
-    return ""
+    amet_size = 12+4+16
+    amet_flags = 0
+    if len(metadata):
+        amet_flags |= 2
+        amet_size += 4+len(metadata)
+    amet_box = struct.pack('>I4sII', amet_size, 'amet', amet_flags, 1)+kid_hex.decode("hex")
+    if len(metadata):
+        amet_box += struct.pack('>I', len(metadata))+metadata
+
+    return amet_box
 
 def WidevineVarInt(value):
     parts = [value % 128]

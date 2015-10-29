@@ -251,7 +251,7 @@ def AddContentProtection(options, container, tracks):
         container.append(xml.Comment(' Primetime '))
         cp = xml.SubElement(container, 'ContentProtection', schemeIdUri=PRIMETIME_SCHEME_ID_URI)
         if options.primetime_metadata:
-            pssh_payload = ComputePrimetimeData(options.primetime_metadata)
+            pssh_payload = ComputePrimetimeMetaData(options.primetime_metadata, default_kid)
             pssh_box = MakePsshBox(PRIMETIME_PSSH_SYSTEM_ID.decode('hex'), pssh_payload)
             pssh_b64 = pssh_box.encode('base64').replace('\n', '')
             pssh = xml.SubElement(cp, '{' + CENC_2013_NAMESPACE + '}pssh')
@@ -838,10 +838,10 @@ def main():
     parser.add_option('', "--primetime", dest="primetime", action="store_true", default=False,
                       help="Add Primetime signaling to the MPD (requires an encrypted input, or the --encryption-key option)")
     parser.add_option('', "--primetime-metadata", dest="primetime_metadata", metavar='<primetime-metadata>', default=None,
-                      help="Add Primetime metadata in a PSSH box in the init segments. The use of this option implies the --primetime option." +
+                      help="Add Primetime metadata in a PSSH box in the init segments. The use of this option implies the --primetime option. " +
                            "The <primetime-data> argument can be either: " +
-                           "(1) the character '@' followed by the name of a file containing the Primetime data to use"
-                           "(2) the character '#' followed by the Primetime data encoded in Base64")
+                           "(1) the character '@' followed by the name of a file containing the Primetime Metadata to use, or "
+                           "(2) the character '#' followed by the Primetime Metadata encoded in Base64")
     parser.add_option('', "--exec-dir", metavar="<exec_dir>", dest="exec_dir", default=default_exec_dir,
                       help="Directory where the Bento4 executables are located")
     (options, args) = parser.parse_args()
@@ -1067,7 +1067,7 @@ def main():
                 args += ['--pssh', WIDEVINE_PSSH_SYSTEM_ID+':'+pssh_file.name]
 
             if options.primetime_metadata:
-                primetime_metadata = ComputePrimetimeMetaData(options.primetime_metadata)
+                primetime_metadata = ComputePrimetimeMetaData(options.primetime_metadata, kid_hex)
                 pssh_file = tempfile.NamedTemporaryFile(dir = options.output_dir, delete=False)
                 pssh_file.write(primetime_metadata)
                 TempFiles.append(pssh_file.name)
