@@ -63,7 +63,12 @@ def XmlDuration(d):
     return xsd
 
 def Bento4Command(options, name, *args, **kwargs):
-    cmd = [path.join(options.exec_dir, name)]
+    executable = path.join(options.exec_dir, name)
+    if not os.path.exists(executable):
+        if options.debug:
+            print 'executable not found in exec_dir, trying with PATH'
+        executable = name
+    cmd = [executable]
     for kwarg in kwargs:
         arg = kwarg.replace('_', '-')
         cmd.append('--'+arg)
@@ -80,23 +85,23 @@ def Bento4Command(options, name, *args, **kwargs):
             message += " - " + str(cmd)
         raise Exception(message)
 
-def Mp4Info(options, filename, **args):
-    return Bento4Command(options, 'mp4info', filename, **args)
+def Mp4Info(options, filename, *args, **kwargs):
+    return Bento4Command(options, 'mp4info', filename, *args, **kwargs)
 
-def Mp4Dump(options, filename, **args):
-    return Bento4Command(options, 'mp4dump', filename, **args)
+def Mp4Dump(options, filename, *args, **kwargs):
+    return Bento4Command(options, 'mp4dump', filename, *args, **kwargs)
 
-def Mp4Split(options, filename, **args):
-    return Bento4Command(options, 'mp4split', filename, **args)
+def Mp4Split(options, filename, *args, **kwargs):
+    return Bento4Command(options, 'mp4split', filename, *args, **kwargs)
 
-def Mp4Fragment(options, input_filename, output_filename, **args):
-    return Bento4Command(options, 'mp4fragment', input_filename, output_filename, **args)
+def Mp4Fragment(options, input_filename, output_filename, *args, **kwargs):
+    return Bento4Command(options, 'mp4fragment', input_filename, output_filename, *args, **kwargs)
 
-def Mp4Encrypt(options, input_filename, output_filename, **args):
-    return Bento4Command(options, 'mp4encrypt', input_filename, output_filename, **args)
+def Mp4Encrypt(options, input_filename, output_filename, *args, **kwargs):
+    return Bento4Command(options, 'mp4encrypt', input_filename, output_filename, *args, **kwargs)
 
-def Mp42Hls(options, input_filename, **args):
-    return Bento4Command(options, 'mp42hls', input_filename, **args)
+def Mp42Hls(options, input_filename, *args, **kwargs):
+    return Bento4Command(options, 'mp42hls', input_filename, *args, **kwargs)
 
 class Mp4Atom:
     def __init__(self, type, size, position):

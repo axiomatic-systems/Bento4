@@ -203,7 +203,7 @@ def AddContentProtection(options, container, tracks):
         default_kid = options.kid_hex
     else:
         default_kid = kids[0]
-    default_kid_with_dashes = (default_kid[0:8]+'-'+default_kid[8:12]+'-'+default_kid[12:16]+'-'+default_kid[16:32]).lower()
+    default_kid_with_dashes = (default_kid[0:8]+'-'+default_kid[8:12]+'-'+default_kid[12:16]+'-'+default_kid[16:20]+'-'+default_kid[20:32]).lower()
     container.append(xml.Comment(' Common Encryption '))
     xml.register_namespace('cenc', CENC_2013_NAMESPACE)
     cenc_cp = xml.SubElement(container, 'ContentProtection', schemeIdUri='urn:mpeg:dash:mp4protection:2011', value='cenc')
@@ -289,7 +289,7 @@ def OutputDash(options, audio_tracks, video_tracks, subtitles_tracks):
         for audio_track in audio_tracks:
             args = [period, 'AdaptationSet']
             kwargs = {'mimeType': AUDIO_MIMETYPE, 'startWithSAP': '1', 'segmentAlignment': 'true'}
-            if (audio_track.language != 'und') or (HBBTV_15_ISOFF_LIVE_PROFILE in options.profiles):
+            if (audio_track.language != 'und') or options.always_output_lang:
                 kwargs['lang'] = audio_track.language
             stream_name = 'audio_' + audio_track.language
             adaptation_set = xml.SubElement(*args, **kwargs)
@@ -335,11 +335,27 @@ def OutputDash(options, audio_tracks, video_tracks, subtitles_tracks):
     # process the video tracks
     if len(video_tracks):
         period.append(xml.Comment(' Video '))
+
+        # compute the min and max values
+        minWidth  = 0
+        minHeight = 0
+        maxWidth  = 0
+        maxHeight = 0
+        for video_track in video_tracks:
+            if minWidth  == 0 or video_track.width < minWidth:  minWidth  = video_track.width
+            if minHeight == 0 or video_track.width < minHeight: minHeight = video_track.height
+            if video_track.width  > maxWidth:  maxWidth  = video_track.width
+            if video_track.height > maxHeight: maxHeight = video_track.height
+
         adaptation_set = xml.SubElement(period,
                                         'AdaptationSet',
                                         mimeType=VIDEO_MIMETYPE,
                                         segmentAlignment='true',
-                                        startWithSAP='1')
+                                        startWithSAP='1',
+                                        minWidth=str(minWidth),
+                                        maxWidth=str(maxWidth),
+                                        minHeight=str(minHeight),
+                                        maxHeight=str(maxHeight))
 
         if options.encryption_key or options.marlin or options.playready or options.widevine:
             AddContentProtection(options, adaptation_set, video_tracks)
@@ -386,7 +402,7 @@ def OutputDash(options, audio_tracks, video_tracks, subtitles_tracks):
         for subtitles_track in subtitles_tracks:
             args = [period, 'AdaptationSet']
             kwargs = {'mimeType': SUBTITLES_MIMETYPE, 'startWithSAP': '1'}
-            if (subtitles_track.language != 'und') or (HBBTV_15_ISOFF_LIVE_PROFILE in options.profiles):
+            if (subtitles_track.language != 'und') or options.always_output_lang:
                 kwargs['lang'] = subtitles_track.language
             stream_name = 'subtitles_' + subtitles_track.language
             adaptation_set = xml.SubElement(*args, **kwargs)
@@ -790,6 +806,8 @@ def main():
                       help="Max Playout Rate setting strategy for trick-play support. Supported strategies: lowest:X"),
     parser.add_option('', "--language-map", dest="language_map", metavar="<lang_from>:<lang_to>[,...]",
                       help="Remap language code <lang_from> to <lang_to>. Multiple mappings can be specified, separated by ','")
+    parser.add_option('', "--always-output-lang", dest="always_output_lang", action='store_true', default=False,
+                      help="Always output an @lang attribute for audio tracks even when the language is undefined"),
     parser.add_option('', "--subtitles", dest="subtitles", action="store_true", default=False,
                       help="Enable Subtitles")
     parser.add_option('', "--smooth", dest="smooth", default=False, action="store_true",
@@ -904,6 +922,7 @@ def main():
         options.playready_no_pssh = True
         if options.playready_add_pssh:
             sys.stderr.write('INFO: since hbbtv-1.5 profile is selected, no PlayReady PSSH box will be added to the init segments\n')
+        options.always_output_lang = True
 
     if not options.split:
         if not options.smooth and not options.hippo and not options.on_demand and not options.use_segment_list:
@@ -1037,8 +1056,6 @@ def main():
                 if options.smooth or options.playready:
                     args += ['--global-option', 'mpeg-cenc.piff-compatible:true']
 
-            args.append(media_file)
-            args.append(encrypted_file.name)
             for track_id in track_ids:
                 args += ['--key', str(track_id)+':'+key_hex+':random', '--property', str(track_id)+':KID:'+kid_hex]
 
@@ -1074,16 +1091,7 @@ def main():
                 pssh_file.close() # necessary on Windows
                 args += ['--pssh', PRIMETIME_PSSH_SYSTEM_ID+':'+pssh_file.name]
 
-            cmd = [path.join(Options.exec_dir, 'mp4encrypt')] + args
-            if options.debug:
-                print 'COMMAND: ', cmd
-            try:
-                check_output(cmd)
-            except CalledProcessError, e:
-                message = "binary tool failed with error %d" % e.returncode
-                if options.verbose:
-                    message += " - " + str(cmd)
-                raise Exception(message)
+            Mp4Encrypt(options, media_file, encrypted_file.name, *args)
             media_source.filename = encrypted_file.name
 
     # parse the media sources and select the audio and video tracks

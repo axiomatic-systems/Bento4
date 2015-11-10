@@ -173,7 +173,7 @@ def main():
                       help="Encryption key URI (may be a realtive or absolute URI). (default: key.bin)")
     parser.add_option('', '--encryption-key-format', dest="encryption_key_format", metavar="<format>",
                       help="Encryption key format. (default: 'identity')")
-    parser.add_option('', '--encryption-key-format-versions', dest="encryption_key_format_versions", metavar="<verstions>",
+    parser.add_option('', '--encryption-key-format-versions', dest="encryption_key_format_versions", metavar="<versions>",
                       help="Encryption key format versions.")
     parser.add_option('', '--output-encryption-key', dest="output_encryption_key", action="store_true", default=False,
                       help="Output the encryption key to a file (default: don't output the key). This option is only valid when the encryption key format is 'identity'")
