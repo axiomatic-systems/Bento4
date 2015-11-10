@@ -1,2 +1,5 @@
 LoadTool('gcc-generic', env)
 env.AppendUnique(CPPDEFINES = [('AP4_PLATFORM_BYTE_ORDER', 'AP4_PLATFORM_BYTE_ORDER_LITTLE_ENDIAN')])
+env.AppendUnique(CCFLAGS = ['-m32'])
+env.AppendUnique(CXXFLAGS = ['-m32'])
+env.AppendUnique(LINKFLAGS = ['-m32'])
