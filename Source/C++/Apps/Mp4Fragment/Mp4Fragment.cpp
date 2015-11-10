@@ -2,7 +2,7 @@
 |
 |    AP4 - MP4 Fragmenter
 |
-|    Copyright 2002-2010 Axiomatic Systems, LLC
+|    Copyright 2002-2015 Axiomatic Systems, LLC
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -37,7 +37,7 @@
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-#define BANNER "MP4 Fragmenter - Version 1.5.1\n"\
+#define BANNER "MP4 Fragmenter - Version 1.6.0\n"\
                "(Bento4 Version " AP4_VERSION_STRING ")\n"\
                "(c) 2002-2015 Axiomatic Systems, LLC"
 
@@ -47,15 +47,21 @@
 const unsigned int AP4_FRAGMENTER_DEFAULT_FRAGMENT_DURATION   = 2000; // ms
 const unsigned int AP4_FRAGMENTER_MAX_AUTO_FRAGMENT_DURATION  = 40000;
 
+typedef enum {
+    AP4_FRAGMENTER_FORCE_SYNC_MODE_NONE,
+    AP4_FRAGMENTER_FORCE_SYNC_MODE_AUTO,
+    AP4_FRAGMENTER_FORCE_SYNC_MODE_ALL
+} ForceSyncMode;
+
 /*----------------------------------------------------------------------
 |   options
 +---------------------------------------------------------------------*/
 struct _Options {
-    unsigned int verbosity;
-    bool         trim;
-    bool         debug;
-    bool         no_tfdt;
-    bool         force_i_frame_sync;
+    unsigned int  verbosity;
+    bool          trim;
+    bool          debug;
+    bool          no_tfdt;
+    ForceSyncMode force_i_frame_sync;
 } Options;
 
 /*----------------------------------------------------------------------
@@ -77,7 +83,8 @@ PrintUsageAndExit()
             "  --index (re)create the segment index\n"
             "  --trim trim excess media in longer tracks\n"
             "  --no-tfdt don't add 'tfdt' boxes in the fragments (may be needed for legacy Smooth Streaming clients)\n"
-            "  --force-i-frame-sync treat all I-frames as sync samples (for open-gop sequences)\n"
+            "  --force-i-frame-sync <auto|all> treat all I-frames as sync samples (for open-gop sequences)\n"
+            "    'auto' onlly forces the flag if an open-gop source is detected, 'all' forces the flag in all cases\n"
             );
     exit(1);
 }
@@ -962,7 +969,7 @@ main(int argc, char** argv)
     Options.debug              = false;
     Options.trim               = false;
     Options.no_tfdt            = false;
-    Options.force_i_frame_sync = false;
+    Options.force_i_frame_sync = AP4_FRAGMENTER_FORCE_SYNC_MODE_NONE;
     
     // parse the command line
     argv++;
@@ -986,7 +993,19 @@ main(int argc, char** argv)
         } else if (!strcmp(arg, "--no-tfdt")) {
             Options.no_tfdt = true;
         } else if (!strcmp(arg, "--force-i-frame-sync")) {
-            Options.force_i_frame_sync = true;
+            arg = *argv++;
+            if (arg == NULL) {
+                fprintf(stderr, "ERROR: missing argument after --fragment-duration option\n");
+                return 1;
+            }
+            if (!strcmp(arg, "all")) {
+                Options.force_i_frame_sync = AP4_FRAGMENTER_FORCE_SYNC_MODE_ALL;
+            } else if (!strcmp(arg, "auto")) {
+                Options.force_i_frame_sync = AP4_FRAGMENTER_FORCE_SYNC_MODE_AUTO;
+            } else {
+                fprintf(stderr, "ERROR: unknown mode for --force-i-frame-sync\n");
+                return 1;
+            }
         } else if (!strcmp(arg, "--fragment-duration")) {
             arg = *argv++;
             if (arg == NULL) {
@@ -1162,7 +1181,7 @@ main(int argc, char** argv)
         return 1;
     }
     AP4_AvcSampleDescription* avc_desc = NULL;
-    if (video_track && Options.force_i_frame_sync) {
+    if (video_track && (Options.force_i_frame_sync != AP4_FRAGMENTER_FORCE_SYNC_MODE_NONE)) {
         // that feature is only supported for AVC
         AP4_SampleDescription* sdesc = video_track->m_Track->GetSampleDescription(0);
         if (sdesc) {
@@ -1198,12 +1217,29 @@ main(int argc, char** argv)
             }
         } while (AP4_SUCCEEDED(result));
         
-    } else if (video_track && Options.force_i_frame_sync) {
+    } else if (video_track && (Options.force_i_frame_sync != AP4_FRAGMENTER_FORCE_SYNC_MODE_NONE)) {
         AP4_Sample sample;
-        for (unsigned int i=0; i<video_track->m_Samples->GetSampleCount(); i++) {
-            if (AP4_SUCCEEDED(video_track->m_Samples->GetSample(i, sample))) {
-                if (IsIFrame(sample, avc_desc)) {
-                    video_track->m_Samples->ForceSync(i);
+        if (Options.force_i_frame_sync == AP4_FRAGMENTER_FORCE_SYNC_MODE_AUTO) {
+            // detect if this looks like an open-gop source
+            for (unsigned int i=1; i<video_track->m_Samples->GetSampleCount(); i++) {
+                if (AP4_SUCCEEDED(video_track->m_Samples->GetSample(i, sample))) {
+                    if (sample.IsSync()) {
+                        // we found a sync i-frame, assume this is *not* an open-gop source
+                        Options.force_i_frame_sync = AP4_FRAGMENTER_FORCE_SYNC_MODE_NONE;
+                        if (Options.debug) {
+                            printf("this does not look like an open-gop source, not forcing i-frame sync flags\n");
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+        if (Options.force_i_frame_sync != AP4_FRAGMENTER_FORCE_SYNC_MODE_NONE) {
+            for (unsigned int i=0; i<video_track->m_Samples->GetSampleCount(); i++) {
+                if (AP4_SUCCEEDED(video_track->m_Samples->GetSample(i, sample))) {
+                    if (IsIFrame(sample, avc_desc)) {
+                        video_track->m_Samples->ForceSync(i);
+                    }
                 }
             }
         }
