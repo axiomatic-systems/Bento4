@@ -84,7 +84,7 @@ PrintUsageAndExit()
             "  --trim trim excess media in longer tracks\n"
             "  --no-tfdt don't add 'tfdt' boxes in the fragments (may be needed for legacy Smooth Streaming clients)\n"
             "  --force-i-frame-sync <auto|all> treat all I-frames as sync samples (for open-gop sequences)\n"
-            "    'auto' onlly forces the flag if an open-gop source is detected, 'all' forces the flag in all cases\n"
+            "    'auto' only forces the flag if an open-gop source is detected, 'all' forces the flag in all cases\n"
             );
     exit(1);
 }
