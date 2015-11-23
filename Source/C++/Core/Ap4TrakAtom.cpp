@@ -372,6 +372,7 @@ AP4_TrakAtom::SetChunkOffsets(const AP4_Array<AP4_UI64>& chunk_offsets)
             return AP4_ERROR_OUT_OF_RANGE;
         }
         for (unsigned int i=0; i<stco_chunk_count; i++) {
+        	AP4_ASSERT(!(chunk_offsets[i] >> 32));
             stco_chunk_offsets[i] = (AP4_UI32)chunk_offsets[i];
         }
         return AP4_SUCCESS;
