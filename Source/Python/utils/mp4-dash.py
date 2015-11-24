@@ -885,7 +885,7 @@ def main():
         if options.use_segment_list:
             raise Exception('ERROR: --hippo and --use-segment-list are mutually exclusive')
 
-    if not path.exists(Options.exec_dir):
+    if not path.exists(options.exec_dir):
         PrintErrorAndExit('Executable directory does not exist ('+Options.exec_dir+'), use --exec-dir')
 
     if options.max_playout_rate_strategy:
