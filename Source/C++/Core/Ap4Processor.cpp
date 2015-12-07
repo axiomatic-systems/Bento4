@@ -117,6 +117,7 @@ AP4_Processor::ProcessFragments(AP4_MoovAtom*              moov,
                                 AP4_ByteStream&            output)
 {
     unsigned int fragment_index = 0;
+    AP4_ContainerAtom* mfra_tmp = (AP4_ContainerAtom*)mfra->Clone();
     
     for (AP4_List<AP4_AtomLocator>::Item* item = atoms.FirstItem();
                                           item;
@@ -316,19 +317,25 @@ AP4_Processor::ProcessFragments(AP4_MoovAtom*              moov,
         moof->Write(output);
         output.Seek(mdat_out_end);
         
-        // update the mfra if we have one
+        // update the mfra if we have one and store the changes in a temporal clone
         if (mfra) {
-            for (AP4_List<AP4_Atom>::Item* mfra_item = mfra->GetChildren().FirstItem();
-                                           mfra_item;
-                                           mfra_item = mfra_item->GetNext()) {
+            AP4_List<AP4_Atom>::Item* mfra_item = mfra->GetChildren().FirstItem();
+            AP4_List<AP4_Atom>::Item* mfra_tmp_item = mfra_tmp->GetChildren().FirstItem();
+
+            for (; mfra_item; mfra_item = mfra_item->GetNext(), mfra_tmp_item = mfra_tmp_item->GetNext()) {
+
                 if (mfra_item->GetData()->GetType() != AP4_ATOM_TYPE_TFRA) continue;
                 AP4_TfraAtom* tfra = AP4_DYNAMIC_CAST(AP4_TfraAtom, mfra_item->GetData());
+                AP4_TfraAtom* tfra_tmp = AP4_DYNAMIC_CAST(AP4_TfraAtom, mfra_tmp_item->GetData());
+
                 if (tfra == NULL) continue;
                 AP4_Array<AP4_TfraAtom::Entry>& entries     = tfra->GetEntries();
                 AP4_Cardinal                    entry_count = entries.ItemCount();
+                AP4_Array<AP4_TfraAtom::Entry>& entries_tmp     = tfra_tmp->GetEntries();
+
                 for (unsigned int i=0; i<entry_count; i++) {
                     if (entries[i].m_MoofOffset == locator->m_Offset) {
-                        entries[i].m_MoofOffset = moof_out_start;
+                        entries_tmp[i].m_MoofOffset = moof_out_start;
                     }
                 }
             }
@@ -353,6 +360,25 @@ AP4_Processor::ProcessFragments(AP4_MoovAtom*              moov,
         for (unsigned int i=0; i<sample_tables.ItemCount(); i++) {
             delete sample_tables[i];
         }
+    }
+    
+    // updates the mfra from the cloned mfra when the process is finished
+    if (mfra) {
+        AP4_List<AP4_Atom>::Item* mfra_item = mfra->GetChildren().FirstItem();
+        AP4_List<AP4_Atom>::Item* mfra_tmp_item = mfra_tmp->GetChildren().FirstItem();
+        for (; mfra_item; mfra_item = mfra_item->GetNext(), mfra_tmp_item = mfra_tmp_item->GetNext()) {
+            if (mfra_item->GetData()->GetType() != AP4_ATOM_TYPE_TFRA) continue;
+            AP4_TfraAtom* tfra = AP4_DYNAMIC_CAST(AP4_TfraAtom, mfra_item->GetData());
+            AP4_TfraAtom* tfra_tmp = AP4_DYNAMIC_CAST(AP4_TfraAtom, mfra_tmp_item->GetData());
+            if (tfra == NULL) continue;
+            AP4_Array<AP4_TfraAtom::Entry>& entries     = tfra->GetEntries();
+            AP4_Cardinal                    entry_count = entries.ItemCount();
+            AP4_Array<AP4_TfraAtom::Entry>& entries_tmp     = tfra_tmp->GetEntries();
+            for (unsigned int i=0; i<entry_count; i++) {
+                entries[i].m_MoofOffset = entries_tmp[i].m_MoofOffset;
+            }
+        }
+        delete mfra_tmp;
     }
      
     return AP4_SUCCESS;
