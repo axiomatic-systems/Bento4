@@ -98,7 +98,10 @@ public:
         m_Track(track) {
         m_SampleCount = m_Track->GetSampleCount();
         if (m_SampleCount) {
-            m_ForcedSync = new bool[m_SampleCount]();
+            m_ForcedSync = new bool[m_SampleCount];
+            for (unsigned int i=0; i<m_SampleCount; i++) {
+                m_ForcedSync[i] = false;
+            }
         } else {
             m_ForcedSync = NULL;
         }
