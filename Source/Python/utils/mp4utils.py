@@ -1,9 +1,13 @@
 #!/usr/bin/env python
-import collections
+
+# support python 2 and 3
+from __future__ import print_function
 
 __author__    = 'Gilles Boccon-Gibod (bok@bok.net)'
 __copyright__ = 'Copyright 2011-2015 Axiomatic Systems, LLC.'
 
+# imports
+import collections
 import sys
 import os
 import os.path as path
@@ -14,6 +18,9 @@ import struct
 import operator
 import hashlib
 import xml.sax.saxutils as saxutils
+from functools import reduce
+import binascii
+import base64
 
 LanguageCodeMap = {
     'aar': 'aa', 'abk': 'ab', 'afr': 'af', 'aka': 'ak', 'alb': 'sq', 'amh': 'am', 'ara': 'ar', 'arg': 'an',
@@ -44,14 +51,32 @@ LanguageCodeMap = {
     'yor': 'yo', 'zha': 'za', 'zho': 'zh', 'zul': 'zu', '```': 'und'
 }
 
+def MakeUnicode(s):
+    if sys.version_info < (3,):
+        if type(s) == str:
+            return unicode(s, 'utf-8')
+        else:
+            return s
+    else:
+        return s
+
+def MakeBinary(s):
+    if sys.version_info < (3,):
+        return s
+    else:
+        if type(s) == bytes:
+            return s
+        else:
+            return s.encode('ascii')
+
 def PrintErrorAndExit(message):
     sys.stderr.write(message+'\n')
     sys.exit(1)
 
 def XmlDuration(d):
-    h  = int(d)/3600
+    h  = int(d)//3600
     d -= h*3600
-    m  = int(d)/60
+    m  = int(d)//60
     s  = d-m*60
     xsd = 'PT'
     if h:
@@ -66,7 +91,7 @@ def Bento4Command(options, name, *args, **kwargs):
     executable = path.join(options.exec_dir, name)
     if not os.path.exists(executable):
         if options.debug:
-            print 'executable not found in exec_dir, trying with PATH'
+            print('executable not found in exec_dir, trying with PATH')
         executable = name
     cmd = [executable]
     for kwarg in kwargs:
@@ -76,10 +101,10 @@ def Bento4Command(options, name, *args, **kwargs):
             cmd.append(kwargs[kwarg])
     cmd += args
     if options.debug:
-        print 'COMMAND: ', cmd
+        print('COMMAND: ', cmd)
     try:
-        return check_output(cmd)
-    except CalledProcessError, e:
+        return check_output(cmd).decode('utf-8')
+    except CalledProcessError as e:
         message = "binary tool failed with error %d" % e.returncode
         if options.verbose:
             message += " - " + str(cmd)
@@ -120,7 +145,7 @@ def WalkAtoms(filename, until=None):
     while True:
         try:
             size = struct.unpack('>I', file.read(4))[0]
-            type = file.read(4)
+            type = file.read(4).decode('utf-8')
             if type == until:
                 break
             if size == 1:
@@ -190,7 +215,7 @@ class Mp4Track:
             self.sample_rate = sample_desc['sample_rate']
             self.channels = sample_desc['channels']
 
-        self.language = info['language']
+        self.language = str(info['language'])
 
     def update(self, options):
         # compute the total number of samples
@@ -245,7 +270,7 @@ class Mp4File:
 
         filename = media_source.filename
         if options.debug:
-            print 'Processing MP4 file', filename
+            print('Processing MP4 file', filename)
 
         # by default, the media name is the basename of the source file
         self.media_name = os.path.basename(filename)
@@ -263,7 +288,7 @@ class Mp4File:
                     self.segments[-1].append(atom)
         #print self.segments
         if options.debug:
-            print '  found', len(self.segments), 'segments'
+            print('  found', len(self.segments), 'segments')
 
         # get the mp4 file info
         json_info = Mp4Info(options, filename, format='json', fast=True)
@@ -278,7 +303,7 @@ class Mp4File:
         self.tree = json.loads(json_dump, strict=False, object_pairs_hook=collections.OrderedDict)
 
         # look for KIDs
-        for track in self.tracks.itervalues():
+        for track in list(self.tracks.values()):
             track.compute_kid()
 
         # compute default sample durations and timescales
@@ -318,7 +343,7 @@ class Mp4File:
                 default_sample_duration = tfhd.get('default sample duration', track.default_sample_duration)
                 for trun in FilterChildren(trafs[0], 'trun'):
                     track.sample_counts.append(trun['sample count'])
-                    for (name, value) in trun.items():
+                    for (name, value) in list(trun.items()):
                         if name[0] in '0123456789':
                             sample_duration = -1
                             fields = value.split(',')
@@ -361,7 +386,7 @@ class Mp4File:
                     continue
                 track = self.tracks[track_id]
                 moof_pointers = []
-                for (name, value) in tfra.items():
+                for (name, value) in list(tfra.items()):
                     if name.startswith('['):
                         attributes = value.split(',')
                         attribute_dict = {}
@@ -391,15 +416,15 @@ class Mp4File:
 
         # print debug info if requested
         if options.debug:
-            for track in self.tracks.itervalues():
-                print 'Track ID                     =', track.id
-                print '    Segment Count            =', len(track.segment_durations)
-                print '    Type                     =', track.type
-                print '    Sample Count             =', track.total_sample_count
-                print '    Average segment bitrate  =', track.average_segment_bitrate
-                print '    Max segment bitrate      =', track.max_segment_bitrate
-                print '    Required bandwidth       =', int(track.bandwidth)
-                print '    Average segment duration =', track.average_segment_duration
+            for track in list(self.tracks.values()):
+                print('Track ID                     =', track.id)
+                print('    Segment Count            =', len(track.segment_durations))
+                print('    Type                     =', track.type)
+                print('    Sample Count             =', track.total_sample_count)
+                print('    Average segment bitrate  =', track.average_segment_bitrate)
+                print('    Max segment bitrate      =', track.max_segment_bitrate)
+                print('    Required bandwidth       =', int(track.bandwidth))
+                print('    Average segment duration =', track.average_segment_duration)
 
     def find_track_by_id(self, track_id_to_find):
         for track_id in self.tracks:
@@ -409,7 +434,7 @@ class Mp4File:
         return None
 
     def find_tracks_by_type(self, track_type_to_find):
-        return [track for track in self.tracks.values() if track_type_to_find == '' or track_type_to_find == track.type]
+        return [track for track in list(self.tracks.values()) if track_type_to_find == '' or track_type_to_find == track.type]
 
 class MediaSource:
     def __init__(self, name):
@@ -464,11 +489,11 @@ def MakeNewDir(dir, exit_if_exists=False, severity=None):
 
 def MakePsshBox(system_id, payload):
     pssh_size = 12+16+4+len(payload)
-    return struct.pack('>I', pssh_size)+'pssh'+struct.pack('>I',0)+system_id+struct.pack('>I', len(payload))+payload
+    return struct.pack('>I', pssh_size)+'pssh'.encode('ascii')+struct.pack('>I',0)+system_id+struct.pack('>I', len(payload))+payload
 
 def GetEncryptionKey(options, spec):
     if options.debug:
-        print 'Resolving KID and Key from spec:', spec
+        print('Resolving KID and Key from spec:', spec)
     if spec.startswith('skm:'):
         import skm
         return skm.ResolveKey(options, spec[4:])
@@ -477,7 +502,7 @@ def GetEncryptionKey(options, spec):
 
 def ComputeMarlinPssh(options):
     # create a dummy (empty) Marlin PSSH
-    return struct.pack('>I4sI4sII', 24, 'marl', 16, 'mkid', 0, 0)
+    return struct.pack('>I4sI4sII', 24, 'marl'.encode('ascii'), 16, 'mkid'.encode('ascii'), 0, 0)
 
 def DerivePlayReadyKey(seed, kid, swap=True):
     if len(seed) < 30:
@@ -530,7 +555,7 @@ def ComputePlayReadyHeader(header_spec, kid_hex, key_hex):
         header_spec = ''
     if header_spec.startswith('#'):
         header_b64 = header_spec[1:]
-        header = header_b64.decode('base64')
+        header = base64.b64decode(header_b64)
         if len(header) == 0:
             raise Exception('invalid base64 encoding')
         return header
@@ -544,13 +569,13 @@ def ComputePlayReadyHeader(header_spec, kid_hex, key_hex):
         # read the header from the file
         header = open(header_spec, 'rb').read()
         header_xml = None
-        if (ord(header[0]) == 0xff and ord(header[1]) == 0xfe) or (ord(header[0]) == 0xfe and ord(header[1]) == 0xff):
+        if (ord(header[0:1]) == 0xff and ord(header[1:2]) == 0xfe) or (ord(header[0:1]) == 0xfe and ord(header[1:2]) == 0xff):
             # this is UTF-16 XML
             header_xml = header.decode('utf-16')
-        elif header[0] == '<' and ord(header[1]) != 0x00:
+        elif header[0:1] == '<' and ord(header[1:2]) != 0x00:
             # this is ASCII or UTF-8 XML
             header_xml = header.decode('utf-8')
-        elif header[0] == '<' and ord(header[1]) == 0x00:
+        elif header[0:1] == '<' and ord(header[1:2]) == 0x00:
             # this UTF-16LE XML without charset header
             header_xml = header.decode('utf-16-le')
         if header_xml is not None:
@@ -569,14 +594,15 @@ def ComputePlayReadyHeader(header_spec, kid_hex, key_hex):
 
         header_xml = '<WRMHEADER xmlns="http://schemas.microsoft.com/DRM/2007/03/PlayReadyHeader" version="4.0.0.0"><DATA><PROTECTINFO><KEYLEN>16</KEYLEN><ALGID>AESCTR</ALGID></PROTECTINFO>'
 
-        kid = kid_hex.decode('hex')
-        kid = kid[3]+kid[2]+kid[1]+kid[0]+kid[5]+kid[4]+kid[7]+kid[6]+kid[8:]
-        header_xml += '<KID>'+kid.encode('base64').replace('\n', '')+'</KID>'
+        kid = binascii.unhexlify(kid_hex)
+        kid = kid[3:4]+kid[2:3]+kid[1:2]+kid[0:1]+kid[5:6]+kid[4:5]+kid[7:8]+kid[6:7]+kid[8:]
+        header_xml += '<KID>'+base64.b64encode(kid).decode('ascii').replace('\n', '')+'</KID>'
         if key_hex:
-            header_xml += '<CHECKSUM>'+ComputePlayReadyChecksum(kid, key_hex.decode('hex')).encode('base64').replace('\n', '')+'</CHECKSUM>'
+            checksum = ComputePlayReadyChecksum(kid, binascii.unhexlify(key_hex))
+            header_xml += '<CHECKSUM>'+base64.b64encode(checksum).decode('ascii').replace('\n', '')+'</CHECKSUM>'
 
         if 'CUSTOMATTRIBUTES' in fields:
-            header_xml += '<CUSTOMATTRIBUTES>'+fields['CUSTOMATTRIBUTES'].decode('base64').replace('\n', '')+'</CUSTOMATTRIBUTES>'
+            header_xml += '<CUSTOMATTRIBUTES>'+base64.b64decode(fields['CUSTOMATTRIBUTES']).replace('\n', '')+'</CUSTOMATTRIBUTES>'
         if 'LA_URL' in fields:
             header_xml += '<LA_URL>'+saxutils.escape(fields['LA_URL'])+'</LA_URL>'
         if 'LUI_URL' in fields:
@@ -595,7 +621,7 @@ def ComputePrimetimeMetaData(metadata_spec, kid_hex):
         metadata_spec = ''
     if metadata_spec.startswith('#'):
         metadata_b64 = metadata_spec[1:]
-        metadata = metadata_b64.decode('base64')
+        metadata = base64.b64decode(metadata_b64)
         if len(metadata) == 0:
             raise Exception('invalid base64 encoding')
     elif metadata_spec.startswith('@'):
@@ -611,7 +637,7 @@ def ComputePrimetimeMetaData(metadata_spec, kid_hex):
     if len(metadata):
         amet_flags |= 2
         amet_size += 4+len(metadata)
-    amet_box = struct.pack('>I4sII', amet_size, 'amet', amet_flags, 1)+kid_hex.decode("hex")
+    amet_box = struct.pack('>I4sII', amet_size, 'amet'.encode('ascii'), amet_flags, 1)+binascii.unhexlify(kid_hex)
     if len(metadata):
         amet_box += struct.pack('>I', len(metadata))+metadata
 
@@ -626,28 +652,26 @@ def WidevineVarInt(value):
     varint = ''
     for i in range(len(parts)-1):
         parts[i] |= (1<<7)
-    varint = ''
-    for x in parts:
-        varint += chr(x)
-    return varint
+    return bytes(bytearray(parts))
 
 def WidevineMakeHeader(fields):
-    buffer = ''
+    buffer = bytearray()
     for (field_num, field_val) in fields:
         if type(field_val) == int and field_val < 256:
             wire_type = 0 # varint
             wire_val = WidevineVarInt(field_val)
-        elif type(field_val) == str:
+        elif type(field_val) == str or type(field_val) == bytes:
             wire_type = 2
-            wire_val = WidevineVarInt(len(field_val))+field_val
-        buffer += chr(field_num<<3 | wire_type) + wire_val
+            wire_val = WidevineVarInt(len(field_val))+MakeBinary(field_val)
+        buffer.append(field_num<<3 | wire_type)
+        buffer += wire_val
     return buffer
 
 def ComputeWidevineHeader(header_spec, kid_hex, key_hex):
     # construct the base64 header
     if header_spec.startswith('#'):
         header_b64 = header_spec[1:]
-        header = header_b64.decode('base64')
+        header = base64.b64decode(header_b64)
         if len(header) == 0:
             raise Exception('invalid base64 encoding')
         return header
@@ -661,13 +685,13 @@ def ComputeWidevineHeader(header_spec, kid_hex, key_hex):
         except:
             raise Exception('invalid syntax for argument')
 
-        protobuf_fields = [(1, 1), (2, kid_hex.decode('hex'))]
+        protobuf_fields = [(1, 1), (2, binascii.unhexlify(kid_hex))]
         if 'provider' in fields:
             protobuf_fields.append((3, fields['provider']))
         if 'content_id' in fields:
-            protobuf_fields.append((4, fields['content_id'].decode('hex')))
+            protobuf_fields.append((4, binascii.unhexlify(fields['content_id'])))
         if 'policy' in fields:
             protobuf_fields.append((6, fields['policy']))
         return WidevineMakeHeader(protobuf_fields)
 
-    return ""
+    return bytes()

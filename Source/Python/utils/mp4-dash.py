@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 
+# support python 2 and 3
+from __future__ import print_function
+
 __author__    = 'Gilles Boccon-Gibod (bok@bok.net)'
 __copyright__ = 'Copyright 2011-2015 Axiomatic Systems, LLC.'
 
@@ -13,6 +16,7 @@ __copyright__ = 'Copyright 2011-2015 Axiomatic Systems, LLC.'
 # Linux x86 --> platform = linux-x86
 # Windows   --> platform = win32
 
+# imports
 from optparse import OptionParser
 import shutil
 import xml.etree.ElementTree as xml
@@ -22,11 +26,12 @@ import fractions
 import re
 import platform
 import sys
+from functools import reduce
 from mp4utils import *
 
 # setup main options
 VERSION = "1.6.0"
-SDK_REVISION = '604'
+SDK_REVISION = '606'
 SCRIPT_PATH = path.abspath(path.dirname(__file__))
 sys.path += [SCRIPT_PATH]
 
@@ -111,7 +116,7 @@ def AddSegmentList(options, container, subdir, track, use_byte_range=False):
         byte_range = str(track.parent.init_segment.position)+'-'+str(track.parent.init_segment.position+track.parent.init_segment.size-1)
         xml.SubElement(segment_list,
                        'Initialization',
-                       sourceURL=prefix + track.parent.media_name,
+                       sourceURL=MakeUnicode(prefix + track.parent.media_name),
                        range=byte_range)
     else:
         xml.SubElement(segment_list,
@@ -126,7 +131,7 @@ def AddSegmentList(options, container, subdir, track, use_byte_range=False):
             byte_range = str(segment_offset) + '-' + str(segment_offset + segment_length - 1)
             xml.SubElement(segment_list,
                            'SegmentURL',
-                           media=prefix + track.parent.media_name,
+                           media=MakeUnicode(prefix + track.parent.media_name),
                            mediaRange=byte_range)
         else:
             xml.SubElement(segment_list,
@@ -233,7 +238,7 @@ def AddContentProtection(options, container, tracks):
         cp = xml.SubElement(container, 'ContentProtection', schemeIdUri=playread_scheme_id_uri)
         if options.playready_header:
             header_bin = ComputePlayReadyHeader(options.playready_header, default_kid, key)
-            header_b64 = header_bin.encode('base64').replace('\n', '')
+            header_b64 = base64.b64encode(header_bin).decode('ascii')
             pro = xml.SubElement(cp, '{' + PLAYREADY_MSPR_NAMESPACE + '}pro')
             pro.text = header_b64
 
@@ -242,8 +247,8 @@ def AddContentProtection(options, container, tracks):
         cp = xml.SubElement(container, 'ContentProtection', schemeIdUri=WIDEVINE_SCHEME_ID_URI)
         if options.widevine_header:
             pssh_payload = ComputeWidevineHeader(options.widevine_header, default_kid, key)
-            pssh_box = MakePsshBox(WIDEVINE_PSSH_SYSTEM_ID.decode('hex'), pssh_payload)
-            pssh_b64 = pssh_box.encode('base64').replace('\n', '')
+            pssh_box = MakePsshBox(binascii.unhexlify(WIDEVINE_PSSH_SYSTEM_ID), pssh_payload)
+            pssh_b64 = base64.b64encode(pssh_box).decode('ascii')
             pssh = xml.SubElement(cp, '{' + CENC_2013_NAMESPACE + '}pssh')
             pssh.text = pssh_b64
 
@@ -252,8 +257,8 @@ def AddContentProtection(options, container, tracks):
         cp = xml.SubElement(container, 'ContentProtection', schemeIdUri=PRIMETIME_SCHEME_ID_URI)
         if options.primetime_metadata:
             pssh_payload = ComputePrimetimeMetaData(options.primetime_metadata, default_kid)
-            pssh_box = MakePsshBox(PRIMETIME_PSSH_SYSTEM_ID.decode('hex'), pssh_payload)
-            pssh_b64 = pssh_box.encode('base64').replace('\n', '')
+            pssh_box = MakePsshBox(binascii.unhexlify(PRIMETIME_PSSH_SYSTEM_ID), pssh_payload)
+            pssh_b64 = base64.b64encode(pssh_box).decode('ascii')
             pssh = xml.SubElement(cp, '{' + CENC_2013_NAMESPACE + '}pssh')
             pssh.text = pssh_b64
 
@@ -435,10 +440,11 @@ def OutputDash(options, audio_tracks, video_tracks, subtitles_tracks):
 
     # save the MPD
     if options.mpd_filename:
-        mpd_xml = parseString(xml.tostring(mpd)).toprettyxml("  ")
+        mpd_xml_string = xml.tostring(mpd, encoding='UTF-8')
+        mpd_xml_pretty = parseString(mpd_xml_string).toprettyxml(indent='  ', encoding='UTF-8').decode('utf-8')
         # use a regex to fix a bug in toprettyxml() that inserts newlines in text content
-        mpd_xml = re.sub(r'((?<=>)(\n[\s]*)(?=[^<\s]))|(?<=[^>\s])(\n[\s]*)(?=<)', '', mpd_xml)
-        open(path.join(options.output_dir, options.mpd_filename), "wb").write(mpd_xml)
+        mpd_xml_pretty = re.sub(r'((?<=>)(\n[\s]*)(?=[^<\s]))|(?<=[^>\s])(\n[\s]*)(?=<)', '', mpd_xml_pretty)
+        open(path.join(options.output_dir, options.mpd_filename), "wb").write(mpd_xml_pretty.encode('utf-8'))
 
 
 #############################################
@@ -529,7 +535,7 @@ def OutputSmooth(options, audio_tracks, video_tracks):
                 kid = audio_tracks[0].kid
             key = None
         header_bin = ComputePlayReadyHeader(options.playready_header, kid, key)
-        header_b64 = header_bin.encode('base64').replace('\n', '')
+        header_b64 = base64.b64encode(header_bin).decode('ascii')
         protection = xml.SubElement(client_manifest, 'Protection')
         protection_header = xml.SubElement(protection,
                                            'ProtectionHeader',
@@ -538,7 +544,9 @@ def OutputSmooth(options, audio_tracks, video_tracks):
 
     # save the Smooth Client Manifest
     if options.smooth_client_manifest_filename != '':
-        open(path.join(options.output_dir, options.smooth_client_manifest_filename), "wb").write(parseString(xml.tostring(client_manifest)).toprettyxml("  "))
+        client_manifest_string = xml.tostring(client_manifest, encoding='UTF-8')
+        client_manifest_pretty = parseString(client_manifest_string).toprettyxml(indent='  ', encoding='UTF-8').decode('utf-8')
+        open(path.join(options.output_dir, options.smooth_client_manifest_filename), "wb").write(client_manifest_pretty.encode('utf-8'))
 
     # create the Server Manifest file
     server_manifest = xml.Element('smil', xmlns=SMIL_NAMESPACE)
@@ -552,7 +560,7 @@ def OutputSmooth(options, audio_tracks, video_tracks):
     for audio_track in audio_tracks:
         audio_entry = xml.SubElement(server_manifest_switch,
                                      'audio',
-                                     src=audio_track.parent.media_name,
+                                     src=MakeUnicode(audio_track.parent.media_name),
                                      systemBitrate=str(audio_track.bandwidth))
         xml.SubElement(audio_entry,
                        'param',
@@ -575,7 +583,7 @@ def OutputSmooth(options, audio_tracks, video_tracks):
     for video_track in video_tracks:
         video_entry = xml.SubElement(server_manifest_switch,
                                      'video',
-                                     src=video_track.parent.media_name,
+                                     src=MakeUnicode(video_track.parent.media_name),
                                      systemBitrate=str(video_track.bandwidth))
         xml.SubElement(video_entry,
                        'param',
@@ -591,7 +599,9 @@ def OutputSmooth(options, audio_tracks, video_tracks):
 
     # save the Manifest
     if options.smooth_server_manifest_filename != '':
-        open(path.join(options.output_dir, options.smooth_server_manifest_filename), "wb").write(parseString(xml.tostring(server_manifest)).toprettyxml("  "))
+        server_manifest_string = xml.tostring(server_manifest, encoding='UTF-8')
+        server_manifest_pretty = parseString(server_manifest_string).toprettyxml(indent='  ', encoding='UTF-8').decode('utf-8')
+        open(path.join(options.output_dir, options.smooth_server_manifest_filename), "wb").write(server_manifest_pretty.encode('utf-8'))
 
 #############################################
 def OutputHippo(options, audio_tracks, video_tracks):
@@ -623,7 +633,7 @@ def OutputHippo(options, audio_tracks, video_tracks):
 
     # save the Manifest
     if options.hippo_server_manifest_filename != '':
-        open(path.join(options.output_dir, options.hippo_server_manifest_filename), "wb").write(server_manifest)
+        open(path.join(options.output_dir, options.hippo_server_manifest_filename), "wb").write(server_manifest.encode('utf-8'))
 
 #############################################
 def SelectTracks(options, media_sources):
@@ -644,7 +654,7 @@ def SelectTracks(options, media_sources):
             PrintErrorAndExit('ERROR: media file ' + media_file + ' does not exist')
 
         # get the file info
-        print 'Parsing media file', str(file_list_index)+':', GetMappedFileName(media_file)
+        print('Parsing media file', str(file_list_index)+':', GetMappedFileName(media_file))
         mp4_file = Mp4File(Options, media_source)
 
         # set some metadata properties for this file
@@ -700,7 +710,7 @@ def SelectTracks(options, media_sources):
                 PrintErrorAndExit('ERROR: no ' + track_type + ' found for media file '+media_source.name)
 
         if not tracks:
-            tracks = media_source.mp4_file.tracks.values()
+            tracks = list(media_source.mp4_file.tracks.values())
 
         # pre-process the track metadata
         for track in tracks:
@@ -767,6 +777,8 @@ def main():
         default_exec_dir = path.join(SCRIPT_PATH, 'bin')
     if not path.exists(default_exec_dir):
         default_exec_dir = path.join(SCRIPT_PATH, '..', 'bin')
+    if not path.exists(default_exec_dir):
+        default_exec_dir = SCRIPT_PATH
 
     # parse options
     parser = OptionParser(usage="%prog [options] <media-file> [<media-file> ...]",
@@ -940,7 +952,7 @@ def main():
             raise Exception('--hippo requires the live profile')
 
     if options.verbose:
-        print 'Profiles:', ','.join(options.profiles)
+        print('Profiles:', ','.join(options.profiles))
 
     if options.playready_header or options.playready_add_pssh:
         options.playready = True
@@ -971,11 +983,11 @@ def main():
             if key_hex.startswith('#'):
                 if len(key_hex) != 41:
                     raise Exception('Invalid argument format for --encryption-key option')
-                key_seed_bin = key_hex[1:].decode('base64')
-                kid_bin = kid_hex.decode('hex')
-                key_hex = DerivePlayReadyKey(key_seed_bin, kid_bin).encode('hex')
+                key_seed_bin = base64.b64decode(key_hex[1:])
+                kid_bin = binascii.unhexlify(kid_hex)
+                key_hex = binascii.hexlify(DerivePlayReadyKey(key_seed_bin, kid_bin))
                 if options.verbose:
-                    print 'Derived Key =', key_hex
+                    print('Derived Key =', key_hex)
             else:
                 if len(key_hex) != 32:
                     raise Exception('Invalid argument format for --encryption-key option')
@@ -1004,7 +1016,7 @@ def main():
         (audio_tracks, video_tracks, subtitles_tracks, mp4_files) = SelectTracks(options, media_sources)
         media_sources = []
         for track in audio_tracks+video_tracks:
-            print 'Extracting track', track.id, 'from', GetMappedFileName(track.parent.media_source.filename)
+            print('Extracting track', track.id, 'from', GetMappedFileName(track.parent.media_source.filename))
             track_file = tempfile.NamedTemporaryFile(dir = options.output_dir, delete=False)
             TempFiles.append(track_file.name)
             track_file.close() # necessary on Windows
@@ -1042,7 +1054,7 @@ def main():
                 raise Exception('No track found in input file(s)')
 
             track_ids = [track['id'] for track in info['tracks'] if track['type'] in ['Audio', 'Video']]
-            print 'Encrypting track IDs '+str(track_ids)+' in '+ GetMappedFileName(media_file)
+            print('Encrypting track IDs '+str(track_ids)+' in '+ GetMappedFileName(media_file))
             encrypted_file = tempfile.NamedTemporaryFile(dir = options.output_dir, delete=False)
             encrypted_files[media_file] = encrypted_file
             TempFiles.append(encrypted_file.name)
@@ -1102,9 +1114,9 @@ def main():
         PrintErrorAndExit('ERROR: no track selected')
 
     if Options.verbose:
-        print 'Audio:',     audio_tracks
-        print 'Video:',     video_tracks
-        print 'Subtitles:', subtitles_tracks
+        print('Audio:',     audio_tracks)
+        print('Video:',     video_tracks)
+        print('Subtitles:', subtitles_tracks)
 
     # check that segments are consistent between files
     prev_track = None
@@ -1143,7 +1155,7 @@ def main():
             if abs(ratio-1.0) < 0.05:
                 # within 5%, make it equal
                 if options.verbose:
-                    print 'INFO: adjusting segment duration for audio track '+str(audio_track)+' to '+str(video_tracks[0].average_segment_duration)+' to match the video'
+                    print('INFO: adjusting segment duration for audio track '+str(audio_track)+' to '+str(video_tracks[0].average_segment_duration)+' to match the video')
                 audio_track.average_segment_duration = video_tracks[0].average_segment_duration
 
     # compute the audio codecs
@@ -1238,7 +1250,7 @@ def main():
     # print info about the tracks
     if options.verbose:
         for track in audio_tracks+video_tracks+subtitles_tracks:
-            print ('%s track: ' + str(track) + ' - language=%s, max bitrate=%d, avg bitrate=%d, req bandwidth=%d, codec=%s') % (track.type, track.language, track.max_segment_bitrate, track.average_segment_bitrate, track.bandwidth, track.codec)
+            print(('%s track: ' + str(track) + ' - language=%s, max bitrate=%d, avg bitrate=%d, req bandwidth=%d, codec=%s') % (track.type, track.language, track.max_segment_bitrate, track.average_segment_bitrate, track.bandwidth, track.codec))
 
     # deal with the max playout strategy if set
     if options.max_playout_rate_strategy:
@@ -1260,7 +1272,7 @@ def main():
             for audio_track in audio_tracks:
                 out_dir = path.join(options.output_dir, 'audio', audio_track.language)
                 MakeNewDir(out_dir)
-                print 'Splitting media file (audio)', GetMappedFileName(audio_track.parent.media_source.filename)
+                print('Splitting media file (audio)', GetMappedFileName(audio_track.parent.media_source.filename))
                 Mp4Split(options,
                          audio_track.parent.media_source.filename,
                          track_id               = str(audio_track.id),
@@ -1274,7 +1286,7 @@ def main():
             for video_track in video_tracks:
                 out_dir = path.join(options.output_dir, 'video', str(video_track.order_index))
                 MakeNewDir(out_dir)
-                print 'Splitting media file (video)', GetMappedFileName(video_track.parent.media_source.filename)
+                print('Splitting media file (video)', GetMappedFileName(video_track.parent.media_source.filename))
                 Mp4Split(Options,
                          video_track.parent.media_source.filename,
                          track_id               = str(video_track.id),
@@ -1287,7 +1299,7 @@ def main():
             for subtitles_track in subtitles_tracks:
                 out_dir = path.join(options.output_dir, 'subtitles', subtitles_track.language)
                 MakeNewDir(out_dir)
-                print 'Splitting media file (subtitles)', GetMappedFileName(subtitles_track.parent.media_source.filename)
+                print('Splitting media file (subtitles)', GetMappedFileName(subtitles_track.parent.media_source.filename))
                 Mp4Split(Options,
                          subtitles_track.parent.media_source.filename,
                          track_id               = str(subtitles_track.id),
@@ -1296,8 +1308,8 @@ def main():
                          init_segment           = path.join(out_dir, subtitles_track.init_segment_name),
                          media_segment          = path.join(out_dir, SEGMENT_PATTERN))
         else:
-            for mp4_file in mp4_files.values():
-                print 'Processing and Copying media file', GetMappedFileName(mp4_file.media_source.filename)
+            for mp4_file in list(mp4_files.values()):
+                print('Processing and Copying media file', GetMappedFileName(mp4_file.media_source.filename))
                 media_filename = path.join(options.output_dir, mp4_file.media_name)
                 if not options.force_output and path.exists(media_filename):
                     PrintErrorAndExit('ERROR: file ' + media_filename + ' already exists')
@@ -1323,15 +1335,15 @@ def main():
         OutputHippo(options, audio_tracks, video_tracks)
 
 ###########################
-if sys.version_info[0] != 2:
-    sys.stderr.write("ERROR: This tool must be run with Python 2.x\n")
-    sys.stderr.write("You are running Python version: "+sys.version+"\n")
-    exit(1)
+#if sys.version_info[0] != 2:
+#    sys.stderr.write("ERROR: This tool must be run with Python 2.x\n")
+#    sys.stderr.write("You are running Python version: "+sys.version+"\n")
+#    exit(1)
 
 if __name__ == '__main__':
     try:
         main()
-    except Exception, err:
+    except Exception as err:
         if Options and Options.debug:
             raise
         else:
