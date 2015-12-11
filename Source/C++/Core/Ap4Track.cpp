@@ -228,7 +228,8 @@ AP4_Track::AP4_Track(AP4_TrakAtom&   atom,
                 m_Type = TYPE_TEXT;
             } else if (type == AP4_HANDLER_TYPE_JPEG) {
                 m_Type = TYPE_JPEG;
-            } else if (type == AP4_HANDLER_TYPE_SUBT) {
+            } else if (type == AP4_HANDLER_TYPE_SUBT ||
+                       type == AP4_HANDLER_TYPE_SBTL) {
                 m_Type = TYPE_SUBTITLES;
             }
         }

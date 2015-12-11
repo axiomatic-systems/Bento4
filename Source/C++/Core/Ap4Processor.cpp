@@ -105,6 +105,36 @@ AP4_DefaultFragmentHandler::ProcessSample(AP4_DataBuffer& data_in, AP4_DataBuffe
 }
 
 /*----------------------------------------------------------------------
+|   FragmentMapEntry
++---------------------------------------------------------------------*/
+typedef struct {
+    AP4_UI64 before;
+    AP4_UI64 after;
+} FragmentMapEntry;
+
+/*----------------------------------------------------------------------
+|   FindFragmentMapEntry
++---------------------------------------------------------------------*/
+static const FragmentMapEntry*
+FindFragmentMapEntry(AP4_Array<FragmentMapEntry>& fragment_map, AP4_UI64 fragment_offset) {
+    int first = 0;
+    int last = fragment_map.ItemCount();
+    while (first < last) {
+        int middle = (last+first)/2;
+        AP4_UI64 middle_value = fragment_map[middle].before;
+        if (fragment_offset < middle_value) {
+            last = middle;
+        } else if (fragment_offset > middle_value) {
+            first = middle+1;
+        } else {
+            return &fragment_map[middle];
+        }
+    }
+    
+    return NULL;
+}
+
+/*----------------------------------------------------------------------
 |   AP4_Processor::ProcessFragments
 +---------------------------------------------------------------------*/
 AP4_Result
@@ -117,6 +147,7 @@ AP4_Processor::ProcessFragments(AP4_MoovAtom*              moov,
                                 AP4_ByteStream&            output)
 {
     unsigned int fragment_index = 0;
+    AP4_Array<FragmentMapEntry> fragment_map;
     
     for (AP4_List<AP4_AtomLocator>::Item* item = atoms.FirstItem();
                                           item;
@@ -208,7 +239,11 @@ AP4_Processor::ProcessFragments(AP4_MoovAtom*              moov,
         AP4_UI64 moof_out_start = 0;
         output.Tell(moof_out_start);
         moof->Write(output);
-            
+        
+        // remember the location of this fragment
+        FragmentMapEntry map_entry = {atom_offset, moof_out_start};
+        fragment_map.Append(map_entry);
+
         // write an mdat header
         AP4_Position mdat_out_start;
         AP4_UI64 mdat_size = AP4_ATOM_HEADER_SIZE;
@@ -316,24 +351,6 @@ AP4_Processor::ProcessFragments(AP4_MoovAtom*              moov,
         moof->Write(output);
         output.Seek(mdat_out_end);
         
-        // update the mfra if we have one
-        if (mfra) {
-            for (AP4_List<AP4_Atom>::Item* mfra_item = mfra->GetChildren().FirstItem();
-                                           mfra_item;
-                                           mfra_item = mfra_item->GetNext()) {
-                if (mfra_item->GetData()->GetType() != AP4_ATOM_TYPE_TFRA) continue;
-                AP4_TfraAtom* tfra = AP4_DYNAMIC_CAST(AP4_TfraAtom, mfra_item->GetData());
-                if (tfra == NULL) continue;
-                AP4_Array<AP4_TfraAtom::Entry>& entries     = tfra->GetEntries();
-                AP4_Cardinal                    entry_count = entries.ItemCount();
-                for (unsigned int i=0; i<entry_count; i++) {
-                    if (entries[i].m_MoofOffset == locator->m_Offset) {
-                        entries[i].m_MoofOffset = moof_out_start;
-                    }
-                }
-            }
-        }
-
         // update the sidx if we have one
         if (sidx && fragment_index < sidx->GetReferences().ItemCount()) {
             if (fragment_index == 0) {
@@ -354,7 +371,26 @@ AP4_Processor::ProcessFragments(AP4_MoovAtom*              moov,
             delete sample_tables[i];
         }
     }
-     
+    
+    // update the mfra if we have one
+    if (mfra) {
+        for (AP4_List<AP4_Atom>::Item* mfra_item = mfra->GetChildren().FirstItem();
+                                       mfra_item;
+                                       mfra_item = mfra_item->GetNext()) {
+            if (mfra_item->GetData()->GetType() != AP4_ATOM_TYPE_TFRA) continue;
+            AP4_TfraAtom* tfra = AP4_DYNAMIC_CAST(AP4_TfraAtom, mfra_item->GetData());
+            if (tfra == NULL) continue;
+            AP4_Array<AP4_TfraAtom::Entry>& entries     = tfra->GetEntries();
+            AP4_Cardinal                    entry_count = entries.ItemCount();
+            for (unsigned int i=0; i<entry_count; i++) {
+                const FragmentMapEntry* found = FindFragmentMapEntry(fragment_map, entries[i].m_MoofOffset);
+                if (found) {
+                    entries[i].m_MoofOffset = found->after;
+                }
+            }
+        }
+    }
+    
     return AP4_SUCCESS;
 }
 

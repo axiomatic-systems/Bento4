@@ -53,6 +53,7 @@ const AP4_UI32 AP4_HANDLER_TYPE_JPEG = AP4_ATOM_TYPE('j','p','e','g');
 const AP4_UI32 AP4_HANDLER_TYPE_ODSM = AP4_ATOM_TYPE('o','d','s','m');
 const AP4_UI32 AP4_HANDLER_TYPE_SDSM = AP4_ATOM_TYPE('s','d','s','m');
 const AP4_UI32 AP4_HANDLER_TYPE_SUBT = AP4_ATOM_TYPE('s','u','b','t');
+const AP4_UI32 AP4_HANDLER_TYPE_SBTL = AP4_ATOM_TYPE('s','b','t','l');
 
 /*----------------------------------------------------------------------
 |   AP4_HdlrAtom
