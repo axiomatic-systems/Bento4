@@ -64,10 +64,6 @@ def XmlDuration(d):
 
 def Bento4Command(options, name, *args, **kwargs):
     executable = path.join(options.exec_dir, name)
-    if not os.path.exists(executable):
-        if options.debug:
-            print 'executable not found in exec_dir, trying with PATH'
-        executable = name
     cmd = [executable]
     for kwarg in kwargs:
         arg = kwarg.replace('_', '-')
@@ -78,12 +74,21 @@ def Bento4Command(options, name, *args, **kwargs):
     if options.debug:
         print 'COMMAND: ', cmd
     try:
-        return check_output(cmd)
-    except CalledProcessError, e:
+        try:
+            return check_output(cmd)
+        except OSError as e:
+            if options.debug:
+                print 'executable ' + executable + ' not found in exec_dir, trying with PATH'
+            cmd[0] = path.basename(cmd[0])
+            return check_output(cmd)
+    except CalledProcessError as e:
         message = "binary tool failed with error %d" % e.returncode
         if options.verbose:
             message += " - " + str(cmd)
         raise Exception(message)
+    except OSError as e:
+        raise Exception('executable "'+name+'" not found, ensure that it is in your path or in the directory '+options.exec_dir)
+
 
 def Mp4Info(options, filename, *args, **kwargs):
     return Bento4Command(options, 'mp4info', filename, *args, **kwargs)
