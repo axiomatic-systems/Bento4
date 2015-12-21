@@ -155,7 +155,7 @@ def AddSegmentTemplate(options, container, init_segment_url, media_url_template_
         kwargs = {'timescale': str(track.timescale),
                   'initialization': init_segment_url,
                   'media': url_template,
-                  'startNumber': '1'} # (keep the @startNumber, even if not needed, because some clients like Silverlight want it)
+                  'startNumber': str(options.segment_start_number)}
 
         segment_template = xml.SubElement(*args, **kwargs)
         segment_timeline = xml.SubElement(segment_template, 'SegmentTimeline')
@@ -179,7 +179,7 @@ def AddSegmentTemplate(options, container, init_segment_url, media_url_template_
                        duration=str(int(round(track.average_segment_duration*1000))),
                        initialization=init_segment_url,
                        media=SEGMENT_URL_TEMPLATE,
-                       startNumber='1') # (keep the @startNumber, even if not needed, because some clients like Silverlight want it)
+                       startNumber=str(options.segment_start_number))
 
 #############################################
 def AddSegments(options, container, subdir, track):
@@ -800,6 +800,8 @@ def main():
                       help="Use padded numbers in segment URL/filename templates")
     parser.add_option('', "--use-segment-timeline", action="store_true", dest="use_segment_timeline", default=False,
                       help="Use segment timelines (necessary if segment durations vary)")
+    parser.add_option('', "--segment-start-number", metavar='<number>', dest="segment_start_number", type="int", default=1,
+                      help="Set starting number for segments when splitting (default=1)")
     parser.add_option('', "--min-buffer-time", metavar='<duration>', dest="min_buffer_time", type="float", default=0.0,
                       help="Minimum buffer time (in seconds)")
     parser.add_option('', "--max-playout-rate", metavar='<strategy>', dest='max_playout_rate_strategy',
@@ -1265,7 +1267,7 @@ def main():
                          audio_track.parent.media_source.filename,
                          track_id               = str(audio_track.id),
                          pattern_parameters     = 'N',
-                         start_number           = '1',
+                         start_number           = str(options.segment_start_number),
                          init_segment           = path.join(out_dir, audio_track.init_segment_name),
                          media_segment          = path.join(out_dir, SEGMENT_PATTERN))
 
@@ -1279,7 +1281,7 @@ def main():
                          video_track.parent.media_source.filename,
                          track_id               = str(video_track.id),
                          pattern_parameters     = 'N',
-                         start_number           = '1',
+                         start_number           = str(options.segment_start_number),
                          init_segment           = path.join(out_dir, video_track.init_segment_name),
                          media_segment          = path.join(out_dir, SEGMENT_PATTERN))
             if len(subtitles_tracks):
