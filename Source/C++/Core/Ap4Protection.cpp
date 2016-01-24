@@ -82,14 +82,14 @@ AP4_SampleDescription*
 AP4_EncaSampleEntry::ToSampleDescription()
 {
     // get the original sample format
-    AP4_FrmaAtom* frma = static_cast<AP4_FrmaAtom*>(FindChild("sinf/frma"));
+    AP4_FrmaAtom* frma = AP4_DYNAMIC_CAST(AP4_FrmaAtom, FindChild("sinf/frma"));
 
     // get the schi atom
     AP4_ContainerAtom* schi;
-    schi = static_cast<AP4_ContainerAtom*>(FindChild("sinf/schi"));
+    schi = AP4_DYNAMIC_CAST(AP4_ContainerAtom, FindChild("sinf/schi"));
 
     // get the scheme info
-    AP4_SchmAtom* schm = static_cast<AP4_SchmAtom*>(FindChild("sinf/schm"));
+    AP4_SchmAtom* schm = AP4_DYNAMIC_CAST(AP4_SchmAtom, FindChild("sinf/schm"));
     AP4_UI32 original_format = frma?frma->GetOriginalFormat():AP4_ATOM_TYPE_MP4A;
     if (schm) {
         // create the original sample description
@@ -181,14 +181,14 @@ AP4_SampleDescription*
 AP4_EncvSampleEntry::ToSampleDescription()
 {
     // get the original sample format
-    AP4_FrmaAtom* frma = static_cast<AP4_FrmaAtom*>(FindChild("sinf/frma"));
+    AP4_FrmaAtom* frma = AP4_DYNAMIC_CAST(AP4_FrmaAtom, FindChild("sinf/frma"));
 
     // get the schi atom
     AP4_ContainerAtom* schi;
-    schi = static_cast<AP4_ContainerAtom*>(FindChild("sinf/schi"));
+    schi = AP4_DYNAMIC_CAST(AP4_ContainerAtom, FindChild("sinf/schi"));
 
     // get the scheme info
-    AP4_SchmAtom* schm = static_cast<AP4_SchmAtom*>(FindChild("sinf/schm"));
+    AP4_SchmAtom* schm = AP4_DYNAMIC_CAST(AP4_SchmAtom, FindChild("sinf/schm"));
     AP4_UI32 original_format = frma?frma->GetOriginalFormat():AP4_ATOM_TYPE_MP4V;
     if (schm) {
         // create the sample description

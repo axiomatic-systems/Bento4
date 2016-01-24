@@ -299,7 +299,7 @@ main(int argc, char** argv)
             kms_uri = arg;
         } else if (!strcmp(arg, "--show-progress")) {
             show_progress = true;
-        } else if (!strcmp(arg, "--show-progress")) {
+        } else if (!strcmp(arg, "--strict")) {
             strict = true;
         } else if (!strcmp(arg, "--key")) {
             if (method == METHOD_NONE) {
