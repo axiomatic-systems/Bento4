@@ -51,13 +51,14 @@ PrintUsageAndExit()
         BANNER 
         "\n\n"
         "usage: mp4encrypt --method <method> [options] <input> <output>\n"
-        "  --method: <method> is OMA-PDCF-CBC, OMA-PDCF-CTR, MARLIN-IPMP-ACBC,\n"
+        "     <method> is OMA-PDCF-CBC, OMA-PDCF-CTR, MARLIN-IPMP-ACBC,\n"
         "     MARLIN-IPMP-ACGK, ISMA-IAEC, PIFF-CBC, PIFF-CTR, or MPEG-CENC\n"
         "  Options:\n"
-        "  --show-progress: show progress details\n"
+        "  --show-progress\n"
+        "      Show progress details\n"
         "  --fragments-info <filename>\n"
         "      Encrypt the fragments read from <input>, with track info read\n"
-        "      from <filename>.\n"
+        "      from <filename>\n"
         "  --key <n>:<k>:<iv>\n"   
         "      Specifies the key to use for a track (or group key).\n"
         "      <n> is a track ID, <k> a 128-bit key in hex (32 characters)\n"
@@ -67,7 +68,8 @@ PrintUsageAndExit()
         "      instead of a hex-encoded value, in which case a randomly generated value\n"
         "      will be used.\n"
         "      (several --key options can be used, one for each track)\n"
-        "  --strict: fail if there is a warning (ex: one or more tracks would be left unencrypted)\n"
+        "  --strict\n"
+        "      Fail if there is a warning (ex: one or more tracks would be left unencrypted)\n"
         "  --property <n>:<name>:<value>\n"
         "      Specifies a named string property for a track\n"
         "      <n> is a track ID, <name> a property name, and <value> is the\n"
@@ -75,9 +77,14 @@ PrintUsageAndExit()
         "      (several --property options can be used, one or more for each track)\n"
         "  --global-option <name>:<value>\n"
         "      Sets the global option <name> to be equal to <value>\n"
-        "  --pssh <system-id>:<filename>: add a 'pssh' atom for this system ID, with the payload\n"
+        "  --pssh <system-id>:<filename>\n"
+        "      Add a 'pssh' atom for this system ID, with the payload\n"
         "      loaded from <filename>.\n"
         "      (several --pssh options can be used, with a different system ID for each)\n"
+        "      (the filename can be left empty after the ':' if no payload is needed)\n"
+        "  --pssh-v1 <system-id>:<filename>\n"
+        "      Same as --pssh but generates a version=1 'pssh' atom\n"
+        "      (this option must appear *after* the --property options on the command line)\n"
         "  --kms-uri <uri>\n"
         "      Specifies the KMS URI for the ISMA-IAEC method\n"
         "\n"
@@ -210,6 +217,8 @@ main(int argc, char** argv)
     bool                     show_progress = false;
     bool                     strict = false;
     AP4_Array<AP4_PsshAtom*> pssh_atoms;
+    AP4_DataBuffer           kids;
+    unsigned int             kid_count = 0;
     AP4_Result               result;
     
     // parse the command line arguments
@@ -248,13 +257,14 @@ main(int argc, char** argv)
                 return 1;
             }
             fragments_info_filename = arg;
-        } else if (!strcmp(arg, "--pssh")) {
+        } else if (!strcmp(arg, "--pssh") || !strcmp(arg, "--pssh-v1")) {
+            bool v1 = (strcmp(arg, "--pssh-v1") == 0);
             arg = *++argv;
             if (arg == NULL) {
                 fprintf(stderr, "ERROR: missing argument for --pssh\n");
                 return 1;
             }
-            if (AP4_StringLength(arg) < 32+1+1 || arg[32] != ':') {
+            if (AP4_StringLength(arg) < 32+1 || arg[32] != ':') {
                 fprintf(stderr, "ERROR: invalid argument syntax for --pssh\n");
                 return 1;
             }
@@ -268,23 +278,36 @@ main(int argc, char** argv)
             const char* pssh_filename = arg+33;
             
             // load the pssh payload
-            AP4_ByteStream* pssh_input = NULL;
-            result = AP4_FileByteStream::Create(pssh_filename, AP4_FileByteStream::STREAM_MODE_READ, pssh_input);
-            if (AP4_FAILED(result)) {
-                fprintf(stderr, "ERROR: cannot open pssh payload file (%d)\n", result);
-                return 1;
-            }
-            AP4_LargeSize pssh_payload_size = 0;
-            pssh_input->GetSize(pssh_payload_size);
             AP4_DataBuffer pssh_payload;
-            pssh_payload.SetDataSize((AP4_Size)pssh_payload_size);
-            result = pssh_input->Read(pssh_payload.UseData(), (AP4_Size)pssh_payload_size);
-            if (AP4_FAILED(result)) {
-                fprintf(stderr, "ERROR: cannot read pssh payload from file (%d)\n", result);
-                return 1;
+            if (pssh_filename[0]) {
+                AP4_ByteStream* pssh_input = NULL;
+                result = AP4_FileByteStream::Create(pssh_filename, AP4_FileByteStream::STREAM_MODE_READ, pssh_input);
+                if (AP4_FAILED(result)) {
+                    fprintf(stderr, "ERROR: cannot open pssh payload file (%d)\n", result);
+                    return 1;
+                }
+                AP4_LargeSize pssh_payload_size = 0;
+                pssh_input->GetSize(pssh_payload_size);
+                pssh_payload.SetDataSize((AP4_Size)pssh_payload_size);
+                result = pssh_input->Read(pssh_payload.UseData(), (AP4_Size)pssh_payload_size);
+                if (AP4_FAILED(result)) {
+                    fprintf(stderr, "ERROR: cannot read pssh payload from file (%d)\n", result);
+                    return 1;
+                }
             }
-            AP4_PsshAtom* pssh = new AP4_PsshAtom(system_id);
-            pssh->SetData(pssh_payload.GetData(), pssh_payload.GetDataSize());
+            AP4_PsshAtom* pssh;
+            if (v1) {
+                if (kid_count) {
+                    pssh = new AP4_PsshAtom(system_id, kids.GetData(), kid_count);
+                } else {
+                    pssh = new AP4_PsshAtom(system_id);
+                }
+            } else {
+                pssh = new AP4_PsshAtom(system_id);
+            }
+            if (pssh_payload.GetDataSize()) {
+                pssh->SetData(pssh_payload.GetData(), pssh_payload.GetDataSize());
+            }
             pssh_atoms.Append(pssh);
         } else if (!strcmp(arg, "--kms-uri")) {
             arg = *++argv;
@@ -412,6 +435,32 @@ main(int argc, char** argv)
             }
             // set the property in the map
             property_map.SetProperty(track, name, value);
+            
+            // special treatment for KID properties
+            if (!strcmp(name, "KID")) {
+                if (AP4_StringLength(value) != 32) {
+                    fprintf(stderr, "ERROR: invalid size for KID property (must be 32 hex chars)\n");
+                    return 1;
+                }
+                AP4_UI08 kid[16];
+                if (AP4_FAILED(AP4_ParseHex(value, kid, 16))) {
+                    fprintf(stderr, "ERROR: invalid syntax for KID property (must be 32 hex chars)\n");
+                    return 1;
+                }
+                
+                // check if we already have this KID
+                bool kid_already_present = false;
+                for (unsigned int i=0; i<kid_count; i++) {
+                    if (AP4_CompareMemory(kids.GetData()+(i*16), kid, 16) == 0) {
+                        kid_already_present = true;
+                        break;
+                    }
+                }
+                if (!kid_already_present) {
+                    ++kid_count;
+                    kids.AppendData(kid, 16);
+                }
+            }
         } else if (!strcmp(arg, "--global-option")) {
             arg = *++argv;
             char* name = NULL;

@@ -60,10 +60,16 @@ AP4_PsshAtom::Create(AP4_Size size, AP4_ByteStream& stream)
 /*----------------------------------------------------------------------
 |   AP4_PsshAtom::AP4_PsshAtom
 +---------------------------------------------------------------------*/
-AP4_PsshAtom::AP4_PsshAtom(const unsigned char* system_id) :
-    AP4_Atom(AP4_ATOM_TYPE_PSSH, AP4_FULL_ATOM_HEADER_SIZE+16+4, 0, 0)
+AP4_PsshAtom::AP4_PsshAtom(const unsigned char* system_id,
+                           const AP4_UI08*      kids,
+                           unsigned int         kid_count) :
+    AP4_Atom(AP4_ATOM_TYPE_PSSH, AP4_FULL_ATOM_HEADER_SIZE+16+4+((kids && kid_count)?4+16*kid_count:0), (kids && kid_count)?1:0, 0),
+    m_KidCount(kid_count)
 {
     AP4_CopyMemory(m_SystemId, system_id, 16);
+    if (kids && kid_count) {
+        m_Kids.SetData(kids, kid_count*16);
+    }
 }
 
 /*----------------------------------------------------------------------

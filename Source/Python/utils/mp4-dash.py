@@ -65,8 +65,13 @@ PLAYREADY_MSPR_NAMESPACE    = 'urn:microsoft:playready'
 WIDEVINE_PSSH_SYSTEM_ID     = 'edef8ba979d64acea3c827dcd51d21ed'
 WIDEVINE_SCHEME_ID_URI      = 'urn:uuid:edef8ba9-79d6-4ace-a3c8-27dcd51d21ed'
 
-PRIMETIME_SCHEME_ID_URI     = 'urn:uuid:F239E769-EFA3-4850-9C16-A903C6932EFB'
 PRIMETIME_PSSH_SYSTEM_ID    = 'f239e769efa348509c16a903c6932efb'
+PRIMETIME_SCHEME_ID_URI     = 'urn:uuid:F239E769-EFA3-4850-9C16-A903C6932EFB'
+
+MPEG_COMMON_ENCRYPTION_SCHEME_ID_URI = 'urn:mpeg:dash:mp4protection:2011'
+
+EME_COMMON_ENCRYPTION_PSSH_SYSTEM_ID = '1077efecc0b24d02ace33c1e52e2fb4b'
+EME_COMMON_ENCRYPTION_SCHEME_ID_URI  = 'urn:uuid:1077efec-c0b2-4d02-ace3-3c1e52e2fb4b'
 
 SMOOTH_DEFAULT_TIMESCALE    = 10000000
 
@@ -199,21 +204,32 @@ def AddContentProtection(options, container, tracks):
             PrintErrorAndExit('ERROR: no encryption info found in track '+str(track))
         if kid not in kids:
             kids.append(kid)
+
+    # resolve the KID and KEY
     if options.encryption_key:
         default_kid = options.kid_hex
-    else:
-        default_kid = kids[0]
-    default_kid_with_dashes = (default_kid[0:8]+'-'+default_kid[8:12]+'-'+default_kid[12:16]+'-'+default_kid[16:20]+'-'+default_kid[20:32]).lower()
-    container.append(xml.Comment(' Common Encryption '))
-    xml.register_namespace('cenc', CENC_2013_NAMESPACE)
-    cenc_cp = xml.SubElement(container, 'ContentProtection', schemeIdUri='urn:mpeg:dash:mp4protection:2011', value='cenc')
-    cenc_cp.set('{'+CENC_2013_NAMESPACE+'}default_KID', default_kid_with_dashes)
-
-    if options.encryption_key:
         key = options.key_hex
     else:
+        default_kid = kids[0]
         key = None
 
+    # MPEG Common Encryption
+    container.append(xml.Comment(' MPEG Common Encryption '))
+    xml.register_namespace('cenc', CENC_2013_NAMESPACE)
+    cp = xml.SubElement(container, 'ContentProtection', schemeIdUri=MPEG_COMMON_ENCRYPTION_SCHEME_ID_URI, value='cenc')
+    default_kid_with_dashes = (default_kid[0:8]+'-'+default_kid[8:12]+'-'+default_kid[12:16]+'-'+default_kid[16:20]+'-'+default_kid[20:32]).lower()
+    cp.set('{'+CENC_2013_NAMESPACE+'}default_KID', default_kid_with_dashes)
+
+    # EME Common Encryption
+    container.append(xml.Comment(' EME Common Encryption '))
+    xml.register_namespace('cenc', CENC_2013_NAMESPACE)
+    cp = xml.SubElement(container, 'ContentProtection', schemeIdUri=EME_COMMON_ENCRYPTION_SCHEME_ID_URI, value='cenc')
+    pssh_box = MakePsshBoxV1(EME_COMMON_ENCRYPTION_PSSH_SYSTEM_ID.decode('hex'), [default_kid], '')
+    pssh_b64 = pssh_box.encode('base64').replace('\n', '')
+    pssh = xml.SubElement(cp, '{' + CENC_2013_NAMESPACE + '}pssh')
+    pssh.text = pssh_b64
+
+    # Marlin
     if options.marlin:
         container.append(xml.Comment(' Marlin '))
         xml.register_namespace('mas', MARLIN_MAS_NAMESPACE)
@@ -223,6 +239,7 @@ def AddContentProtection(options, container, tracks):
             cid = xml.SubElement(cids, '{' + MARLIN_MAS_NAMESPACE + '}MarlinContentId')
             cid.text = 'urn:marlin:kid:' + kid
 
+    # PlayReady
     if options.playready:
         container.append(xml.Comment(' PlayReady '))
         xml.register_namespace('mspr', PLAYREADY_MSPR_NAMESPACE)
@@ -237,6 +254,7 @@ def AddContentProtection(options, container, tracks):
             pro = xml.SubElement(cp, '{' + PLAYREADY_MSPR_NAMESPACE + '}pro')
             pro.text = header_b64
 
+    # Widevine
     if options.widevine:
         container.append(xml.Comment(' Widevine '))
         cp = xml.SubElement(container, 'ContentProtection', schemeIdUri=WIDEVINE_SCHEME_ID_URI)
@@ -247,6 +265,7 @@ def AddContentProtection(options, container, tracks):
             pssh = xml.SubElement(cp, '{' + CENC_2013_NAMESPACE + '}pssh')
             pssh.text = pssh_b64
 
+    # Primetime
     if options.primetime:
         container.append(xml.Comment(' Primetime '))
         cp = xml.SubElement(container, 'ContentProtection', schemeIdUri=PRIMETIME_SCHEME_ID_URI)
@@ -1059,6 +1078,10 @@ def main():
             for track_id in track_ids:
                 args += ['--key', str(track_id)+':'+key_hex+':random', '--property', str(track_id)+':KID:'+kid_hex]
 
+            # EME Common Encryption / Clearkey
+            args += ['--pssh-v1', EME_COMMON_ENCRYPTION_PSSH_SYSTEM_ID+':']
+
+            # Marlin
             if options.marlin_add_pssh:
                 marlin_pssh = ComputeMarlinPssh(options)
                 pssh_file = tempfile.NamedTemporaryFile(dir = options.output_dir, delete=False)
@@ -1067,6 +1090,7 @@ def main():
                 pssh_file.close() # necessary on Windows
                 args += ['--pssh', MARLIN_PSSH_SYSTEM_ID+':'+pssh_file.name]
 
+            # PlayReady
             if options.playready_add_pssh:
                 playready_header = ComputePlayReadyHeader(options.playready_header, kid_hex, key_hex)
                 pssh_file = tempfile.NamedTemporaryFile(dir = options.output_dir, delete=False)
@@ -1075,6 +1099,7 @@ def main():
                 pssh_file.close() # necessary on Windows
                 args += ['--pssh', PLAYREADY_PSSH_SYSTEM_ID+':'+pssh_file.name]
 
+            # Widevine
             if options.widevine_header:
                 widevine_header = ComputeWidevineHeader(options.widevine_header, kid_hex, key_hex)
                 pssh_file = tempfile.NamedTemporaryFile(dir = options.output_dir, delete=False)
@@ -1083,6 +1108,7 @@ def main():
                 pssh_file.close() # necessary on Windows
                 args += ['--pssh', WIDEVINE_PSSH_SYSTEM_ID+':'+pssh_file.name]
 
+            # Primetime
             if options.primetime_metadata:
                 primetime_metadata = ComputePrimetimeMetaData(options.primetime_metadata, kid_hex)
                 pssh_file = tempfile.NamedTemporaryFile(dir = options.output_dir, delete=False)

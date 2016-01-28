@@ -153,7 +153,7 @@ public:
     AP4_Result      GetKeyAndIvByKid(const AP4_UI08* kid, const AP4_DataBuffer*& key, const AP4_DataBuffer*& iv);
     const AP4_DataBuffer* GetKey(AP4_UI32 track_id) const;
     const AP4_DataBuffer* GetKeyByKid(const AP4_UI08* kid) const;
-
+    
 private:
     // types
     class KeyEntry {

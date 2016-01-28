@@ -46,7 +46,7 @@ public:
     static AP4_PsshAtom* Create(AP4_Size size, AP4_ByteStream& stream);
 
     // methods
-    AP4_PsshAtom(const unsigned char* system_id);
+    AP4_PsshAtom(const unsigned char* system_id, const AP4_UI08* kids = NULL, unsigned int kid_count = 0);
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
 

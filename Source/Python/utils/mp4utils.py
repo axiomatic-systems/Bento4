@@ -471,6 +471,14 @@ def MakePsshBox(system_id, payload):
     pssh_size = 12+16+4+len(payload)
     return struct.pack('>I', pssh_size)+'pssh'+struct.pack('>I',0)+system_id+struct.pack('>I', len(payload))+payload
 
+def MakePsshBoxV1(system_id, kids, payload):
+    pssh_size = 12+16++4+(16*len(kids))+4+len(payload)
+    pssh = struct.pack('>I', pssh_size)+'pssh'+struct.pack('>I',0x01000000)+system_id+struct.pack('>I', len(kids))
+    for kid in kids:
+        pssh += kid.decode('hex')
+    pssh += struct.pack('>I', len(payload))+payload
+    return pssh
+
 def GetEncryptionKey(options, spec):
     if options.debug:
         print 'Resolving KID and Key from spec:', spec
