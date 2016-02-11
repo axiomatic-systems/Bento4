@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 __author__    = 'Gilles Boccon-Gibod (bok@bok.net)'
-__copyright__ = 'Copyright 2011-2015 Axiomatic Systems, LLC.'
+__copyright__ = 'Copyright 2011-2016 Axiomatic Systems, LLC.'
 
 ###
 # NOTE: this script needs Bento4 command line binaries to run
@@ -78,6 +78,8 @@ SMOOTH_DEFAULT_TIMESCALE    = 10000000
 SMIL_NAMESPACE              = 'http://www.w3.org/2001/SMIL20/Language'
 
 CENC_2013_NAMESPACE         = 'urn:mpeg:cenc:2013'
+
+DASH_DEFAULT_ROLE_NAMESPACE = 'urn:mpeg:dash:role:2011'
 
 DASH_MEDIA_SEGMENT_URL_PATTERN_SMOOTH = "/QualityLevels($Bandwidth$)/Fragments(%s=$Time$)"
 DASH_MEDIA_SEGMENT_URL_PATTERN_HIPPO  = '%s/Bitrate($Bandwidth$)/Fragment($Time$)'
@@ -277,7 +279,46 @@ def AddContentProtection(options, container, tracks):
             pssh.text = pssh_b64
 
 #############################################
-def OutputDash(options, audio_tracks, video_tracks, subtitles_tracks):
+def AddDescriptor(adaptation_set, groups, group_name, category_name):
+    group = groups.get(group_name)
+    if not group and category_name:
+        # try a catch-all category group name for audio
+        group = groups.get(category_name)
+        if group:
+            group_name = category_name
+    if not group: return
+
+    for descriptor_name in group:
+        descriptor_values = group[descriptor_name]
+        for descriptor_value in descriptor_values.split(','):
+            descriptor_namespace = None
+
+            if descriptor_name.lower() == 'role':
+                descriptor_namespace = DASH_DEFAULT_ROLE_NAMESPACE
+            elif descriptor_name.startswith('{'):
+                closeparen = descriptor_name.find('}')
+                if closeparen >= 0:
+                    descriptor_namespace = descriptor_name[1:closeparen]
+                    descriptor_name = descriptor_name[closeparen+1:]
+
+            # support using lowercase names instead of capitalized names
+            if descriptor_name == 'accessibility': descriptor_name = 'Accessibility'
+            if descriptor_name == 'role':          descriptor_name = 'Role'
+            if descriptor_name == 'rating':        descriptor_name = 'Rating'
+            if descriptor_name == 'viewpoint':     descriptor_name = 'Viewpoint'
+
+            if descriptor_name not in ['Accessibility', 'Role', 'Rating', 'Viewpoint']:
+                continue
+            if descriptor_namespace:
+                xml.SubElement(adaptation_set,
+                               descriptor_name,
+                               schemeIdUri=descriptor_namespace,
+                               value=descriptor_value)
+            else:
+                sys.stderr.write('WARNING: ignoring ' + descriptor_name + ' descriptor for group "' + group_name + '", the schemeIdUri must be specified\n')
+
+#############################################
+def OutputDash(options, groups, audio_tracks, video_tracks, subtitles_tracks):
     # compute the total duration (we take the duration of the video)
     if len(video_tracks):
         presentation_duration = video_tracks[0].total_duration
@@ -310,9 +351,12 @@ def OutputDash(options, audio_tracks, video_tracks, subtitles_tracks):
             kwargs = {'mimeType': AUDIO_MIMETYPE, 'startWithSAP': '1', 'segmentAlignment': 'true'}
             if (audio_track.language != 'und') or options.always_output_lang:
                 kwargs['lang'] = audio_track.language
-            stream_name = 'audio_' + audio_track.language
             adaptation_set = xml.SubElement(*args, **kwargs)
 
+            # see if we have descriptors for this group
+            AddDescriptor(adaptation_set, groups, 'audio/' + audio_track.language, 'audio')
+
+            # setup content protection
             if options.encryption_key or options.marlin or options.playready or options.widevine:
                 AddContentProtection(options, adaptation_set, [audio_track])
 
@@ -323,6 +367,8 @@ def OutputDash(options, audio_tracks, video_tracks, subtitles_tracks):
                 else:
                     init_segment_url                  = NOSPLIT_INIT_FILE_PATTERN % ('$RepresentationID$')
                     media_segment_url_template_prefix = ''
+
+                stream_name = 'audio_' + audio_track.language
                 AddSegmentTemplate(options, adaptation_set, init_segment_url, media_segment_url_template_prefix, audio_track, stream_name)
 
             representation = xml.SubElement(adaptation_set,
@@ -376,6 +422,10 @@ def OutputDash(options, audio_tracks, video_tracks, subtitles_tracks):
                                         minHeight=str(minHeight),
                                         maxHeight=str(maxHeight))
 
+        # see if we have descriptors for this group
+        AddDescriptor(adaptation_set, groups, 'video', None)
+
+        # setup content protection
         if options.encryption_key or options.marlin or options.playready or options.widevine:
             AddContentProtection(options, adaptation_set, video_tracks)
 
@@ -423,8 +473,10 @@ def OutputDash(options, audio_tracks, video_tracks, subtitles_tracks):
             kwargs = {'mimeType': SUBTITLES_MIMETYPE, 'startWithSAP': '1'}
             if (subtitles_track.language != 'und') or options.always_output_lang:
                 kwargs['lang'] = subtitles_track.language
-            stream_name = 'subtitles_' + subtitles_track.language
             adaptation_set = xml.SubElement(*args, **kwargs)
+
+            # see if we have descriptors for this group
+            AddDescriptor(adaptation_set, groups, 'subtitles/' + subtitles_track.language, 'subtitles')
 
             representation = xml.SubElement(adaptation_set,
                                             'Representation',
@@ -449,6 +501,7 @@ def OutputDash(options, audio_tracks, video_tracks, subtitles_tracks):
                     init_segment_url                  = NOSPLIT_INIT_FILE_PATTERN % ('$RepresentationID$')
                     media_segment_url_template_prefix = ''
 
+                stream_name = 'subtitles_' + subtitles_track.language
                 AddSegmentTemplate(options, adaptation_set, init_segment_url, media_segment_url_template_prefix, subtitles_track, stream_name)
                 AddSegments(options, representation, media_subdir, subtitles_track)
 
@@ -734,9 +787,6 @@ def SelectTracks(options, media_sources):
                 language = options.language_map[language]
             track.language = language
 
-            # role
-            track.dash_role = media_source.spec.get('+role')
-
         # process audio tracks
         for track in [t for t in tracks if t.type == 'audio']:
             if len([et for et in audio_tracks if et.language == track.language]):
@@ -798,8 +848,6 @@ def main():
                       help="Output directory", metavar="<output-dir>", default='output')
     parser.add_option('-f', '--force', dest="force_output", action="store_true",
                       help="Allow output to an existing directory", default=False)
-    parser.add_option('', '--init-segment', dest="init_segment",
-                      help="Initialization segment name", metavar="<filename>", default='init.mp4')
     parser.add_option('', '--mpd-name', dest="mpd_filename",
                       help="MPD file name", metavar="<filename>", default='stream.mpd')
     parser.add_option('', '--profiles', dest='profiles',
@@ -811,6 +859,8 @@ def main():
                       help = 'Use a file name pattern instead of the base name of input files for output media files.')
     parser.add_option('', '--media-prefix', dest='media_prefix', metavar='<prefix>', default='media',
                       help='Use this prefix for prefixed media file names (instead of the default prefix "media")')
+    parser.add_option('', '--init-segment', dest="init_segment",
+                      help="Initialization segment name", metavar="<filename>", default='init.mp4')
     parser.add_option('', "--no-split", action="store_false", dest="split", default=True,
                       help="Do not split the file into individual segment files")
     parser.add_option('', "--use-segment-list", action="store_true", dest="use_segment_list", default=False,
@@ -829,6 +879,8 @@ def main():
                       help="Always output an @lang attribute for audio tracks even when the language is undefined"),
     parser.add_option('', "--subtitles", dest="subtitles", action="store_true", default=False,
                       help="Enable Subtitles")
+    parser.add_option('', "--group", dest="groups", action="append", metavar='<group-definition>', default=[],
+                      help="Specify the attributes of a group. This option may be used multiple times, once per group")
     parser.add_option('', "--smooth", dest="smooth", default=False, action="store_true",
                       help="Produce an output compatible with Smooth Streaming")
     parser.add_option('', '--smooth-client-manifest-name', dest="smooth_client_manifest_filename",
@@ -1009,6 +1061,18 @@ def main():
             from_lang, to_lang = mapping.split(':')
             options.language_map[from_lang] = to_lang
 
+    # parse the group definitions
+    groups = {}
+    for group in options.groups:
+        try:
+            group_name, group_attributes = group.split(':', 1)
+            groups[group_name] = {}
+            for group_attribute in group_attributes.split(','):
+                name, value = group_attribute.split('=', 1)
+                groups[group_name][name] = value
+        except:
+            raise Exception('Invalid syntax for --group option')
+
     # parse media sources syntax
     media_sources = [MediaSource(source) for source in args]
 
@@ -1042,7 +1106,6 @@ def main():
 
     # encrypt the input files if needed
     if not options.no_media and options.encryption_key:
-
         track_ids = []
         encrypted_files = {}
         for media_source in media_sources:
@@ -1338,7 +1401,7 @@ def main():
                              init_segment = path.join(options.output_dir, track.init_segment_name))
 
     # output the DASH MPD
-    OutputDash(options, audio_tracks, video_tracks, subtitles_tracks)
+    OutputDash(options, groups, audio_tracks, video_tracks, subtitles_tracks)
 
     # output the Smooth Manifests
     if options.smooth:

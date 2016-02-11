@@ -3,8 +3,9 @@
     <meta charset="utf-8">
     <title>Sample DASH Player using Shaka-Player</title>
     <link rel="stylesheet" href="index.css"></link>
-    <script src="shaka-player.compiled.js"></script>
-    <script src="app.js"></script>
+    <!-- <script src="shaka-player.compiled.debug.js"></script> -->
+    <script src="load.js"></script>
+    <script src="my_app.js"></script>
   </head>
   <body>
     <table>
@@ -44,7 +45,7 @@
     <br>
 
     <div>
-      <video id="video" 
+      <video id="video"
              width="600" height="400"
              crossorigin="anonymous"
              autoplay controls></video>

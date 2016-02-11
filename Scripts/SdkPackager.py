@@ -246,11 +246,13 @@ CopyFiles(bin_files)
 if '-microsoft-' in SDK_TARGET:
     wrapper_files = [
         ('Source/Python/wrappers', 'mp4dash.bat','bin'),
+        ('Source/Python/wrappers', 'mp4dashclone.bat','bin'),
         ('Source/Python/wrappers', 'mp4hls.bat','bin')
     ]
 else:
     wrapper_files = [
         ('Source/Python/wrappers', 'mp4dash','bin'),
+        ('Source/Python/wrappers', 'mp4dashclone','bin'),
         ('Source/Python/wrappers', 'mp4hls','bin')
     ]
 CopyFiles(wrapper_files)
