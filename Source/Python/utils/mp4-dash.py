@@ -377,10 +377,14 @@ def OutputDash(options, groups, audio_tracks, video_tracks, subtitles_tracks):
                                             codecs=audio_track.codec,
                                             bandwidth=str(audio_track.bandwidth),
                                             audioSamplingRate=str(audio_track.sample_rate))
+            if audio_track.codec == 'ec-3':
+                audio_channel_config_value = ComputeDolbyDigitalAudioChannelConfig(audio_track)
+            else:
+                audio_channel_config_value = str(audio_track.channels)
             audio_channel_config = xml.SubElement(representation,
                                                   'AudioChannelConfiguration',
                                                   schemeIdUri=AUDIO_CHANNEL_CONFIGURATION_SCHEME_ID_URI,
-                                                  value=str(audio_track.channels))
+                                                  value=audio_channel_config_value)
 
             if options.on_demand:
                 base_url = xml.SubElement(representation, 'BaseURL')

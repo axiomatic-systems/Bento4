@@ -488,6 +488,101 @@ def GetEncryptionKey(options, spec):
     else:
         raise Exception('Key Locator scheme not supported')
 
+# Compute the Dolby Digital AudioChannelConfiguration value
+#
+# (MSB = 0)
+# 0 L
+# 1 C
+# 2 R
+# 3 Ls
+# 4 Rs
+# 5 Lc/Rc pair
+# 6 Lrs/Rrs pair
+# 7 Cs
+# 8 Ts
+# 9 Lsd/Rsd pair
+# 10 Lw/Rw pair
+# 11 Vhl/Vhr pair
+# 12 Vhc
+# 13 Lts/Rts pair
+# 14 LFE2
+# 15 LFE
+#
+# Using acmod
+# 000 Ch1, Ch2
+# 001 C
+# 010 L, R
+# 011 L, C, R
+# 100 L, R, S
+# 101 L, C, R, S
+# 110 L, R, SL, SR
+# 111 L, C, R, SL, SR
+#
+# chan_loc
+# 0 Lc/Rc pair
+# 1 Lrs/Rrs pair
+# 2 Cs
+# 3 Ts
+# 4 Lsd/Rsd pair
+# 5 Lw/Rw pair
+# 6 Lvh/Rvh pair
+# 7 Cvh
+# 8 LFE2
+#
+def ComputeDolbyDigitalAudioChannelConfig(track):
+    config = str(track.channels) # default in case we don't have other info
+    sample_desc = track.info['sample_descriptions'][0]
+    if 'dolby_digital_info' not in sample_desc: return config
+    dd_info = sample_desc['dolby_digital_info']['substreams'][0]
+    flags = {
+        'L':       1<<15,
+        'C':       1<<14,
+        'R':       1<<13,
+        'Ls':      1<<12,
+        'Rs':      1<<11,
+        'Lc/Rc':   1<<10,
+        'Lrs/Rrs': 1<<9,
+        'Cs':      1<<8,
+        'Ts':      1<<7,
+        'Lsd/Rsd': 1<<6,
+        'Lw/Rw':   1<<5,
+        'Vhl/Vhr': 1<<4,
+        'Vhc':     1<<3,
+        'Lts/Rts': 1<<2,
+        'LFE2':    1<<1,
+        'LFE':     1<<0
+    }
+    acmod = {
+        0: flags['L'] | flags['R'],  # in theory this is not supported but we'll pick a reasonable value
+        1: flags['C'],
+        2: flags['L'] | flags['R'],
+        3: flags['L'] | flags['C'] | flags['R'],
+        4: flags['L'] | flags['R'] | flags['Cs'],
+        5: flags['L'] | flags['C'] | flags['R']  | flags['Cs'],
+        6: flags['L'] | flags['R'] | flags['Ls'] | flags['Rs'],
+        7: flags['L'] | flags['C'] | flags['R']  | flags['Ls'] | flags['Rs']
+    }
+    chan_loc = {
+        0: 'Lc/Rc',
+        1: 'Lrs/Rrs',
+        2: 'Cs',
+        3: 'Ts',
+        4: 'Lsd/Rsd',
+        5: 'Lw/Rw',
+        6: 'Vhl/Vhr',
+        7: 'Vhc',
+        8: 'LFE2'
+    }
+    config = acmod[dd_info['acmod']]
+    if dd_info['lfeon'] == 1:
+        config |= flags['LFE']
+    if dd_info['num_dep_sub'] and 'chan_loc' in dd_info:
+        chan_loc_value = dd_info['chan_loc']
+        for i in range(9):
+            if chan_loc_value & (1<<i):
+                config |= flags[chan_loc[i]]
+    return hex(config).upper()[2:]
+
 def ComputeMarlinPssh(options):
     # create a dummy (empty) Marlin PSSH
     return struct.pack('>I4sI4sII', 24, 'marl', 16, 'mkid', 0, 0)
