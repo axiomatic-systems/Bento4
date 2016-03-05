@@ -48,6 +48,14 @@ AP4_ElstAtom::Create(AP4_Size size, AP4_ByteStream& stream)
 /*----------------------------------------------------------------------
 |   AP4_ElstAtom::AP4_ElstAtom
 +---------------------------------------------------------------------*/
+AP4_ElstAtom::AP4_ElstAtom() :
+    AP4_Atom(AP4_ATOM_TYPE_ELST, AP4_FULL_ATOM_HEADER_SIZE+4, 0, 0)
+{
+}
+
+/*----------------------------------------------------------------------
+|   AP4_ElstAtom::AP4_ElstAtom
++---------------------------------------------------------------------*/
 AP4_ElstAtom::AP4_ElstAtom(AP4_UI32        size, 
                            AP4_UI08        version,
                            AP4_UI32        flags,
@@ -124,5 +132,28 @@ AP4_ElstAtom::InspectFields(AP4_AtomInspector& inspector)
         inspector.AddField("entry/media rate", (AP4_UI16)m_Entries[i].m_MediaRate);
     }
 
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_ElstAtom::AddEntry
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_ElstAtom::AddEntry(const AP4_ElstEntry& entry)
+{
+    // check if this requires 64-bit fields
+    if (entry.m_SegmentDuration > 0xFFFFFFFFUL) {
+        m_Version = 1;
+    }
+    if (entry.m_MediaTime > 0 && (AP4_UI64)entry.m_MediaTime > 0xFFFFFFFFUL) {
+        m_Version = 1;
+    }
+    
+    // add the entry
+    m_Entries.Append(entry);
+    
+    // recompute the atom size
+    SetSize(AP4_FULL_ATOM_HEADER_SIZE+4+m_Entries.ItemCount()*(m_Version==0?12:20));
+    
     return AP4_SUCCESS;
 }

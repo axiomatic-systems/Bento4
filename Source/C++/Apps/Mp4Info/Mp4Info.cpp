@@ -599,6 +599,31 @@ ShowSampleDescription_Json(AP4_SampleDescription& description, bool verbose)
         printf("\"depth\":%d",     video_desc->GetDepth());
     }
 
+    // Dolby specifics
+    if (desc->GetFormat() == AP4_SAMPLE_FORMAT_EC_3) {
+        AP4_Dec3Atom* dec3 = AP4_DYNAMIC_CAST(AP4_Dec3Atom, desc->GetDetails().GetChild(AP4_ATOM_TYPE('d', 'e', 'c', '3')));
+        if (dec3) {
+            printf(",\n");
+            printf("\"dolby_digital_info\": {\n");
+            printf("  \"data_rate\": %d,\n", dec3->GetDataRate());
+            printf("  \"substreams\": [\n");
+            const char* sep = "";
+            for (unsigned int i=0; i<dec3->GetSubStreams().ItemCount(); i++) {
+                printf("%s    {\n", sep);
+                printf("      \"fscod\": %d,\n", dec3->GetSubStreams()[i].fscod);
+                printf("      \"bsid\": %d,\n",  dec3->GetSubStreams()[i].bsid);
+                printf("      \"bsmod\": %d,\n", dec3->GetSubStreams()[i].bsmod);
+                printf("      \"acmod\": %d,\n", dec3->GetSubStreams()[i].acmod);
+                printf("      \"lfeon\": %d,\n", dec3->GetSubStreams()[i].lfeon);
+                printf("      \"num_dep_sub\": %d,\n", dec3->GetSubStreams()[i].num_dep_sub);
+                printf("      \"chan_loc\": %d\n", dec3->GetSubStreams()[i].chan_loc);
+                printf("    }");
+                sep = ",\n";
+            }
+            printf("\n  ]\n}");
+        }
+    }
+
     // AVC specifics
     if (desc->GetType() == AP4_SampleDescription::TYPE_AVC) {
         // AVC Sample Description

@@ -101,6 +101,7 @@ AP4_GetFormatName(AP4_UI32 format)
         case AP4_SAMPLE_FORMAT_TX3G: return "Timed Text";
         case AP4_SAMPLE_FORMAT_VC_1: return "SMPTE VC-1";
         case AP4_SAMPLE_FORMAT_XML_: return "XML Metadata";
+        case AP4_SAMPLE_FORMAT_STPP: return "Timed Text";
         default: return NULL;
     }
 }

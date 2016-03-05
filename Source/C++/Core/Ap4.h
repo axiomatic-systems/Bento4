@@ -267,6 +267,7 @@
 #include "Ap4SttsAtom.h"
 #include "Ap4CttsAtom.h"
 #include "Ap4StssAtom.h"
+#include "Ap4ElstAtom.h"
 #include "Ap4FtypAtom.h"
 #include "Ap4VmhdAtom.h"
 #include "Ap4SmhdAtom.h"

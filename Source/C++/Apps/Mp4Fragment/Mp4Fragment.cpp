@@ -46,6 +46,7 @@
 +---------------------------------------------------------------------*/
 const unsigned int AP4_FRAGMENTER_DEFAULT_FRAGMENT_DURATION   = 2000; // ms
 const unsigned int AP4_FRAGMENTER_MAX_AUTO_FRAGMENT_DURATION  = 40000;
+const unsigned int AP4_FRAGMENTER_OUTPUT_MOVIE_TIMESCALE      = 1000;
 
 typedef enum {
     AP4_FRAGMENTER_FORCE_SYNC_MODE_NONE,
@@ -286,7 +287,7 @@ Fragment(AP4_File&                input_file,
     }
 
     // create the output file object
-    AP4_Movie* output_movie = new AP4_Movie(1000);
+    AP4_Movie* output_movie = new AP4_Movie(AP4_FRAGMENTER_OUTPUT_MOVIE_TIMESCALE);
     
     // create an mvex container
     AP4_ContainerAtom* mvex = new AP4_ContainerAtom(AP4_ATOM_TYPE_MVEX);
@@ -318,13 +319,53 @@ Fragment(AP4_File&                input_file,
         // create the track
         AP4_Track* output_track = new AP4_Track(sample_table,
                                                 track->GetId(),
-                                                timescale?timescale:1000,
+                                                timescale?timescale:AP4_FRAGMENTER_OUTPUT_MOVIE_TIMESCALE,
                                                 AP4_ConvertTime(track->GetDuration(),
                                                                 input_movie->GetTimeScale(),
-                                                                timescale?timescale:1000),
+                                                                timescale?timescale:AP4_FRAGMENTER_OUTPUT_MOVIE_TIMESCALE),
                                                 timescale?timescale:track->GetMediaTimeScale(),
                                                 0,//track->GetMediaDuration(),
                                                 track);
+        
+        // add an edit list if needed
+        if (const AP4_TrakAtom* trak = track->GetTrakAtom()) {
+            AP4_ContainerAtom* edts = AP4_DYNAMIC_CAST(AP4_ContainerAtom, trak->GetChild(AP4_ATOM_TYPE_EDTS));
+            if (edts) {
+                // create an 'edts' container
+                AP4_ContainerAtom* new_edts = new AP4_ContainerAtom(AP4_ATOM_TYPE_EDTS);
+                
+                // create a new 'edts' for each original 'edts'
+                for (AP4_List<AP4_Atom>::Item* edts_entry = edts->GetChildren().FirstItem();
+                     edts_entry;
+                     edts_entry = edts_entry->GetNext()) {
+                    AP4_ElstAtom* elst = AP4_DYNAMIC_CAST(AP4_ElstAtom, edts_entry->GetData());
+                    AP4_ElstAtom* new_elst = new AP4_ElstAtom();
+                    
+                    // adjust the fields to match the correct timescale
+                    for (unsigned int i=0; i<elst->GetEntries().ItemCount(); i++) {
+                        AP4_ElstEntry new_elst_entry = elst->GetEntries()[i];
+                        new_elst_entry.m_SegmentDuration = AP4_ConvertTime(new_elst_entry.m_SegmentDuration,
+                                                                           input_movie->GetTimeScale(),
+                                                                           AP4_FRAGMENTER_OUTPUT_MOVIE_TIMESCALE);
+                        if (new_elst_entry.m_MediaTime > 0 && timescale) {
+                            new_elst_entry.m_MediaTime = (AP4_SI64)AP4_ConvertTime(new_elst_entry.m_MediaTime,
+                                                                                   track->GetMediaTimeScale(),
+                                                                                   timescale?timescale:track->GetMediaTimeScale());
+                                                                               
+                        }
+                        new_elst->AddEntry(new_elst_entry);
+                    }
+                    
+                    // add the 'elst' to the 'edts' container
+                    new_edts->AddChild(new_elst);
+                }
+                
+                // add the edit list to the output track (just after the 'tkhd' atom)
+                output_track->UseTrakAtom()->AddChild(new_edts, 1);
+            }
+        }
+        
+        // add the track to the output
         output_movie->AddTrack(output_track);
         
         // add a trex entry to the mvex container
