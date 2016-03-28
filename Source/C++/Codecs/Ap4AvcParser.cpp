@@ -160,6 +160,11 @@ AP4_AvcFrameParser::~AP4_AvcFrameParser()
     }
     
     delete m_SliceHeader;
+    
+    // cleanup any un-transfered buffers
+    for (unsigned int i=0; i<m_AccessUnitData.ItemCount(); i++) {
+        delete m_AccessUnitData[i];
+    }
 }
 
 /*----------------------------------------------------------------------
@@ -646,10 +651,10 @@ PrintSliceInfo(const AP4_AvcSliceHeader& slice_header)
 #endif
 
 /*----------------------------------------------------------------------
-|   AP4_AvcFrameParser::MaybeNewAccessUnit
+|   AP4_AvcFrameParser::CheckIfAccessUnitIsCompleted
 +---------------------------------------------------------------------*/
 void
-AP4_AvcFrameParser::MaybeNewAccessUnit(AccessUnitInfo& access_unit_info)
+AP4_AvcFrameParser::CheckIfAccessUnitIsCompleted(AccessUnitInfo& access_unit_info)
 {
     if (m_SliceHeader == NULL) {
         return;
@@ -848,7 +853,7 @@ AP4_AvcFrameParser::Feed(const void*     data,
             if (primary_pic_type_name == NULL) primary_pic_type_name = "UNKNOWN";
             DBG_PRINTF_2("[%d:%s]\n", primary_pic_type, primary_pic_type_name);
 
-            MaybeNewAccessUnit(access_unit_info);
+            CheckIfAccessUnitIsCompleted(access_unit_info);
         } else if (nal_unit_type == AP4_AVC_NAL_UNIT_TYPE_CODED_SLICE_OF_NON_IDR_PICTURE ||
                    nal_unit_type == AP4_AVC_NAL_UNIT_TYPE_CODED_SLICE_OF_IDR_PICTURE     ||
                    nal_unit_type == AP4_AVC_NAL_UNIT_TYPE_CODED_SLICE_DATA_PARTITION_A   ||
@@ -875,7 +880,7 @@ AP4_AvcFrameParser::Feed(const void*     data,
                 if (m_SliceHeader &&
                     !SameFrame(m_NalUnitType, m_NalRefIdc, *m_SliceHeader,
                                nal_unit_type, nal_ref_idc, *slice_header)) {
-                    MaybeNewAccessUnit(access_unit_info);
+                    CheckIfAccessUnitIsCompleted(access_unit_info);
                     m_AccessUnitVclNalUnitCount = 1;
                 } else {
                     // continuation of an access unit
@@ -902,7 +907,7 @@ AP4_AvcFrameParser::Feed(const void*     data,
                 
                 // keep the PPS with the NAL unit (this is optional)
                 AppendNalUnitData(nal_unit_payload, nal_unit_size);
-                MaybeNewAccessUnit(access_unit_info);
+                CheckIfAccessUnitIsCompleted(access_unit_info);
             }
         } else if (nal_unit_type == AP4_AVC_NAL_UNIT_TYPE_SPS) {
             AP4_AvcSequenceParameterSet* sps = new AP4_AvcSequenceParameterSet;
@@ -914,14 +919,14 @@ AP4_AvcFrameParser::Feed(const void*     data,
                 delete m_SPS[sps->seq_parameter_set_id];
                 m_SPS[sps->seq_parameter_set_id] = sps;
                 DBG_PRINTF_1("SPS sps_id=%d\n", sps->seq_parameter_set_id);
-                MaybeNewAccessUnit(access_unit_info);
+                CheckIfAccessUnitIsCompleted(access_unit_info);
             }
         } else if (nal_unit_type == AP4_AVC_NAL_UNIT_TYPE_SEI) {
             AppendNalUnitData(nal_unit_payload, nal_unit_size);
-            MaybeNewAccessUnit(access_unit_info);
+            CheckIfAccessUnitIsCompleted(access_unit_info);
             DBG_PRINTF_0("\n");
         } else if (nal_unit_type >= 14 && nal_unit_type <= 18) {
-            MaybeNewAccessUnit(access_unit_info);
+            CheckIfAccessUnitIsCompleted(access_unit_info);
             DBG_PRINTF_0("\n");
         } else {
             DBG_PRINTF_0("\n");
@@ -932,7 +937,7 @@ AP4_AvcFrameParser::Feed(const void*     data,
     // flush if needed
     if (eos && bytes_consumed == data_size && access_unit_info.nal_units.ItemCount() == 0) {
         DBG_PRINTF_0("------ last unit\n");
-        MaybeNewAccessUnit(access_unit_info);
+        CheckIfAccessUnitIsCompleted(access_unit_info);
     }
     
     return AP4_SUCCESS;

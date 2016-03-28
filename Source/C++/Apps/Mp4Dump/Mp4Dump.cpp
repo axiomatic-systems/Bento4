@@ -338,7 +338,7 @@ main(int argc, char** argv)
 
     // inspect the atoms one by one
     AP4_Atom* atom;
-    AP4_AtomFactory& atom_factory = AP4_DefaultAtomFactory::Instance;
+    AP4_DefaultAtomFactory atom_factory;
     while (atom_factory.CreateAtomFromStream(*input, atom) == AP4_SUCCESS) {
         // remember the current stream position because the Inspect method
         // may read from the stream (there may be stream references in some

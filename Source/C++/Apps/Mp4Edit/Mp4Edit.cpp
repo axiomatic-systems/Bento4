@@ -204,7 +204,8 @@ AP4_EditingProcessor::InsertAtom(const char*     file_path,
         return AP4_FAILURE;
     }
 
-    result = AP4_DefaultAtomFactory::Instance.CreateAtomFromStream(*input, child);
+    AP4_DefaultAtomFactory atom_factory;
+    result = atom_factory.CreateAtomFromStream(*input, child);
     input->Release();
     if (AP4_FAILED(result)) {
         fprintf(stderr, "ERROR: failed to create atom\n");

@@ -219,13 +219,14 @@ main(int argc, char** argv)
     }
         
     // get the movie
-    AP4_File* file = new AP4_File(*input, AP4_DefaultAtomFactory::Instance, true);
+    AP4_File* file = new AP4_File(*input, true);
     AP4_Movie* movie = file->GetMovie();
     
     AP4_Atom* atom = NULL;
+    AP4_DefaultAtomFactory atom_factory;
     do {
         // process the next atom
-        result = AP4_DefaultAtomFactory::Instance.CreateAtomFromStream(*input, atom);
+        result = atom_factory.CreateAtomFromStream(*input, atom);
         if (AP4_SUCCEEDED(result)) {
             printf("atom size=%lld\n", atom->GetSize());
             if (atom->GetType() == AP4_ATOM_TYPE_MOOF) {

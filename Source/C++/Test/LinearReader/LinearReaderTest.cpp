@@ -80,7 +80,7 @@ main(int argc, char** argv)
     }
         
     // get the movie
-    AP4_File* file = new AP4_File(*input, AP4_DefaultAtomFactory::Instance, true);
+    AP4_File* file = new AP4_File(*input, true);
     AP4_Movie* movie = file->GetMovie();
     CHECK(movie != NULL);
     

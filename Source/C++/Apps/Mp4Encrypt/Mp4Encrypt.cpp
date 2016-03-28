@@ -156,9 +156,7 @@ ProgressListener::OnProgress(unsigned int step, unsigned int total)
 static bool
 CheckWarning(AP4_ByteStream& stream, AP4_ProtectionKeyMap& key_map, Method method)
 {
-    AP4_File file(stream,
-                  AP4_DefaultAtomFactory::Instance,
-                  true);
+    AP4_File file(stream, true);
     AP4_Movie* movie = file.GetMovie();
     if (!movie) {
         if (method != METHOD_MPEG_CENC && method != METHOD_PIFF_CBC && method != METHOD_PIFF_CTR) {

@@ -839,7 +839,7 @@ AP4_AtomFactory::GetContext(AP4_Ordinal depth)
 /*----------------------------------------------------------------------
 |   AP4_DefaultAtomFactory::Instance
 +---------------------------------------------------------------------*/
-AP4_DefaultAtomFactory AP4_DefaultAtomFactory::Instance;
+AP4_DefaultAtomFactory AP4_DefaultAtomFactory::Instance_;
 
 /*----------------------------------------------------------------------
 |   AP4_DefaultAtomFactory::Instance

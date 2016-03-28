@@ -545,19 +545,36 @@ def OutputSmooth(options, audio_tracks, video_tracks):
                                       Name=stream_name,
                                       QualityLevels="1",
                                       TimeScale=str(audio_track.timescale))
-        if audio_track.language != 'und':
+        if audio_track.language != 'und' or options.always_output_lang:
             stream_index.set('Language', audio_track.language)
+
+        if audio_track.codec == 'ec-3':
+            # Dolby Digital Plus
+            (channels, codec_private_data) = ComputeDolbyDigitalSmoothStreamingInfo(audio_track)
+            audio_tag = '65534'
+            fourcc = 'EC-3'
+            channels = str(channels)
+            data_rate = int(audio_track.info['sample_descriptions'][0]['dolby_digital_info']['data_rate'])
+            packet_size = str(4*data_rate)
+        else:
+            # assume AAC
+            audio_tag = '255'
+            fourcc = 'AACL'
+            codec_private_data=audio_track.info['sample_descriptions'][0]['decoder_info']
+            channels = str(audio_track.channels)
+            packet_size = str(2*audio_track.channels)
+
         xml.SubElement(stream_index,
                        'QualityLevel',
                        Bitrate=str(audio_track.bandwidth),
                        SamplingRate=str(audio_track.sample_rate),
-                       Channels=str(audio_track.channels),
+                       Channels=channels,
                        BitsPerSample="16",
-                       PacketSize=str(2*audio_track.channels),
-                       AudioTag="255",
-                       FourCC="AACL",
+                       PacketSize=packet_size,
+                       AudioTag=audio_tag,
+                       FourCC=fourcc,
                        Index="0",
-                       CodecPrivateData=audio_track.info['sample_descriptions'][0]['decoder_info'])
+                       CodecPrivateData=codec_private_data)
 
         for duration in audio_track.segment_scaled_durations:
             xml.SubElement(stream_index, "c", d=str(duration))
@@ -892,7 +909,7 @@ def main():
     parser.add_option('', '--smooth-server-manifest-name', dest="smooth_server_manifest_filename",
                       help="Smooth Streaming Server Manifest file name", metavar="<filename>", default='stream.ism')
     parser.add_option('', '--smooth-h264-fourcc', dest='smooth_h264_fourcc',
-                      help="Smooth Streaming FourCC value for H.264 video (default=AVC1)", metavar="<fourcc>", default='AVC1')
+                      help="Smooth Streaming FourCC value for H.264 video (default=H264) [some older players use AVC1]", metavar="<fourcc>", default='H264')
     parser.add_option('', "--hippo", dest="hippo", default=False, action="store_true",
                       help="Produce an output compatible with the Hippo Media Server")
     parser.add_option('', '--hippo-server-manifest-name', dest="hippo_server_manifest_filename",
@@ -903,6 +920,8 @@ def main():
                            "(2) @<key-locator> where <key-locator> is an expression of one of the supported key locator schemes (see online docs for details)")
     parser.add_option('', "--encryption-args", dest="encryption_args", metavar='<cmdline-arguments>', default=None,
                       help="Pass additional command line arguments to mp4encrypt (separated by spaces)")
+    parser.add_option('', "--encryption-filter", dest="encryption_filter", metavar='<filter>', default=None,
+                      help="Only encrypt tracks that match the filter (see online docs for details)")
     parser.add_option('', "--use-compat-namespace", dest="use_compat_namespace", action="store_true", default=False,
                       help="Use the original DASH MPD namespace as it was specified in the first published specification")
     parser.add_option('', "--marlin", dest="marlin", action="store_true", default=False,
@@ -1127,7 +1146,28 @@ def main():
             if 'tracks' not in info:
                 raise Exception('No track found in input file(s)')
 
-            track_ids = [track['id'] for track in info['tracks'] if track['type'] in ['Audio', 'Video']]
+            # select which tracks to encrypt
+            if options.encryption_filter:
+                filters = options.encryption_filter.split(',')
+                track_ids = []
+                for track in info['tracks']:
+                    for filter in filters:
+                        if '=' not in filter:
+                            sys.stderr.write('ERROR: invalid filter syntax: '+filter)
+                            sys.exit(1)
+                        (filter_type, filter_value) = filter.split('=')
+                        if filter_type == 'type':
+                            if track['type'].lower() == filter_value.lower():
+                                track_ids.append(track['id'])
+                        else:
+                            sys.stderr.write('ERROR: invalid filter type '+filter_type)
+                            sys.exit(1)
+            else:
+                track_ids = [track['id'] for track in info['tracks'] if track['type'] in ['Audio', 'Video']]
+
+            if len(track_ids) == 0:
+                continue
+
             print 'Encrypting track IDs '+str(track_ids)+' in '+ GetMappedFileName(media_file)
             encrypted_file = tempfile.NamedTemporaryFile(dir = options.output_dir, delete=False)
             encrypted_files[media_file] = encrypted_file

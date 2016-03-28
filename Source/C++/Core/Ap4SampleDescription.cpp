@@ -251,7 +251,7 @@ AP4_Atom*
 AP4_GenericAudioSampleDescription::ToAtom() const
 {
     AP4_AudioSampleEntry* sample_entry = new AP4_AudioSampleEntry(m_Format,
-                                                                  m_SampleRate,
+                                                                  m_SampleRate<<16,
                                                                   m_SampleSize,
                                                                   m_ChannelCount);
     AP4_AtomParent& details = const_cast<AP4_AtomParent&>(m_Details);
@@ -430,6 +430,58 @@ AP4_HevcSampleDescription::AP4_HevcSampleDescription(AP4_UI32        format,
         // shoud never happen
         m_HvccAtom = new AP4_HvccAtom();
     }
+    m_Details.AddChild(m_HvccAtom);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_HevcSampleDescription::AP4_HevcSampleDescription
++---------------------------------------------------------------------*/
+AP4_HevcSampleDescription::AP4_HevcSampleDescription(AP4_UI32                         format,
+                                                     AP4_UI16                         width,
+                                                     AP4_UI16                         height,
+                                                     AP4_UI16                         depth,
+                                                     const char*                      compressor_name,
+                                                     AP4_UI08                         general_profile_space,
+                                                     AP4_UI08                         general_tier_flag,
+                                                     AP4_UI08                         general_profile,
+                                                     AP4_UI32                         general_profile_compatibility_flags,
+                                                     AP4_UI64                         general_constraint_indicator_flags,
+                                                     AP4_UI08                         general_level,
+                                                     AP4_UI32                         min_spatial_segmentation,
+                                                     AP4_UI08                         parallelism_type,
+                                                     AP4_UI08                         chroma_format,
+                                                     AP4_UI08                         luma_bit_depth,
+                                                     AP4_UI08                         chroma_bit_depth,
+                                                     AP4_UI16                         average_frame_rate,
+                                                     AP4_UI08                         constant_frame_rate,
+                                                     AP4_UI08                         num_temporal_layers,
+                                                     AP4_UI08                         temporal_id_nested,
+                                                     AP4_UI08                         nalu_length_size,
+                                                     const AP4_Array<AP4_DataBuffer>& video_parameters,
+                                                     const AP4_Array<AP4_DataBuffer>& sequence_parameters,
+                                                     const AP4_Array<AP4_DataBuffer>& picture_parameters) :
+    AP4_SampleDescription(TYPE_HEVC, format, NULL),
+    AP4_VideoSampleDescription(width, height, depth, compressor_name)
+{
+    m_HvccAtom = new AP4_HvccAtom(general_profile_space,
+                                  general_tier_flag,
+                                  general_profile,
+                                  general_profile_compatibility_flags,
+                                  general_constraint_indicator_flags,
+                                  general_level,
+                                  min_spatial_segmentation,
+                                  parallelism_type,
+                                  chroma_format,
+                                  luma_bit_depth,
+                                  chroma_bit_depth,
+                                  average_frame_rate,
+                                  constant_frame_rate,
+                                  num_temporal_layers,
+                                  temporal_id_nested,
+                                  nalu_length_size,
+                                  video_parameters,
+                                  sequence_parameters,
+                                  picture_parameters);
     m_Details.AddChild(m_HvccAtom);
 }
 

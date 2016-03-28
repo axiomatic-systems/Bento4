@@ -183,7 +183,8 @@ AP4_LinearReader::SeekTo(AP4_UI32 time_ms, AP4_UI32* actual_time_ms)
                         if (AP4_SUCCEEDED(result)) {
                             AP4_Atom* mfra = NULL;
                             AP4_LargeSize available = mfra_size;
-                            AP4_DefaultAtomFactory::Instance.CreateAtomFromStream(*m_FragmentStream, available, mfra);
+                            AP4_DefaultAtomFactory atom_factory;
+                            atom_factory.CreateAtomFromStream(*m_FragmentStream, available, mfra);
                             m_Mfra = AP4_DYNAMIC_CAST(AP4_ContainerAtom, mfra);
                         }
                     }
@@ -342,9 +343,10 @@ AP4_LinearReader::AdvanceFragment()
     // read atoms until we find a moof
     assert(m_HasFragments);
     if (!m_FragmentStream) return AP4_ERROR_INVALID_STATE;
+    AP4_DefaultAtomFactory atom_factory;
     do {
         AP4_Atom* atom = NULL;
-        result = AP4_DefaultAtomFactory::Instance.CreateAtomFromStream(*m_FragmentStream, atom);
+        result = atom_factory.CreateAtomFromStream(*m_FragmentStream, atom);
         if (AP4_SUCCEEDED(result)) {
             if (atom->GetType() == AP4_ATOM_TYPE_MOOF) {
                 AP4_ContainerAtom* moof = AP4_DYNAMIC_CAST(AP4_ContainerAtom, atom);

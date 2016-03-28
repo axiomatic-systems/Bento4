@@ -529,11 +529,100 @@ def GetEncryptionKey(options, spec):
 # 7 Cvh
 # 8 LFE2
 #
-def ComputeDolbyDigitalAudioChannelConfig(track):
-    config = str(track.channels) # default in case we don't have other info
+# The Digital Cinema specification, which is also referenced from the
+# Blu-ray Disc Specification, Specifies this speaker layout:
+#
+#       +---+       +---+       +---+
+#       |Vhl|       |Vhc|       |Vhr|        "High" speakers
+#       +---+       +---+       +---+
+# +---+ +---+ +---+ +---+ +---+ +---+ +---+
+# |Lw | | L | |Lc | | C | |Rc | | R | |Rw |
+# +---+ +---+ +---+ +---+ +---+ +---+ +---+
+#             +----+     +----+
+#             |LFE1]     |LFE2|
+# +---+       +----++---++----+       +---+
+# |Ls |             |Ts |             |Rs |
+# +---+             +---+             +---+
+#
+# +---+                               +---+
+# |Lsd|                               |Rsd|
+# +---+ +---+       +---+       +---+ +---+
+#       |Rls|       |Cs |       |Rrs|
+#       +---+       +---+       +---+
+#
+# Other names:
+# Constant              | HDMI  | Digital Cinema | DTS extension
+# ==============================|================|==============
+# FRONT_LEFT            | FL    | L              | L
+# FRONT_RIGHT           | FR    | R              | R
+# FRONT_CENTER          | FC    | C              | C
+# LOW_FREQUENCY         | LFE   | LFE            | LFE
+# BACK_LEFT             | (RLC) | Rls            | Lsr
+# BACK_RIGHT            | (RRC) | Rrs            | Rsr
+# FRONT_LEFT_OF_CENTER  | FLC   | Lc             | Lc
+# FRONT_RIGHT_OF_CENTER | FRC   | Rc             | Rc
+# BACK_CENTER           | RC    | Cs             | Cs
+# SIDE_LEFT             | (RL)  | Ls             | Lss
+# SIDE_RIGHT            | (RR)  | Rs             | Rss
+# TOP_CENTER            | TC    | Ts             | Oh
+# TOP_FRONT_LEFT        | FLH   | Vhl            | Lh
+# TOP_FRONT_CENTER      | FCH   | Vhc            | Ch
+# TOP_FRONT_RIGHT       | FRH   | Vhr            | Rh
+# TOP_BACK_LEFT         |       |                | Chr
+# TOP_BACK_CENTER       |       |                | Lhr
+# TOP_BACK_RIGHT        |       |                | Rhr
+# STEREO_LEFT           |       |                |
+# STEREO_RIGHT          |       |                |
+# WIDE_LEFT             | FLW   | Lw             | Lw
+# WIDE_RIGHT            | FRW   | Rw             | Rw
+# SURROUND_DIRECT_LEFT  |       | Lsd            | Ls
+# SURROUND_DIRECT_RIGHT |       | Rsd            | Rs
+
+DolbyDigital_chan_loc = {
+    0: 'Lc/Rc',
+    1: 'Lrs/Rrs',
+    2: 'Cs',
+    3: 'Ts',
+    4: 'Lsd/Rsd',
+    5: 'Lw/Rw',
+    6: 'Vhl/Vhr',
+    7: 'Vhc',
+    8: 'LFE2'
+}
+
+DolbyDigital_acmod = {
+    0: ['L', 'R'],  # in theory this is not supported but we'll pick a reasonable value
+    1: ['C'],
+    2: ['L', 'R'],
+    3: ['L', 'C', 'R'],
+    4: ['L', 'R', 'Cs'],
+    5: ['L', 'C', 'R', 'Cs'],
+    6: ['L', 'R', 'Ls', 'Rs'],
+    7: ['L', 'C', 'R', 'Ls', 'Rs']
+}
+
+def GetDolbyDigitalChannels(track):
     sample_desc = track.info['sample_descriptions'][0]
-    if 'dolby_digital_info' not in sample_desc: return config
+    if 'dolby_digital_info' not in sample_desc:
+        return (track.channels, [])
     dd_info = sample_desc['dolby_digital_info']['substreams'][0]
+    channels = DolbyDigital_acmod[dd_info['acmod']][:]
+    if dd_info['lfeon'] == 1:
+        channels.append('LFE')
+    if dd_info['num_dep_sub'] and 'chan_loc' in dd_info:
+        chan_loc_value = dd_info['chan_loc']
+        for i in range(9):
+            if chan_loc_value & (1<<i):
+                channels.append(DolbyDigital_chan_loc[i])
+    channel_count = 0
+    for channel in channels:
+        if '/' in channel:
+            channel_count += 2
+        else:
+            channel_count += 1
+    return (channel_count, channels)
+
+def ComputeDolbyDigitalAudioChannelConfig(track):
     flags = {
         'L':       1<<15,
         'C':       1<<14,
@@ -552,36 +641,55 @@ def ComputeDolbyDigitalAudioChannelConfig(track):
         'LFE2':    1<<1,
         'LFE':     1<<0
     }
-    acmod = {
-        0: flags['L'] | flags['R'],  # in theory this is not supported but we'll pick a reasonable value
-        1: flags['C'],
-        2: flags['L'] | flags['R'],
-        3: flags['L'] | flags['C'] | flags['R'],
-        4: flags['L'] | flags['R'] | flags['Cs'],
-        5: flags['L'] | flags['C'] | flags['R']  | flags['Cs'],
-        6: flags['L'] | flags['R'] | flags['Ls'] | flags['Rs'],
-        7: flags['L'] | flags['C'] | flags['R']  | flags['Ls'] | flags['Rs']
-    }
-    chan_loc = {
-        0: 'Lc/Rc',
-        1: 'Lrs/Rrs',
-        2: 'Cs',
-        3: 'Ts',
-        4: 'Lsd/Rsd',
-        5: 'Lw/Rw',
-        6: 'Vhl/Vhr',
-        7: 'Vhc',
-        8: 'LFE2'
-    }
-    config = acmod[dd_info['acmod']]
-    if dd_info['lfeon'] == 1:
-        config |= flags['LFE']
-    if dd_info['num_dep_sub'] and 'chan_loc' in dd_info:
-        chan_loc_value = dd_info['chan_loc']
-        for i in range(9):
-            if chan_loc_value & (1<<i):
-                config |= flags[chan_loc[i]]
+    (channel_count, channels) = GetDolbyDigitalChannels(track)
+    if len(channels) == 0:
+        return str(channel_count)
+    config = 0
+    for channel in channels:
+        if channel in flags:
+            config |= flags[channel]
     return hex(config).upper()[2:]
+
+def ComputeDolbyDigitalAudioChannelMask(track):
+    masks = {
+        'L':       0x1,             # SPEAKER_FRONT_LEFT
+        'R':       0x2,             # SPEAKER_FRONT_RIGHT
+        'C':	   0x4,             # SPEAKER_FRONT_CENTER
+        'LFE':     0x8,             # SPEAKER_LOW_FREQUENCY
+        'Ls':      0x10,            # SPEAKER_BACK_LEFT
+        'Rs':      0x20,            # SPEAKER_BACK_RIGHT
+        'Lc':      0x40,            # SPEAKER_FRONT_LEFT_OF_CENTER
+        'Rc':      0x80,            # SPEAKER_FRONT_RIGHT_OF_CENTER
+        'Cs':      0x100,           # SPEAKER_BACK_CENTER
+        'Lrs':     0x200,           # SPEAKER_SIDE_LEFT
+        'Rrs':     0x400,           # SPEAKER_SIDE_RIGHT
+        'Ts':      0x800,           # SPEAKER_TOP_CENTER
+        'Vhl/Vhr': 0x1000 | 0x4000, # SPEAKER_TOP_FRONT_LEFT/SPEAKER_TOP_FRONT_RIGHT
+        'Vhc':     0x2000,          # SPEAKER_TOP_FRONT_CENTER
+    }
+    (channel_count, channels) = GetDolbyDigitalChannels(track)
+    if len(channels) == 0:
+        return (channel_count, 3)
+    channel_mask = 0
+    for channel in channels:
+        if channel in masks:
+            channel_mask |= masks[channel]
+        else:
+            (channel1, channel2) = channel.split('/')
+            if channel1 in masks:
+                channel_mask |= masks[channel1]
+            if channel2 in masks:
+                channel_mask |= masks[channel2]
+    return (channel_count, channel_mask)
+
+def ComputeDolbyDigitalSmoothStreamingInfo(track):
+    (channel_count, channel_mask) = ComputeDolbyDigitalAudioChannelMask(track)
+    info = "0006" # 1536 in little-endian
+    mask_hex_be = "{0:0{1}x}".format(channel_mask, 4)
+    info += mask_hex_be[2:4]+mask_hex_be[0:2]+'0000'
+    info += "af87fba7022dfb42a4d405cd93843bdd"
+    info += track.info['sample_descriptions'][0]['dolby_digital_info']['dec3_payload']
+    return (channel_count, info.lower())
 
 def ComputeMarlinPssh(options):
     # create a dummy (empty) Marlin PSSH

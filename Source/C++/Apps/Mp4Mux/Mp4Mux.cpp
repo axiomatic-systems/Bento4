@@ -86,6 +86,7 @@ PrintUsageAndExit()
             "\n"
             "Supported types:\n"
             "  h264: H264/AVC NAL units\n"
+            "  h265: H265/HEVC NAL units\n"
             "    optional params:\n"
             "      frame_rate: floating point number in frames per second (default=24.0)\n"
             "  aac:  AAC in ADTS format\n"
@@ -530,7 +531,7 @@ AddH264Track(AP4_Movie&            movie,
                                      video_width,
                                      video_height,
                                      24,
-                                     "h264",
+                                     "AVC Coding",
                                      sps->profile_idc,
                                      sps->level_idc,
                                      sps->constraint_set0_flag<<7 |
@@ -570,6 +571,252 @@ AddH264Track(AP4_Movie&            movie,
 }
 
 /*----------------------------------------------------------------------
+|   AddH265Track
++---------------------------------------------------------------------*/
+static void
+AddH265Track(AP4_Movie&            movie,
+             const char*           input_name,
+             AP4_Array<Parameter>& parameters,
+             AP4_Array<AP4_UI32>&  brands,
+             SampleFileStorage&    sample_storage)
+{
+    unsigned int video_width = 0;
+    unsigned int video_height = 0;
+
+    AP4_ByteStream* input;
+    AP4_Result result = AP4_FileByteStream::Create(input_name, AP4_FileByteStream::STREAM_MODE_READ, input);
+    if (AP4_FAILED(result)) {
+        fprintf(stderr, "ERROR: cannot open input file '%s' (%d))\n", input_name, result);
+        return;
+    }
+
+    // see if the frame rate is specified
+    unsigned int video_frame_rate = AP4_MUX_DEFAULT_VIDEO_FRAME_RATE*1000;
+    for (unsigned int i=0; i<parameters.ItemCount(); i++) {
+        if (parameters[i].m_Name == "frame_rate") {
+            double frame_rate = atof(parameters[i].m_Value.GetChars());
+            if (frame_rate == 0.0) {
+                fprintf(stderr, "ERROR: invalid video frame rate %s\n", parameters[i].m_Value.GetChars());
+                return;
+            }
+            video_frame_rate = (unsigned int)(1000.0*frame_rate);
+        }
+    }
+    
+    // create a sample table
+    AP4_SyntheticSampleTable* sample_table = new AP4_SyntheticSampleTable();
+
+    // allocate an array to keep track of sample order
+    AP4_Array<SampleOrder> sample_orders;
+    
+    // parse the input
+    AP4_HevcFrameParser parser;
+    for (;;) {
+        bool eos;
+        unsigned char input_buffer[4096];
+        AP4_Size bytes_in_buffer = 0;
+        result = input->ReadPartial(input_buffer, sizeof(input_buffer), bytes_in_buffer);
+        if (AP4_SUCCEEDED(result)) {
+            eos = false;
+        } else if (result == AP4_ERROR_EOS) {
+            eos = true;
+        } else {
+            fprintf(stderr, "ERROR: failed to read from input file\n");
+            break;
+        }
+        AP4_Size offset = 0;
+        bool     found_access_unit = false;
+        do {
+            AP4_HevcFrameParser::AccessUnitInfo access_unit_info;
+            
+            found_access_unit = false;
+            AP4_Size bytes_consumed = 0;
+            result = parser.Feed(&input_buffer[offset],
+                                 bytes_in_buffer,
+                                 bytes_consumed,
+                                 access_unit_info,
+                                 eos);
+            if (AP4_FAILED(result)) {
+                fprintf(stderr, "ERROR: Feed() failed (%d)\n", result);
+                break;
+            }
+            if (access_unit_info.nal_units.ItemCount()) {
+                // we got one access unit
+                found_access_unit = true;
+                if (Options.verbose) {
+                    printf("H265 Access Unit, %d NAL units, decode_order=%d, display_order=%d\n",
+                           access_unit_info.nal_units.ItemCount(),
+                           access_unit_info.decode_order,
+                           access_unit_info.display_order);
+                }
+                
+                // compute the total size of the sample data
+                unsigned int sample_data_size = 0;
+                for (unsigned int i=0; i<access_unit_info.nal_units.ItemCount(); i++) {
+                    sample_data_size += 4+access_unit_info.nal_units[i]->GetDataSize();
+                }
+                
+                // store the sample data
+                AP4_Position position = 0;
+                sample_storage.GetStream()->Tell(position);
+                for (unsigned int i=0; i<access_unit_info.nal_units.ItemCount(); i++) {
+                    sample_storage.GetStream()->WriteUI32(access_unit_info.nal_units[i]->GetDataSize());
+                    sample_storage.GetStream()->Write(access_unit_info.nal_units[i]->GetData(), access_unit_info.nal_units[i]->GetDataSize());
+                }
+                
+                // add the sample to the track
+                sample_table->AddSample(*sample_storage.GetStream(), position, sample_data_size, 1000, 0, 0, 0, access_unit_info.is_idr);
+            
+                // remember the sample order
+                sample_orders.Append(SampleOrder(access_unit_info.decode_order, access_unit_info.display_order));
+                
+                // free the memory buffers
+                access_unit_info.Reset();
+            }
+        
+            offset += bytes_consumed;
+            bytes_in_buffer -= bytes_consumed;
+        } while (bytes_in_buffer || found_access_unit);
+        if (eos) break;
+    }
+    
+    // adjust the sample CTS/DTS offsets based on the sample orders
+    if (sample_orders.ItemCount() > 1) {
+        unsigned int start = 0;
+        for (unsigned int i=1; i<=sample_orders.ItemCount(); i++) {
+            if (i == sample_orders.ItemCount() || sample_orders[i].m_DisplayOrder == 0) {
+                // we got to the end of the GOP, sort it by display order
+                SortSamples(&sample_orders[start], i-start);
+                start = i;
+            }
+        }
+    }
+    unsigned int max_delta = 0;
+    for (unsigned int i=0; i<sample_orders.ItemCount(); i++) {
+        if (sample_orders[i].m_DecodeOrder > i) {
+            unsigned int delta =sample_orders[i].m_DecodeOrder-i;
+            if (delta > max_delta) {
+                max_delta = delta;
+            }
+        }
+    }
+    for (unsigned int i=0; i<sample_orders.ItemCount(); i++) {
+        sample_table->UseSample(sample_orders[i].m_DecodeOrder).SetCts(1000ULL*(AP4_UI64)(i+max_delta));
+    }
+    
+    // check that we have at least one SPS
+    AP4_HevcSequenceParameterSet* sps = NULL;
+    for (unsigned int i=0; i<=AP4_HEVC_SPS_MAX_ID; i++) {
+        sps = parser.GetSequenceParameterSets()[i];
+        if (sps) break;
+    }
+    if (sps == NULL) {
+        fprintf(stderr, "ERROR: no sequence parameter set found in video\n");
+        input->Release();
+        return;
+    }
+    
+    // collect parameters from the first SPS entry
+    // TODO: synthesize from multiple SPS entries if we have more than one
+    AP4_UI08 general_profile_space =               sps->profile_tier_level.general_profile_space;
+    AP4_UI08 general_tier_flag =                   sps->profile_tier_level.general_tier_flag;
+    AP4_UI08 general_profile =                     sps->profile_tier_level.general_profile_idc;
+    AP4_UI32 general_profile_compatibility_flags = sps->profile_tier_level.general_profile_compatibility_flags;
+    AP4_UI64 general_constraint_indicator_flags =  sps->profile_tier_level.general_constraint_indicator_flags;
+    AP4_UI08 general_level =                       sps->profile_tier_level.general_level_idc;
+    AP4_UI32 min_spatial_segmentation =            0; // TBD (should read from VUI if present)
+    AP4_UI08 parallelism_type =                    0; // unknown
+    AP4_UI08 chroma_format =                       sps->chroma_format_idc;
+    AP4_UI08 luma_bit_depth =                      8; // FIXME: hardcoded temporarily, should be read from the bitstream
+    AP4_UI08 chroma_bit_depth =                    8; // FIXME: hardcoded temporarily, should be read from the bitstream
+    AP4_UI16 average_frame_rate =                  0; // unknown
+    AP4_UI08 constant_frame_rate =                 0; // unknown
+    AP4_UI08 num_temporal_layers =                 0; // unknown
+    AP4_UI08 temporal_id_nested =                  0; // unknown
+    AP4_UI08 nalu_length_size =                    4;
+
+    sps->GetInfo(video_width, video_height);
+    if (Options.verbose) {
+        printf("VIDEO: %dx%d\n", video_width, video_height);
+    }
+    
+    // collect the VPS, SPS and PPS into arrays
+    AP4_Array<AP4_DataBuffer> vps_array;
+    for (unsigned int i=0; i<=AP4_HEVC_VPS_MAX_ID; i++) {
+        if (parser.GetVideoParameterSets()[i]) {
+            vps_array.Append(parser.GetVideoParameterSets()[i]->raw_bytes);
+        }
+    }
+    AP4_Array<AP4_DataBuffer> sps_array;
+    for (unsigned int i=0; i<=AP4_HEVC_SPS_MAX_ID; i++) {
+        if (parser.GetSequenceParameterSets()[i]) {
+            sps_array.Append(parser.GetSequenceParameterSets()[i]->raw_bytes);
+        }
+    }
+    AP4_Array<AP4_DataBuffer> pps_array;
+    for (unsigned int i=0; i<=AP4_HEVC_PPS_MAX_ID; i++) {
+        if (parser.GetPictureParameterSets()[i]) {
+            pps_array.Append(parser.GetPictureParameterSets()[i]->raw_bytes);
+        }
+    }
+    
+    // setup the video the sample descripton
+    AP4_HevcSampleDescription* sample_description =
+        new AP4_HevcSampleDescription(AP4_SAMPLE_FORMAT_HEV1,
+                                      video_width,
+                                      video_height,
+                                      24,
+                                      "HEVC Coding",
+                                      general_profile_space,
+                                      general_tier_flag,
+                                      general_profile,
+                                      general_profile_compatibility_flags,
+                                      general_constraint_indicator_flags,
+                                      general_level,
+                                      min_spatial_segmentation,
+                                      parallelism_type,
+                                      chroma_format,
+                                      luma_bit_depth,
+                                      chroma_bit_depth,
+                                      average_frame_rate,
+                                      constant_frame_rate,
+                                      num_temporal_layers,
+                                      temporal_id_nested,
+                                      nalu_length_size,
+                                      vps_array,
+                                      sps_array,
+                                      pps_array);
+    
+    sample_table->AddSampleDescription(sample_description);
+    
+    AP4_UI32 movie_timescale      = 1000;
+    AP4_UI32 media_timescale      = video_frame_rate;
+    AP4_UI64 video_track_duration = AP4_ConvertTime(1000*sample_table->GetSampleCount(), media_timescale, movie_timescale);
+    AP4_UI64 video_media_duration = 1000*sample_table->GetSampleCount();
+
+    // create a video track
+    AP4_Track* track = new AP4_Track(AP4_Track::TYPE_VIDEO,
+                                     sample_table,
+                                     0,                    // auto-select track id
+                                     movie_timescale,      // movie time scale
+                                     video_track_duration, // track duration
+                                     video_frame_rate,     // media time scale
+                                     video_media_duration, // media duration
+                                     "und",                // language
+                                     video_width<<16,      // width
+                                     video_height<<16      // height
+                                     );
+
+    // update the brands list
+    brands.Append(AP4_FILE_BRAND_HVC1);
+
+    // cleanup
+    input->Release();
+    
+    movie.AddTrack(track);
+}
+
+/*----------------------------------------------------------------------
 |   AddMp4Tracks
 +---------------------------------------------------------------------*/
 static void
@@ -588,7 +835,7 @@ AddMp4Tracks(AP4_Movie&            movie,
         return;
     }
     
-    AP4_File file(*input_stream, AP4_DefaultAtomFactory::Instance, true);
+    AP4_File file(*input_stream, true);
     input_stream->Release();
     AP4_Movie* input_movie = file.GetMovie();
     if (input_movie == NULL) {
@@ -726,6 +973,12 @@ main(int argc, char** argv)
                 }
                 if (!strcmp("264", input_type)) {
                     input_type = "h264";
+                } else if (!strcmp("avc", input_type)) {
+                    input_type = "h264";
+                } else if (!strcmp("265", input_type)) {
+                    input_type = "h265";
+                } else if (!strcmp("hevc", input_type)) {
+                    input_type = "h265";
                 } else if (!strcmp("adts", input_type)) {
                     input_type = "aac";
                 } else if (!strcmp("m4a", input_type) ||
@@ -748,6 +1001,8 @@ main(int argc, char** argv)
         
         if (!strcmp(input_type, "h264")) {
             AddH264Track(*movie, input_name, parameters, brands, *sample_storage);
+        } else if (!strcmp(input_type, "h265")) {
+            AddH265Track(*movie, input_name, parameters, brands, *sample_storage);
         } else if (!strcmp(input_type, "aac")) {
             AddAacTrack(*movie, input_name, parameters, *sample_storage);
         } else if (!strcmp(input_type, "mp4")) {

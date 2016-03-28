@@ -213,7 +213,7 @@ main(int argc, char** argv)
     }
     
     // get the movie
-    AP4_File* file = new AP4_File(*input, AP4_DefaultAtomFactory::Instance, true);
+    AP4_File* file = new AP4_File(*input, true);
     AP4_Movie* movie = file->GetMovie();
     if (movie == NULL) {
         fprintf(stderr, "no movie found in file\n");
@@ -302,9 +302,10 @@ main(int argc, char** argv)
         
     AP4_Atom* atom = NULL;
     unsigned int track_id = 0;
+    AP4_DefaultAtomFactory atom_factory;
     for (;!Options.init_only;) {
         // process the next atom
-        result = AP4_DefaultAtomFactory::Instance.CreateAtomFromStream(*input, atom);
+        result = atom_factory.CreateAtomFromStream(*input, atom);
         if (AP4_FAILED(result)) break;
         
         if (atom->GetType() == AP4_ATOM_TYPE_MOOF) {

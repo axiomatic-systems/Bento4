@@ -71,6 +71,7 @@ const AP4_UI32 AP4_FILE_BRAND_MJP2 = AP4_ATOM_TYPE('m','j','p','2');
 const AP4_UI32 AP4_FILE_BRAND_ODCF = AP4_ATOM_TYPE('o','d','c','f');
 const AP4_UI32 AP4_FILE_BRAND_OPF2 = AP4_ATOM_TYPE('o','p','f','2');
 const AP4_UI32 AP4_FILE_BRAND_AVC1 = AP4_ATOM_TYPE('a','v','c','1');
+const AP4_UI32 AP4_FILE_BRAND_HVC1 = AP4_ATOM_TYPE('h','v','c','1');
 
 /*----------------------------------------------------------------------
 |   AP4_File
@@ -98,8 +99,17 @@ public:
      * end of the file. 
      */
     AP4_File(AP4_ByteStream&  stream, 
-             AP4_AtomFactory& atom_factory = AP4_DefaultAtomFactory::Instance,
-             bool             moov_only = false);
+             AP4_AtomFactory& atom_factory,
+             bool             moov_only);
+
+    /**
+     * Constructs an AP4_File from a stream using the default atom factory
+     * @param stream the stream containing the data of the file
+     * @param moov_only indicates whether parsing of the atoms should stop
+     * when the moov atom is found or if all atoms should be parsed until the
+     * end of the file. 
+     */
+    AP4_File(AP4_ByteStream& stream, bool moov_only = false);
 
     /**
      * Destroys the AP4_File instance 
@@ -147,6 +157,11 @@ public:
     virtual AP4_Result  Inspect(AP4_AtomInspector& inspector);
 
 private:
+    // methods
+    void ParseStream(AP4_ByteStream&  stream,
+                     AP4_AtomFactory& atom_factory,
+                     bool             moov_only);
+    
     // members
     AP4_Movie*    m_Movie;
     AP4_FtypAtom* m_FileType;

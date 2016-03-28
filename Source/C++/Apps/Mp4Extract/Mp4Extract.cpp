@@ -112,7 +112,7 @@ main(int argc, char** argv)
     // parse the atoms
     AP4_AtomParent top_level;
     AP4_Atom* atom;
-    AP4_AtomFactory& atom_factory = AP4_DefaultAtomFactory::Instance;
+    AP4_DefaultAtomFactory atom_factory;
     while (atom_factory.CreateAtomFromStream(*input, atom) == AP4_SUCCESS) {
         top_level.AddChild(atom);
     }

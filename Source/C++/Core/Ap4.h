@@ -313,6 +313,7 @@
 #include "Ap4SidxAtom.h"
 #include "Ap4AdtsParser.h"
 #include "Ap4AvcParser.h"
+#include "Ap4HevcParser.h"
 #include "Ap4SegmentBuilder.h"
 
 /*----------------------------------------------------------------------

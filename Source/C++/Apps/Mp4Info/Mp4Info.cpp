@@ -436,6 +436,9 @@ ShowSampleDescription_Text(AP4_SampleDescription& description, bool verbose)
                 printf("        num_dep_sub = %d\n", dec3->GetSubStreams()[i].num_dep_sub);
                 printf("        chan_loc    = %d\n", dec3->GetSubStreams()[i].chan_loc);
             }
+            printf("    AC3 dec3 payload: [");
+            ShowData(dec3->GetRawBytes());
+            printf("]\n");
         }
     }
     
@@ -500,7 +503,7 @@ ShowSampleDescription_Text(AP4_SampleDescription& description, bool verbose)
             printf("      {\n");
             printf("        Array Completeness=%d\n", seq.m_ArrayCompleteness);
             printf("        Type=%d", seq.m_NaluType);
-            const char* nalu_type_name = AP4_HevcParser::NaluTypeName(seq.m_NaluType);
+            const char* nalu_type_name = AP4_HevcNalParser::NaluTypeName(seq.m_NaluType);
             if (nalu_type_name) {
                 printf(" (%s)", nalu_type_name);
             }
@@ -605,6 +608,9 @@ ShowSampleDescription_Json(AP4_SampleDescription& description, bool verbose)
         if (dec3) {
             printf(",\n");
             printf("\"dolby_digital_info\": {\n");
+            printf("  \"dec3_payload\": \"");
+            ShowData(dec3->GetRawBytes());
+            printf("\",\n");
             printf("  \"data_rate\": %d,\n", dec3->GetDataRate());
             printf("  \"substreams\": [\n");
             const char* sep = "";
@@ -688,7 +694,7 @@ ShowSampleDescription_Json(AP4_SampleDescription& description, bool verbose)
             printf("%s      {\n", seq_sep);
             printf("        \"array_completeness\":%d,\n", seq.m_ArrayCompleteness);
             printf("        \"type\":%d,\n", seq.m_NaluType);
-            const char* nalu_type_name = AP4_HevcParser::NaluTypeName(seq.m_NaluType);
+            const char* nalu_type_name = AP4_HevcNalParser::NaluTypeName(seq.m_NaluType);
             if (nalu_type_name) {
                 printf("        \"type_name\":\"%s\",\n", nalu_type_name);
             }
@@ -1485,7 +1491,7 @@ main(int argc, char** argv)
 
     if (Options.format == JSON_FORMAT) printf("{\n");
     
-    AP4_File* file = new AP4_File(*input, AP4_DefaultAtomFactory::Instance, true);
+    AP4_File* file = new AP4_File(*input, true);
     input->Release();
     ShowFileInfo(*file);
 

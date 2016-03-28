@@ -881,9 +881,10 @@ AP4_MarlinIpmpEncryptingProcessor::Initialize(
                     // parse all the atoms encoded in the data and add them to the 'schi' container
                     AP4_MemoryByteStream* mbs = new AP4_MemoryByteStream(attributes_atoms.GetData(), 
                                                                          attributes_atoms.GetDataSize());
+                    AP4_DefaultAtomFactory atom_factory;
                     do {
                         AP4_Atom* atom = NULL;
-                        result = AP4_DefaultAtomFactory::Instance.CreateAtomFromStream(*mbs, atom);
+                        result = atom_factory.CreateAtomFromStream(*mbs, atom);
                         if (AP4_SUCCEEDED(result) && atom) {
                             satr->AddChild(atom);
                         }

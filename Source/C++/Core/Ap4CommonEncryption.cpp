@@ -175,7 +175,12 @@ AP4_CencCtrSubSampleEncrypter::GetSubSampleMap(AP4_DataBuffer&      sample_data,
             }
         }
 
-        if (skip) {
+        if (AP4_GlobalOptions::GetBool("mpeg-cenc.all_nalus_except_header")) {
+            unsigned int cleartext_size = m_NaluLengthSize+1;
+            unsigned int encrypted_size = nalu_size > cleartext_size ? nalu_size-cleartext_size : 0;
+            bytes_of_cleartext_data.Append(cleartext_size);
+            bytes_of_encrypted_data.Append(encrypted_size);
+        } else if (skip) {
             // use cleartext regions to cover the entire NAL unit
             unsigned int range = nalu_size;
             while (range) {

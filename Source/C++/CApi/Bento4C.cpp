@@ -523,7 +523,7 @@ AP4_File_Create(AP4_Movie* movie)
 AP4_File*
 AP4_File_FromStream(AP4_ByteStream* stream, int moov_only)
 {
-    return new AP4_File(*stream, AP4_DefaultAtomFactory::Instance, moov_only?true:false); 
+    return new AP4_File(*stream, moov_only?true:false);
 }
 
 /*----------------------------------------------------------------------

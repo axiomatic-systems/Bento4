@@ -873,7 +873,8 @@ AutoDetectAudioFragmentDuration(AP4_ByteStream& stream, TrackCursor* cursor)
     AP4_UI64  fragment_count = 0;
     AP4_UI32  last_fragment_size = 0;
     AP4_Atom* atom = NULL;
-    while (AP4_SUCCEEDED(AP4_DefaultAtomFactory::Instance.CreateAtomFromStream(stream, bytes_available, atom))) {
+    AP4_DefaultAtomFactory atom_factory;
+    while (AP4_SUCCEEDED(atom_factory.CreateAtomFromStream(stream, bytes_available, atom))) {
         if (atom && atom->GetType() == AP4_ATOM_TYPE_MOOF) {
             AP4_ContainerAtom* moof = AP4_DYNAMIC_CAST(AP4_ContainerAtom, atom);
             AP4_TfhdAtom* tfhd = AP4_DYNAMIC_CAST(AP4_TfhdAtom, moof->FindChild("traf/tfhd"));
@@ -1112,7 +1113,7 @@ main(int argc, char** argv)
     }
     
     // parse the input MP4 file (moov only)
-    AP4_File input_file(*input_stream, AP4_DefaultAtomFactory::Instance, true);
+    AP4_File input_file(*input_stream, true);
     
     // check the file for basic properties
     if (input_file.GetMovie() == NULL) {

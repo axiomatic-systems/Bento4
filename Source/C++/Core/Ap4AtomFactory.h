@@ -99,7 +99,7 @@ private:
 class AP4_DefaultAtomFactory : public AP4_AtomFactory {
 public:
     // class members
-    static AP4_DefaultAtomFactory Instance;
+    static AP4_DefaultAtomFactory Instance_;
     
     // constructor
     AP4_DefaultAtomFactory();

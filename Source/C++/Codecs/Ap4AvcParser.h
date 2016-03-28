@@ -256,7 +256,7 @@ private:
     bool SameFrame(unsigned int nal_unit_type_1, unsigned int nal_ref_idc_1, AP4_AvcSliceHeader& sh1,
                    unsigned int nal_unit_type_2, unsigned int nal_ref_idc_2, AP4_AvcSliceHeader& sh2);
     AP4_AvcSequenceParameterSet* GetSliceSPS(AP4_AvcSliceHeader& sh);
-    void                         MaybeNewAccessUnit(AccessUnitInfo& access_unit_info);
+    void                         CheckIfAccessUnitIsCompleted(AccessUnitInfo& access_unit_info);
     void                         AppendNalUnitData(const unsigned char* data, unsigned int data_size);
     
     // members
@@ -280,7 +280,6 @@ private:
     unsigned int                 m_PrevFrameNumOffset;
     int                          m_PrevPicOrderCntMsb;
     unsigned int                 m_PrevPicOrderCntLsb;
-
 };
 
 #endif // _AP4_AVC_PARSER_H_

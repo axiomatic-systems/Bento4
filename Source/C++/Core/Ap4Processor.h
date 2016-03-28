@@ -176,7 +176,7 @@ public:
                        AP4_ByteStream&   output,
                        ProgressListener* listener = NULL,
                        AP4_AtomFactory&  atom_factory = 
-                           AP4_DefaultAtomFactory::Instance);
+                           AP4_DefaultAtomFactory::Instance_);
 
     /**
      * Process a fragment input stream into an output stream.
@@ -193,7 +193,7 @@ public:
                        AP4_ByteStream&   init,
                        ProgressListener* listener = NULL,
                        AP4_AtomFactory&  atom_factory = 
-                           AP4_DefaultAtomFactory::Instance);
+                           AP4_DefaultAtomFactory::Instance_);
 
     /**
      * This method can be overridden by concrete subclasses.

@@ -88,7 +88,7 @@ main(int argc, char** argv)
         return 1;
     }
 
-    AP4_HevcParser parser;
+    AP4_HevcNalParser parser;
     unsigned int  nalu_count = 0;
     for (;;) {
         bool eos;
@@ -114,8 +114,8 @@ main(int argc, char** argv)
             } 
             if (nalu) {
                 const unsigned char* nalu_payload = (const unsigned char*)nalu->GetData();
-                unsigned int   nalu_type = (nalu_payload[0] >> 1) & 0x3F;
-                const char*    nalu_type_name = AP4_HevcParser::NaluTypeName(nalu_type);
+                unsigned int         nalu_type = (nalu_payload[0] >> 1) & 0x3F;
+                const char*          nalu_type_name = AP4_HevcNalParser::NaluTypeName(nalu_type);
                 if (nalu_type_name == NULL) nalu_type_name = "UNKNOWN";
                 printf("NALU %5d: size=%5d, type=%02d (%s)", 
                        nalu_count, 
@@ -125,7 +125,7 @@ main(int argc, char** argv)
                 if (nalu_type == AP4_HEVC_NALU_TYPE_AUD_NUT) {
                     // Access Unit Delimiter
                     unsigned int pic_type = (nalu_payload[1]>>5);
-                    const char*  pic_type_name = AP4_HevcParser::PicTypeName(pic_type);
+                    const char*  pic_type_name = AP4_HevcNalParser::PicTypeName(pic_type);
                     if (pic_type_name == NULL) pic_type_name = "UNKNOWN";
                     printf(" [%d:%s]\n", pic_type, pic_type_name);
                 } else {

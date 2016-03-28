@@ -321,7 +321,7 @@ ParseFile(const char* filename, unsigned int repeats, bool buffered)
         
     for (unsigned int i=0; i<repeats; i++) {
         // parse the file
-        AP4_File* mp4_file = new AP4_File(*input, AP4_DefaultAtomFactory::Instance, true);
+        AP4_File* mp4_file = new AP4_File(*input, true);
         AP4_Movie* movie = mp4_file->GetMovie();
         if (movie) {
             total_size += movie->GetMoovAtom()->GetSize();

@@ -1480,7 +1480,7 @@ main(int argc, char** argv)
     }
     
 	// open the file
-    AP4_File* input_file = new AP4_File(*input, AP4_DefaultAtomFactory::Instance, true);   
+    AP4_File* input_file = new AP4_File(*input, true);
 
     // get the movie
     AP4_SampleDescription* sample_description;
