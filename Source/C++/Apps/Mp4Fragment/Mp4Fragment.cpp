@@ -342,8 +342,8 @@ Fragment(AP4_File&                input_file,
                     AP4_ElstAtom* new_elst = new AP4_ElstAtom();
                     
                     // adjust the fields to match the correct timescale
-                    for (unsigned int i=0; i<elst->GetEntries().ItemCount(); i++) {
-                        AP4_ElstEntry new_elst_entry = elst->GetEntries()[i];
+                    for (unsigned int j=0; j<elst->GetEntries().ItemCount(); j++) {
+                        AP4_ElstEntry new_elst_entry = elst->GetEntries()[j];
                         new_elst_entry.m_SegmentDuration = AP4_ConvertTime(new_elst_entry.m_SegmentDuration,
                                                                            input_movie->GetTimeScale(),
                                                                            AP4_FRAGMENTER_OUTPUT_MOVIE_TIMESCALE);

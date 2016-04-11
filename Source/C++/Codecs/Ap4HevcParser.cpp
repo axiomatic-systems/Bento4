@@ -737,7 +737,7 @@ AP4_HevcFrameParser::Feed(const void*     data,
         if (nal_unit_type < AP4_HEVC_NALU_TYPE_VPS_NUT) {
             // this is a VCL NAL Unit
             AP4_HevcSliceSegmentHeader* slice_header = new AP4_HevcSliceSegmentHeader;
-            AP4_Result result = slice_header->Parse(nal_unit_payload, nal_unit_size, nal_unit_type, &m_PPS[0], &m_SPS[0]);
+            result = slice_header->Parse(nal_unit_payload, nal_unit_size, nal_unit_type, &m_PPS[0], &m_SPS[0]);
             if (AP4_FAILED(result)) {
                 DBG_PRINTF_1("VLC parsing failed (%d)", result);
                 return AP4_ERROR_INVALID_FORMAT;
