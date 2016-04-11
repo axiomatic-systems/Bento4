@@ -175,7 +175,8 @@ AP4_CencCtrSubSampleEncrypter::GetSubSampleMap(AP4_DataBuffer&      sample_data,
             }
         }
 
-        if (AP4_GlobalOptions::GetBool("mpeg-cenc.all_nalus_except_header")) {
+        const char* cenc_layout = AP4_GlobalOptions::GetString("mpeg-cenc.encryption-layout");
+        if (cenc_layout && AP4_CompareStrings(cenc_layout, "nalu-length-and-type-only")) {
             unsigned int cleartext_size = m_NaluLengthSize+1;
             unsigned int encrypted_size = nalu_size > cleartext_size ? nalu_size-cleartext_size : 0;
             bytes_of_cleartext_data.Append(cleartext_size);

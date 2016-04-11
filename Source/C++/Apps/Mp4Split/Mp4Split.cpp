@@ -42,7 +42,7 @@
                "(c) 2002-2013 Axiomatic Systems, LLC"
  
 #define AP4_SPLIT_DEFAULT_INIT_SEGMENT_NAME  "init.mp4"
-#define AP4_SPLIT_DEFAULT_MEDIA_SEGMENT_NAME "segment-%llu.%04llu.m4f"
+#define AP4_SPLIT_DEFAULT_MEDIA_SEGMENT_NAME "segment-%llu.%04llu.m4s"
 #define AP4_SPLIT_DEFAULT_PATTERN_PARAMS     "IN"
 
 /*----------------------------------------------------------------------
@@ -75,7 +75,7 @@ PrintUsageAndExit()
             "  --verbose : print verbose information when running\n"
             "  --init-segment <filename> : name of init segment (default: init.mp4)\n"
             "  --init-only : only output the init segment (no media segments)\n"
-            "  --media-segment <filename-pattern> (default: segment-%%llu.%%04llu.m4f)\n"
+            "  --media-segment <filename-pattern> (default: segment-%%llu.%%04llu.m4s)\n"
             "    NOTE: all parameters are 64-bit integers, use %%llu in the pattern\n"
             "  --start-number <n> : start numbering segments at <n> (default=1)\n"
             "  --pattern-parameters <params> : one or more selector letter (default: IN)\n"

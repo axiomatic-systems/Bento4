@@ -186,7 +186,7 @@ ReadGolomb(AP4_BitReader& bits)
 }
 
 /*----------------------------------------------------------------------
-|   ReadGolomb
+|   SignedGolomb
 +---------------------------------------------------------------------*/
 static int
 SignedGolomb(unsigned int code_num)

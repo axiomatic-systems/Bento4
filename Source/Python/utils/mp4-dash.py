@@ -23,9 +23,10 @@ import re
 import platform
 import sys
 from mp4utils import *
+from subtitles import *
 
 # setup main options
-VERSION = "1.6.0"
+VERSION = "1.7.0"
 SDK_REVISION = '608'
 SCRIPT_PATH = path.abspath(path.dirname(__file__))
 sys.path += [SCRIPT_PATH]
@@ -41,12 +42,12 @@ SPLIT_INIT_SEGMENT_NAME     = 'init.mp4'
 NOSPLIT_INIT_FILE_PATTERN   = 'init-%s.mp4'
 ONDEMAND_MEDIA_FILE_PATTERN = '%s-%s.mp4'
 
-PADDED_SEGMENT_PATTERN      = 'seg-%04llu.m4f'
-PADDED_SEGMENT_URL_PATTERN  = 'seg-%04d.m4f'
-PADDED_SEGMENT_URL_TEMPLATE = '$RepresentationID$/seg-$Number%04d$.m4f'
-NOPAD_SEGMENT_PATTERN       = 'seg-%llu.m4f'
-NOPAD_SEGMENT_URL_PATTERN   = 'seg-%d.m4f'
-NOPAD_SEGMENT_URL_TEMPLATE  = '$RepresentationID$/seg-$Number$.m4f'
+PADDED_SEGMENT_PATTERN      = 'seg-%04llu.m4s'
+PADDED_SEGMENT_URL_PATTERN  = 'seg-%04d.m4s'
+PADDED_SEGMENT_URL_TEMPLATE = '$RepresentationID$/seg-$Number%04d$.m4s'
+NOPAD_SEGMENT_PATTERN       = 'seg-%llu.m4s'
+NOPAD_SEGMENT_URL_PATTERN   = 'seg-%d.m4s'
+NOPAD_SEGMENT_URL_TEMPLATE  = '$RepresentationID$/seg-$Number$.m4s'
 SEGMENT_PATTERN             = NOPAD_SEGMENT_PATTERN
 SEGMENT_URL_PATTERN         = NOPAD_SEGMENT_URL_PATTERN
 SEGMENT_URL_TEMPLATE        = NOPAD_SEGMENT_URL_TEMPLATE
@@ -207,13 +208,15 @@ def AddContentProtection(options, container, tracks):
         if kid not in kids:
             kids.append(kid)
 
-    # resolve the KID and KEY
-    if options.encryption_key:
-        default_kid = options.kid_hex
-        key = options.key_hex
+    # resolve the default KID and KEY
+    key_info = options.track_key_infos.get(tracks[0].id)
+
+    if key_info:
+        default_kid = key_info['kid']
+        default_key = key_info['key']
     else:
         default_kid = kids[0]
-        key = None
+        default_key = None
 
     # MPEG Common Encryption
     container.append(xml.Comment(' MPEG Common Encryption '))
@@ -251,7 +254,7 @@ def AddContentProtection(options, container, tracks):
             playread_scheme_id_uri = PLAYREADY_SCHEME_ID_URI
         cp = xml.SubElement(container, 'ContentProtection', schemeIdUri=playread_scheme_id_uri)
         if options.playready_header:
-            header_bin = ComputePlayReadyHeader(options.playready_header, default_kid, key)
+            header_bin = ComputePlayReadyHeader(options.playready_header, default_kid, default_key)
             header_b64 = header_bin.encode('base64').replace('\n', '')
             pro = xml.SubElement(cp, '{' + PLAYREADY_MSPR_NAMESPACE + '}pro')
             pro.text = header_b64
@@ -261,7 +264,7 @@ def AddContentProtection(options, container, tracks):
         container.append(xml.Comment(' Widevine '))
         cp = xml.SubElement(container, 'ContentProtection', schemeIdUri=WIDEVINE_SCHEME_ID_URI)
         if options.widevine_header:
-            pssh_payload = ComputeWidevineHeader(options.widevine_header, default_kid, key)
+            pssh_payload = ComputeWidevineHeader(options.widevine_header, default_kid)
             pssh_box = MakePsshBox(WIDEVINE_PSSH_SYSTEM_ID.decode('hex'), pssh_payload)
             pssh_b64 = pssh_box.encode('base64').replace('\n', '')
             pssh = xml.SubElement(cp, '{' + CENC_2013_NAMESPACE + '}pssh')
@@ -318,7 +321,7 @@ def AddDescriptor(adaptation_set, groups, group_name, category_name):
                 sys.stderr.write('WARNING: ignoring ' + descriptor_name + ' descriptor for group "' + group_name + '", the schemeIdUri must be specified\n')
 
 #############################################
-def OutputDash(options, groups, audio_tracks, video_tracks, subtitles_tracks):
+def OutputDash(options, groups, audio_tracks, video_tracks, subtitles_tracks, subtitles_files):
     # compute the total duration (we take the duration of the video)
     if len(video_tracks):
         presentation_duration = video_tracks[0].total_duration
@@ -472,6 +475,7 @@ def OutputDash(options, groups, audio_tracks, video_tracks, subtitles_tracks):
 
     # process all the subtitles tracks
     if options.subtitles and len(subtitles_tracks):
+        period.append(xml.Comment(' Subtitles (Encapsulated) '))
         for subtitles_track in subtitles_tracks:
             args = [period, 'AdaptationSet']
             kwargs = {'mimeType': SUBTITLES_MIMETYPE, 'startWithSAP': '1'}
@@ -479,7 +483,10 @@ def OutputDash(options, groups, audio_tracks, video_tracks, subtitles_tracks):
                 kwargs['lang'] = subtitles_track.language
             adaptation_set = xml.SubElement(*args, **kwargs)
 
-            # see if we have descriptors for this group
+            # add a 'subtitles' role
+            xml.SubElement(adaptation_set, 'Role', schemeIdUri='urn:mpeg:dash:role:2011', value='subtitle')
+
+            # see if we have other descriptors for this group
             AddDescriptor(adaptation_set, groups, 'subtitles/' + subtitles_track.language, 'subtitles')
 
             representation = xml.SubElement(adaptation_set,
@@ -508,6 +515,37 @@ def OutputDash(options, groups, audio_tracks, video_tracks, subtitles_tracks):
                 stream_name = 'subtitles_' + subtitles_track.language
                 AddSegmentTemplate(options, adaptation_set, init_segment_url, media_segment_url_template_prefix, subtitles_track, stream_name)
                 AddSegments(options, representation, media_subdir, subtitles_track)
+
+    # process all the subtitles files
+    if len(subtitles_files):
+        period.append(xml.Comment(' Subtitles (Sidecar) '))
+        for subtitles_file in subtitles_files:
+            args = [period, 'AdaptationSet']
+            kwargs = {
+                'mimeType':    subtitles_file.mime_type,
+                'contentType': 'text'
+            }
+            if (subtitles_file.language != None):
+                kwargs['lang'] = subtitles_file.language
+            adaptation_set = xml.SubElement(*args, **kwargs)
+
+            # add a 'subtitles' role
+            xml.SubElement(adaptation_set, 'Role', schemeIdUri='urn:mpeg:dash:role:2011', value='subtitle')
+
+            # see if we have other descriptors for this group
+            AddDescriptor(adaptation_set, groups, 'subtitles/' + subtitles_file.language, 'subtitles')
+
+            # estimate the bandwidth
+            bandwidth = 1024 # default
+            if presentation_duration and subtitles_file.size:
+                bandwidth = int((8*subtitles_file.size)/presentation_duration)
+
+            representation = xml.SubElement(adaptation_set,
+                                            'Representation',
+                                            id='subtitles/'+subtitles_file.language,
+                                            bandwidth=str(bandwidth))
+            base_url = xml.SubElement(representation, 'BaseURL')
+            base_url.text = 'subtitles/'+subtitles_file.language+'/'+subtitles_file.media_name
 
     # save the MPD
     if options.mpd_filename:
@@ -612,9 +650,15 @@ def OutputSmooth(options, audio_tracks, video_tracks):
             xml.SubElement(stream_index, "c", d=str(duration))
 
     if options.playready_header:
-        if options.encryption_key:
-            kid = options.kid_hex
-            key = options.key_hex
+        key_info = None
+        if len(video_tracks):
+            key_info = options.track_key_infos.get(video_tracks[0].id)
+            if not key_info and len(audio_tracks):
+                key_info = options.track_key_infos.get(audio_tracks[0].id)
+
+        if key_info:
+            kid = key_info['kid']
+            key = key_info['key']
         else:
             if len(video_tracks):
                 kid = video_tracks[0].kid
@@ -725,6 +769,8 @@ def SelectTracks(options, media_sources):
     mp4_files = {}
     mp4_media_names = []
     for media_source in media_sources:
+        if media_source.format != 'mp4': continue
+
         media_file = media_source.filename
 
         # check if we have already parsed this file
@@ -775,6 +821,12 @@ def SelectTracks(options, media_sources):
         track_type     = media_source.spec['type']
         track_language = media_source.spec['language']
         tracks         = []
+
+        if media_source.format != 'mp4':
+            if track_id or track_type:
+                PrintErrorAndExit('ERROR: track ID and track type selections only apply to MP4 media sources')
+
+            continue
 
         if track_type not in ['', 'audio', 'video', 'subtitles']:
             sys.stderr.write('WARNING: ignoring source '+media_source.name+', unknown type')
@@ -828,6 +880,44 @@ def SelectTracks(options, media_sources):
             track.order_index = len(subtitles_tracks)
 
     return (audio_tracks, video_tracks, subtitles_tracks, mp4_files)
+
+#############################################
+def SelectSubtitlesFiles(options, media_sources):
+    return [SubtitlesFile(options, media_source) for media_source in media_sources if media_source.format in ['ttml', 'webvtt']]
+
+#############################################
+def ResolveEncryptionKeys(options):
+    options.key_infos = []
+    for key_spec in options.encryption_key.split(','):
+        key_info = {'filter': ['audio', 'video']}
+        if key_spec.startswith('audio:') or key_spec.startswith('video:'):
+            separator = key_spec.find(':')
+            key_info['filter'] = [key_spec[:separator]]
+            key_spec = key_spec[separator+1:]
+        if key_spec.startswith('@'):
+            kid_hex, key_hex = GetEncryptionKey(options, key_spec[1:])
+        else:
+            if ':' not in key_spec:
+                raise Exception('Invalid argument syntax for --encryption-key option')
+            kid_hex, key_hex = key_spec.split(':', 1)
+            if len(kid_hex) != 32:
+                raise Exception('Invalid argument format for --encryption-key option')
+
+            if key_hex.startswith('#'):
+                if len(key_hex) != 41:
+                    raise Exception('Invalid argument format for --encryption-key option')
+                key_seed_bin = key_hex[1:].decode('base64')
+                kid_bin = kid_hex.decode('hex')
+                key_hex = DerivePlayReadyKey(key_seed_bin, kid_bin).encode('hex')
+                if options.verbose:
+                    print 'PlayReady Derived Key =', key_hex
+            else:
+                if len(key_hex) != 32:
+                    raise Exception('Invalid argument format for --encryption-key option')
+
+        key_info['key'] = key_hex
+        key_info['kid'] = kid_hex
+        options.key_infos.append(key_info)
 
 #############################################
 FileNameMap = {}
@@ -915,13 +1005,11 @@ def main():
     parser.add_option('', '--hippo-server-manifest-name', dest="hippo_server_manifest_filename",
                       help="Hippo Media Server Manifest file name", metavar="<filename>", default='stream.msm')
     parser.add_option('', "--encryption-key", dest="encryption_key", metavar='<key-spec>', default=None,
-                      help="Encrypt all audio and video tracks with MPEG CENC (AES-128), where <key-spec> specifies the KID and Key to use, using one of the following ways: " +
+                      help="Encrypt some or all tracks with MPEG CENC (AES-128), where <key-spec> specifies the KID(s) and Key(s) to use, using one of the following forms: " +
                            "(1) <KID>:<key> with <KID> as a 32-character hex string and <key> either a 32-character hex string or the character '#' followed by a base64-encoded key seed; or " +
-                           "(2) @<key-locator> where <key-locator> is an expression of one of the supported key locator schemes (see online docs for details)")
+                           "(2) @<key-locator> where <key-locator> is an expression of one of the supported key locator schemes. Each entry may be prefixed with an optional track filter, and multiple <key-spec> entries can be used, separated by ','. (see online docs for details)")
     parser.add_option('', "--encryption-args", dest="encryption_args", metavar='<cmdline-arguments>', default=None,
                       help="Pass additional command line arguments to mp4encrypt (separated by spaces)")
-    parser.add_option('', "--encryption-filter", dest="encryption_filter", metavar='<filter>', default=None,
-                      help="Only encrypt tracks that match the filter (see online docs for details)")
     parser.add_option('', "--use-compat-namespace", dest="use_compat_namespace", action="store_true", default=False,
                       help="Use the original DASH MPD namespace as it was specified in the first published specification")
     parser.add_option('', "--marlin", dest="marlin", action="store_true", default=False,
@@ -1051,30 +1139,16 @@ def main():
     if options.primetime_metadata:
         options.primetime = True
 
-    # compute the KID and encryption key if needed
+    # compute the KID(s) and encryption key(s) if needed
     if options.encryption_key:
-        if options.encryption_key.startswith('@'):
-            (kid_hex, key_hex) = GetEncryptionKey(options, options.encryption_key[1:])
-        else:
-            if ':' not in options.encryption_key:
-                raise Exception('Invalid argument syntax for --encryption-key option')
-            kid_hex, key_hex = options.encryption_key.split(':')
-            if len(kid_hex) != 32:
-                raise Exception('Invalid argument format for --encryption-key option')
-
-            if key_hex.startswith('#'):
-                if len(key_hex) != 41:
-                    raise Exception('Invalid argument format for --encryption-key option')
-                key_seed_bin = key_hex[1:].decode('base64')
-                kid_bin = kid_hex.decode('hex')
-                key_hex = DerivePlayReadyKey(key_seed_bin, kid_bin).encode('hex')
-                if options.verbose:
-                    print 'Derived Key =', key_hex
-            else:
-                if len(key_hex) != 32:
-                    raise Exception('Invalid argument format for --encryption-key option')
-        options.key_hex = key_hex
-        options.kid_hex = kid_hex
+        ResolveEncryptionKeys(options)
+        if options.verbose:
+            for key_info in options.key_infos:
+                if key_info['key']:
+                    message = 'KID='+key_info['kid']+', KEY='+key_info['key']
+                else:
+                    message = '[NOT ENCRYPTED]'
+                print 'Key Info for '+'/'.join(key_info['filter'])+': '+message
 
     # process language map options
     if options.language_map:
@@ -1129,7 +1203,6 @@ def main():
 
     # encrypt the input files if needed
     if not options.no_media and options.encryption_key:
-        track_ids = []
         encrypted_files = {}
         for media_source in media_sources:
             media_file = media_source.filename
@@ -1146,29 +1219,19 @@ def main():
             if 'tracks' not in info:
                 raise Exception('No track found in input file(s)')
 
-            # select which tracks to encrypt
-            if options.encryption_filter:
-                filters = options.encryption_filter.split(',')
-                track_ids = []
-                for track in info['tracks']:
-                    for filter in filters:
-                        if '=' not in filter:
-                            sys.stderr.write('ERROR: invalid filter syntax: '+filter)
-                            sys.exit(1)
-                        (filter_type, filter_value) = filter.split('=')
-                        if filter_type == 'type':
-                            if track['type'].lower() == filter_value.lower():
-                                track_ids.append(track['id'])
-                        else:
-                            sys.stderr.write('ERROR: invalid filter type '+filter_type)
-                            sys.exit(1)
-            else:
-                track_ids = [track['id'] for track in info['tracks'] if track['type'] in ['Audio', 'Video']]
+            # select which KID/KEY to use for each track
+            default_kid = options.key_infos[0]['kid']
+            default_key = options.key_infos[0]['key']
+            options.track_key_infos = {}
+            for track in info['tracks']:
+                for key_info in options.key_infos:
+                    if track['type'].lower() in key_info['filter']:
+                        options.track_key_infos[track['id']] = key_info
 
-            if len(track_ids) == 0:
+            if len(options.track_key_infos) == 0:
                 continue
 
-            print 'Encrypting track IDs '+str(track_ids)+' in '+ GetMappedFileName(media_file)
+            print 'Encrypting track IDs '+str(sorted(options.track_key_infos.keys()))+' in '+ GetMappedFileName(media_file)
             encrypted_file = tempfile.NamedTemporaryFile(dir = options.output_dir, delete=False)
             encrypted_files[media_file] = encrypted_file
             TempFiles.append(encrypted_file.name)
@@ -1182,8 +1245,9 @@ def main():
                 if options.smooth or options.playready:
                     args += ['--global-option', 'mpeg-cenc.piff-compatible:true']
 
-            for track_id in track_ids:
-                args += ['--key', str(track_id)+':'+key_hex+':random', '--property', str(track_id)+':KID:'+kid_hex]
+            for track_id in sorted(options.track_key_infos.keys()):
+                key_info = options.track_key_infos[track_id]
+                args += ['--key', str(track_id)+':'+key_info['key']+':random', '--property', str(track_id)+':KID:'+key_info['kid']]
 
             # EME Common Encryption / Clearkey
             args += ['--pssh-v1', EME_COMMON_ENCRYPTION_PSSH_SYSTEM_ID+':']
@@ -1199,7 +1263,7 @@ def main():
 
             # PlayReady
             if options.playready_add_pssh:
-                playready_header = ComputePlayReadyHeader(options.playready_header, kid_hex, key_hex)
+                playready_header = ComputePlayReadyHeader(options.playready_header, default_kid, default_key)
                 pssh_file = tempfile.NamedTemporaryFile(dir = options.output_dir, delete=False)
                 pssh_file.write(playready_header)
                 TempFiles.append(pssh_file.name)
@@ -1208,7 +1272,7 @@ def main():
 
             # Widevine
             if options.widevine_header:
-                widevine_header = ComputeWidevineHeader(options.widevine_header, kid_hex, key_hex)
+                widevine_header = ComputeWidevineHeader(options.widevine_header, default_kid)
                 pssh_file = tempfile.NamedTemporaryFile(dir = options.output_dir, delete=False)
                 pssh_file.write(widevine_header)
                 TempFiles.append(pssh_file.name)
@@ -1217,7 +1281,7 @@ def main():
 
             # Primetime
             if options.primetime_metadata:
-                primetime_metadata = ComputePrimetimeMetaData(options.primetime_metadata, kid_hex)
+                primetime_metadata = ComputePrimetimeMetaData(options.primetime_metadata, default_kid)
                 pssh_file = tempfile.NamedTemporaryFile(dir = options.output_dir, delete=False)
                 pssh_file.write(primetime_metadata)
                 TempFiles.append(pssh_file.name)
@@ -1229,6 +1293,7 @@ def main():
 
     # parse the media sources and select the audio and video tracks
     (audio_tracks, video_tracks, subtitles_tracks, mp4_files) = SelectTracks(options, media_sources)
+    subtitles_files = SelectSubtitlesFiles(options, media_sources)
 
     # check that we have at least one audio and one video
     if len(audio_tracks) == 0 and len(video_tracks) == 0 and len(subtitles_tracks) == 0:
@@ -1415,7 +1480,7 @@ def main():
                          start_number           = '1',
                          init_segment           = path.join(out_dir, video_track.init_segment_name),
                          media_segment          = path.join(out_dir, SEGMENT_PATTERN))
-            if len(subtitles_tracks):
+            if len(subtitles_tracks) or len(subtitles_files):
                 MakeNewDir(path.join(options.output_dir, 'subtitles'))
             for subtitles_track in subtitles_tracks:
                 out_dir = path.join(options.output_dir, 'subtitles', subtitles_track.language)
@@ -1444,8 +1509,16 @@ def main():
                              init_only    = True,
                              init_segment = path.join(options.output_dir, track.init_segment_name))
 
+        if len(subtitles_files):
+            for subtitles_file in subtitles_files:
+                print 'Processing and Copying subtitles file', GetMappedFileName(subtitles_file.media_source.filename)
+                out_dir = path.join(options.output_dir, 'subtitles', subtitles_file.language)
+                MakeNewDir(out_dir)
+                media_filename = path.join(out_dir, subtitles_file.media_name)
+                shutil.copyfile(subtitles_file.media_source.filename, media_filename)
+
     # output the DASH MPD
-    OutputDash(options, groups, audio_tracks, video_tracks, subtitles_tracks)
+    OutputDash(options, groups, audio_tracks, video_tracks, subtitles_tracks, subtitles_files)
 
     # output the Smooth Manifests
     if options.smooth:

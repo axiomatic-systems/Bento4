@@ -323,7 +323,6 @@ AP4_Atom::Clone()
     AP4_DefaultAtomFactory atom_factory;
     atom_factory.CreateAtomFromStream(*mbs, clone);
     
-end:
     // release the memory stream
     mbs->Release();
 

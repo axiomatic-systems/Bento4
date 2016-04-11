@@ -95,10 +95,17 @@ const unsigned int AP4_HEVC_PPS_MAX_ID               = 63;
 const unsigned int AP4_HEVC_SPS_MAX_ID               = 15;
 const unsigned int AP4_HEVC_VPS_MAX_ID               = 15;
 
+const unsigned int AP4_HEVC_ACCESS_UNIT_FLAG_IS_IDR              = 0x01;
+const unsigned int AP4_HEVC_ACCESS_UNIT_FLAG_IS_IRAP             = 0x02;
+const unsigned int AP4_HEVC_ACCESS_UNIT_FLAG_IS_BLA              = 0x04;
+const unsigned int AP4_HEVC_ACCESS_UNIT_FLAG_IS_RADL             = 0x08;
+const unsigned int AP4_HEVC_ACCESS_UNIT_FLAG_IS_RASL             = 0x10;
+const unsigned int AP4_HEVC_ACCESS_UNIT_FLAG_IS_SUBLAYER_NON_REF = 0x20;
+
 /*----------------------------------------------------------------------
 |   class references
 +---------------------------------------------------------------------*/
-class AP4_HevcSliceSegmentHeader;
+struct AP4_HevcSliceSegmentHeader;
 
 /*----------------------------------------------------------------------
 |   AP4_HevcProfileTierLevel
@@ -255,7 +262,7 @@ public:
     // types
     struct AccessUnitInfo {
         AP4_Array<AP4_DataBuffer*> nal_units;
-        bool                       is_idr;
+        bool                       is_random_access;
         AP4_UI32                   decode_order;
         AP4_UI32                   display_order;
         
@@ -316,6 +323,7 @@ private:
     AP4_HevcNalParser             m_NalParser;
     AP4_HevcSliceSegmentHeader*   m_CurrentSlice;
     unsigned int                  m_CurrentNalUnitType;
+    unsigned int                  m_CurrentTemporalId;
     AP4_HevcPictureParameterSet*  m_PPS[AP4_HEVC_PPS_MAX_ID+1];
     AP4_HevcSequenceParameterSet* m_SPS[AP4_HEVC_SPS_MAX_ID+1];
     AP4_HevcVideoParameterSet*    m_VPS[AP4_HEVC_VPS_MAX_ID+1];
@@ -324,12 +332,12 @@ private:
     unsigned int               m_TotalNalUnitCount;
     unsigned int               m_TotalAccessUnitCount;
     AP4_Array<AP4_DataBuffer*> m_AccessUnitData;
-    bool                       m_AccessUnitIsIdr;
+    AP4_UI32                   m_AccessUnitFlags;
     unsigned int               m_VclNalUnitsInAccessUnit;
     
     // picture order counting
-    unsigned int               m_PrevPicOrderCntMsb;
-    unsigned int               m_PrevPicOrderCntLsb;
+    unsigned int               m_PrevTid0Pic_PicOrderCntMsb;
+    unsigned int               m_PrevTid0Pic_PicOrderCntLsb;
 };
 
 #endif // _AP4_HEVC_PARSER_H_

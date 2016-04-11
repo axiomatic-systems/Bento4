@@ -436,6 +436,12 @@ class MediaSource:
         if 'track'          not in self.spec: self.spec['track']    = 0
         if 'language'       not in self.spec: self.spec['language'] = ''
 
+        # check if we have an explicit format (default=mp4)
+        if '+format' in self.spec:
+            self.format = self.spec['+format']
+        else:
+            self.format = 'mp4'
+
         # keep a record of our original filename in case it gets changed later
         self.original_filename = self.filename
 
@@ -859,7 +865,7 @@ def WidevineMakeHeader(fields):
         buffer += chr(field_num<<3 | wire_type) + wire_val
     return buffer
 
-def ComputeWidevineHeader(header_spec, kid_hex, key_hex):
+def ComputeWidevineHeader(header_spec, kid_hex):
     # construct the base64 header
     if header_spec.startswith('#'):
         header_b64 = header_spec[1:]

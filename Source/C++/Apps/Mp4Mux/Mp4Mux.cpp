@@ -1,8 +1,8 @@
 /*****************************************************************
 |
-|    AP4 - AVC Bitstream Stream Info
+|    AP4 - Elementary Stream Muliplexer
 |
-|    Copyright 2002-2008 Axiomatic Systems, LLC
+|    Copyright 2002-2016 Axiomatic Systems, LLC
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -39,9 +39,9 @@
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-#define BANNER "MP4 Elementary Stream Multiplexer - Version 1.0\n"\
+#define BANNER "MP4 Elementary Stream Multiplexer - Version 1.1\n"\
                "(Bento4 Version " AP4_VERSION_STRING ")\n"\
-               "(c) 2002-20014 Axiomatic Systems, LLC"
+               "(c) 2002-20016 Axiomatic Systems, LLC"
 
 const unsigned int AP4_MUX_DEFAULT_VIDEO_FRAME_RATE = 24;
 
@@ -83,6 +83,9 @@ PrintUsageAndExit()
     fprintf(stderr, 
             BANNER 
             "\n\nusage: mp4mux [options] --track [<type>:]<input>[#<params] [--track [<type>:]<input>[#<params] ...] <output>\n"
+            "\n"
+            "  <params>, when specified, are expressd as a comma-separated list of\n"
+            "  one or more <name>=<value> parameters\n"
             "\n"
             "Supported types:\n"
             "  h264: H264/AVC NAL units\n"
@@ -665,7 +668,7 @@ AddH265Track(AP4_Movie&            movie,
                 }
                 
                 // add the sample to the track
-                sample_table->AddSample(*sample_storage.GetStream(), position, sample_data_size, 1000, 0, 0, 0, access_unit_info.is_idr);
+                sample_table->AddSample(*sample_storage.GetStream(), position, sample_data_size, 1000, 0, 0, 0, access_unit_info.is_random_access);
             
                 // remember the sample order
                 sample_orders.Append(SampleOrder(access_unit_info.decode_order, access_unit_info.display_order));

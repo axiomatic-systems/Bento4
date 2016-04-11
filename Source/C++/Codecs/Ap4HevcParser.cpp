@@ -54,7 +54,7 @@
 #define DBG_PRINTF_4(_x0, _x1, _x2, _x3, _x4)
 #define DBG_PRINTF_5(_x0, _x1, _x2, _x3, _x4, _x5)
 #define DBG_PRINTF_6(_x0, _x1, _x2, _x3, _x4, _x5, _x6)
-#define DBG_PRINTF_7(_x0, _x1, _x2, _x3, _x4, _x5, +x6, _x7)
+#define DBG_PRINTF_7(_x0, _x1, _x2, _x3, _x4, _x5, _x6, _x7)
 #endif
 
 /*----------------------------------------------------------------------
@@ -156,19 +156,6 @@ ReadGolomb(AP4_BitReader& bits)
 }
 
 /*----------------------------------------------------------------------
-|   ReadGolomb
-+---------------------------------------------------------------------*/
-static int
-SignedGolomb(unsigned int code_num)
-{
-    if (code_num % 2) {
-        return (code_num+1)/2;
-    } else {
-        return -((int)code_num/2);
-    }
-}
-
-/*----------------------------------------------------------------------
 |   AP4_HevcNalParser::AP4_HevcNalParser
 +---------------------------------------------------------------------*/
 AP4_HevcNalParser::AP4_HevcNalParser() :
@@ -255,7 +242,7 @@ AP4_HevcSliceSegmentHeader::Parse(const AP4_UI08*                data,
         unsigned int PicHeightInCtbsY = (sps->pic_height_in_luma_samples + CtbSizeY - 1) / CtbSizeY;
         unsigned int PicSizeInCtbsY   = PicWidthInCtbsY * PicHeightInCtbsY;
         unsigned int bits_needed = 1;
-        while (PicSizeInCtbsY > (1 << bits_needed)) {
+        while (PicSizeInCtbsY > (unsigned int)(1 << bits_needed)) {
             ++bits_needed;
         }
         slice_segment_address = bits.ReadBits(bits_needed);
@@ -583,12 +570,13 @@ AP4_HevcVideoParameterSet::Parse(const unsigned char* data, unsigned int data_si
 AP4_HevcFrameParser::AP4_HevcFrameParser() :
     m_CurrentSlice(NULL),
     m_CurrentNalUnitType(0),
+    m_CurrentTemporalId(0),
     m_TotalNalUnitCount(0),
     m_TotalAccessUnitCount(0),
-    m_AccessUnitIsIdr(false),
+    m_AccessUnitFlags(0),
     m_VclNalUnitsInAccessUnit(0),
-    m_PrevPicOrderCntMsb(0),
-    m_PrevPicOrderCntLsb(0)
+    m_PrevTid0Pic_PicOrderCntMsb(0),
+    m_PrevTid0Pic_PicOrderCntLsb(0)
 {
     for (unsigned int i=0; i<=AP4_HEVC_PPS_MAX_ID; i++) {
         m_PPS[i] = NULL;
@@ -648,19 +636,29 @@ AP4_HevcFrameParser::CheckIfAccessUnitIsCompleted(AccessUnitInfo& access_unit_in
     if (sps == NULL) return;
     
     unsigned int MaxPicOrderCntLsb = (1 << (sps->log2_max_pic_order_cnt_lsb_minus4+4));
-    if (m_AccessUnitIsIdr) {
-        m_PrevPicOrderCntLsb = 0;
-        m_PrevPicOrderCntMsb = 0;
+    bool NoRaslOutputFlag = false;
+    if (m_AccessUnitFlags & AP4_HEVC_ACCESS_UNIT_FLAG_IS_IRAP) {
+        if ((m_AccessUnitFlags & AP4_HEVC_ACCESS_UNIT_FLAG_IS_IDR) ||
+            (m_AccessUnitFlags & AP4_HEVC_ACCESS_UNIT_FLAG_IS_BLA)
+            /* TODO: check for end-of-sequence */) {
+            NoRaslOutputFlag = true;
+        }
+    }
+    unsigned int PrevPicOrderCntLsb = 0;
+    unsigned int PrevPicOrderCntMsb = 0;
+    if (!((m_AccessUnitFlags & AP4_HEVC_ACCESS_UNIT_FLAG_IS_IRAP) && NoRaslOutputFlag)) {
+        PrevPicOrderCntLsb = m_PrevTid0Pic_PicOrderCntLsb;
+        PrevPicOrderCntMsb = m_PrevTid0Pic_PicOrderCntMsb;
     }
     unsigned int PicOrderCntMsb = 0;
-    if (m_CurrentSlice->slice_pic_order_cnt_lsb < m_PrevPicOrderCntLsb &&
-        (m_PrevPicOrderCntLsb - m_CurrentSlice->slice_pic_order_cnt_lsb) >= (MaxPicOrderCntLsb / 2)) {
-        PicOrderCntMsb = m_PrevPicOrderCntMsb + MaxPicOrderCntLsb;
-    } else if (m_CurrentSlice->slice_pic_order_cnt_lsb > m_PrevPicOrderCntLsb &&
-               (m_CurrentSlice->slice_pic_order_cnt_lsb - m_PrevPicOrderCntLsb) > (MaxPicOrderCntLsb / 2)) {
-        PicOrderCntMsb = m_PrevPicOrderCntMsb - MaxPicOrderCntLsb;
+    if (m_CurrentSlice->slice_pic_order_cnt_lsb < PrevPicOrderCntLsb &&
+        (PrevPicOrderCntLsb - m_CurrentSlice->slice_pic_order_cnt_lsb) >= (MaxPicOrderCntLsb / 2)) {
+        PicOrderCntMsb = PrevPicOrderCntMsb + MaxPicOrderCntLsb;
+    } else if (m_CurrentSlice->slice_pic_order_cnt_lsb > PrevPicOrderCntLsb &&
+               (m_CurrentSlice->slice_pic_order_cnt_lsb - PrevPicOrderCntLsb) > (MaxPicOrderCntLsb / 2)) {
+        PicOrderCntMsb = PrevPicOrderCntMsb - MaxPicOrderCntLsb;
     } else {
-        PicOrderCntMsb = m_PrevPicOrderCntMsb;
+        PicOrderCntMsb = PrevPicOrderCntMsb;
     }
     
     if (m_CurrentNalUnitType == AP4_HEVC_NALU_TYPE_BLA_N_LP ||
@@ -669,18 +667,23 @@ AP4_HevcFrameParser::CheckIfAccessUnitIsCompleted(AccessUnitInfo& access_unit_in
         PicOrderCntMsb = 0;
     }
     unsigned int PicOrderCntVal = PicOrderCntMsb + m_CurrentSlice->slice_pic_order_cnt_lsb;
-    
-    m_PrevPicOrderCntLsb = m_CurrentSlice->slice_pic_order_cnt_lsb;
-    m_PrevPicOrderCntMsb = PicOrderCntMsb;
+
+    if (m_CurrentTemporalId == 0 && (
+        !(m_AccessUnitFlags & AP4_HEVC_ACCESS_UNIT_FLAG_IS_RADL) ||
+        !(m_AccessUnitFlags & AP4_HEVC_ACCESS_UNIT_FLAG_IS_RASL) ||
+        !(m_AccessUnitFlags & AP4_HEVC_ACCESS_UNIT_FLAG_IS_SUBLAYER_NON_REF))) {
+        m_PrevTid0Pic_PicOrderCntLsb = m_CurrentSlice->slice_pic_order_cnt_lsb;
+        m_PrevTid0Pic_PicOrderCntMsb = PicOrderCntMsb;
+    }
     
     // emit the access unit (transfer ownership)
-    access_unit_info.nal_units     = m_AccessUnitData;
-    access_unit_info.decode_order  = m_TotalAccessUnitCount;
-    access_unit_info.is_idr        = m_AccessUnitIsIdr;
-    access_unit_info.display_order = PicOrderCntVal;
+    access_unit_info.nal_units        = m_AccessUnitData;
+    access_unit_info.decode_order     = m_TotalAccessUnitCount;
+    access_unit_info.is_random_access = (m_AccessUnitFlags & AP4_HEVC_ACCESS_UNIT_FLAG_IS_IRAP) ? true : false;
+    access_unit_info.display_order    = PicOrderCntVal;
     m_AccessUnitData.Clear();
-    m_VclNalUnitsInAccessUnit = 0;
-    m_AccessUnitIsIdr = false;
+    m_VclNalUnitsInAccessUnit  = 0;
+    m_AccessUnitFlags          = 0;
     delete m_CurrentSlice;
     m_CurrentSlice = NULL;
     ++m_TotalAccessUnitCount;
@@ -719,6 +722,7 @@ AP4_HevcFrameParser::Feed(const void*     data,
         }
         
         m_CurrentNalUnitType = nal_unit_type;
+        m_CurrentTemporalId  = nuh_temporal_id;
         const char* nal_unit_type_name = AP4_HevcNalParser::NaluTypeName(nal_unit_type);
         if (nal_unit_type_name == NULL) nal_unit_type_name = "UNKNOWN";
         DBG_PRINTF_6("NALU %5d: layer_id=%d, temporal_id=%d, size=%5d, type=%02d (%s) ",
@@ -752,8 +756,25 @@ AP4_HevcFrameParser::Feed(const void*     data,
                 CheckIfAccessUnitIsCompleted(access_unit_info);
             }
             
+            // compute access unit flags
+            m_AccessUnitFlags = 0;
+            if (nal_unit_type >= AP4_HEVC_NALU_TYPE_BLA_W_LP && nal_unit_type <= AP4_HEVC_NALU_TYPE_RSV_IRAP_VCL23) {
+                m_AccessUnitFlags |= AP4_HEVC_ACCESS_UNIT_FLAG_IS_IRAP;
+            }
             if (nal_unit_type == AP4_HEVC_NALU_TYPE_IDR_W_RADL || nal_unit_type == AP4_HEVC_NALU_TYPE_IDR_N_LP) {
-                m_AccessUnitIsIdr = true;
+                m_AccessUnitFlags |= AP4_HEVC_ACCESS_UNIT_FLAG_IS_IDR;
+            }
+            if (nal_unit_type >= AP4_HEVC_NALU_TYPE_BLA_W_LP && nal_unit_type <= AP4_HEVC_NALU_TYPE_BLA_N_LP) {
+                m_AccessUnitFlags |= AP4_HEVC_ACCESS_UNIT_FLAG_IS_BLA;
+            }
+            if (nal_unit_type == AP4_HEVC_NALU_TYPE_RADL_N || nal_unit_type == AP4_HEVC_NALU_TYPE_RADL_R) {
+                m_AccessUnitFlags |= AP4_HEVC_ACCESS_UNIT_FLAG_IS_RADL;
+            }
+            if (nal_unit_type == AP4_HEVC_NALU_TYPE_RASL_N || nal_unit_type == AP4_HEVC_NALU_TYPE_RASL_R) {
+                m_AccessUnitFlags |= AP4_HEVC_ACCESS_UNIT_FLAG_IS_RASL;
+            }
+            if (nal_unit_type <= AP4_HEVC_NALU_TYPE_RSV_VCL_R15 && ((nal_unit_type & 1) == 0)) {
+                m_AccessUnitFlags |= AP4_HEVC_ACCESS_UNIT_FLAG_IS_SUBLAYER_NON_REF;
             }
             
             // make this the current slice if this is the first slice in the access unit
@@ -848,7 +869,7 @@ AP4_HevcFrameParser::AccessUnitInfo::Reset()
         delete nal_units[i];
     }
     nal_units.Clear();
-    is_idr = false;
+    is_random_access = false;
     decode_order = 0;
     display_order = 0;
 }
