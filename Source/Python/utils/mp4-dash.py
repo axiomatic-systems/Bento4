@@ -90,7 +90,8 @@ HIPPO_MEDIA_SEGMENT_GROUPS_DEFAULT = '["time"]'
 HIPPO_MEDIA_SEGMENT_REGEXP_SMOOTH  = 'QualityLevels\\\\(%d\\\\)/Fragments\\\\(%s=(\\\\d+)\\\\)'
 HIPPO_MEDIA_SEGMENT_GROUPS_SMOOTH  = '["time"]'
 
-AUDIO_CHANNEL_CONFIGURATION_SCHEME_ID_URI = 'urn:mpeg:dash:23003:3:audio_channel_configuration:2011'
+MPEG_DASH_AUDIO_CHANNEL_CONFIGURATION_SCHEME_ID_URI     = 'urn:mpeg:dash:23003:3:audio_channel_configuration:2011'
+DOLBY_DIGITAL_AUDIO_CHANNEL_CONFIGURATION_SCHEME_ID_URI = 'tag:dolby.com,2014:dash:audio_channel_configuration:2011'
 
 ISOFF_MAIN_PROFILE          = 'urn:mpeg:dash:profile:isoff-main:2011'
 ISOFF_LIVE_PROFILE          = 'urn:mpeg:dash:profile:isoff-live:2011'
@@ -382,11 +383,13 @@ def OutputDash(options, groups, audio_tracks, video_tracks, subtitles_tracks, su
                                             audioSamplingRate=str(audio_track.sample_rate))
             if audio_track.codec == 'ec-3':
                 audio_channel_config_value = ComputeDolbyDigitalAudioChannelConfig(audio_track)
+                scheme_id_uri = DOLBY_DIGITAL_AUDIO_CHANNEL_CONFIGURATION_SCHEME_ID_URI
             else:
                 audio_channel_config_value = str(audio_track.channels)
+                scheme_id_uri = MPEG_DASH_AUDIO_CHANNEL_CONFIGURATION_SCHEME_ID_URI
             audio_channel_config = xml.SubElement(representation,
                                                   'AudioChannelConfiguration',
-                                                  schemeIdUri=AUDIO_CHANNEL_CONFIGURATION_SCHEME_ID_URI,
+                                                  schemeIdUri=scheme_id_uri,
                                                   value=audio_channel_config_value)
 
             if options.on_demand:
@@ -1374,6 +1377,20 @@ def main():
 
         # set the scan type (hardcoded for now)
         video_track.scan_type = 'progressive'
+
+        # add dolby vision signaling if present
+        if 'dolby_vision' in video_desc:
+            coding_map = {
+                'avc1': 'dva1',
+                'avc3': 'dvav',
+                'hev1': 'dvhe',
+                'hvc1': 'dvh1'
+            }
+            dv_coding = coding_map.get(video_desc['coding'])
+            dv_info = video_desc['dolby_vision']
+            if dv_coding:
+                dv_string = dv_coding + ('.%02d.%02d' % (dv_info['profile'], dv_info['level']))
+                video_track.codec += ','+dv_string
 
     # compute the subtitles codecs
     for subtitles_track in subtitles_tracks:

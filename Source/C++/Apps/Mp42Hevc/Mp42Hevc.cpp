@@ -175,7 +175,7 @@ WriteSample(const AP4_DataBuffer& sample_data,
         
         // add the prefix if needed
         if (!have_param_sets && !prefix_added) {
-            AP4_Size frame_data_size = frame_data.GetDataSize();
+            frame_data_size = frame_data.GetDataSize();
             frame_data.SetDataSize(frame_data_size+prefix.GetDataSize());
             frame_buffer = frame_data.UseData()+frame_data_size;
             AP4_CopyMemory(frame_buffer, prefix.GetData(), prefix.GetDataSize());

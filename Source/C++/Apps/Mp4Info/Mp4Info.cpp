@@ -421,7 +421,7 @@ ShowSampleDescription_Text(AP4_SampleDescription& description, bool verbose)
         printf("    Depth:       %d\n", video_desc->GetDepth());
     }
 
-    // Dolby specifics
+    // Dolby Digital specifics
     if (desc->GetFormat() == AP4_SAMPLE_FORMAT_EC_3) {
         AP4_Dec3Atom* dec3 = AP4_DYNAMIC_CAST(AP4_Dec3Atom, desc->GetDetails().GetChild(AP4_ATOM_TYPE('d', 'e', 'c', '3')));
         if (dec3) {
@@ -521,6 +521,22 @@ ShowSampleDescription_Text(AP4_SampleDescription& description, bool verbose)
         printf("\n");
     }
 
+    // Dolby Vision specifics
+    AP4_DvccAtom* dvcc = AP4_DYNAMIC_CAST(AP4_DvccAtom, desc->GetDetails().GetChild(AP4_ATOM_TYPE_DVCC));
+    if (dvcc) {
+        printf("    Dolby Vision:\n");
+        printf("      Version:     %d.%d\n", dvcc->GetDvVersionMajor(), dvcc->GetDvVersionMinor());
+        const char* profile_name = AP4_DvccAtom::GetProfileName(dvcc->GetDvProfile());
+        if (profile_name) {
+            printf("      Profile:     %s\n", profile_name);
+        } else {
+            printf("      Profile:     %d\n", dvcc->GetDvProfile());
+        }
+        printf("      Level:       %d\n", dvcc->GetDvLevel());
+        printf("      RPU Present: %s\n", dvcc->GetRpuPresentFlag()?"true":"false");
+        printf("      EL Present:  %s\n", dvcc->GetElPresentFlag()?"true":"false");
+        printf("      BL Present:  %s\n", dvcc->GetBlPresentFlag()?"true":"false");
+    }
     
     // Subtitles
     if (desc->GetType() == AP4_SampleDescription::TYPE_SUBTITLES) {
@@ -602,7 +618,7 @@ ShowSampleDescription_Json(AP4_SampleDescription& description, bool verbose)
         printf("\"depth\":%d",     video_desc->GetDepth());
     }
 
-    // Dolby specifics
+    // Dolby Digital specifics
     if (desc->GetFormat() == AP4_SAMPLE_FORMAT_EC_3) {
         AP4_Dec3Atom* dec3 = AP4_DYNAMIC_CAST(AP4_Dec3Atom, desc->GetDetails().GetChild(AP4_ATOM_TYPE('d', 'e', 'c', '3')));
         if (dec3) {
@@ -718,6 +734,33 @@ ShowSampleDescription_Json(AP4_SampleDescription& description, bool verbose)
         printf("\"");
     }
 
+    // Dolby Vision specifics
+    AP4_DvccAtom* dvcc = AP4_DYNAMIC_CAST(AP4_DvccAtom, desc->GetDetails().GetChild(AP4_ATOM_TYPE_DVCC));
+    if (dvcc) {
+        printf(",\n");
+        printf("\"dolby_vision\": {\n");
+        printf("   \"version_major\": %d,\n", dvcc->GetDvVersionMajor());
+        printf("   \"version_minor\": %d,\n", dvcc->GetDvVersionMinor());
+        printf("   \"profile\": %d,\n", dvcc->GetDvProfile());
+        const char* profile_name = AP4_DvccAtom::GetProfileName(dvcc->GetDvProfile());
+        printf("   \"profile_name\": \"%s\",\n", profile_name?profile_name:"");
+        printf("   \"level\": %d,\n", dvcc->GetDvLevel());
+        printf("   \"rpu_present\": %s,\n", dvcc->GetRpuPresentFlag()?"true":"false");
+        printf("   \"el_present\": %s,\n", dvcc->GetElPresentFlag()?"true":"false");
+        printf("   \"bl_present\": %s\n", dvcc->GetBlPresentFlag()?"true":"false");
+        printf("}");
+    }
+    
+    // Subtitles
+    if (desc->GetType() == AP4_SampleDescription::TYPE_SUBTITLES) {
+        printf(",\n");
+        printf("\"subtitles\": {\n");
+        AP4_SubtitleSampleDescription* subt_desc = AP4_DYNAMIC_CAST(AP4_SubtitleSampleDescription, desc);
+        printf("  \"namespace\": \"%s\",\n",       subt_desc->GetNamespace().GetChars());
+        printf("  \"schema_location\": \"%s\",\n", subt_desc->GetSchemaLocation().GetChars());
+        printf("  \"image_mime_type\": \"%s\"\n",  subt_desc->GetImageMimeType().GetChars());
+        printf("}");
+    }
     
     printf("\n}");
 }

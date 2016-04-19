@@ -70,8 +70,12 @@ AP4_GetFormatName(AP4_UI32 format)
         case AP4_SAMPLE_FORMAT_AVC2: return "H.264";
         case AP4_SAMPLE_FORMAT_AVC3: return "H.264";
         case AP4_SAMPLE_FORMAT_AVC4: return "H.264";
+        case AP4_SAMPLE_FORMAT_DVAV: return "Dolby Vision (H.264)";
+        case AP4_SAMPLE_FORMAT_DVA1: return "Dolby Vision (H.264)";
         case AP4_SAMPLE_FORMAT_HEV1: return "H.265";
         case AP4_SAMPLE_FORMAT_HVC1: return "H.265";
+        case AP4_SAMPLE_FORMAT_DVH1: return "Dolby Vision (H.265)";
+        case AP4_SAMPLE_FORMAT_DVHE: return "Dolby Vision (H.265)";
         case AP4_SAMPLE_FORMAT_OVC1: return "VC-1";
         case AP4_SAMPLE_FORMAT_OWMA: return "WMA";
         case AP4_SAMPLE_FORMAT_AC_3: return "Dolby Digital (AC-3)";
@@ -352,7 +356,6 @@ AP4_AvcSampleDescription::AP4_AvcSampleDescription(AP4_UI32        format,
         // shoud never happen
         m_AvccAtom = new AP4_AvccAtom();
     }
-    m_Details.AddChild(m_AvccAtom);
 }
 
 /*----------------------------------------------------------------------
@@ -430,7 +433,6 @@ AP4_HevcSampleDescription::AP4_HevcSampleDescription(AP4_UI32        format,
         // shoud never happen
         m_HvccAtom = new AP4_HvccAtom();
     }
-    m_Details.AddChild(m_HvccAtom);
 }
 
 /*----------------------------------------------------------------------

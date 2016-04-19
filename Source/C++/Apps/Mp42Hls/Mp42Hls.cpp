@@ -1464,7 +1464,7 @@ main(int argc, char** argv)
             return 1;
         }
     } else if (Options.encryption_iv_mode == ENCRYPTION_IV_MODE_RANDOM) {
-        AP4_Result result = AP4_System_GenerateRandomBytes(Options.encryption_iv, sizeof(Options.encryption_iv));
+        result = AP4_System_GenerateRandomBytes(Options.encryption_iv, sizeof(Options.encryption_iv));
         if (AP4_FAILED(result)) {
             fprintf(stderr, "ERROR: failed to get random IV (%d)\n", result);
             return 1;
@@ -1637,7 +1637,7 @@ main(int argc, char** argv)
                     }
                     const AP4_DataBuffer& dsi = mpeg_audio_desc->GetDecoderInfo();
                     AP4_Mp4AudioDecoderConfig dec_config;
-                    AP4_Result result = dec_config.Parse(dsi.GetData(), dsi.GetDataSize());
+                    result = dec_config.Parse(dsi.GetData(), dsi.GetDataSize());
                     if (AP4_FAILED(result)) {
                         fprintf(stderr, "ERROR: failed to parse decoder specific info (%d)\n", result);
                         return 1;

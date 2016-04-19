@@ -1019,7 +1019,7 @@ AP4_AvcSampleEntry::ToSampleDescription()
         m_Height,
         m_Depth,
         m_CompressorName.GetChars(),
-        AP4_DYNAMIC_CAST(AP4_AvccAtom, GetChild(AP4_ATOM_TYPE_AVCC)));
+        this);
 }
 
 /*----------------------------------------------------------------------
@@ -1045,7 +1045,7 @@ AP4_HevcSampleEntry::ToSampleDescription()
         m_Height,
         m_Depth,
         m_CompressorName.GetChars(),
-        AP4_DYNAMIC_CAST(AP4_HvccAtom, GetChild(AP4_ATOM_TYPE_HVCC)));
+        this);
 }
 
 /*----------------------------------------------------------------------

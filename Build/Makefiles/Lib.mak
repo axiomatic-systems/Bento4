@@ -118,6 +118,7 @@ CORE_SOURCES = 								\
     Ap4Dec3Atom.cpp                         \
     Ap4SidxAtom.cpp                         \
     Ap4HvccAtom.cpp                         \
+    Ap4DvccAtom.cpp                         \
     Ap4SgpdAtom.cpp                         \
     Ap4SbgpAtom.cpp                         \
     Ap4NalParser.cpp                        \
@@ -155,7 +156,7 @@ VPATH += $(SOURCE_ROOT)/System/Posix
 VPATH += $(SOURCE_ROOT)/Codecs
 VPATH += $(SOURCE_ROOT)/MetaData
 VPATH += $(SOURCE_ROOT)/CApi
-		
+
 ##########################################################################
 # includes
 ##########################################################################
@@ -170,4 +171,3 @@ include $(BUILD_ROOT)/Makefiles/Rules.mak
 # rules
 ##########################################################################
 libAP4.a: $(CORE_OBJECTS) $(SYSTEM_OBJECTS) $(CRYPTO_OBJECTS) $(METADATA_OBJECTS) $(CODECS_OBJECTS) $(CAPI_OBJECTS)
-
