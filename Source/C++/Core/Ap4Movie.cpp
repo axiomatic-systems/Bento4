@@ -92,7 +92,8 @@ AP4_Movie::AP4_Movie(AP4_UI32 time_scale, AP4_UI64 duration) :
 +---------------------------------------------------------------------*/
 AP4_Movie::AP4_Movie(AP4_MoovAtom* moov, AP4_ByteStream& sample_stream, bool transfer_moov_ownership) :
     m_MoovAtom(moov),
-    m_MoovAtomIsOwned(transfer_moov_ownership)
+    m_MoovAtomIsOwned(transfer_moov_ownership),
+    m_MvhdAtom(NULL)
 {
     // ignore null atoms
     if (moov == NULL) return;

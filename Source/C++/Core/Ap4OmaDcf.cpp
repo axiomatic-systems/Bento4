@@ -348,10 +348,9 @@ AP4_OmaDcfSampleDecrypter::Create(AP4_ProtectedSampleDescription* sample_descrip
     // NOTE: we only support an IV Length less than or equal to the cipher block size, 
     // and we don't know how to deal with a key indicator length != 0
     AP4_OdafAtom* odaf = AP4_DYNAMIC_CAST(AP4_OdafAtom, schi->FindChild("odkm/odaf"));
-    if (odaf) {
-        if (odaf->GetIvLength() > AP4_CIPHER_BLOCK_SIZE) return AP4_ERROR_INVALID_FORMAT;
-        if (odaf->GetKeyIndicatorLength() != 0) return AP4_ERROR_INVALID_FORMAT;
-    }
+    if (!odaf) return AP4_ERROR_INVALID_FORMAT;
+    if (odaf->GetIvLength() > AP4_CIPHER_BLOCK_SIZE) return AP4_ERROR_INVALID_FORMAT;
+    if (odaf->GetKeyIndicatorLength() != 0) return AP4_ERROR_INVALID_FORMAT;
 
     // check the scheme details and create the cipher
     AP4_OhdrAtom* ohdr = AP4_DYNAMIC_CAST(AP4_OhdrAtom, schi->FindChild("odkm/ohdr"));

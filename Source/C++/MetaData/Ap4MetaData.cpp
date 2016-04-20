@@ -843,16 +843,6 @@ AP4_MetaData::Entry::AddToFileIlst(AP4_File& file, AP4_Ordinal index)
     // check that we have a correct entry
     if (m_Value == NULL) return AP4_ERROR_INVALID_STATE;
 
-    // convert the entry into an atom
-    AP4_Atom* atom = NULL;
-    AP4_Result result = ToAtom(atom);
-    if (AP4_FAILED(result)) return result;
-    AP4_ContainerAtom* entry_atom = AP4_DYNAMIC_CAST(AP4_ContainerAtom, atom);
-    if (entry_atom == NULL) {
-        delete atom;
-        return AP4_ERROR_INVALID_FORMAT;
-    }
-
     // look for the 'moov'
     AP4_Movie* movie = file.GetMovie();
     if (movie == NULL) return AP4_ERROR_INVALID_FORMAT;
@@ -882,6 +872,16 @@ AP4_MetaData::Entry::AddToFileIlst(AP4_File& file, AP4_Ordinal index)
     AP4_ContainerAtom* ilst = AP4_DYNAMIC_CAST(AP4_ContainerAtom, meta->FindChild("ilst", true));
     if (ilst == NULL) return AP4_ERROR_INTERNAL;
     
+    // convert the entry into an atom
+    AP4_Atom* atom = NULL;
+    AP4_Result result = ToAtom(atom);
+    if (AP4_FAILED(result)) return result;
+    AP4_ContainerAtom* entry_atom = AP4_DYNAMIC_CAST(AP4_ContainerAtom, atom);
+    if (entry_atom == NULL) {
+        delete atom;
+        return AP4_ERROR_INVALID_FORMAT;
+    }
+
     // look if there is already a container for this entry
     AP4_ContainerAtom* existing = FindInIlst(ilst);
     if (existing == NULL) {
@@ -890,7 +890,10 @@ AP4_MetaData::Entry::AddToFileIlst(AP4_File& file, AP4_Ordinal index)
     } else {
         // add the entry's data to the existing entry
         AP4_DataAtom* data_atom = AP4_DYNAMIC_CAST(AP4_DataAtom, entry_atom->GetChild(AP4_ATOM_TYPE_DATA));
-        if (data_atom == NULL) return AP4_ERROR_INTERNAL;
+        if (data_atom == NULL) {
+            delete entry_atom;
+            return AP4_ERROR_INTERNAL;
+        }
         entry_atom->RemoveChild(data_atom);
         existing->AddChild(data_atom, index);
         delete entry_atom;
@@ -1164,7 +1167,7 @@ AP4_AtomMetaDataValue::ToString() const
                             return "False";
                         }
                     } else if (m_Meaning == MEANING_FILE_KIND) {
-                        if (value >= 0 && ((unsigned int)value) <= sizeof(Ap4StikNames)/sizeof(Ap4StikNames[0])) {
+                        if (value >= 0 && ((unsigned int)value) < sizeof(Ap4StikNames)/sizeof(Ap4StikNames[0])) {
                             AP4_FormatString(string, sizeof(string), "(%ld) %s", value, Ap4StikNames[value]);
                         } else {
                             return "Unknown";
@@ -1335,7 +1338,10 @@ AP4_DataAtom::AP4_DataAtom(const AP4_MetaData::Value& value) :
 |   AP4_DataAtom::AP4_DataAtom
 +---------------------------------------------------------------------*/
 AP4_DataAtom::AP4_DataAtom(AP4_UI32 size, AP4_ByteStream& stream) :
-    AP4_Atom(AP4_ATOM_TYPE_DATA, size)
+    AP4_Atom(AP4_ATOM_TYPE_DATA, size),
+    m_DataType(DATA_TYPE_BINARY),
+    m_DataLang(LANGUAGE_ENGLISH),
+    m_Source(NULL)
 {
     if (size < AP4_ATOM_HEADER_SIZE+8) return;
 

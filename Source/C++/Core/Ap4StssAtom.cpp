@@ -55,7 +55,8 @@ AP4_StssAtom::Create(AP4_Size size, AP4_ByteStream& stream)
 |   AP4_StssAtom::AP4_StssAtom
 +---------------------------------------------------------------------*/
 AP4_StssAtom::AP4_StssAtom() :
-    AP4_Atom(AP4_ATOM_TYPE_STSS, AP4_FULL_ATOM_HEADER_SIZE+4, 0, 0)
+    AP4_Atom(AP4_ATOM_TYPE_STSS, AP4_FULL_ATOM_HEADER_SIZE+4, 0, 0),
+    m_LookupCache(0)
 {
 }
 

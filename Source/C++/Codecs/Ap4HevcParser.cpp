@@ -781,6 +781,9 @@ AP4_HevcFrameParser::Feed(const void*     data,
             // make this the current slice if this is the first slice in the access unit
             if (m_CurrentSlice == NULL) {
                 m_CurrentSlice = slice_header;
+            } else {
+                delete slice_header;
+                slice_header = NULL;
             }
             
             // buffer this NAL unit

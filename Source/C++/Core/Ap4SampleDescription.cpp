@@ -206,7 +206,7 @@ AP4_UnknownSampleDescription::AP4_UnknownSampleDescription(AP4_Atom* atom) :
     AP4_SampleDescription(AP4_SampleDescription::TYPE_UNKNOWN, 
                           atom->GetType(), 
                           NULL),
-    m_Atom(atom?atom->Clone():NULL)
+    m_Atom(atom->Clone())
 {
 }
 
@@ -233,11 +233,7 @@ AP4_UnknownSampleDescription::Clone(AP4_Result* result)
 AP4_Atom* 
 AP4_UnknownSampleDescription::ToAtom() const
 {
-    if (m_Atom) {
-        return m_Atom->Clone();
-    } else {
-        return NULL;
-    }
+    return m_Atom->Clone();
 }
 
 /*----------------------------------------------------------------------
@@ -343,10 +339,11 @@ AP4_AvcSampleDescription::AP4_AvcSampleDescription(AP4_UI32        format,
 {
     AP4_AvccAtom* avcc = AP4_DYNAMIC_CAST(AP4_AvccAtom, details->GetChild(AP4_ATOM_TYPE_AVCC));
     if (avcc) {
-        m_AvccAtom = new AP4_AvccAtom(*avcc);
+        m_AvccAtom = avcc;
     } else {
         // shoud never happen
         m_AvccAtom = new AP4_AvccAtom();
+        m_Details.AddChild(m_AvccAtom);
     }
 }
 
@@ -420,10 +417,11 @@ AP4_HevcSampleDescription::AP4_HevcSampleDescription(AP4_UI32        format,
 {
     AP4_HvccAtom* hvcc = AP4_DYNAMIC_CAST(AP4_HvccAtom, details->GetChild(AP4_ATOM_TYPE_HVCC));
     if (hvcc) {
-        m_HvccAtom = new AP4_HvccAtom(*hvcc);
+        m_HvccAtom = hvcc;
     } else {
         // shoud never happen
         m_HvccAtom = new AP4_HvccAtom();
+        m_Details.AddChild(m_HvccAtom);
     }
 }
 

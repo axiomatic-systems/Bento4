@@ -60,7 +60,8 @@ AP4_AinfAtom::Create(AP4_Size size, AP4_ByteStream& stream)
 |   AP4_AinfAtom::AP4_AinfAtom
 +---------------------------------------------------------------------*/
 AP4_AinfAtom::AP4_AinfAtom() :
-    AP4_Atom(AP4_ATOM_TYPE_AINF, AP4_FULL_ATOM_HEADER_SIZE+4+1, 0, 0)
+    AP4_Atom(AP4_ATOM_TYPE_AINF, AP4_FULL_ATOM_HEADER_SIZE+4+1, 0, 0),
+    m_ProfileVersion(0)
 {
 }
 

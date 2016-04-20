@@ -305,13 +305,15 @@ AP4_MarlinIpmpParser::Parse(AP4_AtomParent&      top_level,
             if (atom->GetType() == AP4_ATOM_TYPE_SINF) {
                 AP4_ContainerAtom* sinf = AP4_DYNAMIC_CAST(AP4_ContainerAtom, atom);
                 AP4_SchmAtom* schm = AP4_DYNAMIC_CAST(AP4_SchmAtom, sinf->FindChild("schm"));
-                if ((schm->GetSchemeType()    == AP4_PROTECTION_SCHEME_TYPE_MARLIN_ACBC && 
-                     schm->GetSchemeVersion() == 0x0100) ||
-                    (schm->GetSchemeType()    == AP4_PROTECTION_SCHEME_TYPE_MARLIN_ACGK &&
-                     schm->GetSchemeVersion() == 0x0100)) {
-                    // store the sinf in the entry for that track
-                    sinf_entry->m_Sinf = sinf;
-                    break;
+                if (schm) {
+                    if ((schm->GetSchemeType()    == AP4_PROTECTION_SCHEME_TYPE_MARLIN_ACBC &&
+                         schm->GetSchemeVersion() == 0x0100) ||
+                        (schm->GetSchemeType()    == AP4_PROTECTION_SCHEME_TYPE_MARLIN_ACGK &&
+                         schm->GetSchemeVersion() == 0x0100)) {
+                        // store the sinf in the entry for that track
+                        sinf_entry->m_Sinf = sinf;
+                        break;
+                    }
                 }
             }
             delete atom;
@@ -726,7 +728,10 @@ AP4_MarlinIpmpEncryptingProcessor::Initialize(
     }
     
     // check that there was at least one track in the file
-    if (od_track_id == 0) return AP4_ERROR_INVALID_FORMAT;
+    if (od_track_id == 0) {
+        delete mpod;
+        return AP4_ERROR_INVALID_FORMAT;
+    }
     
     // create an initial object descriptor
     AP4_InitialObjectDescriptor* iod = 
@@ -994,7 +999,7 @@ AP4_MarlinIpmpTrackEncrypter::Create(AP4_BlockCipherFactory&        cipher_facto
     encrypter = NULL;
     
     // check args
-    if (iv != NULL && iv_size != 16) {
+    if (iv_size != 16) {
         return AP4_ERROR_INVALID_PARAMETERS;
     }
     

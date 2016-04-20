@@ -189,7 +189,7 @@ AP4_Processor::ProcessFragments(AP4_MoovAtom*              moov,
                     trak = AP4_DYNAMIC_CAST(AP4_TrakAtom, child_atom);
                     if (trak) {
                         AP4_TkhdAtom* tkhd = AP4_DYNAMIC_CAST(AP4_TkhdAtom, trak->GetChild(AP4_ATOM_TYPE_TKHD));
-                        if (tkhd && tkhd->GetTrackId() == tfhd->GetTrackId()) {
+                        if (tkhd && tfhd && tkhd->GetTrackId() == tfhd->GetTrackId()) {
                             break;
                         }
                     }
@@ -220,19 +220,28 @@ AP4_Processor::ProcessFragments(AP4_MoovAtom*              moov,
             AP4_Processor::FragmentHandler* handler = CreateFragmentHandler(trak, trex, traf, input, atom_offset);
             if (handler) {
                 result = handler->ProcessFragment();
-                if (AP4_FAILED(result)) return result;
+                if (AP4_FAILED(result)) {
+                    delete fragment;
+                    return result;
+                }
             }
             handlers.Append(handler);
             
             // create a sample table object so we can read the sample data
             AP4_FragmentSampleTable* sample_table = NULL;
             result = fragment->CreateSampleTable(moov, tfhd->GetTrackId(), &input, atom_offset, mdat_payload_offset, 0, sample_table);
-            if (AP4_FAILED(result)) return result;
+            if (AP4_FAILED(result)) {
+                delete fragment;
+                return result;
+            }
             sample_tables.Append(sample_table);
             
             // let the handler look at the samples before we process them
             if (handler) result = handler->PrepareForSamples(sample_table);
-            if (AP4_FAILED(result)) return result;
+            if (AP4_FAILED(result)) {
+                delete fragment;
+                return result;
+            }
         }
              
         // write the moof
@@ -470,7 +479,7 @@ AP4_Processor::Process(AP4_ByteStream&   input,
         top_level.AddChild(atom);
     }
 
-    // check that we have at most one sidx (we can't deal with multi-sidx streams here
+    // check that we have at most one sidx (we can't deal with multi-sidx streams here)
     if (sidx_count > 1) {
         top_level.RemoveChild(sidx);
         delete sidx;

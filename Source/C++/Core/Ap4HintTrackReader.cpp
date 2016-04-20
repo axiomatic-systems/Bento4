@@ -83,7 +83,9 @@ AP4_HintTrackReader::AP4_HintTrackReader(AP4_Track& hint_track,
     atom = hint_trak_atom->FindChild("mdia/minf/stbl/rtp /tims");
     if (atom) {
         AP4_TimsAtom* tims = AP4_DYNAMIC_CAST(AP4_TimsAtom, atom);
-        m_RtpTimeScale = tims->GetTimeScale();
+        if (tims) {
+            m_RtpTimeScale = tims->GetTimeScale();
+        }
     }
 
     // generate a random ssrc if = 0

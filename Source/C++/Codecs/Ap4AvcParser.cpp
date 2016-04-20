@@ -176,7 +176,7 @@ ReadGolomb(AP4_BitReader& bits)
     unsigned int leading_zeros = 0;
     while (bits.ReadBit() == 0) {
         leading_zeros++;
-        if (leading_zeros > 32) return 0; // safeguard
+        if (leading_zeros >= 32) return 0; // safeguard
     }
     if (leading_zeros) {
         return (1<<leading_zeros)-1+bits.ReadBits(leading_zeros);
@@ -877,16 +877,14 @@ AP4_AvcFrameParser::Feed(const void*     data,
                    slice_header->slice_type,
                    slice_type_name);
             DBG_PRINTF_0("\n");
-            if (slice_header) {
-                if (m_SliceHeader &&
-                    !SameFrame(m_NalUnitType, m_NalRefIdc, *m_SliceHeader,
-                               nal_unit_type, nal_ref_idc, *slice_header)) {
-                    CheckIfAccessUnitIsCompleted(access_unit_info);
-                    m_AccessUnitVclNalUnitCount = 1;
-                } else {
-                    // continuation of an access unit
-                    ++m_AccessUnitVclNalUnitCount;
-                }
+            if (m_SliceHeader &&
+                !SameFrame(m_NalUnitType, m_NalRefIdc, *m_SliceHeader,
+                           nal_unit_type, nal_ref_idc, *slice_header)) {
+                CheckIfAccessUnitIsCompleted(access_unit_info);
+                m_AccessUnitVclNalUnitCount = 1;
+            } else {
+                // continuation of an access unit
+                ++m_AccessUnitVclNalUnitCount;
             }
 
             // buffer this NAL unit

@@ -412,7 +412,27 @@ AP4_AudioSampleEntry::AP4_AudioSampleEntry(AP4_Atom::Type   format,
                                            AP4_Size         size,
                                            AP4_ByteStream&  stream,
                                            AP4_AtomFactory& atom_factory) :
-    AP4_SampleEntry(format, size)
+    AP4_SampleEntry(format, size),
+    m_QtVersion(0),
+    m_QtRevision(0),
+    m_QtVendor(0),
+    m_ChannelCount(0),
+    m_SampleSize(0),
+    m_QtCompressionId(0),
+    m_QtPacketSize(0),
+    m_SampleRate(0),
+    m_QtV1SamplesPerPacket(0),
+    m_QtV1BytesPerPacket(0),
+    m_QtV1BytesPerFrame(0),
+    m_QtV1BytesPerSample(0),
+    m_QtV2StructSize(0),
+    m_QtV2SampleRate64(0.0),
+    m_QtV2ChannelCount(0),
+    m_QtV2Reserved(0),
+    m_QtV2BitsPerChannel(0),
+    m_QtV2FormatSpecificFlags(0),
+    m_QtV2BytesPerAudioPacket(0),
+    m_QtV2LPCMFramesPerAudioPacket(0)    
 {
     Read(stream, atom_factory);
 }
@@ -733,8 +753,19 @@ AP4_VisualSampleEntry::AP4_VisualSampleEntry(AP4_Atom::Type   format,
                                              AP4_Size         size, 
                                              AP4_ByteStream&  stream,
                                              AP4_AtomFactory& atom_factory) :
-    AP4_SampleEntry(format, size)
+    AP4_SampleEntry(format, size),
+    m_Predefined1(0),
+    m_Reserved2(0),
+    m_Width(0),
+    m_Height(0),
+    m_HorizResolution(0x00480000),
+    m_VertResolution(0x00480000),
+    m_Reserved3(0),
+    m_FrameCount(1),
+    m_Depth(0),
+    m_Predefined3(0xFFFF)
 {
+    memset(m_Predefined2, 0, sizeof(m_Predefined2));
     Read(stream, atom_factory);
 }
 
@@ -1071,7 +1102,10 @@ AP4_RtpHintSampleEntry::AP4_RtpHintSampleEntry(AP4_UI16 hint_track_version,
 AP4_RtpHintSampleEntry::AP4_RtpHintSampleEntry(AP4_Size         size,
                                                AP4_ByteStream&  stream,
                                                AP4_AtomFactory& atom_factory): 
-    AP4_SampleEntry(AP4_ATOM_TYPE_RTP_, size)
+    AP4_SampleEntry(AP4_ATOM_TYPE_RTP_, size),
+    m_HintTrackVersion(0),
+    m_HighestCompatibleVersion(0),
+    m_MaxPacketSize(0)
 {
     Read(stream, atom_factory);
 }

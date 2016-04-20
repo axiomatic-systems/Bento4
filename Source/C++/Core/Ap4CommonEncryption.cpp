@@ -1171,7 +1171,10 @@ AP4_CencEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
                                                            key->GetData(), 
                                                            key->GetDataSize(), 
                                                            block_cipher);
-    if (AP4_FAILED(result)) return NULL;
+    if (AP4_FAILED(result)) {
+        delete track_encrypter;
+        return NULL;
+    }
     
     // add a new cipher state for this track
     AP4_CencSampleEncrypter* sample_encrypter = NULL;
@@ -1597,6 +1600,10 @@ AP4_CencSampleDecrypter::DecryptSampleData(AP4_DataBuffer& data_in,
                                            AP4_DataBuffer& data_out,
                                            const AP4_UI08* iv)
 {
+    if (!m_SampleInfoTable) {
+        return AP4_ERROR_INVALID_STATE;
+    }
+
     // increment the sample cursor
     unsigned int sample_cursor = m_SampleCursor++;
 
@@ -1614,10 +1621,8 @@ AP4_CencSampleDecrypter::DecryptSampleData(AP4_DataBuffer& data_in,
     unsigned int    subsample_count = 0;
     const AP4_UI16* bytes_of_cleartext_data = NULL;
     const AP4_UI32* bytes_of_encrypted_data = NULL;
-    if (m_SampleInfoTable) {
-        AP4_Result result = m_SampleInfoTable->GetSampleInfo(sample_cursor, subsample_count, bytes_of_cleartext_data, bytes_of_encrypted_data);
-        if (AP4_FAILED(result)) return result;
-    }
+    AP4_Result result = m_SampleInfoTable->GetSampleInfo(sample_cursor, subsample_count, bytes_of_cleartext_data, bytes_of_encrypted_data);
+    if (AP4_FAILED(result)) return result;
     
     // decrypt the sample
     return m_SingleSampleDecrypter->DecryptSampleData(data_in, data_out, iv_block, subsample_count, bytes_of_cleartext_data, bytes_of_encrypted_data);

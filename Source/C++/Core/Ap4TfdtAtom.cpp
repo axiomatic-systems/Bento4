@@ -67,7 +67,8 @@ AP4_TfdtAtom::AP4_TfdtAtom(AP4_UI32        size,
                            AP4_UI08        version,
                            AP4_UI32        flags,
                            AP4_ByteStream& stream) :
-    AP4_Atom(AP4_ATOM_TYPE_TFDT, size, version, flags)
+    AP4_Atom(AP4_ATOM_TYPE_TFDT, size, version, flags),
+    m_BaseMediaDecodeTime(0)
 {
     if (version == 0) {
         AP4_UI32 value = 0;

@@ -451,7 +451,6 @@ class AP4_MpegSampleDescription : public AP4_SampleDescription
 
  protected:
     // members
-    AP4_UI32       m_Format;
     StreamType     m_StreamType;
     OTI            m_ObjectTypeId;
     AP4_UI32       m_BufferSize;

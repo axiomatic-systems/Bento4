@@ -99,6 +99,7 @@ AP4_TrunAtom::AP4_TrunAtom(AP4_UI32        size,
                            AP4_UI32        flags,
                            AP4_ByteStream& stream) :
     AP4_Atom(AP4_ATOM_TYPE_TRUN, size, version, flags),
+    m_DataOffset(0),
     m_FirstSampleFlags(0)
 {
     AP4_UI32 sample_count = 0;
