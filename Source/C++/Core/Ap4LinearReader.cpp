@@ -337,12 +337,12 @@ AP4_LinearReader::AdvanceFragment()
     AP4_Result result;
      
     // go the the start of the next fragment
+    if (!m_FragmentStream) return AP4_ERROR_INVALID_STATE;
     result = m_FragmentStream->Seek(m_NextFragmentPosition);
     if (AP4_FAILED(result)) return result;
 
     // read atoms until we find a moof
     assert(m_HasFragments);
-    if (!m_FragmentStream) return AP4_ERROR_INVALID_STATE;
     AP4_DefaultAtomFactory atom_factory;
     do {
         AP4_Atom* atom = NULL;

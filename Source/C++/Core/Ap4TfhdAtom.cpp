@@ -142,15 +142,15 @@ AP4_TfhdAtom::WriteFields(AP4_ByteStream& stream)
         if (AP4_FAILED(result)) return result;
     }
     if (m_Flags & AP4_TFHD_FLAG_DEFAULT_SAMPLE_DURATION_PRESENT) {
-        stream.WriteUI32(m_DefaultSampleDuration);
+        result = stream.WriteUI32(m_DefaultSampleDuration);
         if (AP4_FAILED(result)) return result;
     }
     if (m_Flags & AP4_TFHD_FLAG_DEFAULT_SAMPLE_SIZE_PRESENT) {
-        stream.WriteUI32(m_DefaultSampleSize);
+        result = stream.WriteUI32(m_DefaultSampleSize);
         if (AP4_FAILED(result)) return result;
     }
     if (m_Flags & AP4_TFHD_FLAG_DEFAULT_SAMPLE_FLAGS_PRESENT) {
-        stream.WriteUI32(m_DefaultSampleFlags);
+        result = stream.WriteUI32(m_DefaultSampleFlags);
         if (AP4_FAILED(result)) return result;
     }
     

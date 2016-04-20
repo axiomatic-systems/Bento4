@@ -865,6 +865,7 @@ AP4_AvcFrameParser::Feed(const void*     data,
                                       nal_unit_type,
                                       *slice_header);
             if (AP4_FAILED(result)) {
+                delete slice_header;
                 return AP4_ERROR_INVALID_FORMAT;
             }
             

@@ -116,7 +116,8 @@ AP4_GetFormatName(AP4_UI32 format)
 AP4_SampleDescription::AP4_SampleDescription(Type            type,
                                              AP4_UI32        format,
                                              AP4_AtomParent* details) :
-    m_Type(type), m_Format(format)
+    m_Type(type),
+    m_Format(format)
 {
     if (details) {
         for (AP4_List<AP4_Atom>::Item* item = details->GetChildren().FirstItem();
@@ -205,7 +206,7 @@ AP4_UnknownSampleDescription::AP4_UnknownSampleDescription(AP4_Atom* atom) :
     AP4_SampleDescription(AP4_SampleDescription::TYPE_UNKNOWN, 
                           atom->GetType(), 
                           NULL),
-    m_Atom(atom->Clone())
+    m_Atom(atom?atom->Clone():NULL)
 {
 }
 
@@ -223,16 +224,7 @@ AP4_UnknownSampleDescription::~AP4_UnknownSampleDescription()
 AP4_SampleDescription*
 AP4_UnknownSampleDescription::Clone(AP4_Result* result)
 {
-    AP4_Atom* atom_clone = NULL;
-    if (m_Atom) {
-        atom_clone = m_Atom->Clone();
-        if (atom_clone == NULL) {
-            if (result) *result = AP4_FAILURE;
-            return NULL;
-        }
-    }
-    if (result) *result = AP4_SUCCESS;
-    return new AP4_UnknownSampleDescription(atom_clone);
+    return new AP4_UnknownSampleDescription(m_Atom);
 }
 
 /*----------------------------------------------------------------------
@@ -495,7 +487,9 @@ ReverseBits(AP4_UI32 bits)
 {
     unsigned int count = sizeof(bits) * 8;
     AP4_UI32 reverse_bits = 0;
-     
+    
+    if (bits == 0) return 0;
+    
     while (bits) {
        reverse_bits = (reverse_bits << 1) | (bits & 1);
        bits >>= 1;

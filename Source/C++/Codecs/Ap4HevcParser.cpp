@@ -148,7 +148,7 @@ ReadGolomb(AP4_BitReader& bits)
         leading_zeros++;
         if (leading_zeros > 32) return 0; // safeguard
     }
-    if (leading_zeros) {
+    if (leading_zeros > 0 && leading_zeros < 32) {
         return (1<<leading_zeros)-1+bits.ReadBits(leading_zeros);
     } else {
         return 0;
@@ -740,6 +740,7 @@ AP4_HevcFrameParser::Feed(const void*     data,
             result = slice_header->Parse(nal_unit_payload, nal_unit_size, nal_unit_type, &m_PPS[0], &m_SPS[0]);
             if (AP4_FAILED(result)) {
                 DBG_PRINTF_1("VLC parsing failed (%d)", result);
+                delete slice_header;
                 return AP4_ERROR_INVALID_FORMAT;
             }
             

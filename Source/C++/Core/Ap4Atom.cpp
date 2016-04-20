@@ -321,7 +321,10 @@ AP4_Atom::Clone()
     // create the clone from the serialized form
     mbs->Seek(0);
     AP4_DefaultAtomFactory atom_factory;
-    atom_factory.CreateAtomFromStream(*mbs, clone);
+    AP4_Result result = atom_factory.CreateAtomFromStream(*mbs, clone);
+    if (AP4_FAILED(result)) {
+        clone = NULL;
+    }
     
     // release the memory stream
     mbs->Release();

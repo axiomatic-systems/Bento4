@@ -844,11 +844,12 @@ AP4_MetaData::Entry::AddToFileIlst(AP4_File& file, AP4_Ordinal index)
     if (m_Value == NULL) return AP4_ERROR_INVALID_STATE;
 
     // convert the entry into an atom
-    AP4_Atom* atom;
+    AP4_Atom* atom = NULL;
     AP4_Result result = ToAtom(atom);
     if (AP4_FAILED(result)) return result;
     AP4_ContainerAtom* entry_atom = AP4_DYNAMIC_CAST(AP4_ContainerAtom, atom);
     if (entry_atom == NULL) {
+        delete atom;
         return AP4_ERROR_INVALID_FORMAT;
     }
 

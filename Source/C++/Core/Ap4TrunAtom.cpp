@@ -98,7 +98,8 @@ AP4_TrunAtom::AP4_TrunAtom(AP4_UI32        size,
                            AP4_UI08        version,
                            AP4_UI32        flags,
                            AP4_ByteStream& stream) :
-    AP4_Atom(AP4_ATOM_TYPE_TRUN, size, version, flags)
+    AP4_Atom(AP4_ATOM_TYPE_TRUN, size, version, flags),
+    m_FirstSampleFlags(0)
 {
     AP4_UI32 sample_count = 0;
     stream.ReadUI32(sample_count);
@@ -208,7 +209,7 @@ AP4_TrunAtom::WriteFields(AP4_ByteStream& stream)
             if (AP4_FAILED(result)) return result;
         }
         if (m_Flags & AP4_TRUN_FLAG_SAMPLE_COMPOSITION_TIME_OFFSET_PRESENT) {
-            stream.WriteUI32(m_Entries[i].sample_composition_time_offset);
+            result = stream.WriteUI32(m_Entries[i].sample_composition_time_offset);
             if (AP4_FAILED(result)) return result;
         }
     }

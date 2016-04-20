@@ -958,17 +958,19 @@ AP4_CencEncryptingProcessor::Initialize(AP4_AtomParent&                  top_lev
                     
                     if (kid_hex && AP4_StringLength(kid_hex) == 32) {
                         AP4_UI08 kid[16];
-                        AP4_ParseHex(kid_hex, kid, 16);
-                        // only add this entry if there isn't already an entry for this KID
-                        const AP4_Array<AP4_MkidAtom::Entry>& entries = mkid->GetEntries();
-                        bool found = false;
-                        for (unsigned int j=0; j<entries.ItemCount() && !found; j++) {
-                            if (AP4_CompareMemory(entries[j].m_KID, kid, 16) == 0) {
-                                found = true;
+                        AP4_Result result = AP4_ParseHex(kid_hex, kid, 16);
+                        if (AP4_SUCCEEDED(result)) {
+                            // only add this entry if there isn't already an entry for this KID
+                            const AP4_Array<AP4_MkidAtom::Entry>& entries = mkid->GetEntries();
+                            bool found = false;
+                            for (unsigned int j=0; j<entries.ItemCount() && !found; j++) {
+                                if (AP4_CompareMemory(entries[j].m_KID, kid, 16) == 0) {
+                                    found = true;
+                                }
                             }
-                        }
-                        if (!found) {
-                            mkid->AddEntry(kid, entry->m_Value.GetChars());
+                            if (!found) {
+                                mkid->AddEntry(kid, entry->m_Value.GetChars());
+                            }
                         }
                     }
                 }
@@ -1107,7 +1109,8 @@ AP4_CencEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
     AP4_UI08 kid[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
     const char* kid_hex = m_PropertyMap.GetProperty(trak->GetId(), "KID");
     if (kid_hex && AP4_StringLength(kid_hex) == 32) {
-        AP4_ParseHex(kid_hex, kid, 16);
+        AP4_Result result = AP4_ParseHex(kid_hex, kid, 16);
+        if (AP4_FAILED(result)) return NULL;
     }
         
     // create the encrypter
@@ -1901,7 +1904,7 @@ AP4_CencDecryptingProcessor::CreateFragmentHandler(AP4_TrakAtom*    /*trak*/,
             break;
         }
     }
-    if (sample_description == NULL) return NULL;
+    if (sample_description == NULL || key == NULL) return NULL;
     
     // create the sample decrypter for the fragment
     AP4_CencSampleDecrypter* sample_decrypter = NULL;
@@ -2724,7 +2727,7 @@ AP4_CencSampleEncryption::DoWriteFields(AP4_ByteStream& stream)
     result = stream.WriteUI32(m_SampleInfoCount);
     if (AP4_FAILED(result)) return result;
     if (m_SampleInfos.GetDataSize()) {
-        stream.Write(m_SampleInfos.GetData(), m_SampleInfos.GetDataSize());
+        result = stream.Write(m_SampleInfos.GetData(), m_SampleInfos.GetDataSize());
         if (AP4_FAILED(result)) return result;
     }
     

@@ -57,7 +57,9 @@ AP4_IpmpDescriptorPointer::AP4_IpmpDescriptorPointer(AP4_UI08 descriptor_id) :
 AP4_IpmpDescriptorPointer::AP4_IpmpDescriptorPointer(AP4_ByteStream& stream, 
                                                      AP4_Size        header_size,
                                                      AP4_Size        payload_size) :
-    AP4_Descriptor(AP4_DESCRIPTOR_TAG_IPMP_DESCRIPTOR_POINTER, header_size, payload_size)
+    AP4_Descriptor(AP4_DESCRIPTOR_TAG_IPMP_DESCRIPTOR_POINTER, header_size, payload_size),
+    m_DescriptorIdEx(0), 
+    m_EsId(0) 
 {
     stream.ReadUI08(m_DescriptorId);
     if (m_DescriptorId == 0xFF && payload_size >= 5) {

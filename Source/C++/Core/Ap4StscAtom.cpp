@@ -109,14 +109,15 @@ AP4_StscAtom::WriteFields(AP4_ByteStream& stream)
     // entry count
     AP4_Cardinal entry_count = m_Entries.ItemCount();
     result = stream.WriteUI32(entry_count);
+    if (AP4_FAILED(result)) return result;
 
     // entries
     for (AP4_Ordinal i=0; i<entry_count; i++) {
-        stream.WriteUI32(m_Entries[i].m_FirstChunk);
+        result = stream.WriteUI32(m_Entries[i].m_FirstChunk);
         if (AP4_FAILED(result)) return result;
-        stream.WriteUI32(m_Entries[i].m_SamplesPerChunk);
+        result = stream.WriteUI32(m_Entries[i].m_SamplesPerChunk);
         if (AP4_FAILED(result)) return result;
-        stream.WriteUI32(m_Entries[i].m_SampleDescriptionIndex);
+        result = stream.WriteUI32(m_Entries[i].m_SampleDescriptionIndex);
         if (AP4_FAILED(result)) return result;
     }
 

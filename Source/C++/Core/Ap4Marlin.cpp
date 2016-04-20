@@ -762,6 +762,7 @@ AP4_MarlinIpmpEncryptingProcessor::Initialize(
     AP4_Result result = moov->AddChild(iods, iods_position);
     if (AP4_FAILED(result)) {
         delete iods;
+        delete mpod;
         return result;
     }
     

@@ -47,7 +47,8 @@ AP4_FragmentSampleTable::AP4_FragmentSampleTable(AP4_ContainerAtom* traf,
                                                  AP4_ByteStream*    sample_stream,
                                                  AP4_Position       moof_offset,
                                                  AP4_Position       mdat_payload_offset,
-                                                 AP4_UI64           dts_origin)
+                                                 AP4_UI64           dts_origin) :
+    m_Duration(0)
 {
     AP4_TfhdAtom* tfhd = AP4_DYNAMIC_CAST(AP4_TfhdAtom, traf->GetChild(AP4_ATOM_TYPE_TFHD));
     if (tfhd == NULL) return;

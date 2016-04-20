@@ -101,7 +101,8 @@ void
 AP4_SampleEntry::Read(AP4_ByteStream& stream, AP4_AtomFactory& atom_factory)
 {
     // read the fields before the children atoms
-    ReadFields(stream);
+    AP4_Result result = ReadFields(stream);
+    if (AP4_FAILED(result)) return;
 
     // read children atoms (ex: esds and maybe others)
     // NOTE: not all sample entries have children atoms

@@ -328,7 +328,7 @@ AP4_OmaDcfSampleDecrypter::Create(AP4_ProtectedSampleDescription* sample_descrip
                                   AP4_OmaDcfSampleDecrypter*&     cipher)
 {
     // check the parameters
-    if (key == NULL || block_cipher_factory == NULL) {
+    if (key == NULL) {
         return AP4_ERROR_INVALID_PARAMETERS;
     }
     

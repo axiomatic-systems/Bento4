@@ -270,7 +270,7 @@ AP4_AvccAtom::InspectFields(AP4_AtomInspector& inspector)
     for (unsigned int i=0; i<m_SequenceParameters.ItemCount(); i++) {
         inspector.AddField("Sequence Parameter", m_SequenceParameters[i].GetData(), m_SequenceParameters[i].GetDataSize());
     }
-    for (unsigned int i=0; i<m_SequenceParameters.ItemCount(); i++) {
+    for (unsigned int i=0; i<m_PictureParameters.ItemCount(); i++) {
         inspector.AddField("Picture Parameter", m_PictureParameters[i].GetData(), m_PictureParameters[i].GetDataSize());
     }
     return AP4_SUCCESS;

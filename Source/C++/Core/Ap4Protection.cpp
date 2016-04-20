@@ -636,7 +636,7 @@ AP4_TrackPropertyMap::GetTextualHeaders(AP4_UI32 track_id, AP4_DataBuffer& textu
                 value_len = entry->m_Value.GetLength();                
         
                 // format is name:value\0
-                if (name && value) {
+                if (name_len && value_len) {
                     AP4_CopyMemory(data_buffer, name, name_len);
                     data_buffer[name_len] = ':';
                     data_buffer += (1+name_len);

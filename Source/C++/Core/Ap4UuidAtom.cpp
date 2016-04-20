@@ -64,7 +64,7 @@ AP4_UuidAtom::AP4_UuidAtom(AP4_UI64 size, bool is_full, AP4_ByteStream& stream) 
 {
     if (is_full) {
         m_IsFull = true;
-        ReadFullHeader(stream, m_Version, m_Flags);
+        (void)ReadFullHeader(stream, m_Version, m_Flags);
     }
 }
 
