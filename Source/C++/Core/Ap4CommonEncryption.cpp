@@ -958,7 +958,7 @@ AP4_CencEncryptingProcessor::Initialize(AP4_AtomParent&                  top_lev
                     
                     if (kid_hex && AP4_StringLength(kid_hex) == 32) {
                         AP4_UI08 kid[16];
-                        AP4_Result result = AP4_ParseHex(kid_hex, kid, 16);
+                        result = AP4_ParseHex(kid_hex, kid, 16);
                         if (AP4_SUCCEEDED(result)) {
                             // only add this entry if there isn't already an entry for this KID
                             const AP4_Array<AP4_MkidAtom::Entry>& entries = mkid->GetEntries();
