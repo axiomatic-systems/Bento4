@@ -59,6 +59,8 @@ public:
 class AP4_ElstAtom : public AP4_Atom
 {
 public:
+     AP4_IMPLEMENT_DYNAMIC_CAST(AP4_ElstAtom)
+
     // class methods
     static AP4_ElstAtom* Create(AP4_Size size, AP4_ByteStream& stream);
 
