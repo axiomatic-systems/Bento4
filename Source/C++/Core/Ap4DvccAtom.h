@@ -74,13 +74,13 @@ public:
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
 
     // accessors
-    AP4_UI08 GetDvVersionMajor() { return m_DvVersionMajor; }
-    AP4_UI08 GetDvVersionMinor() { return m_DvVersionMinor; }
-    AP4_UI08 GetDvProfile()      { return m_DvProfile;      }
-    AP4_UI08 GetDvLevel()        { return m_DvLevel;        }
-    bool     GetRpuPresentFlag() { return m_RpuPresentFlag; }
-    bool     GetElPresentFlag()  { return m_ElPresentFlag;  }
-    bool     GetBlPresentFlag()  { return m_BlPresentFlag;  }
+    AP4_UI08 GetDvVersionMajor() { return m_DvVersionMajor;      }
+    AP4_UI08 GetDvVersionMinor() { return m_DvVersionMinor;      }
+    AP4_UI08 GetDvProfile()      { return m_DvProfile;           }
+    AP4_UI08 GetDvLevel()        { return m_DvLevel;             }
+    bool     GetRpuPresentFlag() { return m_RpuPresentFlag != 0; }
+    bool     GetElPresentFlag()  { return m_ElPresentFlag  != 0; }
+    bool     GetBlPresentFlag()  { return m_BlPresentFlag  != 0; }
 
 private:
     // members

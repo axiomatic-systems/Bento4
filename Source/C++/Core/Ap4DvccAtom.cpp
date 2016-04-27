@@ -65,6 +65,8 @@ AP4_DvccAtom::GetProfileName(AP4_UI08 profile)
 AP4_DvccAtom* 
 AP4_DvccAtom::Create(AP4_Size size, AP4_ByteStream& stream)
 {
+    if (size < AP4_ATOM_HEADER_SIZE+24) return NULL;
+    
     AP4_UI08 payload[24];
     AP4_Result result = stream.Read(payload, 24);
     if (AP4_FAILED(result)) return NULL;

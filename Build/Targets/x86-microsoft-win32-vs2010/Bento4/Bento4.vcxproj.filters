@@ -384,6 +384,9 @@
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4SbgpAtom.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4DvccAtom.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4.h">
@@ -777,6 +780,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4SbgpAtom.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4DvccAtom.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
