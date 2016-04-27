@@ -17,36 +17,18 @@ var Presets = [
         emeConfig: 'manual'
     },
     {
-        title: 'Bitcodin',
-        url: 'http://192.168.1.199:8081/stream/mpds/128356.mpd',
+        title: 'PlayReady NO-EME',
+        url: 'http://192.168.1.199:8081/noeme/stream.mpd',
+        licenseUrl: 'https://expressplay-licensing.axprod.net/LicensingService.ashx?ExpressPlayToken=AQAAAAM7XvUAAABgy-BCj1tcTPhJxHuRBinTPX3CgyVqrgL6NQxfeBs6O5I-UX1PrYLGXWUqZvuYY8K25XHwVx8wkHRCCJFUq7MSZEFk_BqAEDTo7oOnEDf8xAwrzQmVw3TMXX8CfawwuU90WDN95Xj9XNn4bNZJLeyI93JVcGk'
     },
     {
-        title: 'Test2',
-        url: 'http://localhost:8081/test2/stream.mpd',
-        kid: '20000000200020002000200000000002',
-        key: 'e6dd428e76cc154441a2ed3cece4a3db',
-        emeConfig: 'manual'
+        title: 'PlayReady PSSH-V0',
+        url: 'http://192.168.1.199:8081/pssh-v0/stream.mpd',
+        licenseUrl: 'https://expressplay-licensing.axprod.net/LicensingService.ashx?ExpressPlayToken=AQAAAAM7XvUAAABgy-BCj1tcTPhJxHuRBinTPX3CgyVqrgL6NQxfeBs6O5I-UX1PrYLGXWUqZvuYY8K25XHwVx8wkHRCCJFUq7MSZEFk_BqAEDTo7oOnEDf8xAwrzQmVw3TMXX8CfawwuU90WDN95Xj9XNn4bNZJLeyI93JVcGk'
     },
     {
-        title: 'Test3',
-        url: 'http://localhost:8081/test3/stream.mpd',
-        kid: '00000000000000000000000000000000',
-        key: '00000000000000000000000000000000',
-        emeConfig: 'manual'
-    },
-    {
-        title: 'Test4',
-        url: 'http://localhost:8081/test4/stream.mpd',
-        kid: '000000000000000000000000000000ff',
-        key: '00000000000000000000000000000000',
-        emeConfig: 'manual'
-    },
-    {
-        title: 'Test5',
-        url: 'http://localhost:8081/test5/stream.mpd',
-        kid: '00000000000000000000000000000000',
-        key: '000000000000000000000000000000ff',
-        emeConfig: 'manual'
+        title: 'PlayReady PSSH-V1',
+        url: 'http://192.168.1.199:8081/pssh-v1/stream.mpd',
+        licenseUrl: 'https://expressplay-licensing.axprod.net/LicensingService.ashx?ExpressPlayToken=AQAAAAM7XvUAAABgy-BCj1tcTPhJxHuRBinTPX3CgyVqrgL6NQxfeBs6O5I-UX1PrYLGXWUqZvuYY8K25XHwVx8wkHRCCJFUq7MSZEFk_BqAEDTo7oOnEDf8xAwrzQmVw3TMXX8CfawwuU90WDN95Xj9XNn4bNZJLeyI93JVcGk'
     }
-
 ];

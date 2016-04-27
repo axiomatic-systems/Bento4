@@ -219,21 +219,25 @@ def AddContentProtection(options, container, tracks):
         default_kid = kids[0]
         default_key = None
 
+    # EME Common Encryption
+    if options.eme_signaling in ['pssh-v0', 'pssh-v1']:
+        container.append(xml.Comment(' EME Common Encryption '))
+        xml.register_namespace('cenc', CENC_2013_NAMESPACE)
+        cp = xml.SubElement(container, 'ContentProtection', schemeIdUri=EME_COMMON_ENCRYPTION_SCHEME_ID_URI, value='cenc')
+        if options.eme_signaling == 'pssh-v1':
+            pssh_box = MakePsshBoxV1(EME_COMMON_ENCRYPTION_PSSH_SYSTEM_ID.decode('hex'), [default_kid], '')
+        else:
+            pssh_box = MakePsshBox(EME_COMMON_ENCRYPTION_PSSH_SYSTEM_ID.decode('hex'), '')
+        pssh_b64 = pssh_box.encode('base64').replace('\n', '')
+        pssh = xml.SubElement(cp, '{' + CENC_2013_NAMESPACE + '}pssh')
+        pssh.text = pssh_b64
+
     # MPEG Common Encryption
     container.append(xml.Comment(' MPEG Common Encryption '))
     xml.register_namespace('cenc', CENC_2013_NAMESPACE)
     cp = xml.SubElement(container, 'ContentProtection', schemeIdUri=MPEG_COMMON_ENCRYPTION_SCHEME_ID_URI, value='cenc')
     default_kid_with_dashes = (default_kid[0:8]+'-'+default_kid[8:12]+'-'+default_kid[12:16]+'-'+default_kid[16:20]+'-'+default_kid[20:32]).lower()
     cp.set('{'+CENC_2013_NAMESPACE+'}default_KID', default_kid_with_dashes)
-
-    # EME Common Encryption
-    container.append(xml.Comment(' EME Common Encryption '))
-    xml.register_namespace('cenc', CENC_2013_NAMESPACE)
-    cp = xml.SubElement(container, 'ContentProtection', schemeIdUri=EME_COMMON_ENCRYPTION_SCHEME_ID_URI, value='cenc')
-    pssh_box = MakePsshBoxV1(EME_COMMON_ENCRYPTION_PSSH_SYSTEM_ID.decode('hex'), [default_kid], '')
-    pssh_b64 = pssh_box.encode('base64').replace('\n', '')
-    pssh = xml.SubElement(cp, '{' + CENC_2013_NAMESPACE + '}pssh')
-    pssh.text = pssh_b64
 
     # Marlin
     if options.marlin:
@@ -1007,14 +1011,16 @@ def main():
                       help="Produce an output compatible with the Hippo Media Server")
     parser.add_option('', '--hippo-server-manifest-name', dest="hippo_server_manifest_filename",
                       help="Hippo Media Server Manifest file name", metavar="<filename>", default='stream.msm')
+    parser.add_option('', "--use-compat-namespace", dest="use_compat_namespace", action="store_true", default=False,
+                      help="Use the original DASH MPD namespace as it was specified in the first published specification")
     parser.add_option('', "--encryption-key", dest="encryption_key", metavar='<key-spec>', default=None,
                       help="Encrypt some or all tracks with MPEG CENC (AES-128), where <key-spec> specifies the KID(s) and Key(s) to use, using one of the following forms: " +
                            "(1) <KID>:<key> with <KID> as a 32-character hex string and <key> either a 32-character hex string or the character '#' followed by a base64-encoded key seed; or " +
                            "(2) @<key-locator> where <key-locator> is an expression of one of the supported key locator schemes. Each entry may be prefixed with an optional track filter, and multiple <key-spec> entries can be used, separated by ','. (see online docs for details)")
     parser.add_option('', "--encryption-args", dest="encryption_args", metavar='<cmdline-arguments>', default=None,
                       help="Pass additional command line arguments to mp4encrypt (separated by spaces)")
-    parser.add_option('', "--use-compat-namespace", dest="use_compat_namespace", action="store_true", default=False,
-                      help="Use the original DASH MPD namespace as it was specified in the first published specification")
+    parser.add_option('', "--eme-signaling", dest="eme_signaling", metavar='<eme-signaling-type>', choices=['pssh-v0', 'pssh-v1'],
+                      help="Add EME-compliant signaling in the MPD and PSSH boxes (valid options are 'pssh-v0' and 'pssh-v1')")
     parser.add_option('', "--marlin", dest="marlin", action="store_true", default=False,
                       help="Add Marlin signaling to the MPD (requires an encrypted input, or the --encryption-key option)")
     parser.add_option('', "--marlin-add-pssh", dest="marlin_add_pssh", action="store_true", default=False,
@@ -1253,7 +1259,10 @@ def main():
                 args += ['--key', str(track_id)+':'+key_info['key']+':random', '--property', str(track_id)+':KID:'+key_info['kid']]
 
             # EME Common Encryption / Clearkey
-            args += ['--pssh-v1', EME_COMMON_ENCRYPTION_PSSH_SYSTEM_ID+':']
+            if options.eme_signaling == 'pssh-v0':
+                args += ['--pssh', EME_COMMON_ENCRYPTION_PSSH_SYSTEM_ID+':']
+            elif options.eme_signaling == 'pssh-v1':
+                args += ['--pssh-v1', EME_COMMON_ENCRYPTION_PSSH_SYSTEM_ID+':']
 
             # Marlin
             if options.marlin_add_pssh:
