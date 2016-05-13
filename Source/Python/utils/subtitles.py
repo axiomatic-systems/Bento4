@@ -36,7 +36,7 @@ class SubtitlesFile:
         self.format    = 'ttml'
         self.mime_type = 'application/ttml+xml'
 
-        xml_tree= ET.parse(filename)
+        xml_tree= ET.parse(self.media_source.filename)
         xml_root = xml_tree.getroot()
 
         if xml_root.tag != '{'+TTML_XML_NAMESPACE+'}tt':
