@@ -27,7 +27,7 @@ from subtitles import *
 
 # setup main options
 VERSION = "1.7.0"
-SDK_REVISION = '610'
+SDK_REVISION = '611'
 SCRIPT_PATH = path.abspath(path.dirname(__file__))
 sys.path += [SCRIPT_PATH]
 
@@ -1028,7 +1028,7 @@ def main():
     parser.add_option('', "--playready", dest="playready", action="store_true", default=False,
                       help="Add PlayReady signaling to the MPD (requires an encrypted input, or the --encryption-key option)")
     parser.add_option('', "--playready-header", dest="playready_header", metavar='<playready-header>', default=None,
-                      help="Add a PlayReady PRO element in the MPD and a PlayReady PSSH box in the init segments. The use of this option implies the --playready option." +
+                      help="Add a PlayReady PRO element in the MPD and a PlayReady PSSH box in the init segments. The use of this option implies the --playready option. " +
                            "The <playready-header> argument can be either: " +
                            "(1) the character '@' followed by the name of a file containing a PlayReady XML Rights Management Header (<WRMHEADER>) or a PlayReady Header Object (PRO) in binary form,  or "
                            "(2) the character '#' followed by a PlayReady Header Object encoded in Base64, or " +
@@ -1214,6 +1214,8 @@ def main():
     if not options.no_media and options.encryption_key:
         encrypted_files = {}
         for media_source in media_sources:
+            if media_source.format != 'mp4': continue
+
             media_file = media_source.filename
 
             # check if we have already encrypted this file
