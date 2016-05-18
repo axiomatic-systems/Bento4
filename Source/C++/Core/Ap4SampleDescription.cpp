@@ -194,7 +194,10 @@ AP4_SampleDescription::ToAtom() const
 AP4_Result
 AP4_SampleDescription::GetCodecString(AP4_String& codec)
 {
-    codec = "";
+    char coding[5];
+    AP4_FormatFourChars(coding, m_Format);
+    codec.Assign(coding, 4);
+    
     return AP4_SUCCESS;
 }
 
