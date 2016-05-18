@@ -23,99 +23,278 @@ import re
 import platform
 import sys
 from mp4utils import *
+from subtitles import *
 
 # setup main options
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 SDK_REVISION = '611'
 SCRIPT_PATH = path.abspath(path.dirname(__file__))
 sys.path += [SCRIPT_PATH]
 
 #############################################
-def OutputMuxedHls(options, media_sources):
-    media_data = []
+def CreateSubtitlesPlaylist(playlist_filename, webvtt_filename, duration):
+    playlist = open(playlist_filename, 'w+')
+    playlist.write('#EXTM3U\r\n')
+    playlist.write('#EXT-X-TARGETDURATION:%d\r\n' % (duration))
+    playlist.write('#EXT-X-VERSION:3\r\n')
+    playlist.write('#EXT-X-MEDIA-SEQUENCE:0\r\n')
+    playlist.write('#EXT-X-PLAYLIST-TYPE:VOD\r\n')
+    playlist.write('#EXTINF:%d,\r\n' % (duration))
+    playlist.write(webvtt_filename+'\r\n')
+    playlist.write('#EXT-X-ENDLIST\r\n')
 
-    # process media sources
+#############################################
+def SelectAudioTracks(options, media_sources):
+    # parse the media files
+    mp4_files = {}
     for media_source in media_sources:
-        if options.verbose:
-            print 'Processing', media_source.filename
-        media_index = 1+len(media_data)
-        data = {
-            'source': media_source,
-            'index': media_index,
-            'dir': 'media-'+str(media_index)
+        if media_source.format != 'mp4': continue
+
+        media_file = media_source.filename
+
+        # check if we have already parsed this file
+        if media_file in mp4_files:
+            media_source.mp4_file = mp4_files[media_file]
+            continue
+
+        # parse the file
+        if not os.path.exists(media_file):
+            PrintErrorAndExit('ERROR: media file ' + media_file + ' does not exist')
+
+        # get the file info
+        print 'Parsing media file', media_file
+        mp4_file = Mp4File(Options, media_source)
+        media_source.mp4_file = mp4_file
+
+        # remember we have parsed this file
+        mp4_files[media_file] = mp4_file
+
+    # select tracks
+    audio_tracks = []
+    for media_source in media_sources:
+        track_id       = media_source.spec['track']
+        track_type     = media_source.spec['type']
+        track_language = media_source.spec['language']
+        tracks         = []
+
+        if media_source.format != 'mp4':
+            if track_id or track_type:
+                PrintErrorAndExit('ERROR: track ID and track type selections only apply to MP4 media sources')
+            continue
+
+        if track_type not in ['', 'audio']:
+            continue
+
+        if track_id and track_type:
+            PrintErrorAndExit('ERROR: track ID and track type selections are mutually exclusive')
+
+        if track_id:
+            tracks = [media_source.mp4_file.find_track_by_id(track_id)]
+            if not tracks:
+                PrintErrorAndExit('ERROR: track id not found for media file '+media_source.name)
+
+        if track_type:
+            tracks = media_source.mp4_file.find_tracks_by_type(track_type)
+            if not tracks:
+                PrintErrorAndExit('ERROR: no ' + track_type + ' found for media file '+media_source.name)
+
+        if not tracks:
+            tracks = media_source.mp4_file.tracks.values()
+
+        # skip this source if we end up with more than audio tracks
+        audio_only = True
+        for track in tracks:
+            if track.type != 'audio':
+                audio_only = False
+                break
+        if not audio_only: continue
+
+        # pre-process the track metadata
+        for track in tracks:
+            # track language
+            language = LanguageCodeMap.get(track.language, track.language)
+            if track_language and track_language != language and track_language != track.language:
+                continue
+            remap_language = media_source.spec.get('+language')
+            if remap_language:
+                language = remap_language
+            track.language = language
+
+        # process audio tracks
+        for track in [t for t in tracks if t.type == 'audio']:
+            if len([et for et in audio_tracks if et.language == track.language]):
+                continue # only accept one track for each language
+            audio_tracks.append(track)
+            track.order_index = len(audio_tracks)
+
+    return audio_tracks
+
+#############################################
+def ProcessSource(options, media_info, out_dir):
+    if options.verbose:
+        print 'Processing', media_info['source'].filename
+
+    kwargs = {
+        'index_filename':            path.join(out_dir, 'stream.m3u8'),
+        'segment_filename_template': path.join(out_dir, 'segment-%d.ts'),
+        'segment_url_template':      'segment-%d.ts',
+        'show_info':                 True
+    }
+
+    if options.hls_version != 3:
+        kwargs['hls_version'] = str(Options.hls_version)
+
+    if options.hls_version >= 4:
+        kwargs['iframe_index_filename'] = path.join(out_dir, 'iframes.m3u8')
+
+    if options.output_single_file:
+        kwargs['segment_filename_template'] = path.join(out_dir, 'media.ts')
+        kwargs['segment_url_template']      = 'media.ts'
+        kwargs['output_single_file']        = True
+
+    for option in ['encryption_mode', 'encryption_key', 'encryption_iv_mode', 'encryption_key_uri', 'encryption_key_format', 'encryption_key_format_versions']:
+        if getattr(options, option):
+            kwargs[option] = getattr(options, option)
+
+    # deal with track IDs
+    if 'audio_track_id' in media_info:
+        kwargs['audio_track_id'] = str(media_info['audio_track_id'])
+    if 'video_track_id' in media_info:
+        kwargs['video_track_id'] = str(media_info['video_track_id'])
+
+    # convert to HLS/TS
+    json_info = Mp42Hls(options,
+                        media_info['source'].filename,
+                        **kwargs)
+    media_info['info'] = json.loads(json_info, strict=False)
+    if options.verbose:
+        print json_info
+
+    # output the encryption key if needed
+    if options.output_encryption_key:
+        open(path.join(out_dir, 'key.bin'), 'wb+').write(options.encryption_key.decode('hex')[:16])
+
+#############################################
+def OutputHls(options, media_sources):
+    # process audio tracks
+    audio_media = []
+    audio_tracks = SelectAudioTracks(options, [media_source for media_source in media_sources if not media_source.spec.get('+audio_fallback')])
+    if len(audio_tracks):
+        MakeNewDir(path.join(options.output_dir, 'audio'))
+    for audio_track in audio_tracks:
+        media_info = {
+            'source':         audio_track.parent.media_source,
+            'dir':            'audio/'+audio_track.language,
+            'language':       audio_track.language,
+            'audio_track_id': audio_track.id,
+            'video_track_id': 0
         }
-        out_dir = path.join(options.output_dir, data['dir'])
+        out_dir = path.join(options.output_dir, 'audio', audio_track.language)
         MakeNewDir(out_dir)
 
-        kwargs = {
-            'index_filename':            path.join(out_dir, 'stream.m3u8'),
-            'segment_filename_template': path.join(out_dir, 'segment-%d.ts'),
-            'segment_url_template':      'segment-%d.ts',
-            'show_info':                 True
+        # process the source
+        ProcessSource(options, media_info, out_dir)
+
+        audio_media.append(media_info)
+
+    # process main media sources
+    total_duration = 0
+    muxed_media = []
+    muxed_sources = [media_source for media_source in media_sources if media_source.format == 'mp4' and media_source.spec['type'] != 'audio']
+    for media_source in muxed_sources:
+        media_index = 1+len(muxed_media)
+        media_info = {
+            'source': media_source,
+            'dir':   'media-'+str(media_index)
         }
+        out_dir = path.join(options.output_dir, media_info['dir'])
+        MakeNewDir(out_dir)
 
-        if options.hls_version != 3:
-            kwargs['hls_version'] = str(Options.hls_version)
+        # deal with audio-fallback streams
+        if media_source.spec.get('+audio_fallback') == 'yes':
+            media_info['video_track_id'] = 0
 
-        if options.hls_version >= 4:
-            kwargs['iframe_index_filename'] = path.join(out_dir, 'iframes.m3u8')
+        # process the source
+        ProcessSource(options, media_info, out_dir)
 
-        if options.output_single_file:
-            kwargs['segment_filename_template'] = path.join(out_dir, 'media.ts')
-            kwargs['segment_url_template']      = 'media.ts'
-            kwargs['output_single_file']        = True
+        # update the duration
+        duration_s = int(media_info['info']['stats']['duration'])
+        if duration_s > total_duration:
+            total_duration = duration_s
 
-        for option in ['encryption_mode', 'encryption_key', 'encryption_iv_mode', 'encryption_key_uri', 'encryption_key_format', 'encryption_key_format_versions']:
-            if getattr(options, option):
-                kwargs[option] = getattr(options, option)
-
-        json_info = Mp42Hls(options,
-                            media_source.filename,
-                            **kwargs)
-        data['info'] = json.loads(json_info, strict=False)
-        media_data.append(data)
-        if options.verbose:
-            print json_info
-
-        # output the encryption key if needed
-        if options.output_encryption_key:
-            open(path.join(out_dir, 'key.bin'), 'wb+').write(options.encryption_key.decode('hex')[:16])
+        muxed_media.append(media_info)
 
     # start the master playlist
     master_playlist = open(path.join(options.output_dir, options.master_playlist_name), "w+")
     master_playlist.write("#EXTM3U\r\n")
     master_playlist.write('# Created with Bento4 mp4-hls.py version '+VERSION+'r'+SDK_REVISION+'\r\n')
-    master_playlist.write('\r\n')
 
     if options.hls_version >= 4:
+        master_playlist.write('\r\n')
         master_playlist.write('#EXT-X-VERSION:'+str(options.hls_version)+'\r\n')
 
+    # process subtitles sources
+    subtitles_files = [SubtitlesFile(options, media_source) for media_source in media_sources if media_source.format in ['ttml', 'webvtt']]
+    if len(subtitles_files):
+        master_playlist.write('\r\n')
+        master_playlist.write('# Subtitles\r\n')
+        MakeNewDir(path.join(options.output_dir, 'subtitles'))
+        for subtitles_file in subtitles_files:
+            out_dir = path.join(options.output_dir, 'subtitles', subtitles_file.language)
+            MakeNewDir(out_dir)
+            media_filename = path.join(out_dir, subtitles_file.media_name)
+            shutil.copyfile(subtitles_file.media_source.filename, media_filename)
+            relative_url = 'subtitles/'+subtitles_file.language+'/subtitles.m3u8'
+            playlist_filename = path.join(out_dir, 'subtitles.m3u8')
+            CreateSubtitlesPlaylist(playlist_filename, subtitles_file.media_name, total_duration)
+
+            master_playlist.write('#EXT-X-MEDIA:TYPE=SUBTITLES,GROUP-ID="subtitles",NAME="%s",LANGUAGE="%s",URI="%s"\r\n' % (subtitles_file.language_name, subtitles_file.language, relative_url))
+
+    # process audio-only sources
+    if len(audio_media):
+        master_playlist.write('\r\n')
+        master_playlist.write('# Audio\r\n')
+        for media in audio_media:
+            master_playlist.write('#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="audio",LANGUAGE="%s",URI="%s"\r\n' % (media['language'], media['dir']+'/stream.m3u8'))
+
+    # media playlists
     master_playlist.write('\r\n')
     master_playlist.write('# Media Playlists\r\n')
-    for data in media_data:
-        media_info = data['info']
-        codecs = ''
-        codec_sep = ''
+    for media in muxed_media:
+        media_info = media['info']
+        codecs = []
+
+        # audio info
         if 'audio' in media_info:
-            codecs += media_info['audio']['codec']
-            codec_sep = ', '
+            codecs.append(media_info['audio']['codec'])
+
+        # video info
         if 'video' in media_info:
-            codecs += codec_sep+media_info['video']['codec']
+            codecs.append(media_info['video']['codec'])
         ext_x_stream_inf = '#EXT-X-STREAM-INF:AVERAGE-BANDWIDTH=%d,BANDWIDTH=%d,CODECS="%s"' % (
                             int(media_info['stats']['avg_segment_bitrate']),
                             int(media_info['stats']['max_segment_bitrate']),
-                            codecs)
+                            ','.join(codecs))
         if 'video' in media_info:
             ext_x_stream_inf += ',RESOLUTION='+str(int(media_info['video']['width']))+'x'+str(int(media_info['video']['height']))
+
+        # audio info
+        if len(audio_tracks):
+            ext_x_stream_inf += ',AUDIO="audio"'
+
+        # subtitles info
+        if len(subtitles_files):
+            ext_x_stream_inf += ',SUBTITLES="subtitles"'
+
         master_playlist.write(ext_x_stream_inf+'\r\n')
-        master_playlist.write(data['dir']+'/stream.m3u8\r\n')
+        master_playlist.write(media['dir']+'/stream.m3u8\r\n')
 
     # write the I-FRAME playlist info
     if options.hls_version >= 4:
         master_playlist.write('\r\n')
         master_playlist.write('# I-Frame Playlists\r\n')
-        for data in media_data:
-            media_info = data['info']
+        for media in muxed_media:
+            media_info = media['info']
             if not 'video' in media_info: continue
             ext_x_i_frame_stream_inf = '#EXT-X-I-FRAME-STREAM-INF:AVERAGE-BANDWIDTH=%d,BANDWIDTH=%d,CODECS="%s",RESOLUTION=%dx%d,URI="%s"' % (
                                         int(media_info['stats']['avg_iframe_bitrate']),
@@ -123,7 +302,7 @@ def OutputMuxedHls(options, media_sources):
                                         media_info['video']['codec'],
                                         int(media_info['video']['width']),
                                         int(media_info['video']['height']),
-                                        data['dir']+'/iframes.m3u8')
+                                        media['dir']+'/iframes.m3u8')
             master_playlist.write(ext_x_i_frame_stream_inf+'\r\n')
 
 #############################################
@@ -213,7 +392,7 @@ def main():
     MakeNewDir(dir=options.output_dir, exit_if_exists = not options.force_output, severity=severity)
 
     # output the media playlists
-    OutputMuxedHls(options, media_sources)
+    OutputHls(options, media_sources)
 
 ###########################
 if sys.version_info[0] != 2:
