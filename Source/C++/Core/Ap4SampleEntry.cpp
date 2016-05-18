@@ -768,6 +768,7 @@ AP4_VisualSampleEntry::ReadFields(AP4_ByteStream& stream)
     stream.ReadUI16(m_FrameCount);
 
     char compressor_name[33];
+    compressor_name[32] = 0;
     stream.Read(compressor_name, 32);
     int name_length = compressor_name[0];
     if (name_length < 32) {

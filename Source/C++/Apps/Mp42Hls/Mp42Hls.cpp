@@ -1786,11 +1786,13 @@ main(int argc, char** argv)
         );
         printf(
             "  \"stats\": {\n"
+            "    \"duration\": %f,\n"
             "    \"avg_segment_bitrate\": %f,\n"
             "    \"max_segment_bitrate\": %f,\n"
             "    \"avg_iframe_bitrate\": %f,\n"
             "    \"max_iframe_bitrate\": %f\n"
             "  }",
+            (double)movie->GetDurationMs()/1000.0,
             average_segment_bitrate,
             Stats.max_segment_bitrate,
             average_iframe_bitrate,
