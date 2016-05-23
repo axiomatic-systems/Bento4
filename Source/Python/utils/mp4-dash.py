@@ -287,17 +287,17 @@ def AddContentProtection(options, container, tracks):
             pssh.text = pssh_b64
 
 #############################################
-def AddDescriptor(adaptation_set, groups, group_name, category_name):
-    group = groups.get(group_name)
-    if not group and category_name:
-        # try a catch-all category group name for audio
-        group = groups.get(category_name)
-        if group:
-            group_name = category_name
-    if not group: return
+def AddDescriptor(adaptation_set, set_attributes, set_name, category_name):
+    attributes = set_attributes.get(set_name)
+    if not attributes and category_name:
+        # try a catch-all category set name
+        attributes = set_attributes.get(category_name)
+        if attributes:
+            set_name = category_name
+    if not attributes: return
 
-    for descriptor_name in group:
-        descriptor_values = group[descriptor_name]
+    for descriptor_name in attributes:
+        descriptor_values = attributes[descriptor_name]
         for descriptor_value in descriptor_values.split(','):
             descriptor_namespace = None
 
@@ -323,10 +323,10 @@ def AddDescriptor(adaptation_set, groups, group_name, category_name):
                                schemeIdUri=descriptor_namespace,
                                value=descriptor_value)
             else:
-                sys.stderr.write('WARNING: ignoring ' + descriptor_name + ' descriptor for group "' + group_name + '", the schemeIdUri must be specified\n')
+                sys.stderr.write('WARNING: ignoring ' + descriptor_name + ' descriptor for set "' + set_name + '", the schemeIdUri must be specified\n')
 
 #############################################
-def OutputDash(options, groups, audio_tracks, video_tracks, subtitles_tracks, subtitles_files):
+def OutputDash(options, set_attributes, audio_tracks, video_tracks, subtitles_tracks, subtitles_files):
     # compute the total duration (we take the duration of the video)
     if len(video_tracks):
         presentation_duration = video_tracks[0].total_duration
@@ -361,8 +361,8 @@ def OutputDash(options, groups, audio_tracks, video_tracks, subtitles_tracks, su
                 kwargs['lang'] = audio_track.language
             adaptation_set = xml.SubElement(*args, **kwargs)
 
-            # see if we have descriptors for this group
-            AddDescriptor(adaptation_set, groups, 'audio/' + audio_track.language, 'audio')
+            # see if we have descriptors
+            AddDescriptor(adaptation_set, set_attributes, 'audio/' + audio_track.language, 'audio')
 
             # setup content protection
             if options.encryption_key or options.marlin or options.playready or options.widevine:
@@ -436,8 +436,8 @@ def OutputDash(options, groups, audio_tracks, video_tracks, subtitles_tracks, su
                                         minHeight=str(minHeight),
                                         maxHeight=str(maxHeight))
 
-        # see if we have descriptors for this group
-        AddDescriptor(adaptation_set, groups, 'video', None)
+        # see if we have descriptors
+        AddDescriptor(adaptation_set, set_attributes, 'video', None)
 
         # setup content protection
         if options.encryption_key or options.marlin or options.playready or options.widevine:
@@ -493,8 +493,8 @@ def OutputDash(options, groups, audio_tracks, video_tracks, subtitles_tracks, su
             # add a 'subtitles' role
             xml.SubElement(adaptation_set, 'Role', schemeIdUri='urn:mpeg:dash:role:2011', value='subtitle')
 
-            # see if we have other descriptors for this group
-            AddDescriptor(adaptation_set, groups, 'subtitles/' + subtitles_track.language, 'subtitles')
+            # see if we have other descriptors
+            AddDescriptor(adaptation_set, set_attributes, 'subtitles/' + subtitles_track.language, 'subtitles')
 
             representation = xml.SubElement(adaptation_set,
                                             'Representation',
@@ -539,8 +539,8 @@ def OutputDash(options, groups, audio_tracks, video_tracks, subtitles_tracks, su
             # add a 'subtitles' role
             xml.SubElement(adaptation_set, 'Role', schemeIdUri='urn:mpeg:dash:role:2011', value='subtitle')
 
-            # see if we have other descriptors for this group
-            AddDescriptor(adaptation_set, groups, 'subtitles/' + subtitles_file.language, 'subtitles')
+            # see if we have other descriptors
+            AddDescriptor(adaptation_set, set_attributes, 'subtitles/' + subtitles_file.language, 'subtitles')
 
             # estimate the bandwidth
             bandwidth = 1024 # default
@@ -997,8 +997,8 @@ def main():
                       help="Always output an @lang attribute for audio tracks even when the language is undefined"),
     parser.add_option('', "--subtitles", dest="subtitles", action="store_true", default=False,
                       help="Enable Subtitles")
-    parser.add_option('', "--group", dest="groups", action="append", metavar='<group-definition>', default=[],
-                      help="Specify the attributes of a group. This option may be used multiple times, once per group")
+    parser.add_option('', "--attributes", dest="attributes", action="append", metavar='<attributes-definition>', default=[],
+                      help="Specify the attributes of a set of tracks. This option may be used multiple times, once per attribute set.")
     parser.add_option('', "--smooth", dest="smooth", default=False, action="store_true",
                       help="Produce an output compatible with Smooth Streaming")
     parser.add_option('', '--smooth-client-manifest-name', dest="smooth_client_manifest_filename",
@@ -1167,17 +1167,17 @@ def main():
             from_lang, to_lang = mapping.split(':')
             options.language_map[from_lang] = to_lang
 
-    # parse the group definitions
-    groups = {}
-    for group in options.groups:
+    # parse the attributes definitions
+    set_attributes = {}
+    for set_attributes_spec in options.attributes:
         try:
-            group_name, group_attributes = group.split(':', 1)
-            groups[group_name] = {}
-            for group_attribute in group_attributes.split(','):
-                name, value = group_attribute.split('=', 1)
-                groups[group_name][name] = value
+            set_name, attributes = set_attributes_spec.split(':', 1)
+            set_attributes[set_name] = {}
+            for attribute in attributes.split(','):
+                name, value = attribute.split('=', 1)
+                set_attributes[set_name][name] = value
         except:
-            raise Exception('Invalid syntax for --group option')
+            raise Exception('Invalid syntax for --attributes option')
 
     # parse media sources syntax
     media_sources = [MediaSource(source) for source in args]
@@ -1546,7 +1546,7 @@ def main():
                 shutil.copyfile(subtitles_file.media_source.filename, media_filename)
 
     # output the DASH MPD
-    OutputDash(options, groups, audio_tracks, video_tracks, subtitles_tracks, subtitles_files)
+    OutputDash(options, set_attributes, audio_tracks, video_tracks, subtitles_tracks, subtitles_files)
 
     # output the Smooth Manifests
     if options.smooth:
