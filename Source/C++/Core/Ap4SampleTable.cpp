@@ -191,7 +191,7 @@ AP4_SampleTable::GenerateStblAtom(AP4_ContainerAtom*& stbl)
     }
     
     // see if we need a co64 or an stco atom
-    AP4_Size  chunk_count = chunk_offsets.ItemCount();
+    AP4_Size chunk_count = chunk_offsets.ItemCount();
     if (current_chunk_offset <= 0xFFFFFFFF) {
         // make an array of 32-bit entries
         AP4_UI32* chunk_offsets_32 = new AP4_UI32[chunk_count];

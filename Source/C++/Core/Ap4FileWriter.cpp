@@ -80,8 +80,8 @@ AP4_FileWriter::Write(AP4_File& file, AP4_ByteStream& stream, Interleaving /* in
     AP4_Array<AP4_Array<AP4_UI64>*> trak_chunk_offsets_backup;
     AP4_Array<AP4_UI64>             chunk_offsets;
     for (AP4_List<AP4_Track>::Item* track_item = movie->GetTracks().FirstItem();
-         track_item;
-         track_item = track_item->GetNext()) {
+                                    track_item;
+                                    track_item = track_item->GetNext()) {
         AP4_Track*    track = track_item->GetData();
         AP4_TrakAtom* trak  = track->UseTrakAtom();
         

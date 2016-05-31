@@ -37,13 +37,15 @@
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-#define BANNER "MP4 Fragment Splitter - Version 1.1\n"\
+#define BANNER "MP4 Fragment Splitter - Version 1.2\n"\
                "(Bento4 Version " AP4_VERSION_STRING ")\n"\
-               "(c) 2002-2013 Axiomatic Systems, LLC"
+               "(c) 2002-2016 Axiomatic Systems, LLC"
  
 #define AP4_SPLIT_DEFAULT_INIT_SEGMENT_NAME  "init.mp4"
 #define AP4_SPLIT_DEFAULT_MEDIA_SEGMENT_NAME "segment-%llu.%04llu.m4s"
 #define AP4_SPLIT_DEFAULT_PATTERN_PARAMS     "IN"
+
+const unsigned int AP4_SPLIT_MAX_TRACK_IDS = 32;
 
 /*----------------------------------------------------------------------
 |   options
@@ -55,11 +57,11 @@ struct Options {
     const char*  media_segment_name;
     const char*  pattern_params;
     unsigned int start_number;
-    unsigned int track_id;
+    unsigned int track_ids[AP4_SPLIT_MAX_TRACK_IDS];
+    unsigned int track_id_count;
     bool         audio_only;
     bool         video_only;
     bool         init_only;
-    unsigned int track_filter;
 } Options;
 
 /*----------------------------------------------------------------------
@@ -82,6 +84,8 @@ PrintUsageAndExit()
             "     I: track ID\n"
             "     N: segment number\n"
             "  --track-id <track-id> : only output segments with this track ID\n"
+            "     More than one track IDs can be specified if <track-id> is a comma-separated\n"
+            "     list of track IDs\n"
             "  --audio : only output audio segments\n"
             "  --video : only output video segments\n");
     exit(1);
@@ -112,6 +116,42 @@ NextFragmentIndex(unsigned int track_id)
 }
 
 /*----------------------------------------------------------------------
+|   ParseTrackIds
++---------------------------------------------------------------------*/
+static bool
+ParseTrackIds(char* ids)
+{
+    for (char* separator = ids; ; ++separator) {
+        if (*separator == ',' || *separator == 0) {
+            if (Options.track_id_count >= AP4_SPLIT_MAX_TRACK_IDS) {
+                return false;
+            }
+            bool the_end = (*separator == 0);
+            *separator = 0;
+            Options.track_ids[Options.track_id_count++] = strtoul(ids, NULL, 10);
+            if (the_end) break;
+            ids = separator+1;
+        }
+    }
+    
+    return true;
+}
+
+/*----------------------------------------------------------------------
+|   TrackIdMatches
++---------------------------------------------------------------------*/
+static bool
+TrackIdMatches(unsigned int track_id)
+{
+    if (Options.track_id_count == 0) return true;
+    for (unsigned int i=0; i<Options.track_id_count; i++) {
+        if (Options.track_ids[i] == track_id) return true;
+    }
+    
+    return false;
+}
+
+/*----------------------------------------------------------------------
 |   main
 +---------------------------------------------------------------------*/
 int
@@ -128,16 +168,15 @@ main(int argc, char** argv)
     Options.media_segment_name     = AP4_SPLIT_DEFAULT_MEDIA_SEGMENT_NAME;
     Options.pattern_params         = AP4_SPLIT_DEFAULT_PATTERN_PARAMS;
     Options.start_number           = 1;
-    Options.track_id               = 0;
+    Options.track_id_count         = 0;
     Options.audio_only             = false;
     Options.video_only             = false;
     Options.init_only              = false;
-    Options.track_filter           = 0;
     
     // parse command line
     AP4_Result result;
     char** args = argv+1;
-    while (const char* arg = *args++) {
+    while (char* arg = *args++) {
         if (!strcmp(arg, "--verbose")) {
             Options.verbose = true;
         } else if (!strcmp(arg, "--init-segment")) {
@@ -159,7 +198,10 @@ main(int argc, char** argv)
             }
             Options.pattern_params = *args++;
         } else if (!strcmp(arg, "--track-id")) {
-            Options.track_id = strtoul(*args++, NULL, 10);
+            if (!ParseTrackIds(*args++)) {
+                fprintf(stderr, "ERROR: invalid argument for --track-id\n");
+                return 1;
+            }
         } else if (!strcmp(arg, "--start-number")) {
             Options.start_number = strtoul(*args++, NULL, 10);
         } else if (!strcmp(arg, "--init-only")) {
@@ -181,9 +223,9 @@ main(int argc, char** argv)
         fprintf(stderr, "ERROR: missing input file name\n");
         return 1;
     }
-    if ((Options.audio_only && (Options.video_only || Options.track_id)) ||
-        (Options.video_only && (Options.audio_only || Options.track_id)) ||
-        (Options.track_id   && (Options.audio_only || Options.video_only))) {
+    if ((Options.audio_only     && (Options.video_only || Options.track_id_count)) ||
+        (Options.video_only     && (Options.audio_only || Options.track_id_count)) ||
+        (Options.track_id_count && (Options.audio_only || Options.video_only    ))) {
         fprintf(stderr, "ERROR: --audio, --video and --track-id options are mutualy exclusive\n");
         return 1;
     }
@@ -227,21 +269,24 @@ main(int argc, char** argv)
             fprintf(stderr, "--audio option specified, but no audio track found\n");
             return 1;
         }
-        Options.track_filter = track->GetId();
+        Options.track_ids[0]   = track->GetId();
+        Options.track_id_count = 1;
     } else if (Options.video_only) {
         AP4_Track* track = movie->GetTrack(AP4_Track::TYPE_VIDEO);
         if (track == NULL) {
             fprintf(stderr, "--video option specified, but no video track found\n");
             return 1;
         }
-        Options.track_filter = track->GetId();
-    } else if (Options.track_id) {
-        AP4_Track* track = movie->GetTrack(Options.track_id);
-        if (track == NULL) {
-            fprintf(stderr, "--track-id option specified, but no such track found\n");
-            return 1;
+        Options.track_ids[0]   = track->GetId();
+        Options.track_id_count = 1;
+    } else if (Options.track_id_count) {
+        for (unsigned int i=0; i<Options.track_id_count; i++) {
+            AP4_Track* track = movie->GetTrack(Options.track_ids[i]);
+            if (track == NULL) {
+                fprintf(stderr, "--track-id option specified, but no such track found\n");
+                return 1;
+            }
         }
-        Options.track_filter = track->GetId();
     }
     
     // save the init segment
@@ -259,7 +304,7 @@ main(int argc, char** argv)
             return 1;
         }
     }
-    if (Options.track_filter) {
+    if (Options.track_id_count) {
         AP4_MoovAtom* moov = movie->GetMoovAtom();
         
         // only keep the 'trak' atom that we need
@@ -270,7 +315,7 @@ main(int argc, char** argv)
             if (atom->GetType() == AP4_ATOM_TYPE_TRAK) {
                 AP4_TrakAtom* trak = (AP4_TrakAtom*)atom;
                 AP4_TkhdAtom* tkhd = (AP4_TkhdAtom*)trak->GetChild(AP4_ATOM_TYPE_TKHD);
-                if (tkhd && tkhd->GetTrackId() != Options.track_filter) {
+                if (tkhd && !TrackIdMatches(tkhd->GetTrackId())) {
                     atom->Detach();
                     delete atom;
                 }
@@ -286,7 +331,7 @@ main(int argc, char** argv)
                 child = child->GetNext();
                 if (atom->GetType() == AP4_ATOM_TYPE_TREX) {
                     AP4_TrexAtom* trex = AP4_DYNAMIC_CAST(AP4_TrexAtom, atom);
-                    if (trex && trex->GetTrackId() != Options.track_filter) {
+                    if (trex && !TrackIdMatches(trex->GetTrackId())) {
                         atom->Detach();
                         delete atom;
                     }
@@ -338,13 +383,14 @@ main(int argc, char** argv)
                 track_id = 0;
             }
             
-            // open a new file for this fragment
-            if (output) {
-                output->Release();
-                output = NULL;
-            }
+            // open a new file for this fragment if this moof is a segment start
             char segment_name[4096];
-            if (Options.track_filter == 0 || Options.track_filter == track_id) {
+            if (Options.track_id_count == 0 || track_id == Options.track_ids[0]) {
+                if (output) {
+                    output->Release();
+                    output = NULL;
+                }
+
                 AP4_UI64 p[2] = {0,0};
                 unsigned int params_len = strlen(Options.pattern_params);
                 for (unsigned int i=0; i<params_len; i++) {
@@ -374,7 +420,7 @@ main(int argc, char** argv)
         }
         
         // write the atom
-        if (output && atom->GetType() != AP4_ATOM_TYPE_MFRA) {
+        if (output && atom->GetType() != AP4_ATOM_TYPE_MFRA && TrackIdMatches(track_id)) {
             atom->Write(*output);
         }
         delete atom;
