@@ -101,16 +101,14 @@ def SelectAudioTracks(options, media_sources):
         if not tracks:
             tracks = media_source.mp4_file.tracks.values()
 
-        # skip this source if we end up with more than audio tracks
-        audio_only = True
-        for track in tracks:
-            if track.type != 'audio':
-                audio_only = False
-                break
-        if not audio_only: continue
-
         # pre-process the track metadata
         for track in tracks:
+            # remember if this media source has a video or audio track
+            if track.type == 'video':
+                media_source.has_video = True
+            if track.type == 'audio':
+                media_source.has_audio = True
+
             # track language
             language = LanguageCodeMap.get(track.language, track.language)
             if track_language and track_language != language and track_language != track.language:
@@ -119,6 +117,10 @@ def SelectAudioTracks(options, media_sources):
             if remap_language:
                 language = remap_language
             track.language = language
+            language_name = LanguageNames.get(language, language)
+            if language_name == 'und':
+                language_name = 'Unknown'
+            track.language_name = media_source.spec.get('+language_name', language_name)
 
         # process audio tracks
         for track in [t for t in tracks if t.type == 'audio']:
@@ -176,32 +178,33 @@ def ProcessSource(options, media_info, out_dir):
 
 #############################################
 def OutputHls(options, media_sources):
-    # process audio tracks
+    mp4_sources = [media_source for media_source in media_sources if media_source.format == 'mp4']
+
+    # select audio tracks
     audio_media = []
-    audio_tracks = SelectAudioTracks(options, [media_source for media_source in media_sources if not media_source.spec.get('+audio_fallback')])
-    if len(audio_tracks):
-        MakeNewDir(path.join(options.output_dir, 'audio'))
-    for audio_track in audio_tracks:
-        media_info = {
-            'source':         audio_track.parent.media_source,
-            'dir':            'audio/'+audio_track.language,
-            'language':       audio_track.language,
-            'audio_track_id': audio_track.id,
-            'video_track_id': 0
-        }
-        out_dir = path.join(options.output_dir, 'audio', audio_track.language)
-        MakeNewDir(out_dir)
+    audio_tracks = SelectAudioTracks(options, [media_source for media_source in mp4_sources if not media_source.spec.get('+audio_fallback')])
 
-        # process the source
-        ProcessSource(options, media_info, out_dir)
+    # check if this is an audio-only presentation
+    audio_only = True
+    for media_source in media_sources:
+        if media_source.has_video:
+            audio_only = False
+            break
 
-        audio_media.append(media_info)
+    # audio-only presentations don't need alternate audio tracks
+    if audio_only:
+        audio_tracks = []
 
-    # process main media sources
+    # we only need alternate audio tracks if there are more than one
+    if not audio_only and len(audio_tracks) == 1:
+        audio_tracks = []
+
+    # process main/muxed media sources
     total_duration = 0
     muxed_media = []
-    muxed_sources = [media_source for media_source in media_sources if media_source.format == 'mp4' and media_source.spec['type'] != 'audio']
-    for media_source in muxed_sources:
+    for media_source in mp4_sources:
+        if not audio_only and not media_source.spec.get('+audio_fallback') and not media_source.has_video:
+            continue
         media_index = 1+len(muxed_media)
         media_info = {
             'source': media_source,
@@ -223,6 +226,26 @@ def OutputHls(options, media_sources):
             total_duration = duration_s
 
         muxed_media.append(media_info)
+
+    # process audio tracks
+    if len(audio_tracks):
+        MakeNewDir(path.join(options.output_dir, 'audio'))
+    for audio_track in audio_tracks:
+        media_info = {
+            'source':         audio_track.parent.media_source,
+            'dir':            'audio/'+audio_track.language,
+            'language':       audio_track.language,
+            'language_name':  audio_track.language_name,
+            'audio_track_id': audio_track.id,
+            'video_track_id': 0
+        }
+        out_dir = path.join(options.output_dir, 'audio', audio_track.language)
+        MakeNewDir(out_dir)
+
+        # process the source
+        ProcessSource(options, media_info, out_dir)
+
+        audio_media.append(media_info)
 
     # start the master playlist
     master_playlist = open(path.join(options.output_dir, options.master_playlist_name), "w+")
@@ -255,7 +278,7 @@ def OutputHls(options, media_sources):
         master_playlist.write('\r\n')
         master_playlist.write('# Audio\r\n')
         for media in audio_media:
-            master_playlist.write('#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="audio",LANGUAGE="%s",URI="%s"\r\n' % (media['language'], media['dir']+'/stream.m3u8'))
+            master_playlist.write('#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="audio",NAME="%s",LANGUAGE="%s",URI="%s"\r\n' % (media['language_name'], media['language'], media['dir']+'/stream.m3u8'))
 
     # media playlists
     master_playlist.write('\r\n')
@@ -385,6 +408,9 @@ def main():
 
     # parse media sources syntax
     media_sources = [MediaSource(source) for source in args]
+    for media_source in media_sources:
+        media_source.has_audio  = False
+        media_source.has_video  = False
 
     # create the output directory
     severity = 'ERROR'

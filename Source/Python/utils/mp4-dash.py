@@ -326,14 +326,18 @@ def AddDescriptor(adaptation_set, set_attributes, set_name, category_name):
                 sys.stderr.write('WARNING: ignoring ' + descriptor_name + ' descriptor for set "' + set_name + '", the schemeIdUri must be specified\n')
 
 #############################################
-def OutputDash(options, set_attributes, audio_tracks, video_tracks, subtitles_tracks, subtitles_files):
+def OutputDash(options, set_attributes, audio_sets, video_sets, subtitles_sets, subtitles_files):
+    all_audio_tracks     = sum(audio_sets.values(),     [])
+    all_video_tracks     = sum(video_sets.values(),     [])
+    all_subtitles_tracks = sum(subtitles_sets.values(), [])
+
     # compute the total duration (we take the duration of the video)
-    if len(video_tracks):
-        presentation_duration = video_tracks[0].total_duration
+    if len(all_video_tracks):
+        presentation_duration = all_video_tracks[0].total_duration
     elif len(audio_tracks):
-        presentation_duration = audio_tracks[0].total_duration
+        presentation_duration = all_audio_tracks[0].total_duration
     elif len(subtitles_tracks):
-        presentation_duration = subtitles_tracks[0].total_duration
+        presentation_duration = all_subtitles_tracks[0].total_duration
     else:
         return
 
@@ -351,22 +355,93 @@ def OutputDash(options, set_attributes, audio_tracks, video_tracks, subtitles_tr
     mpd.append(xml.Comment(' Created with Bento4 mp4-dash.py, VERSION=' + VERSION + '-' + SDK_REVISION + ' '))
     period = xml.SubElement(mpd, 'Period')
 
-    # process the audio tracks
-    if len(audio_tracks):
-        period.append(xml.Comment(' Audio '))
-        for audio_track in audio_tracks:
-            args = [period, 'AdaptationSet']
-            kwargs = {'mimeType': AUDIO_MIMETYPE, 'startWithSAP': '1', 'segmentAlignment': 'true'}
-            if (audio_track.language != 'und') or options.always_output_lang:
-                kwargs['lang'] = audio_track.language
-            adaptation_set = xml.SubElement(*args, **kwargs)
+    # process the video tracks
+    if len(video_sets):
+        period.append(xml.Comment(' Video '))
+
+        for video_tracks in video_sets.values():
+            # compute the min and max values
+            minWidth  = 0
+            minHeight = 0
+            maxWidth  = 0
+            maxHeight = 0
+            for video_track in video_tracks:
+                if minWidth  == 0 or video_track.width < minWidth:  minWidth  = video_track.width
+                if minHeight == 0 or video_track.width < minHeight: minHeight = video_track.height
+                if video_track.width  > maxWidth:  maxWidth  = video_track.width
+                if video_track.height > maxHeight: maxHeight = video_track.height
+
+            adaptation_set = xml.SubElement(period,
+                                            'AdaptationSet',
+                                            mimeType=VIDEO_MIMETYPE,
+                                            segmentAlignment='true',
+                                            startWithSAP='1',
+                                            minWidth=str(minWidth),
+                                            maxWidth=str(maxWidth),
+                                            minHeight=str(minHeight),
+                                            maxHeight=str(maxHeight))
 
             # see if we have descriptors
-            AddDescriptor(adaptation_set, set_attributes, 'audio/' + audio_track.language, 'audio')
+            AddDescriptor(adaptation_set, set_attributes, 'video', None)
 
             # setup content protection
             if options.encryption_key or options.marlin or options.playready or options.widevine:
-                AddContentProtection(options, adaptation_set, [audio_track])
+                AddContentProtection(options, adaptation_set, video_tracks)
+
+            if not options.on_demand:
+                if options.split:
+                    init_segment_url                  = '$RepresentationID$/' + SPLIT_INIT_SEGMENT_NAME
+                    media_segment_url_template_prefix = '$RepresentationID$/'
+                else:
+                    init_segment_url                  = NOSPLIT_INIT_FILE_PATTERN % ('$RepresentationID$')
+                    media_segment_url_template_prefix = ''
+                AddSegmentTemplate(options, adaptation_set, init_segment_url, media_segment_url_template_prefix, video_tracks[0], 'video')
+
+            for video_track in video_tracks:
+                representation = xml.SubElement(adaptation_set,
+                                                'Representation',
+                                                id=video_track.representation_id,
+                                                codecs=video_track.codec,
+                                                width=str(video_track.width),
+                                                height=str(video_track.height),
+                                                scanType=video_track.scan_type,
+                                                frameRate=video_track.frame_rate_ratio,
+                                                bandwidth=str(video_track.bandwidth))
+                if hasattr(video_track, 'max_playout_rate'):
+                    representation.set('maxPlayoutRate', video_track.max_playout_rate)
+
+                if options.on_demand:
+                    base_url = xml.SubElement(representation, 'BaseURL')
+                    base_url.text = ONDEMAND_MEDIA_FILE_PATTERN % (options.media_prefix, video_track.representation_id)
+                    sidx_range = (video_track.sidx_atom.position, video_track.sidx_atom.position+video_track.sidx_atom.size-1)
+                    init_range = (0, video_track.moov_atom.position+video_track.moov_atom.size-1)
+                    segment_base = xml.SubElement(representation, 'SegmentBase', indexRange=str(sidx_range[0])+'-'+str(sidx_range[1]))
+                    xml.SubElement(segment_base, 'Initialization', range=str(init_range[0])+'-'+str(init_range[1]))
+                else:
+                    if options.split:
+                        media_subdir = 'video/' + str(video_track.order_index)
+                    else:
+                        media_subdir = None
+
+                    AddSegments(options, representation, media_subdir, video_track)
+
+    # process the audio tracks
+    if len(audio_sets):
+        period.append(xml.Comment(' Audio '))
+        for adaptation_set_name, audio_tracks in audio_sets.items():
+            args = [period, 'AdaptationSet']
+            kwargs = {'mimeType': AUDIO_MIMETYPE, 'startWithSAP': '1', 'segmentAlignment': 'true'}
+            language = audio_tracks[0].language
+            if (language != 'und') or options.always_output_lang:
+                kwargs['lang'] = language
+            adaptation_set = xml.SubElement(*args, **kwargs)
+
+            # see if we have descriptors
+            AddDescriptor(adaptation_set, set_attributes, 'audio/' + language, 'audio')
+
+            # setup content protection
+            if options.encryption_key or options.marlin or options.playready or options.widevine:
+                AddContentProtection(options, adaptation_set, audio_tracks)
 
             if not options.on_demand:
                 if options.split:
@@ -376,152 +451,85 @@ def OutputDash(options, set_attributes, audio_tracks, video_tracks, subtitles_tr
                     init_segment_url                  = NOSPLIT_INIT_FILE_PATTERN % ('$RepresentationID$')
                     media_segment_url_template_prefix = ''
 
-                stream_name = 'audio_' + audio_track.language
-                AddSegmentTemplate(options, adaptation_set, init_segment_url, media_segment_url_template_prefix, audio_track, stream_name)
+                stream_name = 'audio_' + language
+                AddSegmentTemplate(options, adaptation_set, init_segment_url, media_segment_url_template_prefix, audio_tracks[0], stream_name)
 
-            representation = xml.SubElement(adaptation_set,
-                                            'Representation',
-                                            id=audio_track.representation_id,
-                                            codecs=audio_track.codec,
-                                            bandwidth=str(audio_track.bandwidth),
-                                            audioSamplingRate=str(audio_track.sample_rate))
-            if audio_track.codec == 'ec-3':
-                audio_channel_config_value = ComputeDolbyDigitalAudioChannelConfig(audio_track)
-                scheme_id_uri = DOLBY_DIGITAL_AUDIO_CHANNEL_CONFIGURATION_SCHEME_ID_URI
-            else:
-                audio_channel_config_value = str(audio_track.channels)
-                scheme_id_uri = MPEG_DASH_AUDIO_CHANNEL_CONFIGURATION_SCHEME_ID_URI
-            audio_channel_config = xml.SubElement(representation,
-                                                  'AudioChannelConfiguration',
-                                                  schemeIdUri=scheme_id_uri,
-                                                  value=audio_channel_config_value)
-
-            if options.on_demand:
-                base_url = xml.SubElement(representation, 'BaseURL')
-                base_url.text = ONDEMAND_MEDIA_FILE_PATTERN % (options.media_prefix, audio_track.representation_id)
-                sidx_range = (audio_track.sidx_atom.position, audio_track.sidx_atom.position+audio_track.sidx_atom.size-1)
-                init_range = (0, audio_track.moov_atom.position+audio_track.moov_atom.size-1)
-                segment_base = xml.SubElement(representation, 'SegmentBase', indexRange=str(sidx_range[0])+'-'+str(sidx_range[1]))
-                xml.SubElement(segment_base, 'Initialization', range=str(init_range[0])+'-'+str(init_range[1]))
-            else:
-                if options.split:
-                    media_subdir = 'audio/' + audio_track.language
+            for audio_track in audio_tracks:
+                representation = xml.SubElement(adaptation_set,
+                                                'Representation',
+                                                id=audio_track.representation_id,
+                                                codecs=audio_track.codec,
+                                                bandwidth=str(audio_track.bandwidth),
+                                                audioSamplingRate=str(audio_track.sample_rate))
+                if audio_track.codec == 'ec-3':
+                    audio_channel_config_value = ComputeDolbyDigitalAudioChannelConfig(audio_track)
+                    scheme_id_uri = DOLBY_DIGITAL_AUDIO_CHANNEL_CONFIGURATION_SCHEME_ID_URI
                 else:
-                    media_subdir = None
+                    audio_channel_config_value = str(audio_track.channels)
+                    scheme_id_uri = MPEG_DASH_AUDIO_CHANNEL_CONFIGURATION_SCHEME_ID_URI
+                audio_channel_config = xml.SubElement(representation,
+                                                      'AudioChannelConfiguration',
+                                                      schemeIdUri=scheme_id_uri,
+                                                      value=audio_channel_config_value)
 
-                AddSegments(options, representation, media_subdir, audio_track)
-
-    # process the video tracks
-    if len(video_tracks):
-        period.append(xml.Comment(' Video '))
-
-        # compute the min and max values
-        minWidth  = 0
-        minHeight = 0
-        maxWidth  = 0
-        maxHeight = 0
-        for video_track in video_tracks:
-            if minWidth  == 0 or video_track.width < minWidth:  minWidth  = video_track.width
-            if minHeight == 0 or video_track.width < minHeight: minHeight = video_track.height
-            if video_track.width  > maxWidth:  maxWidth  = video_track.width
-            if video_track.height > maxHeight: maxHeight = video_track.height
-
-        adaptation_set = xml.SubElement(period,
-                                        'AdaptationSet',
-                                        mimeType=VIDEO_MIMETYPE,
-                                        segmentAlignment='true',
-                                        startWithSAP='1',
-                                        minWidth=str(minWidth),
-                                        maxWidth=str(maxWidth),
-                                        minHeight=str(minHeight),
-                                        maxHeight=str(maxHeight))
-
-        # see if we have descriptors
-        AddDescriptor(adaptation_set, set_attributes, 'video', None)
-
-        # setup content protection
-        if options.encryption_key or options.marlin or options.playready or options.widevine:
-            AddContentProtection(options, adaptation_set, video_tracks)
-
-        if not options.on_demand:
-            if options.split:
-                init_segment_url                  = '$RepresentationID$/' + SPLIT_INIT_SEGMENT_NAME
-                media_segment_url_template_prefix = '$RepresentationID$/'
-            else:
-                init_segment_url                  = NOSPLIT_INIT_FILE_PATTERN % ('$RepresentationID$')
-                media_segment_url_template_prefix = ''
-            AddSegmentTemplate(options, adaptation_set, init_segment_url, media_segment_url_template_prefix, video_tracks[0], 'video')
-
-        for video_track in video_tracks:
-            representation = xml.SubElement(adaptation_set,
-                                            'Representation',
-                                            id=video_track.representation_id,
-                                            codecs=video_track.codec,
-                                            width=str(video_track.width),
-                                            height=str(video_track.height),
-                                            scanType=video_track.scan_type,
-                                            frameRate=video_track.frame_rate_ratio,
-                                            bandwidth=str(video_track.bandwidth))
-            if hasattr(video_track, 'max_playout_rate'):
-                representation.set('maxPlayoutRate', video_track.max_playout_rate)
-
-            if options.on_demand:
-                base_url = xml.SubElement(representation, 'BaseURL')
-                base_url.text = ONDEMAND_MEDIA_FILE_PATTERN % (options.media_prefix, video_track.representation_id)
-                sidx_range = (video_track.sidx_atom.position, video_track.sidx_atom.position+video_track.sidx_atom.size-1)
-                init_range = (0, video_track.moov_atom.position+video_track.moov_atom.size-1)
-                segment_base = xml.SubElement(representation, 'SegmentBase', indexRange=str(sidx_range[0])+'-'+str(sidx_range[1]))
-                xml.SubElement(segment_base, 'Initialization', range=str(init_range[0])+'-'+str(init_range[1]))
-            else:
-                if options.split:
-                    media_subdir = 'video/' + str(video_track.order_index)
+                if options.on_demand:
+                    base_url = xml.SubElement(representation, 'BaseURL')
+                    base_url.text = ONDEMAND_MEDIA_FILE_PATTERN % (options.media_prefix, audio_track.representation_id)
+                    sidx_range = (audio_track.sidx_atom.position, audio_track.sidx_atom.position+audio_track.sidx_atom.size-1)
+                    init_range = (0, audio_track.moov_atom.position+audio_track.moov_atom.size-1)
+                    segment_base = xml.SubElement(representation, 'SegmentBase', indexRange=str(sidx_range[0])+'-'+str(sidx_range[1]))
+                    xml.SubElement(segment_base, 'Initialization', range=str(init_range[0])+'-'+str(init_range[1]))
                 else:
-                    media_subdir = None
+                    if options.split:
+                        media_subdir = 'audio/' + audio_track.language
+                    else:
+                        media_subdir = None
 
-                AddSegments(options, representation, media_subdir, video_track)
+                    AddSegments(options, representation, media_subdir, audio_track)
 
     # process all the subtitles tracks
     if options.subtitles and len(subtitles_tracks):
         period.append(xml.Comment(' Subtitles (Encapsulated) '))
-        for subtitles_track in subtitles_tracks:
-            args = [period, 'AdaptationSet']
-            kwargs = {'mimeType': SUBTITLES_MIMETYPE, 'startWithSAP': '1'}
-            if (subtitles_track.language != 'und') or options.always_output_lang:
-                kwargs['lang'] = subtitles_track.language
-            adaptation_set = xml.SubElement(*args, **kwargs)
+        for subtitles_tracks in subtitles_sets:
+            for subtitles_track in subtitles_tracks:
+                args = [period, 'AdaptationSet']
+                kwargs = {'mimeType': SUBTITLES_MIMETYPE, 'startWithSAP': '1'}
+                if (subtitles_track.language != 'und') or options.always_output_lang:
+                    kwargs['lang'] = subtitles_track.language
+                adaptation_set = xml.SubElement(*args, **kwargs)
 
-            # add a 'subtitles' role
-            xml.SubElement(adaptation_set, 'Role', schemeIdUri='urn:mpeg:dash:role:2011', value='subtitle')
+                # add a 'subtitles' role
+                xml.SubElement(adaptation_set, 'Role', schemeIdUri='urn:mpeg:dash:role:2011', value='subtitle')
 
-            # see if we have other descriptors
-            AddDescriptor(adaptation_set, set_attributes, 'subtitles/' + subtitles_track.language, 'subtitles')
+                # see if we have other descriptors
+                AddDescriptor(adaptation_set, set_attributes, 'subtitles/' + subtitles_track.language, 'subtitles')
 
-            representation = xml.SubElement(adaptation_set,
-                                            'Representation',
-                                            id=subtitles_track.representation_id,
-                                            codecs=subtitles_track.codec,
-                                            bandwidth=str(subtitles_track.bandwidth))
+                representation = xml.SubElement(adaptation_set,
+                                                'Representation',
+                                                id=subtitles_track.representation_id,
+                                                codecs=subtitles_track.codec,
+                                                bandwidth=str(subtitles_track.bandwidth))
 
-            if options.on_demand:
-                base_url = xml.SubElement(representation, 'BaseURL')
-                base_url.text = ONDEMAND_MEDIA_FILE_PATTERN % (options.media_prefix, subtitles_track.representation_id)
-                sidx_range = (subtitles_track.sidx_atom.position, subtitles_track.sidx_atom.position+subtitles_track.sidx_atom.size-1)
-                init_range = (0, subtitles_track.moov_atom.position+subtitles_track.moov_atom.size-1)
-                segment_base = xml.SubElement(representation, 'SegmentBase', indexRange=str(sidx_range[0])+'-'+str(sidx_range[1]))
-                xml.SubElement(segment_base, 'Initialization', range=str(init_range[0])+'-'+str(init_range[1]))
-            else:
-                if options.split:
-                    media_subdir                      = 'subtitles/' + subtitles_track.language
-                    init_segment_url                  = '$RepresentationID$/' + SPLIT_INIT_SEGMENT_NAME
-                    media_segment_url_template_prefix = '$RepresentationID$/'
+                if options.on_demand:
+                    base_url = xml.SubElement(representation, 'BaseURL')
+                    base_url.text = ONDEMAND_MEDIA_FILE_PATTERN % (options.media_prefix, subtitles_track.representation_id)
+                    sidx_range = (subtitles_track.sidx_atom.position, subtitles_track.sidx_atom.position+subtitles_track.sidx_atom.size-1)
+                    init_range = (0, subtitles_track.moov_atom.position+subtitles_track.moov_atom.size-1)
+                    segment_base = xml.SubElement(representation, 'SegmentBase', indexRange=str(sidx_range[0])+'-'+str(sidx_range[1]))
+                    xml.SubElement(segment_base, 'Initialization', range=str(init_range[0])+'-'+str(init_range[1]))
                 else:
-                    media_subdir                      = None
-                    init_segment_url                  = NOSPLIT_INIT_FILE_PATTERN % ('$RepresentationID$')
-                    media_segment_url_template_prefix = ''
+                    if options.split:
+                        media_subdir                      = 'subtitles/' + subtitles_track.language
+                        init_segment_url                  = '$RepresentationID$/' + SPLIT_INIT_SEGMENT_NAME
+                        media_segment_url_template_prefix = '$RepresentationID$/'
+                    else:
+                        media_subdir                      = None
+                        init_segment_url                  = NOSPLIT_INIT_FILE_PATTERN % ('$RepresentationID$')
+                        media_segment_url_template_prefix = ''
 
-                stream_name = 'subtitles_' + subtitles_track.language
-                AddSegmentTemplate(options, adaptation_set, init_segment_url, media_segment_url_template_prefix, subtitles_track, stream_name)
-                AddSegments(options, representation, media_subdir, subtitles_track)
+                    stream_name = 'subtitles_' + subtitles_track.language
+                    AddSegmentTemplate(options, adaptation_set, init_segment_url, media_segment_url_template_prefix, subtitles_track, stream_name)
+                    AddSegments(options, representation, media_subdir, subtitles_track)
 
     # process all the subtitles files
     if len(subtitles_files):
@@ -820,9 +828,9 @@ def SelectTracks(options, media_sources):
 
 
     # select tracks
-    audio_tracks     = []
-    video_tracks     = []
-    subtitles_tracks = []
+    audio_adaptation_sets     = {}
+    video_adaptation_sets     = {}
+    subtitles_adaptation_sets = {}
     for media_source in media_sources:
         track_id       = media_source.spec['track']
         track_type     = media_source.spec['type']
@@ -867,26 +875,45 @@ def SelectTracks(options, media_sources):
                 language = options.language_map[language]
             track.language = language
 
+            # video scan type
+            if track.type == 'video':
+                track.scan_type = media_source.spec.get('+scan_type', track.scan_type)
+
         # process audio tracks
         for track in [t for t in tracks if t.type == 'audio']:
-            if len([et for et in audio_tracks if et.language == track.language]):
-                continue # only accept one track for each language
-            audio_tracks.append(track)
-            track.order_index = len(audio_tracks)
+            adaptation_set_name = ('audio', track.language, track.codec_family)
+            adaptation_set = audio_adaptation_sets.get(adaptation_set_name, [])
+            audio_adaptation_sets[adaptation_set_name] = adaptation_set
+
+            # only keep this track if there isn't already a track with the same codec at the same bitrate (within 10%)
+            with_same_bandwidth = [t for t in adaptation_set if abs(float(t.bandwidth-track.bandwidth)/float(t.bandwidth)) < 0.1]
+            if len(with_same_bandwidth):
+                continue
+
+            adaptation_set.append(track)
+            track.order_index = len(adaptation_set)
 
         # process video tracks
         for track in [t for t in tracks if t.type == 'video']:
-            video_tracks.append(track)
-            track.order_index = len(video_tracks)
+            adaptation_set_name = ('video', track.codec_family)
+            adaptation_set = video_adaptation_sets.get(adaptation_set_name, [])
+            video_adaptation_sets[adaptation_set_name] = adaptation_set
+            adaptation_set.append(track)
+            track.order_index = len(adaptation_set)
 
         # process subtitle tracks
         for track in [t for t in tracks if t.type == 'subtitles']:
+            adaptation_set_name = ('subtitles', track.language, track.codec_family)
+            adaptation_set = subtitles_adaptation_sets.get(adaptation_set_name, [])
+            subtitles_adaptation_sets[adaptation_set_name] = adaptation_set
+
             if len([et for et in subtitles_tracks if et.language == track.language]):
                 continue # only accept one track for each language
-            subtitles_tracks.append(track)
-            track.order_index = len(subtitles_tracks)
 
-    return (audio_tracks, video_tracks, subtitles_tracks, mp4_files)
+            adaptation_set.append(track)
+            track.order_index = len(adaptation_set)
+
+    return (audio_adaptation_sets, video_adaptation_sets, subtitles_adaptation_sets, mp4_files)
 
 #############################################
 def SelectSubtitlesFiles(options, media_sources):
@@ -1190,9 +1217,9 @@ def main():
 
     # for on-demand, we need to first extract tracks into individual media files
     if options.on_demand:
-        (audio_tracks, video_tracks, subtitles_tracks, mp4_files) = SelectTracks(options, media_sources)
+        (audio_sets, video_sets, subtitles_sets, mp4_files) = SelectTracks(options, media_sources)
         media_sources = []
-        for track in audio_tracks+video_tracks:
+        for track in sum(audio_sets.values()+video_sets.values(), []):
             print 'Extracting track', track.id, 'from', GetMappedFileName(track.parent.media_source.filename)
             track_file = tempfile.NamedTemporaryFile(dir = options.output_dir, delete=False)
             TempFiles.append(track_file.name)
@@ -1306,32 +1333,39 @@ def main():
             media_source.filename = encrypted_file.name
 
     # parse the media sources and select the audio and video tracks
-    (audio_tracks, video_tracks, subtitles_tracks, mp4_files) = SelectTracks(options, media_sources)
+    (audio_sets, video_sets, subtitles_sets, mp4_files) = SelectTracks(options, media_sources)
     subtitles_files = SelectSubtitlesFiles(options, media_sources)
+
+    # store lists of all tracks by type
+    audio_tracks     = sum(audio_sets.values(),     [])
+    video_tracks     = sum(video_sets.values(),     [])
+    subtitles_tracks = sum(subtitles_sets.values(), [])
 
     # check that we have at least one audio and one video
     if len(audio_tracks) == 0 and len(video_tracks) == 0 and len(subtitles_tracks) == 0:
         PrintErrorAndExit('ERROR: no track selected')
 
     if Options.verbose:
-        print 'Audio:',     audio_tracks
-        print 'Video:',     video_tracks
-        print 'Subtitles:', subtitles_tracks
+        print 'Audio:',     audio_sets
+        print 'Video:',     video_sets
+        print 'Subtitles:', subtitles_sets
 
-    # check that segments are consistent between files
-    prev_track = None
-    for track in video_tracks:
-        if prev_track:
-            if track.total_sample_count != prev_track.total_sample_count:
-                sys.stderr.write('WARNING: video sample count mismatch between "'+str(track)+'" and "'+str(prev_track)+'"\n')
-        prev_track = track
+    # check that segments are consistent between tracks of the same adaptation set
+    for tracks in video_sets.values():
+        prev_track = None
+        for track in tracks:
+            if prev_track:
+                if track.total_sample_count != prev_track.total_sample_count:
+                    sys.stderr.write('WARNING: video sample count mismatch between "'+str(track)+'" and "'+str(prev_track)+'"\n')
+            prev_track = track
 
-    # check that the video segments match
-    if len(video_tracks) > 1:
-        anchor = video_tracks[0]
-        for track in video_tracks[1:]:
-            if track.sample_counts[:-1] != anchor.sample_counts[:-1]:
-                PrintErrorAndExit('ERROR: video tracks are not aligned ("'+str(track)+'" differs from '+str(anchor)+')')
+    # check that the video segments match for all video tracks in the same adaptation set
+    for tracks in video_sets.values():
+        if len(tracks) > 1:
+            anchor = tracks[0]
+            for track in tracks[1:]:
+                if track.sample_counts[:-1] != anchor.sample_counts[:-1]:
+                    PrintErrorAndExit('ERROR: video tracks are not aligned ("'+str(track)+'" differs from '+str(anchor)+')')
 
     # check that the video segment durations are almost all equal
     if not options.use_segment_timeline:
@@ -1358,69 +1392,23 @@ def main():
                     print 'INFO: adjusting segment duration for audio track '+str(audio_track)+' to '+str(video_tracks[0].average_segment_duration)+' to match the video'
                 audio_track.average_segment_duration = video_tracks[0].average_segment_duration
 
-    # compute the audio codecs
-    for audio_track in audio_tracks:
-        audio_desc = audio_track.info['sample_descriptions'][0]
-        if 'codecs_string' in audio_desc:
-            audio_track.codec = audio_desc['codecs_string']
-        else:
-            audio_track.codec = audio_desc['coding']
-
-    # compute the video codecs and dimensions
-    for video_track in video_tracks:
-        video_desc = video_track.info['sample_descriptions'][0]
-        if 'codecs_string' in video_desc:
-            video_track.codec = video_desc['codecs_string']
-        else:
-            video_track.codec = video_desc['coding']
-
-        # get the width and height
-        video_track.width  = video_desc['width']
-        video_track.height = video_desc['height']
-
-        # compute the frame rate
-        if video_track.total_duration:
-            video_track.frame_rate = video_track.total_sample_count / video_track.total_duration
-            video_track.frame_rate_ratio = str(fractions.Fraction(str(video_track.frame_rate)).limit_denominator(100000))
-        else:
-            video_track.frame_rate = 0.0
-            video_track.frame_rate_ratio = "0"
-
-        # set the scan type (hardcoded for now)
-        video_track.scan_type = 'progressive'
-
-        # add dolby vision signaling if present
-        if 'dolby_vision' in video_desc:
-            coding_map = {
-                'avc1': 'dva1',
-                'avc3': 'dvav',
-                'hev1': 'dvhe',
-                'hvc1': 'dvh1'
-            }
-            dv_coding = coding_map.get(video_desc['coding'])
-            dv_info = video_desc['dolby_vision']
-            if dv_coding:
-                dv_string = dv_coding + ('.%02d.%02d' % (dv_info['profile'], dv_info['level']))
-                video_track.codec += ','+dv_string
-
-    # compute the subtitles codecs
-    for subtitles_track in subtitles_tracks:
-        subtitles_desc = subtitles_track.info['sample_descriptions'][0]
-        subtitles_coding = subtitles_desc['coding']
-        subtitles_track.codec = subtitles_coding
-
-    # compute the track stream id init segment name for each track
-    for audio_track in audio_tracks:
-        if options.split:
-            audio_track.representation_id = 'audio/'+audio_track.language
-            audio_track.init_segment_name = SPLIT_INIT_SEGMENT_NAME
-        else:
-            audio_track.representation_id = 'audio-'+audio_track.language
-            if options.on_demand:
-                audio_track.parent.media_name = ONDEMAND_MEDIA_FILE_PATTERN % (options.media_prefix, audio_track.representation_id)
+    # compute the representation id and init segment name for each track
+    for adaptation_set_name, tracks in audio_sets.items():
+        for track in tracks:
+            if options.split:
+                track.representation_id = '/'.join(adaptation_set_name)
+                if len(tracks) > 1:
+                    track.representation_id += '/'+str(track.order_index)
+                track.init_segment_name = SPLIT_INIT_SEGMENT_NAME
             else:
-                audio_track.init_segment_name = NOSPLIT_INIT_FILE_PATTERN % (audio_track.representation_id)
-        audio_track.stream_id = 'audio_'+audio_track.language
+                track.representation_id = '-'.join(adaptation_set_name)
+                if len(tracks) > 1:
+                    track.representation_id += '-'+str(track.order_index)
+                if options.on_demand:
+                    track.parent.media_name = ONDEMAND_MEDIA_FILE_PATTERN % (options.media_prefix, track.representation_id)
+                else:
+                    track.init_segment_name = NOSPLIT_INIT_FILE_PATTERN % (track.representation_id)
+            track.stream_id = 'audio_'+audio_track.language
     for video_track in video_tracks:
         if options.split:
             video_track.representation_id = 'video/'+str(video_track.order_index)
@@ -1481,19 +1469,24 @@ def main():
     # create the directories and split/copy/process the media if needed
     if not options.no_media:
         if options.split:
-            if len(audio_tracks):
-                MakeNewDir(path.join(options.output_dir, 'audio'))
-            for audio_track in audio_tracks:
-                out_dir = path.join(options.output_dir, 'audio', audio_track.language)
-                MakeNewDir(out_dir)
-                print 'Splitting media file (audio)', GetMappedFileName(audio_track.parent.media_source.filename)
-                Mp4Split(options,
-                         audio_track.parent.media_source.filename,
-                         track_id               = str(audio_track.id),
-                         pattern_parameters     = 'N',
-                         start_number           = '1',
-                         init_segment           = path.join(out_dir, audio_track.init_segment_name),
-                         media_segment          = path.join(out_dir, SEGMENT_PATTERN))
+            for adaptation_set_name, tracks in audio_sets.items():
+                language = adaptation_set_name[1]
+                out_dir = options.output_dir
+                for subdir in adaptation_set_name:
+                    out_dir = path.join(out_dir, subdir)
+                    MakeNewDir(out_dir)
+                for audio_track in tracks:
+                    if len(tracks) > 1:
+                        out_dir = path.join(out_dir, str(audio_track.order_index))
+                        MakeNewDir(out_dir)
+                    print 'Splitting media file (audio)', GetMappedFileName(audio_track.parent.media_source.filename)
+                    Mp4Split(options,
+                             audio_track.parent.media_source.filename,
+                             track_id               = str(audio_track.id),
+                             pattern_parameters     = 'N',
+                             start_number           = '1',
+                             init_segment           = path.join(out_dir, audio_track.init_segment_name),
+                             media_segment          = path.join(out_dir, SEGMENT_PATTERN))
 
             if len(video_tracks):
                 MakeNewDir(path.join(options.output_dir, 'video'))
@@ -1508,19 +1501,21 @@ def main():
                          start_number           = '1',
                          init_segment           = path.join(out_dir, video_track.init_segment_name),
                          media_segment          = path.join(out_dir, SEGMENT_PATTERN))
-            if len(subtitles_tracks) or len(subtitles_files):
-                MakeNewDir(path.join(options.output_dir, 'subtitles'))
-            for subtitles_track in subtitles_tracks:
-                out_dir = path.join(options.output_dir, 'subtitles', subtitles_track.language)
-                MakeNewDir(out_dir)
-                print 'Splitting media file (subtitles)', GetMappedFileName(subtitles_track.parent.media_source.filename)
-                Mp4Split(Options,
-                         subtitles_track.parent.media_source.filename,
-                         track_id               = str(subtitles_track.id),
-                         pattern_parameters     = 'N',
-                         start_number           = '1',
-                         init_segment           = path.join(out_dir, subtitles_track.init_segment_name),
-                         media_segment          = path.join(out_dir, SEGMENT_PATTERN))
+
+            for adaptation_set_name, tracks in subtitles_sets.items():
+                out_dir = options.output_dir
+                for subdir in adaptation_set_name:
+                    out_dir = path.join(out_dir, subdir)
+                    MakeNewDir(out_dir)
+                for subtitles_track in tracks:
+                    print 'Splitting media file (subtitles)', GetMappedFileName(subtitles_track.parent.media_source.filename)
+                    Mp4Split(Options,
+                             subtitles_track.parent.media_source.filename,
+                             track_id               = str(subtitles_track.id),
+                             pattern_parameters     = 'N',
+                             start_number           = '1',
+                             init_segment           = path.join(out_dir, subtitles_track.init_segment_name),
+                             media_segment          = path.join(out_dir, SEGMENT_PATTERN))
         else:
             for mp4_file in mp4_files.values():
                 print 'Processing and Copying media file', GetMappedFileName(mp4_file.media_source.filename)
@@ -1538,6 +1533,7 @@ def main():
                              init_segment = path.join(options.output_dir, track.init_segment_name))
 
         if len(subtitles_files):
+            MakeNewDir(path.join(options.output_dir, 'subtitles'))
             for subtitles_file in subtitles_files:
                 print 'Processing and Copying subtitles file', GetMappedFileName(subtitles_file.media_source.filename)
                 out_dir = path.join(options.output_dir, 'subtitles', subtitles_file.language)
@@ -1546,7 +1542,7 @@ def main():
                 shutil.copyfile(subtitles_file.media_source.filename, media_filename)
 
     # output the DASH MPD
-    OutputDash(options, set_attributes, audio_tracks, video_tracks, subtitles_tracks, subtitles_files)
+    OutputDash(options, set_attributes, audio_sets, video_sets, subtitles_sets, subtitles_files)
 
     # output the Smooth Manifests
     if options.smooth:
