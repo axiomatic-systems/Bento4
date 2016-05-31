@@ -163,7 +163,7 @@ PrintUsageAndExit()
             "  --encryption-key <key>\n"
             "    Encryption key in hexadecimal (default: no encryption)\n"
             "  --encryption-iv-mode <mode>\n"
-            "    Encryption IV mode: 'sequence', 'random' or 'fps' (Fairplay Streaming) (default: sequence)\n"
+            "    Encryption IV mode: 'sequence', 'random' or 'fps' (FairPlay Streaming) (default: sequence)\n"
             "    (when the mode is 'fps', the encryption key must be 32 bytes: 16 bytes for the key\n"
             "    followed by 16 bytes for the IV).\n"
             "  --encryption-key-uri <uri>\n"
