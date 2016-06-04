@@ -703,7 +703,7 @@ Fragment(AP4_File&                input_file,
     output_stream.Tell(sidx_position);
     if (create_segment_index) {
         sidx = new AP4_SidxAtom(index_cursor->m_Track->GetId(),
-                                index_cursor->m_Track->GetMediaTimeScale(),
+                                timescale?timescale:index_cursor->m_Track->GetMediaTimeScale(),
                                 0,
                                 0);
         // reserve space for the entries now, but they will be computed and updated later
@@ -1007,7 +1007,7 @@ main(int argc, char** argv)
     bool         auto_detect_fragment_duration = true;
     bool         create_segment_index          = false;
     bool         quiet                         = false;
-    AP4_UI32     timescale = 0;
+    AP4_UI32     timescale                     = 0;
     AP4_Result   result;
 
     Options.verbosity          = 1;

@@ -39,7 +39,7 @@
 +---------------------------------------------------------------------*/
 #define BANNER "MP4 Encrypter - Version 1.6\n"\
                "(Bento4 Version " AP4_VERSION_STRING ")\n"\
-               "(c) 2002-2015 Axiomatic Systems, LLC"
+               "(c) 2002-2016 Axiomatic Systems, LLC"
 
 /*----------------------------------------------------------------------
 |   PrintUsageAndExit
