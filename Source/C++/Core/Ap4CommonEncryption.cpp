@@ -176,7 +176,7 @@ AP4_CencCtrSubSampleEncrypter::GetSubSampleMap(AP4_DataBuffer&      sample_data,
         }
 
         const char* cenc_layout = AP4_GlobalOptions::GetString("mpeg-cenc.encryption-layout");
-        if (cenc_layout && AP4_CompareStrings(cenc_layout, "nalu-length-and-type-only")) {
+        if (cenc_layout && AP4_CompareStrings(cenc_layout, "nalu-length-and-type-only") == 0) {
             unsigned int cleartext_size = m_NaluLengthSize+1;
             unsigned int encrypted_size = nalu_size > cleartext_size ? nalu_size-cleartext_size : 0;
             bytes_of_cleartext_data.Append(cleartext_size);
@@ -1849,7 +1849,11 @@ AP4_CencDecryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
         }
     }
     if (sample_entries.ItemCount() == 0) return NULL;
+    
+    // look for the key by track ID
     const AP4_DataBuffer* key = m_KeyMap->GetKey(trak->GetId());
+
+    // create a decrypter with this key
     if (key) {
         AP4_CencTrackDecrypter* handler = NULL;
         AP4_Result result = AP4_CencTrackDecrypter::Create(key->GetData(), 
@@ -1901,7 +1905,7 @@ AP4_CencDecryptingProcessor::CreateFragmentHandler(AP4_TrakAtom*    /*trak*/,
             break;
         }
     }
-    if (sample_description == NULL) return NULL;
+    if (sample_description == NULL || key == NULL) return NULL;
     
     // create the sample decrypter for the fragment
     AP4_CencSampleDecrypter* sample_decrypter = NULL;

@@ -1,11 +1,36 @@
 var app = function() {};
 
-app.video_ = null;
-app.player_ = null;
+app.video = null;
+app.player = null;
 
 app.init = function() {
-  app.video_ =
-      /** @type {!HTMLVideoElement} */ (document.getElementById('video'));
+    // Install built-in polyfills to patch browser incompatibilities.
+    shaka.polyfill.installAll();
+
+    // Check to see if the browser supports the basic APIs Shaka needs.
+    // This is an asynchronous check.
+    shaka.Player.support().then(function(support) {
+      // This executes when the asynchronous check is complete.
+      if (support.supported) {
+        // Everything looks good!
+        app.initPlayer();
+      } else {
+        // This browser does not have the minimum set of APIs we need.
+        console.error('Browser not supported!');
+      }
+    });
+}
+
+app.initPlayer = function() {
+    // Create a Player instance.
+    app.video = /** @type {!HTMLVideoElement} */ document.getElementById('video');
+    app.player = new shaka.Player(app.video);
+
+    // Attach player to the window to make it easy to access in the JS console.
+    window.player = app.player;
+
+    // Listen for error events.
+    app.player.addEventListener('error', app.onPlayerError, false);
 
   var fields = location.search.split('?').pop();
   fields = fields ? fields.split(';') : [];
@@ -22,78 +47,124 @@ app.init = function() {
     shaka.log.setLevel(shaka.log.Level.V1);
   }
 
-  app.onMpdChange();
+  var mpdList = document.getElementById('mpdList');
+  for (var i=0; i<Presets.length; i++) {
+      var preset = Presets[i];
+      var option = document.createElement('option');
+      option.textContent = preset.title;
+      option.setAttribute('value', preset.url);
+      mpdList.appendChild(option);
+  }
+  option = document.createElement('option');
+  option.textContent = '(custom)';
+  option.setAttribute('value', '');
+  mpdList.appendChild(option);
+
+  app.detectEmeDrms();
+  app.onMpdChanged();
+  app.onDrmConfigChanged();
 };
 
-app.onMpdChange = function() {
-  document.getElementById('manifestUrlInput').value = document.getElementById('mpdList').value;
-};
+app.detectEmeDrms = function() {
+    var knownDrms = ['org.w3.clearkey', 'com.widevine.alpha', 'com.microsoft.playready', 'com.adobe.primetime', 'com.apple.fps.1_0', 'com.apple.fps.2_0', 'com.apple.fps.2_0'];
 
+    var responseCount = 0;
+    var self = this;
+    function onRequestMediaKeySystemAccessResponse() {
+        if (++responseCount == knownDrms.length) {
+            document.getElementById('supportedDrms').innerHTML = self.supportedDrms.join(', ');
+        }
+    }
+    this.supportedDrms = [];
+    if (app.video.msSetMediaKeys && (typeof app.video.msSetMediaKeys == 'function')) {
+        // IE
+        knownDrms = ['com.microsoft.playready'];
+        self.supportedDrms = knownDrms;
+        onRequestMediaKeySystemAccessResponse();
+    } else if (typeof navigator.requestMediaKeySystemAccess === 'function') {
+        for (var i=0; i<knownDrms.length; i++) {
+            navigator.requestMediaKeySystemAccess(knownDrms[i], [ { } ]).then(function(mediaKeySystemAccess) {
+                self.supportedDrms.push(mediaKeySystemAccess.keySystem);
+                onRequestMediaKeySystemAccessResponse();
+            }).catch(function(){onRequestMediaKeySystemAccessResponse();});
+        }
+    }
+}
+
+app.onMpdChanged = function() {
+  var options = document.getElementById('mpdList');
+  var preset = Presets[options.selectedIndex];
+  document.getElementById('manifestUrlInput').value = preset.url;
+  document.getElementById('kid').value = preset.kid ? preset.kid : '';
+  document.getElementById('key').value = preset.key ? preset.key : '';
+  document.getElementById('licenseUrl').value = preset.licenseUrl ? preset.licenseUrl : '';
+  if (preset.emeConfig == 'manual') {
+      document.getElementById('drmConfigList').selectedIndex = 2;
+  } else if (preset.emeConfig == 'license-url') {
+      document.getElementById('drmConfigList').selectedIndex = 1;
+  } else {
+      document.getElementById('drmConfigList').selectedIndex = 0;
+  }
+  this.onDrmConfigChanged();
+};
 
 app.onMpdCustom = function() {
   document.getElementById('mpdList').value = '';
 };
 
+app.onDrmConfigChanged = function() {
+    var drmConfig = document.getElementById('drmConfigList').value;
+    document.getElementById('clearkey-drm-config').style.display = "none";
+    document.getElementById('override-drm-config').style.display = "none";
+    if (drmConfig == "clearkey-override") {
+        document.getElementById('clearkey-drm-config').style.display = "inherit";
+    } else if (drmConfig == "override-url") {
+        document.getElementById('override-drm-config').style.display = "inherit";
+    }
+}
+
 app.loadStream = function() {
-  if (!app.player_) {
-    shaka.polyfill.installAll();
-    app.player_ = new shaka.player.Player(/** @type {!HTMLVideoElement} */ (app.video_));
-    app.player_.addEventListener('error', app.onPlayerError_, false);
-  }
-
   var mediaUrl = document.getElementById('manifestUrlInput').value;
-  var estimator = new shaka.util.EWMABandwidthEstimator();
-  var source = new shaka.player.DashVideoSource(mediaUrl, app.interpretContentProtection_, estimator);
-  app.player_.load(source);
+
+  // (re)configure the player
+  drmConfig = {
+      drm: {
+          servers: {
+              'com.widevine.alpha': 'https://widevine-proxy.appspot.com/proxy'
+          }
+      }
+  }
+  var drmConfigSetttings = document.getElementById('drmConfigList').value;
+  if (drmConfigSetttings == 'override-url') {
+      var licenseUrl = document.getElementById('licenseUrl').value;
+      if (licenseUrl) {
+          var drmIds = ['com.widevine.alpha', 'com.microsoft.playready'];
+          drmIds.forEach(function(drmId) {
+             drmConfig.drm.servers[drmId] = licenseUrl;
+          });
+      }
+  } else if (drmConfigSetttings == 'clearkey-override') {
+      drmConfig = {
+          drm: {
+              clearKeys: {
+              }
+          }
+      }
+      drmConfig.drm.clearKeys[document.getElementById('kid').value] = document.getElementById('key').value;
+  }
+  app.player.configure(drmConfig);
+
+  // Try to load a manifest.
+  // This is an asynchronous process.
+  player.load(mediaUrl).then(function() {
+    // This runs if the asynchronous load is successful.
+    console.log('The video has now been loaded!');
+  }).catch(app.onPlayerError);  // onError is executed if the asynchronous load fails.
 };
 
-app.onPlayerError_ = function(event) {
+app.onPlayerError = function(event) {
   console.error('Player error', event);
-};
-
-app.interpretContentProtection_ = function(schemeIdUri, contentProtection) {
-  var Uint8ArrayUtils = shaka.util.Uint8ArrayUtils;
-
-  if (schemeIdUri == 'urn:uuid:edef8ba9-79d6-4ace-a3c8-27dcd51d21ed') {
-    var licenseServerUrl = '//widevine-proxy.appspot.com/proxy';
-    return [{
-        keySystem: 'com.widevine.alpha',
-        licenseServerUrl: licenseServerUrl
-    }]
-  }
-
-  var clearkey = document.getElementById('clearKeyInput');
-  if (clearkey.value) {
-    var Uint8ArrayUtils = shaka.util.Uint8ArrayUtils;
-
-    var keyId = Uint8ArrayUtils.fromHex(clearkey.value.substring(0,32));
-    var key   = Uint8ArrayUtils.fromHex(clearkey.value.substring(33));
-    console.log("Clear Key: ", keyId, key);
-
-    var keyObj = {
-      kty: 'oct',
-      kid: Uint8ArrayUtils.toBase64(keyId, false),
-      k: Uint8ArrayUtils.toBase64(key, false)
-    };
-    var jwkSet = {keys: [keyObj]};
-    var license = JSON.stringify(jwkSet);
-    var initData = {
-      initDataType: 'keyids',
-      initData: Uint8ArrayUtils.fromString(JSON.stringify({
-          kids: [Uint8ArrayUtils.toBase64(keyId, false)]
-      }))
-    };
-    var licenseServerUrl = 'data:application/json;base64,' + window.btoa(license);
-    return [{
-        keySystem: 'org.w3.clearkey',
-        licenseServerUrl: licenseServerUrl,
-        initData: initData
-    }]
-  }
-
-  console.warn('Unrecognized scheme: ' + schemeIdUri);
-  return null;
-};
+}
 
 if (document.readyState == 'complete' ||
     document.readyState == 'interactive') {

@@ -1,54 +1,75 @@
 <html>
-  <head>
-    <meta charset="utf-8">
-    <title>Sample DASH Player using Shaka-Player</title>
-    <link rel="stylesheet" href="index.css"></link>
-    <!-- <script src="shaka-player.compiled.debug.js"></script> -->
-    <script src="load.js"></script>
-    <script src="my_app.js"></script>
-  </head>
-  <body>
-    <table>
-      <tr class="dash">
-        <td>DASH manifest:</td>
-        <td width=600>
-          <select id="mpdList" onchange="app.onMpdChange()">
-            <option value="http://www.bok.net/dash/tears_of_steel/cleartext/stream.mpd">Tears Of Steel, isoff-live</option>
-            <option value="http://www.bok.net/dash/multi_drm_example/stream.mpd">Tears Of Steel, isoff-live, CENC, Multi-DRM</option>
-            <option value="">(custom)</option>
-          </select>
-        </td>
-      </tr>
-      <tr class="dash">
-        <td>Custom manifest URL:</td>
-        <td>
-          <input id="manifestUrlInput" type="text" style="width: 98%;" oninput="app.onMpdCustom()"></input>
-        </td>
-      </tr>
+<head>
+    <title>Sample DASH Player using dash.js</title>
+    <script src="shaka-player.compiled.debug.js"></script>
+    <script src="app.js"></script>
+    <script src="../presets.js"></script>
+</head>
+<body style="font-family: sans-serif;">
 
-      <tr class="dash">
-        <td>
-          Force Clear Key (&lt;kid&gt;:&lt;key&gt; in hex)
-        </td>
-        <td>
-          <input id="clearKeyInput" type="text" style="width: 98%;"></input>
-        </td>
-      </tr>
+<table>
+  <tr>
+    <td>Preset</td>
+    <td width=600>
+      <select id="mpdList" onchange="app.onMpdChanged()">
+      </select>
+    </td>
+  </tr>
+  <tr>
+    <td>DASH Manifest URL</td>
+    <td>
+      <input id="manifestUrlInput" type="text" size="96" oninput="app.onMpdCustom()"></input>
+    </td>
+  </tr>
 
-      <tr>
-        <td colspan="2">
-          <button onclick="app.loadStream();">Load stream</button>
-        </td>
-      </tr>
-    </table>
+  <tr>
+    <td>DRM Config</td>
+    <td>
+      <select id="drmConfigList" onchange="app.onDrmConfigChanged()">
+        <option value="default">[Default config from manifest and/or media]</option>
+        <option value="override-url">Override License Server URL and/or HTTP headers</option>
+        <option value="clearkey-override">Manually enter key</option>
+      </select>
+    </td>
+  </tr>
 
-    <br>
+  <tr>
+      <td></td>
+      <td width=600>
+          <div id="override-drm-config">
+              <table>
+                  <tr><td>License Server URL</td><td><input type="text" id="licenseUrl" size="80"/></td></tr>
+                  <tr><td>Extra HTTP Headers</td><td><input type="text" id="httpHeaders" size="80"/></td></tr>
+              </table>
+          </div>
+          <div id="clearkey-drm-config">
+              <table>
+                  <tr><td>KID (hex)</td><td><input type=text id="kid" size="48"/></td></tr>
+                  <tr><td>KEY (hex)</td><td><input type=text id="key" size="48"/></td></tr>
+              </table>
+          </div>
+      </td>
+  </tr>
 
-    <div>
-      <video id="video"
-             width="600" height="400"
-             crossorigin="anonymous"
-             autoplay controls></video>
-    </div>
-  </body>
+</table>
+
+<table>
+    <tr><td>Supported EME DRMs:</td><td><div id="supportedDrms">NONE</div></td></tr>
+</table>
+
+<div id="log" style="color:red"></div>
+
+<br>
+<button onclick="app.loadStream();">Load stream</button>
+
+<div>
+  <video id="video"
+         width="600" height="400"
+         style="background-color:black"
+         crossorigin="anonymous"
+         autoplay controls>
+  </video>
+</div>
+
+</body>
 </html>

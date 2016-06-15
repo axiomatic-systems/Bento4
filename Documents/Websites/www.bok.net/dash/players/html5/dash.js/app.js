@@ -86,7 +86,7 @@ app.onMpdChanged = function() {
   document.getElementById('licenseUrl').value = preset.licenseUrl ? preset.licenseUrl : '';
   if (preset.emeConfig == 'manual') {
       document.getElementById('drmConfigList').selectedIndex = 2;
-  } else if (preset.emeConfig == 'license-url') {
+  } else if (preset.emeConfig == 'override-url') {
       document.getElementById('drmConfigList').selectedIndex = 1;
   } else {
       document.getElementById('drmConfigList').selectedIndex = 0;

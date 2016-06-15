@@ -27,7 +27,7 @@ from subtitles import *
 
 # setup main options
 VERSION = "1.7.0"
-SDK_REVISION = '611'
+SDK_REVISION = '612'
 SCRIPT_PATH = path.abspath(path.dirname(__file__))
 sys.path += [SCRIPT_PATH]
 
@@ -1253,6 +1253,9 @@ def main():
             # get the mp4 file info
             json_info = Mp4Info(Options, media_file, format='json', fast=True)
             info = json.loads(json_info, strict=False)
+
+            if not info['movie']['fragments']:
+                PrintErrorAndExit('ERROR: file '+media_file+' is not fragmented (use mp4fragment to fragment it)')
 
             if 'tracks' not in info:
                 raise Exception('No track found in input file(s)')
