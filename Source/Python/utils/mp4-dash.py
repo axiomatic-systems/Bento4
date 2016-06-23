@@ -334,9 +334,9 @@ def OutputDash(options, set_attributes, audio_sets, video_sets, subtitles_sets, 
     # compute the total duration (we take the duration of the video)
     if len(all_video_tracks):
         presentation_duration = all_video_tracks[0].total_duration
-    elif len(audio_tracks):
+    elif len(all_audio_tracks):
         presentation_duration = all_audio_tracks[0].total_duration
-    elif len(subtitles_tracks):
+    elif len(all_subtitles_tracks):
         presentation_duration = all_subtitles_tracks[0].total_duration
     else:
         return
