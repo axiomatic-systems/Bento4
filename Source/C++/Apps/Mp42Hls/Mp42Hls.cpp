@@ -1617,15 +1617,21 @@ main(int argc, char** argv)
                     payload[3] = 'a';
                     payload[4] = 'c';
                     payload[5] = 'd';
-                } else if (sample_description->GetFormat() == AP4_SAMPLE_FORMAT_AC_3 ||
-                           sample_description->GetFormat() == AP4_SAMPLE_FORMAT_EC_3) {
+                } else if (sample_description->GetFormat() == AP4_SAMPLE_FORMAT_AC_3) {
                     payload[2] = 'a';
+                    payload[3] = 'c';
+                    payload[4] = '3';
+                    payload[5] = 'd';
+                } else if (sample_description->GetFormat() == AP4_SAMPLE_FORMAT_EC_3) {
+                    payload[2] = 'e';
                     payload[3] = 'c';
                     payload[4] = '3';
                     payload[5] = 'd';
                 }
 
                 // audio info
+                AP4_DataBuffer setup_data;
+                AP4_UI08       audio_type[4];
                 if (sample_description->GetFormat() == AP4_SAMPLE_FORMAT_MP4A) {
                     AP4_MpegAudioSampleDescription* mpeg_audio_desc = AP4_DYNAMIC_CAST(AP4_MpegAudioSampleDescription, sample_description);
                     if (mpeg_audio_desc == NULL ||
@@ -1636,49 +1642,68 @@ main(int argc, char** argv)
                         return 1;
                     }
                     const AP4_DataBuffer& dsi = mpeg_audio_desc->GetDecoderInfo();
+                    setup_data.SetData(dsi.GetData(), dsi.GetDataSize());
                     AP4_Mp4AudioDecoderConfig dec_config;
                     result = dec_config.Parse(dsi.GetData(), dsi.GetDataSize());
                     if (AP4_FAILED(result)) {
                         fprintf(stderr, "ERROR: failed to parse decoder specific info (%d)\n", result);
                         return 1;
                     }
-                    descriptor.SetDataSize(descriptor.GetDataSize()+14+dsi.GetDataSize());
-                    payload = descriptor.UseData()+6;
-                    payload[0] = AP4_MPEG2_REGISTRATION_DESCRIPTOR_TAG;
-                    payload[1] = 12+dsi.GetDataSize();
-                    payload[2] = 'a';
-                    payload[3] = 'p';
-                    payload[4] = 'a';
-                    payload[5] = 'd';
-                    payload += 6;
+
                     if (dec_config.m_Extension.m_SbrPresent || dec_config.m_Extension.m_PsPresent) {
                         if (dec_config.m_Extension.m_PsPresent) {
-                            payload[0] = 'z';
-                            payload[1] = 'a';
-                            payload[2] = 'c';
-                            payload[3] = 'p';
+                            audio_type[0] = 'z';
+                            audio_type[1] = 'a';
+                            audio_type[2] = 'c';
+                            audio_type[3] = 'p';
                         } else {
-                            payload[0] = 'z';
-                            payload[1] = 'a';
-                            payload[2] = 'c';
-                            payload[3] = 'h';
+                            audio_type[0] = 'z';
+                            audio_type[1] = 'a';
+                            audio_type[2] = 'c';
+                            audio_type[3] = 'h';
                         }
                     } else {
-                        payload[0] = 'z';
-                        payload[1] = 'a';
-                        payload[2] = 'a';
-                        payload[3] = 'c';
+                        audio_type[0] = 'z';
+                        audio_type[1] = 'a';
+                        audio_type[2] = 'a';
+                        audio_type[3] = 'c';
                     }
-                    payload[4] = 0; // priming
-                    payload[5] = 0; // priming
-                    payload[6] = 1; // version
-                    payload[7] = dsi.GetDataSize(); // setup_data_length
-                    AP4_CopyMemory(&payload[8], dsi.GetData(), dsi.GetDataSize());
-                } else if (sample_description->GetFormat() == AP4_SAMPLE_FORMAT_AC_3 ||
-                           sample_description->GetFormat() == AP4_SAMPLE_FORMAT_EC_3) {
-                    fprintf(stderr, "ERROR: AC3 support not fully implemented yet\n");
-                    return 1;
+                } else if (sample_description->GetFormat() == AP4_SAMPLE_FORMAT_AC_3) {
+                    audio_type[0] = 'z';
+                    audio_type[1] = 'a';
+                    audio_type[2] = 'c';
+                    audio_type[3] = '3';
+                } else if (sample_description->GetFormat() == AP4_SAMPLE_FORMAT_EC_3) {
+                    AP4_Dec3Atom* dec3 = AP4_DYNAMIC_CAST(AP4_Dec3Atom, sample_description->GetDetails().GetChild(AP4_ATOM_TYPE_DEC3));
+                    if (dec3 == NULL) {
+                        fprintf(stderr, "ERROR: failed to find 'dec3' atom in sample description\n");
+                        return 1;
+                    }
+                    setup_data.SetData(dec3->GetRawBytes().GetData(), dec3->GetRawBytes().GetDataSize());
+                    audio_type[0] = 'z';
+                    audio_type[1] = 'e';
+                    audio_type[2] = 'c';
+                    audio_type[3] = '3';
                 }
+                
+                descriptor.SetDataSize(descriptor.GetDataSize()+14+setup_data.GetDataSize());
+                payload = descriptor.UseData()+6;
+                payload[0] = AP4_MPEG2_REGISTRATION_DESCRIPTOR_TAG;
+                payload[1] = 12+setup_data.GetDataSize();
+                payload[2] = 'a';
+                payload[3] = 'p';
+                payload[4] = 'a';
+                payload[5] = 'd';
+                payload += 6;
+                payload[0] = audio_type[0];
+                payload[1] = audio_type[1];
+                payload[2] = audio_type[2];
+                payload[3] = audio_type[3];
+                payload[4] = 0; // priming
+                payload[5] = 0; // priming
+                payload[6] = 1; // version
+                payload[7] = setup_data.GetDataSize(); // setup_data_length
+                AP4_CopyMemory(&payload[8], setup_data.GetData(), setup_data.GetDataSize());
             }
 
             // setup the audio stream
