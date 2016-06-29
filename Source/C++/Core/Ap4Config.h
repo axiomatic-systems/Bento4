@@ -111,10 +111,12 @@
 
 /* Android */
 #if defined(ANDROID)
+#if !defined(AP4_CONFIG_NO_RTTI)
 #define AP4_CONFIG_NO_RTTI
+#endif
+#if !defined(AP4_CONFIG_NO_EXCEPTIONS)
 #define AP4_CONFIG_NO_EXCEPTIONS
-//#define AP4_ftell ftello64
-//#define AP4_fseek fseeko64
+#endif
 #endif
 
 /* Emscripten */

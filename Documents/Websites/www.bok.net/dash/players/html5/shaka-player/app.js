@@ -9,15 +9,8 @@ app.init = function() {
 
     // Check to see if the browser supports the basic APIs Shaka needs.
     // This is an asynchronous check.
-    shaka.Player.support().then(function(support) {
-      // This executes when the asynchronous check is complete.
-      if (support.supported) {
-        // Everything looks good!
+    shaka.Player.probeSupport().then(function(support) {
         app.initPlayer();
-      } else {
-        // This browser does not have the minimum set of APIs we need.
-        console.error('Browser not supported!');
-      }
     });
 }
 

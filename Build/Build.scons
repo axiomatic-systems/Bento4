@@ -22,13 +22,13 @@ def GlobSources(dir, patterns):
 
 def GetDirPath(dir):
     return '#'+SOURCE_ROOT+'/'+dir
-    
+
 def DeclareBuildDir(dir):
     env.VariantDir(dir, GetDirPath(dir), duplicate=0)
 
 def GetModule(name):
     return Modules[name]
-    
+
 def GetIncludeDirs(modules, exclude=None):
     dirs = []
     for module in Split(modules):
@@ -50,26 +50,27 @@ class Module:
 
     def GetLibraries(self):
         return self.product+GetLibraries(self.linked_modules)
-        
+
     def GetIncludeDirs(self):
         return GetIncludeDirs(self.included_modules, self.name)
-    
+
 class LibraryModule(Module):
-    def __init__(self, name, 
-                 build_source_dirs, 
-                 build_source_pattern=['*.c', '*.cpp'], 
-                 build_include_dirs = [], 
-                 included_modules = [], 
-                 linked_modules = []) :
+    def __init__(self, name,
+                 build_source_dirs,
+                 build_source_pattern = ['*.c', '*.cpp'],
+                 build_source_files   = {},
+                 build_include_dirs   = [],
+                 included_modules     = [],
+                 linked_modules       = []) :
         Module.__init__(self, name, Split(included_modules)+Split(build_source_dirs), linked_modules)
         self.env                = env.Clone()
         self.name               = name
         self.build_source_dirs  = build_source_dirs
         self.build_include_dirs = build_include_dirs
-        
+
         # store this new object in the module dictionary
         Modules[name] = self
-                
+
         # for each source dir to build, create a BuildDir
         # to say where we want the object files to be built,
         # and compute the list of source files to build
@@ -77,19 +78,26 @@ class LibraryModule(Module):
         for dir in Split(self.build_source_dirs):
             DeclareBuildDir(dir)
             sources += GlobSources(dir, build_source_pattern)
-            
+
+        # add cherry-picked files
+        for drct in build_source_files.keys():
+            pattern = build_source_files[drct]
+            drct_path = 'C++/'+drct
+            DeclareBuildDir(drct_path)
+            sources += GlobSources(drct_path, pattern)
+
         # calculate our build include path
         cpp_path = GetIncludeDirs(Split(build_include_dirs) + Split(build_source_dirs) + Split(included_modules))
 
         # calculate our preprocessor defines for this module
         cpp_defines=[]
-        
+
         # the product is a library
         self.env.AppendUnique(CPPDEFINES=cpp_defines)
         self.env.AppendUnique(CPPPATH=cpp_path)
         self.product = self.env.Library(target=name, source=sources)
         Alias(name, self.product)
-        
+
 def Executable(name,
                source_dir,
                extra_deps=[],
@@ -105,12 +113,12 @@ def Executable(name,
     libs = GetLibraries(sdk) + environment['AP4_EXTRA_LIBS']
     cpp_path = GetIncludeDirs(sdk) + extra_includes
     sources = GlobSources(source_dir, source_pattern)
-    
+
     if lowercase:
         target_name = name.lower()
     else:
         target_name = name
-        
+
     if shared_lib:
         if env['target'] == 'universal-apple-macosx':
             func = environment.LoadableModule
@@ -119,12 +127,12 @@ def Executable(name,
         exe = func(target_name, sources,
                    LIBS=libs, CPPPATH=cpp_path, SHLIBPREFIX='')
     else:
-        exe = environment.Program(target_name, 
-                                  sources + environment['AP4_EXTRA_EXECUTABLE_OBJECTS'], 
-                                  LIBS=libs, 
+        exe = environment.Program(target_name,
+                                  sources + environment['AP4_EXTRA_EXECUTABLE_OBJECTS'],
+                                  LIBS=libs,
                                   CPPPATH=cpp_path)
     #environment.Alias(name, exe)
-    
+
 #######################################################
 # Main Build
 #######################################################
@@ -132,21 +140,23 @@ Import("env")
 SOURCE_ROOT='Source'
 env['AP4_EXTRA_EXECUTABLE_OBJECTS'] = []
 env['AP4_EXTRA_LIBS'] = []
+env['AP4_SYSTEM_SOURCES'] = {'System/StdC':['*.cpp'], 'System/Posix':['*.cpp']}
 
 ### try to read in any target specific configuration
 target_config_file = env.GetBuildPath('#/Build/Targets/'+env['target']+'/Config.scons')
 if os.path.exists(target_config_file):
-    # Load the target-specific config file    
+    # Load the target-specific config file
     execfile(target_config_file)
 
 #######################################################
 # modules
 #######################################################
-LibraryModule(name               = 'Bento4', 
-              build_source_dirs  = ['C++/'+dir for dir in ['Core', 'Crypto', 'MetaData', 'System/StdC', 'System/Posix', 'Codecs']],
+LibraryModule(name               = 'Bento4',
+              build_source_dirs  = ['C++/'+dir for dir in ['Core', 'Crypto', 'MetaData', 'Codecs']],
+              build_source_files = env['AP4_SYSTEM_SOURCES'],
               included_modules   = 'Config')
-           
-for name in ['Mp4Dump', 'Mp4Info', 'Mp4Edit', 'Mp4Encrypt', 'Mp4Decrypt', 'Mp4Tag', 'Mp4Extract', 'Mp4RtpHintInfo', 'Mp42Aac', 'Mp42Avc', 'Mp42Hevc', 'Mp42Ts', 'Mp42Hls', 'Mp4DcfPackager', 'Mp4Fragment', 'Mp4Compact', 'Mp4Split', 'Mp4AudioClip', 'Mp4Mux', 'AvcInfo', 'HevcInfo']:       
+
+for name in ['Mp4Dump', 'Mp4Info', 'Mp4Edit', 'Mp4Encrypt', 'Mp4Decrypt', 'Mp4Tag', 'Mp4Extract', 'Mp4RtpHintInfo', 'Mp42Aac', 'Mp42Avc', 'Mp42Hevc', 'Mp42Ts', 'Mp42Hls', 'Mp4DcfPackager', 'Mp4Fragment', 'Mp4Compact', 'Mp4Split', 'Mp4AudioClip', 'Mp4Mux', 'AvcInfo', 'HevcInfo']:
     Executable(name, source_dir='C++/Apps/'+name)
 
 Executable('Aac2Mp4', source_dir='C++/Apps/Aac2Mp4')
@@ -155,5 +165,6 @@ Executable('AvcTrackWriterTest', source_dir='C++/Test/Avc')
 Executable('PassthroughWriterTest', source_dir='C++/Test/PassthroughWriter')
 Executable('TracksTest', source_dir='C++/Test/Tracks')
 Executable('BenchmarksTest', source_dir='C++/Test/Benchmarks')
+Executable('LargeFilesTest', source_dir='C++/Test/LargeFiles')
 if 'AP4_BUILD_CONFIG_NO_SHARED_LIB' not in env:
     Executable('libBento4C.so', source_dir='C++/CApi', shared_lib=True, lowercase=False)

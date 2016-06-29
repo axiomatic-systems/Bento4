@@ -186,17 +186,24 @@ def OutputHls(options, media_sources):
 
     # check if this is an audio-only presentation
     audio_only = True
-    for media_source in media_sources:
+    for media_source in mp4_sources:
         if media_source.has_video:
             audio_only = False
+            break
+
+    # check if the video has muxed audio
+    video_has_muxed_audio = False
+    for media_source in mp4_sources:
+        if media_source.has_video and media_source.has_audio:
+            video_has_muxed_audio = True
             break
 
     # audio-only presentations don't need alternate audio tracks
     if audio_only:
         audio_tracks = []
 
-    # we only need alternate audio tracks if there are more than one
-    if not audio_only and len(audio_tracks) == 1:
+    # we only need alternate audio tracks if there are more than one or if the audio and video are not muxed
+    if video_has_muxed_audio and not audio_only and len(audio_tracks) == 1:
         audio_tracks = []
 
     # process main/muxed media sources

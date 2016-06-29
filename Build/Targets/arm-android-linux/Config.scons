@@ -1,5 +1,5 @@
 #################################################################
-# Important: this build file has been tested with Android NDK r6 and r7
+# Important: this build file has been tested with Android NDK 11
 # It may or may not work with other releases of the NDK. Please notify
 # us if you find a newer NDK for which this does not work.
 #################################################################
@@ -107,7 +107,11 @@ env.AppendUnique(LINKFLAGS = ['-Bdynamic',
                 			  '-lstdc++',
                 			  '-lm',
                 			  '-llog',
-                			  '-ldl'])
+                			  '-ldl',
+                              '-pie'])
 
 ### Don't build a shared library
 env['AP4_BUILD_CONFIG_NO_SHARED_LIB'] = True
+
+### System specific choices
+env['AP4_SYSTEM_SOURCES'] = {'System/Android':['*.cpp'], 'System/Posix':['*.cpp']}
