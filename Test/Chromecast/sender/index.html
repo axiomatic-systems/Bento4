@@ -1,0 +1,60 @@
+<!--
+Based on the Chromecast DRM Sender Example
+-->
+<!DOCTYPE html>
+<html>
+<head>
+<title>Bento4 Chromecast Sender Example</title>
+<script type="text/javascript" src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js"></script>
+<script src="sender.js"></script>
+</head>
+<body>
+    <h2 style="display:block">Bento4 Chromecast Sender Example</h2>
+
+    <div>
+      <button style="margin:5px; font-size:110%;" onclick="launchApp()">Launch app</button>
+      <button style="margin:5px; font-size:110%;" onclick="stopApp()">Stop app</button>
+    </div>
+
+    <div style="margin:5px; border:1px solid #000;">
+      <div style="border:0px solid #000; margin:5px; padding:5px; display:block;">
+        <div style="font-weight:bold;">Media</div>
+        <div style="argin:10px;">
+          <span style="font-weight:bold; color:#0000cc;">MPEG DASH MPD URL</span><br>
+          <input type="text" id="mediaUrl" name="mediaUrl" value="" size="100"><br>
+
+          <span style="font-weight:bold; color:#0000cc;">License URL</span><br>
+          <input type="text" id="licenseUrl" name="licenseUrl" value="" size="100"><br>
+
+          <span style="font-weight:bold; color:#0000cc;">Custom Data</span><br>
+          <input type="text" id="customData" name="customData" value="" size="100"><br>
+        </div>
+
+        <div>
+        <button style="margin:5px;" onclick="loadMedia()">Load Media</button>
+        <button style="margin:5px;" id="playpauseresume" onclick="playMedia()">Play</button>
+        <button style="margin:5px;;" onclick="stopMedia()">Stop</button>
+        </div>
+
+        <div style="margin:5px; border:0px solid #000;">
+          <div style="border:0px solid #00f;">
+            State: <span id="playerstate">IDLE</span><br>
+            Duration: <span id="mediaduration">0</span><br>
+            Position: <span id="mediaposition">0</span><br>
+            <input id="progress" type="range" min="1" max="100" value="1" step="1" onmouseup="seekMedia(this.value);">
+          </div>
+        </div>
+      </div>
+    </div>
+
+   <div style="margin:5px 5px 5px 5px;">
+     Debug Log<br>
+     <textarea rows="20" cols="100" id="debugmessage">
+     </textarea>
+   </div>
+
+    </div>
+  </div>
+
+</body>
+</html>

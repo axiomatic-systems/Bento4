@@ -1,0 +1,98 @@
+<body>
+<video id='vid' />
+<script type="text/javascript"
+        src="//www.gstatic.com/cast/sdk/libs/receiver/2.0.0/cast_receiver.js">
+</script>
+<script type="text/javascript"
+        src="//www.gstatic.com/cast/sdk/libs/mediaplayer/1.0.0/media_player.js">
+</script>
+
+<script type="text/javascript">
+    window.onload = function() {
+        // If you set ?Debug=true in the URL, such as a different App ID in the
+        // developer console, include debugging information.
+        if (window.location.href.indexOf('Debug=true') != -1) {
+            console.log('---------- DEBUG ON ------------');
+            cast.receiver.logger.setLevelValue(cast.receiver.LoggerLevel.DEBUG);
+            cast.player.api.setLoggerLevel(cast.player.api.LoggerLevel.DEBUG);
+        }
+
+        var mediaElement = document.getElementById('vid');
+
+        window.mediaManager = new cast.receiver.MediaManager(mediaElement);
+
+        window.defaultOnLoad = mediaManager.onLoad.bind(mediaManager);
+        mediaManager.onLoad = function (event) {
+            console.log('Event:', event);
+
+            // The Media Player Library requires that you call player unload between different invocations.
+            if (window.player !== null) {
+                console.log('unloading the player');
+                player.unload();    // Must unload before starting again.
+                window.player = null;
+            }
+
+            if (event.data['media'] && event.data['media']['contentId']) {
+                console.log('Starting media application');
+                console.log(event.data['media']);
+                var url = event.data['media']['contentId'];
+
+                window.host = new cast.player.api.Host(
+                        {'mediaElement':mediaElement, 'url':url});
+                var initStart = event.data['media']['currentTime'] || 0;
+                var autoplay = event.data['autoplay'] || true;
+                var protocol = null;
+
+                mediaElement.autoplay = autoplay;  // Make sure autoplay gets set
+
+                if (url.lastIndexOf('.m3u8') >= 0) {
+                    // HTTP Live Streaming
+                    console.log("=== HLS ===");
+                    protocol = cast.player.api.CreateHlsStreamingProtocol(host);
+                } else if (url.lastIndexOf('/mpd') >= 0 || url.lastIndexOf('.mpd') >= 0) {
+                    // MPEG-DASH
+                    console.log("=== DASH ===");
+                    protocol = cast.player.api.CreateDashStreamingProtocol(host);
+                } else if (url.indexOf('/Manifest') >= 0) {
+                    // Smooth Streaming
+                    console.log("=== SMOOTH ===");
+                    protocol = cast.player.api.CreateSmoothStreamingProtocol(host);
+                }
+
+                host.onError = function(errorCode) {
+                    console.log("Fatal Error - "+errorCode);
+                    if (window.player) {
+                        console.log("unloading player");
+                        window.player.unload();
+                        window.player = null;
+                    }
+                };
+
+                if (event.data.customData && event.data.customData.licenseCustomData) {
+                    console.log('setting license custom data');
+                    host.licenseCustomData = event.data.customData.licenseCustomData;
+                }
+                if (event.data.customData && event.data.customData.licenseUrl) {
+                    console.log('setting license URL');
+                    host.licenseUrl = event.data.customData.licenseUrl;
+                }
+
+                if (protocol !== null) {
+                    console.log("Starting Media Player Library");
+                    window.player = new cast.player.api.Player(host);
+                    window.player.load(protocol, initStart);
+                } else {
+                    console.log("using default handler");
+                    window.defaultOnLoad(event);    // do the default process
+                }
+            }
+        }
+
+        window.player = null;
+        console.log('014 Application is ready, starting system');
+        window.castReceiverManager = cast.receiver.CastReceiverManager.getInstance();
+        castReceiverManager.start();
+    };
+
+</script>
+</body>
