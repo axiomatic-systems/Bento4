@@ -57,6 +57,7 @@ const AP4_UI08 AP4_MPEG2_STREAM_TYPE_ISO_IEC_13818_7     = 0x0F;
 const AP4_UI08 AP4_MPEG2_STREAM_TYPE_AVC                 = 0x1B;
 const AP4_UI08 AP4_MPEG2_STREAM_TYPE_HEVC                = 0x24;
 const AP4_UI08 AP4_MPEG2_STREAM_TYPE_ATSC_AC3            = 0x81;
+const AP4_UI08 AP4_MPEG2_STREAM_TYPE_ATSC_EAC3           = 0x81;
 
 /*----------------------------------------------------------------------
 |   AP4_Mpeg2TsWriter
@@ -121,6 +122,11 @@ public:
                                AP4_ByteStream&        output);
         
         void SetType(AP4_UI08 type) {m_StreamType = type;}
+        void SetDescriptor(const AP4_UI08* descriptor, AP4_Size descriptor_length) {
+            if (descriptor && descriptor_length) {
+                m_Descriptor.SetData(descriptor, descriptor_length);
+            }
+        }
 
         AP4_UI08       m_StreamType;
         AP4_UI16       m_StreamId;

@@ -226,7 +226,8 @@ LanguageNames = {
     "yo": 'Yor\xc3\xb9b\xc3\xa1',
     "za": 'Sa\xc9\xaf cue\xc5\x8b\xc6\x85; Saw cuengh',
     "zh": '\xe6\xbc\xa2\xe8\xaa\x9e; \xe6\xb1\x89\xe8\xaf\xad; \xe4\xb8\xad\xe6\x96\x87',
-    "zu": 'isiZulu'
+    "zu": 'isiZulu',
+    "und": 'Unknown'
 }
 
 def PrintErrorAndExit(message):
@@ -650,9 +651,9 @@ class MediaSource:
             self.filename = name
             self.spec = {}
 
-        if 'type'           not in self.spec: self.spec['type']     = ''
-        if 'track'          not in self.spec: self.spec['track']    = 0
-        if 'language'       not in self.spec: self.spec['language'] = ''
+        if 'type'     not in self.spec: self.spec['type']     = ''
+        if 'track'    not in self.spec: self.spec['track']    = 0
+        if 'language' not in self.spec: self.spec['language'] = ''
 
         # check if we have an explicit format (default=mp4)
         if '+format' in self.spec:

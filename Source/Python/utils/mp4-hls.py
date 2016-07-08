@@ -43,8 +43,20 @@ def CreateSubtitlesPlaylist(playlist_filename, webvtt_filename, duration):
     playlist.write(webvtt_filename+'\r\n')
     playlist.write('#EXT-X-ENDLIST\r\n')
 
+
 #############################################
-def SelectAudioTracks(options, media_sources):
+def ComputeCodecName(codec_family):
+    name = codec_family
+    if codec_family == 'mp4a':
+        name = 'aac'
+    elif codec_family == 'ac-3':
+        name = 'ac3'
+    elif codec_family == 'ec-3':
+        name = 'ec3'
+    return name
+
+#############################################
+def AnalyzeSources(options, media_sources):
     # parse the media files
     mp4_files = {}
     for media_source in media_sources:
@@ -69,8 +81,7 @@ def SelectAudioTracks(options, media_sources):
         # remember we have parsed this file
         mp4_files[media_file] = mp4_file
 
-    # select tracks
-    audio_tracks = []
+    # analyze the media sources
     for media_source in media_sources:
         track_id       = media_source.spec['track']
         track_type     = media_source.spec['type']
@@ -80,9 +91,6 @@ def SelectAudioTracks(options, media_sources):
         if media_source.format != 'mp4':
             if track_id or track_type:
                 PrintErrorAndExit('ERROR: track ID and track type selections only apply to MP4 media sources')
-            continue
-
-        if track_type not in ['', 'audio']:
             continue
 
         if track_id and track_type:
@@ -99,35 +107,47 @@ def SelectAudioTracks(options, media_sources):
                 PrintErrorAndExit('ERROR: no ' + track_type + ' found for media file '+media_source.name)
 
         if not tracks:
-            tracks = media_source.mp4_file.tracks.values()
+            for track in media_source.mp4_file.tracks.values():
+                language = LanguageCodeMap.get(track.language, track.language)
+                if track_language and track_language != language and track_language != track.language:
+                    continue
+                tracks.append(track)
 
-        # pre-process the track metadata
+        # remember if this media source has a video or audio track
         for track in tracks:
-            # remember if this media source has a video or audio track
             if track.type == 'video':
                 media_source.has_video = True
             if track.type == 'audio':
                 media_source.has_audio = True
 
+        media_source.tracks = tracks
+
+#############################################
+def SelectAudioTracks(options, media_sources):
+    # select tracks grouped by codec
+    audio_tracks = {}
+    for media_source in media_sources:
+
+        # pre-process the track metadata
+        for track in media_source.tracks:
+            # track group
+            track.group_id = ComputeCodecName(track.codec_family)
+
             # track language
-            language = LanguageCodeMap.get(track.language, track.language)
-            if track_language and track_language != language and track_language != track.language:
-                continue
             remap_language = media_source.spec.get('+language')
             if remap_language:
-                language = remap_language
-            track.language = language
-            language_name = LanguageNames.get(language, language)
-            if language_name == 'und':
-                language_name = 'Unknown'
-            track.language_name = media_source.spec.get('+language_name', language_name)
+                track.language = remap_language
+            language_name = LanguageNames.get(track.language, track.language)
+            track.language_name = media_source.spec.get('+language_name', language_name).decode('utf-8')
 
         # process audio tracks
-        for track in [t for t in tracks if t.type == 'audio']:
-            if len([et for et in audio_tracks if et.language == track.language]):
-                continue # only accept one track for each language
-            audio_tracks.append(track)
-            track.order_index = len(audio_tracks)
+        for track in [t for t in media_source.tracks if t.type == 'audio']:
+            group_id = track.group_id
+            group = audio_tracks.get(group_id, [])
+            audio_tracks[group_id] = group
+            if len([x for x in group if x.language == track.language]):
+                continue # only accept one track for each language per group
+            group.append(track)
 
     return audio_tracks
 
@@ -136,10 +156,12 @@ def ProcessSource(options, media_info, out_dir):
     if options.verbose:
         print 'Processing', media_info['source'].filename
 
+    file_extension = media_info.get('file_extension', 'ts')
+
     kwargs = {
         'index_filename':            path.join(out_dir, 'stream.m3u8'),
-        'segment_filename_template': path.join(out_dir, 'segment-%d.ts'),
-        'segment_url_template':      'segment-%d.ts',
+        'segment_filename_template': path.join(out_dir, 'segment-%d.'+file_extension),
+        'segment_url_template':      'segment-%d.'+file_extension,
         'show_info':                 True
     }
 
@@ -150,9 +172,12 @@ def ProcessSource(options, media_info, out_dir):
         kwargs['iframe_index_filename'] = path.join(out_dir, 'iframes.m3u8')
 
     if options.output_single_file:
-        kwargs['segment_filename_template'] = path.join(out_dir, 'media.ts')
-        kwargs['segment_url_template']      = 'media.ts'
+        kwargs['segment_filename_template'] = path.join(out_dir, 'media.'+file_extension)
+        kwargs['segment_url_template']      = 'media.'+file_extension
         kwargs['output_single_file']        = True
+
+    if 'audio_format' in media_info and media_info.get('audio_track_id') != 0:
+        kwargs['audio_format'] = media_info['audio_format']
 
     for option in ['encryption_mode', 'encryption_key', 'encryption_iv_mode', 'encryption_key_uri', 'encryption_key_format', 'encryption_key_format_versions']:
         if getattr(options, option):
@@ -180,6 +205,9 @@ def ProcessSource(options, media_info, out_dir):
 def OutputHls(options, media_sources):
     mp4_sources = [media_source for media_source in media_sources if media_source.format == 'mp4']
 
+    # analyze the media sources
+    AnalyzeSources(options, media_sources)
+
     # select audio tracks
     audio_media = []
     audio_tracks = SelectAudioTracks(options, [media_source for media_source in mp4_sources if not media_source.spec.get('+audio_fallback')])
@@ -200,31 +228,43 @@ def OutputHls(options, media_sources):
 
     # audio-only presentations don't need alternate audio tracks
     if audio_only:
-        audio_tracks = []
+        audio_tracks = {}
 
     # we only need alternate audio tracks if there are more than one or if the audio and video are not muxed
-    if video_has_muxed_audio and not audio_only and len(audio_tracks) == 1:
-        audio_tracks = []
+    if video_has_muxed_audio and not audio_only and len(audio_tracks) == 1 and len(audio_tracks.values()[0]) == 1:
+        audio_tracks = {}
 
-    # process main/muxed media sources
+    # process main media sources
     total_duration = 0
-    muxed_media = []
+    main_media = []
     for media_source in mp4_sources:
         if not audio_only and not media_source.spec.get('+audio_fallback') and not media_source.has_video:
             continue
-        media_index = 1+len(muxed_media)
+        media_index = 1+len(main_media)
         media_info = {
-            'source': media_source,
-            'dir':   'media-'+str(media_index)
+            'source':      media_source,
+            'dir':         'media-'+str(media_index)
         }
-        out_dir = path.join(options.output_dir, media_info['dir'])
-        MakeNewDir(out_dir)
+        if audio_only:
+            media_info['video_track_id'] = 0
+            if options.audio_format == 'packed':
+                source_audio_tracks = media_source.mp4_file.find_tracks_by_type('audio')
+                if len(source_audio_tracks):
+                    media_info['audio_format']   = options.audio_format
+                    if options.audio_format == 'packed':
+                        media_info['file_extension'] = ComputeCodecName(source_audio_tracks[0].codec_family)
+
+        # no audio if there's a type filter for video
+        if media_source.spec.get('type') == 'video':
+            media_info['audio_track_id'] = 0
 
         # deal with audio-fallback streams
         if media_source.spec.get('+audio_fallback') == 'yes':
             media_info['video_track_id'] = 0
 
         # process the source
+        out_dir = path.join(options.output_dir, media_info['dir'])
+        MakeNewDir(out_dir)
         ProcessSource(options, media_info, out_dir)
 
         # update the duration
@@ -232,27 +272,31 @@ def OutputHls(options, media_sources):
         if duration_s > total_duration:
             total_duration = duration_s
 
-        muxed_media.append(media_info)
+        main_media.append(media_info)
 
     # process audio tracks
     if len(audio_tracks):
         MakeNewDir(path.join(options.output_dir, 'audio'))
-    for audio_track in audio_tracks:
-        media_info = {
-            'source':         audio_track.parent.media_source,
-            'dir':            'audio/'+audio_track.language,
-            'language':       audio_track.language,
-            'language_name':  audio_track.language_name,
-            'audio_track_id': audio_track.id,
-            'video_track_id': 0
-        }
-        out_dir = path.join(options.output_dir, 'audio', audio_track.language)
-        MakeNewDir(out_dir)
+    for group_id in audio_tracks:
+        group = audio_tracks[group_id]
+        MakeNewDir(path.join(options.output_dir, 'audio', group_id))
+        for audio_track in group:
+            audio_track.media_info = {
+                'source':         audio_track.parent.media_source,
+                'audio_format':   options.audio_format,
+                'dir':            'audio/'+group_id+'/'+audio_track.language,
+                'language':       audio_track.language,
+                'language_name':  audio_track.language_name,
+                'audio_track_id': audio_track.id,
+                'video_track_id': 0
+            }
+            if options.audio_format == 'packed':
+                audio_track.media_info['file_extension'] = ComputeCodecName(audio_track.codec_family)
 
-        # process the source
-        ProcessSource(options, media_info, out_dir)
-
-        audio_media.append(media_info)
+            # process the source
+            out_dir = path.join(options.output_dir, 'audio', group_id, audio_track.language)
+            MakeNewDir(out_dir)
+            ProcessSource(options, audio_track.media_info, out_dir)
 
     # start the master playlist
     master_playlist = open(path.join(options.output_dir, options.master_playlist_name), "w+")
@@ -280,50 +324,96 @@ def OutputHls(options, media_sources):
 
             master_playlist.write('#EXT-X-MEDIA:TYPE=SUBTITLES,GROUP-ID="subtitles",NAME="%s",LANGUAGE="%s",URI="%s"\r\n' % (subtitles_file.language_name, subtitles_file.language, relative_url))
 
-    # process audio-only sources
-    if len(audio_media):
+    # process audio sources
+    audio_groups = []
+    if len(audio_tracks):
         master_playlist.write('\r\n')
         master_playlist.write('# Audio\r\n')
-        for media in audio_media:
-            master_playlist.write('#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="audio",NAME="%s",LANGUAGE="%s",URI="%s"\r\n' % (media['language_name'], media['language'], media['dir']+'/stream.m3u8'))
+        for group_id in audio_tracks:
+            group = audio_tracks[group_id]
+            group_name = 'audio_'+group_id
+            group_codec = group[0].codec
+            default = True
+            group_avg_segment_bitrate = 0
+            group_max_segment_bitrate = 0
+            for audio_track in group:
+                avg_segment_bitrate = int(audio_track.media_info['info']['stats']['avg_segment_bitrate'])
+                max_segment_bitrate = int(audio_track.media_info['info']['stats']['max_segment_bitrate'])
+                if avg_segment_bitrate > group_avg_segment_bitrate:
+                    group_avg_segment_bitrate = avg_segment_bitrate
+                if max_segment_bitrate > group_max_segment_bitrate:
+                    group_max_segment_bitrate = max_segment_bitrate
+                extra_info = 'AUTOSELECT=YES,'
+                if default:
+                    extra_info += 'DEFAULT=YES,'
+                    default = False
+                master_playlist.write(('#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="%s",NAME="%s",LANGUAGE="%s",%sURI="%s"\r\n' % (
+                                      group_name,
+                                      audio_track.media_info['language_name'],
+                                      audio_track.media_info['language'],
+                                      extra_info,
+                                      audio_track.media_info['dir']+'/stream.m3u8')).encode('utf-8'))
+            audio_groups.append({
+                'name':                group_name,
+                'codec':               group_codec,
+                'avg_segment_bitrate': group_avg_segment_bitrate,
+                'max_segment_bitrate': group_max_segment_bitrate
+            })
+
+        if options.debug:
+            print 'Audio Groups:'
+            print audio_groups
+
+    else:
+        audio_groups = [{
+            'name':                None,
+            'codec':               None,
+            'avg_segment_bitrate': 0,
+            'max_segment_bitrate': 0
+        }]
 
     # media playlists
     master_playlist.write('\r\n')
     master_playlist.write('# Media Playlists\r\n')
-    for media in muxed_media:
+    for media in main_media:
         media_info = media['info']
-        codecs = []
 
-        # audio info
-        if 'audio' in media_info:
-            codecs.append(media_info['audio']['codec'])
+        for group_info in audio_groups:
+            group_name  = group_info['name']
+            group_codec = group_info['codec']
 
-        # video info
-        if 'video' in media_info:
-            codecs.append(media_info['video']['codec'])
-        ext_x_stream_inf = '#EXT-X-STREAM-INF:AVERAGE-BANDWIDTH=%d,BANDWIDTH=%d,CODECS="%s"' % (
-                            int(media_info['stats']['avg_segment_bitrate']),
-                            int(media_info['stats']['max_segment_bitrate']),
-                            ','.join(codecs))
-        if 'video' in media_info:
-            ext_x_stream_inf += ',RESOLUTION='+str(int(media_info['video']['width']))+'x'+str(int(media_info['video']['height']))
+            # stream inf
+            codecs = []
+            if 'video' in media_info:
+                codecs.append(media_info['video']['codec'])
+            if 'audio' in media_info:
+                codecs.append(media_info['audio']['codec'])
+            elif group_name and group_codec:
+                codecs.append(group_codec)
 
-        # audio info
-        if len(audio_tracks):
-            ext_x_stream_inf += ',AUDIO="audio"'
+            ext_x_stream_inf = '#EXT-X-STREAM-INF:AVERAGE-BANDWIDTH=%d,BANDWIDTH=%d,CODECS="%s"' % (
+                                int(media_info['stats']['avg_segment_bitrate'])+group_info['avg_segment_bitrate'],
+                                int(media_info['stats']['max_segment_bitrate'])+group_info['max_segment_bitrate'],
+                                ','.join(codecs))
+            if 'video' in media_info:
+                ext_x_stream_inf += ',RESOLUTION='+str(int(media_info['video']['width']))+'x'+str(int(media_info['video']['height']))
 
-        # subtitles info
-        if len(subtitles_files):
-            ext_x_stream_inf += ',SUBTITLES="subtitles"'
+            # audio info
+            if group_name:
+                ext_x_stream_inf += ',AUDIO="'+group_name+'"'
 
-        master_playlist.write(ext_x_stream_inf+'\r\n')
-        master_playlist.write(media['dir']+'/stream.m3u8\r\n')
+            # subtitles info
+            if len(subtitles_files):
+                ext_x_stream_inf += ',SUBTITLES="subtitles"'
+
+            master_playlist.write(ext_x_stream_inf+'\r\n')
+            master_playlist.write(media['dir']+'/stream.m3u8\r\n')
 
     # write the I-FRAME playlist info
-    if options.hls_version >= 4:
+    if not audio_only and options.hls_version >= 4:
         master_playlist.write('\r\n')
         master_playlist.write('# I-Frame Playlists\r\n')
-        for media in muxed_media:
+        for media in main_media:
             media_info = media['info']
             if not 'video' in media_info: continue
             ext_x_i_frame_stream_inf = '#EXT-X-I-FRAME-STREAM-INF:AVERAGE-BANDWIDTH=%d,BANDWIDTH=%d,CODECS="%s",RESOLUTION=%dx%d,URI="%s"' % (
@@ -366,12 +456,14 @@ def main():
                       help="Output directory", metavar="<output-dir>", default='output')
     parser.add_option('-f', '--force', dest="force_output", action="store_true", default=False,
                       help="Allow output to an existing directory")
-    parser.add_option('', '--hls-version', dest="hls_version", type="int", metavar="<version>", default=3,
-                      help="HLS Version (default: 3)")
+    parser.add_option('', '--hls-version', dest="hls_version", type="int", metavar="<version>", default=4,
+                      help="HLS Version (default: 4)")
     parser.add_option('', '--master-playlist-name', dest="master_playlist_name", metavar="<filename>", default='master.m3u8',
                       help="Master Playlist name")
     parser.add_option('', '--output-single-file', dest="output_single_file", action='store_true', default=False,
                       help="Store segment data in a single output file per input file")
+    parser.add_option('', '--audio-format', dest="audio_format", default='packed',
+                      help="Format for audio segments (packed or ts) (default: packed)")
     parser.add_option('', '--encryption-mode', dest="encryption_mode", metavar="<mode>",
                       help="Encryption mode (only used when --encryption-key is specified). AES-128 or SAMPLE-AES (default: AES-128)")
     parser.add_option('', '--encryption-key', dest="encryption_key", metavar="<key>",

@@ -411,6 +411,7 @@ AP4_Mpeg2TsAudioSampleStream::WriteSample(AP4_Sample&            sample,
     // check the sample description
     if (sample_description->GetFormat() == AP4_SAMPLE_FORMAT_MP4A) {
         AP4_MpegAudioSampleDescription* audio_desc = AP4_DYNAMIC_CAST(AP4_MpegAudioSampleDescription, sample_description);
+        
         if (audio_desc == NULL) return AP4_ERROR_NOT_SUPPORTED;
         if (audio_desc->GetMpeg4AudioObjectType() != AP4_MPEG4_AUDIO_OBJECT_TYPE_AAC_LC   &&
             audio_desc->GetMpeg4AudioObjectType() != AP4_MPEG4_AUDIO_OBJECT_TYPE_AAC_MAIN &&
@@ -419,9 +420,9 @@ AP4_Mpeg2TsAudioSampleStream::WriteSample(AP4_Sample&            sample,
             return AP4_ERROR_NOT_SUPPORTED;
         }
         
-        unsigned int sample_rate = audio_desc->GetSampleRate();
+        unsigned int sample_rate   = audio_desc->GetSampleRate();
         unsigned int channel_count = audio_desc->GetChannelCount();
-        const AP4_DataBuffer& dsi = audio_desc->GetDecoderInfo();
+        const AP4_DataBuffer& dsi  = audio_desc->GetDecoderInfo();
         if (dsi.GetDataSize()) {
             AP4_Mp4AudioDecoderConfig dec_config;
             AP4_Result result = dec_config.Parse(dsi.GetData(), dsi.GetDataSize());
@@ -431,7 +432,7 @@ AP4_Mpeg2TsAudioSampleStream::WriteSample(AP4_Sample&            sample,
             }
         }
         unsigned int sampling_frequency_index = GetSamplingFrequencyIndex(sample_rate);
-        unsigned int channel_configuration = channel_count;
+        unsigned int channel_configuration    = channel_count;
 
         unsigned char* buffer = new unsigned char[7+sample_data.GetDataSize()];
         MakeAdtsHeader(buffer, sample_data.GetDataSize(), sampling_frequency_index, channel_configuration);

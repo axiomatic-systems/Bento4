@@ -191,11 +191,13 @@ def AddSegmentTemplate(options, container, init_segment_url, media_url_template_
                        startNumber='1') # (keep the @startNumber, even if not needed, because some clients like Silverlight want it)
 
 #############################################
-def AddSegments(options, container, subdir, track):
+def AddSegments(options, container, track):
     if options.use_segment_list:
         if options.split:
+            subdir = track.representation_id
             use_byte_range = False
         else:
+            subdir = None
             use_byte_range = True
         AddSegmentList(options, container, subdir, track, use_byte_range)
 
@@ -418,12 +420,7 @@ def OutputDash(options, set_attributes, audio_sets, video_sets, subtitles_sets, 
                     segment_base = xml.SubElement(representation, 'SegmentBase', indexRange=str(sidx_range[0])+'-'+str(sidx_range[1]))
                     xml.SubElement(segment_base, 'Initialization', range=str(init_range[0])+'-'+str(init_range[1]))
                 else:
-                    if options.split:
-                        media_subdir = 'video/' + str(video_track.order_index)
-                    else:
-                        media_subdir = None
-
-                    AddSegments(options, representation, media_subdir, video_track)
+                    AddSegments(options, representation, video_track)
 
     # process the audio tracks
     if len(audio_sets):
@@ -480,12 +477,7 @@ def OutputDash(options, set_attributes, audio_sets, video_sets, subtitles_sets, 
                     segment_base = xml.SubElement(representation, 'SegmentBase', indexRange=str(sidx_range[0])+'-'+str(sidx_range[1]))
                     xml.SubElement(segment_base, 'Initialization', range=str(init_range[0])+'-'+str(init_range[1]))
                 else:
-                    if options.split:
-                        media_subdir = 'audio/' + audio_track.language
-                    else:
-                        media_subdir = None
-
-                    AddSegments(options, representation, media_subdir, audio_track)
+                    AddSegments(options, representation, audio_track)
 
     # process all the subtitles tracks
     if options.subtitles and len(subtitles_tracks):
@@ -519,17 +511,15 @@ def OutputDash(options, set_attributes, audio_sets, video_sets, subtitles_sets, 
                     xml.SubElement(segment_base, 'Initialization', range=str(init_range[0])+'-'+str(init_range[1]))
                 else:
                     if options.split:
-                        media_subdir                      = 'subtitles/' + subtitles_track.language
                         init_segment_url                  = '$RepresentationID$/' + SPLIT_INIT_SEGMENT_NAME
                         media_segment_url_template_prefix = '$RepresentationID$/'
                     else:
-                        media_subdir                      = None
                         init_segment_url                  = NOSPLIT_INIT_FILE_PATTERN % ('$RepresentationID$')
                         media_segment_url_template_prefix = ''
 
                     stream_name = 'subtitles_' + subtitles_track.language
                     AddSegmentTemplate(options, adaptation_set, init_segment_url, media_segment_url_template_prefix, subtitles_track, stream_name)
-                    AddSegments(options, representation, media_subdir, subtitles_track)
+                    AddSegments(options, representation, subtitles_track)
 
     # process all the subtitles files
     if len(subtitles_files):
@@ -569,6 +559,92 @@ def OutputDash(options, set_attributes, audio_sets, video_sets, subtitles_sets, 
         mpd_xml = re.sub(r'((?<=>)(\n[\s]*)(?=[^<\s]))|(?<=[^>\s])(\n[\s]*)(?=<)', '', mpd_xml)
         open(path.join(options.output_dir, options.mpd_filename), "wb").write(mpd_xml)
 
+
+#############################################
+def OutputHlsTrack(options, track, media_subdir, media_playlist_name):
+    hls_target_duration = 10
+
+    media_playlist_file = open(path.join(options.output_dir, media_subdir, media_playlist_name), 'w+')
+    media_playlist_file.write('#EXTM3U\r\n')
+    media_playlist_file.write('# Created with Bento4 mp4-dash.py, VERSION=' + VERSION + '-' + SDK_REVISION+'\r\n')
+    media_playlist_file.write('#\r\n')
+    media_playlist_file.write('#EXT-X-VERSION:6\r\n')
+    media_playlist_file.write('#EXT-X-PLAYLIST-TYPE:VOD\r\n')
+    media_playlist_file.write('#EXT-X-INDEPENDENT-SEGMENTS\r\n')
+    media_playlist_file.write('#EXT-X-TARGETDURATION:%d\r\n' % (hls_target_duration))
+    media_playlist_file.write('#EXT-X-MEDIA-SEQUENCE:0\r\n')
+    media_playlist_file.write('#EXT-X-MAP:URI="%s"\r\n' % (SPLIT_INIT_SEGMENT_NAME))
+    segment_pattern = SEGMENT_PATTERN.replace('ll','')
+    for i in range(len(track.segment_durations)):
+        media_playlist_file.write('#EXTINF:%f,\r\n' % (track.segment_durations[i]))
+        media_playlist_file.write(segment_pattern % (i+1))
+        media_playlist_file.write('\r\n')
+    media_playlist_file.write('#EXT-X-ENDLIST\r\n')
+
+#############################################
+def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, subtitles_files):
+    all_audio_tracks     = sum(audio_sets.values(),     [])
+    all_video_tracks     = sum(video_sets.values(),     [])
+    all_subtitles_tracks = sum(subtitles_sets.values(), [])
+
+    master_playlist_file = open(path.join(options.output_dir, options.hls_master_playlist_name), 'w+');
+    master_playlist_file.write('#EXTM3U\r\n')
+    master_playlist_file.write('# Created with Bento4 mp4-dash.py, VERSION=' + VERSION + '-' + SDK_REVISION+'\r\n')
+    master_playlist_file.write('#\r\n')
+    master_playlist_file.write('#EXT-X-VERSION:6\r\n')
+    master_playlist_file.write('\r\n')
+    master_playlist_file.write('# Media Playlists\r\n')
+
+    master_playlist_file.write('\r\n')
+    master_playlist_file.write('# Audio\r\n')
+    audio_groups = {}
+    for adaptation_set_name, audio_tracks in audio_sets.items():
+        language = audio_tracks[0].language.decode('utf-8')
+        language_name = LanguageNames.get(language, language).decode('utf-8')
+
+        audio_group_name = adaptation_set_name[0]+'/'+adaptation_set_name[2]
+        audio_groups[audio_group_name] = adaptation_set_name[2]
+        for audio_track in audio_tracks:
+            if options.on_demand:
+                raise Exception('mode not supported yet with HLS')
+            else:
+                if options.split:
+                    media_subdir = audio_track.representation_id
+                    media_playlist_name = options.hls_media_playlist_name
+                else:
+                    raise Exception('mode not supported yet with HLS')
+
+            master_playlist_file.write(('#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="%s",LANGUAGE="%s",NAME="%s",AUTOSELECT=YES,DEFAULT=YES,URI="%s"\r\n' % (
+                                        audio_group_name,
+                                        language,
+                                        language_name,
+                                        audio_track.representation_id+'/'+media_playlist_name)).encode('utf-8'))
+            OutputHlsTrack(options, audio_track, media_subdir, media_playlist_name)
+
+    master_playlist_file.write('\r\n')
+    master_playlist_file.write('# Video\r\n')
+    for video_track in all_video_tracks:
+        if options.on_demand:
+            raise Exception('mode not supported yet with HLS')
+        else:
+            if options.split:
+                media_subdir = video_track.representation_id
+                media_playlist_name = options.hls_media_playlist_name
+            else:
+                raise Exception('mode not supported yet with HLS')
+
+
+        for audio_group_name in audio_groups:
+            audio_codec = audio_groups[audio_group_name]
+            master_playlist_file.write('#EXT-X-STREAM-INF:AUDIO="%s",AVERAGE-BANDWIDTH=%d,BANDWIDTH=%d,CODECS="%s",RESOLUTION=%dx%d\r\n' % (
+                                       audio_group_name,
+                                       video_track.average_segment_bitrate,
+                                       video_track.max_segment_bitrate,
+                                       video_track.codec+','+audio_codec,
+                                       video_track.width,
+                                       video_track.height))
+            master_playlist_file.write(video_track.representation_id+'/'+media_playlist_name+'\r\n')
+        OutputHlsTrack(options, video_track, media_subdir, media_playlist_name)
 
 #############################################
 def OutputSmooth(options, audio_tracks, video_tracks):
@@ -1034,6 +1110,14 @@ def main():
                       help="Smooth Streaming Server Manifest file name", metavar="<filename>", default='stream.ism')
     parser.add_option('', '--smooth-h264-fourcc', dest='smooth_h264_fourcc',
                       help="Smooth Streaming FourCC value for H.264 video (default=H264) [some older players use AVC1]", metavar="<fourcc>", default='H264')
+    parser.add_option('', '--hls', dest="hls", default=False, action="store_true",
+                      help="Output HLS playlists in addition to MPEG DASH")
+    parser.add_option('', '--hls-master-playlist-name', dest="hls_master_playlist_name",
+                      help="HLS master playlist name (default: master.m3u8)", metavar="<filename>", default='master.m3u8')
+    parser.add_option('', '--hls-media-playlist-name', dest="hls_media_playlist_name",
+                      help="HLS media playlist name (default: media.m3u8)", metavar="<filename>", default='media.m3u8')
+    parser.add_option('', '--hls-iframes-playlist-name', dest="hls_iframes_playlist_name",
+                      help="HLS I-Frames playlist name (default: iframes.m3u8)", metavar="<filename>", default='iframes.m3u8')
     parser.add_option('', "--hippo", dest="hippo", default=False, action="store_true",
                       help="Produce an output compatible with the Hippo Media Server")
     parser.add_option('', '--hippo-server-manifest-name', dest="hippo_server_manifest_filename",
@@ -1546,6 +1630,10 @@ def main():
 
     # output the DASH MPD
     OutputDash(options, set_attributes, audio_sets, video_sets, subtitles_sets, subtitles_files)
+
+    # output the HLS playlists
+    if options.hls:
+        OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, subtitles_files)
 
     # output the Smooth Manifests
     if options.smooth:
