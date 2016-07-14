@@ -95,6 +95,21 @@ PrintUsageAndExit()
 }
 
 /*----------------------------------------------------------------------
+|   platform adaptation
++---------------------------------------------------------------------*/
+#if defined(_MSC_VER)
+static double 
+strtof(char* s, char** /* end */)
+{
+	_CRT_DOUBLE value = {0.0};
+    int result = _atodbl(&value, s);
+	return result == 0 ? (double)value.x : 0.0;
+}
+#endif
+
+
+
+/*----------------------------------------------------------------------
 |   SampleArray
 +---------------------------------------------------------------------*/
 class SampleArray {

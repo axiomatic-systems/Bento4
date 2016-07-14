@@ -468,7 +468,7 @@ SampleEncrypter::EncryptAudioSample(AP4_DataBuffer& sample, AP4_SampleDescriptio
             if (syncword != 0x0b77) {
                 return AP4_ERROR_INVALID_FORMAT; // unexpected!
             }
-            unsigned int frmsiz = 1+((data[2]<<8)|(data[3]))&0x7FF;
+            unsigned int frmsiz = 1+(((data[2]<<8)|(data[3]))&0x7FF);
             unsigned int frame_size = 2*frmsiz;
             if (data_size < frame_size) {
                 return AP4_ERROR_INVALID_FORMAT; // unexpected!
@@ -725,6 +725,8 @@ MakeAudioSetupData(AP4_DataBuffer&        audio_setup_data,
             return 1;
         }
         setup_data.SetData(dec3->GetRawBytes().GetData(), dec3->GetRawBytes().GetDataSize());
+    } else {
+        return AP4_SUCCESS;
     }
 
     audio_setup_data.SetDataSize(8+setup_data.GetDataSize());
@@ -799,8 +801,7 @@ MakeSampleAesAudioDescriptor(AP4_DataBuffer&        descriptor,
 |   MakeSampleAesVideoDescriptor
 +---------------------------------------------------------------------*/
 static AP4_Result
-MakeSampleAesVideoDescriptor(AP4_DataBuffer&        descriptor,
-                             AP4_SampleDescription* sample_description)
+MakeSampleAesVideoDescriptor(AP4_DataBuffer& descriptor)
 {
     descriptor.SetDataSize(6);
     AP4_UI08* payload = descriptor.UseData();
@@ -1174,7 +1175,7 @@ WriteSamples(AP4_Mpeg2TsWriter*               ts_writer,
                             audio_stream->SetDescriptor(descriptor.GetData(), descriptor.GetDataSize());
                         }
                     } else if (chosen_track == video_track) {
-                        AP4_Result result = MakeSampleAesVideoDescriptor(descriptor, video_track->GetSampleDescription(0));
+                        AP4_Result result = MakeSampleAesVideoDescriptor(descriptor);
                         if (AP4_SUCCEEDED(result) && descriptor.GetDataSize()) {
                             video_stream->SetDescriptor(descriptor.GetData(), descriptor.GetDataSize());
                         }
