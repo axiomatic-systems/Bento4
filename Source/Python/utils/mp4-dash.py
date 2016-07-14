@@ -480,7 +480,7 @@ def OutputDash(options, set_attributes, audio_sets, video_sets, subtitles_sets, 
                     AddSegments(options, representation, audio_track)
 
     # process all the subtitles tracks
-    if options.subtitles and len(subtitles_tracks):
+    if len(subtitles_sets):
         period.append(xml.Comment(' Subtitles (Encapsulated) '))
         for subtitles_tracks in subtitles_sets:
             for subtitles_track in subtitles_tracks:
@@ -978,16 +978,17 @@ def SelectTracks(options, media_sources):
             track.order_index = len(adaptation_set)
 
         # process subtitle tracks
-        for track in [t for t in tracks if t.type == 'subtitles']:
-            adaptation_set_name = ('subtitles', track.language, track.codec_family)
-            adaptation_set = subtitles_adaptation_sets.get(adaptation_set_name, [])
-            subtitles_adaptation_sets[adaptation_set_name] = adaptation_set
+        if options.subtitles:
+            for track in [t for t in tracks if t.type == 'subtitles']:
+                adaptation_set_name = ('subtitles', track.language, track.codec_family)
+                adaptation_set = subtitles_adaptation_sets.get(adaptation_set_name, [])
+                subtitles_adaptation_sets[adaptation_set_name] = adaptation_set
 
-            if len([et for et in subtitles_tracks if et.language == track.language]):
-                continue # only accept one track for each language
+                if len([et for et in subtitles_tracks if et.language == track.language]):
+                    continue # only accept one track for each language
 
-            adaptation_set.append(track)
-            track.order_index = len(adaptation_set)
+                adaptation_set.append(track)
+                track.order_index = len(adaptation_set)
 
     return (audio_adaptation_sets, video_adaptation_sets, subtitles_adaptation_sets, mp4_files)
 

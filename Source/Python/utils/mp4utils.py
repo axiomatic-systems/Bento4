@@ -389,17 +389,22 @@ class Mp4Track:
 
             # add dolby vision signaling if present
             if 'dolby_vision' in sample_desc:
-                coding_map = {
-                    'avc1': 'dva1',
-                    'avc3': 'dvav',
-                    'hev1': 'dvhe',
-                    'hvc1': 'dvh1'
-                }
-                dv_coding = coding_map.get(sample_desc['coding'])
                 dv_info = sample_desc['dolby_vision']
-                if dv_coding:
-                    dv_string = dv_coding + ('.%02d.%02d' % (dv_info['profile'], dv_info['level']))
-                    self.codec += ','+dv_string
+                if sample_desc['coding'] in ['dvav', 'dva1', 'dvhe', 'dvh1']:
+                    # non-backward-compatible
+                    self.codec = sample_desc['coding'] + ('.%02d.%02d' % (dv_info['profile'], dv_info['level']))
+                else:
+                    # backward-compatible
+                    coding_map = {
+                        'avc1': 'dva1',
+                        'avc3': 'dvav',
+                        'hev1': 'dvhe',
+                        'hvc1': 'dvh1'
+                    }
+                    dv_coding = coding_map.get(sample_desc['coding'])
+                    if dv_coding:
+                        dv_string = dv_coding + ('.%02d.%02d' % (dv_info['profile'], dv_info['level']))
+                        self.codec += ','+dv_string
 
         if self.type == 'audio':
             self.sample_rate = sample_desc['sample_rate']

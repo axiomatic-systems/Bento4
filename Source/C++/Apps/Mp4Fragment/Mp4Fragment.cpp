@@ -62,6 +62,8 @@ struct _Options {
     bool          trim;
     bool          debug;
     bool          no_tfdt;
+    double        tfdt_start;
+    unsigned int  sequence_number_start;
     ForceSyncMode force_i_frame_sync;
 } Options;
 
@@ -84,6 +86,8 @@ PrintUsageAndExit()
             "  --index (re)create the segment index\n"
             "  --trim trim excess media in longer tracks\n"
             "  --no-tfdt don't add 'tfdt' boxes in the fragments (may be needed for legacy Smooth Streaming clients)\n"
+            "  --tfdt-start <start> Value of the first tfdt timestamp, expressed either as a floating point number in seconds)\n"
+            "  --sequence-number-start <start> Value of the first segment sequence number (default: 1)\n"
             "  --force-i-frame-sync <auto|all> treat all I-frames as sync samples (for open-gop sequences)\n"
             "    'auto' only forces the flag if an open-gop source is detected, 'all' forces the flag in all cases\n"
             );
@@ -428,7 +432,7 @@ Fragment(AP4_File&                input_file,
     output_movie->GetMoovAtom()->AddChild(mvex);
     
     // compute all the fragments
-    unsigned int sequence_number = 1;
+    unsigned int sequence_number = Options.sequence_number_start;
     for(;;) {
         TrackCursor* cursor = NULL;
 
@@ -586,7 +590,7 @@ Fragment(AP4_File&                input_file,
         
         traf->AddChild(tfhd);
         if (!Options.no_tfdt) {
-            AP4_TfdtAtom* tfdt = new AP4_TfdtAtom(1, cursor->m_Timestamp);
+            AP4_TfdtAtom* tfdt = new AP4_TfdtAtom(1, cursor->m_Timestamp + (AP4_UI64)(Options.tfdt_start * (double)cursor->m_Track->GetMediaTimeScale()));
             traf->AddChild(tfdt);
         }
         AP4_UI32 trun_flags = AP4_TRUN_FLAG_DATA_OFFSET_PRESENT     |
@@ -1010,11 +1014,13 @@ main(int argc, char** argv)
     AP4_UI32     timescale                     = 0;
     AP4_Result   result;
 
-    Options.verbosity          = 1;
-    Options.debug              = false;
-    Options.trim               = false;
-    Options.no_tfdt            = false;
-    Options.force_i_frame_sync = AP4_FRAGMENTER_FORCE_SYNC_MODE_NONE;
+    Options.verbosity             = 1;
+    Options.debug                 = false;
+    Options.trim                  = false;
+    Options.no_tfdt               = false;
+    Options.tfdt_start            = 0.0;
+    Options.sequence_number_start = 1;
+    Options.force_i_frame_sync    = AP4_FRAGMENTER_FORCE_SYNC_MODE_NONE;
     
     // parse the command line
     argv++;
@@ -1037,6 +1043,20 @@ main(int argc, char** argv)
             Options.trim = true;
         } else if (!strcmp(arg, "--no-tfdt")) {
             Options.no_tfdt = true;
+        } else if (!strcmp(arg, "--tfdt-start")) {
+            arg = *argv++;
+            if (arg == NULL) {
+                fprintf(stderr, "ERROR: missing argument after --tfdt-start option\n");
+                return 1;
+            }
+            Options.tfdt_start = strtof(arg, NULL);
+        } else if (!strcmp(arg, "--sequence-number-start")) {
+            arg = *argv++;
+            if (arg == NULL) {
+                fprintf(stderr, "ERROR: missing argument after --sequence-number-start option\n");
+                return 1;
+            }
+            Options.sequence_number_start = strtoul(arg, NULL, 10);
         } else if (!strcmp(arg, "--force-i-frame-sync")) {
             arg = *argv++;
             if (arg == NULL) {
