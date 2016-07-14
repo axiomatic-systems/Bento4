@@ -84,6 +84,7 @@ PrintUsageAndExit()
             "  --index (re)create the segment index\n"
             "  --trim trim excess media in longer tracks\n"
             "  --no-tfdt don't add 'tfdt' boxes in the fragments (may be needed for legacy Smooth Streaming clients)\n"
+            "  --tfdt-offset <sec> add a timeline offset to each 'tfdt' box in the fragment.\n"
             "  --force-i-frame-sync <auto|all> treat all I-frames as sync samples (for open-gop sequences)\n"
             "    'auto' only forces the flag if an open-gop source is detected, 'all' forces the flag in all cases\n"
             );
@@ -274,7 +275,8 @@ Fragment(AP4_File&                input_file,
          unsigned int             fragment_duration,
          AP4_UI32                 timescale,
          AP4_UI32                 track_id,
-         bool                     create_segment_index)
+         bool                     create_segment_index,
+         unsigned int             tfdt_offset)
 {
     AP4_List<FragmentInfo> fragments;
     TrackCursor*           index_cursor = NULL;
@@ -586,7 +588,7 @@ Fragment(AP4_File&                input_file,
         
         traf->AddChild(tfhd);
         if (!Options.no_tfdt) {
-            AP4_TfdtAtom* tfdt = new AP4_TfdtAtom(1, cursor->m_Timestamp);
+            AP4_TfdtAtom* tfdt = new AP4_TfdtAtom(1, cursor->m_Timestamp + tfdt_offset * cursor->m_Track->GetMediaTimeScale());
             traf->AddChild(tfdt);
         }
         AP4_UI32 trun_flags = AP4_TRUN_FLAG_DATA_OFFSET_PRESENT     |
@@ -1004,6 +1006,7 @@ main(int argc, char** argv)
     const char*  track_selector                = NULL;
     AP4_UI32     selected_track_id             = 0;
     unsigned int fragment_duration             = 0;
+    unsigned int tfdt_offset                   = 0;
     bool         auto_detect_fragment_duration = true;
     bool         create_segment_index          = false;
     bool         quiet                         = false;
@@ -1037,6 +1040,13 @@ main(int argc, char** argv)
             Options.trim = true;
         } else if (!strcmp(arg, "--no-tfdt")) {
             Options.no_tfdt = true;
+        } else if (!strcmp(arg, "--tfdt-offset")) {
+            arg = *argv++;
+            if (arg == NULL) {
+                fprintf(stderr, "ERROR: missing argument after --tfdt-offset option\n");
+                return 1;
+            }
+            tfdt_offset = strtoul(arg, NULL, 10);
         } else if (!strcmp(arg, "--force-i-frame-sync")) {
             arg = *argv++;
             if (arg == NULL) {
@@ -1314,7 +1324,7 @@ main(int argc, char** argv)
     }
     
     // fragment the file
-    Fragment(input_file, *output_stream, cursors, fragment_duration, timescale, selected_track_id, create_segment_index);
+    Fragment(input_file, *output_stream, cursors, fragment_duration, timescale, selected_track_id, create_segment_index, tfdt_offset);
     
     // cleanup and exit
     if (input_stream)  input_stream->Release();
