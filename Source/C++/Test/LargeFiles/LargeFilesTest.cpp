@@ -13,7 +13,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include "AP4.h"
+#include "Ap4.h"
 
 /*----------------------------------------------------------------------
 |   globals
