@@ -29,7 +29,8 @@ from mp4utils import *
 import m3u8
 import pycurl
 from ffprobe import FFProbe
-from subprocess import check_output, CalledProcessError
+import subprocess
+import shlex
 
 VERSION = "1.0.0"
 SDK_REVISION = '613'
@@ -48,17 +49,24 @@ def debug_log(*args, **kwargs):
     if Options.debug:
         print(*args, file=sys.stderr, **kwargs)
 
-def FFMpegCommand(exec_dir, name, opt):
-    executable = path.join(exec_dir, name)
-    cmd = [executable, opt]
+def FFMpegCommand(infile, outfile, opts):
+    exec_dir = Options.ffmpeg_exec_dir
+    executable = path.join(exec_dir, 'ffmpeg')
+    cmd = [executable]
+    cmd.append('-i')
+    cmd.append(infile)
+    args = shlex.split(opts)
+    cmd += args
+    cmd.append(outfile)
     debug_log('COMMAND: %s' % cmd)
     try:
+        FNULL = open(os.devnull, 'w')
         try:
-            return check_output(cmd)
+            return subprocess.call(cmd, stdout=FNULL, stderr=subprocess.STDOUT)
         except OSError as e:
             debug_log('executable ' + executable + ' not found in exec_dir, trying with PATH')
             cmd[0] = path.basename(cmd[0])
-            return check_output(cmd)
+            return subprocess.call(cmd, stdout=FNULL, stderr=subprocess.STDOUT)
     except CalledProcessError as e:
         message = "binary tool failed with error %d" % e.returncode
         raise Exception(message)
@@ -129,8 +137,9 @@ class TSBase:
     def parsedata(self, probedata):
         if len(probedata.streams) > 0:
             self.startTime = float(probedata.streams[0].start_time)
-    def isRemuxed(self, outdir, profile):
-        dashaudiopath = '%s/audio-%s.dash' % (outdir, profile)
+            debug_log("Probed TS: startTime=%s" % self.startTime)
+    def isRemuxed(self, outdir, profile, number):
+        dashaudiopath = '%s/audio-%s_%s.dash' % (outdir, profile, number)
         return os.path.exists(dashaudiopath)
     def getStartTime(self):
         return self.startTime
@@ -143,32 +152,37 @@ class TSRemote(TSBase):
         TSBase.__init__(self)
         self.uri = uri
         self.downloadedFile = None
+        res = re.match('.*/(.*\.ts)$', self.uri)
+        self.fname = res.group(1)
+        self.fpath = Options.tmpdir + "/" + self.fname
     def probe(self):
         self.download()
         self.parsedata(FFProbe(self.downloadedFile.name))
     def download(self):
         if self.downloadedFile == None:
-            self.downloadedFile = tempfile.NamedTemporaryFile(suffix='.ts', delete=False)
+            debug_log("Downloading %s" % self.fname)
+            self.downloadedFile = open(self.fpath, 'wb')
             c = pycurl.Curl()
             c.setopt(c.URL, self.uri)
             c.setopt(c.WRITEDATA, self.downloadedFile)
             c.perform()
             c.close
             self.downloadedFile.close()
-    def remuxMP4(self, outdir, profile):
+    def remuxMP4(self, outdir, profile, number):
         self.download()
-        dashaudiopath = '%s/audio-%s.dash' % (outdir, profile)
-        dashvideopath = '%s/video-%s.dash' % (outdir, profile)
-        tmpaudio = tempfile.NamedTemporaryFile(suffix='.mp4')
-        tmpvideo = tempfile.NamedTemporaryFile(suffix='.mp4')
-        FFMpegCommand(Options.ffmpeg_exec_dir, 'ffmpeg', '-i %s -bsf:a aac_adtstoasc -acodec copy -vn %s' % (self.downloadedFile.name, tmpaudio.name))
-        FFMpegCommand(Options.ffmpeg_exec_dir, 'ffmpeg', '-i %s -vcodec copy -an %s' % (self.downloadedFile.name, tmpvideo.name))
+        dashaudiopath = '%s/audio-%s_%s.dash' % (outdir, profile, number)
+        dashvideopath = '%s/video-%s_%s.dash' % (outdir, profile, number)
+        tmpaudio = tempfile.NamedTemporaryFile(dir=Options.tmpdir, suffix='.mp4')
+        tmpvideo = tempfile.NamedTemporaryFile(dir=Options.tmpdir, suffix='.mp4')
+        FFMpegCommand(self.downloadedFile.name, tmpaudio.name, '-y -bsf:a aac_adtstoasc -acodec copy -vn')
+        FFMpegCommand(self.downloadedFile.name, tmpvideo.name, '-y -vcodec copy -an')
+        self.probe()
+        Mp4Fragment(Options, tmpaudio.name, dashaudiopath, tfdt_start=str(self.getStartTime()), quiet=True) 
+        Mp4Fragment(Options, tmpvideo.name, dashvideopath, tfdt_start=str(self.getStartTime()), quiet=True) 
     def getFilename(self):
         return self.downloadedFile.name
     def cleanup(self):
-        if not self.downloadedFile == None:
-            os.unlink(self.downloadedFile.name)
-            self.downloadedFile = None
+        return
 
 class TSLocal(TSBase):
     def __init__(self, path):
@@ -176,13 +190,13 @@ class TSLocal(TSBase):
         self.path = path
     def probe(self):
         self.parsedata(FFProbe(self.path))
-    def remuxMP4(self, outdir, profile):
-        dashaudiopath = '%s/audio-%s.dash' % (outdir, profile)
-        dashvideopath = '%s/video-%s.dash' % (outdir, profile)
-        tmpaudio = tempfile.NamedTemporaryFile(suffix='.mp4')
-        tmpvideo = tempfile.NamedTemporaryFile(suffix='.mp4')
-        FFMpegCommand(Options.ffmpeg_exec_dir, 'ffmpeg', '-i %s -bsf:a aac_adtstoasc -acodec copy -vn %s' % (self.path, tmpaudio.name))
-        FFMpegCommand(Options.ffmpeg_exec_dir, 'ffmpeg', '-i %s -vcodec copy -an %s' % (self.path, tmpvideo.name))
+    def remuxMP4(self, outdir, profile, number):
+        dashaudiopath = '%s/audio-%s_%s.dash' % (outdir, profile, number)
+        dashvideopath = '%s/video-%s_%s.dash' % (outdir, profile, number)
+        tmpaudio = tempfile.NamedTemporaryFile(dir=Options.tmpdir, suffix='.mp4')
+        tmpvideo = tempfile.NamedTemporaryFile(dir=Options.tmpdir, suffix='.mp4')
+        FFMpegCommand(self.downloadedFile.name, tmpaudio.name, '-y -bsf:a aac_adtstoasc -acodec copy -vn')
+        FFMpegCommand(self.downloadedFile.name, tmpvideo.name, '-y -vcodec copy -an')
     def getFilename(self):
         return self.path
 
@@ -372,8 +386,10 @@ class MPD_HLS(MPD_Base):
                 segts = TSRemote(uri)
             else:
                 segts = TSLocal(seg.uri)
-            if not segts.isRemuxed(self.remuxOutput, profile):
-                segts.remuxMP4(self.remuxOutput, profile)
+            segts.download()
+            number = self._getStartNumberFromFilename(seg.uri)
+            if not segts.isRemuxed(self.remuxOutput, profile, number):
+                segts.remuxMP4(self.remuxOutput, profile, number)
                 segts.cleanup()
     def _profileFromFilename(self, filename):
         result = re.match(self.profilepattern, filename)
@@ -455,20 +471,31 @@ def main():
         default_exec_dir = path.join(SCRIPT_PATH, '..', 'bin')
 
 
-    parser = argparse.ArgumentParser(description='Generate an MPEG DASH manifest from a live HLS source including the option to download and rewrap TS segments to MP4 fragments. Writes MPEG DASH manifest to stdout')
+    parser = argparse.ArgumentParser(
+        description="Generate an MPEG DASH manifest from a live HLS source including the option to download and rewrap TS segments to MP4 fragments. Writes MPEG DASH manifest to stdout",
+        epilog="Example (no remux): hls2mp4dash http://example.com/live/event/master.m3u8\n\n Example (remux): hls2mp4dash --remux --remux-output=/media/event --tmpdir=/media/tscache http://example.com/live/event/master.m3u8"
+    )
+
     parser.add_argument('playlist', metavar='PLAYLIST', help='Path to HLS playlist file. Can be a URI or local file.')
-    parser.add_argument('--remux', dest='remux', action='store_true', default=False, help='download and remux TS segments to MP4 fragments (requires ffmpeg and patched mp4packager (Bento4)')
-    parser.add_argument('--remux-output', metavar='<ouput_dir>', dest='remux_output', default='.')
-    parser.add_argument('--debug', dest='debug', action='store_true', default=False)
-    parser.add_argument('--exec-dir', metavar='<exec_dir>', dest='exec_dir', default=default_exec_dir)
-    parser.add_argument('--ffmpeg_exec-dir', metavar='<exec_dir>', dest='ffmpeg_exec_dir', default='')
+    parser.add_argument('--remux', dest='remux', action='store_true', default=False, help='download and remux TS segments to MP4 fragments')
+    parser.add_argument('--remux-output', metavar='<ouput_dir>', dest='remux_output', default='.', help="Where remuxed fragments and MPD will be stored")
+    parser.add_argument('--verbose', dest='verbose', action='store_true', default=False, help="Be verbose")
+    parser.add_argument('--debug', dest='debug', action='store_true', default=False, help="Be extremely verbose")
+    parser.add_argument('--tmpdir', dest='tmpdir', metavar='<tmp_dir>', default='/tmp/', help="Where to store all temporary files")
+    parser.add_argument('--exec-dir', metavar='<exec_dir>', dest='exec_dir', default=default_exec_dir, help="Where Bento4 applications are found")
+    parser.add_argument('--ffmpeg_exec-dir', metavar='<exec_dir>', dest='ffmpeg_exec_dir', default='', help="Where ffmpeg is found")
     args = parser.parse_args()
     global Options
     Options = args
 
     mpd = MPD_HLS(args.playlist, Options.remux, Options.remux_output)
     mpd.load()
-    print(mpd.asXML())
+    if Options.remux:
+        outfile = open(Options.remux_output + "/manifest.mpd", "w")
+        outfile.write(mpd.asXML())
+        outfile.close()
+    else:
+        print(mpd.asXML())
 
 ###########################
 if sys.version_info[0] != 2:
