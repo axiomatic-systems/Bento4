@@ -195,8 +195,10 @@ class TSLocal(TSBase):
         dashvideopath = '%s/video-%s_%s.dash' % (outdir, profile, number)
         tmpaudio = tempfile.NamedTemporaryFile(dir=Options.tmpdir, suffix='.mp4')
         tmpvideo = tempfile.NamedTemporaryFile(dir=Options.tmpdir, suffix='.mp4')
-        FFMpegCommand(self.downloadedFile.name, tmpaudio.name, '-y -bsf:a aac_adtstoasc -acodec copy -vn')
-        FFMpegCommand(self.downloadedFile.name, tmpvideo.name, '-y -vcodec copy -an')
+        FFMpegCommand(self.path, tmpaudio.name, '-y -bsf:a aac_adtstoasc -acodec copy -vn')
+        FFMpegCommand(self.path, tmpvideo.name, '-y -vcodec copy -an')
+        Mp4Fragment(Options, tmpaudio.name, dashaudiopath, tfdt_start=str(self.getStartTime()), quiet=True) 
+        Mp4Fragment(Options, tmpvideo.name, dashvideopath, tfdt_start=str(self.getStartTime()), quiet=True) 
     def getFilename(self):
         return self.path
 
