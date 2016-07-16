@@ -29,6 +29,7 @@ from mp4utils import *
 import m3u8
 import pycurl
 from ffprobe import FFProbe
+from subprocess import check_output, CalledProcessError
 
 VERSION = "1.0.0"
 SDK_REVISION = '613'
@@ -46,6 +47,24 @@ Options = None
 def debug_log(*args, **kwargs):
     if Options.debug:
         print(*args, file=sys.stderr, **kwargs)
+
+def FFMpegCommand(exec_dir, name, opt):
+    executable = path.join(exec_dir, name)
+    cmd = [executable, opt]
+    debug_log('COMMAND: %s' % cmd)
+    try:
+        try:
+            return check_output(cmd)
+        except OSError as e:
+            debug_log('executable ' + executable + ' not found in exec_dir, trying with PATH')
+            cmd[0] = path.basename(cmd[0])
+            return check_output(cmd)
+    except CalledProcessError as e:
+        message = "binary tool failed with error %d" % e.returncode
+        raise Exception(message)
+    except OSError as e:
+        raise Exception('executable "'+name+'" not found, ensure that it is in your path or in the directory '+exec_dir)
+
 
 class PT:
     def __init__(self, seconds):
@@ -110,23 +129,46 @@ class TSBase:
     def parsedata(self, probedata):
         if len(probedata.streams) > 0:
             self.startTime = float(probedata.streams[0].start_time)
+    def isRemuxed(self, outdir, profile):
+        dashaudiopath = '%s/audio-%s.dash' % (outdir, profile)
+        return os.path.exists(dashaudiopath)
     def getStartTime(self):
         return self.startTime
+    def cleanup(self):
+        return
 
 
 class TSRemote(TSBase):
     def __init__(self, uri):
         TSBase.__init__(self)
         self.uri = uri
+        self.downloadedFile = None
     def probe(self):
-        tmpfile = tempfile.NamedTemporaryFile()
-        c = pycurl.Curl()
-        c.setopt(c.URL, self.uri)
-        c.setopt(c.WRITEDATA, tmpfile)
-        c.perform()
-        c.close
-        self.parsedata(FFProbe(tmpfile.name))
-        tmpfile.close()
+        self.download()
+        self.parsedata(FFProbe(self.downloadedFile.name))
+    def download(self):
+        if self.downloadedFile == None:
+            self.downloadedFile = tempfile.NamedTemporaryFile(suffix='.ts', delete=False)
+            c = pycurl.Curl()
+            c.setopt(c.URL, self.uri)
+            c.setopt(c.WRITEDATA, self.downloadedFile)
+            c.perform()
+            c.close
+            self.downloadedFile.close()
+    def remuxMP4(self, outdir, profile):
+        self.download()
+        dashaudiopath = '%s/audio-%s.dash' % (outdir, profile)
+        dashvideopath = '%s/video-%s.dash' % (outdir, profile)
+        tmpaudio = tempfile.NamedTemporaryFile(suffix='.mp4')
+        tmpvideo = tempfile.NamedTemporaryFile(suffix='.mp4')
+        FFMpegCommand(Options.ffmpeg_exec_dir, 'ffmpeg', '-i %s -bsf:a aac_adtstoasc -acodec copy -vn %s' % (self.downloadedFile.name, tmpaudio.name))
+        FFMpegCommand(Options.ffmpeg_exec_dir, 'ffmpeg', '-i %s -vcodec copy -an %s' % (self.downloadedFile.name, tmpvideo.name))
+    def getFilename(self):
+        return self.downloadedFile.name
+    def cleanup(self):
+        if not self.downloadedFile == None:
+            os.unlink(self.downloadedFile.name)
+            self.downloadedFile = None
 
 class TSLocal(TSBase):
     def __init__(self, path):
@@ -134,6 +176,15 @@ class TSLocal(TSBase):
         self.path = path
     def probe(self):
         self.parsedata(FFProbe(self.path))
+    def remuxMP4(self, outdir, profile):
+        dashaudiopath = '%s/audio-%s.dash' % (outdir, profile)
+        dashvideopath = '%s/video-%s.dash' % (outdir, profile)
+        tmpaudio = tempfile.NamedTemporaryFile(suffix='.mp4')
+        tmpvideo = tempfile.NamedTemporaryFile(suffix='.mp4')
+        FFMpegCommand(Options.ffmpeg_exec_dir, 'ffmpeg', '-i %s -bsf:a aac_adtstoasc -acodec copy -vn %s' % (self.path, tmpaudio.name))
+        FFMpegCommand(Options.ffmpeg_exec_dir, 'ffmpeg', '-i %s -vcodec copy -an %s' % (self.path, tmpvideo.name))
+    def getFilename(self):
+        return self.path
 
 class TSStream:
     def __init__(self, streamid):
@@ -271,12 +322,14 @@ class AdaptationSetAudio(AdaptationSetBase):
 
  
 class MPD_HLS(MPD_Base):
-    def __init__(self, playlistlocator):
+    def __init__(self, playlistlocator, remux, remuxoutput):
         MPD_Base.__init__(self)
         self.playlistlocator = playlistlocator
         self.profilepattern = 'master(\d+).m3u8' #TODO fix this hardcoded pattern
         self.numberpattern = 'master\d+_(\d+).ts' #TODO fix this hardcoded pattern
         self.isRemote = False
+        self.doRemux = remux
+        self.remuxOutput = remuxoutput
         self.baseurl = ''
         res = re.match('^(.*)/.*.m3u8$', playlistlocator)
         if res:
@@ -295,12 +348,33 @@ class MPD_HLS(MPD_Base):
             self._parseMaster(m3u8_obj)
         else:
             raise Exception("Can only create DASH manifest from an HLS master playlist")
-        p = m3u8_obj.playlists[0]
-        debug_log("Loading playlist: ", self.baseurl + p.uri)
-        self._parsePlaylist(m3u8.load(self.baseurl + p.uri))
+        m3u8_pl = None
+        if self.doRemux:
+            for pl in m3u8_obj.playlists:
+                m3u8_pl = m3u8.load(self.baseurl + pl.uri)
+                self._remuxSegmentsInPlaylist(pl.uri, m3u8_pl)
+        else:
+            p = m3u8_obj.playlists[0]
+            debug_log("Loading playlist: ", self.baseurl + p.uri)
+            m3u8_pl = m3u8.load(self.baseurl + p.uri)
+        self._parsePlaylist(m3u8_pl)
         for per in self.getAllPeriods():
             debug_log("Audio: ", per.as_audio)
             debug_log("Video: ", per.as_video)
+    def _remuxSegmentsInPlaylist(self, playlisturi, playlist):
+        for seg in playlist.segments:
+            seqno = self._getStartNumberFromFilename(seg.uri).lstrip('0')
+            profile = self._profileFromFilename(playlisturi)
+            segts = None
+            if self.isRemote:
+                if not re.match('^http', seg.uri):
+                    uri = self.baseurl + seg.uri
+                segts = TSRemote(uri)
+            else:
+                segts = TSLocal(seg.uri)
+            if not segts.isRemuxed(self.remuxOutput, profile):
+                segts.remuxMP4(self.remuxOutput, profile)
+                segts.cleanup()
     def _profileFromFilename(self, filename):
         result = re.match(self.profilepattern, filename)
         if result:
@@ -384,15 +458,15 @@ def main():
     parser = argparse.ArgumentParser(description='Generate an MPEG DASH manifest from a live HLS source including the option to download and rewrap TS segments to MP4 fragments. Writes MPEG DASH manifest to stdout')
     parser.add_argument('playlist', metavar='PLAYLIST', help='Path to HLS playlist file. Can be a URI or local file.')
     parser.add_argument('--remux', dest='remux', action='store_true', default=False, help='download and remux TS segments to MP4 fragments (requires ffmpeg and patched mp4packager (Bento4)')
+    parser.add_argument('--remux-output', metavar='<ouput_dir>', dest='remux_output', default='.')
     parser.add_argument('--debug', dest='debug', action='store_true', default=False)
+    parser.add_argument('--exec-dir', metavar='<exec_dir>', dest='exec_dir', default=default_exec_dir)
+    parser.add_argument('--ffmpeg_exec-dir', metavar='<exec_dir>', dest='ffmpeg_exec_dir', default='')
     args = parser.parse_args()
     global Options
     Options = args
 
-    if Options.remux:
-        raise "--remux option not implemented yet!"
-
-    mpd = MPD_HLS(args.playlist)
+    mpd = MPD_HLS(args.playlist, Options.remux, Options.remux_output)
     mpd.load()
     print(mpd.asXML())
 
