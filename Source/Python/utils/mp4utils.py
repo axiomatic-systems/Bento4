@@ -261,6 +261,7 @@ def Bento4Command(options, name, *args, **kwargs):
         print 'COMMAND: ', cmd
     try:
         try:
+            print os.getcwd()
             return check_output(cmd)
         except OSError as e:
             if options.debug:
@@ -270,7 +271,7 @@ def Bento4Command(options, name, *args, **kwargs):
     except CalledProcessError as e:
         message = "binary tool failed with error %d" % e.returncode
         if options.verbose:
-            message += " - " + str(cmd)
+            message += " - " + str(cmd) + " - " + str(e.output)
         raise Exception(message)
     except OSError as e:
         raise Exception('executable "'+name+'" not found, ensure that it is in your path or in the directory '+options.exec_dir)
