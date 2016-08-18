@@ -959,7 +959,7 @@ def SelectTracks(options, media_sources):
             track.role = DASH_DEFAULT_ROLE
             if options.role_map:
                 track.role =  options.role_map.get(track.id, DASH_DEFAULT_ROLE)
-                if track.role :
+                if track.role and options.verbose::
                     print "Adding role",track.role,"to",track
 
             # video scan type
