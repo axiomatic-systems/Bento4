@@ -360,6 +360,7 @@ class Mp4Track:
         self.max_segment_bitrate      = 0
         self.bandwidth                = 0
         self.language                 = ''
+        self.role                     = 'main'
         self.order_index              = 0
         self.id = info['id']
         if info['type'] == 'Audio':
