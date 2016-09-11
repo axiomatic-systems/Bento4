@@ -1277,6 +1277,7 @@ WriteSamples(AP4_Mpeg2TsWriter*               ts_writer,
                 iframe_sizes.Append((AP4_UI32)frame_size);
                 iframe_times.Append(video_ts);
                 iframe_segment_indexes.Append(segment_number);
+                iframe_durations.Append(0.0); // will be computed later
                 if (Options.verbose) {
                     printf("I-Frame: %d@%lld, t=%f\n", (AP4_UI32)frame_size, frame_start, video_ts);
                 }
@@ -1377,7 +1378,7 @@ WriteSamples(AP4_Mpeg2TsWriter*               ts_writer,
             } else if (total_duration > iframe_times[i]) {
                 iframe_duration = total_duration-iframe_times[i];
             }
-            iframe_durations.Append(iframe_duration);
+            iframe_durations[i] = iframe_duration;
         }
         unsigned int iframes_target_duration = 0;
         for (unsigned int i=0; i<iframe_durations.ItemCount(); i++) {
