@@ -51,6 +51,9 @@ class AP4_CencSampleInfoTable;
 |   constants
 +---------------------------------------------------------------------*/
 const AP4_UI32 AP4_PROTECTION_SCHEME_TYPE_CENC = AP4_ATOM_TYPE('c','e','n','c');
+const AP4_UI32 AP4_PROTECTION_SCHEME_TYPE_CENS = AP4_ATOM_TYPE('c','e','n','s');
+const AP4_UI32 AP4_PROTECTION_SCHEME_TYPE_CBC1 = AP4_ATOM_TYPE('c','b','c','1');
+const AP4_UI32 AP4_PROTECTION_SCHEME_TYPE_CBCS = AP4_ATOM_TYPE('c','b','c','s');
 const AP4_UI32 AP4_PROTECTION_SCHEME_VERSION_CENC_10 = 0x00010000;
 
 const AP4_UI32 AP4_CENC_ALGORITHM_ID_NONE = 0; 
@@ -76,27 +79,35 @@ public:
     virtual ~AP4_CencTrackEncryption() {}
     
     // methods
+    AP4_Result Parse(AP4_ByteStream& stream);
     AP4_Result DoInspectFields(AP4_AtomInspector& inspector);
     AP4_Result DoWriteFields(AP4_ByteStream& stream);
     
     // accessors
-    AP4_UI32        GetDefaultAlgorithmId() { return m_DefaultAlgorithmId; }
-    AP4_UI08        GetDefaultIvSize()      { return m_DefaultIvSize;      }
-    const AP4_UI08* GetDefaultKid()         { return m_DefaultKid;         }
+    AP4_UI32        GetDefaultIsProteted()      { return m_DefaultIsProtected;     }
+    AP4_UI08        GetDefaultPerSampleIvSize() { return m_DefaultPerSampleIvSize; }
+    AP4_UI08        GetDefaultConstantIvSize()  { return m_DefaultConstantIvSize;  }
+    const AP4_UI08* GetDefaultKid()             { return m_DefaultKid;             }
+    AP4_UI08        GetDefaultCryptByteBlock()  { return m_DefaultCryptByteBlock;  }
+    AP4_UI08        GetDefaultSkipByteBlock()   { return m_DefaultSkipByteBlock;   }
     
 protected:
     // constructors
-    AP4_CencTrackEncryption();
-    AP4_CencTrackEncryption(AP4_ByteStream& stream);
-    AP4_CencTrackEncryption(AP4_UI32        default_algorithm_id,
-                            AP4_UI08        default_iv_size,
+    AP4_CencTrackEncryption(AP4_UI08 version);
+    AP4_CencTrackEncryption(AP4_UI08        default_is_protected,
+                            AP4_UI08        default_per_sample_iv_size,
                             const AP4_UI08* default_kid);
     
 private:
     // members
-    AP4_UI32 m_DefaultAlgorithmId;
-    AP4_UI08 m_DefaultIvSize;
-    AP4_UI08 m_DefaultKid[16];    
+    AP4_UI08 m_FormatVersion; // cannot be called m_Version because it would conflict with AP4_Atom::m_Version
+    AP4_UI08 m_DefaultIsProtected;
+    AP4_UI08 m_DefaultPerSampleIvSize;
+    AP4_UI08 m_DefaultConstantIvSize;
+    AP4_UI08 m_DefaultKid[16];
+    AP4_UI08 m_DefaultCryptByteBlock;
+    AP4_UI08 m_DefaultSkipByteBlock;
+    AP4_UI08 m_DefaultIv[16];
 };
 
 /*----------------------------------------------------------------------

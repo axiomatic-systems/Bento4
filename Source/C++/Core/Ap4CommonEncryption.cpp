@@ -1937,34 +1937,74 @@ AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_CencTrackEncryption)
 /*----------------------------------------------------------------------
 |   AP4_CencTrackEncryption::AP4_CencTrackEncryption
 +---------------------------------------------------------------------*/
-AP4_CencTrackEncryption::AP4_CencTrackEncryption() :
-    m_DefaultAlgorithmId(0),
-    m_DefaultIvSize(0)
+AP4_CencTrackEncryption::AP4_CencTrackEncryption(AP4_UI08 version) :
+    m_FormatVersion(version),
+    m_DefaultIsProtected(0),
+    m_DefaultPerSampleIvSize(0),
+    m_DefaultConstantIvSize(0),
+    m_DefaultCryptByteBlock(0),
+    m_DefaultSkipByteBlock(0)
 {
     AP4_SetMemory(m_DefaultKid, 0, 16);
+    AP4_SetMemory(m_DefaultIv,  0, 16);
 }
 
 /*----------------------------------------------------------------------
 |   AP4_CencTrackEncryption::AP4_CencTrackEncryption
 +---------------------------------------------------------------------*/
-AP4_CencTrackEncryption::AP4_CencTrackEncryption(AP4_UI32        default_algorithm_id,
-                                                 AP4_UI08        default_iv_size,
+AP4_CencTrackEncryption::AP4_CencTrackEncryption(AP4_UI08        default_is_protected,
+                                                 AP4_UI08        default_per_sample_iv_size,
                                                  const AP4_UI08* default_kid) :
-    m_DefaultAlgorithmId(default_algorithm_id),
-    m_DefaultIvSize(default_iv_size)
+    m_FormatVersion(0),
+    m_DefaultIsProtected(default_is_protected),
+    m_DefaultPerSampleIvSize(default_per_sample_iv_size),
+    m_DefaultConstantIvSize(0),
+    m_DefaultCryptByteBlock(0),
+    m_DefaultSkipByteBlock(0)
 {
     AP4_CopyMemory(m_DefaultKid, default_kid, 16);
+    AP4_SetMemory(m_DefaultIv, 0, 16);
 }
 
 /*----------------------------------------------------------------------
-|   AP4_CencTrackEncryption::AP4_CencTrackEncryption
+|   AP4_CencTrackEncryption::Parse
 +---------------------------------------------------------------------*/
-AP4_CencTrackEncryption::AP4_CencTrackEncryption(AP4_ByteStream& stream)
+AP4_Result
+AP4_CencTrackEncryption::Parse(AP4_ByteStream& stream)
 {
-    stream.ReadUI24(m_DefaultAlgorithmId);
-    stream.ReadUI08(m_DefaultIvSize);
+    AP4_UI08 reserved;
+    AP4_Result result = stream.ReadUI08(reserved);
+    if (AP4_FAILED(result)) return result;
+    if (m_FormatVersion == 0) {
+        result = stream.ReadUI08(reserved);
+        if (AP4_FAILED(result)) return result;
+    } else {
+        AP4_UI08 blocks;
+        result = stream.ReadUI08(blocks);
+        if (AP4_FAILED(result)) return result;
+        m_DefaultCryptByteBlock = (blocks >> 4) & 0xF;
+        m_DefaultSkipByteBlock  = (blocks     ) & 0xF;
+    }
+    result = stream.ReadUI08(m_DefaultIsProtected);
+    if (AP4_FAILED(result)) return result;
+    result = stream.ReadUI08(m_DefaultPerSampleIvSize);
+    if (AP4_FAILED(result)) return result;
     AP4_SetMemory(m_DefaultKid, 0, 16);
-    stream.Read(m_DefaultKid, 16);
+    result = stream.Read(m_DefaultKid, 16);
+    if (AP4_FAILED(result)) return result;
+    if (m_DefaultPerSampleIvSize == 0) {
+        result = stream.ReadUI08(m_DefaultConstantIvSize);
+        if (AP4_FAILED(result)) return result;
+        if (m_DefaultConstantIvSize > 16) {
+            m_DefaultConstantIvSize = 0;
+            return AP4_ERROR_INVALID_FORMAT;
+        }
+        AP4_SetMemory(m_DefaultIv, 0, 16);
+        result = stream.Read(m_DefaultIv, m_DefaultConstantIvSize);
+        if (AP4_FAILED(result)) return result;
+    }
+    
+    return AP4_SUCCESS;
 }
 
 /*----------------------------------------------------------------------
@@ -1973,10 +2013,20 @@ AP4_CencTrackEncryption::AP4_CencTrackEncryption(AP4_ByteStream& stream)
 AP4_Result 
 AP4_CencTrackEncryption::DoInspectFields(AP4_AtomInspector& inspector)
 {
-    inspector.AddField("default_AlgorithmID", m_DefaultAlgorithmId);
-    inspector.AddField("default_IV_size",     m_DefaultIvSize);
-    inspector.AddField("default_KID",         m_DefaultKid, 16);
-    
+    // the spelling of these fields is inconsistent, but that's how it appears in the spec!
+    inspector.AddField("default_isProtected",        m_DefaultIsProtected);
+    inspector.AddField("default_Per_Sample_IV_Size", m_DefaultPerSampleIvSize);
+    inspector.AddField("default_KID",                m_DefaultKid, 16);
+    if (m_FormatVersion >= 1) {
+        inspector.AddField("default_crypt_byte_block", m_DefaultCryptByteBlock);
+        inspector.AddField("default_skip_byte_block", m_DefaultSkipByteBlock);
+    }
+    if (m_DefaultPerSampleIvSize == 0) {
+        inspector.AddField("default_constant_IV_size", m_DefaultConstantIvSize);
+        if (m_DefaultConstantIvSize <= 16) {
+            inspector.AddField("default_constant_IV", m_DefaultIv, m_DefaultConstantIvSize);
+        }
+    }
     return AP4_SUCCESS;
 }
 
@@ -1988,14 +2038,29 @@ AP4_CencTrackEncryption::DoWriteFields(AP4_ByteStream& stream)
 {
     AP4_Result result;
     
-    // write the fields   
-    result = stream.WriteUI24(m_DefaultAlgorithmId);
+    // write the fields
+    result = stream.WriteUI08(0); // reserved
     if (AP4_FAILED(result)) return result;
-    result = stream.WriteUI08(m_DefaultIvSize);
+    if (m_FormatVersion == 0) {
+        result = stream.WriteUI08(0); // reserved
+        if (AP4_FAILED(result)) return result;
+    } else {
+        result = stream.WriteUI08(m_DefaultCryptByteBlock<<4 | m_DefaultSkipByteBlock);
+        if (AP4_FAILED(result)) return result;
+    }
+    result = stream.WriteUI08(m_DefaultIsProtected);
+    if (AP4_FAILED(result)) return result;
+    result = stream.WriteUI08(m_DefaultPerSampleIvSize);
     if (AP4_FAILED(result)) return result;
     result = stream.Write(m_DefaultKid, 16);
     if (AP4_FAILED(result)) return result;
-
+    if (m_DefaultPerSampleIvSize == 0) {
+        result = stream.WriteUI08(m_DefaultConstantIvSize);
+        if (AP4_FAILED(result)) return result;
+        result = stream.Write(m_DefaultIv, m_DefaultConstantIvSize <= 16 ? m_DefaultConstantIvSize : 16);
+        if (AP4_FAILED(result)) return result;
+    }
+    
     return AP4_SUCCESS;
 }
 
@@ -2090,8 +2155,8 @@ AP4_CencSampleInfoTable::Create(AP4_ProtectedSampleDescription* sample_descripti
         iv_size      = sample_encryption_atom->GetIvSize();
     } else {
         if (track_encryption_atom == NULL) return AP4_ERROR_INVALID_FORMAT;
-        algorithm_id = track_encryption_atom->GetDefaultAlgorithmId();
-        iv_size      = track_encryption_atom->GetDefaultIvSize();
+        algorithm_id = track_encryption_atom->GetDefaultIsProteted();
+        iv_size      = track_encryption_atom->GetDefaultPerSampleIvSize();
     }
 
     // try to create a sample info table from senc
@@ -2648,7 +2713,7 @@ AP4_CencSampleEncryption::DoInspectFields(AP4_AtomInspector& inspector)
     if (iv_size == 0) {
         if (m_Outer.GetFlags() & AP4_CENC_SAMPLE_ENCRYPTION_FLAG_USE_SUB_SAMPLE_ENCRYPTION) {
             bool data_ok = false;
-            for (unsigned int k=1; k<=2 && !data_ok; k++) {
+            for (unsigned int k=0; k<=2 && !data_ok; k++) {
                 data_ok = true;
                 iv_size = 8*k;
                 const AP4_UI08* info = m_SampleInfos.GetData();

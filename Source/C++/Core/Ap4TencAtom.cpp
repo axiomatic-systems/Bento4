@@ -2,7 +2,7 @@
 |
 |    AP4 - tenc Atoms 
 |
-|    Copyright 2002-2011 Axiomatic Systems, LLC
+|    Copyright 2002-2016 Axiomatic Systems, LLC
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -46,8 +46,16 @@ AP4_TencAtom::Create(AP4_Size size, AP4_ByteStream& stream)
     AP4_UI08 version;
     AP4_UI32 flags;
     if (AP4_FAILED(ReadFullHeader(stream, version, flags))) return NULL;
-    if (version != 0) return NULL;
-    return new AP4_TencAtom(size, version, flags, stream);
+    if (version > 1) return NULL;
+    AP4_TencAtom* tenc = new AP4_TencAtom(size, version, flags);
+    if (tenc == NULL) return NULL;
+    AP4_Result result = tenc->Parse(stream);
+    if (AP4_FAILED(result)) {
+        delete tenc;
+        return NULL;
+    }
+    
+    return tenc;
 }
 
 /*----------------------------------------------------------------------
@@ -64,14 +72,13 @@ AP4_TencAtom::AP4_TencAtom(AP4_UI32        default_algorithm_id,
 }
 
 /*----------------------------------------------------------------------
-|   AP4_TencAtom::AP4_TencAtom
+|   AP4_TencAtom::Create
 +---------------------------------------------------------------------*/
-AP4_TencAtom::AP4_TencAtom(AP4_UI32        size, 
+AP4_TencAtom::AP4_TencAtom(AP4_UI32        size,
                            AP4_UI08        version,
-                           AP4_UI32        flags,
-                           AP4_ByteStream& stream) :
+                           AP4_UI32        flags) :
     AP4_Atom(AP4_ATOM_TYPE_TENC, size, version, flags),
-    AP4_CencTrackEncryption(stream)
+    AP4_CencTrackEncryption(version)
 {
 }
 
