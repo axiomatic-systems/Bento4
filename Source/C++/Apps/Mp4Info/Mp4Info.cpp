@@ -1053,7 +1053,7 @@ ShowTrackInfo_Text(AP4_Movie& movie, AP4_Track& track, AP4_ByteStream& stream, b
     printf("    duration:     %lld (media timescale units)\n", track.GetMediaDuration());
     printf("    duration:     %d (ms)\n", (AP4_UI32)AP4_ConvertTime(track.GetMediaDuration(), track.GetMediaTimeScale(), 1000));
     if (!fast) {
-    printf("    bitrate (computed): %.3f Kbps\n", (float)ComputeBitrate(movie, track, stream)/1000.0);
+        printf("    bitrate (computed): %.3f Kbps\n", (float)ComputeBitrate(movie, track, stream)/1000.0);
     }
     if (track.GetWidth()  || track.GetHeight()) {
         printf("  display width:  %f\n", (float)track.GetWidth()/65536.0);
