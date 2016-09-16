@@ -352,7 +352,7 @@ AP4_AvcSampleDescription::AP4_AvcSampleDescription(AP4_UI32        format,
     AP4_VideoSampleDescription(width, height, depth, compressor_name),
     m_AvccAtom(NULL)
 {
-    AP4_AvccAtom* avcc = AP4_DYNAMIC_CAST(AP4_AvccAtom, details->GetChild(AP4_ATOM_TYPE_AVCC));
+    AP4_AvccAtom* avcc = AP4_DYNAMIC_CAST(AP4_AvccAtom, m_Details.GetChild(AP4_ATOM_TYPE_AVCC));
     if (avcc) {
         m_AvccAtom = avcc;
     } else {
@@ -430,7 +430,7 @@ AP4_HevcSampleDescription::AP4_HevcSampleDescription(AP4_UI32        format,
     AP4_VideoSampleDescription(width, height, depth, compressor_name),
     m_HvccAtom(NULL)
 {
-    AP4_HvccAtom* hvcc = AP4_DYNAMIC_CAST(AP4_HvccAtom, details->GetChild(AP4_ATOM_TYPE_HVCC));
+    AP4_HvccAtom* hvcc = AP4_DYNAMIC_CAST(AP4_HvccAtom, m_Details.GetChild(AP4_ATOM_TYPE_HVCC));
     if (hvcc) {
         m_HvccAtom = hvcc;
     } else {
