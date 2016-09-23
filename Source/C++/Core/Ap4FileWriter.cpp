@@ -105,10 +105,15 @@ AP4_FileWriter::Write(AP4_File& file, AP4_ByteStream& stream, Interleaving /* in
                 for (unsigned int i=0; i<chunk_count; i++) {
                     chunk_offsets[i] =  chunk_offsets_32[i];
                 }
+
                 AP4_Co64Atom* co64 = new AP4_Co64Atom(chunk_offsets, chunk_count);
+                delete[] chunk_offsets;
                 stco->Detach();
+                delete stco;
+
                 AP4_ContainerAtom* stbl = AP4_DYNAMIC_CAST(AP4_ContainerAtom, trak->FindChild("mdia/minf/stbl"));
                 if (stbl == NULL) {
+                	delete co64;
                 	return AP4_ERROR_INTERNAL;
                 }
                	stbl->AddChild(co64, -1);
