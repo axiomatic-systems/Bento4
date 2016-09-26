@@ -704,6 +704,20 @@ AP4_AtomParent::FindChild(const char* path,
 }
 
 /*----------------------------------------------------------------------
+|   AP4_AtomParent::CopyChildren
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_AtomParent::CopyChildren(AP4_AtomParent& destination) const
+{
+    for (AP4_List<AP4_Atom>::Item* child = m_Children.FirstItem(); child; child=child->GetNext()) {
+        AP4_Atom* child_clone = child->GetData()->Clone();
+        destination.AddChild(child_clone);
+    }
+    
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
 |   AP4_AtomListWriter::Action
 +---------------------------------------------------------------------*/
 const unsigned int AP4_ATOM_LIST_WRITER_MAX_PADDING=1024;
