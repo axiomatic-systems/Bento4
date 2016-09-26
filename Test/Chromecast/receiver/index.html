@@ -68,6 +68,13 @@
                     }
                 };
 
+                host.updateLicenseRequestInfo = function(requestInfo) {
+                    console.log("Setting License Request Info headers");
+                    requestInfo.headers = {
+                        "Content-Type": "application/octet-stream"
+                    };
+                }
+
                 if (event.data.customData && event.data.customData.licenseCustomData) {
                     console.log('setting license custom data');
                     host.licenseCustomData = event.data.customData.licenseCustomData;
