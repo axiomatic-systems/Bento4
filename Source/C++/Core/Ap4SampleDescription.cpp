@@ -393,7 +393,7 @@ AP4_AvcSampleDescription::ToAtom() const
                                   m_Height,
                                   m_Depth,
                                   m_CompressorName.GetChars(),
-                                  *m_AvccAtom);
+                                  &m_Details);
 }
 
 /*----------------------------------------------------------------------
@@ -551,7 +551,7 @@ AP4_HevcSampleDescription::ToAtom() const
                                    m_Height,
                                    m_Depth,
                                    m_CompressorName.GetChars(),
-                                   *m_HvccAtom);
+                                   &m_Details);
 }
 
 /*----------------------------------------------------------------------

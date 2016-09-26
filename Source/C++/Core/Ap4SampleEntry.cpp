@@ -44,7 +44,7 @@ AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_SampleEntry)
 /*----------------------------------------------------------------------
 |   AP4_SampleEntry::AP4_SampleEntry
 +---------------------------------------------------------------------*/
-AP4_SampleEntry::AP4_SampleEntry(AP4_Atom::Type format) :
+AP4_SampleEntry::AP4_SampleEntry(AP4_Atom::Type format, const AP4_AtomParent* details) :
     AP4_ContainerAtom(format),
     m_DataReferenceIndex(1)
 {
@@ -55,6 +55,10 @@ AP4_SampleEntry::AP4_SampleEntry(AP4_Atom::Type format) :
     m_Reserved1[4] = 0;
     m_Reserved1[5] = 0;
     m_Size32 += 8;
+    
+    if (details) {
+        details->CopyChildren(*this);
+    }
 }
 
 /*----------------------------------------------------------------------
@@ -707,8 +711,9 @@ AP4_VisualSampleEntry::AP4_VisualSampleEntry(
     AP4_UI16          width,
     AP4_UI16          height,
     AP4_UI16          depth,
-    const char*       compressor_name) :
-    AP4_SampleEntry(format),
+    const char*           compressor_name,
+    const AP4_AtomParent* details) :
+    AP4_SampleEntry(format, details),
     m_Predefined1(0),
     m_Reserved2(0),
     m_Width(width),
@@ -969,14 +974,14 @@ AP4_AvcSampleEntry::AP4_AvcSampleEntry(AP4_UI32            format,
                                        AP4_UI16            height,
                                        AP4_UI16            depth,
                                        const char*         compressor_name,
-                                       const AP4_AvccAtom& avcc) :
+                                       const AP4_AtomParent* details) :
     AP4_VisualSampleEntry(format,
                           width, 
                           height, 
                           depth, 
-                          compressor_name)
+                          compressor_name,
+                          details)
 {
-    AddChild(new AP4_AvccAtom(avcc));    
 }
 
 /*----------------------------------------------------------------------
@@ -998,14 +1003,14 @@ AP4_HevcSampleEntry::AP4_HevcSampleEntry(AP4_UI32            format,
                                          AP4_UI16            height,
                                          AP4_UI16            depth,
                                          const char*         compressor_name,
-                                         const AP4_HvccAtom& hvcc) :
+                                         const AP4_AtomParent* details) :
     AP4_VisualSampleEntry(format,
                           width, 
                           height, 
                           depth, 
-                          compressor_name)
+                          compressor_name,
+                          details)
 {
-    AddChild(new AP4_HvccAtom(hvcc));
 }
 
 /*----------------------------------------------------------------------
