@@ -660,7 +660,7 @@ AP4_Mpeg2TsVideoSampleStream::WriteSample(AP4_Sample&            sample,
         
         // check if we need to add a delimiter before the NALU
         if (nalu_count == 0 && sample_description->GetType() == AP4_SampleDescription::TYPE_AVC) {
-            if (nalu_size != 2 || (data[0] & 0x1F) != AP4_AVC_NAL_UNIT_TYPE_ACCESS_UNIT_DELIMITER) {
+            if (/* nalu_size != 2 || */ (data[0] & 0x1F) != AP4_AVC_NAL_UNIT_TYPE_ACCESS_UNIT_DELIMITER) {
                 // the first NAL unit is not an Access Unit Delimiter, we need to add one
                 unsigned char delimiter[6];
                 delimiter[0] = 0;
