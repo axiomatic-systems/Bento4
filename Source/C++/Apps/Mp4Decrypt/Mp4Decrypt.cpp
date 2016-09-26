@@ -223,7 +223,10 @@ main(int argc, char** argv)
                     if (sdesc && sdesc->GetType() == AP4_SampleDescription::TYPE_PROTECTED) {
                         AP4_ProtectedSampleDescription* psdesc = AP4_DYNAMIC_CAST(AP4_ProtectedSampleDescription, sdesc);
                         if (psdesc) {
-                            if (psdesc->GetSchemeType() == AP4_PROTECTION_SCHEME_TYPE_CENC) {
+                            if (psdesc->GetSchemeType() == AP4_PROTECTION_SCHEME_TYPE_CENC ||
+                                psdesc->GetSchemeType() == AP4_PROTECTION_SCHEME_TYPE_CBC1 ||
+                                psdesc->GetSchemeType() == AP4_PROTECTION_SCHEME_TYPE_CENS ||
+                                psdesc->GetSchemeType() == AP4_PROTECTION_SCHEME_TYPE_CBCS) {
                                 processor = new AP4_CencDecryptingProcessor(&key_map);
                                 break;
                             }
