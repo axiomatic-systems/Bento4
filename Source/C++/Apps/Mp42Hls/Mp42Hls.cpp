@@ -1169,20 +1169,23 @@ WriteSamples(AP4_Mpeg2TsWriter*               ts_writer,
                 // update the descriptors if needed
                 if (Options.encryption_mode == ENCRYPTION_MODE_SAMPLE_AES) {
                     AP4_DataBuffer descriptor;
-                    if (chosen_track == audio_track) {
+                    if (audio_track) {
                         AP4_Result result = MakeSampleAesAudioDescriptor(descriptor, audio_track->GetSampleDescription(0), audio_sample_data);
                         if (AP4_SUCCEEDED(result) && descriptor.GetDataSize()) {
                             audio_stream->SetDescriptor(descriptor.GetData(), descriptor.GetDataSize());
+                        } else {
+                            fprintf(stderr, "ERROR: failed to create sample-aes descriptor (%d)\n", result);
+                            return result;
                         }
-                    } else if (chosen_track == video_track) {
+                    }
+                    if (video_track) {
                         AP4_Result result = MakeSampleAesVideoDescriptor(descriptor);
                         if (AP4_SUCCEEDED(result) && descriptor.GetDataSize()) {
                             video_stream->SetDescriptor(descriptor.GetData(), descriptor.GetDataSize());
+                        } else {
+                            fprintf(stderr, "ERROR: failed to create sample-aes descriptor (%d)\n", result);
+                            return result;
                         }
-                    }
-                    if (AP4_FAILED(result)) {
-                        fprintf(stderr, "ERROR: failed to create sample-aes descriptor (%d)\n", result);
-                        return result;
                     }
                 }
                 
@@ -1754,9 +1757,9 @@ main(int argc, char** argv)
         }
         if (Options.segment_url_template == NULL) {
             if (Options.output_single_file) {
-                Options.segment_filename_template = "stream.ts";
+                Options.segment_url_template = "stream.ts";
             } else {
-                Options.segment_filename_template = "segment-%d.ts";
+                Options.segment_url_template = "segment-%d.ts";
             }
         }
     }
