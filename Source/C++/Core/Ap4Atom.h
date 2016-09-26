@@ -304,6 +304,7 @@ public:
     // base methods
     virtual ~AP4_AtomParent();
     AP4_List<AP4_Atom>& GetChildren() { return m_Children; }
+    AP4_Result          CopyChildren(AP4_AtomParent& destination) const;
     virtual AP4_Result  AddChild(AP4_Atom* child, int position = -1);
     virtual AP4_Result  RemoveChild(AP4_Atom* child);
     virtual AP4_Result  DeleteChild(AP4_Atom::Type type, AP4_Ordinal index = 0);
