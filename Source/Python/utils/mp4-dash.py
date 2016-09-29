@@ -58,6 +58,9 @@ MARLIN_SCHEME_ID_URI        = 'urn:uuid:5E629AF5-38DA-4063-8977-97FFBD9902D4'
 MARLIN_MAS_NAMESPACE        = 'urn:marlin:mas:1-0:services:schemas:mpd'
 MARLIN_PSSH_SYSTEM_ID       = '69f908af481646ea910ccd5dcccb0a3a'
 
+NAGRA_SCHEME_ID_URI         = 'urn:uuid:adb41c24-2dbf-4a6d-958b-4457c0d27b95'
+NAGRA_PRM_NAMESPACE         = 'urn:nagra:prm:1-0:services:schemas:mpd'
+
 PLAYREADY_PSSH_SYSTEM_ID    = '9a04f07998404286ab92e65be0885f95'
 PLAYREADY_SCHEME_ID_URI     = 'urn:uuid:9a04f079-9840-4286-ab92-e65be0885f95'
 PLAYREADY_SCHEME_ID_URI_V10 = 'urn:uuid:79f0049a-4098-8642-ab92-e65be0885f95'
@@ -250,6 +253,21 @@ def AddContentProtection(options, container, tracks):
         for kid in kids:
             cid = xml.SubElement(cids, '{' + MARLIN_MAS_NAMESPACE + '}MarlinContentId')
             cid.text = 'urn:marlin:kid:' + kid
+
+    # Nagra
+    if options.nagra:
+        container.append(xml.Comment(' Nagra '))
+        xml.register_namespace('prm', NAGRA_PRM_NAMESPACE)
+        cp = xml.SubElement(container, 'ContentProtection', schemeIdUri=NAGRA_SCHEME_ID_URI)
+        prm = xml.SubElement(cp, '{' + NAGRA_PRM_NAMESPACE + '}PRM')
+        prmSignalization = xml.SubElement(prm, '{' + NAGRA_PRM_NAMESPACE + '}PRMSignalization')
+        # license = {"contentId":"pz_dash_test_1","keyId":"121a0fca0f1b475b8910297fa8e0a07e"}
+        signalization_info = '{{"contentId":"{content_id}","keyId":"{key_id}"}}'.format(content_id=options.content_id, key_id=default_kid)
+        if options.verbose:
+            print('signalization info: {signalization_info}'.format(signalization_info=signalization_info))
+        import base64
+        encoded_signalization_info = base64.b64encode(signalization_info)
+        prmSignalization.text = encoded_signalization_info
 
     # PlayReady
     if options.playready:
@@ -1135,6 +1153,10 @@ def main():
                       help="Add EME-compliant signaling in the MPD and PSSH boxes (valid options are 'pssh-v0' and 'pssh-v1')")
     parser.add_option('', "--marlin", dest="marlin", action="store_true", default=False,
                       help="Add Marlin signaling to the MPD (requires an encrypted input, or the --encryption-key option)")
+    parser.add_option('', '--nagra', dest='nagra', action='store_true', default=False,
+                      help='Add Nagra signaliing to the MPD (requires --encryption-key and --content-id option')
+    parser.add_option('', '--content-id', dest='content_id',
+                      help='Content ID required by Nagra DRM', metavar='<content_id>')
     parser.add_option('', "--marlin-add-pssh", dest="marlin_add_pssh", action="store_true", default=False,
                       help="Add an (optional) Marlin 'pssh' box in the init segment(s)")
     parser.add_option('', "--playready", dest="playready", action="store_true", default=False,
@@ -1194,6 +1216,9 @@ def main():
     if options.max_playout_rate_strategy:
         if not options.max_playout_rate_strategy.startswith('lowest:'):
             PrintErrorAndExit('Max Playout Rate strategy '+options.max_playout_rate_strategy+' is not supported')
+    if options.nagra:
+        if not options.content_id:
+            PrintErrorAndExit('Need contentId for Nagra encryption, use --content-id')
 
     # switch variables
     if options.segment_template_padding:
