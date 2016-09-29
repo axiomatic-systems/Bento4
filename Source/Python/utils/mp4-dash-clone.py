@@ -34,6 +34,10 @@ DASH_NS_COMPAT     = '{'+DASH_NS_URN_COMPAT+'}'
 DASH_NS            = '{'+DASH_NS_URN+'}'
 MARLIN_MAS_NS_URN  = 'urn:marlin:mas:1-0:services:schemas:mpd'
 MARLIN_MAS_NS      = '{'+MARLIN_MAS_NS_URN+'}'
+NAGRA_SCHEME_ID_URI = 'urn:uuid:adb41c24-2dbf-4a6d-958b-4457c0d27b95'
+NAGRA_PRM_NS_URN = 'urn:nagra:prm:1-0:services:schemas:mpd'
+NAGRA_PRM_NS      = '{'+NAGRA_PRM_NS_URN+'}'
+
 
 def Bento4Command(name, *args, **kwargs):
     cmd = [os.path.join(Options.exec_dir, name)]
@@ -43,7 +47,7 @@ def Bento4Command(name, *args, **kwargs):
         if not isinstance(kwargs[kwarg], bool):
             cmd.append(kwargs[kwarg])
     cmd += args
-    #print cmd
+    # print cmd
     try:
         return check_output(cmd) 
     except CalledProcessError, e:
@@ -397,13 +401,22 @@ def main():
     parser.add_option('', "--exec-dir", metavar="<exec_dir>",
                       dest="exec_dir", default=os.path.join(SCRIPT_PATH, 'bin', platform),
                       help="Directory where the Bento4 executables are located")    
-                      
+    parser.add_option('', '--nagra', dest='nagra', action='store_true', default=False,
+                      help='Add Nagra signaliing to the MPD (requires --encryption-key and --content-id option')
+    parser.add_option('', '--content-id', dest='content_id',
+                      help='Content ID required by Nagra DRM', metavar='<content_id>')
+
+
     global Options
     (Options, args) = parser.parse_args()
     if len(args) != 2:
         parser.print_help()
         sys.exit(1)
     
+    if Options.nagra and not Options.content_id:
+        print('Error: Need contentId for Nagra encryption, use --content-id')
+        sys.exit(1)
+
     # process arguments
     mpd_url = args[0]
     output_dir = args[1]
@@ -430,6 +443,7 @@ def main():
         
     ElementTree.register_namespace('', DASH_NS_URN)
     ElementTree.register_namespace('mas', MARLIN_MAS_NS_URN)
+    ElementTree.register_namespace('prm', NAGRA_PRM_NS_URN)
 
     cloner = Cloner(output_dir)
     for period in mpd.periods:
@@ -464,11 +478,24 @@ def main():
     if Options.encrypt:
         for p in mpd.xml.findall(DASH_NS+'Period'):
             for s in p.findall(DASH_NS+'AdaptationSet'):
-                cp = ElementTree.Element(DASH_NS+'ContentProtection', schemeIdUri='urn:uuid:5E629AF5-38DA-4063-8977-97FFBD9902D4')
-                cp.tail = s.tail
-                cids = ElementTree.SubElement(cp, MARLIN_MAS_NS+'MarlinContentIds')
-                cid = ElementTree.SubElement(cids, MARLIN_MAS_NS+'MarlinContentId')
-                cid.text = 'urn:marlin:kid:'+Options.kid.encode('hex')
+                if Options.nagra:
+                    cp = ElementTree.Element('ContentProtection', schemeIdUri=NAGRA_SCHEME_ID_URI)
+                    cp.tail = s.tail
+                    prm = ElementTree.SubElement(cp, NAGRA_PRM_NS+'PRM')
+                    prmSignalization = ElementTree.SubElement(prm, NAGRA_PRM_NS+'PRMSignalization')
+                    # license = {"contentId":"pz_dash_test_1","keyId":"121a0fca0f1b475b8910297fa8e0a07e"}
+                    signalization_info = '{{"contentId":"{content_id}","keyId":"{key_id}"}}'.format(content_id=Options.content_id, key_id=Options.kid)
+                    if Options.verbose:
+                        print('PRM signalization info: {signalization_info}'.format(signalization_info=signalization_info))
+                    import base64
+                    encoded_signalization_info = base64.b64encode(signalization_info)
+                    prmSignalization.text = encoded_signalization_info
+                else:
+                    cp = ElementTree.Element(DASH_NS+'ContentProtection', schemeIdUri='urn:uuid:5E629AF5-38DA-4063-8977-97FFBD9902D4')
+                    cp.tail = s.tail
+                    cids = ElementTree.SubElement(cp, MARLIN_MAS_NS+'MarlinContentIds')
+                    cid = ElementTree.SubElement(cids, MARLIN_MAS_NS+'MarlinContentId')
+                    cid.text = 'urn:marlin:kid:'+Options.kid.encode('hex')
                 s.insert(0, cp)
                 
     # write the MPD    
