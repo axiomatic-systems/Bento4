@@ -47,7 +47,7 @@ def Bento4Command(name, *args, **kwargs):
         if not isinstance(kwargs[kwarg], bool):
             cmd.append(kwargs[kwarg])
     cmd += args
-    # print cmd
+    print cmd
     try:
         return check_output(cmd) 
     except CalledProcessError, e:
@@ -382,6 +382,45 @@ class Cloner:
         if (self.init_filename):
             os.unlink(self.init_filename)
         
+
+def is_uuid(uuid_str):
+    '''
+    check whether uuid_str is valid UUID version 3
+    @param uuid_str
+    '''
+    import uuid
+    try:
+        uuid_obj = uuid.UUID(uuid_str, version=3)
+        return True
+    except ValueError:
+        return False
+
+
+def uuid_2_hex(uuid_str):
+    '''
+    convert version 3 UUID to hex string, i.e. remove '-'
+    '''
+    return uuid_str.replace('-', '')
+
+
+def get_kid_and_key(key_spec):
+    '''
+    extract Key ID and Key from key_spec
+    @param key_spec Key_Id:Key
+    '''
+    if ':' not in key_spec:
+        raise Exception('Invalid argument syntax for --encrypt option')
+    kid_hex, key_hex = key_spec.split(':', 1)
+    if len(kid_hex) != 32:
+        if is_uuid(kid_hex):
+            kid_hex = uuid_2_hex(kid_hex)
+        else:
+            raise Exception('Invalid argument format for --encrypt option')
+    if len(key_hex) != 32:
+        raise Exception('Invalid argument format for --encryption-key option')
+    return kid_hex.decode('hex'), key_hex.decode('hex')
+
+
 def main():
     # determine the platform binary name
     platform = sys.platform
@@ -397,7 +436,7 @@ def main():
                       help="Be quiet")
     parser.add_option('', "--encrypt", metavar='<KID:KEY>', 
                       dest='encrypt', default=None,
-                      help="Encrypt the media, with KID and KEY specified in Hex (32 characters each)")    
+                      help="Encrypt the media, with KID and KEY specified in Hex (32 characters each. Or KID can be in UUID version 3 format)")    
     parser.add_option('', "--exec-dir", metavar="<exec_dir>",
                       dest="exec_dir", default=os.path.join(SCRIPT_PATH, 'bin', platform),
                       help="Directory where the Bento4 executables are located")    
@@ -421,11 +460,8 @@ def main():
     mpd_url = args[0]
     output_dir = args[1]
     if Options.encrypt:
-        if len(Options.encrypt) != 65:
-            raise Exception('Invalid argument for --encrypt option')
-        Options.kid = Options.encrypt[:32].decode('hex')
-        Options.key = Options.encrypt[33:].decode('hex') 
-        
+        Options.kid, Options.key = get_kid_and_key(Options.encrypt)
+
     # create the output dir
     MakeNewDir(output_dir, True)
     
