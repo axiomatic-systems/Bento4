@@ -521,8 +521,10 @@ def main():
                     cp.tail = s.tail
                     prm = ElementTree.SubElement(cp, NAGRA_PRM_NS+'PRM')
                     prmSignalization = ElementTree.SubElement(prm, NAGRA_PRM_NS+'PRMSignalization')
-                    # license = {"contentId":"pz_dash_test_1","keyId":"121a0fca0f1b475b8910297fa8e0a07e"}
-                    signalization_info = '{{"contentId":"{content_id}","keyId":"{key_id}"}}'.format(content_id=Options.content_id, key_id=Options.kid.encode('hex'))
+                    # license = {"contentId":"pz_dash_test_1","keyId":"121a0-fca0-f1b4-75b8-9102-97fa-8e0a07e"}
+                    import uuid
+                    key_id = str(uuid.UUID(Options.kid.encode('hex')))
+                    signalization_info = '{{"contentId":"{content_id}","keyId":"{key_id}"}}'.format(content_id=Options.content_id, key_id=key_id)
                     if Options.verbose:
                         print('PRM signalization info: {signalization_info}'.format(signalization_info=signalization_info))
                     import base64
