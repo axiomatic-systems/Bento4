@@ -418,6 +418,8 @@ def get_kid_and_key(key_spec):
             raise Exception('Invalid argument format for --encrypt option')
     if len(key_hex) != 32:
         raise Exception('Invalid argument format for --encryption-key option')
+    # print('kid_hex:', kid_hex, kid_hex.decode('hex'))
+    # print('key_hex:', key_hex, key_hex.decode('hex'))
     return kid_hex.decode('hex'), key_hex.decode('hex')
 
 
@@ -520,7 +522,7 @@ def main():
                     prm = ElementTree.SubElement(cp, NAGRA_PRM_NS+'PRM')
                     prmSignalization = ElementTree.SubElement(prm, NAGRA_PRM_NS+'PRMSignalization')
                     # license = {"contentId":"pz_dash_test_1","keyId":"121a0fca0f1b475b8910297fa8e0a07e"}
-                    signalization_info = '{{"contentId":"{content_id}","keyId":"{key_id}"}}'.format(content_id=Options.content_id, key_id=Options.kid)
+                    signalization_info = '{{"contentId":"{content_id}","keyId":"{key_id}"}}'.format(content_id=Options.content_id, key_id=Options.kid.encode('hex'))
                     if Options.verbose:
                         print('PRM signalization info: {signalization_info}'.format(signalization_info=signalization_info))
                     import base64
@@ -537,9 +539,9 @@ def main():
     # write the MPD    
     xml_tree = ElementTree.ElementTree(mpd.xml)
     xml_tree.write(os.path.join(output_dir, os.path.basename(urlparse.urlparse(mpd_url).path)), encoding="UTF-8", xml_declaration=True)
+
     
-###########################    
+##########################    
 SCRIPT_PATH = os.path.abspath(os.path.dirname(__file__))
 if __name__ == '__main__':
     main()
-    
