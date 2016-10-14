@@ -1260,7 +1260,7 @@ AP4_DataAtom::AP4_DataAtom(const AP4_MetaData::Value& value) :
     AP4_Atom(AP4_ATOM_TYPE_DATA, AP4_ATOM_HEADER_SIZE),
     m_DataType(DATA_TYPE_BINARY)
 {
-    AP4_MemoryByteStream* memory = new AP4_MemoryByteStream(256);
+    AP4_MemoryByteStream* memory = new AP4_MemoryByteStream();
     AP4_Size payload_size = 8;
     m_Source = memory;
     
