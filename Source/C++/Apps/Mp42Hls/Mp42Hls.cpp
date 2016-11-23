@@ -2085,20 +2085,26 @@ main(int argc, char** argv)
         }
         if (video_track) {
             AP4_String codec;
+            AP4_UI16 width, height = 0;
             AP4_SampleDescription* sdesc = video_track->GetSampleDescription(0);
             if (sdesc) {
                 sdesc->GetCodecString(codec);
+                AP4_VideoSampleDescription* video_desc = AP4_DYNAMIC_CAST(AP4_VideoSampleDescription, sdesc);
+                if (video_desc) {
+                    width = video_desc->GetWidth();
+                    height = video_desc->GetHeight();
+                }
             }
             printf(
                 ",\n"
                 "  \"video\": {\n"
                 "    \"codec\": \"%s\",\n"
-                "    \"width\": %f,\n"
-                "    \"height\": %f\n"
+                "    \"width\": %d,\n"
+                "    \"height\": %d\n"
                 "  }",
                 codec.GetChars(),
-                (float)video_track->GetWidth()/65536.0,
-                (float)video_track->GetHeight()/65536.0
+                width,
+                height
             );
         }
         printf(
