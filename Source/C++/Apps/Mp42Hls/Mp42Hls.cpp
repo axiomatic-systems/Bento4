@@ -2085,7 +2085,8 @@ main(int argc, char** argv)
         }
         if (video_track) {
             AP4_String codec;
-            AP4_UI16 width, height = 0;
+            AP4_UI16 width = (AP4_UI16)(video_track->GetWidth()/65536.0);
+            AP4_UI16 height = (AP4_UI16)(video_track->GetHeight()/65536.0);
             AP4_SampleDescription* sdesc = video_track->GetSampleDescription(0);
             if (sdesc) {
                 sdesc->GetCodecString(codec);
