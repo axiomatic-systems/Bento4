@@ -125,7 +125,7 @@ main(int argc, char** argv)
                     return 1;
                 }
             } else {
-                track_id = strtoul(keyid_text, NULL, 10);
+                track_id = (unsigned int)strtoul(keyid_text, NULL, 10);
                 if (track_id == 0) {
                     fprintf(stderr, "ERROR: invalid key id\n");
                     return 1;

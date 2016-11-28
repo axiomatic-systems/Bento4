@@ -849,7 +849,7 @@ PackedAudioWriter::WriteHeader(double          timestamp,
                                AP4_ByteStream& output)
 {
     unsigned int header_size = 10+10+45+8;
-    unsigned int private_extension_name_size = private_extension_name?AP4_StringLength(private_extension_name)+1:0;
+    unsigned int private_extension_name_size = private_extension_name?(unsigned int)AP4_StringLength(private_extension_name)+1:0;
     if (private_extension_name) {
         header_size += 10+private_extension_name_size+private_extension_data_size;;
     }
@@ -1571,7 +1571,7 @@ main(int argc, char** argv)
                 fprintf(stderr, "ERROR: --hls-version requires a number\n");
                 return 1;
             }
-            Options.hls_version = strtoul(*args++, NULL, 10);
+            Options.hls_version = (unsigned int)strtoul(*args++, NULL, 10);
             if (Options.hls_version ==0) {
                 fprintf(stderr, "ERROR: --hls-version requires number > 0\n");
                 return 1;
@@ -1581,13 +1581,13 @@ main(int argc, char** argv)
                 fprintf(stderr, "ERROR: --segment-duration requires a number\n");
                 return 1;
             }
-            Options.segment_duration = strtoul(*args++, NULL, 10);
+            Options.segment_duration = (unsigned int)strtoul(*args++, NULL, 10);
         } else if (!strcmp(arg, "--segment-duration-threshold")) {
             if (*args == NULL) {
                 fprintf(stderr, "ERROR: --segment-duration-threshold requires a number\n");
                 return 1;
             }
-            Options.segment_duration_threshold = strtoul(*args++, NULL, 10);
+            Options.segment_duration_threshold = (unsigned int)strtoul(*args++, NULL, 10);
         } else if (!strcmp(arg, "--segment-filename-template")) {
             if (*args == NULL) {
                 fprintf(stderr, "ERROR: --segment-filename-template requires an argument\n");
@@ -1605,25 +1605,25 @@ main(int argc, char** argv)
                 fprintf(stderr, "ERROR: --pmt-pid requires a number\n");
                 return 1;
             }
-            Options.pmt_pid = strtoul(*args++, NULL, 10);
+            Options.pmt_pid = (unsigned int)strtoul(*args++, NULL, 10);
         } else if (!strcmp(arg, "--audio-pid")) {
             if (*args == NULL) {
                 fprintf(stderr, "ERROR: --audio-pid requires a number\n");
                 return 1;
             }
-            Options.audio_pid = strtoul(*args++, NULL, 10);
+            Options.audio_pid = (unsigned int)strtoul(*args++, NULL, 10);
         } else if (!strcmp(arg, "--video-pid")) {
             if (*args == NULL) {
                 fprintf(stderr, "ERROR: --video-pid requires a number\n");
                 return 1;
             }
-            Options.video_pid = strtoul(*args++, NULL, 10);
+            Options.video_pid = (unsigned int)strtoul(*args++, NULL, 10);
         } else if (!strcmp(arg, "--audio-track-id")) {
             if (*args == NULL) {
                 fprintf(stderr, "ERROR: --audio-track-id requires a number\n");
                 return 1;
             }
-            Options.audio_track_id = strtoul(*args++, NULL, 10);
+            Options.audio_track_id = (unsigned int)strtoul(*args++, NULL, 10);
         } else if (!strcmp(arg, "--audio-format")) {
             if (*args == NULL) {
                 fprintf(stderr, "ERROR: --audio-format requires an argument\n");
@@ -1643,7 +1643,7 @@ main(int argc, char** argv)
                 fprintf(stderr, "ERROR: --video-track-id requires a number\n");
                 return 1;
             }
-            Options.video_track_id = strtoul(*args++, NULL, 10);
+            Options.video_track_id = (unsigned int)strtoul(*args++, NULL, 10);
         } else if (!strcmp(arg, "--output-single-file")) {
             Options.output_single_file = true;
         } else if (!strcmp(arg, "--index-filename")) {

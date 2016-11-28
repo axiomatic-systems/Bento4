@@ -396,7 +396,7 @@ ReadFile(const char* filename, unsigned int block_size, bool sequential)
     AP4_Position position = 0;
     while (repeats--) {
         AP4_Result result;
-        unsigned int blocks_to_read = file_size/block_size;
+        unsigned int blocks_to_read = (unsigned int)(file_size/block_size);
         if (blocks_to_read > 4096) blocks_to_read = 4096;
         input->Seek(0);
         while (blocks_to_read--) {
@@ -523,7 +523,7 @@ main(int argc, char** argv)
         } else if (!strncmp(arg, "--test-file-pdcf-ctr=", 21)) {
             test_file_pdcf_ctr = arg+21;
         } else if (!strncmp(arg, "--iterations=", 13)) {
-            max_iterations = strtoul(arg+13, NULL, 10);
+            max_iterations = (unsigned int)strtoul(arg+13, NULL, 10);
         } else if (!strcmp(arg, "all")) {
             do_aes_cbc_block_decrypt  = true;
             do_aes_cbc_block_encrypt  = true;

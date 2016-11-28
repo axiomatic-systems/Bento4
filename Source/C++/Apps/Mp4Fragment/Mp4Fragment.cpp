@@ -1047,7 +1047,7 @@ main(int argc, char** argv)
                 fprintf(stderr, "ERROR: missing argument after --verbosity option\n");
                 return 1;
             }
-            Options.verbosity = strtoul(arg, NULL, 10);
+            Options.verbosity = (unsigned int)strtoul(arg, NULL, 10);
         } else if (!strcmp(arg, "--debug")) {
             Options.debug = true;
         } else if (!strcmp(arg, "--index")) {
@@ -1071,7 +1071,7 @@ main(int argc, char** argv)
                 fprintf(stderr, "ERROR: missing argument after --sequence-number-start option\n");
                 return 1;
             }
-            Options.sequence_number_start = strtoul(arg, NULL, 10);
+            Options.sequence_number_start = (unsigned int)strtoul(arg, NULL, 10);
         } else if (!strcmp(arg, "--force-i-frame-sync")) {
             arg = *argv++;
             if (arg == NULL) {
@@ -1092,7 +1092,7 @@ main(int argc, char** argv)
                 fprintf(stderr, "ERROR: missing argument after --fragment-duration option\n");
                 return 1;
             }
-            fragment_duration = strtoul(arg, NULL, 10);
+            fragment_duration = (unsigned int)strtoul(arg, NULL, 10);
             auto_detect_fragment_duration = false;
         } else if (!strcmp(arg, "--timescale")) {
             arg = *argv++;
@@ -1100,7 +1100,7 @@ main(int argc, char** argv)
                 fprintf(stderr, "ERROR: missing argument after --timescale option\n");
                 return 1;
             }
-            timescale = strtoul(arg, NULL, 10);
+            timescale = (unsigned int)strtoul(arg, NULL, 10);
         } else if (!strcmp(arg, "--track")) {
             track_selector = *argv++;
             if (track_selector == NULL) {

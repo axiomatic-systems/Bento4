@@ -358,7 +358,7 @@ main(int argc, char** argv)
                 fprintf(stderr, "ERROR: invalid argument for --key option\n");
                 return 1;
             }
-            unsigned int track = strtoul(track_ascii, NULL, 10);
+            unsigned int track = (unsigned int)strtoul(track_ascii, NULL, 10);
 
             
             // parse the key value
@@ -446,7 +446,7 @@ main(int argc, char** argv)
                 fprintf(stderr, "ERROR: invalid argument for --property option\n");
                 return 1;
             }
-            unsigned int track = strtoul(track_ascii, NULL, 10);
+            unsigned int track = (unsigned int)strtoul(track_ascii, NULL, 10);
 
             // check that the property is not already set
             if (property_map.GetProperty(track, name)) {

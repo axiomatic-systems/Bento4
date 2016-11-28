@@ -40,7 +40,7 @@
 #define AP4_ADTS_SYNC_MASK     0xFFF6 /* 12 sync bits plus 2 layer bits */
 #define AP4_ADTS_SYNC_PATTERN  0xFFF0 /* 12 sync bits=1 layer=0         */
 
-const unsigned long  
+const AP4_UI32
 AP4_AdtsSamplingFrequencyTable[16] =
 {
     96000,
