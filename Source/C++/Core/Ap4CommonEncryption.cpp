@@ -438,7 +438,7 @@ class AP4_CencTrackEncrypter : public AP4_Processor::TrackHandler {
 public:
     // constructor
     AP4_CencTrackEncrypter(AP4_CencVariant              variant,
-                           AP4_UI32                     default_algorithm_id,
+                           AP4_UI32                     default_is_protected,
                            AP4_UI08                     default_iv_size,
                            const AP4_UI08*              default_kid,
                            AP4_Array<AP4_SampleEntry*>& sample_entries,
@@ -454,7 +454,7 @@ private:
     AP4_CencVariant             m_Variant;
     AP4_Array<AP4_SampleEntry*> m_SampleEntries;
     AP4_UI32                    m_Format;
-    AP4_UI32                    m_DefaultAlgorithmId;
+    AP4_UI32                    m_DefaultIsProtected;
     AP4_UI08                    m_DefaultIvSize;
     AP4_UI08                    m_DefaultKid[16];
 };
@@ -464,14 +464,14 @@ private:
 +---------------------------------------------------------------------*/
 AP4_CencTrackEncrypter::AP4_CencTrackEncrypter(
     AP4_CencVariant              variant,
-    AP4_UI32                     default_algorithm_id,
+    AP4_UI32                     default_is_protected,
     AP4_UI08                     default_iv_size,
     const AP4_UI08*              default_kid,
     AP4_Array<AP4_SampleEntry*>& sample_entries,
     AP4_UI32                     format) :
     m_Variant(variant),
     m_Format(format),
-    m_DefaultAlgorithmId(default_algorithm_id),
+    m_DefaultIsProtected(default_is_protected),
     m_DefaultIvSize(default_iv_size)
 {
     // copy the KID
@@ -501,15 +501,39 @@ AP4_CencTrackEncrypter::ProcessTrack()
             case AP4_CENC_VARIANT_PIFF_CTR:
                 schm = new AP4_SchmAtom(AP4_PROTECTION_SCHEME_TYPE_PIFF, 
                                         AP4_PROTECTION_SCHEME_VERSION_PIFF_11);
-                tenc = new AP4_PiffTrackEncryptionAtom(m_DefaultAlgorithmId, 
+                tenc = new AP4_PiffTrackEncryptionAtom(m_DefaultIsProtected,
                                                        m_DefaultIvSize, 
                                                        m_DefaultKid);
                 break;
                 
-            case AP4_CENC_VARIANT_MPEG:
+            case AP4_CENC_VARIANT_MPEG_CENC:
                 schm = new AP4_SchmAtom(AP4_PROTECTION_SCHEME_TYPE_CENC, 
                                         AP4_PROTECTION_SCHEME_VERSION_CENC_10);
-                tenc = new AP4_TencAtom(m_DefaultAlgorithmId,
+                tenc = new AP4_TencAtom(m_DefaultIsProtected,
+                                        m_DefaultIvSize,
+                                        m_DefaultKid);
+                break;
+
+            case AP4_CENC_VARIANT_MPEG_CBC1:
+                schm = new AP4_SchmAtom(AP4_PROTECTION_SCHEME_TYPE_CBC1,
+                                        AP4_PROTECTION_SCHEME_VERSION_CENC_10);
+                tenc = new AP4_TencAtom(m_DefaultIsProtected,
+                                        m_DefaultIvSize,
+                                        m_DefaultKid);
+                break;
+
+            case AP4_CENC_VARIANT_MPEG_CENS:
+                schm = new AP4_SchmAtom(AP4_PROTECTION_SCHEME_TYPE_CENS,
+                                        AP4_PROTECTION_SCHEME_VERSION_CENC_10);
+                tenc = new AP4_TencAtom(m_DefaultIsProtected,
+                                        m_DefaultIvSize,
+                                        m_DefaultKid);
+                break;
+
+            case AP4_CENC_VARIANT_MPEG_CBCS:
+                schm = new AP4_SchmAtom(AP4_PROTECTION_SCHEME_TYPE_CBCS,
+                                        AP4_PROTECTION_SCHEME_VERSION_CENC_10);
+                tenc = new AP4_TencAtom(m_DefaultIsProtected,
                                         m_DefaultIvSize,
                                         m_DefaultKid);
                 break;
@@ -633,7 +657,7 @@ AP4_CencFragmentEncrypter::ProcessFragment()
             m_SampleEncryptionAtom = new AP4_PiffSampleEncryptionAtom(8);
             break;
             
-        case AP4_CENC_VARIANT_MPEG:
+        case AP4_CENC_VARIANT_MPEG_CENC:
             if (AP4_GlobalOptions::GetBool("mpeg-cenc.piff-compatible")) {
                 AP4_UI08 iv_size = 8;
                 if (AP4_GlobalOptions::GetBool("mpeg-cenc.iv-size-16")) {
@@ -652,6 +676,14 @@ AP4_CencFragmentEncrypter::ProcessFragment()
             m_Saio = new AP4_SaioAtom();
             break;
             
+        case AP4_CENC_VARIANT_MPEG_CBC1:
+        case AP4_CENC_VARIANT_MPEG_CENS:
+        case AP4_CENC_VARIANT_MPEG_CBCS:
+            m_SampleEncryptionAtom = new AP4_SencAtom(16);
+            m_Saiz = new AP4_SaizAtom();
+            m_Saio = new AP4_SaioAtom();
+            break;
+
         default:
             return AP4_ERROR_INTERNAL;
     }
@@ -879,7 +911,10 @@ AP4_CencEncryptingProcessor::Initialize(AP4_AtomParent&                  top_lev
             if (!ftyp->HasCompatibleBrand(AP4_PIFF_BRAND)) {
                 compatible_brands.Append(AP4_PIFF_BRAND);
             }
-        } else if (m_Variant == AP4_CENC_VARIANT_MPEG) {
+        } else if (m_Variant == AP4_CENC_VARIANT_MPEG_CENC ||
+                   m_Variant == AP4_CENC_VARIANT_MPEG_CBC1 ||
+                   m_Variant == AP4_CENC_VARIANT_MPEG_CENS ||
+                   m_Variant == AP4_CENC_VARIANT_MPEG_CBCS) {
             if (!ftyp->HasCompatibleBrand(AP4_FILE_BRAND_ISO6)) {
                 compatible_brands.Append(AP4_FILE_BRAND_ISO6);
             }
@@ -911,7 +946,11 @@ AP4_CencEncryptingProcessor::Initialize(AP4_AtomParent&                  top_lev
     if (moov) {
         // create a 'standard EME' pssh atom
         AP4_PsshAtom* eme_pssh = NULL;
-        if (m_Variant == AP4_CENC_VARIANT_MPEG && AP4_GlobalOptions::GetBool("mpeg-cenc.eme-pssh")) {
+        if ((m_Variant == AP4_CENC_VARIANT_MPEG_CENC ||
+             m_Variant == AP4_CENC_VARIANT_MPEG_CBC1 ||
+             m_Variant == AP4_CENC_VARIANT_MPEG_CENS ||
+             m_Variant == AP4_CENC_VARIANT_MPEG_CBCS) &&
+            AP4_GlobalOptions::GetBool("mpeg-cenc.eme-pssh")) {
             AP4_DataBuffer kids;
             AP4_UI32       kid_count = 0;
             const AP4_List<AP4_TrackPropertyMap::Entry>& prop_entries = m_PropertyMap.GetEntries();
@@ -946,7 +985,7 @@ AP4_CencEncryptingProcessor::Initialize(AP4_AtomParent&                  top_lev
 
         // check if we need to create a Marlin 'mkid' table
         AP4_PsshAtom* marlin_pssh = NULL;
-        if (m_Variant == AP4_CENC_VARIANT_MPEG) {
+        if (m_Variant == AP4_CENC_VARIANT_MPEG_CENC) {
             const AP4_List<AP4_TrackPropertyMap::Entry>& prop_entries = m_PropertyMap.GetEntries();
             AP4_MkidAtom* mkid = NULL;
             for (unsigned int i=0; i<prop_entries.ItemCount(); i++) {
@@ -1112,59 +1151,59 @@ AP4_CencEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
         
     // create the encrypter
     AP4_Processor::TrackHandler* track_encrypter;
-    AP4_UI32 algorithm_id = 0;
-    AP4_UI08 iv_size = 16;
+    AP4_UI08                     cipher_iv_size = 16;
+    AP4_BlockCipher::CipherMode  cipher_mode;
+    AP4_BlockCipher::CtrParams   cipher_ctr_params;
+    const void*                  cipher_mode_params = NULL;
+    AP4_UI32                     is_protected = 0;
     switch (m_Variant) {
         case AP4_CENC_VARIANT_PIFF_CTR:
-            algorithm_id = AP4_CENC_ALGORITHM_ID_CTR;
-            iv_size = 8;
-            break;
-
-        case AP4_CENC_VARIANT_PIFF_CBC:
-            algorithm_id = AP4_CENC_ALGORITHM_ID_CBC;
-            break;
-        
-        case AP4_CENC_VARIANT_MPEG:
-            if ((AP4_GlobalOptions::GetBool("mpeg-cenc.piff-compatible") ||
-                 AP4_GlobalOptions::GetBool("mpeg-cenc.iv-size-8")) &&
-                 !AP4_GlobalOptions::GetBool("mpeg-cenc.iv-size-16")) {
-                iv_size = 8;
-            }
-            algorithm_id = AP4_CENC_ALGORITHM_ID_CTR;
+            is_protected = 1;
+            cipher_mode = AP4_BlockCipher::CTR;
+            cipher_ctr_params.counter_size = 8;
+            cipher_mode_params = &cipher_ctr_params;
             break;
             
+        case AP4_CENC_VARIANT_MPEG_CENC:
+        case AP4_CENC_VARIANT_MPEG_CENS:
+            is_protected = 1;
+            cipher_mode = AP4_BlockCipher::CTR;
+            cipher_ctr_params.counter_size = 8;
+            cipher_mode_params = &cipher_ctr_params;
+            if ((AP4_GlobalOptions::GetBool("mpeg-cenc.piff-compatible") ||
+                  AP4_GlobalOptions::GetBool("mpeg-cenc.iv-size-8")) &&
+                 !AP4_GlobalOptions::GetBool("mpeg-cenc.iv-size-16")) {
+                cipher_iv_size = 8;
+            }
+            break;
+            
+        case AP4_CENC_VARIANT_PIFF_CBC:
+            is_protected = 2;
+            cipher_mode = AP4_BlockCipher::CBC;
+            break;
+            
+        case AP4_CENC_VARIANT_MPEG_CBC1:
+        case AP4_CENC_VARIANT_MPEG_CBCS:
+            is_protected = 1;
+            cipher_mode = AP4_BlockCipher::CBC;
+            break;
+
         default:
             return NULL;
     }
     track_encrypter = new AP4_CencTrackEncrypter(m_Variant,
-                                                 algorithm_id, 
-                                                 iv_size,
+                                                 is_protected,
+                                                 cipher_iv_size,
                                                  kid,
                                                  entries, 
                                                  enc_format);
         
     // create a block cipher
-    AP4_BlockCipher*            block_cipher = NULL;
-    AP4_BlockCipher::CipherMode mode;
-    AP4_BlockCipher::CtrParams  ctr_params;
-    const void*                 mode_params = NULL;
-    switch (algorithm_id) {
-        case AP4_CENC_ALGORITHM_ID_CBC:
-            mode = AP4_BlockCipher::CBC;
-            break;
-            
-        case AP4_CENC_ALGORITHM_ID_CTR:
-            mode = AP4_BlockCipher::CTR;
-            ctr_params.counter_size = 8;
-            mode_params = &ctr_params;
-            break;
-            
-        default: return NULL;
-    }
-    AP4_Result result = m_BlockCipherFactory->CreateCipher(AP4_BlockCipher::AES_128, 
+    AP4_BlockCipher* block_cipher = NULL;
+    AP4_Result result = m_BlockCipherFactory->CreateCipher(AP4_BlockCipher::AES_128,
                                                            AP4_BlockCipher::ENCRYPT, 
-                                                           mode,
-                                                           mode_params,
+                                                           cipher_mode,
+                                                           cipher_mode_params,
                                                            key->GetData(), 
                                                            key->GetDataSize(), 
                                                            block_cipher);
@@ -1173,8 +1212,8 @@ AP4_CencEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
     // add a new cipher state for this track
     AP4_CencSampleEncrypter* sample_encrypter = NULL;
     AP4_StreamCipher* stream_cipher = NULL;
-    switch (algorithm_id) {
-        case AP4_CENC_ALGORITHM_ID_CBC:
+    switch (cipher_mode) {
+        case AP4_BlockCipher::CBC:
             stream_cipher = new AP4_CbcStreamCipher(block_cipher);
             if (format == AP4_ATOM_TYPE_AVC1 ||
                 format == AP4_ATOM_TYPE_AVC2 ||
@@ -1193,7 +1232,7 @@ AP4_CencEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
             }
             break;
             
-        case AP4_CENC_ALGORITHM_ID_CTR:
+        case AP4_BlockCipher::CTR:
             stream_cipher = new AP4_CtrStreamCipher(block_cipher, 16);
             if (format == AP4_ATOM_TYPE_AVC1 ||
                 format == AP4_ATOM_TYPE_AVC2 ||
@@ -1201,14 +1240,14 @@ AP4_CencEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
                 format == AP4_ATOM_TYPE_AVC4) {
                 AP4_AvccAtom* avcc = AP4_DYNAMIC_CAST(AP4_AvccAtom, entries[0]->GetChild(AP4_ATOM_TYPE_AVCC));
                 if (avcc == NULL) return NULL;
-                sample_encrypter = new AP4_CencCtrSubSampleEncrypter(stream_cipher, avcc->GetNaluLengthSize(), iv_size, format);
+                sample_encrypter = new AP4_CencCtrSubSampleEncrypter(stream_cipher, avcc->GetNaluLengthSize(), cipher_iv_size, format);
             } else if (format == AP4_ATOM_TYPE_HEV1 ||
                        format == AP4_ATOM_TYPE_HVC1) {
                 AP4_HvccAtom* hvcc = AP4_DYNAMIC_CAST(AP4_HvccAtom, entries[0]->GetChild(AP4_ATOM_TYPE_HVCC));
                 if (hvcc == NULL) return NULL;
-                sample_encrypter = new AP4_CencCtrSubSampleEncrypter(stream_cipher, hvcc->GetNaluLengthSize(), iv_size, format);
+                sample_encrypter = new AP4_CencCtrSubSampleEncrypter(stream_cipher, hvcc->GetNaluLengthSize(), cipher_iv_size, format);
             } else {
-                sample_encrypter = new AP4_CencCtrSampleEncrypter(stream_cipher, iv_size);
+                sample_encrypter = new AP4_CencCtrSampleEncrypter(stream_cipher, cipher_iv_size);
             }
             break;
     }
@@ -1282,7 +1321,7 @@ AP4_CencEncryptingProcessor::CreateFragmentHandler(AP4_TrakAtom*      trak,
 |   AP4_CencSingleSampleDecrypter::Create
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_CencSingleSampleDecrypter::Create(AP4_UI32                        algorithm_id,
+AP4_CencSingleSampleDecrypter::Create(AP4_UI32                        cipher_type,
                                       const AP4_UI08*                 key,
                                       AP4_Size                        key_size,
                                       unsigned int                    crypt_byte_block,
@@ -1301,11 +1340,11 @@ AP4_CencSingleSampleDecrypter::Create(AP4_UI32                        algorithm_
     // create the cipher
     AP4_StreamCipher* stream_cipher = NULL;
     bool              full_blocks_only = false;
-    switch (algorithm_id) {
-        case AP4_CENC_ALGORITHM_ID_NONE:
+    switch (cipher_type) {
+        case AP4_CENC_CIPHER_NONE:
             break;
             
-        case AP4_CENC_ALGORITHM_ID_CTR: {
+        case AP4_CENC_CIPHER_AES_128_CTR: {
             // create the block cipher
             AP4_BlockCipher* block_cipher = NULL;
             AP4_BlockCipher::CtrParams ctr_params;
@@ -1324,7 +1363,7 @@ AP4_CencSingleSampleDecrypter::Create(AP4_UI32                        algorithm_
             break;
         }
             
-        case AP4_CENC_ALGORITHM_ID_CBC: {
+        case AP4_CENC_CIPHER_AES_128_CBC: {
             // create the block cipher
             AP4_BlockCipher* block_cipher = NULL;
             AP4_Result result = block_cipher_factory->CreateCipher(AP4_BlockCipher::AES_128,
@@ -1399,6 +1438,7 @@ AP4_CencSingleSampleDecrypter::DecryptSampleData(AP4_DataBuffer& data_in,
     if (subsample_count) {
         // process the sample data, one sub-sample at a time
         const AP4_UI08* in_end = data_in.GetData()+data_in.GetDataSize();
+        unsigned int encrypted_total = 0;
         for (unsigned int i=0; i<subsample_count; i++) {
             AP4_UI16 cleartext_size = bytes_of_cleartext_data[i];
             AP4_UI32 encrypted_size = bytes_of_encrypted_data[i];
@@ -1415,19 +1455,20 @@ AP4_CencSingleSampleDecrypter::DecryptSampleData(AP4_DataBuffer& data_in,
             
             // decrypt the rest
             if (encrypted_size) {
-                AP4_Result result = DecryptRange(in+cleartext_size, out+cleartext_size, encrypted_size);
+                AP4_Result result = DecryptRange(encrypted_total, in+cleartext_size, out+cleartext_size, encrypted_size);
                 if (AP4_FAILED(result)) return result;
             }
             
-            // move the pointers
-            in  += cleartext_size+encrypted_size;
-            out += cleartext_size+encrypted_size;
+            // move the pointers and udate counters
+            in              += cleartext_size+encrypted_size;
+            out             += cleartext_size+encrypted_size;
+            encrypted_total += encrypted_size;
         }
     } else {
         if (m_FullBlocksOnly) {
             unsigned int block_count = data_in.GetDataSize()/16;
             if (block_count) {
-                AP4_Result result = DecryptRange(in, out, block_count*16);
+                AP4_Result result = DecryptRange(0, in, out, block_count*16);
                 if (AP4_FAILED(result)) return result;
                 in  += block_count*16;
                 out += block_count*16;
@@ -1441,7 +1482,7 @@ AP4_CencSingleSampleDecrypter::DecryptSampleData(AP4_DataBuffer& data_in,
         } else {
             // process the entire sample data at once
             AP4_Size encrypted_size = data_in.GetDataSize();
-            AP4_Result result = DecryptRange(in, out, encrypted_size);
+            AP4_Result result = DecryptRange(0, in, out, encrypted_size);
             if (AP4_FAILED(result)) return result;
         }
     }
@@ -1453,17 +1494,36 @@ AP4_CencSingleSampleDecrypter::DecryptSampleData(AP4_DataBuffer& data_in,
 |   AP4_CencSingleSampleDecrypter::DecryptRange
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_CencSingleSampleDecrypter::DecryptRange(const AP4_UI08* in, AP4_UI08* out, AP4_Size size)
+AP4_CencSingleSampleDecrypter::DecryptRange(unsigned int range_position, const AP4_UI08* in, AP4_UI08* out, AP4_Size size)
 {
     if (m_CryptByteBlock && m_SkipByteBlock) {
+        // pattern encryption
+        unsigned int pattern_span = m_CryptByteBlock+m_SkipByteBlock;
+        
+        // check that the range is block-aligned (required by the spec for pattern encryption)
+        if (range_position % 16) return AP4_ERROR_INVALID_FORMAT;
+        
+        // compute where we are in the pattern
+        unsigned int block_position   = range_position/16;
+        unsigned int pattern_position = block_position % pattern_span;
+
+        // process the range
         AP4_Size processed = 0;
-        AP4_Size crypt_size = 16*m_CryptByteBlock;
-        AP4_Size skip_size  = 16*m_SkipByteBlock;
         while (processed < size) {
+            unsigned int crypt_size = 0;
+            unsigned int skip_size  = m_SkipByteBlock*16;
+            if (pattern_position < m_CryptByteBlock) {
+                // in the encrypted part
+                crypt_size = (m_CryptByteBlock-pattern_position)*16;
+            } else {
+                // in the skipped part
+                skip_size = pattern_span-pattern_position;
+            }
+            
             // clip
             AP4_Size remain = size-processed;
             if (crypt_size > remain) {
-                crypt_size = 16*((remain)/16);
+                crypt_size = 16*(remain/16);
                 skip_size  = remain-crypt_size;
             }
             if (crypt_size+skip_size > remain) {
@@ -1487,10 +1547,15 @@ AP4_CencSingleSampleDecrypter::DecryptRange(const AP4_UI08* in, AP4_UI08* out, A
             }
             
             // skipped part
-            AP4_CopyMemory(out, in, skip_size);
+            if (skip_size) {
+                AP4_CopyMemory(out, in, skip_size);
+            }
             in        += skip_size;
             out       += skip_size;
             processed += skip_size;
+            
+            // we're now at the start of a new pattern
+            pattern_position = 0;
         }
     } else {
         AP4_Size in_size  = size;
@@ -1560,13 +1625,13 @@ AP4_CencSampleDecrypter::Create(AP4_ProtectedSampleDescription* sample_descripti
     
     // create the sample info table
     AP4_CencSampleInfoTable* sample_info_table = NULL;
-    AP4_UI32                 algorithm_id = 0;
+    AP4_UI32                 protection_sheme  = 0;
     AP4_Result result = AP4_CencSampleInfoTable::Create(sample_description,
                                                         traf,
                                                         saio,
                                                         saiz,
                                                         sample_encryption_atom,
-                                                        algorithm_id,
+                                                        protection_sheme,
                                                         aux_info_data,
                                                         aux_info_data_offset,
                                                         sample_info_table);
@@ -1575,7 +1640,7 @@ AP4_CencSampleDecrypter::Create(AP4_ProtectedSampleDescription* sample_descripti
     }
 
     // we now have all the info we need to create the decrypter
-    return Create(sample_info_table, algorithm_id, key, key_size, block_cipher_factory, decrypter);
+    return Create(sample_info_table, protection_sheme, key, key_size, block_cipher_factory, decrypter);
 }
 
 /*----------------------------------------------------------------------
@@ -1583,7 +1648,7 @@ AP4_CencSampleDecrypter::Create(AP4_ProtectedSampleDescription* sample_descripti
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_CencSampleDecrypter::Create(AP4_CencSampleInfoTable*  sample_info_table,
-                                AP4_UI32                  algorithm_id,
+                                AP4_UI32                  cipher_type,
                                 const AP4_UI08*           key, 
                                 AP4_Size                  key_size,
                                 AP4_BlockCipherFactory*   block_cipher_factory,
@@ -1594,17 +1659,17 @@ AP4_CencSampleDecrypter::Create(AP4_CencSampleInfoTable*  sample_info_table,
     
     // check some basic paramaters
     unsigned int iv_size = sample_info_table->GetIvSize();
-    switch (algorithm_id) {
-        case AP4_CENC_ALGORITHM_ID_NONE:
+    switch (cipher_type) {
+        case AP4_CENC_CIPHER_NONE:
             break;
             
-        case AP4_CENC_ALGORITHM_ID_CTR:
+        case AP4_CENC_CIPHER_AES_128_CTR:
             if (iv_size != 8 && iv_size != 16) {
                 return AP4_ERROR_INVALID_FORMAT;
             }
             break;
             
-        case AP4_CENC_ALGORITHM_ID_CBC:
+        case AP4_CENC_CIPHER_AES_128_CBC:
             if (iv_size != 16) {
                 return AP4_ERROR_INVALID_FORMAT;
             }
@@ -1616,7 +1681,7 @@ AP4_CencSampleDecrypter::Create(AP4_CencSampleInfoTable*  sample_info_table,
 
     // create a single-sample decrypter
     AP4_CencSingleSampleDecrypter* single_sample_decrypter = NULL;
-    AP4_Result result = AP4_CencSingleSampleDecrypter::Create(algorithm_id,
+    AP4_Result result = AP4_CencSingleSampleDecrypter::Create(cipher_type,
                                                               key,
                                                               key_size,
                                                               sample_info_table->GetCryptByteBlock(),
@@ -2021,16 +2086,27 @@ AP4_CencTrackEncryption::AP4_CencTrackEncryption(AP4_UI08 version) :
 +---------------------------------------------------------------------*/
 AP4_CencTrackEncryption::AP4_CencTrackEncryption(AP4_UI08        default_is_protected,
                                                  AP4_UI08        default_per_sample_iv_size,
-                                                 const AP4_UI08* default_kid) :
+                                                 const AP4_UI08* default_kid,
+                                                 AP4_UI08        default_constant_iv_size,
+                                                 const AP4_UI08* default_constant_iv,
+                                                 AP4_UI08        default_crypt_byte_block,
+                                                 AP4_UI08        default_skip_byte_block) :
     m_FormatVersion(0),
     m_DefaultIsProtected(default_is_protected),
     m_DefaultPerSampleIvSize(default_per_sample_iv_size),
-    m_DefaultConstantIvSize(0),
-    m_DefaultCryptByteBlock(0),
-    m_DefaultSkipByteBlock(0)
+    m_DefaultConstantIvSize(default_constant_iv_size),
+    m_DefaultCryptByteBlock(default_crypt_byte_block),
+    m_DefaultSkipByteBlock(default_skip_byte_block)
 {
     AP4_CopyMemory(m_DefaultKid, default_kid, 16);
     AP4_SetMemory(m_DefaultConstantIv, 0, 16);
+    if (default_per_sample_iv_size == 0 && default_constant_iv_size && default_constant_iv) {
+        if (default_constant_iv_size > 16) {
+            // too large, truncate
+            default_constant_iv_size = 16;
+        }
+        AP4_CopyMemory(&m_DefaultConstantIv[16-default_constant_iv_size], default_constant_iv, default_constant_iv_size);
+    }
 }
 
 /*----------------------------------------------------------------------
@@ -2142,7 +2218,7 @@ AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_CencSampleEncryption)
 AP4_Result 
 AP4_CencSampleInfoTable::Create(AP4_ProtectedSampleDescription* sample_description,
                                 AP4_ContainerAtom*              traf,
-                                AP4_UI32&                       algorithm_id,
+                                AP4_UI32&                       cipher_type,
                                 AP4_ByteStream&                 aux_info_data,
                                 AP4_Position                    aux_info_data_offset,
                                 AP4_CencSampleInfoTable*&       sample_info_table)
@@ -2155,7 +2231,7 @@ AP4_CencSampleInfoTable::Create(AP4_ProtectedSampleDescription* sample_descripti
                   saio,
                   saiz,
                   sample_encryption_atom,
-                  algorithm_id,
+                  cipher_type,
                   aux_info_data,
                   aux_info_data_offset,
                   sample_info_table);
@@ -2170,31 +2246,17 @@ AP4_CencSampleInfoTable::Create(AP4_ProtectedSampleDescription* sample_descripti
                                 AP4_SaioAtom*&                  saio,
                                 AP4_SaizAtom*&                  saiz,
                                 AP4_CencSampleEncryption*&      sample_encryption_atom,
-                                AP4_UI32&                       algorithm_id,
+                                AP4_UI32&                       cipher_type,
                                 AP4_ByteStream&                 aux_info_data,
                                 AP4_Position                    aux_info_data_offset,
                                 AP4_CencSampleInfoTable*&       sample_info_table)
 {
     // default return values
-    saio = NULL;
-    saiz = NULL;
+    saio                   = NULL;
+    saiz                   = NULL;
     sample_encryption_atom = NULL;
-    sample_info_table = NULL;
-    
-    // check the scheme
-    switch (sample_description->GetSchemeType()) {
-      case AP4_PROTECTION_SCHEME_TYPE_PIFF:
-      case AP4_PROTECTION_SCHEME_TYPE_CENC:
-      case AP4_PROTECTION_SCHEME_TYPE_CBC1:
-      case AP4_PROTECTION_SCHEME_TYPE_CENS:
-      case AP4_PROTECTION_SCHEME_TYPE_CBCS:
-        // OK, supported
-        break;
-        
-      default:
-        // KO, not supported
-        return AP4_ERROR_NOT_SUPPORTED;
-    }
+    sample_info_table      = NULL;
+    cipher_type            = AP4_CENC_CIPHER_NONE;
     
     // get the scheme info atom
     AP4_ContainerAtom* schi = sample_description->GetSchemeInfo()->GetSchiAtom();
@@ -2206,6 +2268,9 @@ AP4_CencSampleInfoTable::Create(AP4_ProtectedSampleDescription* sample_descripti
     if (track_encryption_atom == NULL) {
         track_encryption_atom = AP4_DYNAMIC_CAST(AP4_CencTrackEncryption, schi->GetChild(AP4_UUID_PIFF_TRACK_ENCRYPTION_ATOM));
     }
+    if (track_encryption_atom == NULL) {
+        return AP4_ERROR_INVALID_FORMAT;
+    }
     
     // look for a sample encryption atom
     if (traf) {
@@ -2215,34 +2280,68 @@ AP4_CencSampleInfoTable::Create(AP4_ProtectedSampleDescription* sample_descripti
         }
     }
     
+    // check the scheme and compute the cipher
+    switch (sample_description->GetSchemeType()) {
+      case AP4_PROTECTION_SCHEME_TYPE_PIFF:
+        switch (track_encryption_atom->GetDefaultIsProtected()) {
+          case 0:
+            cipher_type = AP4_CENC_CIPHER_NONE;
+            break;
+            
+          case 1:
+            cipher_type = AP4_CENC_CIPHER_AES_128_CTR;
+            break;
+          case 2:
+            cipher_type = AP4_CENC_CIPHER_AES_128_CBC;
+            break;
+
+          default:
+            return AP4_ERROR_NOT_SUPPORTED;
+        }
+        break;
+        
+      case AP4_PROTECTION_SCHEME_TYPE_CENC:
+      case AP4_PROTECTION_SCHEME_TYPE_CENS:
+        cipher_type = AP4_CENC_CIPHER_AES_128_CTR;
+        break;
+
+      case AP4_PROTECTION_SCHEME_TYPE_CBC1:
+      case AP4_PROTECTION_SCHEME_TYPE_CBCS:
+        cipher_type = AP4_CENC_CIPHER_AES_128_CBC;
+        break;
+        
+      default:
+        // not supported
+        return AP4_ERROR_NOT_SUPPORTED;
+    }
+    if (!track_encryption_atom->GetDefaultIsProtected()) {
+        cipher_type = AP4_CENC_CIPHER_NONE;
+    }
+    
     // parse the crypto params
-    AP4_UI08 per_sample_iv_size = 0;
-    AP4_UI08 constant_iv_size   = 0;
-    const AP4_UI08* constant_iv = NULL;
-    AP4_UI08 crypt_byte_block   = 0;
-    AP4_UI08 skip_byte_block    = 0;
+    AP4_UI08        per_sample_iv_size = 0;
+    AP4_UI08        constant_iv_size   = 0;
+    const AP4_UI08* constant_iv        = NULL;
+    AP4_UI08        crypt_byte_block   = 0;
+    AP4_UI08        skip_byte_block    = 0;
     if (sample_encryption_atom &&
         (sample_encryption_atom->GetOuter().GetFlags() & AP4_CENC_SAMPLE_ENCRYPTION_FLAG_OVERRIDE_TRACK_ENCRYPTION_DEFAULTS)) {
-        algorithm_id       = sample_encryption_atom->GetAlgorithmId();
+        
+        switch (sample_encryption_atom->GetAlgorithmId()) {
+          case 0:
+            cipher_type = AP4_CENC_CIPHER_NONE;
+            break;
+            
+          case 1:
+            cipher_type = AP4_CENC_CIPHER_AES_128_CTR;
+            break;
+            
+          case 2:
+            cipher_type = AP4_CENC_CIPHER_AES_128_CBC;
+            break;
+        }
         per_sample_iv_size = sample_encryption_atom->GetPerSampleIvSize();
     } else {
-        if (track_encryption_atom == NULL) return AP4_ERROR_INVALID_FORMAT;
-        if (track_encryption_atom->GetDefaultIsProteted() == 0) {
-            // not encrypted
-            algorithm_id = 0;
-        } else {
-            switch (sample_description->GetSchemeType()) {
-              case AP4_PROTECTION_SCHEME_TYPE_CENC:
-              case AP4_PROTECTION_SCHEME_TYPE_CENS:
-                algorithm_id = AP4_CENC_ALGORITHM_ID_CTR;
-                break;
-                
-              case AP4_PROTECTION_SCHEME_TYPE_CBC1:
-              case AP4_PROTECTION_SCHEME_TYPE_CBCS:
-                algorithm_id = AP4_CENC_ALGORITHM_ID_CBC;
-                break;
-            }
-        }
         per_sample_iv_size = track_encryption_atom->GetDefaultPerSampleIvSize();
         constant_iv_size   = track_encryption_atom->GetDefaultConstantIvSize();
         crypt_byte_block   = track_encryption_atom->GetDefaultCryptByteBlock();

@@ -56,6 +56,30 @@ def ComputeCodecName(codec_family):
     return name
 
 #############################################
+def SplitArgs(args):
+    try:
+        pairs = args.split('#')
+        fields = {}
+        for pair in pairs:
+            name, value = pair.split(':', 1)
+            fields[name] = value
+        return fields
+    except:
+        raise Exception('invalid syntax for argument')
+
+#############################################
+def ComputeWidevineKeyLine(params):
+    json_param = '{ "provider": "%(provider)s", "content_id": "%(content_id)s", "key_ids": ["%(kid)s"] }' % params
+    key_line   = 'URI="data:text/plain;base64,'+json_param.encode('base64').replace('\n','')+'",KEYFORMAT="com.widevine",KEYFORMATVERSIONS="1"'
+
+    return key_line
+
+#############################################
+def ComputeFairplayKeyLine(params):
+    # start with a '!' to specify we want to skip the IV (since it is not needed on the key line for Fairplay)
+    return '!URI="'+params['uri']+'",KEYFORMAT="com.apple.streamingkeydelivery",KEYFORMATVERSIONS="1"'
+
+#############################################
 def AnalyzeSources(options, media_sources):
     # parse the media files
     mp4_files = {}
@@ -166,7 +190,7 @@ def ProcessSource(options, media_info, out_dir):
     }
 
     if options.hls_version != 3:
-        kwargs['hls_version'] = str(Options.hls_version)
+        kwargs['hls_version'] = str(options.hls_version)
 
     if options.hls_version >= 4:
         kwargs['iframe_index_filename'] = path.join(out_dir, 'iframes.m3u8')
@@ -183,6 +207,19 @@ def ProcessSource(options, media_info, out_dir):
         if getattr(options, option):
             kwargs[option] = getattr(options, option)
 
+    key_lines = []
+
+    # Fairplay
+    if options.fairplay:
+        key_lines.append(ComputeFairplayKeyLine(options.fairplay))
+
+    # Widevine
+    if options.widevine:
+        key_lines.append(ComputeWidevineKeyLine(options.widevine))
+
+    if len(key_lines):
+        kwargs['encryption_key_line'] = key_lines
+
     # deal with track IDs
     if 'audio_track_id' in media_info:
         kwargs['audio_track_id'] = str(media_info['audio_track_id'])
@@ -192,7 +229,7 @@ def ProcessSource(options, media_info, out_dir):
     # other options
     if options.segment_duration:
         kwargs['segment_duration'] = options.segment_duration
-        
+
     # convert to HLS/TS
     json_info = Mp42Hls(options,
                         media_info['source'].filename,
@@ -477,11 +514,13 @@ def main():
     parser.add_option('', '--encryption-iv-mode', dest="encryption_iv_mode", metavar="<mode>",
                       help="Encryption IV mode: 'sequence', 'random' or 'fps' (Fairplay Streaming) (default: sequence). When the mode is 'fps', the encryption key must be 32 bytes: 16 bytes for the key followed by 16 bytes for the IV.")
     parser.add_option('', '--encryption-key-uri', dest="encryption_key_uri", metavar="<uri>",
-                      help="Encryption key URI (may be a realtive or absolute URI). (default: key.bin)")
+                      help="Encryption key URI (may be a relative or absolute URI). (default: key.bin)")
     parser.add_option('', '--encryption-key-format', dest="encryption_key_format", metavar="<format>",
                       help="Encryption key format. (default: 'identity')")
     parser.add_option('', '--encryption-key-format-versions', dest="encryption_key_format_versions", metavar="<versions>",
                       help="Encryption key format versions.")
+    parser.add_option('', '--fairplay', dest="fairplay", metavar="<fairplay-parameters>", help="Enable Fairplay Key Delivery. The <fairplay-parameters> argument is one or more <name>:<value> pair(s) (separated by '#' if more than one). Names include 'uri' [string] (required)")
+    parser.add_option('', '--widevine', dest="widevine", metavar="<widevine-parameters>", help="Enable Widevine Key Delivery. The <widevine-parameters> argument is one or more <name>:<value> pair(s) (separated by '#' if more than one). Names include 'provider' [string] (required), 'content_id' [byte array in hex] (optional), 'kid' [16-byte array in hex] (required)")
     parser.add_option('', '--output-encryption-key', dest="output_encryption_key", action="store_true", default=False,
                       help="Output the encryption key to a file (default: don't output the key). This option is only valid when the encryption key format is 'identity'")
     parser.add_option('', "--exec-dir", metavar="<exec_dir>", dest="exec_dir", default=default_exec_dir,
@@ -510,6 +549,57 @@ def main():
         if options.encryption_key_format != None and options.encryption_key_format != 'identity':
             sys.stderr.write("ERROR: --output-encryption-key requires --encryption-key-format to be omitted or set to 'identity'\n")
             sys.exit(1)
+
+    # Fairplay option
+    if options.fairplay:
+        if options.encryption_iv_mode:
+            if options.encryption_iv_mode != 'fps':
+                sys.stderr.write("ERROR: --fairplay requires --encryption-iv-mode to be 'fps'\n")
+                sys.exit(1)
+        else:
+            options.encryption_iv_mode = 'fps'
+        if not options.encryption_key:
+            sys.stderr.write("ERROR: --fairplay requires --encryption-key to be specified\n")
+            sys.exit(1)
+        if options.encryption_mode:
+            if options.encryption_mode != 'SAMPLE-AES':
+                sys.stderr.write('ERROR: --fairplay option incompatible with '+options.encryption_mode+' encryption mode\n')
+                sys.exit(1)
+        else:
+            options.encryption_mode = 'SAMPLE-AES'
+        options.fairplay = SplitArgs(options.fairplay)
+        if 'uri' not in options.fairplay:
+            sys.stderr.write('ERROR: --fairplay option requires a "uri" parameter (ex: skd://xxx)\n')
+            sys.exit(1)
+
+    # Widevine option
+    if options.widevine:
+        if not options.encryption_key:
+            sys.stderr.write("ERROR: --widevine requires --encryption-key to be specified\n")
+            sys.exit(1)
+        if options.encryption_mode:
+            if options.encryption_mode != 'SAMPLE-AES':
+                sys.stderr.write('ERROR: --widevine option incompatible with '+options.encryption_mode+' encryption mode\n')
+                sys.exit(1)
+        else:
+            options.encryption_mode = 'SAMPLE-AES'
+        options.widevine = SplitArgs(options.widevine)
+        if 'kid' not in options.widevine:
+            sys.stderr.write('ERROR: --widevine option requires a "kid" parameter\n')
+            sys.exit(1)
+        if len(options.widevine['kid']) != 32:
+            sys.stderr.write('ERROR: --widevine option "kid" must be 32 hex characters\n')
+            sys.exit(1)
+        if 'provider' not in options.widevine:
+            sys.stderr.write('ERROR: --widevine option requires a "provider" parameter\n')
+            sys.exit(1)
+        if 'content_id' in options.widevine:
+            options.widevine['content_id'] = options.widevine['content_id'].decode('hex')
+        else:
+            options.widevine['content_id'] = '*'
+
+    if options.encryption_mode == 'SAMPLE-AES':
+        options.hls_version = 5
 
     # parse media sources syntax
     media_sources = [MediaSource(source) for source in args]

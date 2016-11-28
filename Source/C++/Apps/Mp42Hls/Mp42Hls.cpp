@@ -65,31 +65,32 @@ typedef enum {
 } AudioFormat;
 
 static struct _Options {
-    const char*      input;
-    bool             verbose;
-    unsigned int     hls_version;
-    unsigned int     pmt_pid;
-    unsigned int     audio_pid;
-    unsigned int     video_pid;
-    int              audio_track_id;
-    int              video_track_id;
-    AudioFormat      audio_format;
-    const char*      index_filename;
-    const char*      iframe_index_filename;
-    bool             output_single_file;
-    bool             show_info;
-    const char*      segment_filename_template;
-    const char*      segment_url_template;
-    unsigned int     segment_duration;
-    unsigned int     segment_duration_threshold;
-    const char*      encryption_key_hex;
-    AP4_UI08         encryption_key[16];
-    AP4_UI08         encryption_iv[16];
-    EncryptionMode   encryption_mode;
-    EncryptionIvMode encryption_iv_mode;
-    const char*      encryption_key_uri;
-    const char*      encryption_key_format;
-    const char*      encryption_key_format_versions;
+    const char*           input;
+    bool                  verbose;
+    unsigned int          hls_version;
+    unsigned int          pmt_pid;
+    unsigned int          audio_pid;
+    unsigned int          video_pid;
+    int                   audio_track_id;
+    int                   video_track_id;
+    AudioFormat           audio_format;
+    const char*           index_filename;
+    const char*           iframe_index_filename;
+    bool                  output_single_file;
+    bool                  show_info;
+    const char*           segment_filename_template;
+    const char*           segment_url_template;
+    unsigned int          segment_duration;
+    unsigned int          segment_duration_threshold;
+    const char*           encryption_key_hex;
+    AP4_UI08              encryption_key[16];
+    AP4_UI08              encryption_iv[16];
+    EncryptionMode        encryption_mode;
+    EncryptionIvMode      encryption_iv_mode;
+    const char*           encryption_key_uri;
+    const char*           encryption_key_format;
+    const char*           encryption_key_format_versions;
+    AP4_Array<AP4_String> encryption_key_lines;
 } Options;
 
 static struct _Stats {
@@ -172,7 +173,12 @@ PrintUsageAndExit()
             "  --encryption-key-format <format>\n"
             "    Encryption key format. (default: 'identity')\n"
             "  --encryption-key-format-versions <versions>\n"
-            "    Encryption key format versions.\n"
+            "    Encryption key format versions."
+            "  --encryption-key-line <ext-x-key-line>\n"
+            "    Preformatted encryption key line (only the portion after the #EXT-X-KEY: tag).\n"
+            "    This option can be used multiple times, once for each preformatted key line to be included in the playlist.\n"
+            "    (this option is mutually exclusive with the --encryption-key-uri, --encryption-key-format and --encryption-key-format-versions options)\n"
+            "    (the IV and METHOD parameters will automatically be added, so they must not appear in the <ext-x-key-line> argument)\n"
             );
     exit(1);
 }
@@ -1323,33 +1329,65 @@ WriteSamples(AP4_Mpeg2TsWriter*               ts_writer,
     playlist->WriteString("#EXT-X-MEDIA-SEQUENCE:0\r\n");
 
     if (Options.encryption_mode != ENCRYPTION_MODE_NONE) {
-        playlist->WriteString("#EXT-X-KEY:METHOD=");
-        if (Options.encryption_mode == ENCRYPTION_MODE_AES_128) {
-            playlist->WriteString("AES-128");
-        } else if (Options.encryption_mode == ENCRYPTION_MODE_SAMPLE_AES) {
-            playlist->WriteString("SAMPLE-AES");
-        }
-        playlist->WriteString(",URI=\"");
-        playlist->WriteString(Options.encryption_key_uri);
-        playlist->WriteString("\"");
-        if (Options.encryption_iv_mode == ENCRYPTION_IV_MODE_RANDOM) {
-            playlist->WriteString(",IV=0x");
-            char iv_hex[33];
-            iv_hex[32] = 0;
-            AP4_FormatHex(Options.encryption_iv, 16, iv_hex);
-            playlist->WriteString(iv_hex);
-        }
-        if (Options.encryption_key_format) {
-            playlist->WriteString(",KEYFORMAT=\"");
-            playlist->WriteString(Options.encryption_key_format);
+        if (Options.encryption_key_lines.ItemCount()) {
+            for (unsigned int i=0; i<Options.encryption_key_lines.ItemCount(); i++) {
+                AP4_String& key_line = Options.encryption_key_lines[i];
+                const char* key_line_cstr = key_line.GetChars();
+                bool omit_iv = false;
+                
+                // omit the IV if the key line starts with a "!" (and skip the "!")
+                if (key_line[0] == '!') {
+                    ++key_line_cstr;
+                    omit_iv = true;
+                }
+                
+                playlist->WriteString("#EXT-X-KEY:METHOD=");
+                if (Options.encryption_mode == ENCRYPTION_MODE_AES_128) {
+                    playlist->WriteString("AES-128");
+                } else if (Options.encryption_mode == ENCRYPTION_MODE_SAMPLE_AES) {
+                    playlist->WriteString("SAMPLE-AES");
+                }
+                playlist->WriteString(",");
+                playlist->WriteString(key_line_cstr);
+                if ((Options.encryption_iv_mode == ENCRYPTION_IV_MODE_RANDOM ||
+                     Options.encryption_iv_mode == ENCRYPTION_IV_MODE_FPS) && !omit_iv) {
+                    playlist->WriteString(",IV=0x");
+                    char iv_hex[33];
+                    iv_hex[32] = 0;
+                    AP4_FormatHex(Options.encryption_iv, 16, iv_hex);
+                    playlist->WriteString(iv_hex);
+                }
+                playlist->WriteString("\r\n");
+            }
+        } else {
+            playlist->WriteString("#EXT-X-KEY:METHOD=");
+            if (Options.encryption_mode == ENCRYPTION_MODE_AES_128) {
+                playlist->WriteString("AES-128");
+            } else if (Options.encryption_mode == ENCRYPTION_MODE_SAMPLE_AES) {
+                playlist->WriteString("SAMPLE-AES");
+            }
+            playlist->WriteString(",URI=\"");
+            playlist->WriteString(Options.encryption_key_uri);
             playlist->WriteString("\"");
+            if (Options.encryption_iv_mode == ENCRYPTION_IV_MODE_RANDOM) {
+                playlist->WriteString(",IV=0x");
+                char iv_hex[33];
+                iv_hex[32] = 0;
+                AP4_FormatHex(Options.encryption_iv, 16, iv_hex);
+                playlist->WriteString(iv_hex);
+            }
+            if (Options.encryption_key_format) {
+                playlist->WriteString(",KEYFORMAT=\"");
+                playlist->WriteString(Options.encryption_key_format);
+                playlist->WriteString("\"");
+            }
+            if (Options.encryption_key_format_versions) {
+                playlist->WriteString(",KEYFORMATVERSIONS=\"");
+                playlist->WriteString(Options.encryption_key_format_versions);
+                playlist->WriteString("\"");
+            }
+            playlist->WriteString("\r\n");
         }
-        if (Options.encryption_key_format_versions) {
-            playlist->WriteString(",KEYFORMATVERSIONS=\"");
-            playlist->WriteString(Options.encryption_key_format_versions);
-            playlist->WriteString("\"");
-        }
-        playlist->WriteString("\r\n");
     }
     
     for (unsigned int i=0; i<segment_durations.ItemCount(); i++) {
@@ -1659,7 +1697,7 @@ main(int argc, char** argv)
                 Options.encryption_iv_mode = ENCRYPTION_IV_MODE_SEQUENCE;
             } else if (strncmp(*args, "random", 6) == 0) {
                 Options.encryption_iv_mode = ENCRYPTION_IV_MODE_RANDOM;
-            } else if (strncmp(*args, "fps", 6) == 0) {
+            } else if (strncmp(*args, "fps", 3) == 0) {
                 Options.encryption_iv_mode = ENCRYPTION_IV_MODE_FPS;
             } else {
                 fprintf(stderr, "ERROR: unknown encryption IV mode\n");
@@ -1684,6 +1722,12 @@ main(int argc, char** argv)
                 return 1;
             }
             Options.encryption_key_format_versions = *args++;
+        } else if (!strcmp(arg, "--encryption-key-line")) {
+            if (*args == NULL) {
+                fprintf(stderr, "ERROR: --encryption-key-line requires an argument\n");
+                return 1;
+            }
+            Options.encryption_key_lines.Append(*args++);
         } else if (Options.input == NULL) {
             Options.input = arg;
         } else {
@@ -1695,6 +1739,10 @@ main(int argc, char** argv)
     // check args
     if (Options.input == NULL) {
         fprintf(stderr, "ERROR: missing input file name\n");
+        return 1;
+    }
+    if (Options.encryption_mode == ENCRYPTION_MODE_NONE && Options.encryption_key_lines.ItemCount() != 0) {
+        fprintf(stderr, "ERROR: --encryption-key-line requires --encryption-key and --encryption-key-mode\n");
         return 1;
     }
     if (Options.encryption_mode != ENCRYPTION_MODE_NONE && Options.encryption_key_hex == NULL) {

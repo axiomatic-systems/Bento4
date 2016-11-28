@@ -56,9 +56,9 @@ const AP4_UI32 AP4_PROTECTION_SCHEME_TYPE_CBC1 = AP4_ATOM_TYPE('c','b','c','1');
 const AP4_UI32 AP4_PROTECTION_SCHEME_TYPE_CBCS = AP4_ATOM_TYPE('c','b','c','s');
 const AP4_UI32 AP4_PROTECTION_SCHEME_VERSION_CENC_10 = 0x00010000;
 
-const AP4_UI32 AP4_CENC_ALGORITHM_ID_NONE = 0; 
-const AP4_UI32 AP4_CENC_ALGORITHM_ID_CTR  = 1; 
-const AP4_UI32 AP4_CENC_ALGORITHM_ID_CBC  = 2; 
+const AP4_UI32 AP4_CENC_CIPHER_NONE         = 0;
+const AP4_UI32 AP4_CENC_CIPHER_AES_128_CTR  = 1;
+const AP4_UI32 AP4_CENC_CIPHER_AES_128_CBC  = 2;
 
 const AP4_UI32 AP4_CENC_SAMPLE_ENCRYPTION_FLAG_OVERRIDE_TRACK_ENCRYPTION_DEFAULTS = 1;
 const AP4_UI32 AP4_CENC_SAMPLE_ENCRYPTION_FLAG_USE_SUB_SAMPLE_ENCRYPTION          = 2;
@@ -66,7 +66,10 @@ const AP4_UI32 AP4_CENC_SAMPLE_ENCRYPTION_FLAG_USE_SUB_SAMPLE_ENCRYPTION        
 typedef enum {
     AP4_CENC_VARIANT_PIFF_CTR,
     AP4_CENC_VARIANT_PIFF_CBC,
-    AP4_CENC_VARIANT_MPEG
+    AP4_CENC_VARIANT_MPEG_CENC,
+    AP4_CENC_VARIANT_MPEG_CBC1,
+    AP4_CENC_VARIANT_MPEG_CENS,
+    AP4_CENC_VARIANT_MPEG_CBCS
 } AP4_CencVariant;
 
 /*----------------------------------------------------------------------
@@ -84,7 +87,7 @@ public:
     AP4_Result DoWriteFields(AP4_ByteStream& stream);
     
     // accessors
-    AP4_UI32        GetDefaultIsProteted()      { return m_DefaultIsProtected;     }
+    AP4_UI32        GetDefaultIsProtected()     { return m_DefaultIsProtected;     }
     AP4_UI08        GetDefaultPerSampleIvSize() { return m_DefaultPerSampleIvSize; }
     AP4_UI08        GetDefaultConstantIvSize()  { return m_DefaultConstantIvSize;  }
     const AP4_UI08* GetDefaultConstantIv()      { return m_DefaultConstantIv;      }
@@ -97,7 +100,11 @@ protected:
     AP4_CencTrackEncryption(AP4_UI08 version);
     AP4_CencTrackEncryption(AP4_UI08        default_is_protected,
                             AP4_UI08        default_per_sample_iv_size,
-                            const AP4_UI08* default_kid);
+                            const AP4_UI08* default_kid,
+                            AP4_UI08        default_constant_iv_size = 0,
+                            const AP4_UI08* default_constant_iv = NULL,
+                            AP4_UI08        default_crypt_byte_block = 0,
+                            AP4_UI08        default_skip_byte_block = 0);
     
 private:
     // members
@@ -182,7 +189,7 @@ public:
     // class methods
     static AP4_Result Create(AP4_ProtectedSampleDescription* sample_description,
                              AP4_ContainerAtom*              traf,
-                             AP4_UI32&                       algorithm_id,
+                             AP4_UI32&                       cipher_type,
                              AP4_ByteStream&                 aux_info_data,
                              AP4_Position                    aux_info_data_offset,
                              AP4_CencSampleInfoTable*&       sample_info_table);
@@ -192,7 +199,7 @@ public:
                              AP4_SaioAtom*&                  saio,
                              AP4_SaizAtom*&                  saiz,
                              AP4_CencSampleEncryption*&      sample_encryption_atom,
-                             AP4_UI32&                       algorithm_id,
+                             AP4_UI32&                       cipher_type,
                              AP4_ByteStream&                 aux_info_data,
                              AP4_Position                    aux_info_data_offset,
                              AP4_CencSampleInfoTable*&       sample_info_table);
@@ -417,7 +424,7 @@ public:
         m_Format(format) {}
 
     // methods
-    virtual bool UseSubSamples() { return true;}
+    virtual bool UseSubSamples() { return true; }
                                          
     // members
     AP4_Size m_NaluLengthSize;
@@ -552,7 +559,7 @@ protected:
 class AP4_CencSingleSampleDecrypter
 {
 public:
-    static AP4_Result Create(AP4_UI32                        algorithm_id,
+    static AP4_Result Create(AP4_UI32                        cipher_type,
                              const AP4_UI08*                 key,
                              AP4_Size                        key_size,
                              unsigned int                    crypt_byte_block,
@@ -594,7 +601,7 @@ private:
         m_SkipByteBlock(skip_byte_block) {}
 
     // methods
-    AP4_Result DecryptRange(const AP4_UI08* in, AP4_UI08* out, AP4_Size size);
+    AP4_Result DecryptRange(unsigned int range_position, const AP4_UI08* in, AP4_UI08* out, AP4_Size size);
 
     // members
     AP4_StreamCipher* m_Cipher;
@@ -631,7 +638,7 @@ public:
                              AP4_CencSampleDecrypter*&       decrypter);
 
     static AP4_Result Create(AP4_CencSampleInfoTable*  sample_info_table,
-                             AP4_UI32                  algorithm_id,
+                             AP4_UI32                  cipher_type,
                              const AP4_UI08*           key, 
                              AP4_Size                  key_size,
                              AP4_BlockCipherFactory*   block_cipher_factory,

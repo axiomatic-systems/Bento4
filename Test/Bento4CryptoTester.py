@@ -2,7 +2,7 @@ import os
 import sys
 
 
-KEYS = ['2CD7FA677504F13D5E58EF3495724231', 
+KEYS = ['2CD7FA677504F13D5E58EF3495724231',
         '149B653DFB7E4E68D547851A36E17922',
         '6D1B508DC9F70DB07917E9C7598E2658',
         '67B9AC6201B3F27E711383AD8ABBF504']
@@ -25,14 +25,15 @@ IVS = ['59A8BA40D07FB49D', '312DA80A9E073CF4',
        'F43A530B9820CFA8', '7DD52B5D1F784BC7',
        '0000000000000000', 'FFFFFFFFFFFFFFFF']
 
-METHODS = ['OMA-PDCF-CBC', 'OMA-PDCF-CTR', 'OMA-DCF-CBC', 'OMA-DCF-CTR', 'ISMA-IAEC']
+#METHODS = ['OMA-PDCF-CBC', 'OMA-PDCF-CTR', 'OMA-DCF-CBC', 'OMA-DCF-CTR', 'ISMA-IAEC']
+METHODS = ['MPEG-CENC', 'MPEG-CBC1', 'MPEG-CENS', 'MPEG-CBCS']
 
 def DoDcfEncrypt(input, key, iv, method, output):
     lmethod = {'OMA-DCF-CBC':'CBC', 'OMA-DCF-CTR':'CTR'}[method]
     cmd = BIN_ROOT+'/mp4dcfpackager --method '+lmethod+' --content-type video/mp4 --content-id cid:bla@foo.bar --rights-issuer http://bla.com/1234 --key '+key+':'+iv+iv+' '+input+' '+output
     print cmd
     os.system(cmd)
-    
+
 def DoDcfDecrypt(input, key, output):
     cmd = BIN_ROOT+"/mp4decrypt --key 1:"+key+' '+input+' '+output+'.tmp'
     print cmd
@@ -49,13 +50,13 @@ def DoDcfDecrypt(input, key, output):
     f2.close()
     os.unlink(output+'.tmp')
     os.unlink(output+'.odda')
-    
+
 def DoMp4Encrypt(input, key, iv, method, output):
     if method == 'ISMA-IAEC':
         options = ' --kms-uri http:foo.bar '
     else:
         options = ''
-        
+
     cmd = BIN_ROOT+"/mp4encrypt --method "+method+options+" --key 1:"+key+":"+iv+" --key 2:"+key+":"+iv+' "'+input+'" "'+output+'"'
     print cmd
     os.system(cmd)
@@ -69,26 +70,26 @@ def DoCompareMp4(file1, file2):
     retval = os.system(BIN_ROOT+'/CompareFilesTest '+file1+' '+file2)
     if retval != 0:
         raise("Files " + file + " and " + file2 + " do not match")
-    
+
 def DoCompare(file1,  file2):
     f1 = open(file1, 'rb')
     f2 = open(file2, 'rb')
-    
+
     d1 = f1.read()
     d2 = f2.read()
-    
+
     f1.close()
     f2.close()
-    
+
     if (d1 == d2):
         print "OK"
     else:
         raise("Files " + file + " and " + file2 + " do not match")
-    
+
 def DoCleanup(files):
     for file in files:
         os.unlink(file)
-        
+
 BIN_ROOT = sys.argv[1]
 files = sys.argv[2:]
 counter = 0
@@ -98,7 +99,7 @@ for key in KEYS:
         for method in METHODS:
             for file in files:
                 print 'Testing '+file+' with key='+key+", iv="+iv+", method="+method
-                file_base = file+"."+method+"."+str(counter) 
+                file_base = file+"."+method+"."+str(counter)
                 enc_file = file_base+".enc.mp4"
                 dec_file = file_base+".dec.mp4"
                 if method.startswith('OMA-DCF'):

@@ -61,22 +61,43 @@ AP4_TencAtom::Create(AP4_Size size, AP4_ByteStream& stream)
 /*----------------------------------------------------------------------
 |   AP4_TencAtom::AP4_TencAtom
 +---------------------------------------------------------------------*/
-AP4_TencAtom::AP4_TencAtom(AP4_UI32        default_algorithm_id,
-                           AP4_UI08        default_iv_size,
+AP4_TencAtom::AP4_TencAtom(AP4_UI32        default_is_protected,
+                           AP4_UI08        default_per_sample_iv_size,
                            const AP4_UI08* default_kid) :
     AP4_Atom(AP4_ATOM_TYPE_TENC, AP4_FULL_ATOM_HEADER_SIZE+20, 0, 0),
-    AP4_CencTrackEncryption(default_algorithm_id,
-                            default_iv_size,
+    AP4_CencTrackEncryption(default_is_protected,
+                            default_per_sample_iv_size,
                             default_kid)
+{
+}
+
+/*----------------------------------------------------------------------
+|   AP4_TencAtom::AP4_TencAtom
++---------------------------------------------------------------------*/
+AP4_TencAtom::AP4_TencAtom(AP4_UI32        default_is_protected,
+                           AP4_UI08        default_per_sample_iv_size,
+                           const AP4_UI08* default_kid,
+                           AP4_UI08        default_constant_iv_size,
+                           const AP4_UI08* default_constant_iv,
+                           AP4_UI08        default_crypt_byte_block,
+                           AP4_UI08        default_skip_byte_block) :
+    AP4_Atom(AP4_ATOM_TYPE_TENC, AP4_FULL_ATOM_HEADER_SIZE+20+(default_per_sample_iv_size?0:1+default_constant_iv_size), 1, 0),
+    AP4_CencTrackEncryption(default_is_protected,
+                            default_per_sample_iv_size,
+                            default_kid,
+                            default_constant_iv_size,
+                            default_constant_iv,
+                            default_crypt_byte_block,
+                            default_skip_byte_block)
 {
 }
 
 /*----------------------------------------------------------------------
 |   AP4_TencAtom::Create
 +---------------------------------------------------------------------*/
-AP4_TencAtom::AP4_TencAtom(AP4_UI32        size,
-                           AP4_UI08        version,
-                           AP4_UI32        flags) :
+AP4_TencAtom::AP4_TencAtom(AP4_UI32 size,
+                           AP4_UI08 version,
+                           AP4_UI32 flags) :
     AP4_Atom(AP4_ATOM_TYPE_TENC, size, version, flags),
     AP4_CencTrackEncryption(version)
 {

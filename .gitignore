@@ -31,3 +31,4 @@ dist
 lib
 shaka-player.uncompiled.js
 third_party
+.suo

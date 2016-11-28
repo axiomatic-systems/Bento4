@@ -1,6 +1,7 @@
 from optparse import OptionParser
 from mp4utils import *
 from subprocess import check_output, CalledProcessError
+from pipes import quote
 import os
 import json
 import math
@@ -62,7 +63,7 @@ class MediaSource:
         else:
             quiet = ''
 
-        command = 'ffprobe -of json -loglevel quiet -show_format -show_streams '+quiet+'"'+filename+'"'
+        command = 'ffprobe -of json -loglevel quiet -show_format -show_streams ' + quiet + quote(filename)
         json_probe = run_command(options, command)
         self.json_info = json.loads(json_probe, strict=False)
 
@@ -160,7 +161,7 @@ def main():
     for i in range(options.bitrates):
         output_filename = os.path.join(options.output_dir, 'video_%05d.mp4' % int(bitrates[i]))
         temp_filename = output_filename+'_'
-        base_cmd  = 'ffmpeg -i "%s" -strict experimental -codec:a libfdk_aac -ac 2 -ab %dk -preset slow -map_metadata -1 -codec:v %s' % (args[0], options.audio_bitrate, options.video_codec)
+        base_cmd  = 'ffmpeg -i %s -strict experimental -codec:a libfdk_aac -ac 2 -ab %dk -preset slow -map_metadata -1 -codec:v %s' % (quote(args[0]), options.audio_bitrate, options.video_codec)
         if options.video_codec == 'libx264':
             base_cmd += ' -profile:v baseline'
         if options.text_overlay:
