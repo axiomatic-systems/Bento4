@@ -186,7 +186,7 @@ def main():
 
         #x264_opts = "-x264opts keyint=%d:min-keyint=%d:scenecut=0:rc-lookahead=%d" % (options.segment_size, options.segment_size, options.segment_size)
         #video_opts = "-g %d" % (options.segment_size)
-        video_opts = "-force_key_frames 'expr:eq(mod(n,%d),0)'" % (options.segment_size)
+        video_opts = '-force_key_frames "expr:eq(mod(n,%d),0)"' % (options.segment_size)
         video_opts += " -bufsize %dk -maxrate %dk" % (bitrates[i], int(bitrates[i]*1.5))
         if options.video_codec == 'libx264':
             video_opts += " -x264opts rc-lookahead=%d" % (options.segment_size)
