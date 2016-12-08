@@ -1567,6 +1567,8 @@ def main():
                     if len(tracks) > 1:
                         out_dir_tmp = path.join(out_dir, str(audio_track.order_index))
                         MakeNewDir(out_dir_tmp )
+                    else:
+                        out_dir_tmp = out_dir
                     print 'Splitting media file (audio)', GetMappedFileName(audio_track.parent.media_source.filename)
                     Mp4Split(options,
                              audio_track.parent.media_source.filename,
