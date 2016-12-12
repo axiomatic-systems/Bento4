@@ -107,7 +107,9 @@ def main():
     parser.add_option('-m', '--min-video-bitrate', dest='min_bitrate', type='float',
                       help="Minimum bitrate (default: 500kbps)", default=500.0)
     parser.add_option('-n', '--max-video-bitrate', dest='max_bitrate', type='float',
-                      help="Max Video bitrate (default: 2mbps)", default=2000.0),
+                      help="Max Video bitrate (default: 2mbps)", default=2000.0)
+    parser.add_option('--audio-codec', dest='audio_codec', default='libfdk_aac',
+                      help='Audio Codec: libfdk_aac (default) or aac')
     parser.add_option('-c', '--video-codec', dest='video_codec', default='libx264',
                       help="Video Codec: libx264 (default) or libx265")
     parser.add_option('-a', '--audio-bitrate', dest='audio_bitrate', type='int',
@@ -161,7 +163,7 @@ def main():
     for i in range(options.bitrates):
         output_filename = os.path.join(options.output_dir, 'video_%05d.mp4' % int(bitrates[i]))
         temp_filename = output_filename+'_'
-        base_cmd  = 'ffmpeg -i %s -strict experimental -codec:a libfdk_aac -ac 2 -ab %dk -preset slow -map_metadata -1 -codec:v %s' % (quote(args[0]), options.audio_bitrate, options.video_codec)
+        base_cmd  = 'ffmpeg -i %s -strict experimental -codec:a %s -ac 2 -ab %dk -preset slow -map_metadata -1 -codec:v %s' % (quote(args[0]), options.audio_codec, options.audio_bitrate, options.video_codec)
         if options.video_codec == 'libx264':
             base_cmd += ' -profile:v baseline'
         if options.text_overlay:
