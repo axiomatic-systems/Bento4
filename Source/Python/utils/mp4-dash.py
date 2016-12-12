@@ -1594,16 +1594,18 @@ def main():
                 for audio_track in tracks:
                     out_dir = base_dir
                     if len(tracks) > 1:
-                        out_dir = path.join(out_dir, str(audio_track.order_index))
-                        MakeNewDir(out_dir)
+                        out_dir_tmp = path.join(out_dir, str(audio_track.order_index))
+                        MakeNewDir(out_dir_tmp )
+                    else:
+                        out_dir_tmp = out_dir
                     print 'Splitting media file (audio)', GetMappedFileName(audio_track.parent.media_source.filename)
                     Mp4Split(options,
                              audio_track.parent.media_source.filename,
                              track_id               = str(audio_track.id),
                              pattern_parameters     = 'N',
                              start_number           = '1',
-                             init_segment           = path.join(out_dir, audio_track.init_segment_name),
-                             media_segment          = path.join(out_dir, SEGMENT_PATTERN))
+                             init_segment           = path.join(out_dir_tmp , audio_track.init_segment_name),
+                             media_segment          = path.join(out_dir_tmp , SEGMENT_PATTERN))
 
             if len(video_tracks):
                 MakeNewDir(path.join(options.output_dir, 'video'))
