@@ -111,6 +111,8 @@ def main():
                       help="Video Codec: libx264 (default) or libx265")
     parser.add_option('-a', '--audio-bitrate', dest='audio_bitrate', type='int',
                       help="Audio bitrate (default: 128kbps)", default=128)
+    parser.add_option('--audio-codec', dest='audio_codec', default='libfdk_aac',
+                      help='Audio Codec: libfdk_aac (default) or aac')
     parser.add_option('', '--select-streams', dest='select_streams',
                       help="Only encode these streams (comma-separated list of stream indexes or stream specifiers)")
     parser.add_option('-s', '--segment-size', dest='segment_size', type='int',
@@ -160,7 +162,7 @@ def main():
     for i in range(options.bitrates):
         output_filename = os.path.join(options.output_dir, 'video_%05d.mp4' % int(bitrates[i]))
         temp_filename = output_filename+'_'
-        base_cmd  = 'ffmpeg -i "%s" -strict experimental -codec:a libfdk_aac -ac 2 -ab %dk -preset slow -map_metadata -1 -codec:v %s' % (args[0], options.audio_bitrate, options.video_codec)
+        base_cmd  = 'ffmpeg -i "%s" -strict experimental -codec:a %s -ac 2 -ab %dk -preset slow -map_metadata -1 -codec:v %s' % (args[0], options.audio_codec, options.audio_bitrate, options.video_codec)
         if options.video_codec == 'libx264':
             base_cmd += ' -profile:v baseline'
         if options.text_overlay:
@@ -186,7 +188,7 @@ def main():
 
         #x264_opts = "-x264opts keyint=%d:min-keyint=%d:scenecut=0:rc-lookahead=%d" % (options.segment_size, options.segment_size, options.segment_size)
         #video_opts = "-g %d" % (options.segment_size)
-        video_opts = "-force_key_frames 'expr:eq(mod(n,%d),0)'" % (options.segment_size)
+        video_opts = '-force_key_frames "expr:eq(mod(n,%d),0)"' % (options.segment_size)
         video_opts += " -bufsize %dk -maxrate %dk" % (bitrates[i], int(bitrates[i]*1.5))
         if options.video_codec == 'libx264':
             video_opts += " -x264opts rc-lookahead=%d" % (options.segment_size)
