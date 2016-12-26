@@ -1864,7 +1864,7 @@ AP4_CencTrackDecrypter::ProcessTrack()
 class AP4_CencFragmentDecrypter : public AP4_Processor::FragmentHandler {
 public:
     // constructor
-    AP4_CencFragmentDecrypter(AP4_CencSampleDecrypter*  sample_decrypter,
+    AP4_CencFragmentDecrypter(AP4_CencSampleDecrypter*  sample_decrypter, // ownership is transfered
                               AP4_SaioAtom*             saio_atom,
                               AP4_SaizAtom*             saiz_atom,
                               AP4_CencSampleEncryption* sample_encryption_atom) :
@@ -1872,6 +1872,8 @@ public:
     m_SaioAtom(saio_atom),
     m_SaizAtom(saiz_atom),
     m_SampleEncryptionAtom(sample_encryption_atom) {}
+
+    ~AP4_CencFragmentDecrypter() { delete m_SampleDecrypter; }
 
     // methods
     virtual AP4_Result ProcessFragment();
