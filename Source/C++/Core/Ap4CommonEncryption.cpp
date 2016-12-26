@@ -2817,6 +2817,9 @@ AP4_CencSampleEncryption::AP4_CencSampleEncryption(AP4_Atom&       outer,
     m_SampleInfoCursor(0)
 {
     AP4_SetMemory(m_ConstantIv, 0, 16);
+    if (constant_iv_size <= 16) {
+        AP4_CopyMemory(m_ConstantIv, constant_iv, m_ConstantIvSize);
+    }
     AP4_SetMemory(m_Kid, 0, 16);
 }
 
