@@ -1873,6 +1873,8 @@ public:
     m_SaizAtom(saiz_atom),
     m_SampleEncryptionAtom(sample_encryption_atom) {}
 
+    ~AP4_CencFragmentDecrypter() { delete m_SampleDecrypter; }
+
     // methods
     virtual AP4_Result ProcessFragment();
     virtual AP4_Result FinishFragment();
