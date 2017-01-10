@@ -460,7 +460,7 @@ def OutputDash(options, set_attributes, audio_sets, video_sets, subtitles_sets, 
                                                 codecs=audio_track.codec,
                                                 bandwidth=str(audio_track.bandwidth),
                                                 audioSamplingRate=str(audio_track.sample_rate))
-                if audio_track.codec in ['ac-3', 'ec-3']:
+                if audio_track.codec == 'ec-3':
                     audio_channel_config_value = ComputeDolbyDigitalAudioChannelConfig(audio_track)
                     scheme_id_uri = DOLBY_DIGITAL_AUDIO_CHANNEL_CONFIGURATION_SCHEME_ID_URI
                 else:
