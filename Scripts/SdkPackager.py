@@ -219,6 +219,8 @@ bin_files = [
     (bin_in,'mp4*.exe','bin'),
     (bin_in,'aac2mp4.exe','bin'),
     (bin_in,'mp42aac','bin'),
+    (bin_in,'mp42avc','bin'),
+    (bin_in,'mp42hevc','bin'),
     (bin_in,'mp4dcfpackager','bin'),
     (bin_in,'mp4decrypt','bin'),
     (bin_in,'mp4dump','bin'),
