@@ -843,11 +843,11 @@ def GetDolbyDigitalChannels(track):
     sample_desc = track.info['sample_descriptions'][0]
     if 'dolby_digital_info' not in sample_desc:
         return (track.channels, [])
-    dd_info = sample_desc['dolby_digital_info']['substreams'][0]
+    dd_info = sample_desc['dolby_digital_info']['substreams'][0] if sample_desc['coding'] == 'ec-3' else sample_desc['dolby_digital_info']
     channels = DolbyDigital_acmod[dd_info['acmod']][:]
     if dd_info['lfeon'] == 1:
         channels.append('LFE')
-    if dd_info['num_dep_sub'] and 'chan_loc' in dd_info:
+    if 'num_dep_sub' in dd_info and dd_info['num_dep_sub'] and 'chan_loc' in dd_info:
         chan_loc_value = dd_info['chan_loc']
         for i in range(9):
             if chan_loc_value & (1<<i):
