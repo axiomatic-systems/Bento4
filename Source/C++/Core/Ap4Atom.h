@@ -489,6 +489,7 @@ const AP4_Atom::Type AP4_ATOM_TYPE_UUID = AP4_ATOM_TYPE('u','u','i','d');
 const AP4_Atom::Type AP4_ATOM_TYPE_8ID_ = AP4_ATOM_TYPE('8','i','d',' ');
 const AP4_Atom::Type AP4_ATOM_TYPE_8BDL = AP4_ATOM_TYPE('8','b','d','l');
 const AP4_Atom::Type AP4_ATOM_TYPE_AC_3 = AP4_ATOM_TYPE('a','c','-','3');
+const AP4_Atom::Type AP4_ATOM_TYPE_DAC3 = AP4_ATOM_TYPE('d','a','c','3');
 const AP4_Atom::Type AP4_ATOM_TYPE_EC_3 = AP4_ATOM_TYPE('e','c','-','3');
 const AP4_Atom::Type AP4_ATOM_TYPE_DTSC = AP4_ATOM_TYPE('d','t','s','c');
 const AP4_Atom::Type AP4_ATOM_TYPE_DTSH = AP4_ATOM_TYPE('d','t','s','h');
