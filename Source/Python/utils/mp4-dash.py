@@ -206,7 +206,7 @@ def AddContentProtection(options, container, tracks):
     kids = []
     for track in tracks:
         kid = track.kid
-        if kid is None:
+        if kid is None and not options.no_media:
             PrintErrorAndExit('ERROR: no encryption info found in track '+str(track))
         if kid not in kids:
             kids.append(kid)
@@ -1351,7 +1351,7 @@ def main():
             media_sources.append(media_source)
 
     # encrypt the input files if needed
-    if not options.no_media and options.encryption_key:
+    if options.encryption_key:
         encrypted_files = {}
         for media_source in media_sources:
             if media_source.format != 'mp4': continue
@@ -1382,6 +1382,11 @@ def main():
                     if track['type'].lower() in key_info['filter']:
                         options.track_key_infos[track['id']] = key_info
 
+            # skip now if we're only outputing the MPD
+            if options.no_media:
+                continue
+
+            # don't process any further if we won't have key material for this track
             if len(options.track_key_infos) == 0:
                 continue
 
