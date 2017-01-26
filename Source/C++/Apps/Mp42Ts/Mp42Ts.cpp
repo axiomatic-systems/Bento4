@@ -424,13 +424,13 @@ main(int argc, char** argv)
                 fprintf(stderr, "ERROR: --segment requires a number\n");
                 return 1;
             }
-            Options.segment_duration = strtoul(*args++, NULL, 10);
+            Options.segment_duration = (unsigned int)strtoul(*args++, NULL, 10);
         } else if (!strcmp(arg, "--segment-duration-threshold")) {
             if (*args == NULL) {
                 fprintf(stderr, "ERROR: --segment-duration-threshold requires a number\n");
                 return 1;
             }
-            Options.segment_duration_threshold = strtoul(*args++, NULL, 10);
+            Options.segment_duration_threshold = (unsigned int)strtoul(*args++, NULL, 10);
         } else if (!strcmp(arg, "--verbose")) {
             Options.verbose = true;
         } else if (!strcmp(arg, "--pmt-pid")) {
@@ -438,19 +438,19 @@ main(int argc, char** argv)
                 fprintf(stderr, "ERROR: --pmt-pid requires a number\n");
                 return 1;
             }
-            Options.pmt_pid = strtoul(*args++, NULL, 10);
+            Options.pmt_pid = (unsigned int)strtoul(*args++, NULL, 10);
         } else if (!strcmp(arg, "--audio-pid")) {
             if (*args == NULL) {
                 fprintf(stderr, "ERROR: --audio-pid requires a number\n");
                 return 1;
             }
-            Options.audio_pid = strtoul(*args++, NULL, 10);
+            Options.audio_pid = (unsigned int)strtoul(*args++, NULL, 10);
         } else if (!strcmp(arg, "--video-pid")) {
             if (*args == NULL) {
                 fprintf(stderr, "ERROR: --video-pid requires a number\n");
                 return 1;
             }
-            Options.video_pid = strtoul(*args++, NULL, 10);
+            Options.video_pid = (unsigned int)strtoul(*args++, NULL, 10);
         } else if (!strcmp(arg, "--playlist")) {
             if (*args == NULL) {
                 fprintf(stderr, "ERROR: --playlist requires a filename\n");
@@ -462,7 +462,7 @@ main(int argc, char** argv)
                 fprintf(stderr, "ERROR: --playlist-hls-version requires a number\n");
                 return 1;
             }
-            Options.playlist_hls_version = strtoul(*args++, NULL, 10);
+            Options.playlist_hls_version = (unsigned int)strtoul(*args++, NULL, 10);
             if (Options.playlist_hls_version ==0) {
                 fprintf(stderr, "ERROR: --playlist-hls-version requires number > 0\n");
                 return 1;

@@ -27,7 +27,7 @@ from subtitles import *
 
 # setup main options
 VERSION = "1.7.0"
-SDK_REVISION = '613'
+SDK_REVISION = '614'
 SCRIPT_PATH = path.abspath(path.dirname(__file__))
 sys.path += [SCRIPT_PATH]
 
@@ -206,13 +206,15 @@ def AddContentProtection(options, container, tracks):
     kids = []
     for track in tracks:
         kid = track.kid
-        if kid is None:
+        if kid is None and not options.no_media:
             PrintErrorAndExit('ERROR: no encryption info found in track '+str(track))
         if kid not in kids:
             kids.append(kid)
 
     # resolve the default KID and KEY
-    key_info = options.track_key_infos.get(tracks[0].id)
+    key_info = None
+    if hasattr(options, 'track_key_infos'):
+        key_info = options.track_key_infos.get(tracks[0].id)
 
     if key_info:
         default_kid = key_info['kid']
@@ -482,7 +484,7 @@ def OutputDash(options, set_attributes, audio_sets, video_sets, subtitles_sets, 
     # process all the subtitles tracks
     if len(subtitles_sets):
         period.append(xml.Comment(' Subtitles (Encapsulated) '))
-        for subtitles_tracks in subtitles_sets:
+        for adaptation_set_name, subtitles_tracks in subtitles_sets.items():
             for subtitles_track in subtitles_tracks:
                 args = [period, 'AdaptationSet']
                 kwargs = {'mimeType': SUBTITLES_MIMETYPE, 'startWithSAP': '1'}
@@ -561,7 +563,7 @@ def OutputDash(options, set_attributes, audio_sets, video_sets, subtitles_sets, 
 
 
 #############################################
-def OutputHlsTrack(options, track, media_subdir, media_playlist_name):
+def OutputHlsTrack(options, track, media_subdir, media_playlist_name, media_file_name):
     hls_target_duration = 10
 
     media_playlist_file = open(path.join(options.output_dir, media_subdir, media_playlist_name), 'w+')
@@ -573,12 +575,25 @@ def OutputHlsTrack(options, track, media_subdir, media_playlist_name):
     media_playlist_file.write('#EXT-X-INDEPENDENT-SEGMENTS\r\n')
     media_playlist_file.write('#EXT-X-TARGETDURATION:%d\r\n' % (hls_target_duration))
     media_playlist_file.write('#EXT-X-MEDIA-SEQUENCE:0\r\n')
-    media_playlist_file.write('#EXT-X-MAP:URI="%s"\r\n' % (SPLIT_INIT_SEGMENT_NAME))
-    segment_pattern = SEGMENT_PATTERN.replace('ll','')
+    if options.on_demand:
+        init_segment_size = track.moov_atom.position+track.moov_atom.size
+        media_playlist_file.write('#EXT-X-MAP:URI="%s",BYTERANGE="%d@0"\r\n' % (media_file_name, init_segment_size))
+    else:
+        media_playlist_file.write('#EXT-X-MAP:URI="%s"\r\n' % (SPLIT_INIT_SEGMENT_NAME))
+        segment_pattern = SEGMENT_PATTERN.replace('ll','')
+
     for i in range(len(track.segment_durations)):
         media_playlist_file.write('#EXTINF:%f,\r\n' % (track.segment_durations[i]))
-        media_playlist_file.write(segment_pattern % (i+1))
+        if options.on_demand:
+            segment          = track.parent.segments[track.moofs[i]]
+            segment_position = segment[0].position
+            segment_size     = reduce(operator.add, [atom.size for atom in segment], 0)
+            media_playlist_file.write('#EXT-X-BYTERANGE:%d@%d\r\n' % (segment_size, segment_position))
+            media_playlist_file.write(media_file_name)
+        else:
+            media_playlist_file.write(segment_pattern % (i+1))
         media_playlist_file.write('\r\n')
+
     media_playlist_file.write('#EXT-X-ENDLIST\r\n')
 
 #############################################
@@ -606,32 +621,45 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
         audio_groups[audio_group_name] = adaptation_set_name[2]
         for audio_track in audio_tracks:
             if options.on_demand:
-                raise Exception('mode not supported yet with HLS')
+                media_subdir        = ''
+                media_file_name     = audio_track.parent.media_name
+                media_playlist_name = media_file_name.replace(".mp4", ".m3u8")
+                media_playlist_path = media_playlist_name
+                #base_url.text = ONDEMAND_MEDIA_FILE_PATTERN % (options.media_prefix, audio_track.representation_id)
+                #sidx_range = (audio_track.sidx_atom.position, audio_track.sidx_atom.position+audio_track.sidx_atom.size-1)
+                #init_range = (0, audio_track.moov_atom.position+audio_track.moov_atom.size-1)
             else:
                 if options.split:
-                    media_subdir = audio_track.representation_id
+                    media_subdir        = audio_track.representation_id
+                    media_file_name     = ''
                     media_playlist_name = options.hls_media_playlist_name
+                    media_playlist_path = media_subdir+'/'+media_playlist_name
                 else:
-                    raise Exception('mode not supported yet with HLS')
+                    raise Exception('mode not yet supported with HLS')
 
             master_playlist_file.write(('#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="%s",LANGUAGE="%s",NAME="%s",AUTOSELECT=YES,DEFAULT=YES,URI="%s"\r\n' % (
                                         audio_group_name,
                                         language,
                                         language_name,
-                                        audio_track.representation_id+'/'+media_playlist_name)).encode('utf-8'))
-            OutputHlsTrack(options, audio_track, media_subdir, media_playlist_name)
+                                        media_playlist_path)).encode('utf-8'))
+            OutputHlsTrack(options, audio_track, media_subdir, media_playlist_name, media_file_name)
 
     master_playlist_file.write('\r\n')
     master_playlist_file.write('# Video\r\n')
     for video_track in all_video_tracks:
         if options.on_demand:
-            raise Exception('mode not supported yet with HLS')
+            media_subdir        = ''
+            media_file_name     = video_track.parent.media_name
+            media_playlist_name = media_file_name.replace(".mp4", ".m3u8")
+            media_playlist_path = media_playlist_name
         else:
             if options.split:
-                media_subdir = video_track.representation_id
+                media_subdir        = video_track.representation_id
+                media_file_name     = ''
                 media_playlist_name = options.hls_media_playlist_name
+                media_playlist_path = media_subdir+'/'+media_playlist_name
             else:
-                raise Exception('mode not supported yet with HLS')
+                raise Exception('mode not yet supported with HLS')
 
 
         for audio_group_name in audio_groups:
@@ -643,8 +671,8 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
                                        video_track.codec+','+audio_codec,
                                        video_track.width,
                                        video_track.height))
-            master_playlist_file.write(video_track.representation_id+'/'+media_playlist_name+'\r\n')
-        OutputHlsTrack(options, video_track, media_subdir, media_playlist_name)
+            master_playlist_file.write(media_playlist_path+'\r\n')
+        OutputHlsTrack(options, video_track, media_subdir, media_playlist_name, media_file_name)
 
 #############################################
 def OutputSmooth(options, audio_tracks, video_tracks):
@@ -984,7 +1012,7 @@ def SelectTracks(options, media_sources):
                 adaptation_set = subtitles_adaptation_sets.get(adaptation_set_name, [])
                 subtitles_adaptation_sets[adaptation_set_name] = adaptation_set
 
-                if len([et for et in subtitles_tracks if et.language == track.language]):
+                if len([et for et in adaptation_set if et.language == track.language]):
                     continue # only accept one track for each language
 
                 adaptation_set.append(track)
@@ -1323,7 +1351,7 @@ def main():
             media_sources.append(media_source)
 
     # encrypt the input files if needed
-    if not options.no_media and options.encryption_key:
+    if options.encryption_key:
         encrypted_files = {}
         for media_source in media_sources:
             if media_source.format != 'mp4': continue
@@ -1354,6 +1382,11 @@ def main():
                     if track['type'].lower() in key_info['filter']:
                         options.track_key_infos[track['id']] = key_info
 
+            # skip now if we're only outputing the MPD
+            if options.no_media:
+                continue
+
+            # don't process any further if we won't have key material for this track
             if len(options.track_key_infos) == 0:
                 continue
 
@@ -1481,44 +1514,25 @@ def main():
                 audio_track.average_segment_duration = video_tracks[0].average_segment_duration
 
     # compute the representation id and init segment name for each track
-    for adaptation_set_name, tracks in audio_sets.items():
-        for track in tracks:
-            if options.split:
-                track.representation_id = '/'.join(adaptation_set_name)
-                if len(tracks) > 1:
-                    track.representation_id += '/'+str(track.order_index)
-                track.init_segment_name = SPLIT_INIT_SEGMENT_NAME
-            else:
-                track.representation_id = '-'.join(adaptation_set_name)
-                if len(tracks) > 1:
-                    track.representation_id += '-'+str(track.order_index)
-                if options.on_demand:
-                    track.parent.media_name = ONDEMAND_MEDIA_FILE_PATTERN % (options.media_prefix, track.representation_id)
+    for adaptation_sets in [audio_sets, video_sets, subtitles_sets]:
+        for adaptation_set_name, tracks in adaptation_sets.items():
+            for track in tracks:
+                if options.split:
+                    track.representation_id = '/'.join(adaptation_set_name)
+                    if len(tracks) > 1:
+                        track.representation_id += '/'+str(track.order_index)
+                    track.init_segment_name = SPLIT_INIT_SEGMENT_NAME
                 else:
-                    track.init_segment_name = NOSPLIT_INIT_FILE_PATTERN % (track.representation_id)
-            track.stream_id = 'audio_'+audio_track.language
-    for video_track in video_tracks:
-        if options.split:
-            video_track.representation_id = 'video/'+str(video_track.order_index)
-            video_track.init_segment_name = SPLIT_INIT_SEGMENT_NAME
-        else:
-            video_track.representation_id = 'video-'+str(video_track.order_index)
-            if options.on_demand:
-                video_track.parent.media_name= ONDEMAND_MEDIA_FILE_PATTERN % (options.media_prefix, video_track.representation_id)
-            else:
-                video_track.init_segment_name = NOSPLIT_INIT_FILE_PATTERN % (video_track.representation_id)
-        video_track.stream_id = 'video'
-    for subtitles_track in subtitles_tracks:
-        if options.split:
-            subtitles_track.representation_id = 'subtitles/'+subtitles_track.language
-            subtitles_track.init_segment_name = SPLIT_INIT_SEGMENT_NAME
-        else:
-            subtitles_track.representation_id = 'subtitles-'+subtitles_track.language
-            if options.on_demand:
-                subtitles_track.parent.media_name = ONDEMAND_MEDIA_FILE_PATTERN % (options.media_prefix, subtitles_track.representation_id)
-            else:
-                subtitles_track.init_segment_name = NOSPLIT_INIT_FILE_PATTERN % (subtitles_track.representation_id)
-        subtitles_track.stream_id = 'subtitles_'+subtitles_track.language
+                    track.representation_id = '-'.join(adaptation_set_name)
+                    if len(tracks) > 1:
+                        track.representation_id += '-'+str(track.order_index)
+                    if options.on_demand:
+                        track.parent.media_name = ONDEMAND_MEDIA_FILE_PATTERN % (options.media_prefix, track.representation_id)
+                    else:
+                        track.init_segment_name = NOSPLIT_INIT_FILE_PATTERN % (track.representation_id)
+                track.stream_id = adaptation_set_name[0]
+                if adaptation_set_name[0] == 'audio':
+                    track.stream_id += '_'+track.language
 
     # compute index and init offsets for the on-demand profile
     if options.on_demand:
@@ -1557,53 +1571,54 @@ def main():
     # create the directories and split/copy/process the media if needed
     if not options.no_media:
         if options.split:
-            for adaptation_set_name, tracks in audio_sets.items():
-                language = adaptation_set_name[1]
-                out_dir = options.output_dir
-                for subdir in adaptation_set_name:
-                    out_dir = path.join(out_dir, subdir)
-                    MakeNewDir(out_dir)
-                for audio_track in tracks:
-                    if len(tracks) > 1:
-                        out_dir = path.join(out_dir, str(audio_track.order_index))
-                        MakeNewDir(out_dir)
-                    print 'Splitting media file (audio)', GetMappedFileName(audio_track.parent.media_source.filename)
-                    Mp4Split(options,
-                             audio_track.parent.media_source.filename,
-                             track_id               = str(audio_track.id),
-                             pattern_parameters     = 'N',
-                             start_number           = '1',
-                             init_segment           = path.join(out_dir, audio_track.init_segment_name),
-                             media_segment          = path.join(out_dir, SEGMENT_PATTERN))
+            for adaptation_sets in [audio_sets, video_sets, subtitles_sets]:
+                for adaptation_set_name, tracks in adaptation_sets.items():
+                    base_dir = options.output_dir
+                    for subdir in adaptation_set_name:
+                        base_dir = path.join(base_dir, subdir)
+                        MakeNewDir(base_dir)
+                    for track in tracks:
+                        out_dir = base_dir
+                        if len(tracks) > 1:
+                            out_dir = path.join(out_dir, str(track.order_index))
+                            MakeNewDir(out_dir)
+                        print 'Splitting media file ('+adaptation_set_name[0]+')', GetMappedFileName(track.parent.media_source.filename)
+                        Mp4Split(options,
+                                 track.parent.media_source.filename,
+                                 track_id               = str(track.id),
+                                 pattern_parameters     = 'N',
+                                 start_number           = '1',
+                                 init_segment           = path.join(out_dir, track.init_segment_name),
+                                 media_segment          = path.join(out_dir, SEGMENT_PATTERN))
 
-            if len(video_tracks):
-                MakeNewDir(path.join(options.output_dir, 'video'))
-            for video_track in video_tracks:
-                out_dir = path.join(options.output_dir, 'video', str(video_track.order_index))
-                MakeNewDir(out_dir)
-                print 'Splitting media file (video)', GetMappedFileName(video_track.parent.media_source.filename)
-                Mp4Split(Options,
-                         video_track.parent.media_source.filename,
-                         track_id               = str(video_track.id),
-                         pattern_parameters     = 'N',
-                         start_number           = '1',
-                         init_segment           = path.join(out_dir, video_track.init_segment_name),
-                         media_segment          = path.join(out_dir, SEGMENT_PATTERN))
-
-            for adaptation_set_name, tracks in subtitles_sets.items():
-                out_dir = options.output_dir
-                for subdir in adaptation_set_name:
-                    out_dir = path.join(out_dir, subdir)
-                    MakeNewDir(out_dir)
-                for subtitles_track in tracks:
-                    print 'Splitting media file (subtitles)', GetMappedFileName(subtitles_track.parent.media_source.filename)
-                    Mp4Split(Options,
-                             subtitles_track.parent.media_source.filename,
-                             track_id               = str(subtitles_track.id),
-                             pattern_parameters     = 'N',
-                             start_number           = '1',
-                             init_segment           = path.join(out_dir, subtitles_track.init_segment_name),
-                             media_segment          = path.join(out_dir, SEGMENT_PATTERN))
+            # if len(video_tracks):
+            #     MakeNewDir(path.join(options.output_dir, 'video'))
+            # for video_track in video_tracks:
+            #     out_dir = path.join(options.output_dir, 'video', str(video_track.order_index))
+            #     MakeNewDir(out_dir)
+            #     print 'Splitting media file (video)', GetMappedFileName(video_track.parent.media_source.filename)
+            #     Mp4Split(Options,
+            #              video_track.parent.media_source.filename,
+            #              track_id               = str(video_track.id),
+            #              pattern_parameters     = 'N',
+            #              start_number           = '1',
+            #              init_segment           = path.join(out_dir, video_track.init_segment_name),
+            #              media_segment          = path.join(out_dir, SEGMENT_PATTERN))
+            #
+            # for adaptation_set_name, tracks in subtitles_sets.items():
+            #     out_dir = options.output_dir
+            #     for subdir in adaptation_set_name:
+            #         out_dir = path.join(out_dir, subdir)
+            #         MakeNewDir(out_dir)
+            #     for subtitles_track in tracks:
+            #         print 'Splitting media file (subtitles)', GetMappedFileName(subtitles_track.parent.media_source.filename)
+            #         Mp4Split(Options,
+            #                  subtitles_track.parent.media_source.filename,
+            #                  track_id               = str(subtitles_track.id),
+            #                  pattern_parameters     = 'N',
+            #                  start_number           = '1',
+            #                  init_segment           = path.join(out_dir, subtitles_track.init_segment_name),
+            #                  media_segment          = path.join(out_dir, SEGMENT_PATTERN))
         else:
             for mp4_file in mp4_files.values():
                 print 'Processing and Copying media file', GetMappedFileName(mp4_file.media_source.filename)

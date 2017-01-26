@@ -450,7 +450,7 @@ ParseKeySpec(AP4_String&  key,
     for (int i=key.GetLength()-1; i>=0; --i) {
         if (key[i] == '#') {
             processed_key.Assign(key.GetChars(), i);
-            key_index = strtoul(key.GetChars()+i+1, NULL, 10);
+            key_index = (AP4_Ordinal)strtoul(key.GetChars()+i+1, NULL, 10);
         }
     }
     

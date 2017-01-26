@@ -202,6 +202,7 @@ public:
     AP4_Ordinal   m_FragmentIndex;
     AP4_Sample    m_Sample;
     AP4_UI64      m_Timestamp;
+    AP4_UI64      m_UnscaledTimestamp;
     bool          m_Eos;
     AP4_TfraAtom* m_Tfra;
 };
@@ -215,6 +216,7 @@ TrackCursor::TrackCursor(AP4_Track* track, SampleArray* samples) :
     m_SampleIndex(0),
     m_FragmentIndex(0),
     m_Timestamp(0),
+    m_UnscaledTimestamp(0),
     m_Eos(false),
     m_Tfra(new AP4_TfraAtom(0))
 {
@@ -626,7 +628,7 @@ Fragment(AP4_File&                input_file,
         fragments.Add(fragment);
         
         // add samples to the fragment
-        unsigned int                   sample_count = 0;
+        unsigned int sample_count = 0;
         AP4_Array<AP4_TrunAtom::Entry> trun_entries;
         fragment->m_MdatSize = AP4_ATOM_HEADER_SIZE;
         for (;;) {
@@ -638,11 +640,13 @@ Fragment(AP4_File&                input_file,
             // add one sample
             trun_entries.SetItemCount(sample_count+1);
             AP4_TrunAtom::Entry& trun_entry = trun_entries[sample_count];
-            trun_entry.sample_duration                = timescale?
-                                                        (AP4_UI32)AP4_ConvertTime(cursor->m_Sample.GetDuration(),
-                                                                                  cursor->m_Track->GetMediaTimeScale(),
-                                                                                  timescale):
-                                                        cursor->m_Sample.GetDuration();
+            AP4_UI64 next_unscaled_timestamp = cursor->m_UnscaledTimestamp+cursor->m_Sample.GetDuration();
+            AP4_UI64 next_scaled_timestamp   = timescale?
+                                               AP4_ConvertTime(next_unscaled_timestamp,
+                                                               cursor->m_Track->GetMediaTimeScale(),
+                                                               timescale):
+                                               next_unscaled_timestamp;
+            trun_entry.sample_duration                = (AP4_UI32)(next_scaled_timestamp-cursor->m_Timestamp);
             trun_entry.sample_size                    = cursor->m_Sample.GetSize();
             trun_entry.sample_composition_time_offset = timescale?
                                                         (AP4_UI32)AP4_ConvertTime(cursor->m_Sample.GetCtsDelta(),
@@ -656,7 +660,8 @@ Fragment(AP4_File&                input_file,
             fragment->m_Duration += trun_entry.sample_duration;
             
             // next sample
-            cursor->m_Timestamp += trun_entry.sample_duration;
+            cursor->m_UnscaledTimestamp = next_unscaled_timestamp;
+            cursor->m_Timestamp         = next_scaled_timestamp;
             result = cursor->SetSampleIndex(cursor->m_SampleIndex+1);
             if (AP4_FAILED(result)) {
                 fprintf(stderr, "ERROR: failed to get sample %d (%d)\n", cursor->m_SampleIndex+1, result);
@@ -1047,7 +1052,7 @@ main(int argc, char** argv)
                 fprintf(stderr, "ERROR: missing argument after --verbosity option\n");
                 return 1;
             }
-            Options.verbosity = strtoul(arg, NULL, 10);
+            Options.verbosity = (unsigned int)strtoul(arg, NULL, 10);
         } else if (!strcmp(arg, "--debug")) {
             Options.debug = true;
         } else if (!strcmp(arg, "--index")) {
@@ -1071,7 +1076,7 @@ main(int argc, char** argv)
                 fprintf(stderr, "ERROR: missing argument after --sequence-number-start option\n");
                 return 1;
             }
-            Options.sequence_number_start = strtoul(arg, NULL, 10);
+            Options.sequence_number_start = (unsigned int)strtoul(arg, NULL, 10);
         } else if (!strcmp(arg, "--force-i-frame-sync")) {
             arg = *argv++;
             if (arg == NULL) {
@@ -1092,7 +1097,7 @@ main(int argc, char** argv)
                 fprintf(stderr, "ERROR: missing argument after --fragment-duration option\n");
                 return 1;
             }
-            fragment_duration = strtoul(arg, NULL, 10);
+            fragment_duration = (unsigned int)strtoul(arg, NULL, 10);
             auto_detect_fragment_duration = false;
         } else if (!strcmp(arg, "--timescale")) {
             arg = *argv++;
@@ -1100,7 +1105,7 @@ main(int argc, char** argv)
                 fprintf(stderr, "ERROR: missing argument after --timescale option\n");
                 return 1;
             }
-            timescale = strtoul(arg, NULL, 10);
+            timescale = (unsigned int)strtoul(arg, NULL, 10);
         } else if (!strcmp(arg, "--track")) {
             track_selector = *argv++;
             if (track_selector == NULL) {

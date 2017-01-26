@@ -38,7 +38,7 @@
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-extern const unsigned long AP4_AdtsSamplingFrequencyTable[16];
+extern const AP4_UI32 AP4_AdtsSamplingFrequencyTable[16];
 
 /*----------------------------------------------------------------------
 |   types
@@ -84,7 +84,7 @@ typedef struct {
     AP4_AacStandard m_Standard;
     AP4_AacProfile  m_Profile;
     unsigned int    m_SamplingFrequencyIndex;
-    unsigned long   m_SamplingFrequency;
+    AP4_UI32        m_SamplingFrequency;
     unsigned int    m_ChannelConfiguration;
     unsigned int    m_FrameLength;     
 } AP4_AacFrameInfo;

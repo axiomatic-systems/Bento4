@@ -52,7 +52,8 @@ PrintUsageAndExit()
         "\n\n"
         "usage: mp4encrypt --method <method> [options] <input> <output>\n"
         "     <method> is OMA-PDCF-CBC, OMA-PDCF-CTR, MARLIN-IPMP-ACBC,\n"
-        "     MARLIN-IPMP-ACGK, ISMA-IAEC, PIFF-CBC, PIFF-CTR, or MPEG-CENC\n"
+        "     MARLIN-IPMP-ACGK, ISMA-IAEC, PIFF-CBC, PIFF-CTR, ,MPEG-CENC,\n"
+        "     MPEG-CBC1, MPEG-CENS, MPEG-CBCS\n"
         "  Options:\n"
         "  --show-progress\n"
         "      Show progress details\n"
@@ -89,13 +90,13 @@ PrintUsageAndExit()
         "      Specifies the KMS URI for the ISMA-IAEC method\n"
         "\n"
         "  Method Specifics:\n"
-        "    OMA-PDCF-CBC, MARLIN-IPMP-ACBC, MARLIN-IPMP-ACGK, PIFF-CBC: \n"
+        "    OMA-PDCF-CBC, MARLIN-IPMP-ACBC, MARLIN-IPMP-ACGK, PIFF-CBC, MPEG-CBC1, MPEG-CBCS: \n"
         "    the <iv> can be 64-bit or 128-bit\n"
         "    If the IV is specified as a 64-bit value, it will be padded with zeros.\n"
         "\n"
-        "    OMA-PDCF-CTR, ISMA-IAEC, PIFF-CTR, MPEG-CENC: the <iv> should be a 64-bit\n"
-        "    hex string. If a 128-bit value is supplied, it will be truncated\n"
-        "    to 64-bit.\n"
+        "    OMA-PDCF-CTR, ISMA-IAEC, PIFF-CTR, MPEG-CENC, MPEG-CENS:\n"
+        "    the <iv> should be a 64-bit hex string.\n"
+        "    If a 128-bit value is supplied, it will be truncated to 64-bit.\n"
         "\n"
         "    OMA-PDCF-CBC, OMA-PDCF-CTR: The following properties are defined,\n"
         "    and all other properties are stored in the textual headers:\n"
@@ -109,7 +110,8 @@ PrintUsageAndExit()
         "    is 0. The <iv> part of the key must be present, but will be ignored;\n"
         "    It should therefore be set to 0000000000000000\n"
         "\n"
-        "    MPEG-CENC, PIFF-CTR, PIFF-CBC: The following properties are defined:\n"
+        "    MPEG-CENC, MPEG-CBC1, MPEG-CENS, MPEG-CBCS, PIFF-CTR, PIFF-CBC:\n"
+        "    The following properties are defined:\n"
         "      KID -> the value of KID, 16 bytes, in hexadecimal (32 characters)\n"
         "      ContentId -> Content ID mapping for KID (Marlin option)\n"
         "      PsshPadding -> pad the 'pssh' container to this size\n"
@@ -131,6 +133,9 @@ enum Method {
     METHOD_PIFF_CBC,
     METHOD_PIFF_CTR,
     METHOD_MPEG_CENC,
+    METHOD_MPEG_CBC1,
+    METHOD_MPEG_CENS,
+    METHOD_MPEG_CBCS,
     METHOD_ISMA_AES
 }; 
 
@@ -159,7 +164,12 @@ CheckWarning(AP4_ByteStream& stream, AP4_ProtectionKeyMap& key_map, Method metho
     AP4_File file(stream, true);
     AP4_Movie* movie = file.GetMovie();
     if (!movie) {
-        if (method != METHOD_MPEG_CENC && method != METHOD_PIFF_CBC && method != METHOD_PIFF_CTR) {
+        if (method != METHOD_MPEG_CENC &&
+            method != METHOD_MPEG_CBC1 &&
+            method != METHOD_MPEG_CENS &&
+            method != METHOD_MPEG_CBCS &&
+            method != METHOD_PIFF_CBC  &&
+            method != METHOD_PIFF_CTR) {
             fprintf(stderr, "WARNING: no movie atom found in input file\n");
             return false;
         }
@@ -168,10 +178,13 @@ CheckWarning(AP4_ByteStream& stream, AP4_ProtectionKeyMap& key_map, Method metho
     bool warning = false;
     switch (method) {
         case METHOD_MPEG_CENC:
+        case METHOD_MPEG_CBC1:
+        case METHOD_MPEG_CENS:
+        case METHOD_MPEG_CBCS:
         case METHOD_PIFF_CBC:
         case METHOD_PIFF_CTR:
             if (movie && !movie->HasFragments()) {
-                fprintf(stderr, "WARNING: MPEG-CENC method only applies to fragmented files\n");
+                fprintf(stderr, "WARNING: this encryption method only applies to fragmented files\n");
                 warning = true;
             }
             break;
@@ -242,6 +255,12 @@ main(int argc, char** argv)
                 method = METHOD_PIFF_CTR;
             } else if (!strcmp(arg, "MPEG-CENC")) {
                 method = METHOD_MPEG_CENC;
+            } else if (!strcmp(arg, "MPEG-CBC1")) {
+                method = METHOD_MPEG_CBC1;
+            } else if (!strcmp(arg, "MPEG-CENS")) {
+                method = METHOD_MPEG_CENS;
+            } else if (!strcmp(arg, "MPEG-CBCS")) {
+                method = METHOD_MPEG_CBCS;
             } else if (!strcmp(arg, "ISMA-IAEC")) {
                 method = METHOD_ISMA_AES;
             } else {
@@ -339,7 +358,7 @@ main(int argc, char** argv)
                 fprintf(stderr, "ERROR: invalid argument for --key option\n");
                 return 1;
             }
-            unsigned int track = strtoul(track_ascii, NULL, 10);
+            unsigned int track = (unsigned int)strtoul(track_ascii, NULL, 10);
 
             
             // parse the key value
@@ -384,6 +403,7 @@ main(int argc, char** argv)
                 case METHOD_ISMA_AES:
                 case METHOD_PIFF_CTR:
                 case METHOD_MPEG_CENC:
+                case METHOD_MPEG_CENS:
                     // truncate the IV
                     AP4_SetMemory(&iv[8], 0, 8);
                     break;
@@ -410,7 +430,10 @@ main(int argc, char** argv)
                 method != METHOD_MARLIN_IPMP_ACGK &&
                 method != METHOD_PIFF_CBC         &&
                 method != METHOD_PIFF_CTR         &&
-                method != METHOD_MPEG_CENC) {
+                method != METHOD_MPEG_CENC        &&
+                method != METHOD_MPEG_CBC1        &&
+                method != METHOD_MPEG_CENS        &&
+                method != METHOD_MPEG_CBCS) {
                 fprintf(stderr, "ERROR: this method does not use properties\n");
                 return 1;
             }
@@ -423,7 +446,7 @@ main(int argc, char** argv)
                 fprintf(stderr, "ERROR: invalid argument for --property option\n");
                 return 1;
             }
-            unsigned int track = strtoul(track_ascii, NULL, 10);
+            unsigned int track = (unsigned int)strtoul(track_ascii, NULL, 10);
 
             // check that the property is not already set
             if (property_map.GetProperty(track, name)) {
@@ -530,10 +553,13 @@ main(int argc, char** argv)
         oma_processor->GetKeyMap().SetKeys(key_map);
         oma_processor->GetPropertyMap().SetProperties(property_map);
         processor = oma_processor;
-    } else if (method == METHOD_PIFF_CTR ||
-               method == METHOD_PIFF_CBC ||
-               method == METHOD_MPEG_CENC) {
-        AP4_CencVariant variant = AP4_CENC_VARIANT_MPEG;
+    } else if (method == METHOD_PIFF_CTR  ||
+               method == METHOD_PIFF_CBC  ||
+               method == METHOD_MPEG_CENC ||
+               method == METHOD_MPEG_CBC1 ||
+               method == METHOD_MPEG_CENS ||
+               method == METHOD_MPEG_CBCS) {
+        AP4_CencVariant variant = AP4_CENC_VARIANT_MPEG_CENC;
         switch (method) {
             case METHOD_PIFF_CBC:
                 variant = AP4_CENC_VARIANT_PIFF_CBC;
@@ -544,9 +570,21 @@ main(int argc, char** argv)
                 break;
                 
             case METHOD_MPEG_CENC:
-                variant = AP4_CENC_VARIANT_MPEG;
+                variant = AP4_CENC_VARIANT_MPEG_CENC;
                 break;
                 
+            case METHOD_MPEG_CBC1:
+                variant = AP4_CENC_VARIANT_MPEG_CBC1;
+                break;
+
+            case METHOD_MPEG_CENS:
+                variant = AP4_CENC_VARIANT_MPEG_CENS;
+                break;
+
+            case METHOD_MPEG_CBCS:
+                variant = AP4_CENC_VARIANT_MPEG_CBCS;
+                break;
+
             default:
                 break;
         }

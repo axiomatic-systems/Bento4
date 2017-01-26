@@ -80,29 +80,42 @@ CompareBuffers(AP4_DataBuffer& data1, AP4_DataBuffer& data2)
 }
 
 /*----------------------------------------------------------------------
-|   CompareTracks
+|   CompareTrackSamples
 +---------------------------------------------------------------------*/
 static int
-CompareTracks(AP4_Track* track1, AP4_Track* track2)
+CompareTrackSamples(AP4_Movie& movie1, AP4_ByteStream* input1, AP4_Movie& movie2, AP4_ByteStream* input2, unsigned int track_id)
 {
-    CHECK(track1->GetDuration() == track2->GetDuration());
-    CHECK(track1->GetDurationMs() == track2->GetDurationMs());
-    CHECK(track1->GetSampleCount() == track2->GetSampleCount());
+    AP4_LinearReader reader1(movie1, input1);
+    AP4_LinearReader reader2(movie2, input2);
+
+    reader1.EnableTrack(track_id);
+    reader2.EnableTrack(track_id);
+    
     AP4_Sample sample1;
     AP4_Sample sample2;
     AP4_DataBuffer data1;
     AP4_DataBuffer data2;
-    for (unsigned int i=0; i<track1->GetSampleCount(); i++) {
-        track1->ReadSample(i, sample1, data1);
-        track2->ReadSample(i, sample2, data2);
-        CHECK(sample1.GetCts()              == sample2.GetCts());
-        CHECK(sample1.GetDts()              == sample2.GetDts());
-        CHECK(sample1.GetSize()             == sample2.GetSize());
-        CHECK(sample1.GetDescriptionIndex() == sample2.GetDescriptionIndex());
-        CHECK(data1.GetDataSize()           == data2.GetDataSize());
-        CHECK(CompareBuffers(data1, data2));
-    }
     
+    AP4_UI32 track_id_1;
+    AP4_UI32 track_id_2;
+    
+    for (;;) {
+        AP4_Result result1 = reader1.GetNextSample(sample1, track_id_1);
+        AP4_Result result2 = reader2.GetNextSample(sample2, track_id_2);
+        CHECK(result1 == result2);
+        if (result1 == AP4_SUCCESS) {
+            CHECK(sample1.GetCts()              == sample2.GetCts());
+            CHECK(sample1.GetDts()              == sample2.GetDts());
+            CHECK(sample1.GetSize()             == sample2.GetSize());
+            CHECK(sample1.GetDescriptionIndex() == sample2.GetDescriptionIndex());
+            CHECK(data1.GetDataSize()           == data2.GetDataSize());
+            CHECK(CompareBuffers(data1, data2));
+        } else {
+            CHECK(result1 == AP4_ERROR_EOS);
+            break;
+        }
+    }
+
     return 0;
 }
 
@@ -115,7 +128,7 @@ main(int argc, char** argv)
     if (argc != 3) {
         PrintUsageAndExit();
     }
-    const char* filename1  = argv[1];
+    const char* filename1 = argv[1];
     const char* filename2 = argv[2];
     
     // open the first file
@@ -146,15 +159,20 @@ main(int argc, char** argv)
     AP4_FtypAtom* ftyp2 = mp4_file2->GetFileType();
     CHECK(!(ftyp1 == NULL && ftyp2 != NULL));
     CHECK(!(ftyp2 == NULL && ftyp1 != NULL));
-    CHECK(movie1->GetDuration() == movie2->GetDuration());
+    CHECK(movie1->GetDuration()   == movie2->GetDuration());
     CHECK(movie1->GetDurationMs() == movie2->GetDurationMs());
+    CHECK(movie1->HasFragments()  == movie2->HasFragments());
     CHECK(movie1->GetTracks().ItemCount() == movie2->GetTracks().ItemCount());
     for (unsigned int i=0; i<movie1->GetTracks().ItemCount(); i++) {
         AP4_Track* track1 = NULL;
         AP4_Track* track2 = NULL;
         CHECK(AP4_SUCCEEDED(movie1->GetTracks().Get(i, track1)));
         CHECK(AP4_SUCCEEDED(movie2->GetTracks().Get(i, track2)));
-        result = CompareTracks(track1, track2);
+        CHECK(track1->GetId()          == track2->GetId());
+        CHECK(track1->GetDuration()    == track2->GetDuration());
+        CHECK(track1->GetDurationMs()  == track2->GetDurationMs());
+        CHECK(track1->GetSampleCount() == track2->GetSampleCount());
+        result = CompareTrackSamples(*movie1, input1, *movie2, input2, track1->GetId());
         if (result) return result;
     }
     

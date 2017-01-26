@@ -330,7 +330,7 @@ main(int argc, char** argv)
                 char* position_str = NULL;
                 if (AP4_SUCCEEDED(AP4_SplitArgs(file_path, file_path, position_str))) {
                     if (position_str) {
-                        position = strtoul(position_str, NULL, 10);
+                        position = (int)strtoul(position_str, NULL, 10);
                     }
                 }
                 if (is_windows_path) {

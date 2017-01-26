@@ -80,7 +80,7 @@ AP4_ElstAtom::AP4_ElstAtom(AP4_UI32        size,
             stream.ReadUI32(media_time);
             stream.ReadUI16(media_rate);
             stream.ReadUI16(zero);
-            m_Entries.Append(AP4_ElstEntry(segment_duration, media_time, media_rate));
+            m_Entries.Append(AP4_ElstEntry(segment_duration, (AP4_SI32)media_time, media_rate));
         } else {
             AP4_UI64 segment_duration;
             AP4_UI64 media_time;
@@ -88,7 +88,7 @@ AP4_ElstAtom::AP4_ElstAtom(AP4_UI32        size,
             stream.ReadUI64(media_time);
             stream.ReadUI16(media_rate);
             stream.ReadUI16(zero);
-            m_Entries.Append(AP4_ElstEntry(segment_duration, media_time, media_rate));
+            m_Entries.Append(AP4_ElstEntry(segment_duration, (AP4_SI64)media_time, media_rate));
         }
     }
 }

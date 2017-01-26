@@ -253,9 +253,17 @@ def Bento4Command(options, name, *args, **kwargs):
     cmd = [executable]
     for kwarg in kwargs:
         arg = kwarg.replace('_', '-')
-        cmd.append('--'+arg)
-        if not isinstance(kwargs[kwarg], bool):
-            cmd.append(kwargs[kwarg])
+        if isinstance(kwargs[kwarg], bool):
+            cmd.append('--'+arg)
+        else :
+            if isinstance(kwargs[kwarg], list):
+                for element in kwargs[kwarg]:
+                    cmd.append('--'+arg)
+                    cmd.append(element)
+            else:
+                cmd.append('--'+arg)
+                cmd.append(kwargs[kwarg])
+
     cmd += args
     if options.debug:
         print 'COMMAND: ', cmd
