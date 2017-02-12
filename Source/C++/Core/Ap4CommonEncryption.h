@@ -2,7 +2,7 @@
 |
 |    AP4 - Common Encryption support
 |
-|    Copyright 2002-2011 Axiomatic Systems, LLC
+|    Copyright 2002-2017 Axiomatic Systems, LLC
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -63,6 +63,8 @@ const AP4_UI32 AP4_CENC_CIPHER_AES_128_CBC  = 2;
 const AP4_UI32 AP4_CENC_SAMPLE_ENCRYPTION_FLAG_OVERRIDE_TRACK_ENCRYPTION_DEFAULTS = 1;
 const AP4_UI32 AP4_CENC_SAMPLE_ENCRYPTION_FLAG_USE_SUB_SAMPLE_ENCRYPTION          = 2;
 
+const AP4_UI08 AP4_SAMPLE_TABLE_INFO_FLAG_RESET_IV_AT_SUBSAMPLE = 1;
+
 typedef enum {
     AP4_CENC_VARIANT_PIFF_CTR,
     AP4_CENC_VARIANT_PIFF_CBC,
@@ -98,7 +100,8 @@ public:
 protected:
     // constructors
     AP4_CencTrackEncryption(AP4_UI08 version);
-    AP4_CencTrackEncryption(AP4_UI08        default_is_protected,
+    AP4_CencTrackEncryption(AP4_UI08        version,
+                            AP4_UI08        default_is_protected,
                             AP4_UI08        default_per_sample_iv_size,
                             const AP4_UI08* default_kid,
                             AP4_UI08        default_constant_iv_size = 0,
@@ -108,7 +111,7 @@ protected:
     
 private:
     // members
-    AP4_UI08 m_FormatVersion; // cannot be called m_Version because it would conflict with AP4_Atom::m_Version
+    AP4_UI08 m_Version_; // cannot be called m_Version because it would conflict with AP4_Atom::m_Version
     AP4_UI08 m_DefaultIsProtected;
     AP4_UI08 m_DefaultPerSampleIvSize;
     AP4_UI08 m_DefaultConstantIvSize;
@@ -145,7 +148,8 @@ public:
     AP4_Cardinal    GetSampleInfoCount()    { return m_SampleInfoCount; }
     AP4_Result      AddSampleInfo(const AP4_UI08* iv, AP4_DataBuffer& subsample_info);
     AP4_Result      SetSampleInfosSize(AP4_Size size);
-    AP4_Result      CreateSampleInfoTable(AP4_UI08                  default_crypt_byte_block,
+    AP4_Result      CreateSampleInfoTable(AP4_UI08                  flags,
+                                          AP4_UI08                  default_crypt_byte_block,
                                           AP4_UI08                  default_skip_byte_block,
                                           AP4_UI08                  default_per_sample_iv_size,
                                           AP4_UI08                  default_constant_iv_size,
@@ -204,7 +208,8 @@ public:
                              AP4_Position                    aux_info_data_offset,
                              AP4_CencSampleInfoTable*&       sample_info_table);
                              
-    static AP4_Result Create(AP4_UI08                  crypt_byte_block,
+    static AP4_Result Create(AP4_UI08                  flags,
+                             AP4_UI08                  crypt_byte_block,
                              AP4_UI08                  skip_byte_block,
                              AP4_UI08                  per_sample_iv_size,
                              AP4_UI08                  constant_iv_size,
@@ -223,12 +228,14 @@ public:
                              AP4_CencSampleInfoTable*& sample_info_table);
     
     // constructor
-    AP4_CencSampleInfoTable(AP4_UI08 crypt_byte_block,
+    AP4_CencSampleInfoTable(AP4_UI08 flags,
+                            AP4_UI08 crypt_byte_block,
                             AP4_UI08 skip_byte_block,
                             AP4_UI32 sample_count,
                             AP4_UI08 iv_size);
     
     // methods
+    AP4_UI08        GetFlags()          { return m_Flags;          }
     AP4_UI08        GetCryptByteBlock() { return m_CryptByteBlock; }
     AP4_UI08        GetSkipByteBlock()  { return m_SkipByteBlock;  }
     AP4_UI32        GetSampleCount()    { return m_SampleCount;    }
@@ -261,9 +268,10 @@ public:
     AP4_Result Serialize(AP4_DataBuffer& buffer);
     
 private:
+    AP4_UI32                m_SampleCount;
+    AP4_UI08                m_Flags;
     AP4_UI08                m_CryptByteBlock;
     AP4_UI08                m_SkipByteBlock;
-    AP4_UI32                m_SampleCount;
     AP4_UI08                m_IvSize;
     AP4_DataBuffer          m_IvData;
     AP4_Array<AP4_UI16>     m_BytesOfCleartextData;
@@ -284,7 +292,7 @@ private:
 |   +---------------+----------------+------------------------------------+
 |   | 4 bytes       | 32-bit integer | sample_count                       |
 |   +---------------+----------------+------------------------------------+
-|   | 1 byte        | 8-bit integer  | reserved (0)                       |
+|   | 1 byte        | 8-bit integer  | flags                              |
 |   +---------------+----------------+------------------------------------+
 |   | 1 byte        | 8-bit integer  | crypt_byte_block                   |
 |   +---------------+----------------+------------------------------------+

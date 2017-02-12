@@ -439,8 +439,12 @@ public:
     // constructor
     AP4_CencTrackEncrypter(AP4_CencVariant              variant,
                            AP4_UI32                     default_is_protected,
-                           AP4_UI08                     default_iv_size,
+                           AP4_UI08                     default_per_sample_iv_size,
                            const AP4_UI08*              default_kid,
+                           AP4_UI08                     default_constant_iv_size,
+                           const AP4_UI08*              default_constant_iv,
+                           AP4_UI08                     default_crypt_byte_block,
+                           AP4_UI08                     default_skip_byte_block,
                            AP4_Array<AP4_SampleEntry*>& sample_entries,
                            AP4_UI32                     format);
 
@@ -455,8 +459,12 @@ private:
     AP4_Array<AP4_SampleEntry*> m_SampleEntries;
     AP4_UI32                    m_Format;
     AP4_UI32                    m_DefaultIsProtected;
-    AP4_UI08                    m_DefaultIvSize;
+    AP4_UI08                    m_DefaultPerSampleIvSize;
     AP4_UI08                    m_DefaultKid[16];
+    AP4_UI08                    m_DefaultConstantIvSize;
+    AP4_UI08                    m_DefaultConstantIv[16];
+    AP4_UI08                    m_DefaultCryptByteBlock;
+    AP4_UI08                    m_DefaultSkipByteBlock;
 };
 
 /*----------------------------------------------------------------------
@@ -465,17 +473,27 @@ private:
 AP4_CencTrackEncrypter::AP4_CencTrackEncrypter(
     AP4_CencVariant              variant,
     AP4_UI32                     default_is_protected,
-    AP4_UI08                     default_iv_size,
+    AP4_UI08                     default_per_sample_iv_size,
     const AP4_UI08*              default_kid,
+    AP4_UI08                     default_constant_iv_size,
+    const AP4_UI08*              default_constant_iv,
+    AP4_UI08                     default_crypt_byte_block,
+    AP4_UI08                     default_skip_byte_block,
     AP4_Array<AP4_SampleEntry*>& sample_entries,
     AP4_UI32                     format) :
     m_Variant(variant),
     m_Format(format),
     m_DefaultIsProtected(default_is_protected),
-    m_DefaultIvSize(default_iv_size)
+    m_DefaultPerSampleIvSize(default_per_sample_iv_size),
+    m_DefaultConstantIvSize(default_constant_iv_size),
+    m_DefaultCryptByteBlock(default_crypt_byte_block),
+    m_DefaultSkipByteBlock(default_skip_byte_block)
 {
-    // copy the KID
+    // copy the KID and IV
     AP4_CopyMemory(m_DefaultKid, default_kid, 16);
+    if (default_constant_iv) {
+        AP4_CopyMemory(m_DefaultConstantIv, default_constant_iv, 16);
+    }
 
     // copy the sample entry list
     for (unsigned int i=0; i<sample_entries.ItemCount(); i++) {
@@ -502,7 +520,7 @@ AP4_CencTrackEncrypter::ProcessTrack()
                 schm = new AP4_SchmAtom(AP4_PROTECTION_SCHEME_TYPE_PIFF, 
                                         AP4_PROTECTION_SCHEME_VERSION_PIFF_11);
                 tenc = new AP4_PiffTrackEncryptionAtom(m_DefaultIsProtected,
-                                                       m_DefaultIvSize, 
+                                                       m_DefaultPerSampleIvSize,
                                                        m_DefaultKid);
                 break;
                 
@@ -510,7 +528,7 @@ AP4_CencTrackEncrypter::ProcessTrack()
                 schm = new AP4_SchmAtom(AP4_PROTECTION_SCHEME_TYPE_CENC, 
                                         AP4_PROTECTION_SCHEME_VERSION_CENC_10);
                 tenc = new AP4_TencAtom(m_DefaultIsProtected,
-                                        m_DefaultIvSize,
+                                        m_DefaultPerSampleIvSize,
                                         m_DefaultKid);
                 break;
 
@@ -518,7 +536,7 @@ AP4_CencTrackEncrypter::ProcessTrack()
                 schm = new AP4_SchmAtom(AP4_PROTECTION_SCHEME_TYPE_CBC1,
                                         AP4_PROTECTION_SCHEME_VERSION_CENC_10);
                 tenc = new AP4_TencAtom(m_DefaultIsProtected,
-                                        m_DefaultIvSize,
+                                        m_DefaultPerSampleIvSize,
                                         m_DefaultKid);
                 break;
 
@@ -526,16 +544,24 @@ AP4_CencTrackEncrypter::ProcessTrack()
                 schm = new AP4_SchmAtom(AP4_PROTECTION_SCHEME_TYPE_CENS,
                                         AP4_PROTECTION_SCHEME_VERSION_CENC_10);
                 tenc = new AP4_TencAtom(m_DefaultIsProtected,
-                                        m_DefaultIvSize,
-                                        m_DefaultKid);
+                                        m_DefaultPerSampleIvSize,
+                                        m_DefaultKid,
+                                        m_DefaultConstantIvSize,
+                                        m_DefaultConstantIv,
+                                        m_DefaultCryptByteBlock,
+                                        m_DefaultSkipByteBlock);
                 break;
 
             case AP4_CENC_VARIANT_MPEG_CBCS:
                 schm = new AP4_SchmAtom(AP4_PROTECTION_SCHEME_TYPE_CBCS,
                                         AP4_PROTECTION_SCHEME_VERSION_CENC_10);
                 tenc = new AP4_TencAtom(m_DefaultIsProtected,
-                                        m_DefaultIvSize,
-                                        m_DefaultKid);
+                                        m_DefaultPerSampleIvSize,
+                                        m_DefaultKid,
+                                        m_DefaultConstantIvSize,
+                                        m_DefaultConstantIv,
+                                        m_DefaultCryptByteBlock,
+                                        m_DefaultSkipByteBlock);
                 break;
         }
         
@@ -1155,18 +1181,25 @@ AP4_CencEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
     AP4_BlockCipher::CipherMode  cipher_mode;
     AP4_BlockCipher::CtrParams   cipher_ctr_params;
     const void*                  cipher_mode_params = NULL;
-    AP4_UI32                     is_protected = 0;
     switch (m_Variant) {
         case AP4_CENC_VARIANT_PIFF_CTR:
-            is_protected = 1;
             cipher_mode = AP4_BlockCipher::CTR;
             cipher_ctr_params.counter_size = 8;
             cipher_mode_params = &cipher_ctr_params;
+
+            track_encrypter = new AP4_CencTrackEncrypter(m_Variant,
+                                                         1,
+                                                         cipher_iv_size,
+                                                         kid,
+                                                         0,
+                                                         NULL,
+                                                         0,
+                                                         0,
+                                                         entries,
+                                                         enc_format);
             break;
             
         case AP4_CENC_VARIANT_MPEG_CENC:
-        case AP4_CENC_VARIANT_MPEG_CENS:
-            is_protected = 1;
             cipher_mode = AP4_BlockCipher::CTR;
             cipher_ctr_params.counter_size = 8;
             cipher_mode_params = &cipher_ctr_params;
@@ -1175,29 +1208,85 @@ AP4_CencEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
                  !AP4_GlobalOptions::GetBool("mpeg-cenc.iv-size-16")) {
                 cipher_iv_size = 8;
             }
+
+            track_encrypter = new AP4_CencTrackEncrypter(m_Variant,
+                                                         1,
+                                                         cipher_iv_size,
+                                                         kid,
+                                                         0,
+                                                         NULL,
+                                                         0,
+                                                         0,
+                                                         entries, 
+                                                         enc_format);
             break;
             
+        case AP4_CENC_VARIANT_MPEG_CENS:
+            cipher_mode = AP4_BlockCipher::CTR;
+            cipher_ctr_params.counter_size = 8;
+            cipher_mode_params = &cipher_ctr_params;
+            if (AP4_GlobalOptions::GetBool("mpeg-cenc.iv-size-8") && !AP4_GlobalOptions::GetBool("mpeg-cenc.iv-size-16")) {
+                cipher_iv_size = 8;
+            }
+
+            track_encrypter = new AP4_CencTrackEncrypter(m_Variant,
+                                                         1,
+                                                         cipher_iv_size,
+                                                         kid,
+                                                         0,
+                                                         NULL,
+                                                         enc_format == AP4_ATOM_TYPE_ENCV ? 1 : 0,
+                                                         enc_format == AP4_ATOM_TYPE_ENCV ? 9 : 0,
+                                                         entries, 
+                                                         enc_format);
+            break;
+
         case AP4_CENC_VARIANT_PIFF_CBC:
-            is_protected = 2;
-            cipher_mode = AP4_BlockCipher::CBC;
+            cipher_mode  = AP4_BlockCipher::CBC;
+            track_encrypter = new AP4_CencTrackEncrypter(m_Variant,
+                                                         2,
+                                                         cipher_iv_size,
+                                                         kid,
+                                                         0,
+                                                         NULL,
+                                                         0,
+                                                         0,
+                                                         entries, 
+                                                         enc_format);
             break;
             
         case AP4_CENC_VARIANT_MPEG_CBC1:
+            cipher_mode  = AP4_BlockCipher::CBC;
+            track_encrypter = new AP4_CencTrackEncrypter(m_Variant,
+                                                         1,
+                                                         cipher_iv_size,
+                                                         kid,
+                                                         0,
+                                                         NULL,
+                                                         0,
+                                                         0,
+                                                         entries, 
+                                                         enc_format);
+            break;
+
         case AP4_CENC_VARIANT_MPEG_CBCS:
-            is_protected = 1;
-            cipher_mode = AP4_BlockCipher::CBC;
+            cipher_mode  = AP4_BlockCipher::CBC;
+            track_encrypter = new AP4_CencTrackEncrypter(m_Variant,
+                                                         1,
+                                                         0,
+                                                         kid,
+                                                         cipher_iv_size,
+                                                         iv->GetData(),
+                                                         enc_format == AP4_ATOM_TYPE_ENCV ? 1 : 0,
+                                                         enc_format == AP4_ATOM_TYPE_ENCV ? 9 : 0,
+                                                         entries, 
+                                                         enc_format);
             break;
 
         default:
             return NULL;
     }
-    track_encrypter = new AP4_CencTrackEncrypter(m_Variant,
-                                                 is_protected,
-                                                 cipher_iv_size,
-                                                 kid,
-                                                 entries, 
-                                                 enc_format);
-        
+    
     // create a block cipher
     AP4_BlockCipher* block_cipher = NULL;
     AP4_Result result = m_BlockCipherFactory->CreateCipher(AP4_BlockCipher::AES_128,
@@ -1338,7 +1427,7 @@ AP4_CencSingleSampleDecrypter::Create(AP4_UI32                        cipher_typ
     }
     
     // create the cipher
-    AP4_StreamCipher* stream_cipher = NULL;
+    AP4_StreamCipher* stream_cipher    = NULL;
     bool              full_blocks_only = false;
     switch (cipher_type) {
         case AP4_CENC_CIPHER_NONE:
@@ -1496,7 +1585,7 @@ AP4_CencSingleSampleDecrypter::DecryptSampleData(AP4_DataBuffer& data_in,
 AP4_Result
 AP4_CencSingleSampleDecrypter::DecryptRange(unsigned int range_position, const AP4_UI08* in, AP4_UI08* out, AP4_Size size)
 {
-    if (m_CryptByteBlock && m_SkipByteBlock) {
+    if (m_CryptByteBlock+m_SkipByteBlock) {
         // pattern encryption
         unsigned int pattern_span = m_CryptByteBlock+m_SkipByteBlock;
         
@@ -2072,7 +2161,7 @@ AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_CencTrackEncryption)
 |   AP4_CencTrackEncryption::AP4_CencTrackEncryption
 +---------------------------------------------------------------------*/
 AP4_CencTrackEncryption::AP4_CencTrackEncryption(AP4_UI08 version) :
-    m_FormatVersion(version),
+    m_Version_(version),
     m_DefaultIsProtected(0),
     m_DefaultPerSampleIvSize(0),
     m_DefaultConstantIvSize(0),
@@ -2086,14 +2175,15 @@ AP4_CencTrackEncryption::AP4_CencTrackEncryption(AP4_UI08 version) :
 /*----------------------------------------------------------------------
 |   AP4_CencTrackEncryption::AP4_CencTrackEncryption
 +---------------------------------------------------------------------*/
-AP4_CencTrackEncryption::AP4_CencTrackEncryption(AP4_UI08        default_is_protected,
+AP4_CencTrackEncryption::AP4_CencTrackEncryption(AP4_UI08        version,
+                                                 AP4_UI08        default_is_protected,
                                                  AP4_UI08        default_per_sample_iv_size,
                                                  const AP4_UI08* default_kid,
                                                  AP4_UI08        default_constant_iv_size,
                                                  const AP4_UI08* default_constant_iv,
                                                  AP4_UI08        default_crypt_byte_block,
                                                  AP4_UI08        default_skip_byte_block) :
-    m_FormatVersion(0),
+    m_Version_(version),
     m_DefaultIsProtected(default_is_protected),
     m_DefaultPerSampleIvSize(default_per_sample_iv_size),
     m_DefaultConstantIvSize(default_constant_iv_size),
@@ -2120,7 +2210,7 @@ AP4_CencTrackEncryption::Parse(AP4_ByteStream& stream)
     AP4_UI08 reserved;
     AP4_Result result = stream.ReadUI08(reserved);
     if (AP4_FAILED(result)) return result;
-    if (m_FormatVersion == 0) {
+    if (m_Version_ == 0) {
         result = stream.ReadUI08(reserved);
         if (AP4_FAILED(result)) return result;
     } else {
@@ -2162,7 +2252,7 @@ AP4_CencTrackEncryption::DoInspectFields(AP4_AtomInspector& inspector)
     inspector.AddField("default_isProtected",        m_DefaultIsProtected);
     inspector.AddField("default_Per_Sample_IV_Size", m_DefaultPerSampleIvSize);
     inspector.AddField("default_KID",                m_DefaultKid, 16);
-    if (m_FormatVersion >= 1) {
+    if (m_Version_ >= 1) {
         inspector.AddField("default_crypt_byte_block", m_DefaultCryptByteBlock);
         inspector.AddField("default_skip_byte_block", m_DefaultSkipByteBlock);
     }
@@ -2186,7 +2276,7 @@ AP4_CencTrackEncryption::DoWriteFields(AP4_ByteStream& stream)
     // write the fields
     result = stream.WriteUI08(0); // reserved
     if (AP4_FAILED(result)) return result;
-    if (m_FormatVersion == 0) {
+    if (m_Version_ == 0) {
         result = stream.WriteUI08(0); // reserved
         if (AP4_FAILED(result)) return result;
     } else {
@@ -2253,6 +2343,8 @@ AP4_CencSampleInfoTable::Create(AP4_ProtectedSampleDescription* sample_descripti
                                 AP4_Position                    aux_info_data_offset,
                                 AP4_CencSampleInfoTable*&       sample_info_table)
 {
+    AP4_UI08 sample_info_table_flags = 0;
+    
     // default return values
     saio                   = NULL;
     saiz                   = NULL;
@@ -2308,8 +2400,12 @@ AP4_CencSampleInfoTable::Create(AP4_ProtectedSampleDescription* sample_descripti
         break;
 
       case AP4_PROTECTION_SCHEME_TYPE_CBC1:
+        cipher_type = AP4_CENC_CIPHER_AES_128_CBC;
+        break;
+
       case AP4_PROTECTION_SCHEME_TYPE_CBCS:
         cipher_type = AP4_CENC_CIPHER_AES_128_CBC;
+        sample_info_table_flags |= AP4_SAMPLE_TABLE_INFO_FLAG_RESET_IV_AT_SUBSAMPLE;
         break;
         
       default:
@@ -2355,7 +2451,8 @@ AP4_CencSampleInfoTable::Create(AP4_ProtectedSampleDescription* sample_descripti
 
     // try to create a sample info table from senc
     if (sample_info_table == NULL && sample_encryption_atom) {
-        AP4_Result result = sample_encryption_atom->CreateSampleInfoTable(crypt_byte_block,
+        AP4_Result result = sample_encryption_atom->CreateSampleInfoTable(sample_info_table_flags,
+                                                                          crypt_byte_block,
                                                                           skip_byte_block,
                                                                           per_sample_iv_size,
                                                                           constant_iv_size,
@@ -2382,7 +2479,8 @@ AP4_CencSampleInfoTable::Create(AP4_ProtectedSampleDescription* sample_descripti
             }
         }
         if (sample_info_table == NULL && saio && saiz) {
-            AP4_Result result = Create(crypt_byte_block,
+            AP4_Result result = Create(sample_info_table_flags,
+                                       crypt_byte_block,
                                        skip_byte_block,
                                        per_sample_iv_size,
                                        constant_iv_size,
@@ -2408,7 +2506,8 @@ AP4_CencSampleInfoTable::Create(AP4_ProtectedSampleDescription* sample_descripti
 |   AP4_CencSampleInfoTable::Create
 +---------------------------------------------------------------------*/
 AP4_Result 
-AP4_CencSampleInfoTable::Create(AP4_UI08                  crypt_byte_block,
+AP4_CencSampleInfoTable::Create(AP4_UI08                  flags,
+                                AP4_UI08                  crypt_byte_block,
                                 AP4_UI08                  skip_byte_block,
                                 AP4_UI08                  per_sample_iv_size,
                                 AP4_UI08                  constant_iv_size,
@@ -2447,7 +2546,8 @@ AP4_CencSampleInfoTable::Create(AP4_UI08                  crypt_byte_block,
             return AP4_ERROR_INVALID_PARAMETERS;
         }
     }
-    AP4_CencSampleInfoTable* table = new AP4_CencSampleInfoTable(crypt_byte_block,
+    AP4_CencSampleInfoTable* table = new AP4_CencSampleInfoTable(flags,
+                                                                 crypt_byte_block,
                                                                  skip_byte_block,
                                                                  sample_info_count,
                                                                  iv_size);
@@ -2532,7 +2632,7 @@ AP4_CencSampleInfoTable::Create(const AP4_UI08*           serialized,
     }
     
     AP4_UI32 sample_count     = AP4_BytesToUInt32BE(serialized); serialized += 4; serialized_size -= 4;
-                                               serialized += 1; serialized_size -= 1;
+    AP4_UI08 flags            = serialized[0]; serialized += 1; serialized_size -= 1;
     AP4_UI08 crypt_byte_block = serialized[0]; serialized += 1; serialized_size -= 1;
     AP4_UI08 skip_byte_block  = serialized[0]; serialized += 1; serialized_size -= 1;
     AP4_UI08 iv_size          = serialized[0]; serialized += 1; serialized_size -= 1;
@@ -2540,7 +2640,7 @@ AP4_CencSampleInfoTable::Create(const AP4_UI08*           serialized,
     if (serialized_size < sample_count*iv_size) {
         return AP4_ERROR_INVALID_FORMAT;
     }
-    AP4_CencSampleInfoTable* table = new AP4_CencSampleInfoTable(crypt_byte_block, skip_byte_block, sample_count, (AP4_UI08)iv_size);
+    AP4_CencSampleInfoTable* table = new AP4_CencSampleInfoTable(flags, crypt_byte_block, skip_byte_block, sample_count, (AP4_UI08)iv_size);
     table->m_IvData.SetData(serialized, sample_count*iv_size);
     serialized      += sample_count*iv_size;
     serialized_size -= sample_count*iv_size;
@@ -2601,13 +2701,15 @@ AP4_CencSampleInfoTable::Create(const AP4_UI08*           serialized,
 /*----------------------------------------------------------------------
 |   AP4_CencSampleInfoTable::AP4_CencSampleInfoTable
 +---------------------------------------------------------------------*/
-AP4_CencSampleInfoTable::AP4_CencSampleInfoTable(AP4_UI08 crypt_byte_block,
+AP4_CencSampleInfoTable::AP4_CencSampleInfoTable(AP4_UI08 flags,
+                                                 AP4_UI08 crypt_byte_block,
                                                  AP4_UI08 skip_byte_block,
                                                  AP4_UI32 sample_count,
                                                  AP4_UI08 iv_size) :
+    m_SampleCount(sample_count),
+    m_Flags(flags),
     m_CryptByteBlock(crypt_byte_block),
     m_SkipByteBlock(skip_byte_block),
-    m_SampleCount(sample_count),
     m_IvSize(iv_size)
 {
     m_IvData.SetDataSize(m_IvSize*sample_count);
@@ -2645,8 +2747,11 @@ AP4_CencSampleInfoTable::Serialize(AP4_DataBuffer& buffer)
     buffer.SetDataSize(size);
     AP4_UI08* data = buffer.UseData();
     
-    AP4_BytesFromUInt32BE(data, m_SampleCount);                       data += 4;
-    AP4_BytesFromUInt32BE(data, m_IvSize);                            data += 4;
+    AP4_BytesFromUInt32BE(data, m_SampleCount); data += 4;
+    *data++ = m_Flags;
+    *data++ = m_CryptByteBlock;
+    *data++ = m_SkipByteBlock;
+    *data++ = m_IvSize;
     AP4_CopyMemory(data, m_IvData.GetData(), m_SampleCount*m_IvSize); data += m_SampleCount*m_IvSize;
     AP4_BytesFromUInt32BE(data, m_BytesOfCleartextData.ItemCount());  data += 4;
     for (unsigned int i=0; i<m_BytesOfCleartextData.ItemCount(); i++) {
@@ -2896,7 +3001,8 @@ AP4_CencSampleEncryption::SetSampleInfosSize(AP4_Size size)
 |   AP4_CencSampleEncryption::CreateSampleInfoTable
 +---------------------------------------------------------------------*/
 AP4_Result      
-AP4_CencSampleEncryption::CreateSampleInfoTable(AP4_UI08                  default_crypt_byte_block,
+AP4_CencSampleEncryption::CreateSampleInfoTable(AP4_UI08                  flags,
+                                                AP4_UI08                  default_crypt_byte_block,
                                                 AP4_UI08                  default_skip_byte_block,
                                                 AP4_UI08                  default_per_sample_iv_size,
                                                 AP4_UI08                  default_constant_iv_size,
@@ -2925,7 +3031,8 @@ AP4_CencSampleEncryption::CreateSampleInfoTable(AP4_UI08                  defaul
 
     // create the table
     AP4_Result result = AP4_ERROR_INVALID_FORMAT;
-    table = new AP4_CencSampleInfoTable(default_crypt_byte_block,
+    table = new AP4_CencSampleInfoTable(flags,
+                                        default_crypt_byte_block,
                                         default_skip_byte_block,
                                         m_SampleInfoCount,
                                         per_sample_iv_size?per_sample_iv_size:default_constant_iv_size);

@@ -88,7 +88,8 @@ AP4_PiffTrackEncryptionAtom::AP4_PiffTrackEncryptionAtom(AP4_UI32        default
                                                          AP4_UI08        default_iv_size,
                                                          const AP4_UI08* default_kid) :
     AP4_UuidAtom(AP4_FULL_UUID_ATOM_HEADER_SIZE+20, AP4_UUID_PIFF_TRACK_ENCRYPTION_ATOM, 0, 0),
-    AP4_CencTrackEncryption(default_algorithm_id,
+    AP4_CencTrackEncryption(0,
+                            default_algorithm_id,
                             default_iv_size,
                             default_kid)
 {
