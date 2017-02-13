@@ -58,6 +58,9 @@ MARLIN_SCHEME_ID_URI        = 'urn:uuid:5E629AF5-38DA-4063-8977-97FFBD9902D4'
 MARLIN_MAS_NAMESPACE        = 'urn:marlin:mas:1-0:services:schemas:mpd'
 MARLIN_PSSH_SYSTEM_ID       = '69f908af481646ea910ccd5dcccb0a3a'
 
+NAGRA_SCHEME_ID_URI         = 'urn:uuid:adb41c24-2dbf-4a6d-958b-4457c0d27b95'
+NAGRA_PRM_NAMESPACE         = 'urn:nagra:prm:1-0:services:schemas:mpd'
+
 PLAYREADY_PSSH_SYSTEM_ID    = '9a04f07998404286ab92e65be0885f95'
 PLAYREADY_SCHEME_ID_URI     = 'urn:uuid:9a04f079-9840-4286-ab92-e65be0885f95'
 PLAYREADY_SCHEME_ID_URI_V10 = 'urn:uuid:79f0049a-4098-8642-ab92-e65be0885f95'
@@ -105,6 +108,28 @@ ProfileAliases = {
 }
 
 TempFiles = []
+
+
+#############################################
+def is_uuid(uuid_str):
+    '''
+    check whether uuid_str is valid UUID version 3
+    @param uuid_str
+    '''
+    import uuid
+    try:
+        uuid_obj = uuid.UUID(uuid_str, version=3)
+        return True
+    except ValueError:
+        return False
+
+
+#############################################
+def uuid_2_hex(uuid_str):
+    '''
+    convert version 3 UUID to hex string, i.e. remove '-'
+    '''
+    return uuid_str.replace('-', '')
 
 #############################################
 def AddSegmentList(options, container, subdir, track, use_byte_range=False):
@@ -252,6 +277,21 @@ def AddContentProtection(options, container, tracks):
         for kid in kids:
             cid = xml.SubElement(cids, '{' + MARLIN_MAS_NAMESPACE + '}MarlinContentId')
             cid.text = 'urn:marlin:kid:' + kid
+
+    # Nagra
+    if options.nagra:
+        container.append(xml.Comment(' Nagra '))
+        xml.register_namespace('prm', NAGRA_PRM_NAMESPACE)
+        cp = xml.SubElement(container, 'ContentProtection', schemeIdUri=NAGRA_SCHEME_ID_URI)
+        prm = xml.SubElement(cp, '{' + NAGRA_PRM_NAMESPACE + '}PRM')
+        prmSignalization = xml.SubElement(prm, '{' + NAGRA_PRM_NAMESPACE + '}PRMSignalization')
+        # license = {"contentId":"pz_dash_test_1","keyId":"121a0fca0f1b475b8910297fa8e0a07e"}
+        signalization_info = '{{"contentId":"{content_id}","keyId":"{key_id}"}}'.format(content_id=options.content_id, key_id=default_kid)
+        if options.verbose:
+            print('signalization info: {signalization_info}'.format(signalization_info=signalization_info))
+        import base64
+        encoded_signalization_info = base64.b64encode(signalization_info)
+        prmSignalization.text = encoded_signalization_info
 
     # PlayReady
     if options.playready:
@@ -1040,7 +1080,10 @@ def ResolveEncryptionKeys(options):
                 raise Exception('Invalid argument syntax for --encryption-key option')
             kid_hex, key_hex = key_spec.split(':', 1)
             if len(kid_hex) != 32:
-                raise Exception('Invalid argument format for --encryption-key option')
+                if is_uuid(kid_hex):
+                    kid_hex = uuid_2_hex(kid_hex)
+                else:
+                    raise Exception('Invalid argument format for --encryption-key option')
 
             if key_hex.startswith('#'):
                 if len(key_hex) != 41:
@@ -1155,7 +1198,7 @@ def main():
                       help="Use the original DASH MPD namespace as it was specified in the first published specification")
     parser.add_option('', "--encryption-key", dest="encryption_key", metavar='<key-spec>', default=None,
                       help="Encrypt some or all tracks with MPEG CENC (AES-128), where <key-spec> specifies the KID(s) and Key(s) to use, using one of the following forms: " +
-                           "(1) <KID>:<key> with <KID> as a 32-character hex string and <key> either a 32-character hex string or the character '#' followed by a base64-encoded key seed; or " +
+                           "(1) <KID>:<key> with <KID> as a 32-character hex string or UUID version 3 format and <key> either a 32-character hex string or the character '#' followed by a base64-encoded key seed; or " +
                            "(2) @<key-locator> where <key-locator> is an expression of one of the supported key locator schemes. Each entry may be prefixed with an optional track filter, and multiple <key-spec> entries can be used, separated by ','. (see online docs for details)")
     parser.add_option('', "--encryption-args", dest="encryption_args", metavar='<cmdline-arguments>', default=None,
                       help="Pass additional command line arguments to mp4encrypt (separated by spaces)")
@@ -1163,6 +1206,10 @@ def main():
                       help="Add EME-compliant signaling in the MPD and PSSH boxes (valid options are 'pssh-v0' and 'pssh-v1')")
     parser.add_option('', "--marlin", dest="marlin", action="store_true", default=False,
                       help="Add Marlin signaling to the MPD (requires an encrypted input, or the --encryption-key option)")
+    parser.add_option('', '--nagra', dest='nagra', action='store_true', default=False,
+                      help='Add Nagra signaliing to the MPD (requires --encryption-key and --content-id option')
+    parser.add_option('', '--content-id', dest='content_id',
+                      help='Content ID required by Nagra DRM', metavar='<content_id>')
     parser.add_option('', "--marlin-add-pssh", dest="marlin_add_pssh", action="store_true", default=False,
                       help="Add an (optional) Marlin 'pssh' box in the init segment(s)")
     parser.add_option('', "--playready", dest="playready", action="store_true", default=False,
@@ -1222,6 +1269,9 @@ def main():
     if options.max_playout_rate_strategy:
         if not options.max_playout_rate_strategy.startswith('lowest:'):
             PrintErrorAndExit('Max Playout Rate strategy '+options.max_playout_rate_strategy+' is not supported')
+    if options.nagra:
+        if not options.content_id:
+            PrintErrorAndExit('Need contentId for Nagra encryption, use --content-id')
 
     # switch variables
     if options.segment_template_padding:

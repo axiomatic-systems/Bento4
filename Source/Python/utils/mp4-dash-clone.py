@@ -34,6 +34,10 @@ DASH_NS_COMPAT     = '{'+DASH_NS_URN_COMPAT+'}'
 DASH_NS            = '{'+DASH_NS_URN+'}'
 MARLIN_MAS_NS_URN  = 'urn:marlin:mas:1-0:services:schemas:mpd'
 MARLIN_MAS_NS      = '{'+MARLIN_MAS_NS_URN+'}'
+NAGRA_SCHEME_ID_URI = 'urn:uuid:adb41c24-2dbf-4a6d-958b-4457c0d27b95'
+NAGRA_PRM_NS_URN = 'urn:nagra:prm:1-0:services:schemas:mpd'
+NAGRA_PRM_NS      = '{'+NAGRA_PRM_NS_URN+'}'
+
 
 def Bento4Command(name, *args, **kwargs):
     cmd = [os.path.join(Options.exec_dir, name)]
@@ -43,7 +47,7 @@ def Bento4Command(name, *args, **kwargs):
         if not isinstance(kwargs[kwarg], bool):
             cmd.append(kwargs[kwarg])
     cmd += args
-    #print cmd
+    print cmd
     try:
         return check_output(cmd) 
     except CalledProcessError, e:
@@ -378,6 +382,47 @@ class Cloner:
         if (self.init_filename):
             os.unlink(self.init_filename)
         
+
+def is_uuid(uuid_str):
+    '''
+    check whether uuid_str is valid UUID version 3
+    @param uuid_str
+    '''
+    import uuid
+    try:
+        uuid_obj = uuid.UUID(uuid_str, version=3)
+        return True
+    except ValueError:
+        return False
+
+
+def uuid_2_hex(uuid_str):
+    '''
+    convert version 3 UUID to hex string, i.e. remove '-'
+    '''
+    return uuid_str.replace('-', '')
+
+
+def get_kid_and_key(key_spec):
+    '''
+    extract Key ID and Key from key_spec
+    @param key_spec Key_Id:Key
+    '''
+    if ':' not in key_spec:
+        raise Exception('Invalid argument syntax for --encrypt option')
+    kid_hex, key_hex = key_spec.split(':', 1)
+    if len(kid_hex) != 32:
+        if is_uuid(kid_hex):
+            kid_hex = uuid_2_hex(kid_hex)
+        else:
+            raise Exception('Invalid argument format for --encrypt option')
+    if len(key_hex) != 32:
+        raise Exception('Invalid argument format for --encryption-key option')
+    # print('kid_hex:', kid_hex, kid_hex.decode('hex'))
+    # print('key_hex:', key_hex, key_hex.decode('hex'))
+    return kid_hex.decode('hex'), key_hex.decode('hex')
+
+
 def main():
     # determine the platform binary name
     platform = sys.platform
@@ -393,26 +438,32 @@ def main():
                       help="Be quiet")
     parser.add_option('', "--encrypt", metavar='<KID:KEY>', 
                       dest='encrypt', default=None,
-                      help="Encrypt the media, with KID and KEY specified in Hex (32 characters each)")    
+                      help="Encrypt the media, with KID and KEY specified in Hex (32 characters each. Or KID can be in UUID version 3 format)")    
     parser.add_option('', "--exec-dir", metavar="<exec_dir>",
                       dest="exec_dir", default=os.path.join(SCRIPT_PATH, 'bin', platform),
                       help="Directory where the Bento4 executables are located")    
-                      
+    parser.add_option('', '--nagra', dest='nagra', action='store_true', default=False,
+                      help='Add Nagra signaliing to the MPD (requires --encryption-key and --content-id option')
+    parser.add_option('', '--content-id', dest='content_id',
+                      help='Content ID required by Nagra DRM', metavar='<content_id>')
+
+
     global Options
     (Options, args) = parser.parse_args()
     if len(args) != 2:
         parser.print_help()
         sys.exit(1)
     
+    if Options.nagra and not Options.content_id:
+        print('Error: Need contentId for Nagra encryption, use --content-id')
+        sys.exit(1)
+
     # process arguments
     mpd_url = args[0]
     output_dir = args[1]
     if Options.encrypt:
-        if len(Options.encrypt) != 65:
-            raise Exception('Invalid argument for --encrypt option')
-        Options.kid = Options.encrypt[:32].decode('hex')
-        Options.key = Options.encrypt[33:].decode('hex') 
-        
+        Options.kid, Options.key = get_kid_and_key(Options.encrypt)
+
     # create the output dir
     MakeNewDir(output_dir, True)
     
@@ -430,6 +481,7 @@ def main():
         
     ElementTree.register_namespace('', DASH_NS_URN)
     ElementTree.register_namespace('mas', MARLIN_MAS_NS_URN)
+    ElementTree.register_namespace('prm', NAGRA_PRM_NS_URN)
 
     cloner = Cloner(output_dir)
     for period in mpd.periods:
@@ -464,19 +516,34 @@ def main():
     if Options.encrypt:
         for p in mpd.xml.findall(DASH_NS+'Period'):
             for s in p.findall(DASH_NS+'AdaptationSet'):
-                cp = ElementTree.Element(DASH_NS+'ContentProtection', schemeIdUri='urn:uuid:5E629AF5-38DA-4063-8977-97FFBD9902D4')
-                cp.tail = s.tail
-                cids = ElementTree.SubElement(cp, MARLIN_MAS_NS+'MarlinContentIds')
-                cid = ElementTree.SubElement(cids, MARLIN_MAS_NS+'MarlinContentId')
-                cid.text = 'urn:marlin:kid:'+Options.kid.encode('hex')
+                if Options.nagra:
+                    cp = ElementTree.Element('ContentProtection', schemeIdUri=NAGRA_SCHEME_ID_URI)
+                    cp.tail = s.tail
+                    prm = ElementTree.SubElement(cp, NAGRA_PRM_NS+'PRM')
+                    prmSignalization = ElementTree.SubElement(prm, NAGRA_PRM_NS+'PRMSignalization')
+                    # license = {"contentId":"pz_dash_test_1","keyId":"121a0-fca0-f1b4-75b8-9102-97fa-8e0a07e"}
+                    import uuid
+                    key_id = str(uuid.UUID(Options.kid.encode('hex')))
+                    signalization_info = '{{"contentId":"{content_id}","keyId":"{key_id}"}}'.format(content_id=Options.content_id, key_id=key_id)
+                    if Options.verbose:
+                        print('PRM signalization info: {signalization_info}'.format(signalization_info=signalization_info))
+                    import base64
+                    encoded_signalization_info = base64.b64encode(signalization_info)
+                    prmSignalization.text = encoded_signalization_info
+                else:
+                    cp = ElementTree.Element(DASH_NS+'ContentProtection', schemeIdUri='urn:uuid:5E629AF5-38DA-4063-8977-97FFBD9902D4')
+                    cp.tail = s.tail
+                    cids = ElementTree.SubElement(cp, MARLIN_MAS_NS+'MarlinContentIds')
+                    cid = ElementTree.SubElement(cids, MARLIN_MAS_NS+'MarlinContentId')
+                    cid.text = 'urn:marlin:kid:'+Options.kid.encode('hex')
                 s.insert(0, cp)
                 
     # write the MPD    
     xml_tree = ElementTree.ElementTree(mpd.xml)
     xml_tree.write(os.path.join(output_dir, os.path.basename(urlparse.urlparse(mpd_url).path)), encoding="UTF-8", xml_declaration=True)
+
     
-###########################    
+##########################    
 SCRIPT_PATH = os.path.abspath(os.path.dirname(__file__))
 if __name__ == '__main__':
     main()
-    
