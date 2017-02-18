@@ -40,13 +40,19 @@
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-#define BANNER "MP4 File Info - Version 1.3.3\n"\
+#define BANNER "MP4 File Info - Version 1.3.4\n"\
                "(Bento4 Version " AP4_VERSION_STRING ")\n"\
-               "(c) 2002-2015 Axiomatic Systems, LLC"
+               "(c) 2002-2017 Axiomatic Systems, LLC"
  
 /*----------------------------------------------------------------------
 |   globals
 +---------------------------------------------------------------------*/
+typedef struct {
+    AP4_UI64 sample_count;
+    AP4_UI64 duration;
+    double   bitrate;
+} MediaInfo;
+
 typedef enum {
     TEXT_FORMAT,
     JSON_FORMAT
@@ -964,12 +970,11 @@ ShowSample_Text(AP4_Track&      track,
 }
 
 /*----------------------------------------------------------------------
-|   ComputeBitrate
+|   ScanMedia
 +---------------------------------------------------------------------*/
-static double
-ComputeBitrate(AP4_Movie& movie, AP4_Track& track, AP4_ByteStream& stream)
+static void
+ScanMedia(AP4_Movie& movie, AP4_Track& track, AP4_ByteStream& stream, MediaInfo& info)
 {
-    double   bitrate = 0.0;
     AP4_UI64 total_size = 0;
     AP4_UI64 total_duration = 0;
     
@@ -978,6 +983,8 @@ ComputeBitrate(AP4_Movie& movie, AP4_Track& track, AP4_ByteStream& stream)
     stream.Seek(0);
     AP4_LinearReader reader(movie, &stream);
     reader.EnableTrack(track.GetId());
+    
+    info.sample_count = 0;
     
     AP4_Sample sample;
     if (movie.HasFragments()) {
@@ -988,11 +995,13 @@ ComputeBitrate(AP4_Movie& movie, AP4_Track& track, AP4_ByteStream& stream)
             if (AP4_SUCCEEDED(result)) {
                 total_size += sample.GetSize();
                 total_duration += sample.GetDuration();
+                ++info.sample_count;
             } else {
                 break;
             }
         }
     } else {
+        info.sample_count = track.GetSampleCount();
         for (unsigned int i=0; i<track.GetSampleCount(); i++) {
             if (AP4_SUCCEEDED(track.GetSample(i, sample))) {
                 total_size += sample.GetSize();
@@ -1000,13 +1009,14 @@ ComputeBitrate(AP4_Movie& movie, AP4_Track& track, AP4_ByteStream& stream)
         }
         total_duration = track.GetMediaDuration();
     }
+    info.duration = total_duration;
     
     double duration_ms = (double)AP4_ConvertTime(total_duration, track.GetMediaTimeScale(), 1000);
     if (duration_ms) {
-        bitrate = 8.0*1000.0*(double)total_size/duration_ms;
+        info.bitrate = 8.0*1000.0*(double)total_size/duration_ms;
+    } else {
+        info.bitrate = 0.0;
     }
-    
-    return bitrate;
 }
 
 /*----------------------------------------------------------------------
@@ -1053,7 +1063,14 @@ ShowTrackInfo_Text(AP4_Movie& movie, AP4_Track& track, AP4_ByteStream& stream, b
     printf("    duration:     %lld (media timescale units)\n", track.GetMediaDuration());
     printf("    duration:     %d (ms)\n", (AP4_UI32)AP4_ConvertTime(track.GetMediaDuration(), track.GetMediaTimeScale(), 1000));
     if (!fast) {
-        printf("    bitrate (computed): %.3f Kbps\n", (float)ComputeBitrate(movie, track, stream)/1000.0);
+        MediaInfo media_info;
+        ScanMedia(movie, track, stream, media_info);
+        printf("    bitrate (computed): %.3f Kbps\n", media_info.bitrate/1000.0);
+        if (movie.HasFragments()) {
+            printf("    sample count with fragments: %lld\n", media_info.sample_count);
+            printf("    duration with fragments:     %lld\n", media_info.duration);
+            printf("    duration with fragments:     %d (ms)\n", (AP4_UI32)AP4_ConvertTime(media_info.duration, track.GetMediaTimeScale(), 1000));
+        }
     }
     if (track.GetWidth()  || track.GetHeight()) {
         printf("  display width:  %f\n", (float)track.GetWidth()/65536.0);
@@ -1141,8 +1158,17 @@ ShowTrackInfo_Json(AP4_Movie& movie, AP4_Track& track, AP4_ByteStream& stream, b
     printf("    \"duration\":%lld,\n", track.GetMediaDuration());
     printf("    \"duration_ms\":%d", (AP4_UI32)AP4_ConvertTime(track.GetMediaDuration(), track.GetMediaTimeScale(), 1000));
     if (!fast) {
+        MediaInfo media_info;
+        ScanMedia(movie, track, stream, media_info);
         printf(",\n");
-    printf("    \"bitrate\":%.3f\n", (float)ComputeBitrate(movie, track, stream)/1000.0);
+        printf("    \"bitrate\":%.3f", media_info.bitrate/1000.0);
+        if (movie.HasFragments()) {
+            printf(",\n");
+            printf("    \"sample_count_with_fragments\":%lld,\n", media_info.sample_count);
+            printf("    \"duration_with_fragments\":%lld,\n", media_info.duration);
+            printf("    \"duration_with_fragments_ms\":%d", (AP4_UI32)AP4_ConvertTime(media_info.duration, track.GetMediaTimeScale(), 1000));
+        }
+        printf("\n");
     } else {
         printf("\n");
     }
