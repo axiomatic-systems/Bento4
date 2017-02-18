@@ -1080,7 +1080,10 @@ WriteSamples(AP4_Mpeg2TsWriter*               ts_writer,
                     last_ts = audio_ts;
                 }
                 if (segment_output) {
-                    // compute the segment size (not including padding)
+                    // flush the output stream
+                    segment_output->Flush();
+                    
+                    // compute the segment size (including padding)
                     AP4_Position segment_end = 0;
                     segment_output->Tell(segment_end);
                     AP4_UI32 segment_size = 0;
@@ -1089,9 +1092,6 @@ WriteSamples(AP4_Mpeg2TsWriter*               ts_writer,
                     } else if (segment_end > segment_position) {
                         segment_size = (AP4_UI32)(segment_end-segment_position);
                     }
-                    
-                    // flush the output stream
-                    segment_output->Flush();
                     
                     // update counters
                     segment_sizes.Append(segment_size);
