@@ -573,7 +573,7 @@ Fragment(AP4_File&                input_file,
         
         // emit a fragment for the selected track
         if (Options.verbosity > 1) {
-            printf("fragment: track ID %d ", cursor->m_Track->GetId());
+            printf("fragment: track ID %d\n", cursor->m_Track->GetId());
         }
 
         // decide which sample description index to use
@@ -610,8 +610,7 @@ Fragment(AP4_File&                input_file,
             AP4_TfdtAtom* tfdt = new AP4_TfdtAtom(1, cursor->m_Timestamp + (AP4_UI64)(Options.tfdt_start * (double)cursor->m_Track->GetMediaTimeScale()));
             traf->AddChild(tfdt);
         }
-        AP4_UI32 trun_flags = AP4_TRUN_FLAG_DATA_OFFSET_PRESENT     |
-                              AP4_TRUN_FLAG_SAMPLE_DURATION_PRESENT |
+        AP4_UI32 trun_flags = AP4_TRUN_FLAG_DATA_OFFSET_PRESENT |
                               AP4_TRUN_FLAG_SAMPLE_SIZE_PRESENT;
         AP4_UI32 first_sample_flags = 0;
         if (cursor->m_Track->GetType() == AP4_Track::TYPE_VIDEO) {
@@ -631,6 +630,8 @@ Fragment(AP4_File&                input_file,
         unsigned int sample_count = 0;
         AP4_Array<AP4_TrunAtom::Entry> trun_entries;
         fragment->m_MdatSize = AP4_ATOM_HEADER_SIZE;
+        AP4_UI32 constant_sample_duration = 0;
+        bool all_segment_durations_equal = true;
         for (;;) {
             // if we have one non-zero CTS delta, we'll need to express it
             if (cursor->m_Sample.GetCtsDelta()) {
@@ -659,6 +660,17 @@ Fragment(AP4_File&                input_file,
             fragment->m_MdatSize += trun_entry.sample_size;
             fragment->m_Duration += trun_entry.sample_duration;
             
+            // check if the durations are all the same
+            if (all_segment_durations_equal) {
+                if (constant_sample_duration == 0) {
+                    constant_sample_duration = trun_entry.sample_duration;
+                } else {
+                    if (constant_sample_duration != trun_entry.sample_duration) {
+                        all_segment_durations_equal = false;
+                    }
+                }
+            }
+            
             // next sample
             cursor->m_UnscaledTimestamp = next_unscaled_timestamp;
             cursor->m_Timestamp         = next_scaled_timestamp;
@@ -678,10 +690,19 @@ Fragment(AP4_File&                input_file,
                 break; // done with this fragment
             }
         }
-        if (Options.verbosity > 1) {
+        if (Options.verbosity > 2) {
             printf(" %d samples\n", sample_count);
+            printf(" constant sample duration: %s\n", all_segment_durations_equal?"yes":"no");
         }
-                
+        
+        // update the 'trun' flags if needed
+        if (all_segment_durations_equal) {
+            tfhd->SetDefaultSampleDuration(constant_sample_duration);
+            tfhd->UpdateFlags(tfhd->GetFlags() | AP4_TFHD_FLAG_DEFAULT_SAMPLE_DURATION_PRESENT);
+        } else {
+            trun->SetFlags(trun->GetFlags() | AP4_TRUN_FLAG_SAMPLE_DURATION_PRESENT);
+        }
+        
         // update moof and children
         trun->SetEntries(trun_entries);
         trun->SetDataOffset((AP4_UI32)moof->GetSize()+AP4_ATOM_HEADER_SIZE);
