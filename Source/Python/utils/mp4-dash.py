@@ -22,6 +22,7 @@ import fractions
 import re
 import platform
 import sys
+import math
 from mp4utils import *
 from subtitles import *
 
@@ -105,6 +106,13 @@ ProfileAliases = {
 }
 
 TempFiles = []
+
+MpegCencSchemeMap = {
+    'cenc': 'MPEG-CENC',
+    'cbc1': 'MPEG-CBC1',
+    'cens': 'MPEG-CENS',
+    'cbcs': 'MPEG-CBCS'
+}
 
 #############################################
 def AddSegmentList(options, container, subdir, track, use_byte_range=False):
@@ -564,7 +572,7 @@ def OutputDash(options, set_attributes, audio_sets, video_sets, subtitles_sets, 
 
 #############################################
 def OutputHlsTrack(options, track, media_subdir, media_playlist_name, media_file_name):
-    hls_target_duration = 10
+    hls_target_duration = math.ceil(max(track.segment_durations))
 
     media_playlist_file = open(path.join(options.output_dir, media_subdir, media_playlist_name), 'w+')
     media_playlist_file.write('#EXTM3U\r\n')
@@ -618,8 +626,25 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
         language_name = LanguageNames.get(language, language).decode('utf-8')
 
         audio_group_name = adaptation_set_name[0]+'/'+adaptation_set_name[2]
-        audio_groups[audio_group_name] = adaptation_set_name[2]
+        audio_groups[audio_group_name] = {
+            'codec': '',
+            'average_segment_bitrate': 0,
+            'max_segment_bitrate': 0
+        }
         for audio_track in audio_tracks:
+            # update the avergage and max bitrates
+            if audio_track.average_segment_bitrate > audio_groups[audio_group_name]['average_segment_bitrate']:
+                audio_groups[audio_group_name]['average_segment_bitrate'] = audio_track.average_segment_bitrate
+            if audio_track.max_segment_bitrate > audio_groups[audio_group_name]['max_segment_bitrate']:
+                audio_groups[audio_group_name]['max_segment_bitrate'] = audio_track.max_segment_bitrate
+
+            # update/check the codec
+            if audio_groups[audio_group_name]['codec'] == '':
+                audio_groups[audio_group_name]['codec'] = audio_track.codec
+            else:
+                if audio_groups[audio_group_name]['codec'] != audio_track.codec:
+                    print 'WARNING: audio codecs not all the same:', audio_groups[audio_group_name]['codec'], audio_track.codec
+
             if options.on_demand:
                 media_subdir        = ''
                 media_file_name     = audio_track.parent.media_name
@@ -663,11 +688,11 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
 
 
         for audio_group_name in audio_groups:
-            audio_codec = audio_groups[audio_group_name]
+            audio_codec = audio_groups[audio_group_name]['codec']
             master_playlist_file.write('#EXT-X-STREAM-INF:AUDIO="%s",AVERAGE-BANDWIDTH=%d,BANDWIDTH=%d,CODECS="%s",RESOLUTION=%dx%d\r\n' % (
                                        audio_group_name,
-                                       video_track.average_segment_bitrate,
-                                       video_track.max_segment_bitrate,
+                                       video_track.average_segment_bitrate + audio_groups[audio_group_name]['average_segment_bitrate'],
+                                       video_track.max_segment_bitrate + audio_groups[audio_group_name]['max_segment_bitrate'],
                                        video_track.codec+','+audio_codec,
                                        video_track.width,
                                        video_track.height))
@@ -1157,6 +1182,8 @@ def main():
                       help="Encrypt some or all tracks with MPEG CENC (AES-128), where <key-spec> specifies the KID(s) and Key(s) to use, using one of the following forms: " +
                            "(1) <KID>:<key> with <KID> as a 32-character hex string and <key> either a 32-character hex string or the character '#' followed by a base64-encoded key seed; or " +
                            "(2) @<key-locator> where <key-locator> is an expression of one of the supported key locator schemes. Each entry may be prefixed with an optional track filter, and multiple <key-spec> entries can be used, separated by ','. (see online docs for details)")
+    parser.add_option('', "--encryption-cenc-scheme", dest="encryption_cenc_scheme", metavar='<cenc-scheme>', default='cenc', choices=('cenc', 'cbc1', 'cens', 'cbcs'),
+                      help="MPEG Common Encryption scheme (cenc, cbc1, cens or cbcs). (default: cenc)")
     parser.add_option('', "--encryption-args", dest="encryption_args", metavar='<cmdline-arguments>', default=None,
                       help="Pass additional command line arguments to mp4encrypt (separated by spaces)")
     parser.add_option('', "--eme-signaling", dest="eme_signaling", metavar='<eme-signaling-type>', choices=['pssh-v0', 'pssh-v1'],
@@ -1396,7 +1423,7 @@ def main():
             TempFiles.append(encrypted_file.name)
             encrypted_file.close() # necessary on Windows
             MapFileName(encrypted_file.name, path.basename(encrypted_file.name) + ' = Encrypted[' + GetMappedFileName(media_file) + ']')
-            args = ['--method', 'MPEG-CENC']
+            args = ['--method', MpegCencSchemeMap[options.encryption_cenc_scheme]]
 
             if options.encryption_args:
                 args += options.encryption_args.split()
