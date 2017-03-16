@@ -1408,7 +1408,8 @@ def main():
                 for key_info in options.key_infos:
                     if track['type'].lower() in key_info['filter']:
                         options.track_key_infos[track['id']] = key_info
-
+            print 'KKKKKK -----', options.track_key_infos
+            
             # skip now if we're only outputing the MPD
             if options.no_media:
                 continue
