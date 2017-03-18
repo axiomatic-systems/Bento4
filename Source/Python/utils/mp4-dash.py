@@ -235,7 +235,7 @@ def AddContentProtection(options, container, tracks):
     if options.eme_signaling in ['pssh-v0', 'pssh-v1']:
         container.append(xml.Comment(' EME Common Encryption '))
         xml.register_namespace('cenc', CENC_2013_NAMESPACE)
-        cp = xml.SubElement(container, 'ContentProtection', schemeIdUri=EME_COMMON_ENCRYPTION_SCHEME_ID_URI, value='cenc')
+        cp = xml.SubElement(container, 'ContentProtection', schemeIdUri=EME_COMMON_ENCRYPTION_SCHEME_ID_URI, value=options.encryption_cenc_scheme)
         if options.eme_signaling == 'pssh-v1':
             pssh_box = MakePsshBoxV1(EME_COMMON_ENCRYPTION_PSSH_SYSTEM_ID.decode('hex'), [default_kid], '')
         else:
@@ -247,7 +247,7 @@ def AddContentProtection(options, container, tracks):
     # MPEG Common Encryption
     container.append(xml.Comment(' MPEG Common Encryption '))
     xml.register_namespace('cenc', CENC_2013_NAMESPACE)
-    cp = xml.SubElement(container, 'ContentProtection', schemeIdUri=MPEG_COMMON_ENCRYPTION_SCHEME_ID_URI, value='cenc')
+    cp = xml.SubElement(container, 'ContentProtection', schemeIdUri=MPEG_COMMON_ENCRYPTION_SCHEME_ID_URI, value=options.encryption_cenc_scheme)
     default_kid_with_dashes = (default_kid[0:8]+'-'+default_kid[8:12]+'-'+default_kid[12:16]+'-'+default_kid[16:20]+'-'+default_kid[20:32]).lower()
     cp.set('{'+CENC_2013_NAMESPACE+'}default_KID', default_kid_with_dashes)
 
@@ -1408,8 +1408,7 @@ def main():
                 for key_info in options.key_infos:
                     if track['type'].lower() in key_info['filter']:
                         options.track_key_infos[track['id']] = key_info
-            print 'KKKKKK -----', options.track_key_infos
-            
+
             # skip now if we're only outputing the MPD
             if options.no_media:
                 continue

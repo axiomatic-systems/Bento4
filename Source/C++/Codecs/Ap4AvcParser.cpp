@@ -263,7 +263,9 @@ AP4_AvcSequenceParameterSet::GetInfo(unsigned int& width, unsigned int& height)
 |   AP4_AvcFrameParser::ParseSPS
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_AvcFrameParser::ParseSPS(const unsigned char* data, unsigned int data_size, AP4_AvcSequenceParameterSet& sps)
+AP4_AvcFrameParser::ParseSPS(const unsigned char*         data,
+                             unsigned int                 data_size,
+                             AP4_AvcSequenceParameterSet& sps)
 {
     sps.raw_bytes.SetData(data, data_size);
     AP4_DataBuffer unescaped(data, data_size);
@@ -404,7 +406,9 @@ AP4_AvcPictureParameterSet::AP4_AvcPictureParameterSet() :
 |   AP4_AvcFrameParser::ParsePPS
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_AvcFrameParser::ParsePPS(const unsigned char* data, unsigned int data_size, AP4_AvcPictureParameterSet& pps)
+AP4_AvcFrameParser::ParsePPS(const unsigned char*        data,
+                             unsigned int                data_size,
+                             AP4_AvcPictureParameterSet& pps)
 {
     pps.raw_bytes.SetData(data, data_size);
     AP4_DataBuffer unescaped(data, data_size);
@@ -497,10 +501,10 @@ AP4_AvcSliceHeader::AP4_AvcSliceHeader() :
 |   AP4_AvcFrameParser::ParseSliceHeader
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_AvcFrameParser::ParseSliceHeader(const AP4_UI08*               data,
-                                     unsigned int                  data_size,
-                                     unsigned int                  nal_unit_type,
-                                     AP4_AvcSliceHeader&           slice_header)
+AP4_AvcFrameParser::ParseSliceHeader(const AP4_UI08*     data,
+                                     unsigned int        data_size,
+                                     unsigned int        nal_unit_type,
+                                     AP4_AvcSliceHeader& slice_header)
 {
     AP4_DataBuffer unescaped(data, data_size);
     AP4_NalParser::Unescape(unescaped);
