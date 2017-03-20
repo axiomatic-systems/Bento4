@@ -64,60 +64,64 @@ const AP4_UI08 AP4_EME_COMMON_SYSTEM_ID[16] = {
 const unsigned int AP4_CENC_NAL_UNIT_ENCRYPTION_MIN_SIZE = 112;
 
 /*----------------------------------------------------------------------
-|   AP4_CencSampleEncrypter::~AP4_CencSampleEncrypter
-+---------------------------------------------------------------------*/
-AP4_CencSampleEncrypter::~AP4_CencSampleEncrypter()
-{
-    delete m_Cipher;
-}
-
-/*----------------------------------------------------------------------
-|   AP4_CencCtrSampleEncrypter::EncryptSampleData
+|   AP4_CencBasicSubSampleMapper::GetSubSampleMap
 +---------------------------------------------------------------------*/
 AP4_Result 
-AP4_CencCtrSampleEncrypter::EncryptSampleData(AP4_DataBuffer& data_in,
-                                              AP4_DataBuffer& data_out,
-                                              AP4_DataBuffer& /* sample_infos */)
+AP4_CencBasicSubSampleMapper::GetSubSampleMap(AP4_DataBuffer&      sample_data,
+                                              AP4_Array<AP4_UI16>& bytes_of_cleartext_data,
+                                              AP4_Array<AP4_UI32>& bytes_of_encrypted_data)
 {
-    // the output has the same size as the input
-    data_out.SetDataSize(data_in.GetDataSize());
-
     // setup direct pointers to the buffers
-    const AP4_UI08* in  = data_in.GetData();
-    AP4_UI08*       out = data_out.UseData();
+    const AP4_UI08* in = sample_data.GetData();
     
-    // setup the IV
-    m_Cipher->SetIV(m_Iv);
+    // process the sample data, one NALU at a time
+    const AP4_UI08* in_end = sample_data.GetData()+sample_data.GetDataSize();
+    while ((AP4_Size)(in_end-in) > 1+m_NaluLengthSize) {
+        unsigned int nalu_length;
+        switch (m_NaluLengthSize) {
+            case 1:
+                nalu_length = *in;
+                break;
+                
+            case 2:
+                nalu_length = AP4_BytesToUInt16BE(in);
+                break;
+                
+            case 4:
+                nalu_length = AP4_BytesToUInt32BE(in);
+                break;
+                
+            default:
+                return AP4_ERROR_INVALID_FORMAT;
+        }
 
-    // process the sample data
-    if (data_in.GetDataSize()) {
-        AP4_Size out_size = data_out.GetDataSize();
-        AP4_Result result = m_Cipher->ProcessBuffer(in, data_in.GetDataSize(), out, &out_size, false);
-        if (AP4_FAILED(result)) return result;
-    }
-    
-    // update the IV
-    if (m_IvSize == 16) {
-        unsigned int block_count = (data_in.GetDataSize()+15)/16;
-        AP4_UI64 counter = AP4_BytesToUInt64BE(&m_Iv[8]);
-        AP4_BytesFromUInt64BE(&m_Iv[8], counter+block_count);
-    } else if (m_IvSize == 8){
-        AP4_UI64 counter = AP4_BytesToUInt64BE(&m_Iv[0]);
-        AP4_BytesFromUInt64BE(&m_Iv[0], counter+1);
-    } else {
-        return AP4_ERROR_INTERNAL;
+        unsigned int chunk_size     = m_NaluLengthSize+nalu_length;
+        unsigned int cleartext_size = chunk_size%16;
+        unsigned int block_count    = chunk_size/16;
+        if (cleartext_size < m_NaluLengthSize+1) {
+            AP4_ASSERT(block_count);
+            --block_count;
+            cleartext_size += 16;
+        }
+                
+        // move the pointers
+        in += chunk_size;
+        
+        // store the info
+        bytes_of_cleartext_data.Append((AP4_UI16)cleartext_size);
+        bytes_of_encrypted_data.Append((AP4_UI32)(block_count*16));
     }
     
     return AP4_SUCCESS;
 }
 
 /*----------------------------------------------------------------------
-|   AP4_CencCtrSubSampleEncrypter::GetSubSampleMap
+|   AP4_CencAdvancedSubSampleEncrypter::GetSubSampleMap
 +---------------------------------------------------------------------*/
 AP4_Result 
-AP4_CencCtrSubSampleEncrypter::GetSubSampleMap(AP4_DataBuffer&      sample_data, 
-                                               AP4_Array<AP4_UI16>& bytes_of_cleartext_data, 
-                                               AP4_Array<AP4_UI32>& bytes_of_encrypted_data)
+AP4_CencAdvancedSubSampleMapper::GetSubSampleMap(AP4_DataBuffer&      sample_data,
+                                                 AP4_Array<AP4_UI16>& bytes_of_cleartext_data,
+                                                 AP4_Array<AP4_UI32>& bytes_of_encrypted_data)
 {
     // setup direct pointers to the buffers
     const AP4_UI08* in = sample_data.GetData();
@@ -209,6 +213,54 @@ AP4_CencCtrSubSampleEncrypter::GetSubSampleMap(AP4_DataBuffer&      sample_data,
 }
 
 /*----------------------------------------------------------------------
+|   AP4_CencSampleEncrypter::~AP4_CencSampleEncrypter
++---------------------------------------------------------------------*/
+AP4_CencSampleEncrypter::~AP4_CencSampleEncrypter()
+{
+    delete m_Cipher;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_CencCtrSampleEncrypter::EncryptSampleData
++---------------------------------------------------------------------*/
+AP4_Result 
+AP4_CencCtrSampleEncrypter::EncryptSampleData(AP4_DataBuffer& data_in,
+                                              AP4_DataBuffer& data_out,
+                                              AP4_DataBuffer& /* sample_infos */)
+{
+    // the output has the same size as the input
+    data_out.SetDataSize(data_in.GetDataSize());
+
+    // setup direct pointers to the buffers
+    const AP4_UI08* in  = data_in.GetData();
+    AP4_UI08*       out = data_out.UseData();
+    
+    // setup the IV
+    m_Cipher->SetIV(m_Iv);
+
+    // process the sample data
+    if (data_in.GetDataSize()) {
+        AP4_Size out_size = data_out.GetDataSize();
+        AP4_Result result = m_Cipher->ProcessBuffer(in, data_in.GetDataSize(), out, &out_size, false);
+        if (AP4_FAILED(result)) return result;
+    }
+    
+    // update the IV
+    if (m_IvSize == 16) {
+        unsigned int block_count = (data_in.GetDataSize()+15)/16;
+        AP4_UI64 counter = AP4_BytesToUInt64BE(&m_Iv[8]);
+        AP4_BytesFromUInt64BE(&m_Iv[8], counter+block_count);
+    } else if (m_IvSize == 8){
+        AP4_UI64 counter = AP4_BytesToUInt64BE(&m_Iv[0]);
+        AP4_BytesFromUInt64BE(&m_Iv[0], counter+1);
+    } else {
+        return AP4_ERROR_INTERNAL;
+    }
+    
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
 |   AP4_CencCtrSubSampleEncrypter::EncryptSampleData
 +---------------------------------------------------------------------*/
 AP4_Result 
@@ -233,7 +285,7 @@ AP4_CencCtrSubSampleEncrypter::EncryptSampleData(AP4_DataBuffer& data_in,
     // get the subsample map
     AP4_Array<AP4_UI16> bytes_of_cleartext_data;
     AP4_Array<AP4_UI32> bytes_of_encrypted_data;
-    AP4_Result result = GetSubSampleMap(data_in, bytes_of_cleartext_data, bytes_of_encrypted_data);
+    AP4_Result result = m_SubSampleMapper->GetSubSampleMap(data_in, bytes_of_cleartext_data, bytes_of_encrypted_data);
     if (AP4_FAILED(result)) return result;
 
     // process the data
@@ -273,58 +325,6 @@ AP4_CencCtrSubSampleEncrypter::EncryptSampleData(AP4_DataBuffer& data_in,
     for (unsigned int i=0; i<sample_info_count; i++) {
         AP4_BytesFromUInt16BE(&infos[2+i*6],   bytes_of_cleartext_data[i]);
         AP4_BytesFromUInt32BE(&infos[2+i*6+2], bytes_of_encrypted_data[i]);
-    }
-    
-    return AP4_SUCCESS;
-}
-
-/*----------------------------------------------------------------------
-|   AP4_CencCbcSubSampleEncrypter::GetSubSampleMap
-+---------------------------------------------------------------------*/
-AP4_Result 
-AP4_CencCbcSubSampleEncrypter::GetSubSampleMap(AP4_DataBuffer&      sample_data, 
-                                               AP4_Array<AP4_UI16>& bytes_of_cleartext_data, 
-                                               AP4_Array<AP4_UI32>& bytes_of_encrypted_data)
-{
-    // setup direct pointers to the buffers
-    const AP4_UI08* in = sample_data.GetData();
-    
-    // process the sample data, one NALU at a time
-    const AP4_UI08* in_end = sample_data.GetData()+sample_data.GetDataSize();
-    while ((AP4_Size)(in_end-in) > 1+m_NaluLengthSize) {
-        unsigned int nalu_length;
-        switch (m_NaluLengthSize) {
-            case 1:
-                nalu_length = *in;
-                break;
-                
-            case 2:
-                nalu_length = AP4_BytesToUInt16BE(in);
-                break;
-                
-            case 4:
-                nalu_length = AP4_BytesToUInt32BE(in);
-                break;
-                
-            default:
-                return AP4_ERROR_INVALID_FORMAT;
-        }
-
-        unsigned int chunk_size     = m_NaluLengthSize+nalu_length;
-        unsigned int cleartext_size = chunk_size%16;
-        unsigned int block_count    = chunk_size/16;
-        if (cleartext_size < m_NaluLengthSize+1) {
-            AP4_ASSERT(block_count);
-            --block_count;
-            cleartext_size += 16;
-        }
-                
-        // move the pointers
-        in += chunk_size;
-        
-        // store the info
-        bytes_of_cleartext_data.Append((AP4_UI16)cleartext_size);
-        bytes_of_encrypted_data.Append((AP4_UI32)(block_count*16));
     }
     
     return AP4_SUCCESS;
@@ -396,7 +396,7 @@ AP4_CencCbcSubSampleEncrypter::EncryptSampleData(AP4_DataBuffer& data_in,
     // get the subsample map
     AP4_Array<AP4_UI16> bytes_of_cleartext_data;
     AP4_Array<AP4_UI32> bytes_of_encrypted_data;
-    AP4_Result result = GetSubSampleMap(data_in, bytes_of_cleartext_data, bytes_of_encrypted_data);
+    AP4_Result result = m_SubSampleMapper->GetSubSampleMap(data_in, bytes_of_cleartext_data, bytes_of_encrypted_data);
     if (AP4_FAILED(result)) return result;
 
     for (unsigned int i=0; i<bytes_of_cleartext_data.ItemCount(); i++) {
@@ -1332,40 +1332,54 @@ AP4_CencEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
                                                            key->GetData(), 
                                                            key->GetDataSize(), 
                                                            block_cipher);
-    if (AP4_FAILED(result)) return NULL;
+    if (AP4_FAILED(result)) {
+        delete track_encrypter;
+        return NULL;
+    }
     
+    // compute the size of NAL units
+    unsigned int nalu_length_size = 0;
+    if (format == AP4_ATOM_TYPE_AVC1 ||
+        format == AP4_ATOM_TYPE_AVC2 ||
+        format == AP4_ATOM_TYPE_AVC3 ||
+        format == AP4_ATOM_TYPE_AVC4) {
+        AP4_AvccAtom* avcc = AP4_DYNAMIC_CAST(AP4_AvccAtom, entries[0]->GetChild(AP4_ATOM_TYPE_AVCC));
+        if (avcc) {
+            nalu_length_size = avcc->GetNaluLengthSize();
+        }
+    } else if (format == AP4_ATOM_TYPE_HEV1 ||
+               format == AP4_ATOM_TYPE_HVC1) {
+        AP4_HvccAtom* hvcc = AP4_DYNAMIC_CAST(AP4_HvccAtom, entries[0]->GetChild(AP4_ATOM_TYPE_HVCC));
+        if (hvcc) {
+            nalu_length_size = hvcc->GetNaluLengthSize();
+        }
+    }
+
     // add a new cipher state for this track
     AP4_CencSampleEncrypter* sample_encrypter = NULL;
-    AP4_StreamCipher* stream_cipher = NULL;
+    AP4_StreamCipher*        stream_cipher = NULL;
     switch (cipher_mode) {
         case AP4_BlockCipher::CBC:
             stream_cipher = new AP4_CbcStreamCipher(block_cipher);
             if (crypt_byte_block && skip_byte_block) {
                 stream_cipher = new AP4_PatternStreamCipher(stream_cipher, crypt_byte_block, skip_byte_block);
             }
-            if (format == AP4_ATOM_TYPE_AVC1 ||
-                format == AP4_ATOM_TYPE_AVC2 ||
-                format == AP4_ATOM_TYPE_AVC3 ||
-                format == AP4_ATOM_TYPE_AVC4) {
-                AP4_AvccAtom* avcc = AP4_DYNAMIC_CAST(AP4_AvccAtom, entries[0]->GetChild(AP4_ATOM_TYPE_AVCC));
-                if (avcc == NULL) return NULL;
+
+            if (nalu_length_size) {
+                AP4_CencSubSampleMapper* subsample_mapper = NULL;
+                if (m_Variant == AP4_CENC_VARIANT_MPEG_CBCS) {
+                    subsample_mapper = new AP4_CencAdvancedSubSampleMapper /* AP4_CencCbcsSubSampleMapper */(nalu_length_size, format);
+                } else {
+                    subsample_mapper = new AP4_CencBasicSubSampleMapper(nalu_length_size, format);
+                }
                 sample_encrypter = new AP4_CencCbcSubSampleEncrypter(stream_cipher,
                                                                      constant_iv,
                                                                      reset_iv_at_each_subsample,
-                                                                     avcc->GetNaluLengthSize(),
-                                                                     format);
-            } else if (format == AP4_ATOM_TYPE_HEV1 ||
-                       format == AP4_ATOM_TYPE_HVC1) {
-                AP4_HvccAtom* hvcc = AP4_DYNAMIC_CAST(AP4_HvccAtom, entries[0]->GetChild(AP4_ATOM_TYPE_HVCC));
-                if (hvcc == NULL) return NULL;
-                sample_encrypter = new AP4_CencCbcSubSampleEncrypter(stream_cipher,
-                                                                     constant_iv,
-                                                                     reset_iv_at_each_subsample,
-                                                                     hvcc->GetNaluLengthSize(),
-                                                                     format);
+                                                                     subsample_mapper);
             } else {
                 sample_encrypter = new AP4_CencCbcSampleEncrypter(stream_cipher, constant_iv);
             }
+
             break;
             
         case AP4_BlockCipher::CTR:
@@ -1373,32 +1387,23 @@ AP4_CencEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
             if (crypt_byte_block && skip_byte_block) {
                 stream_cipher = new AP4_PatternStreamCipher(stream_cipher, crypt_byte_block, skip_byte_block);
             }
-            if (format == AP4_ATOM_TYPE_AVC1 ||
-                format == AP4_ATOM_TYPE_AVC2 ||
-                format == AP4_ATOM_TYPE_AVC3 ||
-                format == AP4_ATOM_TYPE_AVC4) {
-                AP4_AvccAtom* avcc = AP4_DYNAMIC_CAST(AP4_AvccAtom, entries[0]->GetChild(AP4_ATOM_TYPE_AVCC));
-                if (avcc == NULL) return NULL;
+            if (nalu_length_size) {
+                AP4_CencSubSampleMapper* subsample_mapper = new AP4_CencAdvancedSubSampleMapper(nalu_length_size, format);
                 sample_encrypter = new AP4_CencCtrSubSampleEncrypter(stream_cipher,
                                                                      constant_iv,
                                                                      reset_iv_at_each_subsample,
-                                                                     avcc->GetNaluLengthSize(),
                                                                      cipher_iv_size,
-                                                                     format);
-            } else if (format == AP4_ATOM_TYPE_HEV1 ||
-                       format == AP4_ATOM_TYPE_HVC1) {
-                AP4_HvccAtom* hvcc = AP4_DYNAMIC_CAST(AP4_HvccAtom, entries[0]->GetChild(AP4_ATOM_TYPE_HVCC));
-                if (hvcc == NULL) return NULL;
-                sample_encrypter = new AP4_CencCtrSubSampleEncrypter(stream_cipher,
-                                                                     constant_iv,
-                                                                     reset_iv_at_each_subsample,
-                                                                     hvcc->GetNaluLengthSize(),
-                                                                     cipher_iv_size,
-                                                                     format);
+                                                                     subsample_mapper);
             } else {
                 sample_encrypter = new AP4_CencCtrSampleEncrypter(stream_cipher, constant_iv, cipher_iv_size);
             }
             break;
+    }
+    if (sample_encrypter == NULL) {
+        delete stream_cipher;
+        delete block_cipher;
+        delete track_encrypter;
+        return NULL;
     }
     sample_encrypter->SetIv(iv->GetData());
 

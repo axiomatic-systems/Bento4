@@ -27,7 +27,7 @@ from mp4utils import *
 from subtitles import *
 
 # setup main options
-VERSION = "1.7.0"
+VERSION = "1.8.0"
 SDK_REVISION = '614'
 SCRIPT_PATH = path.abspath(path.dirname(__file__))
 sys.path += [SCRIPT_PATH]
@@ -590,6 +590,10 @@ def OutputHlsTrack(options, track, media_subdir, media_playlist_name, media_file
         media_playlist_file.write('#EXT-X-MAP:URI="%s"\r\n' % (SPLIT_INIT_SEGMENT_NAME))
         segment_pattern = SEGMENT_PATTERN.replace('ll','')
 
+    if options.encryption_key:
+        key_info = options.track_key_infos.get(track.id)
+        media_playlist_file.write('#EXT-X-KEY:METHOD=SAMPLE-AES,URI="'+options.hls_key_url+'",IV=0x'+key_info['iv']+'\r\n')
+
     for i in range(len(track.segment_durations)):
         media_playlist_file.write('#EXTINF:%f,\r\n' % (track.segment_durations[i]))
         if options.on_demand:
@@ -1081,6 +1085,15 @@ def ResolveEncryptionKeys(options):
 
         key_info['key'] = key_hex
         key_info['kid'] = kid_hex
+        if options.hls:
+            # for HLS, we need to know the IV
+            import random
+            sys_random = random.SystemRandom()
+            random_iv = sys_random.getrandbits(128)
+            key_info['iv'] = '%016x' % random_iv
+        else:
+            key_info['iv'] = 'random'
+
         options.key_infos.append(key_info)
 
 #############################################
@@ -1166,6 +1179,8 @@ def main():
                       help="Smooth Streaming FourCC value for H.264 video (default=H264) [some older players use AVC1]", metavar="<fourcc>", default='H264')
     parser.add_option('', '--hls', dest="hls", default=False, action="store_true",
                       help="Output HLS playlists in addition to MPEG DASH")
+    parser.add_option('', '--hls-key-url', dest="hls_key_url",
+                      help="HLS key URL (default: key.bin)", metavar="<url>", default='key.bin')
     parser.add_option('', '--hls-master-playlist-name', dest="hls_master_playlist_name",
                       help="HLS master playlist name (default: master.m3u8)", metavar="<filename>", default='master.m3u8')
     parser.add_option('', '--hls-media-playlist-name', dest="hls_media_playlist_name",
@@ -1315,6 +1330,10 @@ def main():
     if options.primetime_metadata:
         options.primetime = True
 
+    if options.hls:
+        if options.encryption_key and options.encryption_cenc_scheme != 'cbcs':
+            raise Exception('--hls requires --encryption-cenc-scheme=cbcs')
+
     # compute the KID(s) and encryption key(s) if needed
     if options.encryption_key:
         ResolveEncryptionKeys(options)
@@ -1433,7 +1452,7 @@ def main():
 
             for track_id in sorted(options.track_key_infos.keys()):
                 key_info = options.track_key_infos[track_id]
-                args += ['--key', str(track_id)+':'+key_info['key']+':random', '--property', str(track_id)+':KID:'+key_info['kid']]
+                args += ['--key', str(track_id)+':'+key_info['key']+':'+key_info['iv'], '--property', str(track_id)+':KID:'+key_info['kid']]
 
             # EME Common Encryption / Clearkey
             if options.eme_signaling == 'pssh-v0':
