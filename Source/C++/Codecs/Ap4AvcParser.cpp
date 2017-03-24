@@ -35,6 +35,7 @@
 /*----------------------------------------------------------------------
 |   debugging
 +---------------------------------------------------------------------*/
+#define AP4_AVC_PARSER_ENABLE_DEBUG
 #if defined(AP4_AVC_PARSER_ENABLE_DEBUG)
 #define DBG_PRINTF_0(_x0) printf(_x0)
 #define DBG_PRINTF_1(_x0, _x1) printf(_x0, _x1)
@@ -483,6 +484,7 @@ AP4_AvcFrameParser::ParsePPS(const unsigned char*        data,
 |   AP4_AvcSliceHeader::AP4_AvcSliceHeader
 +---------------------------------------------------------------------*/
 AP4_AvcSliceHeader::AP4_AvcSliceHeader() :
+    size(0),
     first_mb_in_slice(0),
     slice_type(0),
     pic_parameter_set_id(0),
@@ -492,7 +494,31 @@ AP4_AvcSliceHeader::AP4_AvcSliceHeader() :
     bottom_field_flag(0),
     idr_pic_id(0),
     pic_order_cnt_lsb(0),
-    redundant_pic_cnt(0)
+    redundant_pic_cnt(0),
+    direct_spatial_mv_pred_flag(0),
+    num_ref_idx_active_override_flag(0),
+    num_ref_idx_l0_active_minus1(0),
+    num_ref_idx_l1_active_minus1(0),
+    ref_pic_list_reordering_flag_l0(0),
+    reordering_of_pic_nums_idc(0),
+    abs_diff_pic_num_minus1(0),
+    long_term_pic_num(0),
+    ref_pic_list_reordering_flag_l1(0),
+    luma_log2_weight_denom(0),
+    chroma_log2_weight_denom(0),
+    cabac_init_idc(0),
+    slice_qp_delta(0),
+    sp_for_switch_flag(0),
+    slice_qs_delta(0),
+    disable_deblocking_filter_idc(0),
+    slice_alpha_c0_offset_div2(0),
+    slice_beta_offset_div2(0),
+    slice_group_change_cycle(0),
+    no_output_of_prior_pics_flag(0),
+    long_term_reference_flag(0),
+    difference_of_pic_nums_minus1(0),
+    long_term_frame_idx(0),
+    max_long_term_frame_idx_plus1(0)
 {
     delta_pic_order_cnt[0] = delta_pic_order_cnt[1] = 0;
 }
@@ -504,14 +530,16 @@ AP4_Result
 AP4_AvcFrameParser::ParseSliceHeader(const AP4_UI08*     data,
                                      unsigned int        data_size,
                                      unsigned int        nal_unit_type,
+                                     unsigned int        nal_ref_idc,
                                      AP4_AvcSliceHeader& slice_header)
 {
     AP4_DataBuffer unescaped(data, data_size);
     AP4_NalParser::Unescape(unescaped);
     AP4_BitReader bits(unescaped.GetData(), unescaped.GetDataSize());
 
-    bits.SkipBits(8); // NAL Unit Type
-
+    // init the computer fields
+    slice_header.size = 0;
+    
     slice_header.first_mb_in_slice    = ReadGolomb(bits);
     slice_header.slice_type           = ReadGolomb(bits);
     slice_header.pic_parameter_set_id = ReadGolomb(bits);
@@ -555,7 +583,156 @@ AP4_AvcFrameParser::ParseSliceHeader(const AP4_UI08*     data,
         slice_header.redundant_pic_cnt = ReadGolomb(bits);
     }
     
-    /* skip the rest for now */
+    unsigned int slice_type = slice_header.slice_type % 5; // this seems to be implicit in the spec
+    
+    if (slice_type == AP4_AVC_SLICE_TYPE_B) {
+        slice_header.direct_spatial_mv_pred_flag = bits.ReadBit();
+    }
+    
+    if (slice_type == AP4_AVC_SLICE_TYPE_P  ||
+        slice_type == AP4_AVC_SLICE_TYPE_SP ||
+        slice_type == AP4_AVC_SLICE_TYPE_B) {
+        slice_header.num_ref_idx_active_override_flag = bits.ReadBit();
+        
+        if (slice_header.num_ref_idx_active_override_flag) {
+            slice_header.num_ref_idx_l0_active_minus1 = ReadGolomb(bits);
+            if ((slice_header.slice_type % 5) == AP4_AVC_SLICE_TYPE_B) {
+                slice_header.num_ref_idx_l1_active_minus1 = ReadGolomb(bits);
+            }
+        } else {
+            slice_header.num_ref_idx_l0_active_minus1 = pps->num_ref_idx_10_active_minus1;
+            slice_header.num_ref_idx_l1_active_minus1 = pps->num_ref_idx_11_active_minus1;
+        }
+    }
+    
+    // ref_pic_list_reordering
+    if ((slice_header.slice_type % 5) != 2 && (slice_header.slice_type % 5) != 4) {
+        slice_header.ref_pic_list_reordering_flag_l0 = bits.ReadBit();
+        if (slice_header.ref_pic_list_reordering_flag_l0) {
+            do {
+                slice_header.reordering_of_pic_nums_idc = ReadGolomb(bits);
+                if (slice_header.reordering_of_pic_nums_idc == 0 ||
+					slice_header.reordering_of_pic_nums_idc == 1) {
+                    slice_header.abs_diff_pic_num_minus1 = ReadGolomb(bits);
+                } else if (slice_header.reordering_of_pic_nums_idc == 2) {
+                    slice_header.long_term_pic_num = ReadGolomb(bits);
+                }
+            } while (slice_header.reordering_of_pic_nums_idc != 3);
+        }
+    }
+    if ((slice_header.slice_type % 5) == 1) {
+        slice_header.ref_pic_list_reordering_flag_l1 = bits.ReadBit();
+        if (slice_header.ref_pic_list_reordering_flag_l1) {
+            do {
+                slice_header.reordering_of_pic_nums_idc = ReadGolomb(bits);
+                if (slice_header.reordering_of_pic_nums_idc == 0 ||
+					slice_header.reordering_of_pic_nums_idc == 1) {
+                    slice_header.abs_diff_pic_num_minus1 = ReadGolomb(bits);
+                } else if (slice_header.reordering_of_pic_nums_idc == 2) {
+                    slice_header.long_term_pic_num = ReadGolomb(bits);
+                }
+            } while (slice_header.reordering_of_pic_nums_idc != 3);
+        }
+    }
+    
+    if ((pps->weighted_pred_flag &&
+        (slice_type == AP4_AVC_SLICE_TYPE_P || slice_type == AP4_AVC_SLICE_TYPE_SP)) ||
+		(pps->weighted_bipred_idc == 1 && slice_type == AP4_AVC_SLICE_TYPE_B)) {
+        // pred_weight_table
+        slice_header.luma_log2_weight_denom = ReadGolomb(bits);
+        
+        if (sps->chroma_format_idc != 0) {
+            slice_header.chroma_log2_weight_denom = ReadGolomb(bits);
+        }
+        
+        for (unsigned int i=0; i<=slice_header.num_ref_idx_l0_active_minus1; i++) {
+            unsigned int luma_weight_l0_flag = bits.ReadBit();
+            if (luma_weight_l0_flag) {
+                /* slice_header.luma_weight_l0[i] = SignedGolomb( */ ReadGolomb(bits);
+                /* slice_header.luma_offset_l0[i] = SignedGolomb( */ ReadGolomb(bits);
+            }
+            if (sps->chroma_format_idc != 0) {
+                unsigned int chroma_weight_l0_flag = bits.ReadBit();
+                if (chroma_weight_l0_flag) {
+                    for (unsigned int j=0; j<2; j++) {
+                        /* slice_header.chroma_weight_l0[i][j] = SignedGolomb( */ ReadGolomb(bits);
+                        /* slice_header.chroma_offset_l0[i][j] = SignedGolomb( */ ReadGolomb(bits);
+                    }
+                }
+            }
+        }
+        if ((slice_header.slice_type % 5) == 1) {
+            for (unsigned int i=0; i<=slice_header.num_ref_idx_l1_active_minus1; i++) {
+                unsigned int luma_weight_l1_flag = bits.ReadBit();
+                if (luma_weight_l1_flag) {
+                    /* slice_header.luma_weight_l1[i] = SignedGolomb( */ ReadGolomb(bits);
+                    /* slice_header.luma_offset_l1[i] = SignedGolomb( */ ReadGolomb(bits);
+                }
+                if (sps->chroma_format_idc != 0) {
+                    unsigned int chroma_weight_l1_flag = bits.ReadBit();
+                    if (chroma_weight_l1_flag) {
+                        for (unsigned int j=0; j<2; j++) {
+                            /* slice_header.chroma_weight_l1[i][j] = SignedGolomb( */ ReadGolomb(bits);
+                            /* slice_header.chroma_offset_l1[i][j] = SignedGolomb( */ ReadGolomb(bits);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if (nal_ref_idc != 0) {
+        // dec_ref_pic_marking
+        if (nal_unit_type == AP4_AVC_NAL_UNIT_TYPE_CODED_SLICE_OF_IDR_PICTURE) {
+            slice_header.no_output_of_prior_pics_flag = bits.ReadBit();
+            slice_header.long_term_reference_flag     = bits.ReadBit();
+        } else {
+            unsigned int adaptive_ref_pic_marking_mode_flag = bits.ReadBit();
+            if (adaptive_ref_pic_marking_mode_flag) {
+                unsigned int memory_management_control_operation = 0;
+                do {
+                    memory_management_control_operation = ReadGolomb(bits);
+                    if (memory_management_control_operation == 1 || memory_management_control_operation == 3) {
+                        slice_header.difference_of_pic_nums_minus1 = ReadGolomb(bits);
+                    }
+                    if (memory_management_control_operation == 2) {
+                        slice_header.long_term_pic_num = ReadGolomb(bits);
+                    }
+                    if (memory_management_control_operation == 3 || memory_management_control_operation == 6) {
+                        slice_header.long_term_frame_idx = ReadGolomb(bits);
+                    }
+                    if (memory_management_control_operation == 4) {
+                        slice_header.max_long_term_frame_idx_plus1 = ReadGolomb(bits);
+                    }
+                } while (memory_management_control_operation != 0);
+            }
+        }
+    }
+    if (pps->entropy_coding_mode_flag && slice_type != AP4_AVC_SLICE_TYPE_I && slice_type != AP4_AVC_SLICE_TYPE_SI) {
+        slice_header.cabac_init_idc = ReadGolomb(bits);
+    }
+    slice_header.slice_qp_delta = ReadGolomb(bits);
+    if (slice_type == AP4_AVC_SLICE_TYPE_SP || slice_type == AP4_AVC_SLICE_TYPE_SI) {
+        if (slice_type == AP4_AVC_SLICE_TYPE_SP) {
+            slice_header.sp_for_switch_flag = bits.ReadBit();
+        }
+        slice_header.slice_qs_delta = SignedGolomb(ReadGolomb(bits));
+    }
+    if (pps->deblocking_filter_control_present_flag) {
+        slice_header.disable_deblocking_filter_idc = ReadGolomb(bits);
+        if (slice_header.disable_deblocking_filter_idc != 1) {
+            slice_header.slice_alpha_c0_offset_div2 = SignedGolomb(ReadGolomb(bits));
+            slice_header.slice_beta_offset_div2     = SignedGolomb(ReadGolomb(bits));
+        }
+    }
+    if (pps->num_slice_groups_minus1 > 0 &&
+        pps->slice_group_map_type >= 3   &&
+        pps->slice_group_map_type <= 5) {
+        slice_header.slice_group_change_cycle = ReadGolomb(bits);
+    }
+
+    /* compute the size */
+    slice_header.size = bits.GetBitsRead();
     
     return AP4_SUCCESS;
 }
@@ -636,23 +813,6 @@ AP4_AvcFrameParser::SameFrame(unsigned int nal_unit_type_1, unsigned int nal_ref
     
     return true;
 }
-
-#if defined(AP4_AVC_PARSER_ENABLE_DEBUG)
-/*----------------------------------------------------------------------
-|   PrintSliceInfo
-+---------------------------------------------------------------------*/
-static void
-PrintSliceInfo(const AP4_AvcSliceHeader& slice_header)
-{
-    const char* slice_type_name = AP4_AvcNalParser::SliceTypeName(slice_header.slice_type);
-    if (slice_type_name == NULL) slice_type_name = "?";
-    DBG_PRINTF_4(" pps_id=%d, frame_num=%d, slice_type=%d (%s), ",
-           slice_header.pic_parameter_set_id,
-           slice_header.frame_num,
-           slice_header.slice_type,
-           slice_type_name);
-}
-#endif
 
 /*----------------------------------------------------------------------
 |   AP4_AvcFrameParser::CheckIfAccessUnitIsCompleted
@@ -864,9 +1024,10 @@ AP4_AvcFrameParser::Feed(const void*     data,
                    nal_unit_type == AP4_AVC_NAL_UNIT_TYPE_CODED_SLICE_DATA_PARTITION_B   ||
                    nal_unit_type == AP4_AVC_NAL_UNIT_TYPE_CODED_SLICE_DATA_PARTITION_C) {
             AP4_AvcSliceHeader* slice_header = new AP4_AvcSliceHeader;
-            result = ParseSliceHeader(nal_unit_payload,
-                                      nal_unit_size,
+            result = ParseSliceHeader(nal_unit_payload+1,
+                                      nal_unit_size-1,
                                       nal_unit_type,
+                                      nal_ref_idc,
                                       *slice_header);
             if (AP4_FAILED(result)) {
                 return AP4_ERROR_INVALID_FORMAT;
@@ -874,8 +1035,9 @@ AP4_AvcFrameParser::Feed(const void*     data,
             
             const char* slice_type_name = AP4_AvcNalParser::SliceTypeName(slice_header->slice_type);
             if (slice_type_name == NULL) slice_type_name = "?";
-            DBG_PRINTF_4(" pps_id=%d, frame_num=%d, slice_type=%d (%s), ",
+            DBG_PRINTF_5(" pps_id=%d, header_size=%d, frame_num=%d, slice_type=%d (%s), ",
                    slice_header->pic_parameter_set_id,
+                   slice_header->size,
                    slice_header->frame_num,
                    slice_header->slice_type,
                    slice_type_name);

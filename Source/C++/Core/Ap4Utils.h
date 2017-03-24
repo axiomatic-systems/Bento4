@@ -262,6 +262,8 @@ public:
     void         SkipBit();
     void         SkipBits(unsigned int bit_count);
 
+    unsigned int GetBitsRead();
+    
 private:
     // methods
     BitsWord ReadCache() const;
