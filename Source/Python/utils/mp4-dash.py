@@ -691,16 +691,28 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
                 raise Exception('mode not yet supported with HLS')
 
 
-        for audio_group_name in audio_groups:
-            audio_codec = audio_groups[audio_group_name]['codec']
-            master_playlist_file.write('#EXT-X-STREAM-INF:AUDIO="%s",AVERAGE-BANDWIDTH=%d,BANDWIDTH=%d,CODECS="%s",RESOLUTION=%dx%d\r\n' % (
-                                       audio_group_name,
-                                       video_track.average_segment_bitrate + audio_groups[audio_group_name]['average_segment_bitrate'],
-                                       video_track.max_segment_bitrate + audio_groups[audio_group_name]['max_segment_bitrate'],
-                                       video_track.codec+','+audio_codec,
+        if len(audio_groups):
+            # one entry per audio group
+            for audio_group_name in audio_groups:
+                audio_codec = audio_groups[audio_group_name]['codec']
+                master_playlist_file.write('#EXT-X-STREAM-INF:AUDIO="%s",AVERAGE-BANDWIDTH=%d,BANDWIDTH=%d,CODECS="%s",RESOLUTION=%dx%d\r\n' % (
+                                           audio_group_name,
+                                           video_track.average_segment_bitrate + audio_groups[audio_group_name]['average_segment_bitrate'],
+                                           video_track.max_segment_bitrate + audio_groups[audio_group_name]['max_segment_bitrate'],
+                                           video_track.codec+','+audio_codec,
+                                           video_track.width,
+                                           video_track.height))
+                master_playlist_file.write(media_playlist_path+'\r\n')
+        else:
+            # no audio
+            master_playlist_file.write('#EXT-X-STREAM-INF:AVERAGE-BANDWIDTH=%d,BANDWIDTH=%d,CODECS="%s",RESOLUTION=%dx%d\r\n' % (
+                                       video_track.average_segment_bitrate,
+                                       video_track.max_segment_bitrate,
+                                       video_track.codec,
                                        video_track.width,
                                        video_track.height))
             master_playlist_file.write(media_playlist_path+'\r\n')
+
         OutputHlsTrack(options, video_track, media_subdir, media_playlist_name, media_file_name)
 
 #############################################
