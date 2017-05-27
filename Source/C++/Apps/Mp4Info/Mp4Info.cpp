@@ -1561,7 +1561,6 @@ main(int argc, char** argv)
     if (Options.format == JSON_FORMAT) printf("{\n");
     
     AP4_File* file = new AP4_File(*input, true);
-    input->Release();
     ShowFileInfo(*file);
 
     AP4_Movie* movie = file->GetMovie();
@@ -1602,6 +1601,7 @@ main(int argc, char** argv)
     
     if (Options.format == JSON_FORMAT) printf("}\n");
 
+    input->Release();
     delete file;
 
     return 0;
