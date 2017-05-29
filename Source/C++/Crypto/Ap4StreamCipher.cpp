@@ -559,7 +559,7 @@ AP4_PatternStreamCipher::ProcessBuffer(const AP4_UI08* in,
                                        AP4_Size        in_size,
                                        AP4_UI08*       out,
                                        AP4_Size*       out_size,
-                                       bool            is_last_buffer)
+                                       bool            /* is_last_buffer */)
 {
     // set default return values
     *out_size = 0;
