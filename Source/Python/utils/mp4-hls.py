@@ -348,6 +348,10 @@ def OutputHls(options, media_sources):
         master_playlist.write('\r\n')
         master_playlist.write('#EXT-X-VERSION:'+str(options.hls_version)+'\r\n')
 
+    if options.encryption_iv_mode and 'fps' in options.encryption_iv_mode:
+        master_playlist.write('#EXT-X-SESSION-KEY:METHOD=SAMPLE-AES,URI="'+options.encryption_key_uri+'",KEYFORMAT="'+options.encryption_key_format+'",KEYFORMATVERSIONS="'+options.encryption_key_format_versions+'"\r\n')
+
+
     # process subtitles sources
     subtitles_files = [SubtitlesFile(options, media_source) for media_source in media_sources if media_source.format in ['ttml', 'webvtt']]
     if len(subtitles_files):
@@ -465,6 +469,7 @@ def OutputHls(options, media_sources):
                                         int(media_info['video']['height']),
                                         media['dir']+'/iframes.m3u8')
             master_playlist.write(ext_x_i_frame_stream_inf+'\r\n')
+
 
 #############################################
 Options = None
