@@ -715,6 +715,11 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
 
         OutputHlsTrack(options, video_track, media_subdir, media_playlist_name, media_file_name)
 
+    if len(subtitles_files):
+        master_playlist_file.write('# Subtitles\r\n')
+        for subtitles_file in subtitles_files:
+            master_playlist_file.write('''#EXT-X-MEDIA:TYPE=SUBTITLES,GROUP-ID="subs",NAME="{0:s}",DEFAULT=NO,AUTOSELECT=YES,FORCED=YES,LANGUAGE="{0:s}",URI="subtitles/{0:s}/{1:s}"\r\n'''.format(subtitles_file.language,subtitles_file.media_name))
+        
 #############################################
 def OutputSmooth(options, audio_tracks, video_tracks):
     # compute the total duration (we take the duration of the video)
@@ -1389,7 +1394,7 @@ def main():
     # for on-demand, we need to first extract tracks into individual media files
     if options.on_demand:
         (audio_sets, video_sets, subtitles_sets, mp4_files) = SelectTracks(options, media_sources)
-        media_sources = []
+        media_sources = filter(lambda x: x.format == "webvtt", media_sources) #Keep subtitles
         for track in sum(audio_sets.values()+video_sets.values(), []):
             print 'Extracting track', track.id, 'from', GetMappedFileName(track.parent.media_source.filename)
             track_file = tempfile.NamedTemporaryFile(dir = options.output_dir, delete=False)
