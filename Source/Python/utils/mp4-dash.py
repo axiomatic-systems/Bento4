@@ -424,7 +424,7 @@ def OutputDash(options, set_attributes, audio_sets, video_sets, subtitles_sets, 
 
                 if options.on_demand:
                     base_url = xml.SubElement(representation, 'BaseURL')
-                    base_url.text = ONDEMAND_MEDIA_FILE_PATTERN % (options.media_prefix, video_track.representation_id)
+                    base_url.text = AppendQueryStringToFilename(options, ONDEMAND_MEDIA_FILE_PATTERN % (options.media_prefix, video_track.representation_id))
                     sidx_range = (video_track.sidx_atom.position, video_track.sidx_atom.position+video_track.sidx_atom.size-1)
                     init_range = (0, video_track.moov_atom.position+video_track.moov_atom.size-1)
                     segment_base = xml.SubElement(representation, 'SegmentBase', indexRange=str(sidx_range[0])+'-'+str(sidx_range[1]))
@@ -481,7 +481,7 @@ def OutputDash(options, set_attributes, audio_sets, video_sets, subtitles_sets, 
 
                 if options.on_demand:
                     base_url = xml.SubElement(representation, 'BaseURL')
-                    base_url.text = ONDEMAND_MEDIA_FILE_PATTERN % (options.media_prefix, audio_track.representation_id)
+                    base_url.text = AppendQueryStringToFilename(options, ONDEMAND_MEDIA_FILE_PATTERN % (options.media_prefix, audio_track.representation_id))
                     sidx_range = (audio_track.sidx_atom.position, audio_track.sidx_atom.position+audio_track.sidx_atom.size-1)
                     init_range = (0, audio_track.moov_atom.position+audio_track.moov_atom.size-1)
                     segment_base = xml.SubElement(representation, 'SegmentBase', indexRange=str(sidx_range[0])+'-'+str(sidx_range[1]))
@@ -514,7 +514,7 @@ def OutputDash(options, set_attributes, audio_sets, video_sets, subtitles_sets, 
 
                 if options.on_demand:
                     base_url = xml.SubElement(representation, 'BaseURL')
-                    base_url.text = ONDEMAND_MEDIA_FILE_PATTERN % (options.media_prefix, subtitles_track.representation_id)
+                    base_url.text = AppendQueryStringToFilename(options, ONDEMAND_MEDIA_FILE_PATTERN % (options.media_prefix, subtitles_track.representation_id))
                     sidx_range = (subtitles_track.sidx_atom.position, subtitles_track.sidx_atom.position+subtitles_track.sidx_atom.size-1)
                     init_range = (0, subtitles_track.moov_atom.position+subtitles_track.moov_atom.size-1)
                     segment_base = xml.SubElement(representation, 'SegmentBase', indexRange=str(sidx_range[0])+'-'+str(sidx_range[1]))
@@ -560,7 +560,7 @@ def OutputDash(options, set_attributes, audio_sets, video_sets, subtitles_sets, 
                                             id='subtitles/'+subtitles_file.language,
                                             bandwidth=str(bandwidth))
             base_url = xml.SubElement(representation, 'BaseURL')
-            base_url.text = 'subtitles/'+subtitles_file.language+'/'+subtitles_file.media_name
+            base_url.text = 'subtitles/' + subtitles_file.language + '/' + AppendQueryStringToFilename(options, subtitles_file.media_name)
 
     # save the MPD
     if options.mpd_filename:
@@ -1252,6 +1252,8 @@ def main():
                            "(2) the character '#' followed by the Primetime Metadata encoded in Base64")
     parser.add_option('', "--exec-dir", metavar="<exec_dir>", dest="exec_dir", default=default_exec_dir,
                       help="Directory where the Bento4 executables are located")
+    parser.add_option('', "--query-string", metavar="<query_string>", dest="query_string",
+                      help="Query string that is appended to resources in playlist files, useful when assets need to be requested with a version")
     (options, args) = parser.parse_args()
     if len(args) == 0:
         parser.print_help()

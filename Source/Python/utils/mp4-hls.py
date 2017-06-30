@@ -185,7 +185,7 @@ def ProcessSource(options, media_info, out_dir):
     kwargs = {
         'index_filename':            path.join(out_dir, 'stream.m3u8'),
         'segment_filename_template': path.join(out_dir, 'segment-%d.'+file_extension),
-        'segment_url_template':      'segment-%d.'+file_extension,
+        'segment_url_template':      AppendQueryStringToFilename(options, 'segment-%d.'+file_extension),
         'show_info':                 True
     }
 
@@ -448,7 +448,7 @@ def OutputHls(options, media_sources):
                 ext_x_stream_inf += ',SUBTITLES="subtitles"'
 
             master_playlist.write(ext_x_stream_inf+'\r\n')
-            master_playlist.write(media['dir']+'/stream.m3u8\r\n')
+            master_playlist.write(media['dir'] + '/' + AppendQueryStringToFilename(options, 'stream.m3u8') + '\r\n')
 
     # write the I-FRAME playlist info
     if not audio_only and options.hls_version >= 4:
@@ -463,7 +463,7 @@ def OutputHls(options, media_sources):
                                         media_info['video']['codec'],
                                         int(media_info['video']['width']),
                                         int(media_info['video']['height']),
-                                        media['dir']+'/iframes.m3u8')
+                                        media['dir'] + '/' + AppendQueryStringToFilename(options, 'iframes.m3u8'))
             master_playlist.write(ext_x_i_frame_stream_inf+'\r\n')
 
 #############################################
@@ -525,6 +525,8 @@ def main():
                       help="Output the encryption key to a file (default: don't output the key). This option is only valid when the encryption key format is 'identity'")
     parser.add_option('', "--exec-dir", metavar="<exec_dir>", dest="exec_dir", default=default_exec_dir,
                       help="Directory where the Bento4 executables are located")
+    parser.add_option('', "--query-string", metavar="<query_string>", dest="query_string",
+                      help="Query string that is appended to resources in playlist files, useful when assets need to be requested with a version")
     (options, args) = parser.parse_args()
     if len(args) == 0:
         parser.print_help()

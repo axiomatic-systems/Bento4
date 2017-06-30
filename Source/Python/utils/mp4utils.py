@@ -726,6 +726,11 @@ def GetEncryptionKey(options, spec):
     else:
         raise Exception('Key Locator scheme not supported')
 
+def AppendQueryStringToFilename(options, filename):
+    if options.query_string:
+        filename += '?' + options.query_string
+    return filename
+
 # Compute the Dolby Digital AudioChannelConfiguration value
 #
 # (MSB = 0)
