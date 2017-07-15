@@ -347,7 +347,7 @@ WriteSamples(AP4_Mpeg2TsWriter&               writer,
         unsigned int target_duration = 0;
         for (unsigned int i=0; i<segment_durations.ItemCount(); i++) {
             if ((unsigned int)(segment_durations[i]+0.5) > target_duration) {
-                target_duration = segment_durations[i];
+                target_duration = (unsigned int)segment_durations[i];
             }
         }
 
