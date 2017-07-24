@@ -17,6 +17,11 @@ Build/Targets/x86-microsoft-win32-vs2012/**/Release
 Build/Targets/x86-microsoft-win32-vs2012/**/*.suo
 Build/Targets/x86-microsoft-win32-vs2012/**/*.user
 Build/Targets/x86-microsoft-win32-vs2012/**/*.sdf
+Build/Targets/x86-microsoft-win32-vs2015/**/Debug
+Build/Targets/x86-microsoft-win32-vs2015/**/Release
+Build/Targets/x86-microsoft-win32-vs2015/**/*.suo
+Build/Targets/x86-microsoft-win32-vs2015/**/*.user
+Build/Targets/x86-microsoft-win32-vs2015/**/*.sdf
 Build/Targets/universal-apple-macosx/build
 Build/Targets/universal-apple-macosx/Bento4.xcodeproj/xcuserdata
 Build/Targets/universal-apple-macosx/Bento4.xcodeproj/project.xcworkspace/xcuserdata
@@ -32,3 +37,5 @@ lib
 shaka-player.uncompiled.js
 third_party
 .suo
+*.db
+*.user

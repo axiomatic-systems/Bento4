@@ -27,8 +27,8 @@ from mp4utils import *
 from subtitles import *
 
 # setup main options
-VERSION = "1.7.0"
-SDK_REVISION = '614'
+VERSION = "1.8.0"
+SDK_REVISION = '615'
 SCRIPT_PATH = path.abspath(path.dirname(__file__))
 sys.path += [SCRIPT_PATH]
 
@@ -235,7 +235,7 @@ def AddContentProtection(options, container, tracks):
     if options.eme_signaling in ['pssh-v0', 'pssh-v1']:
         container.append(xml.Comment(' EME Common Encryption '))
         xml.register_namespace('cenc', CENC_2013_NAMESPACE)
-        cp = xml.SubElement(container, 'ContentProtection', schemeIdUri=EME_COMMON_ENCRYPTION_SCHEME_ID_URI, value='cenc')
+        cp = xml.SubElement(container, 'ContentProtection', schemeIdUri=EME_COMMON_ENCRYPTION_SCHEME_ID_URI, value=options.encryption_cenc_scheme)
         if options.eme_signaling == 'pssh-v1':
             pssh_box = MakePsshBoxV1(EME_COMMON_ENCRYPTION_PSSH_SYSTEM_ID.decode('hex'), [default_kid], '')
         else:
@@ -247,7 +247,7 @@ def AddContentProtection(options, container, tracks):
     # MPEG Common Encryption
     container.append(xml.Comment(' MPEG Common Encryption '))
     xml.register_namespace('cenc', CENC_2013_NAMESPACE)
-    cp = xml.SubElement(container, 'ContentProtection', schemeIdUri=MPEG_COMMON_ENCRYPTION_SCHEME_ID_URI, value='cenc')
+    cp = xml.SubElement(container, 'ContentProtection', schemeIdUri=MPEG_COMMON_ENCRYPTION_SCHEME_ID_URI, value=options.encryption_cenc_scheme)
     default_kid_with_dashes = (default_kid[0:8]+'-'+default_kid[8:12]+'-'+default_kid[12:16]+'-'+default_kid[16:20]+'-'+default_kid[20:32]).lower()
     cp.set('{'+CENC_2013_NAMESPACE+'}default_KID', default_kid_with_dashes)
 
@@ -590,6 +590,10 @@ def OutputHlsTrack(options, track, media_subdir, media_playlist_name, media_file
         media_playlist_file.write('#EXT-X-MAP:URI="%s"\r\n' % (SPLIT_INIT_SEGMENT_NAME))
         segment_pattern = SEGMENT_PATTERN.replace('ll','')
 
+    if options.encryption_key:
+        key_info = options.track_key_infos.get(track.id)
+        media_playlist_file.write('#EXT-X-KEY:METHOD=SAMPLE-AES,URI="'+options.hls_key_url+'",IV=0x'+key_info['iv']+'\r\n')
+
     for i in range(len(track.segment_durations)):
         media_playlist_file.write('#EXTINF:%f,\r\n' % (track.segment_durations[i]))
         if options.on_demand:
@@ -687,18 +691,35 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
                 raise Exception('mode not yet supported with HLS')
 
 
-        for audio_group_name in audio_groups:
-            audio_codec = audio_groups[audio_group_name]['codec']
-            master_playlist_file.write('#EXT-X-STREAM-INF:AUDIO="%s",AVERAGE-BANDWIDTH=%d,BANDWIDTH=%d,CODECS="%s",RESOLUTION=%dx%d\r\n' % (
-                                       audio_group_name,
-                                       video_track.average_segment_bitrate + audio_groups[audio_group_name]['average_segment_bitrate'],
-                                       video_track.max_segment_bitrate + audio_groups[audio_group_name]['max_segment_bitrate'],
-                                       video_track.codec+','+audio_codec,
+        if len(audio_groups):
+            # one entry per audio group
+            for audio_group_name in audio_groups:
+                audio_codec = audio_groups[audio_group_name]['codec']
+                master_playlist_file.write('#EXT-X-STREAM-INF:AUDIO="%s",AVERAGE-BANDWIDTH=%d,BANDWIDTH=%d,CODECS="%s",RESOLUTION=%dx%d\r\n' % (
+                                           audio_group_name,
+                                           video_track.average_segment_bitrate + audio_groups[audio_group_name]['average_segment_bitrate'],
+                                           video_track.max_segment_bitrate + audio_groups[audio_group_name]['max_segment_bitrate'],
+                                           video_track.codec+','+audio_codec,
+                                           video_track.width,
+                                           video_track.height))
+                master_playlist_file.write(media_playlist_path+'\r\n')
+        else:
+            # no audio
+            master_playlist_file.write('#EXT-X-STREAM-INF:AVERAGE-BANDWIDTH=%d,BANDWIDTH=%d,CODECS="%s",RESOLUTION=%dx%d\r\n' % (
+                                       video_track.average_segment_bitrate,
+                                       video_track.max_segment_bitrate,
+                                       video_track.codec,
                                        video_track.width,
                                        video_track.height))
             master_playlist_file.write(media_playlist_path+'\r\n')
+
         OutputHlsTrack(options, video_track, media_subdir, media_playlist_name, media_file_name)
 
+    if len(subtitles_files):
+        master_playlist_file.write('# Subtitles\r\n')
+        for subtitles_file in subtitles_files:
+            master_playlist_file.write('''#EXT-X-MEDIA:TYPE=SUBTITLES,GROUP-ID="subs",NAME="{0:s}",DEFAULT=NO,AUTOSELECT=YES,FORCED=YES,LANGUAGE="{0:s}",URI="subtitles/{0:s}/{1:s}"\r\n'''.format(subtitles_file.language,subtitles_file.media_name))
+        
 #############################################
 def OutputSmooth(options, audio_tracks, video_tracks):
     # compute the total duration (we take the duration of the video)
@@ -1081,6 +1102,15 @@ def ResolveEncryptionKeys(options):
 
         key_info['key'] = key_hex
         key_info['kid'] = kid_hex
+        if options.hls:
+            # for HLS, we need to know the IV
+            import random
+            sys_random = random.SystemRandom()
+            random_iv = sys_random.getrandbits(128)
+            key_info['iv'] = '%016x' % random_iv
+        else:
+            key_info['iv'] = 'random'
+
         options.key_infos.append(key_info)
 
 #############################################
@@ -1166,6 +1196,8 @@ def main():
                       help="Smooth Streaming FourCC value for H.264 video (default=H264) [some older players use AVC1]", metavar="<fourcc>", default='H264')
     parser.add_option('', '--hls', dest="hls", default=False, action="store_true",
                       help="Output HLS playlists in addition to MPEG DASH")
+    parser.add_option('', '--hls-key-url', dest="hls_key_url",
+                      help="HLS key URL (default: key.bin)", metavar="<url>", default='key.bin')
     parser.add_option('', '--hls-master-playlist-name', dest="hls_master_playlist_name",
                       help="HLS master playlist name (default: master.m3u8)", metavar="<filename>", default='master.m3u8')
     parser.add_option('', '--hls-media-playlist-name', dest="hls_media_playlist_name",
@@ -1315,6 +1347,10 @@ def main():
     if options.primetime_metadata:
         options.primetime = True
 
+    if options.hls:
+        if options.encryption_key and options.encryption_cenc_scheme != 'cbcs':
+            raise Exception('--hls requires --encryption-cenc-scheme=cbcs')
+
     # compute the KID(s) and encryption key(s) if needed
     if options.encryption_key:
         ResolveEncryptionKeys(options)
@@ -1358,7 +1394,7 @@ def main():
     # for on-demand, we need to first extract tracks into individual media files
     if options.on_demand:
         (audio_sets, video_sets, subtitles_sets, mp4_files) = SelectTracks(options, media_sources)
-        media_sources = []
+        media_sources = filter(lambda x: x.format == "webvtt", media_sources) #Keep subtitles
         for track in sum(audio_sets.values()+video_sets.values(), []):
             print 'Extracting track', track.id, 'from', GetMappedFileName(track.parent.media_source.filename)
             track_file = tempfile.NamedTemporaryFile(dir = options.output_dir, delete=False)
@@ -1433,7 +1469,7 @@ def main():
 
             for track_id in sorted(options.track_key_infos.keys()):
                 key_info = options.track_key_infos[track_id]
-                args += ['--key', str(track_id)+':'+key_info['key']+':random', '--property', str(track_id)+':KID:'+key_info['kid']]
+                args += ['--key', str(track_id)+':'+key_info['key']+':'+key_info['iv'], '--property', str(track_id)+':KID:'+key_info['kid']]
 
             # EME Common Encryption / Clearkey
             if options.eme_signaling == 'pssh-v0':

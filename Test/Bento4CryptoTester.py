@@ -119,16 +119,22 @@ def DoCleanup(files):
 
 BIN_ROOT=sys.argv[1]
 files = sys.argv[2:]
+if len(sys.argv) >= 4:
+    methods = sys.argv[3].split(',')
+else:
+    methods = None
+
 counter = 0
 
 for file in files:
     json_info = Mp4Info(file, format='json', fast=True)
     info = json.loads(json_info, strict=False)
 
-    if info['movie']['fragments']:
-        methods = METHODS_FOR_FRAGMENTED_MP4
-    else:
-        methods = METHODS_FOR_LINEAR_MP4
+    if methods is None:
+        if info['movie']['fragments']:
+            methods = METHODS_FOR_FRAGMENTED_MP4
+        else:
+            methods = METHODS_FOR_LINEAR_MP4
 
     for method in methods:
         for key in KEYS:

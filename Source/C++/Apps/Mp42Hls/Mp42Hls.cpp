@@ -1309,7 +1309,7 @@ WriteSamples(AP4_Mpeg2TsWriter*               ts_writer,
     double       total_duration = 0.0;
     for (unsigned int i=0; i<segment_durations.ItemCount(); i++) {
         if ((unsigned int)(segment_durations[i]+0.5) > target_duration) {
-            target_duration = segment_durations[i];
+            target_duration = (unsigned int)segment_durations[i];
         }
         total_duration += segment_durations[i];
     }
@@ -1424,7 +1424,7 @@ WriteSamples(AP4_Mpeg2TsWriter*               ts_writer,
         unsigned int iframes_target_duration = 0;
         for (unsigned int i=0; i<iframe_durations.ItemCount(); i++) {
             if ((unsigned int)(iframe_durations[i]+0.5) > iframes_target_duration) {
-                iframes_target_duration = iframe_durations[i];
+                iframes_target_duration = (unsigned int)iframe_durations[i];
             }
         }
         

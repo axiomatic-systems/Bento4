@@ -1285,13 +1285,19 @@ ShowFileInfo(AP4_File& file)
                 break;
         }
     }
+    
+    if (Options.format == JSON_FORMAT) {
+        printf("],\n");
+    }
+
+    // fast-start
     switch (Options.format) {
         case TEXT_FORMAT:
-            printf("\n");
+            printf("  fast start:       %s\n\n", file.IsMoovBeforeMdat() ? "yes" : "no");
             break;
             
         case JSON_FORMAT:
-            printf("]\n},\n");
+            printf("  \"fast_start\":%s\n},\n", file.IsMoovBeforeMdat() ? "true" : "false");
             break;
     }
 }
@@ -1561,7 +1567,6 @@ main(int argc, char** argv)
     if (Options.format == JSON_FORMAT) printf("{\n");
     
     AP4_File* file = new AP4_File(*input, true);
-    input->Release();
     ShowFileInfo(*file);
 
     AP4_Movie* movie = file->GetMovie();
@@ -1602,6 +1607,7 @@ main(int argc, char** argv)
     
     if (Options.format == JSON_FORMAT) printf("}\n");
 
+    input->Release();
     delete file;
 
     return 0;
