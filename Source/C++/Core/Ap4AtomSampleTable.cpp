@@ -87,6 +87,11 @@ AP4_AtomSampleTable::GetSample(AP4_Ordinal index,
 {
     AP4_Result result;
 
+    // check that we have an stsc atom
+    if (!m_StscAtom) {
+        return AP4_ERROR_INVALID_FORMAT;
+    }
+    
     // check that we have a chunk offset table
     if (m_StcoAtom == NULL && m_Co64Atom == NULL) {
         return AP4_ERROR_INVALID_FORMAT;

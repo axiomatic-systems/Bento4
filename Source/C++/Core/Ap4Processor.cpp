@@ -554,6 +554,7 @@ AP4_Processor::Process(AP4_ByteStream&   input,
             int cursor = -1;
             for (unsigned int i=0; i<track_count; i++) {
                 if (!cursors[i].m_EndReached &&
+                    cursors[i].m_Locator.m_SampleTable &&
                     cursors[i].m_Locator.m_Sample.GetOffset() <= min_offset) {
                     min_offset = cursors[i].m_Locator.m_Sample.GetOffset();
                     cursor = i;
