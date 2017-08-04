@@ -707,7 +707,7 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
 
           case AP4_ATOM_TYPE_DEC3:
             if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
-            if (GetContext() == AP4_ATOM_TYPE_EC_3) {
+            if (GetContext() == AP4_ATOM_TYPE_EC_3 || GetContext() == AP4_ATOM_TYPE_ENCA) {
                 atom = AP4_Dec3Atom::Create(size_32, stream);
             }
             break;
