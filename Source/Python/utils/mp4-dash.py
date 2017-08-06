@@ -719,7 +719,7 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
         master_playlist_file.write('# Subtitles\r\n')
         for subtitles_file in subtitles_files:
             master_playlist_file.write('''#EXT-X-MEDIA:TYPE=SUBTITLES,GROUP-ID="subs",NAME="{0:s}",DEFAULT=NO,AUTOSELECT=YES,FORCED=YES,LANGUAGE="{0:s}",URI="subtitles/{0:s}/{1:s}"\r\n'''.format(subtitles_file.language,subtitles_file.media_name))
-        
+
 #############################################
 def OutputSmooth(options, audio_tracks, video_tracks):
     # compute the total duration (we take the duration of the video)
@@ -816,10 +816,11 @@ def OutputSmooth(options, audio_tracks, video_tracks):
 
     if options.playready_header:
         key_info = None
-        if len(video_tracks):
-            key_info = options.track_key_infos.get(video_tracks[0].id)
-            if not key_info and len(audio_tracks):
-                key_info = options.track_key_infos.get(audio_tracks[0].id)
+        if options.encryption_key:
+            if len(video_tracks):
+                key_info = options.track_key_infos.get(video_tracks[0].id)
+                if not key_info and len(audio_tracks):
+                    key_info = options.track_key_infos.get(audio_tracks[0].id)
 
         if key_info:
             kid = key_info['kid']
