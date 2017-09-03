@@ -270,12 +270,15 @@ public:
                     AccessUnitInfo& access_unit_info,
                     bool            eos=false);
     
+    AP4_Result Feed(const AP4_UI08* nal_unit,
+                    AP4_Size        nal_unit_size,
+                    AccessUnitInfo& access_unit_info,
+                    bool            last_unit=false);
+
     AP4_AvcSequenceParameterSet** GetSequenceParameterSets() { return &m_SPS[0];     }
     AP4_AvcPictureParameterSet**  GetPictureParameterSets()  { return &m_PPS[0];     }
     const AP4_AvcSliceHeader*     GetSliceHeader()           { return m_SliceHeader; }
     
-private:
-    // methods
     AP4_Result ParseSPS(const unsigned char*         data,
                         unsigned int                 data_size,
                         AP4_AvcSequenceParameterSet& sps);
@@ -287,6 +290,9 @@ private:
                                 unsigned int                  nal_unit_type,
                                 unsigned int                  nal_ref_idc,
                                 AP4_AvcSliceHeader&           slice_header);
+
+private:
+    // methods
     bool SameFrame(unsigned int nal_unit_type_1, unsigned int nal_ref_idc_1, AP4_AvcSliceHeader& sh1,
                    unsigned int nal_unit_type_2, unsigned int nal_ref_idc_2, AP4_AvcSliceHeader& sh2);
     AP4_AvcSequenceParameterSet* GetSliceSPS(AP4_AvcSliceHeader& sh);

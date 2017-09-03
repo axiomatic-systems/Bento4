@@ -46,6 +46,7 @@ class AP4_StreamCipher;
 class AP4_SaizAtom;
 class AP4_SaioAtom;
 class AP4_CencSampleInfoTable;
+class AP4_AvcFrameParser;
 
 /*----------------------------------------------------------------------
 |   constants
@@ -486,13 +487,20 @@ class AP4_CencCbcsSubSampleMapper : public AP4_CencSubSampleMapper
 {
 public:
     // constructor and destructor
-    AP4_CencCbcsSubSampleMapper(AP4_Size nalu_length_size, AP4_UI32 format) :
-        AP4_CencSubSampleMapper(nalu_length_size, format) {}
+    AP4_CencCbcsSubSampleMapper(AP4_Size nalu_length_size, AP4_UI32 format, AP4_TrakAtom* trak);
+    ~AP4_CencCbcsSubSampleMapper();
     
     // methods
     virtual AP4_Result GetSubSampleMap(AP4_DataBuffer&      sample_data,
                                        AP4_Array<AP4_UI16>& bytes_of_cleartext_data, 
                                        AP4_Array<AP4_UI32>& bytes_of_encrypted_data);
+    
+private:
+    // members
+    AP4_AvcFrameParser* m_AvcParser;
+    
+    // methods
+    AP4_Result ParseAvcData(const AP4_UI08* data, AP4_Size data_size);
 };
 
 /*----------------------------------------------------------------------

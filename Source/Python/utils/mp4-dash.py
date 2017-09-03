@@ -583,20 +583,21 @@ def OutputHlsTrack(options, track, media_subdir, media_playlist_name, media_file
     media_playlist_file.write('#EXT-X-INDEPENDENT-SEGMENTS\r\n')
     media_playlist_file.write('#EXT-X-TARGETDURATION:%d\r\n' % (hls_target_duration))
     media_playlist_file.write('#EXT-X-MEDIA-SEQUENCE:0\r\n')
-    if options.on_demand:
-        init_segment_size = track.moov_atom.position+track.moov_atom.size
+    if options.on_demand or not options.split:
+        init_segment_size = track.parent.init_segment.position + track.parent.init_segment.size
         media_playlist_file.write('#EXT-X-MAP:URI="%s",BYTERANGE="%d@0"\r\n' % (media_file_name, init_segment_size))
     else:
         media_playlist_file.write('#EXT-X-MAP:URI="%s"\r\n' % (SPLIT_INIT_SEGMENT_NAME))
         segment_pattern = SEGMENT_PATTERN.replace('ll','')
 
     if options.encryption_key:
+        print '-------------', track.id
         key_info = options.track_key_infos.get(track.id)
         media_playlist_file.write('#EXT-X-KEY:METHOD=SAMPLE-AES,URI="'+options.hls_key_url+'",IV=0x'+key_info['iv']+'\r\n')
 
     for i in range(len(track.segment_durations)):
         media_playlist_file.write('#EXTINF:%f,\r\n' % (track.segment_durations[i]))
-        if options.on_demand:
+        if options.on_demand or not options.split:
             segment          = track.parent.segments[track.moofs[i]]
             segment_position = segment[0].position
             segment_size     = reduce(operator.add, [atom.size for atom in segment], 0)
@@ -649,22 +650,16 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
                 if audio_groups[audio_group_name]['codec'] != audio_track.codec:
                     print 'WARNING: audio codecs not all the same:', audio_groups[audio_group_name]['codec'], audio_track.codec
 
-            if options.on_demand:
+            if options.on_demand or not options.split:
                 media_subdir        = ''
                 media_file_name     = audio_track.parent.media_name
-                media_playlist_name = media_file_name.replace(".mp4", ".m3u8")
+                media_playlist_name = audio_track.representation_id+".m3u8"
                 media_playlist_path = media_playlist_name
-                #base_url.text = ONDEMAND_MEDIA_FILE_PATTERN % (options.media_prefix, audio_track.representation_id)
-                #sidx_range = (audio_track.sidx_atom.position, audio_track.sidx_atom.position+audio_track.sidx_atom.size-1)
-                #init_range = (0, audio_track.moov_atom.position+audio_track.moov_atom.size-1)
             else:
-                if options.split:
-                    media_subdir        = audio_track.representation_id
-                    media_file_name     = ''
-                    media_playlist_name = options.hls_media_playlist_name
-                    media_playlist_path = media_subdir+'/'+media_playlist_name
-                else:
-                    raise Exception('mode not yet supported with HLS')
+                media_subdir        = audio_track.representation_id
+                media_file_name     = ''
+                media_playlist_name = options.hls_media_playlist_name
+                media_playlist_path = media_subdir+'/'+media_playlist_name
 
             master_playlist_file.write(('#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="%s",LANGUAGE="%s",NAME="%s",AUTOSELECT=YES,DEFAULT=YES,URI="%s"\r\n' % (
                                         audio_group_name,
@@ -676,20 +671,16 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
     master_playlist_file.write('\r\n')
     master_playlist_file.write('# Video\r\n')
     for video_track in all_video_tracks:
-        if options.on_demand:
+        if options.on_demand or not options.split:
             media_subdir        = ''
             media_file_name     = video_track.parent.media_name
-            media_playlist_name = media_file_name.replace(".mp4", ".m3u8")
+            media_playlist_name = video_track.representation_id+".m3u8"
             media_playlist_path = media_playlist_name
         else:
-            if options.split:
-                media_subdir        = video_track.representation_id
-                media_file_name     = ''
-                media_playlist_name = options.hls_media_playlist_name
-                media_playlist_path = media_subdir+'/'+media_playlist_name
-            else:
-                raise Exception('mode not yet supported with HLS')
-
+            media_subdir        = video_track.representation_id
+            media_file_name     = ''
+            media_playlist_name = options.hls_media_playlist_name
+            media_playlist_path = media_subdir+'/'+media_playlist_name
 
         if len(audio_groups):
             # one entry per audio group
@@ -1450,7 +1441,7 @@ def main():
             if options.no_media:
                 continue
 
-            # don't process any further if we won't have key material for this track
+            # don't process any further if we won't have key material for this media source
             if len(options.track_key_infos) == 0:
                 continue
 
