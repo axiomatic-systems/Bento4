@@ -221,8 +221,8 @@ def AddContentProtection(options, container, tracks):
 
     # resolve the default KID and KEY
     key_info = None
-    if hasattr(options, 'track_key_infos'):
-        key_info = options.track_key_infos.get(tracks[0].id)
+    if len(tracks):
+        key_info = tracks[0].key_info
 
     if key_info:
         default_kid = key_info['kid']
@@ -591,9 +591,7 @@ def OutputHlsTrack(options, track, media_subdir, media_playlist_name, media_file
         segment_pattern = SEGMENT_PATTERN.replace('ll','')
 
     if options.encryption_key:
-        print '-------------', track.id
-        key_info = options.track_key_infos.get(track.id)
-        media_playlist_file.write('#EXT-X-KEY:METHOD=SAMPLE-AES,URI="'+options.hls_key_url+'",IV=0x'+key_info['iv']+'\r\n')
+        media_playlist_file.write('#EXT-X-KEY:METHOD=SAMPLE-AES,URI="'+options.hls_key_url+'",IV=0x'+track.key_info['iv']+'\r\n')
 
     for i in range(len(track.segment_durations)):
         media_playlist_file.write('#EXTINF:%f,\r\n' % (track.segment_durations[i]))
@@ -809,9 +807,9 @@ def OutputSmooth(options, audio_tracks, video_tracks):
         key_info = None
         if options.encryption_key:
             if len(video_tracks):
-                key_info = options.track_key_infos.get(video_tracks[0].id)
+                key_info = video_tracks[0].key_info
                 if not key_info and len(audio_tracks):
-                    key_info = options.track_key_infos.get(audio_tracks[0].id)
+                    key_info = audio_tracks[0].key_info
 
         if key_info:
             kid = key_info['kid']
@@ -1071,12 +1069,17 @@ def ResolveEncryptionKeys(options):
             separator = key_spec.find(':')
             key_info['filter'] = [key_spec[:separator]]
             key_spec = key_spec[separator+1:]
+        iv_hex = None
         if key_spec.startswith('@'):
             kid_hex, key_hex = GetEncryptionKey(options, key_spec[1:])
         else:
             if ':' not in key_spec:
                 raise Exception('Invalid argument syntax for --encryption-key option')
-            kid_hex, key_hex = key_spec.split(':', 1)
+            parts = key_spec.split(':', 2)
+            kid_hex = parts[0]
+            key_hex = parts[1]
+            if len(parts) > 2:
+                iv_hex = parts[2]
             if len(kid_hex) != 32:
                 raise Exception('Invalid argument format for --encryption-key option')
 
@@ -1094,14 +1097,13 @@ def ResolveEncryptionKeys(options):
 
         key_info['key'] = key_hex
         key_info['kid'] = kid_hex
-        if options.hls:
+        key_info['iv']  = iv_hex or 'random'
+        if options.hls and not iv_hex:
             # for HLS, we need to know the IV
             import random
             sys_random = random.SystemRandom()
             random_iv = sys_random.getrandbits(128)
             key_info['iv'] = '%016x' % random_iv
-        else:
-            key_info['iv'] = 'random'
 
         options.key_infos.append(key_info)
 
@@ -1204,7 +1206,7 @@ def main():
                       help="Use the original DASH MPD namespace as it was specified in the first published specification")
     parser.add_option('', "--encryption-key", dest="encryption_key", metavar='<key-spec>', default=None,
                       help="Encrypt some or all tracks with MPEG CENC (AES-128), where <key-spec> specifies the KID(s) and Key(s) to use, using one of the following forms: " +
-                           "(1) <KID>:<key> with <KID> as a 32-character hex string and <key> either a 32-character hex string or the character '#' followed by a base64-encoded key seed; or " +
+                           "(1) <KID>:<key> or <KID>:<key>:<IV> with <KID> (and <IV> if specififed) as a 32-character hex string and <key> either a 32-character hex string or the character '#' followed by a base64-encoded key seed; or " +
                            "(2) @<key-locator> where <key-locator> is an expression of one of the supported key locator schemes. Each entry may be prefixed with an optional track filter, and multiple <key-spec> entries can be used, separated by ','. (see online docs for details)")
     parser.add_option('', "--encryption-cenc-scheme", dest="encryption_cenc_scheme", metavar='<cenc-scheme>', default='cenc', choices=('cenc', 'cbc1', 'cens', 'cbcs'),
                       help="MPEG Common Encryption scheme (cenc, cbc1, cens or cbcs). (default: cenc)")
@@ -1349,7 +1351,7 @@ def main():
         if options.verbose:
             for key_info in options.key_infos:
                 if key_info['key']:
-                    message = 'KID='+key_info['kid']+', KEY='+key_info['key']
+                    message = 'KID='+key_info['kid']+', KEY='+key_info['key']+', IV='+key_info['iv']
                 else:
                     message = '[NOT ENCRYPTED]'
                 print 'Key Info for '+'/'.join(key_info['filter'])+': '+message
@@ -1431,21 +1433,21 @@ def main():
             # select which KID/KEY to use for each track
             default_kid = options.key_infos[0]['kid']
             default_key = options.key_infos[0]['key']
-            options.track_key_infos = {}
+            media_source.track_key_infos = {}
             for track in info['tracks']:
                 for key_info in options.key_infos:
                     if track['type'].lower() in key_info['filter']:
-                        options.track_key_infos[track['id']] = key_info
+                        media_source.track_key_infos[track['id']] = key_info
 
             # skip now if we're only outputing the MPD
             if options.no_media:
                 continue
 
             # don't process any further if we won't have key material for this media source
-            if len(options.track_key_infos) == 0:
+            if len(media_source.track_key_infos) == 0:
                 continue
 
-            print 'Encrypting track IDs '+str(sorted(options.track_key_infos.keys()))+' in '+ GetMappedFileName(media_file)
+            print 'Encrypting track IDs '+str(sorted(media_source.track_key_infos.keys()))+' in '+ GetMappedFileName(media_file)
             encrypted_file = tempfile.NamedTemporaryFile(dir = options.output_dir, delete=False)
             encrypted_files[media_file] = encrypted_file
             TempFiles.append(encrypted_file.name)
@@ -1459,8 +1461,8 @@ def main():
                 if options.smooth or options.playready:
                     args += ['--global-option', 'mpeg-cenc.piff-compatible:true']
 
-            for track_id in sorted(options.track_key_infos.keys()):
-                key_info = options.track_key_infos[track_id]
+            for track_id in sorted(media_source.track_key_infos.keys()):
+                key_info = media_source.track_key_infos[track_id]
                 args += ['--key', str(track_id)+':'+key_info['key']+':'+key_info['iv'], '--property', str(track_id)+':KID:'+key_info['kid']]
 
             # EME Common Encryption / Clearkey
@@ -1525,6 +1527,10 @@ def main():
         print 'Audio:',     audio_sets
         print 'Video:',     video_sets
         print 'Subtitles:', subtitles_sets
+
+    # assign key info to tracks
+    for track in audio_tracks+video_tracks+subtitles_tracks:
+        track.key_info = track.parent.media_source.track_key_infos.get(track.id)
 
     # check that segments are consistent between tracks of the same adaptation set
     for tracks in video_sets.values():

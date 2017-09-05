@@ -348,6 +348,15 @@ def OutputHls(options, media_sources):
         master_playlist.write('\r\n')
         master_playlist.write('#EXT-X-VERSION:'+str(options.hls_version)+'\r\n')
 
+    # optional session key
+    if options.signal_session_key:
+        ext_x_session_key_line = '#EXT-X-SESSION-KEY:METHOD='+options.encryption_mode+',URI="'+options.encryption_key_uri+'"'
+        if options.encryption_key_format:
+            ext_x_session_key_line += ',KEYFORMAT="'+options.encryption_key_format+'"'
+        if options.encryption_key_format_versions:
+            ext_x_session_key_line += ',KEYFORMATVERSIONS="'+options.encryption_key_format_versions+'"'
+        master_playlist.write(ext_x_session_key_line+'\r\n')
+
     # process subtitles sources
     subtitles_files = [SubtitlesFile(options, media_source) for media_source in media_sources if media_source.format in ['ttml', 'webvtt']]
     if len(subtitles_files):
@@ -513,12 +522,14 @@ def main():
                       help="Encryption key in hexadecimal (default: no encryption)")
     parser.add_option('', '--encryption-iv-mode', dest="encryption_iv_mode", metavar="<mode>",
                       help="Encryption IV mode: 'sequence', 'random' or 'fps' (Fairplay Streaming) (default: sequence). When the mode is 'fps', the encryption key must be 32 bytes: 16 bytes for the key followed by 16 bytes for the IV.")
-    parser.add_option('', '--encryption-key-uri', dest="encryption_key_uri", metavar="<uri>",
+    parser.add_option('', '--encryption-key-uri', dest="encryption_key_uri", metavar="<uri>", default="key.bin",
                       help="Encryption key URI (may be a relative or absolute URI). (default: key.bin)")
     parser.add_option('', '--encryption-key-format', dest="encryption_key_format", metavar="<format>",
                       help="Encryption key format. (default: 'identity')")
     parser.add_option('', '--encryption-key-format-versions', dest="encryption_key_format_versions", metavar="<versions>",
                       help="Encryption key format versions.")
+    parser.add_option('', '--signal-session-key', dest='signal_session_key', action='store_true', default=False,
+                      help="Signal an #EXT-X-SESSION-KEY tag in the master playlist")
     parser.add_option('', '--fairplay', dest="fairplay", metavar="<fairplay-parameters>", help="Enable Fairplay Key Delivery. The <fairplay-parameters> argument is one or more <name>:<value> pair(s) (separated by '#' if more than one). Names include 'uri' [string] (required)")
     parser.add_option('', '--widevine', dest="widevine", metavar="<widevine-parameters>", help="Enable Widevine Key Delivery. The <widevine-parameters> argument is one or more <name>:<value> pair(s) (separated by '#' if more than one). Names include 'provider' [string] (required), 'content_id' [byte array in hex] (optional), 'kid' [16-byte array in hex] (required)")
     parser.add_option('', '--output-encryption-key', dest="output_encryption_key", action="store_true", default=False,
@@ -552,6 +563,11 @@ def main():
 
     # Fairplay option
     if options.fairplay:
+        if not options.encryption_key_format:
+            options.encryption_key_format = 'com.apple.streamingkeydelivery'
+        if not options.encryption_key_format_versions:
+            options.encryption_key_format_versions = '1'
+
         if options.encryption_iv_mode:
             if options.encryption_iv_mode != 'fps':
                 sys.stderr.write("ERROR: --fairplay requires --encryption-iv-mode to be 'fps'\n")
@@ -571,6 +587,8 @@ def main():
         if 'uri' not in options.fairplay:
             sys.stderr.write('ERROR: --fairplay option requires a "uri" parameter (ex: skd://xxx)\n')
             sys.exit(1)
+
+        options.signal_session_key = True
 
     # Widevine option
     if options.widevine:
@@ -598,6 +616,10 @@ def main():
         else:
             options.widevine['content_id'] = '*'
 
+    # defaults
+    if not options.encryption_mode:
+        options.encryption_mode = 'AES-128'
+        
     if options.encryption_mode == 'SAMPLE-AES':
         options.hls_version = 5
 
