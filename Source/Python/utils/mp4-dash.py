@@ -1529,8 +1529,9 @@ def main():
         print 'Subtitles:', subtitles_sets
 
     # assign key info to tracks
-    for track in audio_tracks+video_tracks+subtitles_tracks:
-        track.key_info = track.parent.media_source.track_key_infos.get(track.id)
+    if options.encryption_key:
+        for track in audio_tracks+video_tracks+subtitles_tracks:
+            track.key_info = track.parent.media_source.track_key_infos.get(track.id)
 
     # check that segments are consistent between tracks of the same adaptation set
     for tracks in video_sets.values():

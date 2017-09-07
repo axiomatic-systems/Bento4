@@ -651,6 +651,7 @@ class Mp4File:
 class MediaSource:
     def __init__(self, name):
         self.name = name
+        self.track_key_infos = {}
         if name.startswith('[') and ']' in name:
             try:
                 params = name[1:name.find(']')]
