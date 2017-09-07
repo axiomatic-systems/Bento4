@@ -266,7 +266,7 @@ def Bento4Command(options, name, *args, **kwargs):
 
     cmd += args
     if options.debug:
-        print 'COMMAND: ', cmd
+        print 'COMMAND: ', " ".join(cmd), cmd
     try:
         try:
             return check_output(cmd)
