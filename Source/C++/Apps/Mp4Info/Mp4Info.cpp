@@ -372,8 +372,10 @@ ShowSampleDescription_Text(AP4_SampleDescription& description, bool verbose)
     AP4_SampleDescription* desc = &description;
     if (desc->GetType() == AP4_SampleDescription::TYPE_PROTECTED) {
         AP4_ProtectedSampleDescription* prot_desc = AP4_DYNAMIC_CAST(AP4_ProtectedSampleDescription, desc);
-        if (prot_desc) ShowProtectedSampleDescription_Text(*prot_desc, verbose);
-        desc = prot_desc->GetOriginalSampleDescription();
+        if (prot_desc) {
+            ShowProtectedSampleDescription_Text(*prot_desc, verbose);
+            desc = prot_desc->GetOriginalSampleDescription();
+        }
     }
     
     if (verbose) {
@@ -567,8 +569,8 @@ ShowSampleDescription_Json(AP4_SampleDescription& description, bool verbose)
         if (prot_desc) {
             ShowProtectedSampleDescription_Json(*prot_desc, verbose);
             printf(",\n");
+            desc = prot_desc->GetOriginalSampleDescription();
         }
-        desc = prot_desc->GetOriginalSampleDescription();
     }
     char coding[5];
     AP4_FormatFourChars(coding, desc->GetFormat());
@@ -585,7 +587,7 @@ ShowSampleDescription_Json(AP4_SampleDescription& description, bool verbose)
         // MPEG sample description
         AP4_MpegSampleDescription* mpeg_desc = AP4_DYNAMIC_CAST(AP4_MpegSampleDescription, desc);
 
-        printf(",\n"),
+        printf(",\n");
         printf("\"stream_type\":%d,\n",          mpeg_desc->GetStreamType());
         printf("\"stream_type_name\":\"%s\",\n", mpeg_desc->GetStreamTypeString(mpeg_desc->GetStreamType()));
         printf("\"object_type\":%d,\n",          mpeg_desc->GetObjectTypeId());
@@ -609,7 +611,7 @@ ShowSampleDescription_Json(AP4_SampleDescription& description, bool verbose)
     AP4_AudioSampleDescription* audio_desc = AP4_DYNAMIC_CAST(AP4_AudioSampleDescription, desc);
     if (audio_desc) {
         // Audio sample description
-        printf(",\n"),
+        printf(",\n");
         printf("\"sample_rate\":%d,\n", audio_desc->GetSampleRate());
         printf("\"sample_size\":%d,\n", audio_desc->GetSampleSize());
         printf("\"channels\":%d",       audio_desc->GetChannelCount());
@@ -618,7 +620,7 @@ ShowSampleDescription_Json(AP4_SampleDescription& description, bool verbose)
         AP4_DYNAMIC_CAST(AP4_VideoSampleDescription, desc);
     if (video_desc) {
         // Video sample description
-        printf(",\n"),
+        printf(",\n");
         printf("\"width\":%d,\n",  video_desc->GetWidth());
         printf("\"height\":%d,\n", video_desc->GetHeight());
         printf("\"depth\":%d",     video_desc->GetDepth());

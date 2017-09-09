@@ -1508,11 +1508,6 @@ WriteSamples(AP4_Mpeg2TsWriter*               ts_writer,
     }
     
     if (Options.verbose) {
-        if (video_track) {
-            segment_duration = video_ts - last_ts;
-        } else {
-            segment_duration = audio_ts - last_ts;
-        }
         printf("Conversion complete, total duration=%.2f secs\n", total_duration);
     }
     
