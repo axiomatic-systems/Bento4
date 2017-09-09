@@ -80,9 +80,10 @@ AP4_HdlrAtom::AP4_HdlrAtom(AP4_UI32        size,
     stream.ReadUI32(m_Reserved[2]);
     
     // read the name unless it is empty
-    int name_size = size-(AP4_FULL_ATOM_HEADER_SIZE+20);
-    if (name_size == 0) return;
+    if (size < AP4_FULL_ATOM_HEADER_SIZE+20) return;
+    AP4_UI32 name_size = size-(AP4_FULL_ATOM_HEADER_SIZE+20);
     char* name = new char[name_size+1];
+    if (name == NULL) return;
     stream.Read(name, name_size);
     name[name_size] = '\0'; // force a null termination
     // handle a special case: the Quicktime files have a pascal
