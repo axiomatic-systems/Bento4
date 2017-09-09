@@ -73,6 +73,13 @@ AP4_StszAtom::AP4_StszAtom(AP4_UI32        size,
     stream.ReadUI32(m_SampleSize);
     stream.ReadUI32(m_SampleCount);
     if (m_SampleSize == 0) { // means that the samples have different sizes
+        // check for overflow
+        if (m_SampleCount > (size-8)/4) {
+            m_SampleCount = 0;
+            return;
+        }
+        
+        // read the entries
         AP4_Cardinal sample_count = m_SampleCount;
         m_Entries.SetItemCount(sample_count);
         unsigned char* buffer = new unsigned char[sample_count*4];

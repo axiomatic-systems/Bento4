@@ -89,7 +89,7 @@ AP4_HdlrAtom::AP4_HdlrAtom(AP4_UI32        size,
     // handle a special case: the Quicktime files have a pascal
     // string here, but ISO MP4 files have a C string.
     // we try to detect a pascal encoding and correct it.
-    if (name[0] == name_size-1) {
+    if ((AP4_UI08)name[0] == (AP4_UI08)(name_size-1)) {
         m_HandlerName = name+1;
     } else {
         m_HandlerName = name;
