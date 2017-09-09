@@ -490,13 +490,17 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
           case AP4_ATOM_TYPE_HVCE:
             if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
             atom = AP4_HvccAtom::Create(size_32, stream);
-            atom->SetType(AP4_ATOM_TYPE_HVCE);
+            if (atom) {
+                atom->SetType(AP4_ATOM_TYPE_HVCE);
+            }
             break;
 
           case AP4_ATOM_TYPE_AVCE:
             if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
             atom = AP4_AvccAtom::Create(size_32, stream);
-            atom->SetType(AP4_ATOM_TYPE_AVCE);
+            if (atom) {
+                atom->SetType(AP4_ATOM_TYPE_AVCE);
+            }
             break;
 
     #if !defined(AP4_CONFIG_MINI_BUILD)
