@@ -1692,7 +1692,7 @@ static aes_rval aes_enc_blk(const unsigned char in_blk[], unsigned char out_blk[
         {
             kp += nc;
             round(fwd_rnd, p1, p0, kp); 
-            pt = p0, p0 = p1, p1 = pt;
+            pt = p0; p0 = p1; p1 = pt;
         }
 #endif
         kp += nc;
@@ -1814,7 +1814,7 @@ static aes_rval aes_dec_blk(const unsigned char in_blk[], unsigned char out_blk[
         {
             kp -= nc;
             round(inv_rnd, p1, p0, kp); 
-            pt = p0, p0 = p1, p1 = pt;
+            pt = p0; p0 = p1; p1 = pt;
         }
 #endif
         kp -= nc;
