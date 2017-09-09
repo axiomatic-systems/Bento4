@@ -202,6 +202,8 @@ WriteSamples(AP4_Track*             track,
 int
 main(int argc, char** argv)
 {
+    int return_value = 1;
+    
     if (argc < 3) {
         PrintUsageAndExit();
     }
@@ -224,27 +226,32 @@ main(int argc, char** argv)
         key_option = true;
     }
 
+    AP4_ByteStream* input  = NULL;
+    AP4_File* input_file   = NULL;
+    AP4_ByteStream* output = NULL;
+    AP4_Movie*      movie  = NULL;
+    AP4_Track*      audio_track = NULL;
+
 	// create the input stream
-    AP4_ByteStream* input = NULL;
     result = AP4_FileByteStream::Create(*args++, AP4_FileByteStream::STREAM_MODE_READ, input);
     if (AP4_FAILED(result)) {
         fprintf(stderr, "ERROR: cannot open input (%d)\n", result);
+        goto end;
     }
     
 	// create the output stream
-    AP4_ByteStream* output = NULL;
     result = AP4_FileByteStream::Create(*args++, AP4_FileByteStream::STREAM_MODE_WRITE, output);
     if (AP4_FAILED(result)) {
         fprintf(stderr, "ERROR: cannot open output (%d)\n", result);
+        goto end;
     }
 
 	// open the file
-    AP4_File* input_file = new AP4_File(*input);   
+    input_file = new AP4_File(*input);
 
     // get the movie
     AP4_SampleDescription* sample_description;
-    AP4_Track* audio_track;
-    AP4_Movie* movie = input_file->GetMovie();
+    movie = input_file->GetMovie();
     if (movie == NULL) {
         fprintf(stderr, "ERROR: no movie in file\n");
         goto end;
@@ -272,27 +279,31 @@ main(int argc, char** argv)
     switch (sample_description->GetType()) {
         case AP4_SampleDescription::TYPE_MPEG: {
             WriteSamples(audio_track, sample_description, output);
+            return_value = 0;
             break;
         }
 
         case AP4_SampleDescription::TYPE_PROTECTED: 
             if (!key_option) {
                 fprintf(stderr, "ERROR: encrypted tracks require a key\n");
-                goto end;
+                return_value = 1;
+                break;
             }
             DecryptAndWriteSamples(audio_track, sample_description, key, output);
+            result = 0;
             break;
 
         default:
             fprintf(stderr, "ERROR: unsupported sample type\n");
+            return_value = 1;
             break;
     }
 
 end:
     delete input_file;
-    input->Release();
-    output->Release();
+    if (input) input->Release();
+    if (output) output->Release();
 
-    return 0;
+    return return_value;
 }
 
