@@ -1258,7 +1258,8 @@ AP4_AtomMetaDataValue::ToInteger() const
 +---------------------------------------------------------------------*/
 AP4_DataAtom::AP4_DataAtom(const AP4_MetaData::Value& value) :
     AP4_Atom(AP4_ATOM_TYPE_DATA, AP4_ATOM_HEADER_SIZE),
-    m_DataType(DATA_TYPE_BINARY)
+    m_DataType(DATA_TYPE_BINARY),
+    m_Source(NULL)
 {
     AP4_MemoryByteStream* memory = new AP4_MemoryByteStream();
     AP4_Size payload_size = 8;
@@ -1334,7 +1335,8 @@ AP4_DataAtom::AP4_DataAtom(const AP4_MetaData::Value& value) :
 |   AP4_DataAtom::AP4_DataAtom
 +---------------------------------------------------------------------*/
 AP4_DataAtom::AP4_DataAtom(AP4_UI32 size, AP4_ByteStream& stream) :
-    AP4_Atom(AP4_ATOM_TYPE_DATA, size)
+    AP4_Atom(AP4_ATOM_TYPE_DATA, size),
+    m_Source(NULL)
 {
     if (size < AP4_ATOM_HEADER_SIZE+8) return;
 
