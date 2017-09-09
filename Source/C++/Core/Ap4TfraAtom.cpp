@@ -46,6 +46,7 @@ AP4_TfraAtom::Create(AP4_Size size, AP4_ByteStream& stream)
 {
     AP4_UI08 version = 0;
     AP4_UI32 flags   = 0;
+    if (size < AP4_FULL_ATOM_HEADER_SIZE) return NULL;
     AP4_Result result = ReadFullHeader(stream, version, flags);
     if (AP4_FAILED(result)) return NULL;
     if (version > 1) return NULL;

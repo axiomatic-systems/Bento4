@@ -1570,6 +1570,7 @@ AP4_3GppLocalizedStringAtom::Create(Type type, AP4_UI32 size, AP4_ByteStream& st
 {
     AP4_UI08 version;
     AP4_UI32 flags;
+    if (size < AP4_FULL_ATOM_HEADER_SIZE) return NULL;
     if (AP4_FAILED(AP4_Atom::ReadFullHeader(stream, version, flags))) return NULL;
     if (version != 0) return NULL;
     return new AP4_3GppLocalizedStringAtom(type, size, version, flags, stream);
@@ -1663,6 +1664,7 @@ AP4_DcfStringAtom::Create(Type type, AP4_UI32 size, AP4_ByteStream& stream)
 {
     AP4_UI08 version;
     AP4_UI32 flags;
+    if (size < AP4_FULL_ATOM_HEADER_SIZE) return NULL;
     if (AP4_FAILED(AP4_Atom::ReadFullHeader(stream, version, flags))) return NULL;
     if (version != 0) return NULL;
     return new AP4_DcfStringAtom(type, size, version, flags, stream);
@@ -1725,6 +1727,7 @@ AP4_DcfdAtom::Create(AP4_UI32 size, AP4_ByteStream& stream)
 {
     AP4_UI08 version;
     AP4_UI32 flags;
+    if (size < AP4_FULL_ATOM_HEADER_SIZE) return NULL;
     if (AP4_FAILED(AP4_Atom::ReadFullHeader(stream, version, flags))) return NULL;
     if (version != 0) return NULL;
     if (size != AP4_FULL_ATOM_HEADER_SIZE+4) return NULL;

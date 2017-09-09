@@ -261,7 +261,7 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
                                       AP4_Atom*&      atom)
 {
     bool atom_is_large = (size_32 == 1);
-    bool force_64 = (size_32==1 && ((size_64>>32) == 0));
+    bool force_64 = (size_32 == 1 && ((size_64 >> 32) == 0));
     
     // create the atom
     if (GetContext() == AP4_ATOM_TYPE_STSD) {

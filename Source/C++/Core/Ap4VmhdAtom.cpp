@@ -42,6 +42,7 @@ AP4_VmhdAtom::Create(AP4_Size size, AP4_ByteStream& stream)
 {
     AP4_UI08 version;
     AP4_UI32 flags;
+    if (size < AP4_FULL_ATOM_HEADER_SIZE) return NULL;
     if (AP4_FAILED(AP4_Atom::ReadFullHeader(stream, version, flags))) return NULL;
     if (version != 0) return NULL;
     return new AP4_VmhdAtom(size, version, flags, stream);
