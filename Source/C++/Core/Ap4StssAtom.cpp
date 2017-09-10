@@ -70,11 +70,12 @@ AP4_StssAtom::AP4_StssAtom(AP4_UI32        size,
     AP4_Atom(AP4_ATOM_TYPE_STSS, size, version, flags),
     m_LookupCache(0)
 {
+    if (size - AP4_ATOM_HEADER_SIZE < 4) return;
     AP4_UI32 entry_count;
     stream.ReadUI32(entry_count);
     
     // check for bogus values
-    if (entry_count*4 > size) return;
+    if ((size - AP4_ATOM_HEADER_SIZE - 4) / 4 < entry_count) return;
     
     // read the table into a local array for conversion
     unsigned char* buffer = new unsigned char[entry_count*4];
