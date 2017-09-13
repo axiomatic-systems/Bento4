@@ -617,9 +617,9 @@ def main():
             options.widevine['content_id'] = '*'
 
     # defaults
-    if not options.encryption_mode:
+    if options.encryption_key and not options.encryption_mode:
         options.encryption_mode = 'AES-128'
-        
+
     if options.encryption_mode == 'SAMPLE-AES':
         options.hls_version = 5
 
