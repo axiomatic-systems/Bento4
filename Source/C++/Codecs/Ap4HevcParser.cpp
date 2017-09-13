@@ -156,6 +156,20 @@ ReadGolomb(AP4_BitReader& bits)
 }
 
 /*----------------------------------------------------------------------
+|   BitsNeeded
++---------------------------------------------------------------------*/
+static unsigned int
+BitsNeeded(unsigned int num_values)
+{
+    unsigned int bits_needed = 1;
+    while (num_values > (unsigned int)(1 << bits_needed)) {
+        ++bits_needed;
+    }
+    
+    return bits;
+}
+
+/*----------------------------------------------------------------------
 |   AP4_HevcNalParser::AP4_HevcNalParser
 +---------------------------------------------------------------------*/
 AP4_HevcNalParser::AP4_HevcNalParser() :
@@ -185,6 +199,7 @@ struct AP4_HevcSliceSegmentHeader {
     unsigned int colour_plane_id;
     unsigned int slice_pic_order_cnt_lsb;
     unsigned int short_term_ref_pic_set_sps_flag;
+    unsigned int short_term_ref_pic_set_idx;
 };
 
 /*----------------------------------------------------------------------
@@ -241,10 +256,7 @@ AP4_HevcSliceSegmentHeader::Parse(const AP4_UI08*                data,
         unsigned int PicWidthInCtbsY  = (sps->pic_width_in_luma_samples + CtbSizeY - 1) / CtbSizeY;
         unsigned int PicHeightInCtbsY = (sps->pic_height_in_luma_samples + CtbSizeY - 1) / CtbSizeY;
         unsigned int PicSizeInCtbsY   = PicWidthInCtbsY * PicHeightInCtbsY;
-        unsigned int bits_needed = 1;
-        while (PicSizeInCtbsY > (unsigned int)(1 << bits_needed)) {
-            ++bits_needed;
-        }
+        unsigned int bits_needed = BitsNeeded(PicSizeInCtbsY);
         slice_segment_address = bits.ReadBits(bits_needed);
     }
     
@@ -262,6 +274,23 @@ AP4_HevcSliceSegmentHeader::Parse(const AP4_UI08*                data,
     if (nal_unit_type != AP4_HEVC_NALU_TYPE_IDR_W_RADL && nal_unit_type != AP4_HEVC_NALU_TYPE_IDR_N_LP) {
         slice_pic_order_cnt_lsb = bits.ReadBits(sps->log2_max_pic_order_cnt_lsb_minus4+4);
         short_term_ref_pic_set_sps_flag = bits.ReadBit();
+        if (!short_term_ref_pic_set_sps_flag) {
+            // short_term_ref_pic_set(num_short_term_ref_pic_sets)
+            unsigned int stRpsIdx = sps->num_short_term_ref_pic_sets;
+            unsigned int inter_ref_pic_set_prediction_flag = 0;
+            if (stRpsIdx != 0) {
+                inter_ref_pic_set_prediction_flag = bits.ReadBit();
+            }
+            if (inter_ref_pic_set_prediction_flag) {
+                if (stRpsIdx == sps->num_short_term_ref_pic_sets) {
+                    
+                }
+            } else {
+            
+            }
+        } else if (sps->num_short_term_ref_pic_sets > 1) {
+            short_term_ref_pic_set_idx = bits.ReadBits(BitsNeeded(sps->num_short_term_ref_pic_sets));
+        }
     }
     
     return AP4_SUCCESS;
