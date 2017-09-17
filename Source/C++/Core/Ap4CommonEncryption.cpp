@@ -217,7 +217,8 @@ AP4_CencAdvancedSubSampleMapper::GetSubSampleMap(AP4_DataBuffer&      sample_dat
 +---------------------------------------------------------------------*/
 AP4_CencCbcsSubSampleMapper::AP4_CencCbcsSubSampleMapper(AP4_Size nalu_length_size, AP4_UI32 format, AP4_TrakAtom* trak) :
     AP4_CencSubSampleMapper(nalu_length_size, format),
-    m_AvcParser(NULL)
+    m_AvcParser(NULL),
+    m_HevcParser(NULL)
 {
     if (!trak) return;
     
@@ -225,26 +226,49 @@ AP4_CencCbcsSubSampleMapper::AP4_CencCbcsSubSampleMapper(AP4_Size nalu_length_si
     AP4_StsdAtom* stsd = AP4_DYNAMIC_CAST(AP4_StsdAtom, trak->FindChild("mdia/minf/stbl/stsd"));
     if (!stsd) return;
     
-    // create the parser
-    m_AvcParser = new AP4_AvcFrameParser();
-    
-    // look for an avc sample description
-    AP4_AvccAtom* avcc = AP4_DYNAMIC_CAST(AP4_AvccAtom, stsd->FindChild("avc1/avcC"));
-    if (!avcc)    avcc = AP4_DYNAMIC_CAST(AP4_AvccAtom, stsd->FindChild("avc2/avcC"));
-    if (!avcc)    avcc = AP4_DYNAMIC_CAST(AP4_AvccAtom, stsd->FindChild("avc3/avcC"));
-    if (!avcc)    avcc = AP4_DYNAMIC_CAST(AP4_AvccAtom, stsd->FindChild("avc4/avcC"));
-    if (!avcc)    return;
-    
-    // parse the sps and pps if we have them
-    AP4_Array<AP4_DataBuffer>& sps_list = avcc->GetSequenceParameters();
-    for (unsigned int i=0; i<sps_list.ItemCount(); i++) {
-        AP4_DataBuffer& sps = sps_list[i];
-        ParseAvcData(sps.GetData(), sps.GetDataSize());
-    }
-    AP4_Array<AP4_DataBuffer>& pps_list = avcc->GetPictureParameters();
-    for (unsigned int i=0; i<pps_list.ItemCount(); i++) {
-        AP4_DataBuffer& pps = pps_list[i];
-        ParseAvcData(pps.GetData(), pps.GetDataSize());
+    if (format == AP4_SAMPLE_FORMAT_AVC1 ||
+        format == AP4_SAMPLE_FORMAT_AVC2 ||
+        format == AP4_SAMPLE_FORMAT_AVC3 ||
+        format == AP4_SAMPLE_FORMAT_AVC4) {
+        // create the parser
+        m_AvcParser = new AP4_AvcFrameParser();
+        
+        // look for an avc sample description
+        AP4_AvccAtom* avcc = AP4_DYNAMIC_CAST(AP4_AvccAtom, stsd->FindChild("avc1/avcC"));
+        if (!avcc)    avcc = AP4_DYNAMIC_CAST(AP4_AvccAtom, stsd->FindChild("avc2/avcC"));
+        if (!avcc)    avcc = AP4_DYNAMIC_CAST(AP4_AvccAtom, stsd->FindChild("avc3/avcC"));
+        if (!avcc)    avcc = AP4_DYNAMIC_CAST(AP4_AvccAtom, stsd->FindChild("avc4/avcC"));
+        if (!avcc)    return;
+        
+        // parse the sps and pps if we have them
+        AP4_Array<AP4_DataBuffer>& sps_list = avcc->GetSequenceParameters();
+        for (unsigned int i=0; i<sps_list.ItemCount(); i++) {
+            AP4_DataBuffer& sps = sps_list[i];
+            ParseAvcData(sps.GetData(), sps.GetDataSize());
+        }
+        AP4_Array<AP4_DataBuffer>& pps_list = avcc->GetPictureParameters();
+        for (unsigned int i=0; i<pps_list.ItemCount(); i++) {
+            AP4_DataBuffer& pps = pps_list[i];
+            ParseAvcData(pps.GetData(), pps.GetDataSize());
+        }
+    } else if (format == AP4_SAMPLE_FORMAT_HEV1 ||
+               format == AP4_SAMPLE_FORMAT_HVC1) {
+        // create the parser
+        m_HevcParser = new AP4_HevcFrameParser();
+        
+        // look for an hevc sample description
+        AP4_HvccAtom* hvcc = AP4_DYNAMIC_CAST(AP4_HvccAtom, stsd->FindChild("hvc1/hvcC"));
+        if (!hvcc)    hvcc = AP4_DYNAMIC_CAST(AP4_HvccAtom, stsd->FindChild("hev 1/hvcC"));
+        if (!hvcc)    return;
+        
+        // parse the vps, sps and pps if we have them
+        const AP4_Array<AP4_HvccAtom::Sequence>& sequence_list = hvcc->GetSequences();
+        for (unsigned int i=0; i<sequence_list.ItemCount(); i++) {
+            const AP4_Array<AP4_DataBuffer>& nalus = sequence_list[i].m_Nalus;
+            for (unsigned int j=0; j<nalus.ItemCount(); j++) {
+                ParseHevcData(nalus[j].GetData(), nalus[j].GetDataSize());
+            }
+        }
     }
 }
 
@@ -266,6 +290,24 @@ AP4_CencCbcsSubSampleMapper::ParseAvcData(const AP4_UI08* data, AP4_Size data_si
     
     AP4_AvcFrameParser::AccessUnitInfo access_unit_info;
     AP4_Result result = m_AvcParser->Feed(data, data_size, access_unit_info);
+    if (AP4_FAILED(result)) return result;
+    
+    // cleanup
+    access_unit_info.Reset();
+    
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_CencCbcsSubSampleMapper::ParseHevcData
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_CencCbcsSubSampleMapper::ParseHevcData(const AP4_UI08* data, AP4_Size data_size)
+{
+    if (!m_HevcParser) return AP4_ERROR_INVALID_PARAMETERS;
+    
+    AP4_HevcFrameParser::AccessUnitInfo access_unit_info;
+    AP4_Result result = m_HevcParser->Feed(data, data_size, access_unit_info);
     if (AP4_FAILED(result)) return result;
     
     // cleanup

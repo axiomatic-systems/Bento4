@@ -47,6 +47,7 @@ class AP4_SaizAtom;
 class AP4_SaioAtom;
 class AP4_CencSampleInfoTable;
 class AP4_AvcFrameParser;
+class AP4_HevcFrameParser;
 
 /*----------------------------------------------------------------------
 |   constants
@@ -497,10 +498,12 @@ public:
     
 private:
     // members
-    AP4_AvcFrameParser* m_AvcParser;
+    AP4_AvcFrameParser*  m_AvcParser;
+    AP4_HevcFrameParser* m_HevcParser;
     
     // methods
     AP4_Result ParseAvcData(const AP4_UI08* data, AP4_Size data_size);
+    AP4_Result ParseHevcData(const AP4_UI08* data, AP4_Size data_size);
 };
 
 /*----------------------------------------------------------------------
