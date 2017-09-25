@@ -155,7 +155,7 @@ AP4_AvccAtom::AP4_AvccAtom(AP4_UI32 size, const AP4_UI08* payload) :
         if (cursor+2 <= payload_size) {
             AP4_UI16 param_length = AP4_BytesToInt16BE(&payload[cursor]);
             cursor += 2;
-            if (cursor + param_length < payload_size) {
+            if (cursor + param_length <= payload_size) {
                 m_SequenceParameters.Append(AP4_DataBuffer());
                 m_SequenceParameters[i].SetData(&payload[cursor], param_length);
                 cursor += param_length;
@@ -168,7 +168,7 @@ AP4_AvccAtom::AP4_AvccAtom(AP4_UI32 size, const AP4_UI08* payload) :
         if (cursor+2 <= payload_size) {
             AP4_UI16 param_length = AP4_BytesToInt16BE(&payload[cursor]);
             cursor += 2;
-            if (cursor + param_length < payload_size) {
+            if (cursor + param_length <= payload_size) {
                 m_PictureParameters.Append(AP4_DataBuffer());
                 m_PictureParameters[i].SetData(&payload[cursor], param_length);
                 cursor += param_length;
