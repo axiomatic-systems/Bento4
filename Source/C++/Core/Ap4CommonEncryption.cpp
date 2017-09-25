@@ -258,7 +258,7 @@ AP4_CencCbcsSubSampleMapper::AP4_CencCbcsSubSampleMapper(AP4_Size nalu_length_si
         
         // look for an hevc sample description
         AP4_HvccAtom* hvcc = AP4_DYNAMIC_CAST(AP4_HvccAtom, stsd->FindChild("hvc1/hvcC"));
-        if (!hvcc)    hvcc = AP4_DYNAMIC_CAST(AP4_HvccAtom, stsd->FindChild("hev 1/hvcC"));
+        if (!hvcc)    hvcc = AP4_DYNAMIC_CAST(AP4_HvccAtom, stsd->FindChild("hev1/hvcC"));
         if (!hvcc)    return;
         
         // parse the vps, sps and pps if we have them
@@ -355,29 +355,83 @@ AP4_CencCbcsSubSampleMapper::GetSubSampleMap(AP4_DataBuffer&      sample_data,
 
         // skip encryption if the NAL unit should be left unencrypted for this specific format/type
         bool skip = false;
-        const AP4_UI08* nalu_data = &in[m_NaluLengthSize];
-        unsigned int nalu_type = nalu_data[0] & 0x1F;
         if (m_Format == AP4_SAMPLE_FORMAT_AVC1 ||
             m_Format == AP4_SAMPLE_FORMAT_AVC2 ||
             m_Format == AP4_SAMPLE_FORMAT_AVC3 ||
             m_Format == AP4_SAMPLE_FORMAT_AVC4) {
-            if (nalu_type != AP4_AVC_NAL_UNIT_TYPE_CODED_SLICE_OF_NON_IDR_PICTURE &&
-                nalu_type != AP4_AVC_NAL_UNIT_TYPE_CODED_SLICE_DATA_PARTITION_A   &&
-                nalu_type != AP4_AVC_NAL_UNIT_TYPE_CODED_SLICE_OF_IDR_PICTURE) {
-                // this NAL unit does not have a slice header
-                skip = true;
-            }
-            
-            // parse SPS and PPS NAL units
-            if (nalu_type == AP4_AVC_NAL_UNIT_TYPE_SPS ||
-                nalu_type == AP4_AVC_NAL_UNIT_TYPE_PPS) {
-                AP4_Result result = ParseAvcData(nalu_data, nalu_length);
+            const AP4_UI08* nalu_data = &in[m_NaluLengthSize];
+            unsigned int nalu_type = nalu_data[0] & 0x1F;
+
+            if (nalu_type == AP4_AVC_NAL_UNIT_TYPE_CODED_SLICE_OF_NON_IDR_PICTURE ||
+                nalu_type == AP4_AVC_NAL_UNIT_TYPE_CODED_SLICE_DATA_PARTITION_A   ||
+                nalu_type == AP4_AVC_NAL_UNIT_TYPE_CODED_SLICE_OF_IDR_PICTURE) {
+                // parse the NAL unit to get the slice header size
+                if (m_AvcParser == NULL) return AP4_ERROR_INTERNAL;
+                AP4_AvcSliceHeader slice_header;
+                unsigned int nalu_ref_idc = (nalu_data[0]>>5)&3;
+                AP4_Result result = m_AvcParser->ParseSliceHeader(&nalu_data[1],
+                                                                  nalu_length-1,
+                                                                  nalu_type,
+                                                                  nalu_ref_idc,
+                                                                  slice_header);
                 if (AP4_FAILED(result)) {
                     return result;
                 }
+
+                // leave the slice header in the clear, including the NAL type
+                unsigned int cleartext_size = m_NaluLengthSize+1+(slice_header.size+7)/8;
+                unsigned int encrypted_size = nalu_size-cleartext_size;
+                
+                bytes_of_cleartext_data.Append(cleartext_size);
+                bytes_of_encrypted_data.Append(encrypted_size);
+            } else {
+                // this NAL unit does not have a slice header
+                skip = true;
+
+                // parse SPS and PPS NAL units
+                if (nalu_type == AP4_AVC_NAL_UNIT_TYPE_SPS ||
+                    nalu_type == AP4_AVC_NAL_UNIT_TYPE_PPS) {
+                    AP4_Result result = ParseAvcData(nalu_data, nalu_length);
+                    if (AP4_FAILED(result)) {
+                        return result;
+                    }
+                }
+            }
+        } else if (m_Format == AP4_SAMPLE_FORMAT_HEV1 ||
+                   m_Format == AP4_SAMPLE_FORMAT_HVC1) {
+            const AP4_UI08* nalu_data = &in[m_NaluLengthSize];
+            unsigned int nalu_type = (nalu_data[0] >> 1) & 0x3F;
+            
+            if (nalu_type < AP4_HEVC_NALU_TYPE_VPS_NUT) {
+                // this is a VCL NAL Unit
+                if (m_HevcParser == NULL) return AP4_ERROR_INTERNAL;
+                AP4_HevcSliceSegmentHeader slice_header;
+                AP4_Result result = m_HevcParser->ParseSliceSegmentHeader(&nalu_data[2], nalu_length-2, nalu_type, slice_header);
+                if (AP4_FAILED(result)) {
+                    return result;
+                }
+
+                // leave the slice header in the clear, including the NAL type
+                unsigned int cleartext_size = m_NaluLengthSize+2+(slice_header.size+7)/8;
+                unsigned int encrypted_size = nalu_size-cleartext_size;
+                
+                bytes_of_cleartext_data.Append(cleartext_size);
+                bytes_of_encrypted_data.Append(encrypted_size);
+            } else {
+                skip = true;
+
+                // parse VPS, SPS and PPS NAL units
+                if (nalu_type == AP4_HEVC_NALU_TYPE_VPS_NUT ||
+                    nalu_type == AP4_HEVC_NALU_TYPE_SPS_NUT ||
+                    nalu_type == AP4_HEVC_NALU_TYPE_PPS_NUT) {
+                    AP4_Result result = ParseHevcData(nalu_data, nalu_length);
+                    if (AP4_FAILED(result)) {
+                        return result;
+                    }
+                }
             }
         } else {
-            // non-AVC formats not supported here yet
+            // only AVC and HEVC elementary streams are supported.
             return AP4_ERROR_NOT_SUPPORTED;
         }
 
@@ -390,28 +444,8 @@ AP4_CencCbcsSubSampleMapper::GetSubSampleMap(AP4_DataBuffer&      sample_data,
                 bytes_of_encrypted_data.Append(0);
                 range -= cleartext_size;
             }
-        } else {
-            // parse the NAL unit to get the slice header size
-            if (m_AvcParser == NULL) return AP4_ERROR_INTERNAL;
-            AP4_AvcSliceHeader slice_header;
-            unsigned int nalu_ref_idc = (nalu_data[0]>>5)&3;
-            AP4_Result result = m_AvcParser->ParseSliceHeader(&nalu_data[1],
-                                                              nalu_length-1,
-                                                              nalu_type,
-                                                              nalu_ref_idc,
-                                                              slice_header);
-            if (AP4_FAILED(result)) {
-                return result;
-            }
-
-            // leave the slice header in the clear, including the NAL type
-            unsigned int cleartext_size = m_NaluLengthSize+1+(slice_header.size+7)/8;
-            unsigned int encrypted_size = nalu_size-cleartext_size;
-            
-            bytes_of_cleartext_data.Append(cleartext_size);
-            bytes_of_encrypted_data.Append(encrypted_size);
         }
-                
+        
         // move the pointers
         in += nalu_size;
     }

@@ -374,9 +374,12 @@ public:
                               AP4_UI08                         temporal_id_nested,
                               AP4_UI08                         nalu_length_size,
                               const AP4_Array<AP4_DataBuffer>& video_parameters,
+                              AP4_UI08                         video_parameters_completeness,
                               const AP4_Array<AP4_DataBuffer>& sequence_parameters,
-                              const AP4_Array<AP4_DataBuffer>& picture_parameters);
-    
+                              AP4_UI08                         sequence_parameters_completeness,
+                              const AP4_Array<AP4_DataBuffer>& picture_parameters,
+                              AP4_UI08                         picture_parameters_completeness);
+ 
     // accessors
     AP4_UI08 GetConfigurationVersion()             const { return m_HvccAtom->GetConfigurationVersion(); }
     AP4_UI08 GetGeneralProfileSpace()              const { return m_HvccAtom->GetGeneralProfileSpace(); }

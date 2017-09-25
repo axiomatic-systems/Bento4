@@ -206,8 +206,6 @@ AP4_HevcSliceSegmentHeader::Parse(const AP4_UI08*                data,
     AP4_NalParser::Unescape(unescaped);
     AP4_BitReader bits(unescaped.GetData(), unescaped.GetDataSize());
 
-    bits.SkipBits(16); // NAL Unit Header
-    
     first_slice_segment_in_pic_flag = bits.ReadBit();
     if (nal_unit_type >= AP4_HEVC_NALU_TYPE_BLA_W_LP && nal_unit_type <= AP4_HEVC_NALU_TYPE_RSV_IRAP_VCL23) {
         no_output_of_prior_pics_flag = bits.ReadBit();
@@ -299,6 +297,9 @@ AP4_HevcSliceSegmentHeader::Parse(const AP4_UI08*                data,
             bits.ReadBits(8); // slice_segment_header_extension_data_byte[i]
         }
     }
+
+    /* compute the size */
+    size = bits.GetBitsRead();
 
     return AP4_SUCCESS;
 }
@@ -858,7 +859,10 @@ AP4_HevcFrameParser::Feed(const void*     data,
         eos = false;
     }
     
-    return Feed(nal_unit->GetData(), nal_unit->GetDataSize(), access_unit_info, eos);
+    return Feed(nal_unit ? nal_unit->GetData() : NULL,
+                nal_unit ? nal_unit->GetDataSize() : 0,
+                access_unit_info,
+                eos);
 }
 
 /*----------------------------------------------------------------------
@@ -875,7 +879,7 @@ AP4_HevcFrameParser::Feed(const AP4_UI08* nal_unit,
     // default return values
     access_unit_info.Reset();
     
-    if (nal_unit && nal_unit_size) {
+    if (nal_unit && nal_unit_size >= 2) {
         unsigned int nal_unit_type    = (nal_unit[0] >> 1) & 0x3F;
         unsigned int nuh_layer_id     = (((nal_unit[0] & 1) << 5) | (nal_unit[1] >> 3));
         unsigned int nuh_temporal_id  = nal_unit[1] & 0x7;
@@ -901,20 +905,21 @@ AP4_HevcFrameParser::Feed(const AP4_UI08* nal_unit,
         if (nal_unit_type < AP4_HEVC_NALU_TYPE_VPS_NUT) {
             // this is a VCL NAL Unit
             AP4_HevcSliceSegmentHeader* slice_header = new AP4_HevcSliceSegmentHeader;
-            result = slice_header->Parse(nal_unit, nal_unit_size, nal_unit_type, &m_PPS[0], &m_SPS[0]);
+            result = slice_header->Parse(nal_unit+2, nal_unit_size-2, nal_unit_type, &m_PPS[0], &m_SPS[0]);
             if (AP4_FAILED(result)) {
-                DBG_PRINTF_1("VLC parsing failed (%d)", result);
+                DBG_PRINTF_1("VCL parsing failed (%d)", result);
                 return AP4_ERROR_INVALID_FORMAT;
             }
             
 #if defined(AP4_HEVC_PARSER_ENABLE_DEBUG)
             const char* slice_type_name = AP4_HevcNalParser::SliceTypeName(slice_header->slice_type);
             if (slice_type_name == NULL) slice_type_name = "?";
-            DBG_PRINTF_4(" pps_id=%d, first=%s, slice_type=%d (%s), ",
+            DBG_PRINTF_5(" pps_id=%d, first=%s, slice_type=%d (%s), size=%d, ",
                 slice_header->slice_pic_parameter_set_id,
                 slice_header->first_slice_segment_in_pic_flag?"YES":"NO",
                 slice_header->slice_type,
-                slice_type_name);
+                slice_type_name,
+                slice_header->size);
 #endif
             if (slice_header->first_slice_segment_in_pic_flag) {
                 CheckIfAccessUnitIsCompleted(access_unit_info);
@@ -1021,6 +1026,18 @@ AP4_HevcFrameParser::Feed(const AP4_UI08* nal_unit,
     }
     
     return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_HevFrameParser::AccessUnitInfo::Reset
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_HevcFrameParser::ParseSliceSegmentHeader(const AP4_UI08*             data,
+                                             unsigned int                data_size,
+                                             unsigned int                nal_unit_type,
+                                             AP4_HevcSliceSegmentHeader& slice_header)
+{
+    return slice_header.Parse(data, data_size, nal_unit_type, &m_PPS[0], &m_SPS[0]);
 }
 
 /*----------------------------------------------------------------------

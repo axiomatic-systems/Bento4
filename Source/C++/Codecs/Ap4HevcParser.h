@@ -375,6 +375,11 @@ public:
                     AccessUnitInfo& access_unit_info,
                     bool            last_unit=false);
 
+    AP4_Result ParseSliceSegmentHeader(const AP4_UI08*             data,
+                                       unsigned int                data_size,
+                                       unsigned int                nal_unit_type,
+                                       AP4_HevcSliceSegmentHeader& slice_header);
+
     AP4_HevcVideoParameterSet**    GetVideoParameterSets()    { return &m_VPS[0]; }
     AP4_HevcSequenceParameterSet** GetSequenceParameterSets() { return &m_SPS[0]; }
     AP4_HevcPictureParameterSet**  GetPictureParameterSets()  { return &m_PPS[0]; }

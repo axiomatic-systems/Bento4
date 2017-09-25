@@ -465,8 +465,11 @@ AP4_HevcSampleDescription::AP4_HevcSampleDescription(AP4_UI32                   
                                                      AP4_UI08                         temporal_id_nested,
                                                      AP4_UI08                         nalu_length_size,
                                                      const AP4_Array<AP4_DataBuffer>& video_parameters,
+                                                     AP4_UI08                         video_parameters_completeness,
                                                      const AP4_Array<AP4_DataBuffer>& sequence_parameters,
-                                                     const AP4_Array<AP4_DataBuffer>& picture_parameters) :
+                                                     AP4_UI08                         sequence_parameters_completeness,
+                                                     const AP4_Array<AP4_DataBuffer>& picture_parameters,
+                                                     AP4_UI08                         picture_parameters_completeness) :
     AP4_SampleDescription(TYPE_HEVC, format, NULL),
     AP4_VideoSampleDescription(width, height, depth, compressor_name)
 {
@@ -487,8 +490,11 @@ AP4_HevcSampleDescription::AP4_HevcSampleDescription(AP4_UI32                   
                                   temporal_id_nested,
                                   nalu_length_size,
                                   video_parameters,
+                                  video_parameters_completeness,
                                   sequence_parameters,
-                                  picture_parameters);
+                                  sequence_parameters_completeness,
+                                  picture_parameters,
+                                  picture_parameters_completeness);
     m_Details.AddChild(m_HvccAtom);
 }
 
