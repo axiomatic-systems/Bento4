@@ -1684,7 +1684,7 @@ def main():
         else:
             for mp4_file in mp4_files.values():
                 print 'Processing and Copying media file', GetMappedFileName(mp4_file.media_source.filename)
-                media_filename = path.join(options.output_dir.decode('utf-8'), mp4_file.media_name)
+                media_filename = path.join(options.output_dir.decode('utf-8'), mp4_file.media_name).encode('utf8')
                 if not options.force_output and path.exists(media_filename):
                     PrintErrorAndExit('ERROR: file ' + media_filename + ' already exists')
 
