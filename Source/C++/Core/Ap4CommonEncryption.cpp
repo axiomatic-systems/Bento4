@@ -1458,9 +1458,23 @@ AP4_CencEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
             cipher_mode = AP4_BlockCipher::CTR;
             cipher_ctr_params.counter_size = 8;
             cipher_mode_params = &cipher_ctr_params;
-
+            cipher_iv_size = 8;
             track_encrypter = new AP4_CencTrackEncrypter(m_Variant,
                                                          1,
+                                                         cipher_iv_size,
+                                                         kid,
+                                                         0,
+                                                         NULL,
+                                                         0,
+                                                         0,
+                                                         entries,
+                                                         enc_format);
+            break;
+            
+        case AP4_CENC_VARIANT_PIFF_CBC:
+            cipher_mode = AP4_BlockCipher::CBC;
+            track_encrypter = new AP4_CencTrackEncrypter(m_Variant,
+                                                         2,
                                                          cipher_iv_size,
                                                          kid,
                                                          0,
@@ -1516,20 +1530,6 @@ AP4_CencEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
                                                          enc_format);
             break;
 
-        case AP4_CENC_VARIANT_PIFF_CBC:
-            cipher_mode = AP4_BlockCipher::CBC;
-            track_encrypter = new AP4_CencTrackEncrypter(m_Variant,
-                                                         2,
-                                                         cipher_iv_size,
-                                                         kid,
-                                                         0,
-                                                         NULL,
-                                                         0,
-                                                         0,
-                                                         entries, 
-                                                         enc_format);
-            break;
-            
         case AP4_CENC_VARIANT_MPEG_CBC1:
             cipher_mode = AP4_BlockCipher::CBC;
             track_encrypter = new AP4_CencTrackEncrypter(m_Variant,
