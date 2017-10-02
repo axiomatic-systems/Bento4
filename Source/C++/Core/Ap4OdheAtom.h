@@ -57,7 +57,7 @@ public:
 
     // constructor
     /**
-     * @param: ohdr ohdr atom passed with transfer of ownership semantics
+     * @param ohdr ohdr atom passed with transfer of ownership semantics
      */
     AP4_OdheAtom(const char* content_type, AP4_OhdrAtom* ohdr);
                  

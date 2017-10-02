@@ -1001,7 +1001,10 @@ AP4_AvcFrameParser::Feed(const void*     data,
         eos = false;
     }
     
-    return Feed(nal_unit->GetData(), nal_unit->GetDataSize(), access_unit_info, eos);
+    return Feed(nal_unit ? nal_unit->GetData() : NULL,
+                nal_unit ? nal_unit->GetDataSize() : 0,
+                access_unit_info,
+                eos);
 }
 
 /*----------------------------------------------------------------------

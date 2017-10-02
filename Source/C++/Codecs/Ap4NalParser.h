@@ -49,15 +49,15 @@ public:
     /**
      * Feed some data to the parser and look for the next NAL Unit.
      *
-     * @param data: Pointer to the memory buffer with the data to feed.
-     * @param data_size: Size in bytes of the buffer pointed to by the
+     * @param data Pointer to the memory buffer with the data to feed.
+     * @param data_size Size in bytes of the buffer pointed to by the
      * data pointer.
-     * @param bytes_consumed: Number of bytes from the data buffer that were
+     * @param bytes_consumed Number of bytes from the data buffer that were
      * consumed and stored by the parser.
-     * @param nalu: Reference to a pointer to a buffer object that contains
+     * @param nalu Reference to a pointer to a buffer object that contains
      * a NAL unit found in the previously fed data, or a NULL pointer if no 
      * NAL unit can be found so far.
-     * @param eos: Boolean flag that indicates if this buffer is the last
+     * @param eos Boolean flag that indicates if this buffer is the last
      * buffer in the stream/file (End Of Stream).
      *
      * @result: AP4_SUCCESS is the call succeeds, or an error code if it

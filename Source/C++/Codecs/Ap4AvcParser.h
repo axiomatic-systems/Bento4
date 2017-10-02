@@ -236,16 +236,16 @@ public:
     /**
      * Feed some data to the parser and look for the next NAL Unit.
      *
-     * @param data: Pointer to the memory buffer with the data to feed.
-     * @param data_size: Size in bytes of the buffer pointed to by the
+     * @param data Pointer to the memory buffer with the data to feed.
+     * @param data_size Size in bytes of the buffer pointed to by the
      * data pointer.
-     * @param bytes_consumed: Number of bytes from the data buffer that were
+     * @param bytes_consumed Number of bytes from the data buffer that were
      * consumed and stored by the parser.
-     * @param access_unit_info: Reference to a AccessUnitInfo structure that will
+     * @param access_unit_info Reference to a AccessUnitInfo structure that will
      * contain information about any access unit found in the data. If no
      * access unit was found, the nal_units field of this structure will be an
      * empty array.
-     * @param eos: Boolean flag that indicates if this buffer is the last
+     * @param eos Boolean flag that indicates if this buffer is the last
      * buffer in the stream/file (End Of Stream).
      *
      * @result: AP4_SUCCESS is the call succeeds, or an error code if it

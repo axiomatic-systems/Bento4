@@ -102,6 +102,10 @@ const unsigned int AP4_HEVC_ACCESS_UNIT_FLAG_IS_RADL             = 0x08;
 const unsigned int AP4_HEVC_ACCESS_UNIT_FLAG_IS_RASL             = 0x10;
 const unsigned int AP4_HEVC_ACCESS_UNIT_FLAG_IS_SUBLAYER_NON_REF = 0x20;
 
+const unsigned int AP4_HEVC_SLICE_TYPE_B = 0;
+const unsigned int AP4_HEVC_SLICE_TYPE_P = 1;
+const unsigned int AP4_HEVC_SLICE_TYPE_I = 2;
+
 /*----------------------------------------------------------------------
 |   class references
 +---------------------------------------------------------------------*/
@@ -160,6 +164,37 @@ struct AP4_HevcPictureParameterSet {
     unsigned int   dependent_slice_segments_enabled_flag;
     unsigned int   output_flag_present_flag;
     unsigned int   num_extra_slice_header_bits;
+    unsigned int   sign_data_hiding_enabled_flag;
+    unsigned int   cabac_init_present_flag;
+    unsigned int   num_ref_idx_l0_default_active_minus1;
+    unsigned int   num_ref_idx_l1_default_active_minus1;
+    int            init_qp_minus26;
+    unsigned int   constrained_intra_pred_flag;
+    unsigned int   transform_skip_enabled_flag;
+    unsigned int   cu_qp_delta_enabled_flag;
+    unsigned int   diff_cu_qp_delta_depth;
+    int            pps_cb_qp_offset;
+    int            pps_cr_qp_offset;
+    unsigned int   pps_slice_chroma_qp_offsets_present_flag;
+    unsigned int   weighted_pred_flag;
+    unsigned int   weighted_bipred_flag;
+    unsigned int   transquant_bypass_enabled_flag;
+    unsigned int   tiles_enabled_flag;
+    unsigned int   entropy_coding_sync_enabled_flag;
+    unsigned int   num_tile_columns_minus1;
+    unsigned int   num_tile_rows_minus1;
+    unsigned int   uniform_spacing_flag;
+    unsigned int   loop_filter_across_tiles_enabled_flag;
+    unsigned int   pps_loop_filter_across_slices_enabled_flag;
+    unsigned int   deblocking_filter_control_present_flag;
+    unsigned int   deblocking_filter_override_enabled_flag;
+    unsigned int   pps_deblocking_filter_disabled_flag;
+    int            pps_beta_offset_div2;
+    int            pps_tc_offset_div2;
+    unsigned int   pps_scaling_list_data_present_flag;
+    unsigned int   lists_modification_present_flag;
+    unsigned int   log2_parallel_merge_level_minus2;
+    unsigned int   slice_segment_header_extension_present_flag;
 };
 
 /*----------------------------------------------------------------------
@@ -212,6 +247,10 @@ struct AP4_HevcSequenceParameterSet {
     unsigned int             log2_diff_max_min_pcm_luma_coding_block_size;
     unsigned int             pcm_loop_filter_disabled_flag;
     unsigned int             num_short_term_ref_pic_sets;
+    unsigned int             long_term_ref_pics_present_flag;
+    unsigned int             num_long_term_ref_pics_sps;
+    unsigned int             sps_temporal_mvp_enabled_flag;
+    unsigned int             strong_intra_smoothing_enabled_flag;
 };
 
 /*----------------------------------------------------------------------
@@ -240,6 +279,35 @@ struct AP4_HevcVideoParameterSet {
     unsigned int             vps_time_scale;
     unsigned int             vps_poc_proportional_to_timing_flag;
     unsigned int             vps_num_ticks_poc_diff_one_minus1;
+};
+
+/*----------------------------------------------------------------------
+|   AP4_HevcSliceSegmentHeader
++---------------------------------------------------------------------*/
+struct AP4_HevcSliceSegmentHeader {
+    AP4_HevcSliceSegmentHeader() {} // leave members uninitialized on purpose
+    
+    AP4_Result Parse(const AP4_UI08*                data,
+                     unsigned int                   data_size,
+                     unsigned int                   nal_unit_type,
+                     AP4_HevcPictureParameterSet**  picture_parameter_sets,
+                     AP4_HevcSequenceParameterSet** sequence_parameter_sets);
+
+    unsigned int size; // size of the parsed data
+    
+    unsigned int first_slice_segment_in_pic_flag;
+    unsigned int no_output_of_prior_pics_flag;
+    unsigned int slice_pic_parameter_set_id;
+    unsigned int dependent_slice_segment_flag;
+    unsigned int slice_segment_address;
+    unsigned int slice_type;
+    unsigned int pic_output_flag;
+    unsigned int colour_plane_id;
+    unsigned int slice_pic_order_cnt_lsb;
+    unsigned int short_term_ref_pic_set_sps_flag;
+    unsigned int short_term_ref_pic_set_idx;
+    unsigned int num_entry_point_offsets;
+    unsigned int offset_len_minus1;
 };
 
 /*----------------------------------------------------------------------
@@ -276,16 +344,16 @@ public:
     /**
      * Feed some data to the parser and look for the next NAL Unit.
      *
-     * @param data: Pointer to the memory buffer with the data to feed.
-     * @param data_size: Size in bytes of the buffer pointed to by the
+     * @param data Pointer to the memory buffer with the data to feed.
+     * @param data_size Size in bytes of the buffer pointed to by the
      * data pointer.
-     * @param bytes_consumed: Number of bytes from the data buffer that were
+     * @param bytes_consumed Number of bytes from the data buffer that were
      * consumed and stored by the parser.
-     * @param access_unit_info: Reference to a AccessUnitInfo structure that will
+     * @param access_unit_info Reference to a AccessUnitInfo structure that will
      * contain information about any access unit found in the data. If no
      * access unit was found, the nal_units field of this structure will be an
      * empty array.
-     * @param eos: Boolean flag that indicates if this buffer is the last
+     * @param eos Boolean flag that indicates if this buffer is the last
      * buffer in the stream/file (End Of Stream).
      *
      * @result: AP4_SUCCESS is the call succeeds, or an error code if it
@@ -310,6 +378,16 @@ public:
                     AccessUnitInfo& access_unit_info,
                     bool            eos=false);
     
+    AP4_Result Feed(const AP4_UI08* nal_unit,
+                    AP4_Size        nal_unit_size,
+                    AccessUnitInfo& access_unit_info,
+                    bool            last_unit=false);
+
+    AP4_Result ParseSliceSegmentHeader(const AP4_UI08*             data,
+                                       unsigned int                data_size,
+                                       unsigned int                nal_unit_type,
+                                       AP4_HevcSliceSegmentHeader& slice_header);
+
     AP4_HevcVideoParameterSet**    GetVideoParameterSets()    { return &m_VPS[0]; }
     AP4_HevcSequenceParameterSet** GetSequenceParameterSets() { return &m_SPS[0]; }
     AP4_HevcPictureParameterSet**  GetPictureParameterSets()  { return &m_PPS[0]; }
