@@ -512,7 +512,7 @@ ReverseBits(AP4_UI32 bits)
        bits >>= 1;
        count--;
     }
-    return reverse_bits << count;
+    return (count < 32) ? (reverse_bits << count) : 0;
 }
 
 /*----------------------------------------------------------------------
