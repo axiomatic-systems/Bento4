@@ -82,7 +82,7 @@ PrintUsageAndExit()
 {
     fprintf(stderr, 
             BANNER 
-            "\n\nusage: mp4mux [options] --track [<type>:]<input>[#<params] [--track [<type>:]<input>[#<params] ...] <output>\n"
+            "\n\nusage: mp4mux [options] --track [<type>:]<input>[#<params>] [--track [<type>:]<input>[#<params>] ...] <output>\n"
             "\n"
             "  <params>, when specified, are expressd as a comma-separated list of\n"
             "  one or more <name>=<value> parameters\n"

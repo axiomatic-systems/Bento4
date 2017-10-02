@@ -412,7 +412,11 @@ AP4_CencCbcsSubSampleMapper::GetSubSampleMap(AP4_DataBuffer&      sample_data,
                 }
 
                 // leave the slice header in the clear, including the NAL type
-                unsigned int cleartext_size = m_NaluLengthSize+2+(slice_header.size+7)/8;
+                //unsigned int cleartext_size = m_NaluLengthSize+2+(slice_header.size+7)/8;
+                // HACK: add one byte when the slice header is a multiple of 8 bits, to match what Apple is doing
+                unsigned int header_size = 1+(slice_header.size/8);
+                unsigned int cleartext_size = m_NaluLengthSize+2+header_size;
+                //
                 unsigned int encrypted_size = nalu_size-cleartext_size;
                 
                 bytes_of_cleartext_data.Append(cleartext_size);

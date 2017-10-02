@@ -440,6 +440,7 @@ AP4_BitReader::ReadCache() const
 AP4_UI32
 AP4_BitReader::ReadBits(unsigned int n)
 {
+    if (n == 0) return 0;
     AP4_BitReader::BitsWord result;
     if (m_BitsCached >= n) {
         /* we have enough bits in the cache to satisfy the request */

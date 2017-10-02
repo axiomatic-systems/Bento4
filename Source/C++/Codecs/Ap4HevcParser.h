@@ -102,6 +102,10 @@ const unsigned int AP4_HEVC_ACCESS_UNIT_FLAG_IS_RADL             = 0x08;
 const unsigned int AP4_HEVC_ACCESS_UNIT_FLAG_IS_RASL             = 0x10;
 const unsigned int AP4_HEVC_ACCESS_UNIT_FLAG_IS_SUBLAYER_NON_REF = 0x20;
 
+const unsigned int AP4_HEVC_SLICE_TYPE_B = 0;
+const unsigned int AP4_HEVC_SLICE_TYPE_P = 1;
+const unsigned int AP4_HEVC_SLICE_TYPE_I = 2;
+
 /*----------------------------------------------------------------------
 |   class references
 +---------------------------------------------------------------------*/
@@ -243,6 +247,10 @@ struct AP4_HevcSequenceParameterSet {
     unsigned int             log2_diff_max_min_pcm_luma_coding_block_size;
     unsigned int             pcm_loop_filter_disabled_flag;
     unsigned int             num_short_term_ref_pic_sets;
+    unsigned int             long_term_ref_pics_present_flag;
+    unsigned int             num_long_term_ref_pics_sps;
+    unsigned int             sps_temporal_mvp_enabled_flag;
+    unsigned int             strong_intra_smoothing_enabled_flag;
 };
 
 /*----------------------------------------------------------------------
@@ -336,16 +344,16 @@ public:
     /**
      * Feed some data to the parser and look for the next NAL Unit.
      *
-     * @param data: Pointer to the memory buffer with the data to feed.
-     * @param data_size: Size in bytes of the buffer pointed to by the
+     * @param data Pointer to the memory buffer with the data to feed.
+     * @param data_size Size in bytes of the buffer pointed to by the
      * data pointer.
-     * @param bytes_consumed: Number of bytes from the data buffer that were
+     * @param bytes_consumed Number of bytes from the data buffer that were
      * consumed and stored by the parser.
-     * @param access_unit_info: Reference to a AccessUnitInfo structure that will
+     * @param access_unit_info Reference to a AccessUnitInfo structure that will
      * contain information about any access unit found in the data. If no
      * access unit was found, the nal_units field of this structure will be an
      * empty array.
-     * @param eos: Boolean flag that indicates if this buffer is the last
+     * @param eos Boolean flag that indicates if this buffer is the last
      * buffer in the stream/file (End Of Stream).
      *
      * @result: AP4_SUCCESS is the call succeeds, or an error code if it

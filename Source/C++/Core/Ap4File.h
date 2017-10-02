@@ -93,7 +93,7 @@ public:
     /**
      * Constructs an AP4_File from a stream
      * @param stream the stream containing the data of the file
-     * @param factory the atom factory that will be used to parse the stream
+     * @param atom_factory the atom factory that will be used to parse the stream
      * @param moov_only indicates whether parsing of the atoms should stop
      * when the moov atom is found or if all atoms should be parsed until the
      * end of the file. 
