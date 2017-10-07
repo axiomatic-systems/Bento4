@@ -532,7 +532,7 @@ AP4_HevcSliceSegmentHeader::Parse(const AP4_UI08*                data,
 
     /* compute the size */
     size = bits.GetBitsRead();
-    DBG_PRINTF_1("*** slice segment header size=%d bits\n", size);
+    DBG_PRINTF_3("*** slice segment header size=%d bits (%d bytes, %d padding)\n", size, (size+7)/8, 8*((size+7)/8)-size);
 
     return AP4_SUCCESS;
 }
