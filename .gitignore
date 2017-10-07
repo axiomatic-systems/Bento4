@@ -39,3 +39,4 @@ third_party
 .suo
 *.db
 *.user
+.vscode

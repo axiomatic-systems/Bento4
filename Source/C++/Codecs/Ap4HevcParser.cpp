@@ -37,7 +37,7 @@
 +---------------------------------------------------------------------*/
 #define AP4_HEVC_PARSER_ENABLE_DEBUG 0
 
-#if defined(AP4_HEVC_PARSER_ENABLE_DEBUG)
+#if AP4_HEVC_PARSER_ENABLE_DEBUG
 #define DBG_PRINTF_0(_x0) printf(_x0)
 #define DBG_PRINTF_1(_x0, _x1) printf(_x0, _x1)
 #define DBG_PRINTF_2(_x0, _x1, _x2) printf(_x0, _x1, _x2)
@@ -220,17 +220,14 @@ scaling_list_data(AP4_BitReader& bits)
 }
 
 /*----------------------------------------------------------------------
-|   short_term_ref_pic_set
+|   st_ref_pic_set
 +---------------------------------------------------------------------*/
-typedef struct {
-    unsigned int delta_poc_s0_minus1[16];
-    unsigned int delta_poc_s1_minus1[16];
-    unsigned int used_by_curr_pic_s0_flag[16];
-    unsigned int used_by_curr_pic_s1_flag[16];
-} short_term_ref_pic_set;
-
 static AP4_Result
-parse_short_term_ref_pic_set(short_term_ref_pic_set* rps, unsigned int stRpsIdx, unsigned int num_short_term_ref_pic_sets, AP4_BitReader& bits) {
+parse_st_ref_pic_set(AP4_HevcShortTermRefPicSet*         rps,
+                     const AP4_HevcSequenceParameterSet* sps,
+                     unsigned int                        stRpsIdx,
+                     unsigned int                        num_short_term_ref_pic_sets,
+                     AP4_BitReader&                      bits) {
     AP4_SetMemory(rps, 0, sizeof(*rps));
     
     unsigned int inter_ref_pic_set_prediction_flag = 0;
@@ -245,34 +242,66 @@ parse_short_term_ref_pic_set(short_term_ref_pic_set* rps, unsigned int stRpsIdx,
         /* delta_rps_sign = */ bits.ReadBit();
         /* abs_delta_rps_minus1 = */ ReadGolomb(bits);
         if (delta_idx_minus1+1 > stRpsIdx) return AP4_ERROR_INVALID_FORMAT; // should not happen
-        //unsigned int RefRpsIdx = stRpsIdx - (delta_idx_minus1 + 1);
-        // TODO: finish parsing this
-        printf("### This bitstream uses features that are not yet supported. Please file a ticket.");
-        return AP4_ERROR_NOT_SUPPORTED;
-//        for (unsigned j=0; j<=NumDeltaPocs[RefRpsIdx]; j++) {
-//            unsigned int used_by_curr_pic_flag /*[j]*/ = bits.ReadBit();
-//            if (!used_by_curr_pic_flag /*[j]*/) {
-//                /* use_delta_flag[j] = */ bits.ReadBit();
-//            }
-//        }
-        // <TODO
+        unsigned int RefRpsIdx = stRpsIdx - (delta_idx_minus1 + 1);
+        unsigned int NumDeltaPocs = sps->short_term_ref_pic_sets[RefRpsIdx].num_negative_pics + sps->short_term_ref_pic_sets[RefRpsIdx].num_positive_pics;
+        for (unsigned j=0; j<=NumDeltaPocs; j++) {
+            unsigned int used_by_curr_pic_flag /*[j]*/ = bits.ReadBit();
+            if (!used_by_curr_pic_flag /*[j]*/) {
+                /* use_delta_flag[j] = */ bits.ReadBit();
+            }
+        }
     } else {
-        unsigned int num_negative_pics = ReadGolomb(bits);
-        unsigned int num_positive_pics = ReadGolomb(bits);
-        if (num_negative_pics > 16 || num_positive_pics > 16) {
+        rps->num_negative_pics = ReadGolomb(bits);
+        rps->num_positive_pics = ReadGolomb(bits);
+        if (rps->num_negative_pics > 16 || rps->num_positive_pics > 16) {
             return AP4_ERROR_INVALID_FORMAT;
         }
-        for (unsigned int i=0; i<num_negative_pics; i++) {
+        for (unsigned int i=0; i<rps->num_negative_pics; i++) {
             rps->delta_poc_s0_minus1[i] = ReadGolomb(bits);
             rps->used_by_curr_pic_s0_flag[i] = bits.ReadBit();
         }
-        for (unsigned i=0; i<num_positive_pics; i++) {
+        for (unsigned i=0; i<rps->num_positive_pics; i++) {
             rps->delta_poc_s1_minus1[i] = ReadGolomb(bits);
             rps->used_by_curr_pic_s1_flag[i] = bits.ReadBit();
         }
     }
     
     return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   NumPicTotalCurr
++---------------------------------------------------------------------*/
+static unsigned int
+NumPicTotalCurr(AP4_BitReader&                    bits,
+                const AP4_HevcShortTermRefPicSet* rps,
+                const AP4_HevcSliceSegmentHeader* slice_segment_header)
+{
+    // compute NumPicTotalCurr
+    unsigned int nptc = 0;
+    if (rps) {
+        for (unsigned int i=0; i<rps->num_negative_pics; i++) {
+            if (rps->used_by_curr_pic_s0_flag[i]) {
+                ++nptc;
+            }
+        }
+        for (unsigned int i=0; i<rps->num_positive_pics; i++) {
+            if (rps->used_by_curr_pic_s1_flag[i]) {
+                ++nptc;
+            }
+        }
+    }
+    for (unsigned int i=0; i<slice_segment_header->num_long_term_sps + slice_segment_header->num_long_term_pics; i++) {
+        if (slice_segment_header->used_by_curr_pic_lt_flag[i]) {
+            ++nptc;
+        }
+    }
+    // TODO: for now we assume pps_curr_pic_ref_enabled is 0
+    //if (pps_curr_pic_ref_enabled) {
+    //    ++nptc;
+    //}
+    
+    return nptc;
 }
 
 /*----------------------------------------------------------------------
@@ -355,23 +384,35 @@ AP4_HevcSliceSegmentHeader::Parse(const AP4_UI08*                data,
         unsigned int slice_sao_chroma_flag = 0;
         unsigned int slice_deblocking_filter_disabled_flag = 0;
         unsigned int slice_temporal_mvp_enabled_flag = 0;
+        const AP4_HevcShortTermRefPicSet* rps = NULL;
         if (nal_unit_type != AP4_HEVC_NALU_TYPE_IDR_W_RADL && nal_unit_type != AP4_HEVC_NALU_TYPE_IDR_N_LP) {
             slice_pic_order_cnt_lsb = bits.ReadBits(sps->log2_max_pic_order_cnt_lsb_minus4+4);
             short_term_ref_pic_set_sps_flag = bits.ReadBit();
             if (!short_term_ref_pic_set_sps_flag) {
-                short_term_ref_pic_set rps;
-                AP4_Result result = parse_short_term_ref_pic_set(&rps, sps->num_short_term_ref_pic_sets, sps->num_short_term_ref_pic_sets, bits);
+                AP4_Result result = parse_st_ref_pic_set(&short_term_ref_pic_set,
+                                                         sps,
+                                                         sps->num_short_term_ref_pic_sets,
+                                                         sps->num_short_term_ref_pic_sets,
+                                                         bits);
                 if (AP4_FAILED(result)) return result;
+                rps = &short_term_ref_pic_set;
             } else if (sps->num_short_term_ref_pic_sets > 1) {
                 short_term_ref_pic_set_idx = bits.ReadBits(BitsNeeded(sps->num_short_term_ref_pic_sets));
+                rps = &sps->short_term_ref_pic_sets[short_term_ref_pic_set_idx];
             }
             
             if (sps->long_term_ref_pics_present_flag) {
-                unsigned int num_long_term_sps = 0;
                 if (sps->num_long_term_ref_pics_sps > 0) {
                     num_long_term_sps = ReadGolomb(bits);
                 }
-                unsigned int num_long_term_pics = ReadGolomb(bits);
+                num_long_term_pics = ReadGolomb(bits);
+                
+                if (num_long_term_sps > sps->num_long_term_ref_pics_sps) {
+                    return AP4_ERROR_INVALID_FORMAT;
+                }
+                if (num_long_term_sps + num_long_term_pics > AP4_HEVC_MAX_LT_REFS) {
+                    return AP4_ERROR_INVALID_FORMAT;
+                }
                 for (unsigned int i=0; i<num_long_term_sps + num_long_term_pics; i++) {
                     if (i < num_long_term_sps) {
                         if (sps->num_long_term_ref_pics_sps > 1) {
@@ -379,7 +420,7 @@ AP4_HevcSliceSegmentHeader::Parse(const AP4_UI08*                data,
                         }
                     } else {
                         /* poc_lsb_lt[i] = */ bits.ReadBits(sps->log2_max_pic_order_cnt_lsb_minus4+4);
-                        /* used_by_curr_pic_lt_flag[i] = */ bits.ReadBit();
+                        used_by_curr_pic_lt_flag[i] = bits.ReadBit();
                     }
                     unsigned int delta_poc_msb_present_flag /*[i]*/ = bits.ReadBit();
                     if (delta_poc_msb_present_flag /*[i]*/) {
@@ -411,10 +452,24 @@ AP4_HevcSliceSegmentHeader::Parse(const AP4_UI08*                data,
             if (num_ref_idx_l0_active_minus1 > 14 || num_ref_idx_l1_active_minus1 > 14) {
                 return AP4_ERROR_INVALID_FORMAT;
             }
-            // TODO: finish parsing this
-            //if (pps->lists_modification_present_flag && NumPicTotalCurr > 1) {
-                //ref_pic_lists_modification( )
-            //}
+            unsigned int nptc = NumPicTotalCurr(bits, rps, this);
+            if (pps->lists_modification_present_flag && nptc > 1) {
+                // ref_pic_lists_modification
+                unsigned int ref_pic_list_modification_flag_l0 = bits.ReadBit();
+                if (ref_pic_list_modification_flag_l0) {
+                    for (unsigned int i=0; i<=num_ref_idx_l0_active_minus1; i++) {
+                        /* list_entry_l0[i]; */ bits.ReadBits(BitsNeeded(nptc));
+                    }
+                }
+                if (slice_type == AP4_HEVC_SLICE_TYPE_B) {
+                    unsigned int ref_pic_list_modification_flag_l1 = bits.ReadBit();
+                    if (ref_pic_list_modification_flag_l1) {
+                        for (unsigned int i=0; i<=num_ref_idx_l1_active_minus1; i++) {
+                            /* list_entry_l1[i]; */ bits.ReadBits(BitsNeeded(nptc));
+                        }
+                    }
+                }
+            }
             if (slice_type == AP4_HEVC_SLICE_TYPE_B) {
                 /* mvd_l1_zero_flag = */ bits.ReadBit();
             }
@@ -530,9 +585,16 @@ AP4_HevcSliceSegmentHeader::Parse(const AP4_UI08*                data,
         }
     }
 
+    // byte_alignment()
+    bits.ReadBit(); // alignment_bit_equal_to_one
+    unsigned int bits_read = bits.GetBitsRead();
+    if (bits_read % 8) {
+        bits.ReadBits(8-(bits_read%8));
+    }
+    
     /* compute the size */
     size = bits.GetBitsRead();
-    DBG_PRINTF_3("*** slice segment header size=%d bits (%d bytes, %d padding)\n", size, (size+7)/8, 8*((size+7)/8)-size);
+    DBG_PRINTF_2("*** slice segment header size=%d bits (%d bytes)\n", size, size/8);
 
     return AP4_SUCCESS;
 }
@@ -767,6 +829,7 @@ AP4_HevcSequenceParameterSet::AP4_HevcSequenceParameterSet() :
         sps_max_num_reorder_pics[i]         = 0;
         sps_max_latency_increase_plus1[i]   = 0;
     }
+    AP4_SetMemory(short_term_ref_pic_sets, 0, sizeof(short_term_ref_pic_sets));
 }
 
 /*----------------------------------------------------------------------
@@ -849,12 +912,11 @@ AP4_HevcSequenceParameterSet::Parse(const unsigned char* data, unsigned int data
         pcm_loop_filter_disabled_flag = bits.ReadBit();
     }
     num_short_term_ref_pic_sets = ReadGolomb(bits);
-    if (num_short_term_ref_pic_sets > 64) {
+    if (num_short_term_ref_pic_sets > AP4_HEVC_SPS_MAX_RPS) {
         return AP4_ERROR_INVALID_FORMAT;
     }
     for (unsigned int i=0; i<num_short_term_ref_pic_sets; i++) {
-        short_term_ref_pic_set rps;
-        AP4_Result result = parse_short_term_ref_pic_set(&rps, i, num_short_term_ref_pic_sets, bits);
+        AP4_Result result = parse_st_ref_pic_set(&short_term_ref_pic_sets[i], this, i, num_short_term_ref_pic_sets, bits);
         if (AP4_FAILED(result)) return result;
     }
     long_term_ref_pics_present_flag = bits.ReadBit();

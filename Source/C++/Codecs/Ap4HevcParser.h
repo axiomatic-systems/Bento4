@@ -94,6 +94,8 @@ const unsigned int AP4_HEVC_NALU_TYPE_RSV_NVCL47     = 47;
 const unsigned int AP4_HEVC_PPS_MAX_ID               = 63;
 const unsigned int AP4_HEVC_SPS_MAX_ID               = 15;
 const unsigned int AP4_HEVC_VPS_MAX_ID               = 15;
+const unsigned int AP4_HEVC_SPS_MAX_RPS              = 64;
+const unsigned int AP4_HEVC_MAX_LT_REFS              = 32;
 
 const unsigned int AP4_HEVC_ACCESS_UNIT_FLAG_IS_IDR              = 0x01;
 const unsigned int AP4_HEVC_ACCESS_UNIT_FLAG_IS_IRAP             = 0x02;
@@ -148,6 +150,18 @@ struct AP4_HevcProfileTierLevel {
         unsigned char sub_layer_level_idc;
     } sub_layer_info[8];
 };
+
+/*----------------------------------------------------------------------
+|   AP4_HevcShortTermRefPicSet
++---------------------------------------------------------------------*/
+typedef struct {
+    unsigned int delta_poc_s0_minus1[16];
+    unsigned int delta_poc_s1_minus1[16];
+    unsigned int used_by_curr_pic_s0_flag[16];
+    unsigned int used_by_curr_pic_s1_flag[16];
+    unsigned int num_negative_pics;
+    unsigned int num_positive_pics;
+} AP4_HevcShortTermRefPicSet;
 
 /*----------------------------------------------------------------------
 |   AP4_HevcPictureParameterSet
@@ -251,6 +265,8 @@ struct AP4_HevcSequenceParameterSet {
     unsigned int             num_long_term_ref_pics_sps;
     unsigned int             sps_temporal_mvp_enabled_flag;
     unsigned int             strong_intra_smoothing_enabled_flag;
+    
+    AP4_HevcShortTermRefPicSet short_term_ref_pic_sets[AP4_HEVC_SPS_MAX_RPS];
 };
 
 /*----------------------------------------------------------------------
@@ -308,6 +324,11 @@ struct AP4_HevcSliceSegmentHeader {
     unsigned int short_term_ref_pic_set_idx;
     unsigned int num_entry_point_offsets;
     unsigned int offset_len_minus1;
+    unsigned int num_long_term_sps;
+    unsigned int num_long_term_pics;
+
+    AP4_HevcShortTermRefPicSet short_term_ref_pic_set;
+    unsigned int               used_by_curr_pic_lt_flag[AP4_HEVC_MAX_LT_REFS];
 };
 
 /*----------------------------------------------------------------------
