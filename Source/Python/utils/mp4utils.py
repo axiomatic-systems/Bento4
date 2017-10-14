@@ -302,6 +302,9 @@ def Mp4Encrypt(options, input_filename, output_filename, *args, **kwargs):
 def Mp42Hls(options, input_filename, *args, **kwargs):
     return Bento4Command(options, 'mp42hls', input_filename, *args, **kwargs)
 
+def Mp4IframIndex(options, input_filename, *args, **kwargs):
+    return Bento4Command(options, 'mp4iframeindex', input_filename, *args, **kwargs)
+    
 class Mp4Atom:
     def __init__(self, type, size, position):
         self.type     = type

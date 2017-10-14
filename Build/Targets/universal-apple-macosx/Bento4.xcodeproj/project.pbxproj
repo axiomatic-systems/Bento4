@@ -13,6 +13,8 @@
 			buildPhases = (
 			);
 			dependencies = (
+				CACAF6931F91C49400B75DC3 /* PBXTargetDependency */,
+				CACAF6911F91C48F00B75DC3 /* PBXTargetDependency */,
 				CA640EA11B09AAEF00C93DCF /* PBXTargetDependency */,
 				CA00A65E1A1C383E0064B4D3 /* PBXTargetDependency */,
 				CA418B141948F0A300D202E0 /* PBXTargetDependency */,
@@ -144,6 +146,8 @@
 		CA86EEE519A95E30008A3B00 /* FragmentCreatorTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA86EEE419A95E30008A3B00 /* FragmentCreatorTest.cpp */; };
 		CA87B94A1F81B0C4005F42D6 /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAA7E6C914ACD763008AA54E /* libBento4.a */; };
 		CA87B94D1F81B130005F42D6 /* Mp4Diff.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA87B94C1F81B122005F42D6 /* Mp4Diff.cpp */; };
+		CA87B95B1F895AD9005F42D6 /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAA7E6C914ACD763008AA54E /* libBento4.a */; };
+		CA87B95E1F895F90005F42D6 /* Mp4IframeIndex.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA87B95D1F895B14005F42D6 /* Mp4IframeIndex.cpp */; };
 		CA8A94D91929A68700836179 /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAA7E6C914ACD763008AA54E /* libBento4.a */; };
 		CA8A94DC1929A6C100836179 /* Mp4Mux.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA8A94DB1929A6C100836179 /* Mp4Mux.cpp */; };
 		CA8A94DD1929DD9100836179 /* Ap4AvcParser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA3EDA960D7E14D3007AE943 /* Ap4AvcParser.cpp */; };
@@ -732,6 +736,13 @@
 			remoteGlobalIDString = CA86EED619A95DD3008A3B00;
 			remoteInfo = FragmentCreatorTest;
 		};
+		CA87B9591F895ACE005F42D6 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D2AAC045055464E500DB518D;
+			remoteInfo = Bento4;
+		};
 		CA8A94D71929A67500836179 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
@@ -815,6 +826,20 @@
 			proxyType = 1;
 			remoteGlobalIDString = D2AAC045055464E500DB518D;
 			remoteInfo = Bento4;
+		};
+		CACAF6901F91C48F00B75DC3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CA87B9511F895A84005F42D6;
+			remoteInfo = Mp4IframeIndex;
+		};
+		CACAF6921F91C49400B75DC3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CA87B9411F81B08B005F42D6;
+			remoteInfo = Mp4Diff;
 		};
 		CAE1FBEE1AF8493E00607B3C /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -981,6 +1006,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 1;
 		};
+		CA87B9501F895A84005F42D6 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
 		CAFE9C671D1B487700F9FF67 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1079,8 +1113,9 @@
 		CA86EED719A95DD3008A3B00 /* FragmentCreatorTest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = FragmentCreatorTest; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA86EEE419A95E30008A3B00 /* FragmentCreatorTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FragmentCreatorTest.cpp; sourceTree = "<group>"; };
 		CA87B9421F81B08B005F42D6 /* mp4diff */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mp4diff; sourceTree = BUILT_PRODUCTS_DIR; };
-		CA87B9441F81B08B005F42D6 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		CA87B94C1F81B122005F42D6 /* Mp4Diff.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Mp4Diff.cpp; sourceTree = "<group>"; };
+		CA87B9521F895A84005F42D6 /* Mp4IframeIndex */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; name = Mp4IframeIndex; path = mp4iframeindex; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA87B95D1F895B14005F42D6 /* Mp4IframeIndex.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Mp4IframeIndex.cpp; sourceTree = "<group>"; };
 		CA8A94CE1929A65E00836179 /* mp4mux */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mp4mux; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA8A94DB1929A6C100836179 /* Mp4Mux.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Mp4Mux.cpp; sourceTree = "<group>"; };
 		CA8B6A600F66D20900720A07 /* Ap4MfhdAtom.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4MfhdAtom.cpp; sourceTree = "<group>"; };
@@ -1514,6 +1549,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		CA87B94F1F895A84005F42D6 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CA87B95B1F895AD9005F42D6 /* libBento4.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		CA8A94CB1929A65E00836179 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -1665,7 +1708,6 @@
 				CA646A860CE97B2D009699D7 /* Apps */,
 				CA646A9B0CE97B51009699D7 /* Test */,
 				C6A0FF2B0290797F04C91782 /* Documentation */,
-				CA87B9431F81B08B005F42D6 /* Mp4Diff */,
 				1AB674ADFE9D54B511CA2CBB /* Products */,
 				CA87B9491F81B0C4005F42D6 /* Frameworks */,
 			);
@@ -1730,6 +1772,7 @@
 				CAE1FBF61AF8493E00607B3C /* mp42hls */,
 				CAFE9C691D1B487700F9FF67 /* LargeFilesTest */,
 				CA87B9421F81B08B005F42D6 /* mp4diff */,
+				CA87B9521F895A84005F42D6 /* Mp4IframeIndex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1821,6 +1864,7 @@
 				CA646A910CE97B2D009699D7 /* Mp4Encrypt */,
 				CA646A930CE97B2D009699D7 /* Mp4Extract */,
 				CA6103E2128599C20039C7E6 /* Mp4Fragment */,
+				CA87B95C1F895B14005F42D6 /* Mp4IframeIndex */,
 				CA646A950CE97B2D009699D7 /* Mp4Info */,
 				CA8A94DA1929A6C100836179 /* Mp4Mux */,
 				CA00A65A1A1C38210064B4D3 /* Mp4Pssh */,
@@ -1961,14 +2005,6 @@
 			path = FragmentCreator;
 			sourceTree = "<group>";
 		};
-		CA87B9431F81B08B005F42D6 /* Mp4Diff */ = {
-			isa = PBXGroup;
-			children = (
-				CA87B9441F81B08B005F42D6 /* main.cpp */,
-			);
-			path = Mp4Diff;
-			sourceTree = "<group>";
-		};
 		CA87B9491F81B0C4005F42D6 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -1982,6 +2018,14 @@
 				CA87B94C1F81B122005F42D6 /* Mp4Diff.cpp */,
 			);
 			path = Mp4Diff;
+			sourceTree = "<group>";
+		};
+		CA87B95C1F895B14005F42D6 /* Mp4IframeIndex */ = {
+			isa = PBXGroup;
+			children = (
+				CA87B95D1F895B14005F42D6 /* Mp4IframeIndex.cpp */,
+			);
+			path = Mp4IframeIndex;
 			sourceTree = "<group>";
 		};
 		CA8A94DA1929A6C100836179 /* Mp4Mux */ = {
@@ -2969,6 +3013,24 @@
 			productReference = CA87B9421F81B08B005F42D6 /* mp4diff */;
 			productType = "com.apple.product-type.tool";
 		};
+		CA87B9511F895A84005F42D6 /* Mp4IframeIndex */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CA87B9581F895A84005F42D6 /* Build configuration list for PBXNativeTarget "Mp4IframeIndex" */;
+			buildPhases = (
+				CA87B94E1F895A84005F42D6 /* Sources */,
+				CA87B94F1F895A84005F42D6 /* Frameworks */,
+				CA87B9501F895A84005F42D6 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CA87B95A1F895ACE005F42D6 /* PBXTargetDependency */,
+			);
+			name = Mp4IframeIndex;
+			productName = Mp4IframeIndex;
+			productReference = CA87B9521F895A84005F42D6 /* Mp4IframeIndex */;
+			productType = "com.apple.product-type.tool";
+		};
 		CA8A94CD1929A65E00836179 /* Mp4Mux */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = CA8A94D61929A65E00836179 /* Build configuration list for PBXNativeTarget "Mp4Mux" */;
@@ -3293,6 +3355,10 @@
 						CreatedOnToolsVersion = 9.0;
 						ProvisioningStyle = Manual;
 					};
+					CA87B9511F895A84005F42D6 = {
+						CreatedOnToolsVersion = 9.0;
+						ProvisioningStyle = Automatic;
+					};
 					CAFE9C681D1B487700F9FF67 = {
 						CreatedOnToolsVersion = 7.3;
 					};
@@ -3355,6 +3421,7 @@
 				CAFC31B80FEB3DDD00EF80A0 /* FragmentParserTest */,
 				CA86EED619A95DD3008A3B00 /* FragmentCreatorTest */,
 				CAFE9C681D1B487700F9FF67 /* LargeFilesTest */,
+				CA87B9511F895A84005F42D6 /* Mp4IframeIndex */,
 			);
 		};
 /* End PBXProject section */
@@ -3533,6 +3600,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				CA87B94D1F81B130005F42D6 /* Mp4Diff.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CA87B94E1F895A84005F42D6 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CA87B95E1F895F90005F42D6 /* Mp4IframeIndex.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4033,6 +4108,11 @@
 			target = CA86EED619A95DD3008A3B00 /* FragmentCreatorTest */;
 			targetProxy = CA86EEEC19BD6865008A3B00 /* PBXContainerItemProxy */;
 		};
+		CA87B95A1F895ACE005F42D6 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D2AAC045055464E500DB518D /* Bento4 */;
+			targetProxy = CA87B9591F895ACE005F42D6 /* PBXContainerItemProxy */;
+		};
 		CA8A94D81929A67500836179 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = D2AAC045055464E500DB518D /* Bento4 */;
@@ -4092,6 +4172,16 @@
 			isa = PBXTargetDependency;
 			target = D2AAC045055464E500DB518D /* Bento4 */;
 			targetProxy = CAC8F17A16BE447A00C49741 /* PBXContainerItemProxy */;
+		};
+		CACAF6911F91C48F00B75DC3 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CA87B9511F895A84005F42D6 /* Mp4IframeIndex */;
+			targetProxy = CACAF6901F91C48F00B75DC3 /* PBXContainerItemProxy */;
+		};
+		CACAF6931F91C49400B75DC3 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CA87B9411F81B08B005F42D6 /* Mp4Diff */;
+			targetProxy = CACAF6921F91C49400B75DC3 /* PBXContainerItemProxy */;
 		};
 		CAE1FBED1AF8493E00607B3C /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -4842,6 +4932,69 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				PRODUCT_NAME = mp4diff;
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		CA87B9561F895A84005F42D6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = mp4iframeindex;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		CA87B9571F895A84005F42D6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				PRODUCT_NAME = mp4iframeindex;
 				SDKROOT = macosx;
 			};
 			name = Release;
@@ -5617,6 +5770,15 @@
 			buildConfigurations = (
 				CA87B9461F81B08B005F42D6 /* Debug */,
 				CA87B9471F81B08B005F42D6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CA87B9581F895A84005F42D6 /* Build configuration list for PBXNativeTarget "Mp4IframeIndex" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CA87B9561F895A84005F42D6 /* Debug */,
+				CA87B9571F895A84005F42D6 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

@@ -46,6 +46,7 @@ AP4_LinearReader::AP4_LinearReader(AP4_Movie&      movie,
     m_Movie(movie),
     m_Fragment(NULL),
     m_FragmentStream(fragment_stream),
+    m_CurrentFragmentPosition(0),
     m_NextFragmentPosition(0),
     m_BufferFullness(0),
     m_BufferFullnessPeak(0),
@@ -55,7 +56,8 @@ AP4_LinearReader::AP4_LinearReader(AP4_Movie&      movie,
     m_HasFragments = movie.HasFragments();
     if (fragment_stream) {
         fragment_stream->AddReference();
-        fragment_stream->Tell(m_NextFragmentPosition);
+        fragment_stream->Tell(m_CurrentFragmentPosition);
+        m_NextFragmentPosition = m_CurrentFragmentPosition;
     }
 }
 
@@ -339,6 +341,7 @@ AP4_LinearReader::AdvanceFragment()
     // go the the start of the next fragment
     result = m_FragmentStream->Seek(m_NextFragmentPosition);
     if (AP4_FAILED(result)) return result;
+    m_CurrentFragmentPosition = m_NextFragmentPosition;
 
     // read atoms until we find a moof
     assert(m_HasFragments);
@@ -346,11 +349,16 @@ AP4_LinearReader::AdvanceFragment()
     AP4_DefaultAtomFactory atom_factory;
     do {
         AP4_Atom* atom = NULL;
+        AP4_Position last_position = 0;
+        m_FragmentStream->Tell(last_position);
         result = atom_factory.CreateAtomFromStream(*m_FragmentStream, atom);
         if (AP4_SUCCEEDED(result)) {
             if (atom->GetType() == AP4_ATOM_TYPE_MOOF) {
                 AP4_ContainerAtom* moof = AP4_DYNAMIC_CAST(AP4_ContainerAtom, atom);
                 if (moof) {
+                    // remember where the moof started
+                    m_CurrentFragmentPosition = last_position;
+
                     // remember where we are in the stream
                     AP4_Position position = 0;
                     m_FragmentStream->Tell(position);

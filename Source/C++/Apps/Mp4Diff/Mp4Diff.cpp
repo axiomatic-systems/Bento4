@@ -1,8 +1,8 @@
 /*****************************************************************
 |
-|    AP4 - MP4 File Info
+|    AP4 - MP4 File Comparator
 |
-|    Copyright 2002-2015 Axiomatic Systems, LLC
+|    Copyright 2002-2017 Axiomatic Systems, LLC
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).

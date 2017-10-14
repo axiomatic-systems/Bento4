@@ -153,6 +153,10 @@ mp42hls: lib
 	$(TITLE)
 	@$(INVOKE_SUBMAKE) -f $(BUILD_ROOT)/Makefiles/Mp42Hls.mak
 
+mp4iframeindex: lib
+	$(TITLE)
+	@$(INVOKE_SUBMAKE) -f $(BUILD_ROOT)/Makefiles/Mp4IframeIndex.mak
+
 ##################################################################
 # includes
 ##################################################################

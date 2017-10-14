@@ -90,6 +90,7 @@ public:
     
     // accessors
     AP4_Size GetBufferFullness() { return m_BufferFullness; }
+    AP4_Position GetCurrentFragmentPosition() { return m_CurrentFragmentPosition; }
     
     // classes
     class SampleReader {
@@ -178,6 +179,7 @@ protected:
     bool                m_HasFragments;
     AP4_MovieFragment*  m_Fragment;
     AP4_ByteStream*     m_FragmentStream;
+    AP4_Position        m_CurrentFragmentPosition;
     AP4_Position        m_NextFragmentPosition;
     AP4_Array<Tracker*> m_Trackers;
     AP4_Size            m_BufferFullness;

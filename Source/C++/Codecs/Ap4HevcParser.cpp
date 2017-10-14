@@ -1189,6 +1189,7 @@ AP4_HevcFrameParser::Feed(const AP4_UI08* nal_unit,
         unsigned int nal_unit_type    = (nal_unit[0] >> 1) & 0x3F;
         unsigned int nuh_layer_id     = (((nal_unit[0] & 1) << 5) | (nal_unit[1] >> 3));
         unsigned int nuh_temporal_id  = nal_unit[1] & 0x7;
+        (void)nuh_layer_id;
         
         if (nuh_temporal_id-- == 0) {
             // illegal value, ignore this NAL unit
