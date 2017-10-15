@@ -932,19 +932,19 @@ PackedAudioWriter::WriteSample(AP4_Sample&            sample,
         return AP4_ERROR_INVALID_FORMAT;
     }
     if (sample_description->GetFormat() == AP4_SAMPLE_FORMAT_MP4A) {
-        AP4_MpegAudioSampleDescription* audio_desc = AP4_DYNAMIC_CAST(AP4_MpegAudioSampleDescription, sample_description);
+        AP4_MpegAudioSampleDescription* mpeg_audio_desc = AP4_DYNAMIC_CAST(AP4_MpegAudioSampleDescription, sample_description);
 
-        if (audio_desc == NULL) return AP4_ERROR_NOT_SUPPORTED;
-        if (audio_desc->GetMpeg4AudioObjectType() != AP4_MPEG4_AUDIO_OBJECT_TYPE_AAC_LC   &&
-            audio_desc->GetMpeg4AudioObjectType() != AP4_MPEG4_AUDIO_OBJECT_TYPE_AAC_MAIN &&
-            audio_desc->GetMpeg4AudioObjectType() != AP4_MPEG4_AUDIO_OBJECT_TYPE_SBR      &&
-            audio_desc->GetMpeg4AudioObjectType() != AP4_MPEG4_AUDIO_OBJECT_TYPE_PS) {
+        if (mpeg_audio_desc == NULL) return AP4_ERROR_NOT_SUPPORTED;
+        if (mpeg_audio_desc->GetMpeg4AudioObjectType() != AP4_MPEG4_AUDIO_OBJECT_TYPE_AAC_LC   &&
+            mpeg_audio_desc->GetMpeg4AudioObjectType() != AP4_MPEG4_AUDIO_OBJECT_TYPE_AAC_MAIN &&
+            mpeg_audio_desc->GetMpeg4AudioObjectType() != AP4_MPEG4_AUDIO_OBJECT_TYPE_SBR      &&
+            mpeg_audio_desc->GetMpeg4AudioObjectType() != AP4_MPEG4_AUDIO_OBJECT_TYPE_PS) {
             return AP4_ERROR_NOT_SUPPORTED;
         }
 
-        unsigned int sample_rate   = audio_desc->GetSampleRate();
-        unsigned int channel_count = audio_desc->GetChannelCount();
-        const AP4_DataBuffer& dsi  = audio_desc->GetDecoderInfo();
+        unsigned int sample_rate   = mpeg_audio_desc->GetSampleRate();
+        unsigned int channel_count = mpeg_audio_desc->GetChannelCount();
+        const AP4_DataBuffer& dsi  = mpeg_audio_desc->GetDecoderInfo();
         if (dsi.GetDataSize()) {
             AP4_Mp4AudioDecoderConfig dec_config;
             AP4_Result result = dec_config.Parse(dsi.GetData(), dsi.GetDataSize());
@@ -1176,7 +1176,7 @@ WriteSamples(AP4_Mpeg2TsWriter*               ts_writer,
                 if (Options.encryption_mode == ENCRYPTION_MODE_SAMPLE_AES) {
                     AP4_DataBuffer descriptor;
                     if (audio_track) {
-                        AP4_Result result = MakeSampleAesAudioDescriptor(descriptor, audio_track->GetSampleDescription(0), audio_sample_data);
+                        result = MakeSampleAesAudioDescriptor(descriptor, audio_track->GetSampleDescription(0), audio_sample_data);
                         if (AP4_SUCCEEDED(result) && descriptor.GetDataSize()) {
                             audio_stream->SetDescriptor(descriptor.GetData(), descriptor.GetDataSize());
                         } else {
@@ -1185,7 +1185,7 @@ WriteSamples(AP4_Mpeg2TsWriter*               ts_writer,
                         }
                     }
                     if (video_track) {
-                        AP4_Result result = MakeSampleAesVideoDescriptor(descriptor);
+                        result = MakeSampleAesVideoDescriptor(descriptor);
                         if (AP4_SUCCEEDED(result) && descriptor.GetDataSize()) {
                             video_stream->SetDescriptor(descriptor.GetData(), descriptor.GetDataSize());
                         } else {
