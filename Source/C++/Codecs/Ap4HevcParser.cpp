@@ -273,8 +273,7 @@ parse_st_ref_pic_set(AP4_HevcShortTermRefPicSet*         rps,
 |   NumPicTotalCurr
 +---------------------------------------------------------------------*/
 static unsigned int
-NumPicTotalCurr(AP4_BitReader&                    bits,
-                const AP4_HevcShortTermRefPicSet* rps,
+NumPicTotalCurr(const AP4_HevcShortTermRefPicSet* rps,
                 const AP4_HevcSliceSegmentHeader* slice_segment_header)
 {
     // compute NumPicTotalCurr
@@ -452,7 +451,7 @@ AP4_HevcSliceSegmentHeader::Parse(const AP4_UI08*                data,
             if (num_ref_idx_l0_active_minus1 > 14 || num_ref_idx_l1_active_minus1 > 14) {
                 return AP4_ERROR_INVALID_FORMAT;
             }
-            unsigned int nptc = NumPicTotalCurr(bits, rps, this);
+            unsigned int nptc = NumPicTotalCurr(rps, this);
             if (pps->lists_modification_present_flag && nptc > 1) {
                 // ref_pic_lists_modification
                 unsigned int ref_pic_list_modification_flag_l0 = bits.ReadBit();

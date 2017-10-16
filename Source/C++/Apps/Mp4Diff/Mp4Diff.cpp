@@ -65,9 +65,7 @@ PrintUsageAndExit()
 |   DiffSamples
 +---------------------------------------------------------------------*/
 static void
-DiffSamples(unsigned int index,
-            AP4_Sample& sample1, AP4_DataBuffer& sample_data1,
-            AP4_Sample& sample2, AP4_DataBuffer& sample_data2)
+DiffSamples(unsigned int index, AP4_DataBuffer& sample_data1, AP4_DataBuffer& sample_data2)
 {
     if (sample_data1.GetDataSize() != sample_data2.GetDataSize()) {
         printf("!!! sample %d: sizes not equal: %d, %d\n", index, sample_data1.GetDataSize(), sample_data2.GetDataSize());
@@ -137,7 +135,7 @@ DiffFragments(AP4_Movie& movie1, AP4_ByteStream* stream1, AP4_Movie& movie2, AP4
                 prev_track_id = track_id1;
             }
             
-            DiffSamples(i, sample1, sample_data1, sample2, sample_data2);
+            DiffSamples(i, sample_data1, sample_data2);
         } else {
             printf("### processed %d samples\n", i+1);
             break;
