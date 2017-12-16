@@ -294,7 +294,7 @@ class rijndael:
 
     def decrypt(self, ciphertext):
         if len(ciphertext) != self.block_size:
-            raise ValueError('wrong block length, expected ' + str(self.block_size) + ' got ' + str(len(plaintext)))
+            raise ValueError('wrong block length, expected ' + str(self.block_size) + ' got ' + str(len(ciphertext)))
         Kd = self.Kd
 
         BC = self.block_size / 4
