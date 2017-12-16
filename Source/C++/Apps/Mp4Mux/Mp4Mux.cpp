@@ -388,6 +388,7 @@ AddH264Track(AP4_Movie&            movie,
             double frame_rate = atof(parameters[i].m_Value.GetChars());
             if (frame_rate == 0.0) {
                 fprintf(stderr, "ERROR: invalid video frame rate %s\n", parameters[i].m_Value.GetChars());
+                input->Release();
                 return;
             }
             video_frame_rate = (unsigned int)(1000.0*frame_rate);
@@ -602,6 +603,7 @@ AddH265Track(AP4_Movie&            movie,
             double frame_rate = atof(parameters[i].m_Value.GetChars());
             if (frame_rate == 0.0) {
                 fprintf(stderr, "ERROR: invalid video frame rate %s\n", parameters[i].m_Value.GetChars());
+                input->Release();
                 return;
             }
             video_frame_rate = (unsigned int)(1000.0*frame_rate);
