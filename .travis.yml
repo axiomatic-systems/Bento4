@@ -9,5 +9,5 @@ matrix:
     - os: linux
       env: BUILD_SCRIPT="scons build_config=all stop_on_warning=yes"
 
-script: $BUILD_SCRIPT
+script: "${BUILD_SCRIPT}"
 
