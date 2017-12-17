@@ -696,7 +696,7 @@ def ComputeBandwidth(buffer_time, sizes, durations):
             accu_size     += sizes[j]
             accu_duration += durations[j]
             max_avail = buffer_size+accu_duration*bandwidth/8.0
-            if accu_size > max_avail:
+            if accu_size > max_avail and accu_duration != 0:
                 bandwidth = 8.0*(accu_size-buffer_size)/accu_duration
                 break
     return int(bandwidth)
