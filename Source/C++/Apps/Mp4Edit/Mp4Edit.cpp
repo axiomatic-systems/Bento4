@@ -37,10 +37,12 @@
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-#define BANNER "MP4 File Editor - Version 1.1\n"\
+#define BANNER "MP4 File Editor - Version 1.2\n"\
                "(Bento4 Version " AP4_VERSION_STRING ")\n"\
-               "(c) 2002-2012 Axiomatic Systems, LLC"
- 
+               "(c) 2002-2017 Axiomatic Systems, LLC"
+
+const AP4_LargeSize AP4_MP4EDIT_MAX_PAYLOAD_SIZE = (AP4_LargeSize)0xFFFFFFFFUL;
+
 /*----------------------------------------------------------------------
 |   PrintUsageAndExit
 +---------------------------------------------------------------------*/
@@ -51,9 +53,15 @@ PrintUsageAndExit()
             BANNER 
             "\n\nusage: mp4edit [commands] <input> <output>\n"
             "    where commands include one or more of:\n"
-            "    --insert <atom_path>:<atom_source_file>[:<position>]\n"
+            "    --insert <atom_path>:<atom_source>[:<position>]\n"
             "    --remove <atom_path>\n"
-            "    --replace <atom_path>:<atom_source_file>\n");
+            "    --replace <atom_path>:<atom_source>\n"
+            "\n"
+            "    and <atom_source> may be either a filename for a file\n"
+            "    that contains the atom data (header and payload), or\n"
+            "    <uuid>#<file> with <uuid> specifying an atom uuid type,\n"
+            "    as a 32-character hex value, and <file> a file with the atom\n"
+            "    payload only.\n");
     exit(1);
 }
 
@@ -75,17 +83,17 @@ public:
 
         // constructor
         Command(Type type, const char* atom_path, 
-                           const char* file_path,
+                           const char* atom_source,
                            int         position = -1) :
           m_Type(type), 
           m_AtomPath(atom_path), 
-          m_FilePath(file_path),
+          m_AtomSource(atom_source),
           m_Position(position) {}
 
         // members
         Type       m_Type;
         AP4_String m_AtomPath;
-        AP4_String m_FilePath;
+        AP4_String m_AtomSource;
         int        m_Position;
     };
 
@@ -103,7 +111,7 @@ public:
 
 private:
     // methods
-    AP4_Result InsertAtom(const char*     file_path, 
+    AP4_Result InsertAtom(AP4_String&     atom_source,
                           AP4_AtomParent* container,
                           int             position);
     AP4_Result DoRemove(Command* command, AP4_AtomParent& top_level);
@@ -191,29 +199,68 @@ AP4_EditingProcessor::DoRemove(Command* command, AP4_AtomParent& top_level)
 |   AP4_EditingProcessor::InsertAtom
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_EditingProcessor::InsertAtom(const char*     file_path, 
+AP4_EditingProcessor::InsertAtom(AP4_String&     atom_source,
                                  AP4_AtomParent* container,
                                  int             position)
 {
-    // read the atom to insert
-    AP4_Atom* child = NULL;
-    AP4_ByteStream* input = NULL;
-    AP4_Result result = AP4_FileByteStream::Create(file_path, AP4_FileByteStream::STREAM_MODE_READ, input);
-    if (AP4_FAILED(result)) {
-        fprintf(stderr, "ERROR: cannot open atom file (%s)\n", file_path);
-        return AP4_FAILURE;
+    const char* file_path = atom_source.GetChars();
+    int separator = atom_source.Find('#');
+    AP4_UI08 atom_uuid[16];
+    bool is_uuid = false;
+    if (separator == 32) {
+        // uuid
+        AP4_ParseHex(atom_source.GetChars(), atom_uuid, 16);
+        file_path += separator + 1;
+        is_uuid = true;
     }
 
-    AP4_DefaultAtomFactory atom_factory;
-    result = atom_factory.CreateAtomFromStream(*input, child);
-    input->Release();
-    if (AP4_FAILED(result)) {
-        fprintf(stderr, "ERROR: failed to create atom\n");
-        return AP4_FAILURE;
-    } 
+    AP4_Atom* child = NULL;
+    if (is_uuid) {
+        // open the payload
+        AP4_ByteStream* payload = NULL;
+        AP4_Result result = AP4_FileByteStream::Create(file_path, AP4_FileByteStream::STREAM_MODE_READ, payload);
+        if (AP4_FAILED(result)) {
+            fprintf(stderr, "ERROR: cannot open atom file (%s)\n", file_path);
+            return result;
+        }
+        
+        // check the size
+        AP4_LargeSize payload_size = 0;
+        result = payload->GetSize(payload_size);
+        if (AP4_FAILED(result)) {
+            fprintf(stderr, "ERROR: cannot get atom file size\n");
+            payload->Release();
+            return result;
+        }
+        if (payload_size > AP4_MP4EDIT_MAX_PAYLOAD_SIZE) {
+            fprintf(stderr, "ERROR: atom payload too large\n");
+            payload->Release();
+            return AP4_ERROR_OUT_OF_RANGE;
+        }
+        
+        // synthesize a uuid atom
+        child = new AP4_UnknownUuidAtom(payload_size + AP4_ATOM_HEADER_SIZE + 16, atom_uuid, *payload);
+        payload->Release();
+    } else {
+        // read the atom to insert
+        AP4_ByteStream* input = NULL;
+        AP4_Result result = AP4_FileByteStream::Create(file_path, AP4_FileByteStream::STREAM_MODE_READ, input);
+        if (AP4_FAILED(result)) {
+            fprintf(stderr, "ERROR: cannot open atom file (%s)\n", file_path);
+            return AP4_FAILURE;
+        }
 
+        AP4_DefaultAtomFactory atom_factory;
+        result = atom_factory.CreateAtomFromStream(*input, child);
+        input->Release();
+        if (AP4_FAILED(result)) {
+            fprintf(stderr, "ERROR: failed to create atom\n");
+            return AP4_FAILURE;
+        }
+    }
+    
     // insert the atom
-    result = container->AddChild(child, position);
+    AP4_Result result = container->AddChild(child, position);
     if (AP4_FAILED(result)) {
         fprintf(stderr, "ERROR: failed to insert atom\n");
         delete child;
@@ -253,7 +300,7 @@ AP4_EditingProcessor::DoInsert(Command* command, AP4_AtomParent& top_level)
         return AP4_FAILURE;
     }
 
-    return InsertAtom(command->m_FilePath.GetChars(), parent, command->m_Position);
+    return InsertAtom(command->m_AtomSource, parent, command->m_Position);
 }
 
 /*----------------------------------------------------------------------
@@ -283,7 +330,7 @@ AP4_EditingProcessor::DoReplace(Command* command, AP4_AtomParent& top_level)
         delete atom;
 
         // insert the replacement
-        return InsertAtom(command->m_FilePath.GetChars(), parent, position);
+        return InsertAtom(command->m_AtomSource, parent, position);
     }
 }
 

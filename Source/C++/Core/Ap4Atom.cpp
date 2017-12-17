@@ -645,36 +645,58 @@ AP4_AtomParent::FindChild(const char* path,
     // walk the path
     while (path[0] && path[1] && path[2] && path[3]) {
         // we have 4 valid chars
-        const char* tail;
-        int         index = 0;
-        if (path[4] == '\0') {
-            tail = NULL;
-        } else if (path[4] == '/') {
-            // separator
-            tail = &path[5];
-        } else if (path[4] == '[') {
-            const char* x = &path[5];
-            while (*x >= '0' && *x <= '9') {
-                index = 10*index+(*x++ - '0');
-            }
-            if (x[0] == ']') {
-                if (x[1] == '\0') {
-                    tail = NULL;
-                } else {
-                    tail = x+2;
-                }
-            } else {
-                // malformed path
-                return NULL;
-            }
+        const char* end = &path[4];
+        
+        // look for the end or a separator
+        while (*end != '\0' && *end != '/' && *end != '[') {
+            ++end;
+        }
+        
+        // decide if this is a 4-character code or a UUID
+        AP4_UI08 uuid[16];
+        AP4_Atom::Type type = 0;
+        bool is_uuid = false;
+        if (end == path+4) {
+            // 4-character code
+            type = AP4_ATOM_TYPE(path[0], path[1], path[2], path[3]);
+        } else if (end == path+32) {
+            // UUID
+            is_uuid = true;
+            AP4_ParseHex(path, uuid, sizeof(uuid));
         } else {
             // malformed path
             return NULL;
         }
 
+        // parse the array index, if any
+        int index = 0;
+        if (*end == '[') {
+            const char* x = end+1;
+            while (*x >= '0' && *x <= '9') {
+                index = 10*index+(*x++ - '0');
+            }
+            if (*x != ']') {
+                // malformed path
+                return NULL;
+            }
+            end = x+1;
+        }
+        
+        // check what's at the end now
+        if (*end == '/') {
+            ++end;
+        } else if (*end != '\0') {
+            // malformed path
+            return NULL;
+        }
+        
         // look for this atom in the current list
-        AP4_Atom::Type type = AP4_ATOM_TYPE(path[0], path[1], path[2], path[3]); 
-        AP4_Atom* atom = parent->GetChild(type, index);
+        AP4_Atom* atom = NULL;
+        if (is_uuid) {
+            atom = parent->GetChild(uuid, index);
+        } else {
+            atom = parent->GetChild(type, index);
+        }
         if (atom == NULL) {
             // not found
             if (auto_create && (index == 0)) {
@@ -689,8 +711,8 @@ AP4_AtomParent::FindChild(const char* path,
             }
         }
 
-        if (tail) {
-            path = tail;
+        if (*end) {
+            path = end;
             // if this atom is an atom parent, recurse
             parent = AP4_DYNAMIC_CAST(AP4_ContainerAtom, atom);
             if (parent == NULL) return NULL;
