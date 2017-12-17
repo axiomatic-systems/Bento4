@@ -1,5 +1,6 @@
 Bento4 
-======
+=====
+[![Build Status](https://travis-ci.org/axiomatic-systems/Bento4.svg?branch=master)](https://travis-ci.org/axiomatic-systems/Bento4.svg?branch=master)
            
 Bento4 is a C++ class library and tools designed to read and write ISO-MP4 files. 
 This format is defined in international specifications ISO/IEC 14496-12, 14496-14 and 14496-15. 
