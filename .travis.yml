@@ -4,10 +4,10 @@ matrix:
   include:
     - os: osx
       osx_image: xcode9.2  
-      env: BUILD_SCRIPT=cd Build/Targets/universal-apple-macosx && xcodebuild -target All -configuration Release
+      env: BUILD_SCRIPT="cd Build/Targets/universal-apple-macosx && xcodebuild -target All -configuration Release"
 
     - os: linux
-      env: BUILD_SCRIPT=scons build_config=all stop_on_warning=yes
+      env: BUILD_SCRIPT="scons build_config=all stop_on_warning=yes"
 
 script: $BUILD_SCRIPT
 
