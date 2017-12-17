@@ -455,7 +455,7 @@ AP4_BitReader::ReadBits(unsigned int n)
         AP4_BitReader::BitsWord cache = m_Cache & AP4_BIT_MASK(m_BitsCached);
         n -= m_BitsCached;
         m_BitsCached = AP4_WORD_BITS - n;
-        result = (word >> m_BitsCached) | (cache << n);
+        result = m_BitsCached ? (word >> m_BitsCached) | (cache << n) : word;
         m_Cache = word;
     }
 

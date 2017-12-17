@@ -740,6 +740,11 @@ AP4_Processor::Process(AP4_ByteStream&   input,
     // cleanup
     frags.DeleteReferences();
     delete mfra;
+    if (fragments) {
+        // with a fragments stream, `moov` isn't inclued in `top_level`
+        // so we need to delete it here
+        delete moov;
+    }
     
     return AP4_SUCCESS;
 }
