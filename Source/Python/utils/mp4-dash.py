@@ -752,6 +752,7 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
 
     master_playlist_file.write('\r\n')
     master_playlist_file.write('# Video\r\n')
+    iframe_playlist_lines = []
     for video_track in all_video_tracks:
         if options.on_demand or not options.split:
             media_subdir          = ''
@@ -791,15 +792,17 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
         OutputHlsTrack(options, video_track, media_subdir, media_playlist_name, media_file_name)
         OutputHlsIframeIndex(options, video_track, media_subdir, iframes_playlist_name, media_file_name)
 
+        # this will be written later
+        iframe_playlist_lines.append('#EXT-X-I-FRAME-STREAM-INF:AVERAGE-BANDWIDTH=%d,BANDWIDTH=%d,CODECS="%s",RESOLUTION=%dx%d,URI="%s"\r\n' % (
+                                     video_track.average_segment_bitrate,
+                                     video_track.max_segment_bitrate,
+                                     video_track.codec,
+                                     video_track.width,
+                                     video_track.height,
+                                     media_playlist_path))
+
     master_playlist_file.write('\r\n# I-Frame Playlists\r\n')
-    for video_track in all_video_tracks:
-        master_playlist_file.write('#EXT-X-I-FRAME-STREAM-INF:AVERAGE-BANDWIDTH=%d,BANDWIDTH=%d,CODECS="%s",RESOLUTION=%dx%d,URI="%s"\r\n' % (
-                                   video_track.average_segment_bitrate,
-                                   video_track.max_segment_bitrate,
-                                   video_track.codec,
-                                   video_track.width,
-                                   video_track.height,
-                                   media_playlist_path))
+    master_playlist_file.write(''.join(iframe_playlist_lines))
 
     if len(subtitles_files):
         master_playlist_file.write('# Subtitles\r\n')
