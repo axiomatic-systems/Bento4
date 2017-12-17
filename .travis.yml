@@ -1,0 +1,2 @@
+language: cpp
+script: scons build_config=all stop_on_warnings=yes
