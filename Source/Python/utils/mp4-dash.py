@@ -804,10 +804,36 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
     master_playlist_file.write('\r\n# I-Frame Playlists\r\n')
     master_playlist_file.write(''.join(iframe_playlist_lines))
 
+    # IMSC1 subtitles
+    if len(all_subtitles_tracks):
+        master_playlist_file.write('\r\n# Subtitles (IMSC1)\r\n')
+        for subtitles_track in all_subtitles_tracks:
+            if subtitles_track.codec != 'stpp':
+                # only accept IMSC1 tracks
+                continue
+            language = subtitles_track.language.decode('utf-8')
+            language_name = LanguageNames.get(language, language).decode('utf-8')
+            
+            if options.on_demand or not options.split:
+                media_subdir        = ''
+                media_file_name     = subtitles_track.parent.media_name
+                media_playlist_name = subtitles_track.representation_id+".m3u8"
+                media_playlist_path = media_playlist_name
+            else:
+                media_subdir        = subtitles_track.representation_id
+                media_file_name     = ''
+                media_playlist_name = options.hls_media_playlist_name
+                media_playlist_path = media_subdir+'/'+media_playlist_name
+
+            master_playlist_file.write('#EXT-X-MEDIA:TYPE=SUBTITLES,GROUP-ID="imsc1",NAME="{0:s}",DEFAULT=NO,AUTOSELECT=YES,LANGUAGE="{1:s}",URI="{2:s}"\r\n'
+                                       .format(language_name, language, media_playlist_path))
+            
+    # WebVTT subtitles
     if len(subtitles_files):
-        master_playlist_file.write('# Subtitles\r\n')
+        master_playlist_file.write('\r\n# Subtitles (WebVTT)\r\n')
         for subtitles_file in subtitles_files:
-            master_playlist_file.write('''#EXT-X-MEDIA:TYPE=SUBTITLES,GROUP-ID="subs",NAME="{0:s}",DEFAULT=NO,AUTOSELECT=YES,FORCED=YES,LANGUAGE="{0:s}",URI="subtitles/{0:s}/{1:s}"\r\n'''.format(subtitles_file.language,subtitles_file.media_name))
+            master_playlist_file.write('#EXT-X-MEDIA:TYPE=SUBTITLES,GROUP-ID="subs",NAME="{0:s}",DEFAULT=NO,AUTOSELECT=YES,FORCED=YES,LANGUAGE="{0:s}",URI="subtitles/{0:s}/{1:s}"\r\n'
+                                       .format(subtitles_file.language,subtitles_file.media_name))
 
 #############################################
 def OutputSmooth(options, audio_tracks, video_tracks):
