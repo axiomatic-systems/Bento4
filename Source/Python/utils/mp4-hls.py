@@ -551,7 +551,7 @@ def main():
 
     # check options
     if options.output_encryption_key:
-        if options.encryption_key_uri:
+        if options.encryption_key_uri != "key.bin":
             sys.stderr.write("WARNING: the encryption key will not be output because a non-default key URI was specified\n")
             options.output_encryption_key = False
         if not options.encryption_key:
