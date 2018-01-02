@@ -158,7 +158,9 @@ MakeFramePrefix(AP4_SampleDescription* sdesc, AP4_DataBuffer& prefix, unsigned i
         return AP4_FAILURE;
     }
     
-    if (sdesc->GetFormat() == AP4_SAMPLE_FORMAT_AVC3 || sdesc->GetFormat() == AP4_SAMPLE_FORMAT_AVC4) {
+    if (sdesc->GetFormat() == AP4_SAMPLE_FORMAT_AVC3 ||
+        sdesc->GetFormat() == AP4_SAMPLE_FORMAT_AVC4 ||
+        sdesc->GetFormat() == AP4_SAMPLE_FORMAT_DVAV) {
         // no need for a prefix, SPS/PPS NALs should be in the elementary stream already
         return AP4_SUCCESS;
     }

@@ -160,7 +160,9 @@ AP4_CencAdvancedSubSampleMapper::GetSubSampleMap(AP4_DataBuffer&      sample_dat
         } else if (m_Format == AP4_SAMPLE_FORMAT_AVC1 ||
                    m_Format == AP4_SAMPLE_FORMAT_AVC2 ||
                    m_Format == AP4_SAMPLE_FORMAT_AVC3 ||
-                   m_Format == AP4_SAMPLE_FORMAT_AVC4) {
+                   m_Format == AP4_SAMPLE_FORMAT_AVC4 ||
+                   m_Format == AP4_SAMPLE_FORMAT_DVAV ||
+                   m_Format == AP4_SAMPLE_FORMAT_DVA1) {
             unsigned int nalu_type = in[m_NaluLengthSize] & 0x1F;
             if (nalu_type != AP4_AVC_NAL_UNIT_TYPE_CODED_SLICE_OF_NON_IDR_PICTURE &&
                 nalu_type != AP4_AVC_NAL_UNIT_TYPE_CODED_SLICE_DATA_PARTITION_A   &&
@@ -171,7 +173,9 @@ AP4_CencAdvancedSubSampleMapper::GetSubSampleMap(AP4_DataBuffer&      sample_dat
                 skip = true;
             }
         } else if (m_Format == AP4_SAMPLE_FORMAT_HEV1 ||
-                   m_Format == AP4_SAMPLE_FORMAT_HVC1) {
+                   m_Format == AP4_SAMPLE_FORMAT_HVC1 ||
+                   m_Format == AP4_SAMPLE_FORMAT_DVHE ||
+                   m_Format == AP4_SAMPLE_FORMAT_DVH1) {
             unsigned int nalu_type = (in[m_NaluLengthSize] >> 1) & 0x3F;
             if (nalu_type >= 32) {
                 // this NAL unit is not a VCL NAL unit
@@ -229,7 +233,9 @@ AP4_CencCbcsSubSampleMapper::AP4_CencCbcsSubSampleMapper(AP4_Size nalu_length_si
     if (format == AP4_SAMPLE_FORMAT_AVC1 ||
         format == AP4_SAMPLE_FORMAT_AVC2 ||
         format == AP4_SAMPLE_FORMAT_AVC3 ||
-        format == AP4_SAMPLE_FORMAT_AVC4) {
+        format == AP4_SAMPLE_FORMAT_AVC4 ||
+        format == AP4_SAMPLE_FORMAT_DVAV ||
+        format == AP4_SAMPLE_FORMAT_DVA1) {
         // create the parser
         m_AvcParser = new AP4_AvcFrameParser();
         
@@ -252,7 +258,9 @@ AP4_CencCbcsSubSampleMapper::AP4_CencCbcsSubSampleMapper(AP4_Size nalu_length_si
             ParseAvcData(pps.GetData(), pps.GetDataSize());
         }
     } else if (format == AP4_SAMPLE_FORMAT_HEV1 ||
-               format == AP4_SAMPLE_FORMAT_HVC1) {
+               format == AP4_SAMPLE_FORMAT_HVC1 ||
+               format == AP4_SAMPLE_FORMAT_DVHE ||
+               format == AP4_SAMPLE_FORMAT_DVH1) {
         // create the parser
         m_HevcParser = new AP4_HevcFrameParser();
         
@@ -358,7 +366,9 @@ AP4_CencCbcsSubSampleMapper::GetSubSampleMap(AP4_DataBuffer&      sample_data,
         if (m_Format == AP4_SAMPLE_FORMAT_AVC1 ||
             m_Format == AP4_SAMPLE_FORMAT_AVC2 ||
             m_Format == AP4_SAMPLE_FORMAT_AVC3 ||
-            m_Format == AP4_SAMPLE_FORMAT_AVC4) {
+            m_Format == AP4_SAMPLE_FORMAT_AVC4 ||
+            m_Format == AP4_SAMPLE_FORMAT_DVAV ||
+            m_Format == AP4_SAMPLE_FORMAT_DVA1) {
             const AP4_UI08* nalu_data = &in[m_NaluLengthSize];
             unsigned int nalu_type = nalu_data[0] & 0x1F;
 
@@ -398,7 +408,9 @@ AP4_CencCbcsSubSampleMapper::GetSubSampleMap(AP4_DataBuffer&      sample_data,
                 }
             }
         } else if (m_Format == AP4_SAMPLE_FORMAT_HEV1 ||
-                   m_Format == AP4_SAMPLE_FORMAT_HVC1) {
+                   m_Format == AP4_SAMPLE_FORMAT_HVC1 ||
+                   m_Format == AP4_SAMPLE_FORMAT_DVHE ||
+                   m_Format == AP4_SAMPLE_FORMAT_DVH1) {
             const AP4_UI08* nalu_data = &in[m_NaluLengthSize];
             unsigned int nalu_type = (nalu_data[0] >> 1) & 0x3F;
             

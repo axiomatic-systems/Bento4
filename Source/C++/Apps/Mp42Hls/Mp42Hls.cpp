@@ -2036,7 +2036,9 @@ main(int argc, char** argv)
             if (sample_description->GetFormat() == AP4_SAMPLE_FORMAT_AVC1 ||
                 sample_description->GetFormat() == AP4_SAMPLE_FORMAT_AVC2 ||
                 sample_description->GetFormat() == AP4_SAMPLE_FORMAT_AVC3 ||
-                sample_description->GetFormat() == AP4_SAMPLE_FORMAT_AVC4) {
+                sample_description->GetFormat() == AP4_SAMPLE_FORMAT_AVC4 ||
+                sample_description->GetFormat() == AP4_SAMPLE_FORMAT_DVAV ||
+                sample_description->GetFormat() == AP4_SAMPLE_FORMAT_DVA1) {
                 if (Options.encryption_mode == ENCRYPTION_MODE_SAMPLE_AES) {
                     stream_type = AP4_MPEG2_STREAM_TYPE_SAMPLE_AES_AVC;
                     AP4_AvcSampleDescription* avc_desc = AP4_DYNAMIC_CAST(AP4_AvcSampleDescription, sample_description);
@@ -2049,7 +2051,9 @@ main(int argc, char** argv)
                     stream_type = AP4_MPEG2_STREAM_TYPE_AVC;
                 }
             } else if (sample_description->GetFormat() == AP4_SAMPLE_FORMAT_HEV1 ||
-                       sample_description->GetFormat() == AP4_SAMPLE_FORMAT_HVC1) {
+                       sample_description->GetFormat() == AP4_SAMPLE_FORMAT_HVC1 ||
+                       sample_description->GetFormat() == AP4_SAMPLE_FORMAT_DVHE ||
+                       sample_description->GetFormat() == AP4_SAMPLE_FORMAT_DVH1) {
                 stream_type = AP4_MPEG2_STREAM_TYPE_HEVC;
             } else {
                 fprintf(stderr, "ERROR: video codec not supported\n");
