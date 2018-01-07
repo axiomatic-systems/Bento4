@@ -90,6 +90,7 @@ PrintUsageAndExit()
             "  --sequence-number-start <start> Value of the first segment sequence number (default: 1)\n"
             "  --force-i-frame-sync <auto|all> treat all I-frames as sync samples (for open-gop sequences)\n"
             "    'auto' only forces the flag if an open-gop source is detected, 'all' forces the flag in all cases\n"
+            "  --copy-udta copy the moov/udta atom from input to output"
             );
     exit(1);
 }
@@ -295,7 +296,8 @@ Fragment(AP4_File&                input_file,
          unsigned int             fragment_duration,
          AP4_UI32                 timescale,
          AP4_UI32                 track_id,
-         bool                     create_segment_index)
+         bool                     create_segment_index,
+         bool                     copy_udta)
 {
     AP4_List<FragmentInfo> fragments;
     TrackCursor*           index_cursor = NULL;
@@ -447,6 +449,14 @@ Fragment(AP4_File&                input_file,
     
     // add the mvex container to the moov container
     output_movie->GetMoovAtom()->AddChild(mvex);
+
+    // copy the moov/udta atom to the moov container
+    if (copy_udta) {
+        AP4_Atom* udta = input_movie->GetMoovAtom()->GetChild(AP4_ATOM_TYPE_UDTA);
+        if (udta != NULL) {
+            output_movie->GetMoovAtom()->AddChild(udta->Clone());
+        }
+    }
     
     // compute all the fragments
     unsigned int sequence_number = Options.sequence_number_start;
@@ -1052,6 +1062,7 @@ main(int argc, char** argv)
     bool         auto_detect_fragment_duration = true;
     bool         create_segment_index          = false;
     bool         quiet                         = false;
+    bool         copy_udta                     = false;
     AP4_UI32     timescale                     = 0;
     AP4_Result   result;
 
@@ -1133,6 +1144,8 @@ main(int argc, char** argv)
                 fprintf(stderr, "ERROR: missing argument after --track option\n");
                 return 1;
             }
+        } else if (!strcmp(arg, "--copy-udta")) {
+            copy_udta = true;
         } else {
             if (input_filename == NULL) {
                 input_filename = arg;
@@ -1375,7 +1388,7 @@ main(int argc, char** argv)
     }
     
     // fragment the file
-    Fragment(input_file, *output_stream, cursors, fragment_duration, timescale, selected_track_id, create_segment_index);
+    Fragment(input_file, *output_stream, cursors, fragment_duration, timescale, selected_track_id, create_segment_index, copy_udta);
     
     // cleanup and exit
     if (input_stream)  input_stream->Release();
