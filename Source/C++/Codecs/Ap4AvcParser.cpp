@@ -210,7 +210,7 @@ AP4_AvcSequenceParameterSet::AP4_AvcSequenceParameterSet() :
     constraint_set3_flag(0),
     level_idc(0),
     seq_parameter_set_id(0),
-    chroma_format_idc(0),
+    chroma_format_idc(1),
     separate_colour_plane_flag(0),
     bit_depth_luma_minus8(0),
     bit_depth_chroma_minus8(0),
