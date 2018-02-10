@@ -357,7 +357,6 @@ class Mp4Track:
         self.default_sample_duration  = 0
         self.timescale                = 0
         self.moofs                    = []
-        self.kid                      = None
         self.sample_counts            = []
         self.segment_sizes            = []
         self.segment_durations        = []
@@ -372,6 +371,7 @@ class Mp4Track:
         self.bandwidth                = 0
         self.language                 = ''
         self.order_index              = 0
+        self.key_info                 = {}
         self.id = info['id']
         if info['type'] == 'Audio':
             self.type = 'audio'
@@ -470,11 +470,13 @@ class Mp4Track:
         traks = FilterChildren(moov, 'trak')
         for trak in traks:
             tkhd = FindChild(trak, ['tkhd'])
-            tenc = FindChild(trak, ('mdia', 'minf', 'stbl', 'stsd', 'encv', 'sinf', 'schi', 'tenc'))
-            if tenc is None:
-                tenc = FindChild(trak, ('mdia', 'minf', 'stbl', 'stsd', 'enca', 'sinf', 'schi', 'tenc'))
-            if tenc and 'default_KID' in tenc:
-                self.kid = tenc['default_KID'].strip('[]').replace(' ', '')
+            if tkhd['id'] == self.id:
+                tenc = FindChild(trak, ('mdia', 'minf', 'stbl', 'stsd', 'encv', 'sinf', 'schi', 'tenc'))
+                if tenc is None:
+                    tenc = FindChild(trak, ('mdia', 'minf', 'stbl', 'stsd', 'enca', 'sinf', 'schi', 'tenc'))
+                if tenc and 'default_KID' in tenc:
+                    self.key_info['kid'] = tenc['default_KID'].strip('[]').replace(' ', '')
+                break
 
     def __repr__(self):
         return 'File '+str(self.parent.file_list_index)+'#'+str(self.id)

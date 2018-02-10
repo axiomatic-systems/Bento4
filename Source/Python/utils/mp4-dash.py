@@ -27,7 +27,7 @@ from mp4utils import *
 from subtitles import *
 
 # setup main options
-VERSION = "1.8.0"
+VERSION = "1.9.0"
 SDK_REVISION = '622'
 SCRIPT_PATH = path.abspath(path.dirname(__file__))
 sys.path += [SCRIPT_PATH]
@@ -213,11 +213,11 @@ def AddSegments(options, container, track):
 def AddContentProtection(options, container, tracks):
     kids = []
     for track in tracks:
-        kid = track.kid
-        if kid is None and not options.no_media:
-            PrintErrorAndExit('ERROR: no encryption info found in track '+str(track))
-        if kid not in kids:
+        kid = track.get('kid')
+        if kid != None and kid not in kids:
             kids.append(kid)
+    if len(kids) == 0:
+        return # nothing encrypted here
 
     # resolve the default KID and KEY
     key_info = None
@@ -930,22 +930,15 @@ def OutputSmooth(options, audio_tracks, video_tracks):
             xml.SubElement(stream_index, "c", d=str(duration))
 
     if options.playready_header:
-        key_info = None
-        if options.encryption_key:
-            if len(video_tracks):
-                key_info = video_tracks[0].key_info
-                if not key_info and len(audio_tracks):
-                    key_info = audio_tracks[0].key_info
+        if len(video_tracks):
+            key_info = video_tracks[0].key_info
+            if not key_info and len(audio_tracks):
+                key_info = audio_tracks[0].key_info
 
-        if key_info:
-            kid = key_info['kid']
-            key = key_info['key']
-        else:
-            if len(video_tracks):
-                kid = video_tracks[0].kid
-            else:
-                kid = audio_tracks[0].kid
-            key = None
+        if not key_info:
+            return
+        kid = key_info.get('kid')
+        key = key_info.get('key')
         header_bin = ComputePlayReadyHeader(options.playready_header, kid, key)
         header_b64 = header_bin.encode('base64').replace('\n', '')
         protection = xml.SubElement(client_manifest, 'Protection')
@@ -1188,7 +1181,6 @@ def SelectSubtitlesFiles(options, media_sources):
 
 #############################################
 def ResolveEncryptionKeys(options):
-    options.key_infos = []
     for key_spec in options.encryption_key.split(','):
         key_info = {'filter': ['audio', 'video']}
         if key_spec.startswith('audio:') or key_spec.startswith('video:'):
@@ -1233,6 +1225,119 @@ def ResolveEncryptionKeys(options):
 
         options.key_infos.append(key_info)
 
+#############################################
+def EncryptSources(options, media_sources):
+    # check if there's anything to encrypt
+    if not options.encryption_key:
+        found_key_spec = False
+        for media_source in media_sources:
+            if media_source.spec.get('+key'):
+                found_key_spec
+                break
+        if not found_key_spec:
+            # nothing to encrypt
+            return
+
+    encrypted_files = {}
+    for media_source in media_sources:
+        if media_source.format != 'mp4': continue
+
+        media_file = media_source.filename
+
+        # check if we have already encrypted this file
+        if media_file in encrypted_files:
+            media_source.filename = encrypted_files[media_file].name
+            continue
+
+        # get the mp4 file info
+        json_info = Mp4Info(Options, media_file, format='json', fast=True)
+        info = json.loads(json_info, strict=False)
+
+        if not info['movie']['fragments']:
+            PrintErrorAndExit('ERROR: file '+media_file+' is not fragmented (use mp4fragment to fragment it)')
+
+        if 'tracks' not in info:
+            raise Exception('No track found in input file(s)')
+
+        # select which KID/KEY to use for each track
+        default_kid = options.key_infos[0]['kid']
+        default_key = options.key_infos[0]['key']
+        for track in info['tracks']:
+            for key_info in options.key_infos:
+                if track['type'].lower() in key_info['filter']:
+                    media_source.track_key_infos[track['id']] = key_info
+
+        # skip now if we're only outputing the MPD
+        if options.no_media:
+            continue
+
+        # don't process any further if we won't have key material for this media source
+        if len(media_source.track_key_infos) == 0:
+            continue
+
+        print 'Encrypting track IDs '+str(sorted(media_source.track_key_infos.keys()))+' in '+ GetMappedFileName(media_file)
+        encrypted_file = tempfile.NamedTemporaryFile(dir = options.output_dir, delete=False)
+        encrypted_files[media_file] = encrypted_file
+        TempFiles.append(encrypted_file.name)
+        encrypted_file.close() # necessary on Windows
+        MapFileName(encrypted_file.name, path.basename(encrypted_file.name) + ' = Encrypted[' + GetMappedFileName(media_file) + ']')
+        args = ['--method', MpegCencSchemeMap[options.encryption_cenc_scheme]]
+
+        if options.encryption_args:
+            args += options.encryption_args.split()
+        else:
+            if options.smooth or options.playready:
+                args += ['--global-option', 'mpeg-cenc.piff-compatible:true']
+
+        for track_id in sorted(media_source.track_key_infos.keys()):
+            key_info = media_source.track_key_infos[track_id]
+            args += ['--key', str(track_id)+':'+key_info['key']+':'+key_info['iv'], '--property', str(track_id)+':KID:'+key_info['kid']]
+
+        # EME Common Encryption / Clearkey
+        if options.eme_signaling == 'pssh-v0':
+            args += ['--pssh', EME_COMMON_ENCRYPTION_PSSH_SYSTEM_ID+':']
+        elif options.eme_signaling == 'pssh-v1':
+            args += ['--pssh-v1', EME_COMMON_ENCRYPTION_PSSH_SYSTEM_ID+':']
+
+        # Marlin
+        if options.marlin_add_pssh:
+            marlin_pssh = ComputeMarlinPssh(options)
+            pssh_file = tempfile.NamedTemporaryFile(dir = options.output_dir, delete=False)
+            pssh_file.write(marlin_pssh)
+            TempFiles.append(pssh_file.name)
+            pssh_file.close() # necessary on Windows
+            args += ['--pssh', MARLIN_PSSH_SYSTEM_ID+':'+pssh_file.name]
+
+        # PlayReady
+        if options.playready_add_pssh:
+            playready_header = ComputePlayReadyHeader(options.playready_header, default_kid, default_key)
+            pssh_file = tempfile.NamedTemporaryFile(dir = options.output_dir, delete=False)
+            pssh_file.write(playready_header)
+            TempFiles.append(pssh_file.name)
+            pssh_file.close() # necessary on Windows
+            args += ['--pssh', PLAYREADY_PSSH_SYSTEM_ID+':'+pssh_file.name]
+
+        # Widevine
+        if options.widevine_header:
+            widevine_header = ComputeWidevineHeader(options.widevine_header, default_kid)
+            pssh_file = tempfile.NamedTemporaryFile(dir = options.output_dir, delete=False)
+            pssh_file.write(widevine_header)
+            TempFiles.append(pssh_file.name)
+            pssh_file.close() # necessary on Windows
+            args += ['--pssh', WIDEVINE_PSSH_SYSTEM_ID+':'+pssh_file.name]
+
+        # Primetime
+        if options.primetime_metadata:
+            primetime_metadata = ComputePrimetimeMetaData(options.primetime_metadata, default_kid)
+            pssh_file = tempfile.NamedTemporaryFile(dir = options.output_dir, delete=False)
+            pssh_file.write(primetime_metadata)
+            TempFiles.append(pssh_file.name)
+            pssh_file.close() # necessary on Windows
+            args += ['--pssh', PRIMETIME_PSSH_SYSTEM_ID+':'+pssh_file.name]
+
+        Mp4Encrypt(options, media_file, encrypted_file.name, *args)
+        media_source.filename = encrypted_file.name
+    
 #############################################
 FileNameMap = {}
 def MapFileName(from_name, to_name):
@@ -1479,17 +1584,6 @@ def main():
         if options.encryption_key and options.encryption_cenc_scheme != 'cbcs':
             raise Exception('--hls requires --encryption-cenc-scheme=cbcs')
 
-    # compute the KID(s) and encryption key(s) if needed
-    if options.encryption_key:
-        ResolveEncryptionKeys(options)
-        if options.verbose:
-            for key_info in options.key_infos:
-                if key_info['key']:
-                    message = 'KID='+key_info['kid']+', KEY='+key_info['key']+', IV='+key_info['iv']
-                else:
-                    message = '[NOT ENCRYPTED]'
-                print 'Key Info for '+'/'.join(key_info['filter'])+': '+message
-
     # process language map options
     if options.language_map:
         mappings = options.language_map.split(',')
@@ -1510,14 +1604,14 @@ def main():
         except:
             raise Exception('Invalid syntax for --attributes option')
 
-    # parse media sources syntax
-    media_sources = [MediaSource(source) for source in args]
-
     # create the output directory
     severity = 'ERROR'
     if options.no_media: severity = 'WARNING'
     if options.force_output: severity = None
     MakeNewDir(dir=options.output_dir, exit_if_exists = not (options.no_media or options.force_output), severity=severity)
+
+    # parse media sources syntax
+    media_sources = [MediaSource(source) for source in args]
 
     # for on-demand, we need to first extract tracks into individual media files
     if options.on_demand:
@@ -1542,107 +1636,7 @@ def main():
             media_sources.append(media_source)
 
     # encrypt the input files if needed
-    if options.encryption_key:
-        encrypted_files = {}
-        for media_source in media_sources:
-            if media_source.format != 'mp4': continue
-
-            media_file = media_source.filename
-
-            # check if we have already encrypted this file
-            if media_file in encrypted_files:
-                media_source.filename = encrypted_files[media_file].name
-                continue
-
-            # get the mp4 file info
-            json_info = Mp4Info(Options, media_file, format='json', fast=True)
-            info = json.loads(json_info, strict=False)
-
-            if not info['movie']['fragments']:
-                PrintErrorAndExit('ERROR: file '+media_file+' is not fragmented (use mp4fragment to fragment it)')
-
-            if 'tracks' not in info:
-                raise Exception('No track found in input file(s)')
-
-            # select which KID/KEY to use for each track
-            default_kid = options.key_infos[0]['kid']
-            default_key = options.key_infos[0]['key']
-            media_source.track_key_infos = {}
-            for track in info['tracks']:
-                for key_info in options.key_infos:
-                    if track['type'].lower() in key_info['filter']:
-                        media_source.track_key_infos[track['id']] = key_info
-
-            # skip now if we're only outputing the MPD
-            if options.no_media:
-                continue
-
-            # don't process any further if we won't have key material for this media source
-            if len(media_source.track_key_infos) == 0:
-                continue
-
-            print 'Encrypting track IDs '+str(sorted(media_source.track_key_infos.keys()))+' in '+ GetMappedFileName(media_file)
-            encrypted_file = tempfile.NamedTemporaryFile(dir = options.output_dir, delete=False)
-            encrypted_files[media_file] = encrypted_file
-            TempFiles.append(encrypted_file.name)
-            encrypted_file.close() # necessary on Windows
-            MapFileName(encrypted_file.name, path.basename(encrypted_file.name) + ' = Encrypted[' + GetMappedFileName(media_file) + ']')
-            args = ['--method', MpegCencSchemeMap[options.encryption_cenc_scheme]]
-
-            if options.encryption_args:
-                args += options.encryption_args.split()
-            else:
-                if options.smooth or options.playready:
-                    args += ['--global-option', 'mpeg-cenc.piff-compatible:true']
-
-            for track_id in sorted(media_source.track_key_infos.keys()):
-                key_info = media_source.track_key_infos[track_id]
-                args += ['--key', str(track_id)+':'+key_info['key']+':'+key_info['iv'], '--property', str(track_id)+':KID:'+key_info['kid']]
-
-            # EME Common Encryption / Clearkey
-            if options.eme_signaling == 'pssh-v0':
-                args += ['--pssh', EME_COMMON_ENCRYPTION_PSSH_SYSTEM_ID+':']
-            elif options.eme_signaling == 'pssh-v1':
-                args += ['--pssh-v1', EME_COMMON_ENCRYPTION_PSSH_SYSTEM_ID+':']
-
-            # Marlin
-            if options.marlin_add_pssh:
-                marlin_pssh = ComputeMarlinPssh(options)
-                pssh_file = tempfile.NamedTemporaryFile(dir = options.output_dir, delete=False)
-                pssh_file.write(marlin_pssh)
-                TempFiles.append(pssh_file.name)
-                pssh_file.close() # necessary on Windows
-                args += ['--pssh', MARLIN_PSSH_SYSTEM_ID+':'+pssh_file.name]
-
-            # PlayReady
-            if options.playready_add_pssh:
-                playready_header = ComputePlayReadyHeader(options.playready_header, default_kid, default_key)
-                pssh_file = tempfile.NamedTemporaryFile(dir = options.output_dir, delete=False)
-                pssh_file.write(playready_header)
-                TempFiles.append(pssh_file.name)
-                pssh_file.close() # necessary on Windows
-                args += ['--pssh', PLAYREADY_PSSH_SYSTEM_ID+':'+pssh_file.name]
-
-            # Widevine
-            if options.widevine_header:
-                widevine_header = ComputeWidevineHeader(options.widevine_header, default_kid)
-                pssh_file = tempfile.NamedTemporaryFile(dir = options.output_dir, delete=False)
-                pssh_file.write(widevine_header)
-                TempFiles.append(pssh_file.name)
-                pssh_file.close() # necessary on Windows
-                args += ['--pssh', WIDEVINE_PSSH_SYSTEM_ID+':'+pssh_file.name]
-
-            # Primetime
-            if options.primetime_metadata:
-                primetime_metadata = ComputePrimetimeMetaData(options.primetime_metadata, default_kid)
-                pssh_file = tempfile.NamedTemporaryFile(dir = options.output_dir, delete=False)
-                pssh_file.write(primetime_metadata)
-                TempFiles.append(pssh_file.name)
-                pssh_file.close() # necessary on Windows
-                args += ['--pssh', PRIMETIME_PSSH_SYSTEM_ID+':'+pssh_file.name]
-
-            Mp4Encrypt(options, media_file, encrypted_file.name, *args)
-            media_source.filename = encrypted_file.name
+    EncryptSources(options, media_sources)
 
     # parse the media sources and select the audio and video tracks
     (audio_sets, video_sets, subtitles_sets, mp4_files) = SelectTracks(options, media_sources)
@@ -1662,6 +1656,14 @@ def main():
         print 'Video:',     video_sets
         print 'Subtitles:', subtitles_sets
 
+        for track in audio_tracks+video_tracks+subtitles_tracks:
+            message = 'Key info for ' + track + ': '
+            if track.key_info.get('key'):
+                message += str(track.key_info)
+            else:
+                message = '[NOT ENCRYPTED]'
+            print message
+    
     # assign key info to tracks
     if options.encryption_key:
         for track in audio_tracks+video_tracks+subtitles_tracks:
