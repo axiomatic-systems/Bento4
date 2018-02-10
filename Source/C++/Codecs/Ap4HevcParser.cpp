@@ -686,7 +686,7 @@ AP4_HevcPictureParameterSet::AP4_HevcPictureParameterSet() :
     num_tile_columns_minus1(0),
     num_tile_rows_minus1(0),
     uniform_spacing_flag(1),
-    loop_filter_across_tiles_enabled_flag(0),
+    loop_filter_across_tiles_enabled_flag(1),
     pps_loop_filter_across_slices_enabled_flag(0),
     deblocking_filter_control_present_flag(0),
     deblocking_filter_override_enabled_flag(0),
