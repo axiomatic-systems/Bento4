@@ -33,7 +33,7 @@ sys.path += [SCRIPT_PATH]
 
 #############################################
 def CreateSubtitlesPlaylist(playlist_filename, webvtt_filename, duration):
-    playlist = open(playlist_filename, 'w+')
+    playlist = open(playlist_filename, 'wb+')
     playlist.write('#EXTM3U\r\n')
     playlist.write('#EXT-X-TARGETDURATION:%d\r\n' % (duration))
     playlist.write('#EXT-X-VERSION:3\r\n')
@@ -344,7 +344,7 @@ def OutputHls(options, media_sources):
             ProcessSource(options, audio_track.media_info, out_dir)
 
     # start the master playlist
-    master_playlist = open(path.join(options.output_dir, options.master_playlist_name), "w+")
+    master_playlist = open(path.join(options.output_dir, options.master_playlist_name), "wb+")
     master_playlist.write("#EXTM3U\r\n")
     master_playlist.write('# Created with Bento4 mp4-hls.py version '+VERSION+'r'+SDK_REVISION+'\r\n')
 
