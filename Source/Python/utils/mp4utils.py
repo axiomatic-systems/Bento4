@@ -550,6 +550,7 @@ class Mp4File:
         for atom in self.tree:
             segment_size += atom['size']
             if atom['name'] == 'moof':
+                segment_size = atom['size']
                 trafs = FilterChildren(atom, 'traf')
                 if len(trafs) != 1:
                     PrintErrorAndExit('ERROR: unsupported input file, more than one "traf" box in fragment')
@@ -578,7 +579,6 @@ class Mp4File:
                 # remove the 'trun' entries to save some memory
                 for traf in trafs:
                     traf['children'] = [x for x in traf['children'] if x['name'] != 'trun']
-
             elif atom['name'] == 'mdat':
                 # end of fragment on 'mdat' atom
                 if track:
@@ -589,7 +589,7 @@ class Mp4File:
                         segment_bitrate = 0
                     track.segment_bitrates.append(segment_bitrate)
                 segment_size = 0
-
+                
         # parse the 'mfra' index if there is one and update segment durations.
         # this is needed to deal with input files that have an 'mfra' index that
         # does not exactly match the sample durations (because of rounding errors),
