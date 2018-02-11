@@ -697,7 +697,7 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
     all_video_tracks     = sum(video_sets.values(),     [])
     all_subtitles_tracks = sum(subtitles_sets.values(), [])
 
-    master_playlist_file = open(path.join(options.output_dir, options.hls_master_playlist_name), 'wb+');
+    master_playlist_file = open(path.join(options.output_dir, options.hls_master_playlist_name), 'wb+')
     master_playlist_file.write('#EXTM3U\r\n')
     master_playlist_file.write('# Created with Bento4 mp4-dash.py, VERSION=' + VERSION + '-' + SDK_REVISION+'\r\n')
     master_playlist_file.write('#\r\n')
