@@ -64,6 +64,37 @@ const AP4_UI08 AP4_EME_COMMON_SYSTEM_ID[16] = {
 const unsigned int AP4_CENC_NAL_UNIT_ENCRYPTION_MIN_SIZE = 112;
 
 /*----------------------------------------------------------------------
+|   AP4_CencSubSampleMapAppend
++---------------------------------------------------------------------*/
+static void
+AP4_CencSubSampleMapAppendEntry(AP4_Array<AP4_UI16>& bytes_of_cleartext_data,
+                                AP4_Array<AP4_UI32>& bytes_of_encrypted_data,
+                                unsigned int         cleartext_size,
+                                unsigned int         encrypted_size)
+{
+    // if there's already an entry, attempt to extend the last entry
+    if (bytes_of_cleartext_data.ItemCount() > 0) {
+        AP4_Cardinal last_index = bytes_of_cleartext_data.ItemCount() - 1;
+        if (bytes_of_encrypted_data[last_index] == 0) {
+            cleartext_size += bytes_of_cleartext_data[last_index];
+            bytes_of_cleartext_data.RemoveLast();
+            bytes_of_encrypted_data.RemoveLast();
+        }
+    }
+    
+    // append chunks of cleartext size taking into account that the cleartext_size field is only 16 bits
+    while (cleartext_size > 0xFFFF) {
+        bytes_of_cleartext_data.Append(0xFFFF);
+        bytes_of_encrypted_data.Append(0);
+        cleartext_size -= 0xFFFF;
+    }
+    
+    // append whatever is left
+    bytes_of_cleartext_data.Append(cleartext_size);
+    bytes_of_encrypted_data.Append(encrypted_size);
+}
+
+/*----------------------------------------------------------------------
 |   AP4_CencBasicSubSampleMapper::GetSubSampleMap
 +---------------------------------------------------------------------*/
 AP4_Result 
@@ -187,17 +218,10 @@ AP4_CencAdvancedSubSampleMapper::GetSubSampleMap(AP4_DataBuffer&      sample_dat
         if (cenc_layout && AP4_CompareStrings(cenc_layout, "nalu-length-and-type-only") == 0) {
             unsigned int cleartext_size = m_NaluLengthSize+1;
             unsigned int encrypted_size = nalu_size > cleartext_size ? nalu_size-cleartext_size : 0;
-            bytes_of_cleartext_data.Append(cleartext_size);
-            bytes_of_encrypted_data.Append(encrypted_size);
+            AP4_CencSubSampleMapAppendEntry(bytes_of_cleartext_data, bytes_of_encrypted_data, cleartext_size, encrypted_size);
         } else if (skip) {
             // use cleartext regions to cover the entire NAL unit
-            unsigned int range = nalu_size;
-            while (range) {
-                AP4_UI16 cleartext_size = (range <= 0xFFFF) ? range : 0xFFFF;
-                bytes_of_cleartext_data.Append(cleartext_size);
-                bytes_of_encrypted_data.Append(0);
-                range -= cleartext_size;
-            }
+            AP4_CencSubSampleMapAppendEntry(bytes_of_cleartext_data, bytes_of_encrypted_data, nalu_size, 0);
         } else {
             // leave some cleartext bytes at the start and encrypt the rest (multiple of blocks)
             unsigned int encrypted_size = nalu_size-(AP4_CENC_NAL_UNIT_ENCRYPTION_MIN_SIZE-16);
@@ -205,8 +229,7 @@ AP4_CencAdvancedSubSampleMapper::GetSubSampleMap(AP4_DataBuffer&      sample_dat
             unsigned int cleartext_size = nalu_size-encrypted_size;
             AP4_ASSERT(encrypted_size >= 16);
             AP4_ASSERT(cleartext_size >= m_NaluLengthSize);
-            bytes_of_cleartext_data.Append(cleartext_size);
-            bytes_of_encrypted_data.Append(encrypted_size);
+            AP4_CencSubSampleMapAppendEntry(bytes_of_cleartext_data, bytes_of_encrypted_data, cleartext_size, encrypted_size);
         }
                 
         // move the pointers
@@ -391,9 +414,7 @@ AP4_CencCbcsSubSampleMapper::GetSubSampleMap(AP4_DataBuffer&      sample_data,
                 // leave the slice header in the clear, including the NAL type
                 unsigned int cleartext_size = m_NaluLengthSize+1+(slice_header.size+7)/8;
                 unsigned int encrypted_size = nalu_size-cleartext_size;
-                
-                bytes_of_cleartext_data.Append(cleartext_size);
-                bytes_of_encrypted_data.Append(encrypted_size);
+                AP4_CencSubSampleMapAppendEntry(bytes_of_cleartext_data, bytes_of_encrypted_data, cleartext_size, encrypted_size);
             } else {
                 // this NAL unit does not have a slice header
                 skip = true;
@@ -427,11 +448,8 @@ AP4_CencCbcsSubSampleMapper::GetSubSampleMap(AP4_DataBuffer&      sample_data,
                 // NOTE: the slice header is always a multiple of 8 bits because of byte_alignment()
                 unsigned int header_size = slice_header.size/8;
                 unsigned int cleartext_size = m_NaluLengthSize+2+header_size;
-                //
                 unsigned int encrypted_size = nalu_size-cleartext_size;
-                
-                bytes_of_cleartext_data.Append(cleartext_size);
-                bytes_of_encrypted_data.Append(encrypted_size);
+                AP4_CencSubSampleMapAppendEntry(bytes_of_cleartext_data, bytes_of_encrypted_data, cleartext_size, encrypted_size);
             } else {
                 skip = true;
 
@@ -452,13 +470,7 @@ AP4_CencCbcsSubSampleMapper::GetSubSampleMap(AP4_DataBuffer&      sample_data,
 
         if (skip) {
             // use cleartext regions to cover the entire NAL unit
-            unsigned int range = nalu_size;
-            while (range) {
-                AP4_UI16 cleartext_size = (range <= 0xFFFF) ? range : 0xFFFF;
-                bytes_of_cleartext_data.Append(cleartext_size);
-                bytes_of_encrypted_data.Append(0);
-                range -= cleartext_size;
-            }
+            AP4_CencSubSampleMapAppendEntry(bytes_of_cleartext_data, bytes_of_encrypted_data, nalu_size, 0);
         }
         
         // move the pointers
