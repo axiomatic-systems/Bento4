@@ -560,6 +560,25 @@ main(int argc, char** argv)
                method == METHOD_MPEG_CENS ||
                method == METHOD_MPEG_CBCS) {
         AP4_CencVariant variant = AP4_CENC_VARIANT_MPEG_CENC;
+        AP4_UI32        options = 0;
+        
+        // init local options based on global options
+        if (AP4_GlobalOptions::GetBool("mpeg-cenc.eme-pssh")) {
+            options |= AP4_CencEncryptingProcessor::OPTION_EME_PSSH;
+        }
+        if (AP4_GlobalOptions::GetBool("mpeg-cenc.piff-compatible")) {
+            options |= AP4_CencEncryptingProcessor::OPTION_PIFF_COMPATIBILITY;
+        }
+        if (AP4_GlobalOptions::GetBool("mpeg-cenc.iv-size-16")) {
+            options |= AP4_CencEncryptingProcessor::OPTION_PIFF_IV_SIZE_16;
+        }
+        if (AP4_GlobalOptions::GetBool("mpeg-cenc.iv-size-16")) {
+            options |= AP4_CencEncryptingProcessor::OPTION_IV_SIZE_8;
+        }
+        if (AP4_GlobalOptions::GetBool("mpeg-cenc.no-senc")) {
+            options |= AP4_CencEncryptingProcessor::OPTION_NO_SENC;
+        }
+
         switch (method) {
             case METHOD_PIFF_CBC:
                 variant = AP4_CENC_VARIANT_PIFF_CBC;
@@ -588,7 +607,7 @@ main(int argc, char** argv)
             default:
                 break;
         }
-        AP4_CencEncryptingProcessor* cenc_processor = new AP4_CencEncryptingProcessor(variant);
+        AP4_CencEncryptingProcessor* cenc_processor = new AP4_CencEncryptingProcessor(variant, options);
         cenc_processor->GetKeyMap().SetKeys(key_map);
         cenc_processor->GetPropertyMap().SetProperties(property_map);
         for (unsigned int i=0; i<pssh_atoms.ItemCount(); i++) {

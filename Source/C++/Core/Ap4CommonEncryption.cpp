@@ -878,6 +878,7 @@ class AP4_CencFragmentEncrypter : public AP4_Processor::FragmentHandler {
 public:
     // constructor
     AP4_CencFragmentEncrypter(AP4_CencVariant                         variant,
+                              AP4_UI32                                options,
                               AP4_ContainerAtom*                      traf,
                               AP4_CencEncryptingProcessor::Encrypter* encrypter,
                               AP4_UI32                                cleartext_sample_description_index);
@@ -892,6 +893,7 @@ public:
 private:
     // members
     AP4_CencVariant                         m_Variant;
+    AP4_UI32                                m_Options;
     AP4_ContainerAtom*                      m_Traf;
     AP4_CencSampleEncryption*               m_SampleEncryptionAtom;
     AP4_CencSampleEncryption*               m_SampleEncryptionAtomShadow;
@@ -905,10 +907,12 @@ private:
 |   AP4_CencFragmentEncrypter::AP4_CencFragmentEncrypter
 +---------------------------------------------------------------------*/
 AP4_CencFragmentEncrypter::AP4_CencFragmentEncrypter(AP4_CencVariant                         variant,
+                                                     AP4_UI32                                options,
                                                      AP4_ContainerAtom*                      traf,
                                                      AP4_CencEncryptingProcessor::Encrypter* encrypter,
                                                      AP4_UI32                                cleartext_sample_description_index) :
     m_Variant(variant),
+    m_Options(options),
     m_Traf(traf),
     m_SampleEncryptionAtom(NULL),
     m_SampleEncryptionAtomShadow(NULL),
@@ -960,16 +964,16 @@ AP4_CencFragmentEncrypter::ProcessFragment()
             break;
             
         case AP4_CENC_VARIANT_MPEG_CENC:
-            if (AP4_GlobalOptions::GetBool("mpeg-cenc.piff-compatible")) {
+            if (m_Options & AP4_CencEncryptingProcessor::OPTION_PIFF_COMPATIBILITY) {
                 AP4_UI08 iv_size = 8;
-                if (AP4_GlobalOptions::GetBool("mpeg-cenc.iv-size-16")) {
+                if (m_Options & AP4_CencEncryptingProcessor::OPTION_PIFF_IV_SIZE_16) {
                     iv_size = 16;
                 }
                 m_SampleEncryptionAtom       = new AP4_SencAtom(iv_size);
                 m_SampleEncryptionAtomShadow = new AP4_PiffSampleEncryptionAtom(iv_size);
             } else {
                 AP4_UI08 iv_size = 16; // default
-                if (AP4_GlobalOptions::GetBool("mpeg-cenc.iv-size-8")) {
+                if (m_Options & AP4_CencEncryptingProcessor::OPTION_IV_SIZE_8) {
                     iv_size = 8;
                 }
                 m_SampleEncryptionAtom = new AP4_SencAtom(iv_size);
@@ -1012,7 +1016,7 @@ AP4_CencFragmentEncrypter::ProcessFragment()
     
     // this is mostly for testing: forces the clients to parse saio/saiz instead
     // on relying on 'senc'
-    if (AP4_GlobalOptions::GetBool("mpeg-cenc.no-senc")) {
+    if (m_Options & AP4_CencEncryptingProcessor::OPTION_NO_SENC) {
         m_SampleEncryptionAtom->GetOuter().SetType(AP4_ATOM_TYPE('s', 'e', 'n', 'C'));
     }
 
@@ -1184,8 +1188,10 @@ AP4_CencFragmentEncrypter::FinishFragment()
 |   AP4_CencEncryptingProcessor:AP4_CencEncryptingProcessor
 +---------------------------------------------------------------------*/
 AP4_CencEncryptingProcessor::AP4_CencEncryptingProcessor(AP4_CencVariant         variant,
+                                                         AP4_UI32                options,
                                                          AP4_BlockCipherFactory* block_cipher_factory) :
-    m_Variant(variant)
+    m_Variant(variant),
+    m_Options(options)
 {
     // create a block cipher factory if none is given
     if (block_cipher_factory == NULL) {
@@ -1267,7 +1273,7 @@ AP4_CencEncryptingProcessor::Initialize(AP4_AtomParent&                  top_lev
              m_Variant == AP4_CENC_VARIANT_MPEG_CBC1 ||
              m_Variant == AP4_CENC_VARIANT_MPEG_CENS ||
              m_Variant == AP4_CENC_VARIANT_MPEG_CBCS) &&
-            AP4_GlobalOptions::GetBool("mpeg-cenc.eme-pssh")) {
+            (m_Options & OPTION_EME_PSSH)) {
             AP4_DataBuffer kids;
             AP4_UI32       kid_count = 0;
             const AP4_List<AP4_TrackPropertyMap::Entry>& prop_entries = m_PropertyMap.GetEntries();
@@ -1512,9 +1518,8 @@ AP4_CencEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
             cipher_mode = AP4_BlockCipher::CTR;
             cipher_ctr_params.counter_size = 8;
             cipher_mode_params = &cipher_ctr_params;
-            if ((AP4_GlobalOptions::GetBool("mpeg-cenc.piff-compatible") ||
-                  AP4_GlobalOptions::GetBool("mpeg-cenc.iv-size-8")) &&
-                 !AP4_GlobalOptions::GetBool("mpeg-cenc.iv-size-16")) {
+            if ((m_Options & OPTION_IV_SIZE_8) ||
+                ((m_Options & OPTION_PIFF_COMPATIBILITY) && !(m_Options & OPTION_PIFF_IV_SIZE_16))) {
                 cipher_iv_size = 8;
             }
 
@@ -1534,7 +1539,7 @@ AP4_CencEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
             cipher_mode = AP4_BlockCipher::CTR;
             cipher_ctr_params.counter_size = 8;
             cipher_mode_params = &cipher_ctr_params;
-            if (AP4_GlobalOptions::GetBool("mpeg-cenc.iv-size-8") && !AP4_GlobalOptions::GetBool("mpeg-cenc.iv-size-16")) {
+            if (m_Options & OPTION_IV_SIZE_8) {
                 cipher_iv_size = 8;
             }
             if (enc_format == AP4_ATOM_TYPE_ENCV) {
@@ -1736,7 +1741,7 @@ AP4_CencEncryptingProcessor::CreateFragmentHandler(AP4_TrakAtom*      trak,
             }
         }
     }
-    return new AP4_CencFragmentEncrypter(m_Variant, traf, encrypter, clear_sample_description_index);
+    return new AP4_CencFragmentEncrypter(m_Variant, m_Options, traf, encrypter, clear_sample_description_index);
 }
 
 /*----------------------------------------------------------------------
