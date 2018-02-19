@@ -90,7 +90,7 @@ PrintUsageAndExit()
             "  --sequence-number-start <start> Value of the first segment sequence number (default: 1)\n"
             "  --force-i-frame-sync <auto|all> treat all I-frames as sync samples (for open-gop sequences)\n"
             "    'auto' only forces the flag if an open-gop source is detected, 'all' forces the flag in all cases\n"
-            "  --copy-udta copy the moov/udta atom from input to output"
+            "  --copy-udta copy the moov/udta atom from input to output\n"
             );
     exit(1);
 }

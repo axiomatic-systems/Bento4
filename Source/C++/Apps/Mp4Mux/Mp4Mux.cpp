@@ -154,30 +154,6 @@ public:
         remove(m_Filename.GetChars());
     }
     
-    AP4_Result StoreSample(AP4_Sample& from_sample, AP4_Sample& to_sample) {
-        // clone the sample fields
-        to_sample = from_sample;
-        
-        // read the sample data
-        AP4_DataBuffer sample_data;
-        AP4_Result result = from_sample.ReadData(sample_data);
-        if (AP4_FAILED(result)) return result;
-        
-        // mark where we are going to store the sample data
-        AP4_Position position;
-        m_Stream->Tell(position);
-        to_sample.SetOffset(position);
-        
-        // write the sample data
-        result = m_Stream->Write(sample_data.GetData(), sample_data.GetDataSize());
-        if (AP4_FAILED(result)) return result;
-        
-        // update the stream for the new sample
-        to_sample.SetDataStream(*m_Stream);
-    
-        return AP4_SUCCESS;
-    }
-
     AP4_ByteStream* GetStream() { return m_Stream; }
     
 private:
@@ -1040,14 +1016,16 @@ main(int argc, char** argv)
         return 1;
     }
     
-    // create a multimedia file
-    AP4_File file(movie);
+    {
+        // create a multimedia file
+        AP4_File file(movie);
 
-    // set the file type
-    file.SetFileType(AP4_FILE_BRAND_MP42, 1, &brands[0], brands.ItemCount());
+        // set the file type
+        file.SetFileType(AP4_FILE_BRAND_MP42, 1, &brands[0], brands.ItemCount());
 
-    // write the file to the output
-    AP4_FileWriter::Write(file, *output);
+        // write the file to the output
+        AP4_FileWriter::Write(file, *output);
+    }
     
     // cleanup
     delete sample_storage;
