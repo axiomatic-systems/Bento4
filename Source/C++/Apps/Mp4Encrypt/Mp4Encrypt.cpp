@@ -569,10 +569,10 @@ main(int argc, char** argv)
         if (AP4_GlobalOptions::GetBool("mpeg-cenc.piff-compatible")) {
             options |= AP4_CencEncryptingProcessor::OPTION_PIFF_COMPATIBILITY;
         }
-        if (AP4_GlobalOptions::GetBool("mpeg-cenc.iv-size-16")) {
+        if (AP4_GlobalOptions::GetBool("mpeg-cenc.piff-iv-size-16")) {
             options |= AP4_CencEncryptingProcessor::OPTION_PIFF_IV_SIZE_16;
         }
-        if (AP4_GlobalOptions::GetBool("mpeg-cenc.iv-size-16")) {
+        if (AP4_GlobalOptions::GetBool("mpeg-cenc.iv-size-8")) {
             options |= AP4_CencEncryptingProcessor::OPTION_IV_SIZE_8;
         }
         if (AP4_GlobalOptions::GetBool("mpeg-cenc.no-senc")) {
