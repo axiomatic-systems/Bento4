@@ -1101,7 +1101,7 @@ main(int argc, char** argv)
                 fprintf(stderr, "ERROR: missing argument after --tfdt-start option\n");
                 return 1;
             }
-            Options.tfdt_start = strtof(arg, NULL);
+            Options.tfdt_start = strtod(arg, NULL);
         } else if (!strcmp(arg, "--sequence-number-start")) {
             arg = *argv++;
             if (arg == NULL) {
