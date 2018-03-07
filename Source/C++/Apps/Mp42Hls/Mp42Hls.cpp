@@ -91,6 +91,7 @@ static struct _Options {
     const char*           encryption_key_format;
     const char*           encryption_key_format_versions;
     AP4_Array<AP4_String> encryption_key_lines;
+    const char*           marlin_content_id;	
 } Options;
 
 static struct _Stats {
@@ -1385,6 +1386,11 @@ WriteSamples(AP4_Mpeg2TsWriter*               ts_writer,
                 playlist->WriteString(",KEYFORMATVERSIONS=\"");
                 playlist->WriteString(Options.encryption_key_format_versions);
                 playlist->WriteString("\"");
+            }            
+			if (Options.marlin_content_id) {
+                playlist->WriteString(",CID=\"");
+                playlist->WriteString(Options.marlin_content_id);
+                playlist->WriteString("\"");
             }
             playlist->WriteString("\r\n");
         }
@@ -1470,6 +1476,11 @@ WriteSamples(AP4_Mpeg2TsWriter*               ts_writer,
                 playlist->WriteString(",KEYFORMATVERSIONS=\"");
                 playlist->WriteString(Options.encryption_key_format_versions);
                 playlist->WriteString("\"");
+            }           
+			if (Options.marlin_content_id) {
+                playlist->WriteString(",CID=\"");
+                playlist->WriteString(Options.marlin_content_id);
+                playlist->WriteString("\"");
             }
             playlist->WriteString("\r\n");
         }
@@ -1551,6 +1562,7 @@ main(int argc, char** argv)
     Options.encryption_key_uri             = "key.bin";
     Options.encryption_key_format          = NULL;
     Options.encryption_key_format_versions = NULL;
+	Options.marlin_content_id              = NULL;	
     AP4_SetMemory(Options.encryption_key, 0, sizeof(Options.encryption_key));
     AP4_SetMemory(Options.encryption_iv,  0, sizeof(Options.encryption_iv));
     AP4_SetMemory(&Stats, 0, sizeof(Stats));
@@ -1722,7 +1734,13 @@ main(int argc, char** argv)
                 fprintf(stderr, "ERROR: --encryption-key-line requires an argument\n");
                 return 1;
             }
-            Options.encryption_key_lines.Append(*args++);
+            Options.encryption_key_lines.Append(*args++);       
+		} else if (!strcmp(arg, "--marlin-content-id")) {
+            if (*args == NULL) {
+                fprintf(stderr, "ERROR: --marlin-content-id requires an argument\n");
+                return 1;
+            }
+            Options.marlin_content_id = *args++;
         } else if (Options.input == NULL) {
             Options.input = arg;
         } else {

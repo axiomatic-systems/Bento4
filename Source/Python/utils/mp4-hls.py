@@ -206,9 +206,13 @@ def ProcessSource(options, media_info, out_dir):
     if 'audio_format' in media_info and media_info.get('audio_track_id') != 0:
         kwargs['audio_format'] = media_info['audio_format']
 
-    for option in ['encryption_mode', 'encryption_key', 'encryption_iv_mode', 'encryption_key_uri', 'encryption_key_format', 'encryption_key_format_versions']:
-        if getattr(options, option):
-            kwargs[option] = getattr(options, option)
+    if media_info.get('audio_track_id') != 0 and options.disable_audio_encryption:
+        if options.verbose:
+            print 'Disable audio encryption - ' , media_info['source'].filename
+    else:
+        for option in ['encryption_mode', 'encryption_key', 'encryption_iv_mode', 'encryption_key_uri', 'encryption_key_format', 'encryption_key_format_versions', 'marlin_content_id' ]:
+            if getattr(options, option):
+                kwargs[option] = getattr(options, option)
 
     key_lines = []
 
@@ -524,6 +528,8 @@ def main():
                       help="Format for audio segments (packed or ts) (default: packed)")
     parser.add_option('', '--segment-duration', dest="segment_duration",
                       help="Segment duration (default: 6)")
+    parser.add_option('', '--disable-audio-encryption', dest="disable_audio_encryption", action="store_true", default=False,
+                      help="Disable audio track encryption")      
     parser.add_option('', '--encryption-mode', dest="encryption_mode", metavar="<mode>",
                       help="Encryption mode (only used when --encryption-key is specified). AES-128 or SAMPLE-AES (default: AES-128)")
     parser.add_option('', '--encryption-key', dest="encryption_key", metavar="<key>",
@@ -546,6 +552,8 @@ def main():
                       help="Directory where the Bento4 executables are located")
     parser.add_option('', "--base-url", metavar="<base_url>", dest="base_url", default="",
                       help="The base URL for the Media Playlists and TS files listed in the playlists. This is the prefix for the files.")
+    parser.add_option('', "--marlin-content-id", metavar="<marlin_content_id>", dest="marlin_content_id", default="",
+                      help="Add Marlin Content ID (CID) value")
     (options, args) = parser.parse_args()
     if len(args) == 0:
         parser.print_help()
