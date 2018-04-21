@@ -173,7 +173,7 @@ PrintUsageAndExit()
             "  --encryption-key-format <format>\n"
             "    Encryption key format. (default: 'identity')\n"
             "  --encryption-key-format-versions <versions>\n"
-            "    Encryption key format versions."
+            "    Encryption key format versions.\n"
             "  --encryption-key-line <ext-x-key-line>\n"
             "    Preformatted encryption key line (only the portion after the #EXT-X-KEY: tag).\n"
             "    This option can be used multiple times, once for each preformatted key line to be included in the playlist.\n"

@@ -287,6 +287,14 @@ public:
 };
 
 /*----------------------------------------------------------------------
+|   IndexSegmentInfo
++---------------------------------------------------------------------*/
+class IndexedSegmentInfo {
+public:
+    AP4_List<FragmentInfo> m_Fragments;
+};
+
+/*----------------------------------------------------------------------
 |   Fragment
 +---------------------------------------------------------------------*/
 static void
@@ -295,14 +303,15 @@ Fragment(AP4_File&                input_file,
          AP4_Array<TrackCursor*>& cursors,
          unsigned int             fragment_duration,
          AP4_UI32                 timescale,
-         AP4_UI32                 track_id,
          bool                     create_segment_index,
          bool                     copy_udta)
 {
-    AP4_List<FragmentInfo> fragments;
-    TrackCursor*           index_cursor = NULL;
-    AP4_Result             result;
+    AP4_List<FragmentInfo>       fragments;
+    AP4_List<IndexedSegmentInfo> indexed_segments;
+    IndexedSegmentInfo*          current_indexed_segment = NULL;
+    AP4_Result                   result;
     
+    // get the movie
     AP4_Movie* input_movie = input_file.GetMovie();
     if (input_movie == NULL) {
         fprintf(stderr, "ERROR: no moov found in the input file\n");
@@ -320,11 +329,6 @@ Fragment(AP4_File&                input_file,
     // add an output track for each track in the input file
     for (unsigned int i=0; i<cursors.ItemCount(); i++) {
         AP4_Track* track = cursors[i]->m_Track;
-        
-        // skip non matching tracks if we have a selector
-        if (track_id && track->GetId() != track_id) {
-            continue;
-        }
         
         result = cursors[i]->Init();
         if (AP4_FAILED(result)) {
@@ -402,10 +406,9 @@ Fragment(AP4_File&                input_file,
     
     // select the anchor cursor
     TrackCursor* anchor_cursor = NULL;
-    for (unsigned int i=0; i<cursors.ItemCount(); i++) {
-        if (cursors[i]->m_Track->GetId() == track_id) {
-            anchor_cursor = cursors[i];
-        }
+    if (cursors.ItemCount() == 1) {
+        // only one track, that's our anchor
+        anchor_cursor = cursors[0];
     }
     if (anchor_cursor == NULL) {
         for (unsigned int i=0; i<cursors.ItemCount(); i++) {
@@ -433,17 +436,17 @@ Fragment(AP4_File&                input_file,
         }
     }
     if (anchor_cursor == NULL) {
-        // this shoudl never happen
+        // this should never happen
         fprintf(stderr, "ERROR: no anchor track\n");
         return;
-    }
-    if (create_segment_index) {
-        index_cursor = anchor_cursor;
     }
     if (Options.debug) {
         printf("Using track ID %d as anchor\n", anchor_cursor->m_Track->GetId());
     }
     
+    // decide which tracks to index and in which order
+    TrackCursor* indexed_cursor = anchor_cursor;
+
     // update the mehd duration
     mehd->SetDuration(output_movie->GetDuration());
     
@@ -465,7 +468,6 @@ Fragment(AP4_File&                input_file,
 
         // pick the first track with a fragment index lower than the anchor's
         for (unsigned int i=0; i<cursors.ItemCount(); i++) {
-            if (track_id && cursors[i]->m_Track->GetId() != track_id) continue;
             if (cursors[i]->m_Eos) continue;
             if (cursors[i]->m_FragmentIndex < anchor_cursor->m_FragmentIndex) {
                 cursor = cursors[i];
@@ -481,7 +483,6 @@ Fragment(AP4_File&                input_file,
                 anchor_cursor = NULL;
                 if (!Options.trim) {
                     for (unsigned int i=0; i<cursors.ItemCount(); i++) {
-                        if (track_id && cursors[i]->m_Track->GetId() != track_id) continue;
                         if (cursors[i]->m_Eos) continue;
                         if (anchor_cursor == NULL ||
                             cursors[i]->m_Track->GetType() == AP4_Track::TYPE_VIDEO ||
@@ -636,6 +637,17 @@ Fragment(AP4_File&                input_file,
         FragmentInfo* fragment = new FragmentInfo(cursor->m_Samples, cursor->m_Tfra, cursor->m_Timestamp, moof);
         fragments.Add(fragment);
         
+        // keep track of fragments that will be part of the index
+        if (cursor == anchor_cursor) {
+            // start a new segment
+            current_indexed_segment = new IndexedSegmentInfo();
+            indexed_segments.Add(current_indexed_segment);
+        } else {
+            if (current_indexed_segment) {
+                current_indexed_segment->m_Fragments.Add(fragment);
+            }
+        }
+        
         // add samples to the fragment
         unsigned int sample_count = 0;
         AP4_Array<AP4_TrunAtom::Entry> trun_entries;
@@ -752,17 +764,17 @@ Fragment(AP4_File&                input_file,
     // write the moov atom
     output_movie->GetMoovAtom()->Write(output_stream);
 
-    // write the (not-yet fully computed) index if needed
+    // write the (not-yet fully computed) indexes if needed
     AP4_SidxAtom* sidx = NULL;
     AP4_Position  sidx_position = 0;
     output_stream.Tell(sidx_position);
     if (create_segment_index) {
-        sidx = new AP4_SidxAtom(index_cursor->m_Track->GetId(),
-                                timescale?timescale:index_cursor->m_Track->GetMediaTimeScale(),
+        sidx = new AP4_SidxAtom(indexed_cursor->m_Track->GetId(),
+                                timescale ? timescale : indexed_cursor->m_Track->GetMediaTimeScale(),
                                 0,
                                 0);
         // reserve space for the entries now, but they will be computed and updated later
-        sidx->SetReferenceCount(fragments.ItemCount());
+        sidx->SetReferenceCount(indexed_segments.ItemCount());
         sidx->Write(output_stream);
     }
     
@@ -812,12 +824,25 @@ Fragment(AP4_File&                input_file,
     if (create_segment_index) {
         unsigned int segment_index = 0;
         AP4_SidxAtom::Reference reference;
-        for (AP4_List<FragmentInfo>::Item* item = fragments.FirstItem();
-                                           item;
-                                           item = item->GetNext()) {
-            FragmentInfo* fragment = item->GetData();
-            reference.m_ReferencedSize     = (AP4_UI32)(fragment->m_Moof->GetSize()+fragment->m_MdatSize);
-            reference.m_SubsegmentDuration = fragment->m_Duration;
+        for (AP4_List<IndexedSegmentInfo>::Item* item = indexed_segments.FirstItem();
+                                                 item;
+                                                 item = item->GetNext()) {
+            IndexedSegmentInfo* segment = item->GetData();
+            
+            // compute the total size and duration of the segment
+            AP4_UI32 segment_size     = 0;
+            AP4_UI32 segment_duration = 0;
+            for (AP4_List<FragmentInfo>::Item* item = segment->m_Fragments.FirstItem();
+                                               item;
+                                               item = item->GetNext()) {
+                FragmentInfo* fragment = item->GetData();
+                segment_size     += (AP4_UI32)(fragment->m_Moof->GetSize()+fragment->m_MdatSize);
+                segment_duration += fragment->m_Duration;
+            }
+            
+            // update the sidx entry
+            reference.m_ReferencedSize     = segment_size;
+            reference.m_SubsegmentDuration = segment_duration;
             reference.m_StartsWithSap      = true;
             sidx->SetReference(segment_index++, reference);
         }
@@ -832,9 +857,6 @@ Fragment(AP4_File&                input_file,
     // create an mfra container and write out the index
     AP4_ContainerAtom mfra(AP4_ATOM_TYPE_MFRA);
     for (unsigned int i=0; i<cursors.ItemCount(); i++) {
-        if (track_id && cursors[i]->m_Track->GetId() != track_id) {
-            continue;
-        }
         mfra.AddChild(cursors[i]->m_Tfra);
         cursors[i]->m_Tfra = NULL;
     }
@@ -847,7 +869,6 @@ Fragment(AP4_File&                input_file,
     }
     
     // cleanup
-    fragments.DeleteReferences();
     for (unsigned int i=0; i<cursors.ItemCount(); i++) {
         delete cursors[i];
     }
@@ -857,6 +878,8 @@ Fragment(AP4_File&                input_file,
         FragmentInfo* fragment = item->GetData();
         delete fragment->m_Moof;
     }
+    fragments.DeleteReferences();
+    indexed_segments.DeleteReferences();
     delete output_movie;
 }
 
@@ -1057,7 +1080,6 @@ main(int argc, char** argv)
     const char*  input_filename                = NULL;
     const char*  output_filename               = NULL;
     const char*  track_selector                = NULL;
-    AP4_UI32     selected_track_id             = 0;
     unsigned int fragment_duration             = 0;
     bool         auto_detect_fragment_duration = true;
     bool         create_segment_index          = false;
@@ -1202,12 +1224,13 @@ main(int argc, char** argv)
     AP4_Array<TrackCursor*> cursors;
     
     // iterate over all tracks
-    TrackCursor*  video_track = NULL;
-    TrackCursor*  audio_track = NULL;
-    TrackCursor*  subtitles_track = NULL;
-    unsigned int video_track_count = 0;
-    unsigned int audio_track_count = 0;
-    unsigned int subtitles_track_count = 0;
+    TrackCursor*  video_track           = NULL;
+    TrackCursor*  audio_track           = NULL;
+    TrackCursor*  subtitles_track       = NULL;
+    TrackCursor*  selected_track        = NULL;
+    unsigned int  video_track_count     = 0;
+    unsigned int  audio_track_count     = 0;
+    unsigned int  subtitles_track_count = 0;
     for (AP4_List<AP4_Track>::Item* track_item = input_file.GetMovie()->GetTracks().FirstItem();
                                     track_item;
                                     track_item = track_item->GetNext()) {
@@ -1260,35 +1283,34 @@ main(int argc, char** argv)
     if (track_selector) {
         if (!strncmp("audio", track_selector, 5)) {
             if (audio_track) {
-                selected_track_id = audio_track->m_Track->GetId();
+                selected_track = audio_track;
             } else {
                 fprintf(stderr, "ERROR: no audio track found\n");
                 return 1;
             }
         } else if (!strncmp("video", track_selector, 5)) {
             if (video_track) {
-                selected_track_id = video_track->m_Track->GetId();
+                selected_track = video_track;
             } else {
                 fprintf(stderr, "ERROR: no video track found\n");
                 return 1;
             }
         } else if (!strncmp("subtitles", track_selector, 9)) {
             if (subtitles_track) {
-                selected_track_id = subtitles_track->m_Track->GetId();
+                selected_track = subtitles_track;
             } else {
                 fprintf(stderr, "ERROR: no subtitles track found\n");
                 return 1;
             }
         } else {
-            selected_track_id = (AP4_UI32)strtol(track_selector, NULL, 10);
-            bool found = false;
+            AP4_UI32 selected_track_id = (AP4_UI32)strtol(track_selector, NULL, 10);
             for (unsigned int i=0; i<cursors.ItemCount(); i++) {
                 if (cursors[i]->m_Track->GetId() == selected_track_id) {
-                    found = true;
+                    selected_track = cursors[i];
                     break;
                 }
             }
-            if (!found) {
+            if (!selected_track) {
                 fprintf(stderr, "ERROR: track not found\n");
                 return 1;
             }
@@ -1388,7 +1410,13 @@ main(int argc, char** argv)
     }
     
     // fragment the file
-    Fragment(input_file, *output_stream, cursors, fragment_duration, timescale, selected_track_id, create_segment_index, copy_udta);
+    AP4_Array<TrackCursor*> tracks_to_fragment;
+    if (selected_track) {
+        tracks_to_fragment.Append(selected_track);
+    } else {
+        tracks_to_fragment = cursors;
+    }
+    Fragment(input_file, *output_stream, tracks_to_fragment, fragment_duration, timescale, create_segment_index, copy_udta);
     
     // cleanup and exit
     if (input_stream)  input_stream->Release();
