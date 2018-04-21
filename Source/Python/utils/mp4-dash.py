@@ -379,7 +379,7 @@ def OutputDash(options, set_attributes, audio_sets, video_sets, subtitles_sets, 
             maxHeight = 0
             for video_track in video_tracks:
                 if minWidth  == 0 or video_track.width < minWidth:  minWidth  = video_track.width
-                if minHeight == 0 or video_track.width < minHeight: minHeight = video_track.height
+                if minHeight == 0 or video_track.height < minHeight: minHeight = video_track.height
                 if video_track.width  > maxWidth:  maxWidth  = video_track.width
                 if video_track.height > maxHeight: maxHeight = video_track.height
 
