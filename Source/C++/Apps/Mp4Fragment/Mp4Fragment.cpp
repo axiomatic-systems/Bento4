@@ -291,7 +291,9 @@ public:
 +---------------------------------------------------------------------*/
 class IndexedSegmentInfo {
 public:
-    AP4_List<FragmentInfo> m_Fragments;
+    IndexedSegmentInfo() : m_Size(0), m_Duration(0) {}
+    AP4_UI32 m_Size;
+    AP4_UI32 m_Duration;
 };
 
 /*----------------------------------------------------------------------
@@ -637,17 +639,6 @@ Fragment(AP4_File&                input_file,
         FragmentInfo* fragment = new FragmentInfo(cursor->m_Samples, cursor->m_Tfra, cursor->m_Timestamp, moof);
         fragments.Add(fragment);
         
-        // keep track of fragments that will be part of the index
-        if (cursor == anchor_cursor) {
-            // start a new segment
-            current_indexed_segment = new IndexedSegmentInfo();
-            indexed_segments.Add(current_indexed_segment);
-        } else {
-            if (current_indexed_segment) {
-                current_indexed_segment->m_Fragments.Add(fragment);
-            }
-        }
-        
         // add samples to the fragment
         unsigned int sample_count = 0;
         AP4_Array<AP4_TrunAtom::Entry> trun_entries;
@@ -728,6 +719,17 @@ Fragment(AP4_File&                input_file,
         // update moof and children
         trun->SetEntries(trun_entries);
         trun->SetDataOffset((AP4_UI32)moof->GetSize()+AP4_ATOM_HEADER_SIZE);
+        
+        // keep track of fragments that will be part of the index
+        if (cursor == anchor_cursor) {
+            // start a new segment
+            current_indexed_segment = new IndexedSegmentInfo();
+            indexed_segments.Add(current_indexed_segment);
+            current_indexed_segment->m_Duration = fragment->m_Duration;
+        }
+        if (current_indexed_segment) {
+            current_indexed_segment->m_Size += (AP4_UI32)(fragment->m_Moof->GetSize()+fragment->m_MdatSize);
+        }
         
         // advance the cursor's fragment index
         ++cursor->m_FragmentIndex;
@@ -829,20 +831,9 @@ Fragment(AP4_File&                input_file,
                                                  item = item->GetNext()) {
             IndexedSegmentInfo* segment = item->GetData();
             
-            // compute the total size and duration of the segment
-            AP4_UI32 segment_size     = 0;
-            AP4_UI32 segment_duration = 0;
-            for (AP4_List<FragmentInfo>::Item* item = segment->m_Fragments.FirstItem();
-                                               item;
-                                               item = item->GetNext()) {
-                FragmentInfo* fragment = item->GetData();
-                segment_size     += (AP4_UI32)(fragment->m_Moof->GetSize()+fragment->m_MdatSize);
-                segment_duration += fragment->m_Duration;
-            }
-            
             // update the sidx entry
-            reference.m_ReferencedSize     = segment_size;
-            reference.m_SubsegmentDuration = segment_duration;
+            reference.m_ReferencedSize     = segment->m_Size;
+            reference.m_SubsegmentDuration = segment->m_Duration;
             reference.m_StartsWithSap      = true;
             sidx->SetReference(segment_index++, reference);
         }
