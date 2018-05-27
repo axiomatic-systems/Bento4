@@ -28,7 +28,7 @@ from subtitles import *
 
 # setup main options
 VERSION = "1.8.0"
-SDK_REVISION = '623'
+SDK_REVISION = '624'
 SCRIPT_PATH = path.abspath(path.dirname(__file__))
 sys.path += [SCRIPT_PATH]
 
