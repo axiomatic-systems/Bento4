@@ -104,6 +104,7 @@
 #include "Ap4SidxAtom.h"
 #include "Ap4SbgpAtom.h"
 #include "Ap4SgpdAtom.h"
+#include "Ap4XmlAtom.h"
 
 /*----------------------------------------------------------------------
 |   AP4_AtomFactory::~AP4_AtomFactory
@@ -714,6 +715,11 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
             if (GetContext() == AP4_ATOM_TYPE_EC_3 || GetContext() == AP4_ATOM_TYPE_ENCA) {
                 atom = AP4_Dec3Atom::Create(size_32, stream);
             }
+            break;
+
+          case AP4_ATOM_TYPE_XML:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_XmlAtom::Create(size_32, stream);
             break;
 
           // track ref types
