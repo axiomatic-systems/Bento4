@@ -40,7 +40,7 @@ def GetSdkRevision():
     branch = ''
     if not lines[0].startswith('## master'):
         print 'WARNING: not on master branch'
-        branch = '+' + lines[0][2:]
+        branch = '+' + lines[0][3:]
     if len(lines) > 1:
         print 'ERROR: git status not empty'
         print ''.join(lines)
