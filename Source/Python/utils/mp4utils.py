@@ -346,18 +346,17 @@ def FilterChildren(parent, type):
 def FindChild(top, path):
     for entry in path:
         children = FilterChildren(top, entry)
-        if len(children) == 0: return None
+        if not children: return None
         top = children[0]
     return top
 
 class Mp4Track:
     def __init__(self, parent, info):
-        self.parent = parent
-        self.info   = info
+        self.parent                   = parent
+        self.info                     = info
         self.default_sample_duration  = 0
         self.timescale                = 0
         self.moofs                    = []
-        self.kid                      = None
         self.sample_counts            = []
         self.segment_sizes            = []
         self.segment_durations        = []
@@ -373,6 +372,7 @@ class Mp4Track:
         self.bandwidth                = 0
         self.language                 = ''
         self.order_index              = 0
+        self.key_info                 = {}
         self.id = info['id']
         if info['type'] == 'Audio':
             self.type = 'audio'
@@ -471,11 +471,14 @@ class Mp4Track:
         moov = FilterChildren(self.parent.tree, 'moov')[0]
         traks = FilterChildren(moov, 'trak')
         for trak in traks:
-            tenc = FindChild(trak, ('mdia', 'minf', 'stbl', 'stsd', 'encv', 'sinf', 'schi', 'tenc'))
-            if tenc is None:
-                tenc = FindChild(trak, ('mdia', 'minf', 'stbl', 'stsd', 'enca', 'sinf', 'schi', 'tenc'))
-            if tenc and 'default_KID' in tenc:
-                self.kid = tenc['default_KID'].strip('[]').replace(' ', '')
+            tkhd = FindChild(trak, ['tkhd'])
+            if tkhd['id'] == self.id:
+                tenc = FindChild(trak, ('mdia', 'minf', 'stbl', 'stsd', 'encv', 'sinf', 'schi', 'tenc'))
+                if tenc is None:
+                    tenc = FindChild(trak, ('mdia', 'minf', 'stbl', 'stsd', 'enca', 'sinf', 'schi', 'tenc'))
+                if tenc and 'default_KID' in tenc:
+                    self.key_info['kid'] = tenc['default_KID'].strip('[]').replace(' ', '')
+                break
 
     def __repr__(self):
         return 'File '+str(self.parent.file_list_index)+'#'+str(self.id)
@@ -483,6 +486,7 @@ class Mp4Track:
 class Mp4File:
     def __init__(self, options, media_source):
         self.media_source    = media_source
+        self.info            = media_source.mp4_info
         self.tracks          = {}
         self.file_list_index = 0 # used to keep a sequence number just amongst all sources
 
@@ -502,15 +506,11 @@ class Mp4File:
             elif atom.type == 'moof':
                 self.segments.append([atom])
             else:
-                if len(self.segments):
+                if self.segments:
                     self.segments[-1].append(atom)
         #print self.segments
         if options.debug:
             print '  found', len(self.segments), 'segments'
-
-        # get the mp4 file info
-        json_info = Mp4Info(options, filename, format='json', fast=True)
-        self.info = json.loads(json_info, strict=False, object_pairs_hook=collections.OrderedDict)
 
         for track in self.info['tracks']:
             self.tracks[track['id']] = Mp4Track(self, track)
@@ -655,9 +655,10 @@ class Mp4File:
         return [track for track in self.tracks.values() if track_type_to_find == '' or track_type_to_find == track.type]
 
 class MediaSource:
-    def __init__(self, name):
+    def __init__(self, options, name):
         self.name = name
-        self.track_key_infos = {}
+        self.mp4_info = None
+        self.key_infos = {} # key infos indexed by track ID
         if name.startswith('[') and ']' in name:
             try:
                 params = name[1:name.find(']')]
@@ -680,6 +681,11 @@ class MediaSource:
             self.format = self.spec['+format']
         else:
             self.format = 'mp4'
+
+        # if the file is an mp4 file, get the mp4 info now
+        if self.format == 'mp4':
+            json_info = Mp4Info(options, self.filename, format='json', fast=True)
+            self.mp4_info = json.loads(json_info, strict=False)
 
         # keep a record of our original filename in case it gets changed later
         self.original_filename = self.filename
@@ -887,7 +893,7 @@ def ComputeDolbyDigitalPlusAudioChannelConfig(track):
         'LFE':     1<<0
     }
     (channel_count, channels) = GetDolbyDigitalPlusChannels(track)
-    if len(channels) == 0:
+    if not channels:
         return str(channel_count)
     config = 0
     for channel in channels:
@@ -924,7 +930,7 @@ def ComputeDolbyDigitalAudioChannelMask(track):
         'Vhc':     0x2000,          # SPEAKER_TOP_FRONT_CENTER
     }
     (channel_count, channels) = GetDolbyDigitalChannels(track)
-    if len(channels) == 0:
+    if not channels:
         return (channel_count, 3)
     channel_mask = 0
     for channel in channels:
@@ -990,20 +996,57 @@ def ComputePlayReadyChecksum(kid, key):
     import aes
     return aes.rijndael(key).encrypt(kid)[:8]
 
-def WrapPlayreadyHeaderXml(header_xml):
+def WrapPlayReadyHeaderXml(header_xml):
     # encode the XML header into UTF-16 little-endian
     header_utf16_le = header_xml.encode('utf-16-le')
     rm_record = struct.pack('<HH', 1, len(header_utf16_le))+header_utf16_le
     return struct.pack('<IH', len(rm_record)+6, 1)+rm_record
 
-def ComputePlayReadyHeader(header_spec, kid_hex, key_hex):
+def ComputePlayReadyKeyInfo(key_spec):
+    (kid_hex, key_hex) = key_spec
+    kid = kid_hex.decode('hex')
+    kid = kid[3]+kid[2]+kid[1]+kid[0]+kid[5]+kid[4]+kid[7]+kid[6]+kid[8:]
+
+    xml_key_checksum = None
+    if key_hex:
+        xml_key_checksum = ComputePlayReadyChecksum(kid, key_hex.decode('hex')).encode('base64').replace('\n', '')
+
+    return (kid.encode('base64').replace('\n', '' ), xml_key_checksum)
+
+def ComputePlayReadyXmlKid(key_spec, algid):
+    (xml_kid, xml_key_checksum) = ComputePlayReadyKeyInfo(key_spec)
+
+    # optional checkum
+    xml_key_checksum_attribute = ''
+    if xml_key_checksum:
+        xml_key_checksum_attribute = 'CHECKSUM="' + xml_key_checksum + '" '
+
+    # KID
+    return '<KID ALGID="%s" %sVALUE="%s"></KID>' % (algid, xml_key_checksum_attribute, xml_kid)
+
+def ComputePlayReadyHeader(version, header_spec, encryption_scheme, key_specs):
+    # map the encryption scheme and an algorithm ID
+    scheme_to_id_map = {
+        'cenc': 'AESCTR',
+        'cens': 'AESCTR',
+        'cbc1': 'AESCBC',
+        'cbcs': 'AESCBC'
+    }
+    if encryption_scheme not in scheme_to_id_map:
+        raise Exception('Encryption scheme not supported by PlayReady')
+    algid = scheme_to_id_map[encryption_scheme]
+
+    # check that the algorithm is supported
+    if algid == 'AESCBC' and version < "4.3":
+        raise Exception('AESCBC requires PlayReady 4.3 or higher')
+
     # construct the base64 header
     if header_spec is None:
         header_spec = ''
     if header_spec.startswith('#'):
         header_b64 = header_spec[1:]
         header = header_b64.decode('base64')
-        if len(header) == 0:
+        if not header:
             raise Exception('invalid base64 encoding')
         return header
     elif header_spec.startswith('@') or os.path.exists(header_spec):
@@ -1026,27 +1069,52 @@ def ComputePlayReadyHeader(header_spec, kid_hex, key_hex):
             # this UTF-16LE XML without charset header
             header_xml = header.decode('utf-16-le')
         if header_xml is not None:
-            header = WrapPlayreadyHeaderXml(header_xml)
+            header = WrapPlayReadyHeaderXml(header_xml)
         return header
     else:
         try:
             pairs = header_spec.split('#')
             fields = {}
             for pair in pairs:
-                if len(pair) == 0: continue
+                if not pair: continue
                 name, value = pair.split(':', 1)
                 fields[name] = value
         except:
             raise Exception('invalid syntax for argument')
 
-        header_xml = '<WRMHEADER xmlns="http://schemas.microsoft.com/DRM/2007/03/PlayReadyHeader" version="4.0.0.0"><DATA><PROTECTINFO><KEYLEN>16</KEYLEN><ALGID>AESCTR</ALGID></PROTECTINFO>'
+        xml_protectinfo = ''
+        xml_extras      = ''
+        if version == "4.0":
+            # 4.0 version only
+            if len(key_specs) != 1:
+                raise Exception("PlayReady 4.0 only supports 1 key")
 
-        kid = kid_hex.decode('hex')
-        kid = kid[3]+kid[2]+kid[1]+kid[0]+kid[5]+kid[4]+kid[7]+kid[6]+kid[8:]
-        header_xml += '<KID>'+kid.encode('base64').replace('\n', '')+'</KID>'
-        if key_hex:
-            header_xml += '<CHECKSUM>'+ComputePlayReadyChecksum(kid, key_hex.decode('hex')).encode('base64').replace('\n', '')+'</CHECKSUM>'
+            (xml_kid, xml_key_checksum) = ComputePlayReadyKeyInfo(key_specs[0])
+            xml_protectinfo = '<KEYLEN>16</KEYLEN><ALGID>AESCTR</ALGID>'
+            xml_extras = '<KID>' + xml_kid +'</KID>'
+            if xml_key_checksum:
+                xml_extras += '<CHECKSUM>' + xml_key_checksum + '</CHECKSUM>'
+        else:
+            # 4.1 and above
+            if version == "4.1":
+                # 4.1 only
+                if len(key_specs) != 1:
+                    raise Exception("PlayReady 4.1 only supports 1 key")
 
+                # single KID
+                xml_protectinfo += ComputePlayReadyXmlKid(key_specs[0], algid)
+            else:
+                # 4.2 and above
+
+                # list of KIDS
+                xml_protectinfo += '<KIDS>'
+                for key_spec in key_specs:
+                    xml_protectinfo += ComputePlayReadyXmlKid(key_spec, algid)
+                xml_protectinfo += '</KIDS>'
+
+        header_xml = '<WRMHEADER xmlns="http://schemas.microsoft.com/DRM/2007/03/PlayReadyHeader" version="%s.0.0"><DATA>' % version
+        header_xml += '<PROTECTINFO>' + xml_protectinfo + '</PROTECTINFO>'
+        header_xml += xml_extras
         if 'CUSTOMATTRIBUTES' in fields:
             header_xml += '<CUSTOMATTRIBUTES>'+fields['CUSTOMATTRIBUTES'].decode('base64').replace('\n', '')+'</CUSTOMATTRIBUTES>'
         if 'LA_URL' in fields:
@@ -1057,7 +1125,7 @@ def ComputePlayReadyHeader(header_spec, kid_hex, key_hex):
             header_xml += '<DS_ID>'+saxutils.escape(fields['DS_ID'])+'</DS_ID>'
 
         header_xml += '</DATA></WRMHEADER>'
-        return WrapPlayreadyHeaderXml(header_xml)
+        return WrapPlayReadyHeaderXml(header_xml)
 
 def ComputePrimetimeMetaData(metadata_spec, kid_hex):
     # construct the base64 header
@@ -1066,7 +1134,7 @@ def ComputePrimetimeMetaData(metadata_spec, kid_hex):
     if metadata_spec.startswith('#'):
         metadata_b64 = metadata_spec[1:]
         metadata = metadata_b64.decode('base64')
-        if len(metadata) == 0:
+        if not metadata:
             raise Exception('invalid base64 encoding')
     elif metadata_spec.startswith('@'):
         metadata_filename = metadata_spec[1:]
@@ -1078,11 +1146,11 @@ def ComputePrimetimeMetaData(metadata_spec, kid_hex):
 
     amet_size = 12+4+16
     amet_flags = 0
-    if len(metadata):
+    if metadata:
         amet_flags |= 2
         amet_size += 4+len(metadata)
     amet_box = struct.pack('>I4sII', amet_size, 'amet', amet_flags, 1)+kid_hex.decode("hex")
-    if len(metadata):
+    if metadata:
         amet_box += struct.pack('>I', len(metadata))+metadata
 
     return amet_box
@@ -1091,20 +1159,16 @@ def WidevineVarInt(value):
     parts = [value % 128]
     value >>= 7
     while value:
-        parts.append(value%128)
+        parts.append(value % 128)
         value >>= 7
-    varint = ''
-    for i in range(len(parts)-1):
+    for i in range(len(parts) - 1):
         parts[i] |= (1<<7)
-    varint = ''
-    for x in parts:
-        varint += chr(x)
-    return varint
+    return ''.join([chr(x) for x in parts])
 
 def WidevineMakeHeader(fields):
     buffer = ''
     for (field_num, field_val) in fields:
-        if type(field_val) == int and field_val < 256:
+        if type(field_val) == int:
             wire_type = 0 # varint
             wire_val = WidevineVarInt(field_val)
         elif type(field_val) == str:
@@ -1113,12 +1177,12 @@ def WidevineMakeHeader(fields):
         buffer += chr(field_num<<3 | wire_type) + wire_val
     return buffer
 
-def ComputeWidevineHeader(header_spec, kid_hex):
+def ComputeWidevineHeader(header_spec, encryption_scheme, kid_hex):
     # construct the base64 header
     if header_spec.startswith('#'):
         header_b64 = header_spec[1:]
         header = header_b64.decode('base64')
-        if len(header) == 0:
+        if not header:
             raise Exception('invalid base64 encoding')
         return header
     else:
@@ -1138,4 +1202,9 @@ def ComputeWidevineHeader(header_spec, kid_hex):
             protobuf_fields.append((4, fields['content_id'].decode('hex')))
         if 'policy' in fields:
             protobuf_fields.append((6, fields['policy']))
+
+        if encryption_scheme != 'cenc':
+            four_cc = struct.unpack('>I', encryption_scheme)[0]
+            protobuf_fields.append((9, four_cc))
+
         return WidevineMakeHeader(protobuf_fields)
