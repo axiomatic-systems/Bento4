@@ -52,7 +52,7 @@ PrintUsageAndExit()
         "\n\n"
         "usage: mp4encrypt --method <method> [options] <input> <output>\n"
         "     <method> is OMA-PDCF-CBC, OMA-PDCF-CTR, MARLIN-IPMP-ACBC,\n"
-        "     MARLIN-IPMP-ACGK, ISMA-IAEC, PIFF-CBC, PIFF-CTR, ,MPEG-CENC,\n"
+        "     MARLIN-IPMP-ACGK, ISMA-IAEC, PIFF-CBC, PIFF-CTR, MPEG-CENC,\n"
         "     MPEG-CBC1, MPEG-CENS, MPEG-CBCS\n"
         "  Options:\n"
         "  --show-progress\n"
