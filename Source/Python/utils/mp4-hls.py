@@ -15,6 +15,11 @@ __copyright__ = 'Copyright 2011-2015 Axiomatic Systems, LLC.'
 
 from optparse import OptionParser
 import shutil
+import xml.etree.ElementTree as xml
+from xml.dom.minidom import parseString
+import tempfile
+import fractions
+import re
 import platform
 import sys
 from mp4utils import *
@@ -22,7 +27,7 @@ from subtitles import *
 
 # setup main options
 VERSION = "1.1.0"
-SDK_REVISION = '629'
+SDK_REVISION = '625'
 SCRIPT_PATH = path.abspath(path.dirname(__file__))
 sys.path += [SCRIPT_PATH]
 
@@ -249,6 +254,7 @@ def OutputHls(options, media_sources):
     AnalyzeSources(options, media_sources)
 
     # select audio tracks
+    audio_media = []
     audio_tracks = SelectAudioTracks(options, [media_source for media_source in mp4_sources if not media_source.spec.get('+audio_fallback')])
 
     # check if this is an audio-only presentation
@@ -444,7 +450,7 @@ def OutputHls(options, media_sources):
                                 int(media_info['stats']['max_segment_bitrate'])+group_info['max_segment_bitrate'],
                                 ','.join(codecs))
             if 'video' in media_info:
-                ext_x_stream_inf += ',FRAME-RATE='+str(media_info['stats']['frame_rate'])+',RESOLUTION='+str(int(media_info['video']['width']))+'x'+str(int(media_info['video']['height']))
+                ext_x_stream_inf += ',RESOLUTION='+str(int(media_info['video']['width']))+'x'+str(int(media_info['video']['height']))
 
             # audio info
             if group_name:
