@@ -37,9 +37,10 @@ def GetVersion():
 def GetSdkRevision():
     cmd = 'git status --porcelain -b'
     lines = os.popen(cmd).readlines()
+    branch = ''
     if not lines[0].startswith('## master'):
-        print 'ERROR: not on master branch'
-        return None
+        print 'WARNING: not on master branch'
+        branch = '+' + lines[0][2:]
     if len(lines) > 1:
         print 'ERROR: git status not empty'
         print ''.join(lines)
@@ -54,7 +55,7 @@ def GetSdkRevision():
     sep = version.find('-')
     if sep < 0:
         print 'ERROR: unrecognized version string format:', version
-    return version[sep+1:]
+    return version[sep+1:] + branch
 
 #############################################################
 # File Copy
