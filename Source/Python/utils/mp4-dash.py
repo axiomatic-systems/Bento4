@@ -372,14 +372,10 @@ def OutputDash(options, set_attributes, audio_sets, video_sets, subtitles_sets, 
         period.append(xml.Comment(' Video '))
 
         for video_tracks in video_sets.values():
-            # compute the min and max values
-            minWidth  = 0
-            minHeight = 0
+            # compute the max values
             maxWidth  = 0
             maxHeight = 0
             for video_track in video_tracks:
-                if minWidth  == 0 or video_track.width < minWidth:  minWidth  = video_track.width
-                if minHeight == 0 or video_track.height < minHeight: minHeight = video_track.height
                 if video_track.width  > maxWidth:  maxWidth  = video_track.width
                 if video_track.height > maxHeight: maxHeight = video_track.height
 
@@ -388,9 +384,7 @@ def OutputDash(options, set_attributes, audio_sets, video_sets, subtitles_sets, 
                                             mimeType=VIDEO_MIMETYPE,
                                             segmentAlignment='true',
                                             startWithSAP='1',
-                                            minWidth=str(minWidth),
                                             maxWidth=str(maxWidth),
-                                            minHeight=str(minHeight),
                                             maxHeight=str(maxHeight))
 
             # see if we have descriptors
