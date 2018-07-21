@@ -103,6 +103,8 @@ AP4_StsdAtom::AP4_StsdAtom(AP4_UI32         size,
                                                             atom))) {
             atom->SetParent(this);
             m_Children.Add(atom);
+        } else {
+            break;
         }
     }
 
