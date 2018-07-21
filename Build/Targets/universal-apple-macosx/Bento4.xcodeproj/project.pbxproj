@@ -328,6 +328,8 @@
 		CAA033690DF7E2FA0086EC1C /* Ap4Ipmp.h in Headers */ = {isa = PBXBuildFile; fileRef = CAA033670DF7E2FA0086EC1C /* Ap4Ipmp.h */; };
 		CAA4FF2010B2CBB3009C8F5B /* Ap4Mp4AudioInfo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAA4FF1E10B2CBB3009C8F5B /* Ap4Mp4AudioInfo.cpp */; };
 		CAA4FF2110B2CBB3009C8F5B /* Ap4Mp4AudioInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = CAA4FF1F10B2CBB3009C8F5B /* Ap4Mp4AudioInfo.h */; };
+		CAA55DAB20F1305900CBAA11 /* Ap4Dac4Atom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAA55DAA20F12F3C00CBAA11 /* Ap4Dac4Atom.cpp */; };
+		CAA55DAC20F1306400CBAA11 /* Ap4Dac4Atom.h in Headers */ = {isa = PBXBuildFile; fileRef = CAA55DA920F12F3C00CBAA11 /* Ap4Dac4Atom.h */; };
 		CAA7E6CA14ACD77A008AA54E /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAA7E6C914ACD763008AA54E /* libBento4.a */; };
 		CAA7E6CB14ACD77F008AA54E /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAA7E6C914ACD763008AA54E /* libBento4.a */; };
 		CAA7E6CC14ACD785008AA54E /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAA7E6C914ACD763008AA54E /* libBento4.a */; };
@@ -1297,6 +1299,8 @@
 		CAA033670DF7E2FA0086EC1C /* Ap4Ipmp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4Ipmp.h; sourceTree = "<group>"; };
 		CAA4FF1E10B2CBB3009C8F5B /* Ap4Mp4AudioInfo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4Mp4AudioInfo.cpp; sourceTree = "<group>"; };
 		CAA4FF1F10B2CBB3009C8F5B /* Ap4Mp4AudioInfo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4Mp4AudioInfo.h; sourceTree = "<group>"; };
+		CAA55DA920F12F3C00CBAA11 /* Ap4Dac4Atom.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4Dac4Atom.h; sourceTree = "<group>"; };
+		CAA55DAA20F12F3C00CBAA11 /* Ap4Dac4Atom.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4Dac4Atom.cpp; sourceTree = "<group>"; };
 		CAA7E6C914ACD763008AA54E /* libBento4.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libBento4.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		CAA88EA910A2064500178BE3 /* libBento4Neptune.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libBento4Neptune.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		CAA88EB910A2069900178BE3 /* Ap4NeptuneAdapters.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4NeptuneAdapters.cpp; sourceTree = "<group>"; };
@@ -2070,6 +2074,8 @@
 				CA93661F0B437D030067D50B /* Ap4ContainerAtom.h */,
 				CA9366200B437D040067D50B /* Ap4CttsAtom.cpp */,
 				CA9366210B437D040067D50B /* Ap4CttsAtom.h */,
+				CAA55DAA20F12F3C00CBAA11 /* Ap4Dac4Atom.cpp */,
+				CAA55DA920F12F3C00CBAA11 /* Ap4Dac4Atom.h */,
 				CA9366220B437D040067D50B /* Ap4DataBuffer.cpp */,
 				CA9366230B437D040067D50B /* Ap4DataBuffer.h */,
 				CA9366240B437D040067D50B /* Ap4Debug.cpp */,
@@ -2588,6 +2594,7 @@
 				CA2898B20D897F20006A758B /* Ap4IodsAtom.h in Headers */,
 				CA09F2800DF62FC600C2B2DA /* Ap4Marlin.h in Headers */,
 				CAA0332E0DF7D3390086EC1C /* Ap4CommandFactory.h in Headers */,
+				CAA55DAC20F1306400CBAA11 /* Ap4Dac4Atom.h in Headers */,
 				CAA033320DF7D4CC0086EC1C /* Ap4Command.h in Headers */,
 				CAA033690DF7E2FA0086EC1C /* Ap4Ipmp.h in Headers */,
 				CAEDC8E90DFF5B1100F070A8 /* Ap4Expandable.h in Headers */,
@@ -3858,6 +3865,7 @@
 				CA5734FD13B5DCFA00953446 /* Ap4SencAtom.cpp in Sources */,
 				CA15E16D1467D01A00D4EC8B /* Ap4PdinAtom.cpp in Sources */,
 				CAF0104915343D5D00CCD976 /* Ap4AinfAtom.cpp in Sources */,
+				CAA55DAB20F1305900CBAA11 /* Ap4Dac4Atom.cpp in Sources */,
 				CAF0104B15343D5D00CCD976 /* Ap4BlocAtom.cpp in Sources */,
 				CA094DB418D80E220032290E /* Ap4HvccAtom.cpp in Sources */,
 				CAF0104F15343E4000CCD976 /* Ap4PsshAtom.cpp in Sources */,

@@ -101,6 +101,7 @@
 #include "Ap4AinfAtom.h"
 #include "Ap4PsshAtom.h"
 #include "Ap4Dec3Atom.h"
+#include "Ap4Dac4Atom.h"
 #include "Ap4SidxAtom.h"
 #include "Ap4SbgpAtom.h"
 #include "Ap4SgpdAtom.h"
@@ -315,6 +316,7 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
           case AP4_ATOM_TYPE_ALAC:
           case AP4_ATOM_TYPE_AC_3:
           case AP4_ATOM_TYPE_EC_3:
+          case AP4_ATOM_TYPE_AC_4:
           case AP4_ATOM_TYPE_DTSC:
           case AP4_ATOM_TYPE_DTSH:
           case AP4_ATOM_TYPE_DTSL:
@@ -713,6 +715,13 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
             if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
             if (GetContext() == AP4_ATOM_TYPE_EC_3 || GetContext() == AP4_ATOM_TYPE_ENCA) {
                 atom = AP4_Dec3Atom::Create(size_32, stream);
+            }
+            break;
+
+          case AP4_ATOM_TYPE_DAC4:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            if (GetContext() == AP4_ATOM_TYPE_AC_4 || GetContext() == AP4_ATOM_TYPE_ENCA) {
+                atom = AP4_Dac4Atom::Create(size_32, stream);
             }
             break;
 

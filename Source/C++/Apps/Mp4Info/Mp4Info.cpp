@@ -431,11 +431,11 @@ ShowSampleDescription_Text(AP4_SampleDescription& description, bool verbose)
 
     // Dolby Digital specifics
     if (desc->GetFormat() == AP4_SAMPLE_FORMAT_EC_3) {
-        AP4_Dec3Atom* dec3 = AP4_DYNAMIC_CAST(AP4_Dec3Atom, desc->GetDetails().GetChild(AP4_ATOM_TYPE('d', 'e', 'c', '3')));
+        AP4_Dec3Atom* dec3 = AP4_DYNAMIC_CAST(AP4_Dec3Atom, desc->GetDetails().GetChild(AP4_ATOM_TYPE_DEC3));
         if (dec3) {
-            printf("    AC3 Data Rate: %d\n", dec3->GetDataRate());
+            printf("    AC-3 Data Rate: %d\n", dec3->GetDataRate());
             for (unsigned int i=0; i<dec3->GetSubStreams().ItemCount(); i++) {
-                printf("    AC3 Substream %d:\n", i);
+                printf("    AC-3 Substream %d:\n", i);
                 printf("        fscod       = %d\n", dec3->GetSubStreams()[i].fscod);
                 printf("        bsid        = %d\n", dec3->GetSubStreams()[i].bsid);
                 printf("        bsmod       = %d\n", dec3->GetSubStreams()[i].bsmod);
@@ -444,12 +444,40 @@ ShowSampleDescription_Text(AP4_SampleDescription& description, bool verbose)
                 printf("        num_dep_sub = %d\n", dec3->GetSubStreams()[i].num_dep_sub);
                 printf("        chan_loc    = %d\n", dec3->GetSubStreams()[i].chan_loc);
             }
-            printf("    AC3 dec3 payload: [");
+            printf("    AC-3 dec3 payload: [");
             ShowData(dec3->GetRawBytes());
             printf("]\n");
         }
     }
-    
+
+    // Dolby AC-4 specifics
+    if (desc->GetFormat() == AP4_SAMPLE_FORMAT_AC_4) {
+        AP4_Dac4Atom* dac4 = AP4_DYNAMIC_CAST(AP4_Dac4Atom, desc->GetDetails().GetChild(AP4_ATOM_TYPE_DAC4));
+        if (dac4) {
+            printf("    Codecs String: ");
+            AP4_String codec;
+            dac4->GetCodecString(codec);
+            printf("%s", codec.GetChars());
+            printf("\n");
+
+            const AP4_Dac4Atom::Ac4Dsi& dsi = dac4->GetDsi();
+            if (dsi.ac4_dsi_version == 1) {
+                for (unsigned int i = 0; i < dsi.d.v1.n_presentations; i++) {
+                    AP4_Dac4Atom::Ac4Dsi::PresentationV1& presentation = dsi.d.v1.presentations[i];
+                    if (presentation.presentation_version == 1) {
+                        printf("    AC-4 Presentation %d:\n", i);
+                        printf("        presentation_channel_mask_v1 = %x\n",
+                               presentation.d.v1.presentation_channel_mask_v1);
+                    }
+                }
+            }
+            
+            printf("    AC-4 dac4 payload: [");
+            ShowData(dac4->GetRawBytes());
+            printf("]\n");
+        }
+    }
+
     // AVC specifics
     if (desc->GetType() == AP4_SampleDescription::TYPE_AVC) {
         // AVC Sample Description
@@ -651,6 +679,41 @@ ShowSampleDescription_Json(AP4_SampleDescription& description, bool verbose)
                 sep = ",\n";
             }
             printf("\n  ]\n}");
+        }
+    }
+
+    // Dolby AC-4 specifics
+    if (desc->GetFormat() == AP4_SAMPLE_FORMAT_AC_4) {
+        AP4_Dac4Atom* dac4 = AP4_DYNAMIC_CAST(AP4_Dac4Atom, desc->GetDetails().GetChild(AP4_ATOM_TYPE_DAC4));
+        if (dac4) {
+            printf(",\n");
+            printf("\"dolby_ac4_info\": {\n");
+
+            printf("  \"presentations\": [\n");
+            const AP4_Dac4Atom::Ac4Dsi& dsi = dac4->GetDsi();
+            if (dsi.ac4_dsi_version == 1) {
+                const char* separator = "";
+                for (unsigned int i = 0; i < dsi.d.v1.n_presentations; i++) {
+                    AP4_Dac4Atom::Ac4Dsi::PresentationV1& presentation = dsi.d.v1.presentations[i];
+                    if (presentation.presentation_version == 1) {
+                        printf("%s    { \"presentation_channel_mask_v1\": %u }",
+                               separator,
+                               presentation.d.v1.presentation_channel_mask_v1);
+                        separator = ",\n";
+                    }
+                }
+            }
+            printf("\n  ],\n");
+
+            printf("  \"dac4_payload\": \"");
+            ShowData(dac4->GetRawBytes());
+            printf("\"\n},\n");
+            
+            printf("\"codecs_string\":\"");
+            AP4_String codec;
+            dac4->GetCodecString(codec);
+            printf("%s", codec.GetChars());
+            printf("\"");
         }
     }
 

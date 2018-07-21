@@ -93,6 +93,7 @@ HIPPO_MEDIA_SEGMENT_GROUPS_SMOOTH  = '["time"]'
 
 MPEG_DASH_AUDIO_CHANNEL_CONFIGURATION_SCHEME_ID_URI     = 'urn:mpeg:dash:23003:3:audio_channel_configuration:2011'
 DOLBY_DIGITAL_AUDIO_CHANNEL_CONFIGURATION_SCHEME_ID_URI = 'tag:dolby.com,2014:dash:audio_channel_configuration:2011'
+DOLBY_AC4_AUDIO_CHANNEL_CONFIGURATION_SCHEME_ID_URI     = 'tag:dolby.com,2015:dash:audio_channel_configuration:2015'
 
 ISOFF_MAIN_PROFILE          = 'urn:mpeg:dash:profile:isoff-main:2011'
 ISOFF_LIVE_PROFILE          = 'urn:mpeg:dash:profile:isoff-live:2011'
@@ -465,6 +466,9 @@ def OutputDash(options, set_attributes, audio_sets, video_sets, subtitles_sets, 
                 if audio_track.codec == 'ec-3':
                     audio_channel_config_value = ComputeDolbyDigitalAudioChannelConfig(audio_track)
                     scheme_id_uri = DOLBY_DIGITAL_AUDIO_CHANNEL_CONFIGURATION_SCHEME_ID_URI
+                elif audio_track.codec.startswith('ac-4'):
+                    audio_channel_config_value = ComputeDolbyAc4AudioChannelConfig(audio_track)
+                    scheme_id_uri = DOLBY_AC4_AUDIO_CHANNEL_CONFIGURATION_SCHEME_ID_URI
                 else:
                     audio_channel_config_value = str(audio_track.channels)
                     scheme_id_uri = MPEG_DASH_AUDIO_CHANNEL_CONFIGURATION_SCHEME_ID_URI

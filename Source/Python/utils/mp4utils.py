@@ -894,6 +894,17 @@ def ComputeDolbyDigitalAudioChannelConfig(track):
             config |= flags[channel]
     return hex(config).upper()[2:]
 
+def ComputeDolbyAc4AudioChannelConfig(track):
+    sample_desc = track.info['sample_descriptions'][0]
+    if 'dolby_ac4_info' in sample_desc:
+        dolby_ac4_info = sample_desc['dolby_ac4_info']
+        if 'presentations' in dolby_ac4_info and dolby_ac4_info['presentations']:
+            presentation = dolby_ac4_info['presentations'][0]
+            if 'presentation_channel_mask_v1' in presentation:
+                return '%06x' % presentation['presentation_channel_mask_v1']
+
+    return '000047'
+    
 def ComputeDolbyDigitalAudioChannelMask(track):
     masks = {
         'L':       0x1,             # SPEAKER_FRONT_LEFT

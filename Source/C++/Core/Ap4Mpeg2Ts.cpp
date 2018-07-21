@@ -445,7 +445,8 @@ AP4_Mpeg2TsAudioSampleStream::WriteSample(AP4_Sample&            sample,
         WritePES(buffer, 7+sample.GetSize(), ts, false, ts, with_pcr, output);
         delete[] buffer;
     } else if (sample_description->GetFormat() == AP4_SAMPLE_FORMAT_AC_3 ||
-               sample_description->GetFormat() == AP4_SAMPLE_FORMAT_EC_3) {
+               sample_description->GetFormat() == AP4_SAMPLE_FORMAT_EC_3 ||
+               sample_description->GetFormat() == AP4_SAMPLE_FORMAT_AC_4) {
         AP4_UI64 ts = AP4_ConvertTime(sample.GetDts(), m_TimeScale, 90000);
         WritePES(sample_data.GetData(), sample_data.GetDataSize(), ts, false, ts, with_pcr, output);
     } else {
