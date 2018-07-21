@@ -408,6 +408,10 @@ AP4_Mpeg2TsAudioSampleStream::WriteSample(AP4_Sample&            sample,
                                           bool                   with_pcr, 
                                           AP4_ByteStream&        output)
 {
+    if (!sample_description) {
+        return AP4_ERROR_INVALID_PARAMETERS;
+    }
+
     // check the sample description
     if (sample_description->GetFormat() == AP4_SAMPLE_FORMAT_MP4A) {
         AP4_MpegAudioSampleDescription* audio_desc = AP4_DYNAMIC_CAST(AP4_MpegAudioSampleDescription, sample_description);
@@ -521,6 +525,10 @@ AP4_Mpeg2TsVideoSampleStream::WriteSample(AP4_Sample&            sample,
                                           bool                   with_pcr, 
                                           AP4_ByteStream&        output)
 {
+    if (!sample_description) {
+        return AP4_ERROR_INVALID_PARAMETERS;
+    }
+    
     if (sample_description->GetType() == AP4_SampleDescription::TYPE_AVC) {
         // check the sample description
         AP4_AvcSampleDescription* avc_desc = AP4_DYNAMIC_CAST(AP4_AvcSampleDescription, sample_description);
