@@ -184,6 +184,9 @@ ReadSample(SampleReader&   reader,
             return result;
         }
     }
+    if (sample_data.GetDataSize() == 0) {
+        return AP4_ERROR_INVALID_FORMAT;
+    }
     ts = (double)sample.GetDts()/(double)track.GetMediaTimeScale();
     
     return AP4_SUCCESS;
