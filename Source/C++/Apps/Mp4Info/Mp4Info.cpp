@@ -430,6 +430,23 @@ ShowSampleDescription_Text(AP4_SampleDescription& description, bool verbose)
     }
 
     // Dolby Digital specifics
+    if (desc->GetFormat() == AP4_SAMPLE_FORMAT_AC_3) {
+        AP4_Dac3Atom* dac3 = AP4_DYNAMIC_CAST(AP4_Dac3Atom, desc->GetDetails().GetChild(AP4_ATOM_TYPE('d', 'a', 'c', '3')));
+        if (dac3) {
+            printf("    AC3 stream:\n");
+            printf("        fscod       = %d\n", dac3->GetFscod());
+            printf("        bsid        = %d\n", dac3->GetBsid());
+            printf("        bsmod       = %d\n", dac3->GetBsmod());
+            printf("        acmod       = %d\n", dac3->GetAcmod());
+            printf("        lfeon       = %d\n", dac3->GetLfeon());
+            printf("        bit_rate_code = %d\n", dac3->GetBitRateCode());
+            printf("    AC3 dac3 payload: [");
+            ShowData(dac3->GetRawBytes());
+            printf("]\n");
+        }
+    }
+
+    // Enhanced Dolby Digital specifics
     if (desc->GetFormat() == AP4_SAMPLE_FORMAT_EC_3) {
         AP4_Dec3Atom* dec3 = AP4_DYNAMIC_CAST(AP4_Dec3Atom, desc->GetDetails().GetChild(AP4_ATOM_TYPE('d', 'e', 'c', '3')));
         if (dec3) {
@@ -627,6 +644,26 @@ ShowSampleDescription_Json(AP4_SampleDescription& description, bool verbose)
     }
 
     // Dolby Digital specifics
+    if (desc->GetFormat() == AP4_SAMPLE_FORMAT_AC_3) {
+        AP4_Dac3Atom* dac3 = AP4_DYNAMIC_CAST(AP4_Dac3Atom, desc->GetDetails().GetChild(AP4_ATOM_TYPE('d', 'a', 'c', '3')));
+        if (dac3) {
+            printf(",\n");
+            printf("\"dolby_digital_info\": {\n");
+            printf("      \"fscod\": %d,\n", dac3->GetFscod());
+            printf("      \"bsid\": %d,\n", dac3->GetBsid());
+            printf("      \"bsmod\": %d,\n", dac3->GetBsmod());
+            printf("      \"acmod\": %d,\n", dac3->GetAcmod());
+            printf("      \"lfeon\": %d,\n", dac3->GetLfeon());
+            printf("      \"bit_rate_code\": %d,\n", dac3->GetBitRateCode());
+            printf("      \"dec3_payload\": \"");
+            ShowData(dac3->GetRawBytes());
+            printf("\"}");
+        }
+    }
+
+
+
+    // Enhanced Dolby Digital specifics
     if (desc->GetFormat() == AP4_SAMPLE_FORMAT_EC_3) {
         AP4_Dec3Atom* dec3 = AP4_DYNAMIC_CAST(AP4_Dec3Atom, desc->GetDetails().GetChild(AP4_ATOM_TYPE('d', 'e', 'c', '3')));
         if (dec3) {
