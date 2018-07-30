@@ -903,7 +903,7 @@ def ComputeDolbyAc4AudioChannelConfig(track):
             if 'presentation_channel_mask_v1' in presentation:
                 return '%06x' % presentation['presentation_channel_mask_v1']
 
-    return '000047'
+    return '000000'
     
 def ComputeDolbyDigitalAudioChannelMask(track):
     masks = {
