@@ -1384,8 +1384,10 @@ def EncryptSources(options, media_sources):
             if options.smooth or options.playready:
                 args += ['--global-option', 'mpeg-cenc.piff-compatible:true']
 
+        key_set = []
         for track_id in sorted(media_source.key_infos.keys()):
             key_info = media_source.key_infos[track_id]
+            key_set.append((key_info['kid'], key_info['key']))
             args += ['--key', str(track_id)+':'+key_info['key']+':'+key_info['iv'], '--property', str(track_id)+':KID:'+key_info['kid']]
 
         # EME Common Encryption / Clearkey
@@ -1408,7 +1410,7 @@ def EncryptSources(options, media_sources):
             playready_header = ComputePlayReadyHeader(options.playready_version,
                                                       options.playready_header,
                                                       options.encryption_cenc_scheme,
-                                                      [(default_kid, default_key)])
+                                                      key_set)
             pssh_file = tempfile.NamedTemporaryFile(dir=options.output_dir, delete=False)
             pssh_file.write(playready_header)
             TempFiles.append(pssh_file.name)
