@@ -40,3 +40,7 @@ third_party
 *.db
 *.user
 .vscode
+*.sdf
+*.opendb
+Build/Targets/x86_64-microsoft-win32-vs2015/**/Debug/
+Build/Targets/x86_64-microsoft-win32-vs2015/**/Release
