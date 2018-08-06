@@ -568,7 +568,7 @@ def OutputDash(options, set_attributes, audio_sets, video_sets, subtitles_sets, 
         mpd_xml = parseString(xml.tostring(mpd)).toprettyxml("  ")
         # use a regex to fix a bug in toprettyxml() that inserts newlines in text content
         mpd_xml = re.sub(r'((?<=>)(\n[\s]*)(?=[^<\s]))|(?<=[^>\s])(\n[\s]*)(?=<)', '', mpd_xml)
-        open(path.join(options.output_dir, options.mpd_filename), "wb").write(mpd_xml)
+        open(path.join(options.output_dir, options.mpd_filename), "wb").write(mpd_xml.encode('utf-8'))
 
 
 #############################################
@@ -713,7 +713,7 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
         language = audio_tracks[0].language.decode('utf-8')
         language_name = audio_tracks[0].language_name
 
-        audio_group_name = adaptation_set_name[0]+'/'+adaptation_set_name[2]
+        audio_group_name = adaptation_set_name[0]+'/'+adaptation_set_name[3]
         audio_groups[audio_group_name] = {
             'codec': '',
             'average_segment_bitrate': 0,
@@ -772,13 +772,13 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
             # one entry per audio group
             for audio_group_name in audio_groups:
                 audio_codec = audio_groups[audio_group_name]['codec']
-                master_playlist_file.write('#EXT-X-STREAM-INF:AUDIO="%s",AVERAGE-BANDWIDTH=%d,BANDWIDTH=%d,CODECS="%s",RESOLUTION=%dx%d\r\n' % (
+                master_playlist_file.write(('#EXT-X-STREAM-INF:AUDIO="%s",AVERAGE-BANDWIDTH=%d,BANDWIDTH=%d,CODECS="%s",RESOLUTION=%dx%d\r\n' % (
                                            audio_group_name,
                                            video_track.average_segment_bitrate + audio_groups[audio_group_name]['average_segment_bitrate'],
                                            video_track.max_segment_bitrate + audio_groups[audio_group_name]['max_segment_bitrate'],
                                            video_track.codec+','+audio_codec,
                                            video_track.width,
-                                           video_track.height))
+                                           video_track.height)).encode('utf-8'))
                 master_playlist_file.write(media_playlist_path+'\r\n')
         else:
             # no audio
@@ -960,7 +960,7 @@ def OutputSmooth(options, audio_tracks, video_tracks):
 
     # save the Smooth Client Manifest
     if options.smooth_client_manifest_filename != '':
-        open(path.join(options.output_dir, options.smooth_client_manifest_filename), "wb").write(parseString(xml.tostring(client_manifest)).toprettyxml("  "))
+        open(path.join(options.output_dir, options.smooth_client_manifest_filename), "wb").write(parseString(xml.tostring(client_manifest)).toprettyxml("  ").encode('utf-8'))
 
     # create the Server Manifest file
     server_manifest = xml.Element('smil', xmlns=SMIL_NAMESPACE)
