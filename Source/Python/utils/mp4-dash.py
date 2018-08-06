@@ -706,6 +706,7 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
     master_playlist_file.write('\r\n')
     master_playlist_file.write('# Audio\r\n')
     audio_groups = {}
+    autoselect_value = ',AUTOSELECT=YES,DEFAULT=YES'
     for adaptation_set_name, audio_tracks in audio_sets.items():
         language = audio_tracks[0].language.decode('utf-8')
         language_name = LanguageNames.get(language, language).decode('utf-8')
@@ -741,12 +742,15 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
                 media_playlist_name = options.hls_media_playlist_name
                 media_playlist_path = media_subdir+'/'+media_playlist_name
 
-            master_playlist_file.write(('#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="%s",LANGUAGE="%s",NAME="%s",AUTOSELECT=YES,DEFAULT=YES,URI="%s"\r\n' % (
+            master_playlist_file.write(('#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="%s",LANGUAGE="%s",NAME="%s"%s,URI="%s"\r\n' % (
                                         audio_group_name,
                                         language,
                                         language_name,
+                                        autoselect_value,
                                         media_playlist_path)).encode('utf-8'))
             OutputHlsTrack(options, audio_track, media_subdir, media_playlist_name, media_file_name)
+
+            autoselect_value = ''
 
     master_playlist_file.write('\r\n')
     master_playlist_file.write('# Video\r\n')
