@@ -436,6 +436,9 @@ def OutputDash(options, set_attributes, audio_sets, video_sets, subtitles_sets, 
             language = audio_tracks[0].language
             if (language != 'und') or options.always_output_lang:
                 kwargs['lang'] = language
+            language_name = audio_tracks[0].language_name
+            if (language_name != 'Unknown'):
+                kwargs['lang'] = language_name
             adaptation_set = xml.SubElement(*args, **kwargs)
 
             # see if we have descriptors
@@ -708,7 +711,7 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
     audio_groups = {}
     for adaptation_set_name, audio_tracks in audio_sets.items():
         language = audio_tracks[0].language.decode('utf-8')
-        language_name = LanguageNames.get(language, language).decode('utf-8')
+        language_name = audio_tracks[0].language_name
 
         audio_group_name = adaptation_set_name[0]+'/'+adaptation_set_name[2]
         audio_groups[audio_group_name] = {
@@ -863,6 +866,9 @@ def OutputSmooth(options, audio_tracks, video_tracks):
                                       TimeScale=str(audio_track.timescale))
         if audio_track.language != 'und' or options.always_output_lang:
             stream_index.set('Language', audio_track.language)
+
+        if audio_track.language_name != 'Unknown':
+            stream_index.set('Name', audio_track.language_name)
 
         if audio_track.codec == 'ec-3':
             # Dolby Digital Plus
@@ -1139,13 +1145,20 @@ def SelectTracks(options, media_sources):
                 language = options.language_map[language]
             track.language = language
 
+            # track language name
+            language_name = LanguageNames.get(language, language)
+            remap_language_name = media_source.spec.get('+language_name')
+            if remap_language_name:
+                language_name = remap_language_name
+            track.language_name = language_name.decode('utf-8')
+
             # video scan type
             if track.type == 'video':
                 track.scan_type = media_source.spec.get('+scan_type', track.scan_type)
 
         # process audio tracks
         for track in [t for t in tracks if t.type == 'audio']:
-            adaptation_set_name = ('audio', track.language, track.codec_family)
+            adaptation_set_name = ('audio', track.language, track.language_name, track.codec_family)
             adaptation_set = audio_adaptation_sets.get(adaptation_set_name, [])
             audio_adaptation_sets[adaptation_set_name] = adaptation_set
 

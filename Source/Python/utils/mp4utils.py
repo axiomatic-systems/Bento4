@@ -371,6 +371,7 @@ class Mp4Track:
         self.max_segment_bitrate      = 0
         self.bandwidth                = 0
         self.language                 = ''
+        self.language_name            = ''
         self.order_index              = 0
         self.id = info['id']
         if info['type'] == 'Audio':
@@ -422,6 +423,7 @@ class Mp4Track:
             self.channels = sample_desc['channels']
 
         self.language = info['language']
+        self.language_name = LanguageCodeMap.get(self.language, self.language)
 
     def update(self, options):
         # compute the total number of samples
@@ -909,7 +911,7 @@ def ComputeDolbyDigitalAudioChannelMask(track):
     masks = {
         'L':       0x1,             # SPEAKER_FRONT_LEFT
         'R':       0x2,             # SPEAKER_FRONT_RIGHT
-        'C':	   0x4,             # SPEAKER_FRONT_CENTER
+        'C':       0x4,             # SPEAKER_FRONT_CENTER
         'LFE':     0x8,             # SPEAKER_LOW_FREQUENCY
         'Ls':      0x10,            # SPEAKER_BACK_LEFT
         'Rs':      0x20,            # SPEAKER_BACK_RIGHT
