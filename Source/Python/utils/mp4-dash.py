@@ -1158,7 +1158,7 @@ def SelectTracks(options, media_sources):
 
         # process audio tracks
         for track in [t for t in tracks if t.type == 'audio']:
-            adaptation_set_name = ('audio', track.language, track.language_name, track.codec_family)
+            adaptation_set_name = ('audio', track.language, track.codec_family, str(track.parent.file_list_index), str(track.id))
             adaptation_set = audio_adaptation_sets.get(adaptation_set_name, [])
             audio_adaptation_sets[adaptation_set_name] = adaptation_set
 
