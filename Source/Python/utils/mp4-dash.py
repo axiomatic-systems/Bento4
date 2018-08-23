@@ -23,6 +23,7 @@ import re
 import platform
 import sys
 import math
+from collections import OrderedDict
 from mp4utils import *
 from subtitles import *
 
@@ -1098,9 +1099,9 @@ def SelectTracks(options, media_sources):
 
 
     # select tracks
-    audio_adaptation_sets     = {}
-    video_adaptation_sets     = {}
-    subtitles_adaptation_sets = {}
+    audio_adaptation_sets     = OrderedDict()
+    video_adaptation_sets     = OrderedDict()
+    subtitles_adaptation_sets = OrderedDict()
     for media_source in media_sources:
         track_id       = media_source.spec['track']
         track_type     = media_source.spec['type']
