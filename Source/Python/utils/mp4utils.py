@@ -178,7 +178,7 @@ LanguageNames = {
     "rm": 'Rumantsch Grischun',
     "rn": 'Rundi',
     "ro": 'Rom\xc3\xa2n\xc4\x83',
-    "ru": '\xd1\x80\xd1\x83\xd1\x81\xd1\x81\xd0\xba\xd0\xb8\xd0\xb9 \xd1\x8f\xd0\xb7\xd1\x8b\xd0\xba',
+    "ru": '\xd0\xa0\xd1\x83\xd1\x81\xd1\x81\xd0\xba\xd0\xb8\xd0\xb9',
     "rw": 'Ikinyarwanda',
     "sa": '\xe0\xa4\xb8\xe0\xa4\x82\xe0\xa4\xb8\xe0\xa5\x8d\xe0\xa4\x95\xe0\xa5\x83\xe0\xa4\xa4\xe0\xa4\xae\xe0\xa5\x8d',
     "sc": 'Sardu',
@@ -304,7 +304,7 @@ def Mp42Hls(options, input_filename, *args, **kwargs):
 
 def Mp4IframIndex(options, input_filename, *args, **kwargs):
     return Bento4Command(options, 'mp4iframeindex', input_filename, *args, **kwargs)
-    
+
 class Mp4Atom:
     def __init__(self, type, size, position):
         self.type     = type
@@ -589,7 +589,7 @@ class Mp4File:
                         segment_bitrate = 0
                     track.segment_bitrates.append(segment_bitrate)
                 segment_size = 0
-                
+
         # parse the 'mfra' index if there is one and update segment durations.
         # this is needed to deal with input files that have an 'mfra' index that
         # does not exactly match the sample durations (because of rounding errors),
@@ -904,7 +904,7 @@ def ComputeDolbyAc4AudioChannelConfig(track):
                 return '%06x' % presentation['presentation_channel_mask_v1']
 
     return '000000'
-    
+
 def ComputeDolbyDigitalAudioChannelMask(track):
     masks = {
         'L':       0x1,             # SPEAKER_FRONT_LEFT
