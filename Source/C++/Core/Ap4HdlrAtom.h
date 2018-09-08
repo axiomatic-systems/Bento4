@@ -82,6 +82,9 @@ private:
                  AP4_ByteStream& stream);
 
     // members
+    AP4_UI32   m_Predefined; // even if this is supposed to be predefined == 0,
+                             // we allow keeping a non-zero value for compatitibilty
+                             // with QuickTime
     AP4_UI32   m_HandlerType;
     AP4_UI32   m_Reserved[3];
     AP4_String m_HandlerName;

@@ -57,6 +57,7 @@ AP4_HdlrAtom::Create(AP4_Size size, AP4_ByteStream& stream)
 +---------------------------------------------------------------------*/
 AP4_HdlrAtom::AP4_HdlrAtom(AP4_Atom::Type hdlr_type, const char* hdlr_name) :
     AP4_Atom(AP4_ATOM_TYPE_HDLR, AP4_FULL_ATOM_HEADER_SIZE, 0, 0),
+    m_Predefined(0),
     m_HandlerType(hdlr_type),
     m_HandlerName(hdlr_name)
 {
@@ -73,8 +74,7 @@ AP4_HdlrAtom::AP4_HdlrAtom(AP4_UI32        size,
                            AP4_ByteStream& stream) :
     AP4_Atom(AP4_ATOM_TYPE_HDLR, size, version, flags)
 {
-    AP4_UI32 predefined;
-    stream.ReadUI32(predefined);
+    stream.ReadUI32(m_Predefined);
     stream.ReadUI32(m_HandlerType);
     stream.ReadUI32(m_Reserved[0]);
     stream.ReadUI32(m_Reserved[1]);
@@ -107,7 +107,7 @@ AP4_HdlrAtom::WriteFields(AP4_ByteStream& stream)
     AP4_Result result;
 
     // write the data
-    result = stream.WriteUI32(0); // predefined
+    result = stream.WriteUI32(m_Predefined);
     if (AP4_FAILED(result)) return result;
     result = stream.WriteUI32(m_HandlerType);
     if (AP4_FAILED(result)) return result;
