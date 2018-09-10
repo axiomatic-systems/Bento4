@@ -59,7 +59,8 @@ AP4_HdlrAtom::AP4_HdlrAtom(AP4_Atom::Type hdlr_type, const char* hdlr_name) :
     AP4_Atom(AP4_ATOM_TYPE_HDLR, AP4_FULL_ATOM_HEADER_SIZE, 0, 0),
     m_Predefined(0),
     m_HandlerType(hdlr_type),
-    m_HandlerName(hdlr_name)
+    m_HandlerName(hdlr_name),
+    m_QuickTimeMode(false)
 {
     m_Size32 += 20+m_HandlerName.GetLength()+1;
     m_Reserved[0] = m_Reserved[1] = m_Reserved[2] = 0;
@@ -92,6 +93,7 @@ AP4_HdlrAtom::AP4_HdlrAtom(AP4_UI32        size,
     // we try to detect a pascal encoding and correct it.
     if ((AP4_UI08)name[0] == (AP4_UI08)(name_size-1)) {
         m_HandlerName = name+1;
+        m_QuickTimeMode = true;
     } else {
         m_HandlerName = name;
     }
@@ -118,16 +120,20 @@ AP4_HdlrAtom::WriteFields(AP4_ByteStream& stream)
     result = stream.WriteUI32(m_Reserved[2]);
     if (AP4_FAILED(result)) return result;
     AP4_UI08 name_size = (AP4_UI08)m_HandlerName.GetLength();
-    if (AP4_FULL_ATOM_HEADER_SIZE+20+name_size > m_Size32) {
-        name_size = (AP4_UI08)(m_Size32-AP4_FULL_ATOM_HEADER_SIZE+20);
+    if (AP4_FULL_ATOM_HEADER_SIZE+20+name_size+1 > m_Size32) {
+        name_size = (AP4_UI08)(m_Size32-(AP4_FULL_ATOM_HEADER_SIZE+20+1));
     }
     if (name_size) {
+        if (m_QuickTimeMode) {
+            result = stream.WriteUI08(name_size);
+            if (AP4_FAILED(result)) return result;
+        }
         result = stream.Write(m_HandlerName.GetChars(), name_size);
         if (AP4_FAILED(result)) return result;
     }
 
     // pad with zeros if necessary
-    AP4_Size padding = m_Size32-(AP4_FULL_ATOM_HEADER_SIZE+20+name_size);
+    AP4_Size padding = m_Size32-(AP4_FULL_ATOM_HEADER_SIZE+20+name_size+1);
     while (padding--) stream.WriteUI08(0);
 
     return AP4_SUCCESS;

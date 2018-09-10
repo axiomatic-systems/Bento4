@@ -88,6 +88,7 @@ private:
     AP4_UI32   m_HandlerType;
     AP4_UI32   m_Reserved[3];
     AP4_String m_HandlerName;
+    bool       m_QuickTimeMode; // set to true when in QuickTime-compatible mode
 };
 
 #endif // _AP4_HDLR_ATOM_H_
