@@ -73,7 +73,8 @@ AP4_HdlrAtom::AP4_HdlrAtom(AP4_UI32        size,
                            AP4_UI08        version,
                            AP4_UI32        flags,
                            AP4_ByteStream& stream) :
-    AP4_Atom(AP4_ATOM_TYPE_HDLR, size, version, flags)
+    AP4_Atom(AP4_ATOM_TYPE_HDLR, size, version, flags),
+    m_QuickTimeMode(false)
 {
     stream.ReadUI32(m_Predefined);
     stream.ReadUI32(m_HandlerType);
@@ -133,7 +134,7 @@ AP4_HdlrAtom::WriteFields(AP4_ByteStream& stream)
     }
 
     // pad with zeros if necessary
-    AP4_Size padding = m_Size32-(AP4_FULL_ATOM_HEADER_SIZE+20+name_size+1);
+    AP4_Size padding = m_Size32-(AP4_FULL_ATOM_HEADER_SIZE+20+name_size+(m_QuickTimeMode?1:0));
     while (padding--) stream.WriteUI08(0);
 
     return AP4_SUCCESS;
