@@ -411,8 +411,15 @@ AP4_CencCbcsSubSampleMapper::GetSubSampleMap(AP4_DataBuffer&      sample_data,
                     return result;
                 }
 
+                // round up the slide header size to a multiple of bytes
+                unsigned int header_size = (slice_header.size+7)/8;
+
+                // account for emulation prevention bytes
+                unsigned int emulation_prevention_bytes = AP4_NalParser::CountEmulationPreventionBytes(&nalu_data[1], nalu_length-1, header_size);
+                header_size += emulation_prevention_bytes;
+
                 // leave the slice header in the clear, including the NAL type
-                unsigned int cleartext_size = m_NaluLengthSize+1+(slice_header.size+7)/8;
+                unsigned int cleartext_size = m_NaluLengthSize+1+header_size;
                 unsigned int encrypted_size = nalu_size-cleartext_size;
                 AP4_CencSubSampleMapAppendEntry(bytes_of_cleartext_data, bytes_of_encrypted_data, cleartext_size, encrypted_size);
             } else {
@@ -443,10 +450,16 @@ AP4_CencCbcsSubSampleMapper::GetSubSampleMap(AP4_DataBuffer&      sample_data,
                 if (AP4_FAILED(result)) {
                     return result;
                 }
-
+                
                 // leave the slice header in the clear, including the NAL type
                 // NOTE: the slice header is always a multiple of 8 bits because of byte_alignment()
                 unsigned int header_size = slice_header.size/8;
+
+                // account for emulation prevention bytes
+                unsigned int emulation_prevention_bytes = AP4_NalParser::CountEmulationPreventionBytes(&nalu_data[2], nalu_length-2, header_size);
+                header_size += emulation_prevention_bytes;
+                
+                // set the encrypted range
                 unsigned int cleartext_size = m_NaluLengthSize+2+header_size;
                 unsigned int encrypted_size = nalu_size-cleartext_size;
                 AP4_CencSubSampleMapAppendEntry(bytes_of_cleartext_data, bytes_of_encrypted_data, cleartext_size, encrypted_size);
