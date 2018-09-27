@@ -102,9 +102,9 @@ PrintUsageAndExit()
 static double 
 strtof(char* s, char** /* end */)
 {
-	_CRT_DOUBLE value = {0.0};
+    _CRT_DOUBLE value = {0.0};
     int result = _atodbl(&value, s);
-	return result == 0 ? (double)value.x : 0.0;
+    return result == 0 ? (double)value.x : 0.0;
 }
 #endif
 
@@ -320,12 +320,16 @@ Fragment(AP4_File&                input_file,
         return;
     }
 
+    AP4_UI64 movie_duration = AP4_ConvertTime(input_movie->GetDuration(),
+                                                input_movie->GetTimeScale(),
+                                                timescale ? timescale : AP4_FRAGMENTER_OUTPUT_MOVIE_TIMESCALE);
+
     // create the output file object
-    AP4_Movie* output_movie = new AP4_Movie(AP4_FRAGMENTER_OUTPUT_MOVIE_TIMESCALE);
+    AP4_Movie* output_movie = new AP4_Movie(timescale ? timescale : AP4_FRAGMENTER_OUTPUT_MOVIE_TIMESCALE, movie_duration);
     
     // create an mvex container
     AP4_ContainerAtom* mvex = new AP4_ContainerAtom(AP4_ATOM_TYPE_MVEX);
-    AP4_MehdAtom*      mehd = new AP4_MehdAtom(0);
+    AP4_MehdAtom*      mehd = new AP4_MehdAtom(movie_duration);
     mvex->AddChild(mehd);
     
     // add an output track for each track in the input file
@@ -353,7 +357,9 @@ Fragment(AP4_File&                input_file,
                                                                 input_movie->GetTimeScale(),
                                                                 timescale?timescale:AP4_FRAGMENTER_OUTPUT_MOVIE_TIMESCALE),
                                                 timescale?timescale:track->GetMediaTimeScale(),
-                                                0,//track->GetMediaDuration(),
+                                                AP4_ConvertTime(track->GetMediaDuration(), 
+                                                                track->GetMediaTimeScale(),
+                                                                timescale ? timescale : 1000),
                                                 track);
         
         // add an edit list if needed
