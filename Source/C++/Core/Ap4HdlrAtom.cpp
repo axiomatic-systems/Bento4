@@ -130,7 +130,7 @@ AP4_HdlrAtom::WriteFields(AP4_ByteStream& stream)
             result = stream.WriteUI08(name_size - 1);
             if (AP4_FAILED(result)) return result;
 
-            result = stream.Write(m_HandlerName.GetChars(), name_size);
+            result = stream.Write(m_HandlerName.GetChars(), name_size - 1);
             if (AP4_FAILED(result)) return result;
         }
     } else {
