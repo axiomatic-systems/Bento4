@@ -38,7 +38,6 @@
 |   constants
 +---------------------------------------------------------------------*/
 const int AP4_BYTE_STREAM_COPY_BUFFER_SIZE = 65536;
-const int AP4_MEMORY_BYTE_STREAM_MAX_SIZE  = 0x4000000; // 64 megs
 
 /*----------------------------------------------------------------------
 |   AP4_ByteStream::Read
@@ -757,11 +756,6 @@ AP4_MemoryByteStream::WritePartial(const void* buffer,
     // shortcut
     if (bytes_to_write == 0) {
         return AP4_SUCCESS;
-    }
-
-    // check that we don't exceed the max
-    if (m_Position+bytes_to_write > (AP4_Position)AP4_MEMORY_BYTE_STREAM_MAX_SIZE) {
-        return AP4_ERROR_OUT_OF_RANGE;
     }
 
     // reserve space in the buffer
