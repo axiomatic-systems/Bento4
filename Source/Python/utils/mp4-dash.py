@@ -1676,8 +1676,11 @@ def main():
         prev_track = None
         for track in tracks:
             if prev_track:
-                if track.total_sample_count != prev_track.total_sample_count:
-                    sys.stderr.write('WARNING: video sample count mismatch between "'+str(track)+'" and "'+str(prev_track)+'"\n')
+                # compute the total duration, excluding the last segment, which may be somewhat mismatched
+                track_duration_truncated = reduce(operator.add, track.segment_scaled_durations[:-1], 0)
+                prev_track_duration_truncated = reduce(operator.add, prev_track.segment_scaled_durations[:-1], 0)
+                if track_duration_truncated != prev_track_duration_truncated:
+                    sys.stderr.write('WARNING: video duration mismatch between "'+str(track)+'" and "'+str(prev_track)+'"\n')
             prev_track = track
 
     # check that the video segments match for all video tracks in the same adaptation set
@@ -1685,7 +1688,7 @@ def main():
         if len(tracks) > 1:
             anchor = tracks[0]
             for track in tracks[1:]:
-                if track.sample_counts[:-1] != anchor.sample_counts[:-1] and track.segment_scaled_durations[:-1] != anchor.segment_scaled_durations[:-1]:
+                if track.segment_scaled_durations[:-1] != anchor.segment_scaled_durations[:-1]:
                     PrintErrorAndExit('ERROR: video tracks are not aligned ("'+str(track)+'" differs from '+str(anchor)+')')
 
     # check that the video segment durations are almost all equal

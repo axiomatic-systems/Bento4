@@ -365,6 +365,7 @@ class Mp4Track:
         self.segment_bitrates         = []
         self.total_sample_count       = 0
         self.total_duration           = 0
+        self.total_scaled_duration    = 0
         self.media_size               = 0
         self.average_segment_duration = 0
         self.average_segment_bitrate  = 0
@@ -429,6 +430,7 @@ class Mp4Track:
 
         # compute the total duration
         self.total_duration = reduce(operator.add, self.segment_durations, 0)
+        self.total_scaled_duration = reduce(operator.add, self.segment_scaled_durations, 0)
 
         # compute the average segment durations
         segment_count = len(self.segment_durations)
