@@ -871,9 +871,15 @@ AP4_MetaData::Entry::AddToFileIlst(AP4_File& file, AP4_Ordinal index)
 
     // look for the 'moov'
     AP4_Movie* movie = file.GetMovie();
-    if (movie == NULL) return AP4_ERROR_INVALID_FORMAT;
+    if (movie == NULL) {
+        delete atom;
+        return AP4_ERROR_INVALID_FORMAT;
+    }
     AP4_MoovAtom* moov = movie->GetMoovAtom();
-    if (moov == NULL) return AP4_ERROR_INVALID_FORMAT;
+    if (moov == NULL) {
+        delete atom;
+        return AP4_ERROR_INVALID_FORMAT;
+    }
     
     // look for 'udta', and create if it does not exist 
     AP4_ContainerAtom* udta = AP4_DYNAMIC_CAST(AP4_ContainerAtom, moov->FindChild("udta", true));

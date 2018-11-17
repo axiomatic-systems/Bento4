@@ -207,7 +207,7 @@ AP4_SampleDescription::GetCodecString(AP4_String& codec)
 +---------------------------------------------------------------------*/
 AP4_UnknownSampleDescription::AP4_UnknownSampleDescription(AP4_Atom* atom) :
     AP4_SampleDescription(AP4_SampleDescription::TYPE_UNKNOWN, 
-                          atom->GetType(), 
+                          atom->GetType(),
                           NULL),
     m_Atom(atom->Clone())
 {
@@ -230,10 +230,10 @@ AP4_UnknownSampleDescription::Clone(AP4_Result* result)
     AP4_Atom* atom_clone = NULL;
     if (m_Atom) {
         atom_clone = m_Atom->Clone();
-        if (atom_clone == NULL) {
-            if (result) *result = AP4_FAILURE;
-            return NULL;
-        }
+    }
+    if (atom_clone == NULL) {
+        if (result) *result = AP4_FAILURE;
+        return NULL;
     }
     if (result) *result = AP4_SUCCESS;
     return new AP4_UnknownSampleDescription(atom_clone);
