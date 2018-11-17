@@ -1685,7 +1685,7 @@ def main():
         if len(tracks) > 1:
             anchor = tracks[0]
             for track in tracks[1:]:
-                if track.sample_counts[:-1] != anchor.sample_counts[:-1]:
+                if track.sample_counts[:-1] != anchor.sample_counts[:-1] and track.segment_scaled_durations[:-1] != anchor.segment_scaled_durations[:-1]:
                     PrintErrorAndExit('ERROR: video tracks are not aligned ("'+str(track)+'" differs from '+str(anchor)+')')
 
     # check that the video segment durations are almost all equal
