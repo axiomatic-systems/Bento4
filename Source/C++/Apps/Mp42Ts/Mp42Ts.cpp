@@ -37,9 +37,9 @@
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-#define BANNER "MP4 To MPEG2-TS File Converter - Version 1.2\n"\
+#define BANNER "MP4 To MPEG2-TS File Converter - Version 1.3\n"\
                "(Bento4 Version " AP4_VERSION_STRING ")\n"\
-               "(c) 2002-2014 Axiomatic Systems, LLC"
+               "(c) 2002-2018 Axiomatic Systems, LLC"
  
 /*----------------------------------------------------------------------
 |   options
@@ -55,6 +55,7 @@ struct _Options {
     const char*  output;
     unsigned int segment_duration;
     unsigned int segment_duration_threshold;
+    unsigned int pcr_offset;
 } Options;
 
 /*----------------------------------------------------------------------
@@ -80,6 +81,7 @@ PrintUsageAndExit()
             "     like \"seg-%cd.ts\"]\n"
             "  --segment-duration-threshold in ms (default = 50)\n"
             "    [only used with the --segment option]\n"
+            "  --pcr-offset <offset> in units of 90kHz (default 10000)\n"
             "  --verbose\n"
             "  --playlist <filename>\n"
             "  --playlist-hls-version <n> (default=3)\n"
@@ -417,6 +419,7 @@ main(int argc, char** argv)
     Options.input                      = NULL;
     Options.output                     = NULL;
     Options.segment_duration_threshold = DefaultSegmentDurationThreshold;
+    Options.pcr_offset                 = AP4_MPEG2_TS_DEFAULT_PCR_OFFSET;
     
     // parse command line
     AP4_Result result;
@@ -454,6 +457,12 @@ main(int argc, char** argv)
                 return 1;
             }
             Options.video_pid = (unsigned int)strtoul(*args++, NULL, 10);
+        } else if (!strcmp(arg, "--pcr-offset")) {
+            if (*args == NULL) {
+                fprintf(stderr, "ERROR: --pcr-offset requires a number\n");
+                return 1;
+            }
+            Options.pcr_offset = (unsigned int)strtoul(*args++, NULL, 10);
         } else if (!strcmp(arg, "--playlist")) {
             if (*args == NULL) {
                 fprintf(stderr, "ERROR: --playlist requires a filename\n");
@@ -575,7 +584,9 @@ main(int argc, char** argv)
                                        stream_type,
                                        stream_id,
                                        audio_stream,
-                                       Options.audio_pid);
+                                       Options.audio_pid,
+                                       NULL, 0,
+                                       Options.pcr_offset);
         if (AP4_FAILED(result)) {
             fprintf(stderr, "could not create audio stream (%d)\n", result);
             goto end;
@@ -613,7 +624,9 @@ main(int argc, char** argv)
                                        stream_type,
                                        stream_id,
                                        video_stream,
-                                       Options.video_pid);
+                                       Options.video_pid,
+                                       NULL, 0,
+                                       Options.pcr_offset);
         if (AP4_FAILED(result)) {
             fprintf(stderr, "could not create video stream (%d)\n", result);
             goto end;
