@@ -754,7 +754,7 @@ AP4_MetaData::Entry::ToAtom(AP4_Atom*& atom) const
         
         atom = container;
         return AP4_SUCCESS;
-    } else if (m_Key.GetNamespace() == "dcf") {
+    } else if (m_Key.GetNamespace() == "dcf" || m_Key.GetNamespace() == "3gpp") {
         // convert the name into an atom type
         if (m_Key.GetName().GetLength() != 4) {
             // the name is not in the right format
@@ -847,10 +847,6 @@ AP4_MetaData::Entry::AddToFileIlst(AP4_File& file, AP4_Ordinal index)
     AP4_Atom* atom;
     AP4_Result result = ToAtom(atom);
     if (AP4_FAILED(result)) return result;
-    AP4_ContainerAtom* entry_atom = AP4_DYNAMIC_CAST(AP4_ContainerAtom, atom);
-    if (entry_atom == NULL) {
-        return AP4_ERROR_INVALID_FORMAT;
-    }
 
     // look for the 'moov'
     AP4_Movie* movie = file.GetMovie();
@@ -884,10 +880,21 @@ AP4_MetaData::Entry::AddToFileIlst(AP4_File& file, AP4_Ordinal index)
     // look if there is already a container for this entry
     AP4_ContainerAtom* existing = FindInIlst(ilst);
     if (existing == NULL) {
+        // look for a simple entry with the same type
+        AP4_Atom* previous = ilst->GetChild(atom->GetType());
+        if (previous) {
+            ilst->RemoveChild(previous);
+        }
+
         // just add the one we have
-        ilst->AddChild(entry_atom);
+        ilst->AddChild(atom);
     } else {
         // add the entry's data to the existing entry
+        AP4_ContainerAtom* entry_atom = AP4_DYNAMIC_CAST(AP4_ContainerAtom, atom);
+        if (entry_atom == NULL) {
+            return AP4_ERROR_INVALID_FORMAT;
+        }
+
         AP4_DataAtom* data_atom = AP4_DYNAMIC_CAST(AP4_DataAtom, entry_atom->GetChild(AP4_ATOM_TYPE_DATA));
         if (data_atom == NULL) return AP4_ERROR_INTERNAL;
         entry_atom->RemoveChild(data_atom);
