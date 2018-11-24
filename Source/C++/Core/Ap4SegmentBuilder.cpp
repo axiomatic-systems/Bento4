@@ -29,7 +29,6 @@
 /*----------------------------------------------------------------------
 |   includes
 +---------------------------------------------------------------------*/
-#include <stdio.h> // FIXME: testing
 #include "Ap4SegmentBuilder.h"
 #include "Ap4Results.h"
 #include "Ap4ByteStream.h"
