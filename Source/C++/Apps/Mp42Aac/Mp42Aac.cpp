@@ -273,8 +273,8 @@ main(int argc, char** argv)
 
     // show info
     AP4_Debug("Audio Track:\n");
-    AP4_Debug("  duration: %ld ms\n", audio_track->GetDurationMs());
-    AP4_Debug("  sample count: %ld\n", audio_track->GetSampleCount());
+    AP4_Debug("  duration: %u ms\n",  (int)audio_track->GetDurationMs());
+    AP4_Debug("  sample count: %u\n", (int)audio_track->GetSampleCount());
 
     switch (sample_description->GetType()) {
         case AP4_SampleDescription::TYPE_MPEG: {
