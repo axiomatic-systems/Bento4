@@ -309,6 +309,7 @@ AP4_CencCbcsSubSampleMapper::AP4_CencCbcsSubSampleMapper(AP4_Size nalu_length_si
 AP4_CencCbcsSubSampleMapper::~AP4_CencCbcsSubSampleMapper()
 {
     delete m_AvcParser;
+    delete m_HevcParser;
 }
 
 /*----------------------------------------------------------------------

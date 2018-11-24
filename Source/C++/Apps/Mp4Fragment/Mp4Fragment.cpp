@@ -303,7 +303,7 @@ static void
 Fragment(AP4_File&                input_file,
          AP4_ByteStream&          output_stream,
          AP4_Array<TrackCursor*>& cursors,
-         unsigned int             fragment_duration,
+         AP4_UI32                 fragment_duration,
          AP4_UI32                 timescale,
          bool                     create_segment_index,
          bool                     copy_udta)
@@ -521,7 +521,7 @@ Fragment(AP4_File&                input_file,
                                          cursor->m_Track->GetMediaTimeScale());
             if (target_dts <= cursor->m_Sample.GetDts()) {
                 // we must be at the end, past the last anchor sample, just use the target duration
-                target_dts = AP4_ConvertTime(fragment_duration*(cursor->m_FragmentIndex+1),
+                target_dts = AP4_ConvertTime((AP4_UI64)fragment_duration*(cursor->m_FragmentIndex+1),
                                             1000,
                                             cursor->m_Track->GetMediaTimeScale());
                 

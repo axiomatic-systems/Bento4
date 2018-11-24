@@ -134,7 +134,7 @@ AP4_SttsAtom::GetDts(AP4_Ordinal sample, AP4_UI64& dts, AP4_UI32* duration)
  
         // update the sample and dts bases
         sample_start += entry.m_SampleCount;
-        dts_start    += entry.m_SampleCount*entry.m_SampleDuration;
+        dts_start    += (AP4_UI64)entry.m_SampleCount * (AP4_UI64)entry.m_SampleDuration;
     }
 
     // sample is greater than the number of samples
