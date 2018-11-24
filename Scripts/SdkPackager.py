@@ -13,8 +13,6 @@
 import sys
 import os
 import shutil
-import glob
-import datetime
 import fnmatch
 import zipfile
 import re

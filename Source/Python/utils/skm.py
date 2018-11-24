@@ -1,5 +1,4 @@
 import aes
-import urllib2
 import os
 import hashlib
 import json
@@ -23,8 +22,8 @@ def WrapKey(key, kek):
     # Inputs:      Plaintext, n 64-bit values {P1, P2, ..., Pn}, and
     # Key, K (the KEK).
     # Outputs:     Ciphertext, (n+1) 64-bit values {C0, C1, ..., Cn}.
-    n = len(key)/8;
-    if n < 1: 
+    n = len(key) // 8;
+    if n < 1:
         raise Exception('key too short')
 
     # 1) Initialize variables.
@@ -72,7 +71,7 @@ def UnwrapKey(key, kek):
     # Inputs:  Ciphertext, (n+1) 64-bit values {C0, C1, ..., Cn}, and
     # Key, K (the KEK).
     # Outputs: Plaintext, n 64-bit values {P0, P1, K, Pn}.
-    n = len(key)/8 - 1;
+    n = len(key) // 8 - 1;
     if n < 1:
         raise Exception('wrapped key too short');
 
@@ -174,7 +173,7 @@ def ResolveKey(options, spec):
 
         if options.debug:
             print 'Request:', base_url, json.dumps(key_object)
-            
+
         response = requests.post(base_url, headers={'content-type': 'application/json'}, data=json.dumps(key_object))
     else:
         raise Exception('Unsupported SKM query mode')

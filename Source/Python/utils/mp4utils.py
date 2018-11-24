@@ -235,9 +235,9 @@ def PrintErrorAndExit(message):
     sys.exit(1)
 
 def XmlDuration(d):
-    h  = int(d)/3600
+    h  = int(d) // 3600
     d -= h*3600
-    m  = int(d)/60
+    m  = int(d) // 60
     s  = d-m*60
     xsd = 'PT'
     if h:
@@ -330,7 +330,7 @@ def WalkAtoms(filename, until=None):
             atoms.append(Mp4Atom(type, size, cursor))
             cursor += size
             file.seek(cursor)
-        except:
+        except Exception:
             break
 
     return atoms
@@ -471,7 +471,6 @@ class Mp4Track:
         moov = FilterChildren(self.parent.tree, 'moov')[0]
         traks = FilterChildren(moov, 'trak')
         for trak in traks:
-            tkhd = FindChild(trak, ['tkhd'])
             tenc = FindChild(trak, ('mdia', 'minf', 'stbl', 'stsd', 'encv', 'sinf', 'schi', 'tenc'))
             if tenc is None:
                 tenc = FindChild(trak, ('mdia', 'minf', 'stbl', 'stsd', 'enca', 'sinf', 'schi', 'tenc'))
@@ -1060,8 +1059,6 @@ def ComputePlayReadyHeader(header_spec, kid_hex, key_hex):
         header_xml += '</DATA></WRMHEADER>'
         return WrapPlayreadyHeaderXml(header_xml)
 
-    return ""
-
 def ComputePrimetimeMetaData(metadata_spec, kid_hex):
     # construct the base64 header
     if metadata_spec is None:
@@ -1142,5 +1139,3 @@ def ComputeWidevineHeader(header_spec, kid_hex):
         if 'policy' in fields:
             protobuf_fields.append((6, fields['policy']))
         return WidevineMakeHeader(protobuf_fields)
-
-    return ""

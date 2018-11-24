@@ -191,7 +191,7 @@ class rijndael:
         # decryption round keys
         Kd = [[0] * BC for i in xrange(ROUNDS + 1)]
         ROUND_KEY_COUNT = (ROUNDS + 1) * BC
-        KC = len(key) / 4
+        KC = len(key) // 4
 
         # copy user material bytes into temporary ints
         tk = []
@@ -339,14 +339,14 @@ def cbc_encrypt(plaintext, key, IV):
     # padding
     padding_size = 16-(len(plaintext) % 16)
     plaintext += chr(padding_size)*padding_size
-        
+
     # init
     chainBytes = IV
     cipher = rijndael(key)
     ciphertext = ''
-    
+
     # CBC Mode: For each block...
-    for x in range(len(plaintext)/16):
+    for x in range(len(plaintext)//16):
 
         # XOR with the chaining block
         block = ''.join([chr(ord(plaintext[x*16+y]) ^ ord(chainBytes[y])) for y in range(16)])
@@ -361,12 +361,12 @@ def cbc_decrypt(ciphertext, key, IV):
     chainBytes = IV
     cipher = rijndael(key)
     plaintext = ''
-    
+
     # sanity check
     if len(ciphertext)%16: raise ValueError('ciphertext not an integral number of blocks')
-    
+
     # CBC Mode: For each block...
-    for x in range(len(ciphertext)/16):
+    for x in range(len(ciphertext)//16):
 
         # Decrypt it
         block = ciphertext[x*16 : (x*16)+16]
@@ -381,5 +381,5 @@ def cbc_decrypt(ciphertext, key, IV):
     # padding
     padding_size = ord(plaintext[-1:])
     if padding_size > 16: raise ValueError('invalid padding')
-    
+
     return plaintext[:-padding_size]

@@ -12,8 +12,6 @@
 
 import sys
 import os
-import shutil
-import platform
 
 #############################################################
 # Main

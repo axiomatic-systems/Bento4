@@ -7,7 +7,6 @@ $Id: Build.py 172 2008-07-22 18:26:24Z julien $
 
 """
 
-import os
 import sys
 import getopt
 import subprocess
@@ -81,7 +80,7 @@ try:
     buildSwitch = 'build'
     if rebuildAll: buildSwitch = 'rebuild'
     elif makeClean: buildSwitch = 'clean'
-        
+
     cmd_list = ['%s/devenv.com' % VSBINDIR, '/%s' % buildSwitch, buildName, solutionFile]
     cmd = " ".join(cmd_list)
     print 'Executing:'
