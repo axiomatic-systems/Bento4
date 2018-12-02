@@ -212,6 +212,10 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
             return AP4_ERROR_INVALID_FORMAT;
         }
         stream.ReadUI64(size);
+        if (size < 16) {
+            stream.Seek(start);
+            return AP4_ERROR_INVALID_FORMAT;
+        }
         if (size <= 0xFFFFFFFF) {
             force_64 = true;
         }
