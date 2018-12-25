@@ -87,6 +87,10 @@ public:
             }
         }
 
+        ~Command() {
+            delete m_Pssh;
+        }
+
         // members
         Type           m_Type;
         AP4_UI08       m_SystemId[16];
@@ -281,7 +285,7 @@ LoadFile(const char* filename, AP4_DataBuffer& buffer)
     buffer.SetDataSize((AP4_UI32)file_size);
     
     result = input->Read(buffer.UseData(), (AP4_UI32)file_size);
-    if (file_size > MP4_PSSH_MAX_DATA_SIZE) {
+    if (AP4_FAILED(result)) {
         fprintf(stderr, "ERROR: failed to read data from file (%d)\n", result);
         input->Release();
         return result;
