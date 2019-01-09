@@ -156,10 +156,9 @@ LibraryModule(name               = 'Bento4',
               build_source_files = env['AP4_SYSTEM_SOURCES'],
               included_modules   = 'Config')
 
-for name in ['Mp4Dump', 'Mp4Info', 'Mp4Edit', 'Mp4Encrypt', 'Mp4Decrypt', 'Mp4Tag', 'Mp4Extract', 'Mp4RtpHintInfo', 'Mp42Aac', 'Mp42Avc', 'Mp42Hevc', 'Mp42Ts', 'Mp42Hls', 'Mp4DcfPackager', 'Mp4Fragment', 'Mp4Compact', 'Mp4Split', 'Mp4AudioClip', 'Mp4Mux', 'Mp4Diff', 'Mp4IframeIndex', 'AvcInfo', 'HevcInfo']:
-    Executable(name, source_dir='C++/Apps/'+name)
+for dir in GlobSources('C++/Apps', ['*']):
+    Executable(os.path.basename(dir), source_dir=dir)
 
-Executable('Aac2Mp4', source_dir='C++/Apps/Aac2Mp4')
 Executable('CryptoTest', source_dir='C++/Test/Crypto')
 Executable('AvcTrackWriterTest', source_dir='C++/Test/Avc')
 Executable('PassthroughWriterTest', source_dir='C++/Test/PassthroughWriter')
