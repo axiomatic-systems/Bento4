@@ -161,6 +161,7 @@ typedef struct {
     unsigned int used_by_curr_pic_s1_flag[16];
     unsigned int num_negative_pics;
     unsigned int num_positive_pics;
+    unsigned int num_delta_pocs;
 } AP4_HevcShortTermRefPicSet;
 
 /*----------------------------------------------------------------------
