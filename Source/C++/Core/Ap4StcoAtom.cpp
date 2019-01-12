@@ -72,8 +72,12 @@ AP4_StcoAtom::AP4_StcoAtom(AP4_UI32        size,
                            AP4_UI08        version,
                            AP4_UI32        flags,
                            AP4_ByteStream& stream) :
-    AP4_Atom(AP4_ATOM_TYPE_STCO, size, version, flags)
+    AP4_Atom(AP4_ATOM_TYPE_STCO, size, version, flags),
+    m_EntryCount(0)
 {
+    if (size < AP4_FULL_ATOM_HEADER_SIZE+4) {
+        return;
+    }
     stream.ReadUI32(m_EntryCount);
     if (m_EntryCount > (size-AP4_FULL_ATOM_HEADER_SIZE-4)/4) {
         m_EntryCount = (size-AP4_FULL_ATOM_HEADER_SIZE-4)/4;
