@@ -68,10 +68,24 @@ AP4_ElstAtom::AP4_ElstAtom(AP4_UI32        size,
                            AP4_ByteStream& stream) :
     AP4_Atom(AP4_ATOM_TYPE_ELST, size, version, flags)
 {
+    // read the number of entries
     AP4_UI32 entry_count;
     stream.ReadUI32(entry_count);
+
+    // compute bounds
+    AP4_UI32 max_entries;
+    if (version == 0) {
+        max_entries = (size - (AP4_FULL_ATOM_HEADER_SIZE + 4)) / 12;
+    } else {
+        max_entries = (size - (AP4_FULL_ATOM_HEADER_SIZE + 4)) / 20;
+    }
+    //if (entry_count > max_entries) {
+    //    entry_count = max_entries;
+    //}
+    
+    // read the entries
     m_Entries.EnsureCapacity(entry_count);
-    for (AP4_UI32 i=0; i<entry_count; i++) {
+    for (AP4_UI32 i=0; i < entry_count; i++) {
         AP4_UI16 media_rate;
         AP4_UI16 zero;
         if (version == 0) {
