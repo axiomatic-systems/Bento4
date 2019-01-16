@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 2.8)
 project(bento4)
 
 # Variables
-set(SOURCE_ROOT Source/C++)
+set(SOURCE_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/Source/C++)
 set(SOURCE_CODECS ${SOURCE_ROOT}/Codecs)
 set(SOURCE_CORE ${SOURCE_ROOT}/Core)
 set(SOURCE_CRYPTO ${SOURCE_ROOT}/Crypto)
@@ -44,7 +44,7 @@ include_directories(
 )
 
 # Apps
-set(BENTO4_APPS "Aac2Mp4;Mp42Aac;Mp42Ts;Mp42Hls;Mp4Compact;Mp4DcfPackager;Mp4Decrypt;Mp4Dump;Mp4Edit;Mp4Encrypt;Mp4Extract;Mp4Fragment;Mp4Info;Mp4Mux;Mp4Split;Mp4Tag;Mp4Diff;Mp4IframeIndex")
+file(GLOB BENTO4_APPS RELATIVE ${SOURCE_ROOT}/Apps ${SOURCE_ROOT}/Apps/*)
 foreach(app ${BENTO4_APPS})
   string(TOLOWER ${app} binary_name)
   add_executable(${binary_name} ${SOURCE_ROOT}/Apps/${app}/${app}.cpp)

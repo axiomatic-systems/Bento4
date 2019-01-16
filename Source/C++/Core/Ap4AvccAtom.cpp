@@ -85,8 +85,8 @@ AP4_AvccAtom::Create(AP4_Size size, AP4_ByteStream& stream)
         cursor += 2+AP4_BytesToInt16BE(&payload[cursor]);
         if (cursor > payload_size) return NULL;
     }
+    if (cursor+1 > payload_size) return NULL;
     unsigned int num_pic_params = payload[cursor++];
-    if (cursor > payload_size) return NULL;
     for (unsigned int i=0; i<num_pic_params; i++) {
         if (cursor+2 > payload_size) return NULL;
         cursor += 2+AP4_BytesToInt16BE(&payload[cursor]);

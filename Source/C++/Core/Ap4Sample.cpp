@@ -143,8 +143,17 @@ AP4_Sample::ReadData(AP4_DataBuffer& data, AP4_Size size, AP4_Size offset)
     // check the size
     if (m_Size < size+offset) return AP4_FAILURE;
 
+    // check if there's enough data in the stream
+    AP4_LargeSize stream_size = 0;
+    AP4_Result result = m_DataStream->GetSize(stream_size);
+    if (AP4_SUCCEEDED(result)) {
+        if (size + offset > stream_size) {
+            return AP4_ERROR_OUT_OF_RANGE;
+        }
+    }
+    
     // set the buffer size
-    AP4_Result result = data.SetDataSize(size);
+    result = data.SetDataSize(size);
     if (AP4_FAILED(result)) return result;
 
     // get the data from the stream
