@@ -227,6 +227,9 @@ def ProcessSource(options, media_info, out_dir):
     # other options
     if options.segment_duration:
         kwargs['segment_duration'] = options.segment_duration
+		
+	if options.pcr_offset:
+        kwargs['pcr_offset'] = options.pcr_offset
 
     # convert to HLS/TS
     json_info = Mp42Hls(options,
@@ -518,6 +521,8 @@ def main():
                       help="Format for audio segments (packed or ts) (default: packed)")
     parser.add_option('', '--segment-duration', dest="segment_duration",
                       help="Segment duration (default: 6)")
+	parser.add_option('', '--pcr-offset', dest="pcr_offset",
+					  help="<offset> in units of 90kHz (default 10000)")
     parser.add_option('', '--encryption-mode', dest="encryption_mode", metavar="<mode>",
                       help="Encryption mode (only used when --encryption-key is specified). AES-128 or SAMPLE-AES (default: AES-128)")
     parser.add_option('', '--encryption-key', dest="encryption_key", metavar="<key>",
