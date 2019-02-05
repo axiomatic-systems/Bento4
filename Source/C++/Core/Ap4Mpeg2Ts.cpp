@@ -282,6 +282,12 @@ AP4_Mpeg2TsWriter::SampleStream::WritePES(const unsigned char* data,
                                           bool                 with_pcr, 
                                           AP4_ByteStream&      output)
 {
+    // ISO/IEC 13818-1 section 2.7.5 says a DTS shall appear only if the
+    // decoding time differs from the presentation time.
+    if (with_dts && (dts == pts)) {
+       with_dts = false;
+    }
+    
     unsigned int pes_header_size = 14+(with_dts?5:0);
     AP4_BitWriter pes_header(pes_header_size);
     
