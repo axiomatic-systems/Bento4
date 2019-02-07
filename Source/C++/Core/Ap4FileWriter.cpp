@@ -39,6 +39,8 @@
 #include "Ap4DataBuffer.h"
 #include "Ap4FtypAtom.h"
 #include "Ap4SampleTable.h"
+#include "Ap4StcoAtom.h"
+#include "Ap4Co64Atom.h"
 
 /*----------------------------------------------------------------------
 |   AP4_FileWriter::Write
@@ -76,6 +78,52 @@ AP4_FileWriter::Write(AP4_File& file, AP4_ByteStream& stream, Interleaving /* in
     unsigned int t=0;
     AP4_Result result = AP4_SUCCESS;
     AP4_UI64   mdat_size = AP4_ATOM_HEADER_SIZE;
+    // compute mdat_size
+    for (AP4_List<AP4_Track>::Item* track_item = movie->GetTracks().FirstItem();
+         track_item; track_item = track_item->GetNext()) {
+        AP4_Track*    track = track_item->GetData();
+        AP4_Cardinal     sample_count = track->GetSampleCount();
+        AP4_SampleTable* sample_table = track->GetSampleTable();
+        AP4_Sample       sample;
+        for (AP4_Ordinal i=0; i<sample_count; i++) {
+            sample_table->GetSample(i, sample);
+            mdat_size += sample.GetSize();
+        }
+    }
+
+    // replace stco with co64
+    if (mdat_size >> 32) {
+        for (AP4_List<AP4_Track>::Item* track_item = movie->GetTracks().FirstItem();
+             track_item; track_item = track_item->GetNext()) {
+            AP4_Track*    track = track_item->GetData();
+            AP4_TrakAtom* trak  = const_cast<AP4_TrakAtom*>(track->GetTrakAtom());
+            AP4_StcoAtom* stco = AP4_DYNAMIC_CAST(AP4_StcoAtom, trak->FindChild("mdia/minf/stbl/stco"));
+            if (stco) {
+                AP4_Cardinal chunk_count = stco->GetChunkCount();
+                AP4_UI64* chunk_offsets = new AP4_UI64[chunk_count];
+                AP4_UI32* chunk_offsets_32 = stco->GetChunkOffsets();
+                for (unsigned int i=0; i<chunk_count; i++) {
+                    chunk_offsets[i] =  chunk_offsets_32[i];
+                }
+
+                AP4_Co64Atom* co64 = new AP4_Co64Atom(chunk_offsets, chunk_count);
+                delete[] chunk_offsets;
+                stco->Detach();
+                delete stco;
+
+                AP4_ContainerAtom* stbl = AP4_DYNAMIC_CAST(AP4_ContainerAtom, trak->FindChild("mdia/minf/stbl"));
+                if (stbl == NULL) {
+                	delete co64;
+                	return AP4_ERROR_INTERNAL;
+                }
+               	stbl->AddChild(co64, -1);
+            }
+        }
+        mdat_size = AP4_ATOM_HEADER_SIZE_64;
+    } else {
+        mdat_size = AP4_ATOM_HEADER_SIZE;
+    }
+
     AP4_UI64   mdat_position = position+movie->GetMoovAtom()->GetSize();
     AP4_Array<AP4_Array<AP4_UI64>*> trak_chunk_offsets_backup;
     AP4_Array<AP4_UI64>             chunk_offsets;
@@ -117,9 +165,14 @@ AP4_FileWriter::Write(AP4_File& file, AP4_ByteStream& stream, Interleaving /* in
     movie->GetMoovAtom()->Write(stream);
     
     // create and write the media data (mdat)
-    // FIXME: this only supports 32-bit mdat size
-    stream.WriteUI32((AP4_UI32)mdat_size);
-    stream.WriteUI32(AP4_ATOM_TYPE_MDAT);
+    if ((mdat_size >> 32) == 0) {
+    	stream.WriteUI32((AP4_UI32)mdat_size);
+    	stream.WriteUI32(AP4_ATOM_TYPE_MDAT);
+    } else {
+    	stream.WriteUI32(1);
+    	stream.WriteUI32(AP4_ATOM_TYPE_MDAT);
+    	stream.WriteUI64(mdat_size);
+    }
     
     // write all tracks and restore the chunk offsets to their backed-up values
     for (AP4_List<AP4_Track>::Item* track_item = movie->GetTracks().FirstItem();

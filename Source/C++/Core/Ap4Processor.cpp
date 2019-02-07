@@ -343,6 +343,7 @@ AP4_Processor::ProcessFragments(AP4_MoovAtom*              moov,
         AP4_ASSERT(mdat_out_end-mdat_out_start == mdat_size);
 #endif
         output.Seek(mdat_out_start);
+        AP4_ASSERT(mdat_size <= 0xFFFFFFFF);
         output.WriteUI32((AP4_UI32)mdat_size);
         output.Seek(mdat_out_end);
         
