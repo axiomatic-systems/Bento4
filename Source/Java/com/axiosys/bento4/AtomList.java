@@ -58,11 +58,10 @@ public class AtomList implements AtomParent {
     
     public String toString() {
         StringBuffer result = new StringBuffer();
-        String sep = "";
+        String sep = "\n";
         for (int i=0; i<atoms.size(); i++) {
             Atom atom = (Atom)atoms.get(i);
             result.append(atom.toString() + sep);
-            sep = "\n";
         }
         
         return result.toString();
