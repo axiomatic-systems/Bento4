@@ -126,8 +126,8 @@ protected:
         SampleOrder(AP4_UI32 decode_order, AP4_UI32 display_order) :
             m_DecodeOrder(decode_order),
             m_DisplayOrder(display_order) {}
-        AP4_UI32        m_DecodeOrder;
-        AP4_UI32        m_DisplayOrder;
+        AP4_UI32 m_DecodeOrder;
+        AP4_UI32 m_DisplayOrder;
     };
     
     // methods

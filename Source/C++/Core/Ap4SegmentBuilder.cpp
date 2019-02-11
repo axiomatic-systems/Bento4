@@ -2,7 +2,7 @@
 |
 |    AP4 - Segment Builder
 |
-|    Copyright 2002-2014 Axiomatic Systems, LLC
+|    Copyright 2002-2019 Axiomatic Systems, LLC
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).

@@ -644,7 +644,7 @@ Fragment(AP4_File&                input_file,
         AP4_Array<AP4_TrunAtom::Entry> trun_entries;
         fragment->m_MdatSize = AP4_ATOM_HEADER_SIZE;
         AP4_UI32 constant_sample_duration = 0;
-        bool all_segment_durations_equal = true;
+        bool all_sample_durations_equal = true;
         for (;;) {
             // if we have one non-zero CTS delta, we'll need to express it
             if (cursor->m_Sample.GetCtsDelta()) {
@@ -674,12 +674,12 @@ Fragment(AP4_File&                input_file,
             fragment->m_Duration += trun_entry.sample_duration;
             
             // check if the durations are all the same
-            if (all_segment_durations_equal) {
+            if (all_sample_durations_equal) {
                 if (constant_sample_duration == 0) {
                     constant_sample_duration = trun_entry.sample_duration;
                 } else {
                     if (constant_sample_duration != trun_entry.sample_duration) {
-                        all_segment_durations_equal = false;
+                        all_sample_durations_equal = false;
                     }
                 }
             }
@@ -705,11 +705,11 @@ Fragment(AP4_File&                input_file,
         }
         if (Options.verbosity > 2) {
             printf(" %d samples\n", sample_count);
-            printf(" constant sample duration: %s\n", all_segment_durations_equal?"yes":"no");
+            printf(" constant sample duration: %s\n", all_sample_durations_equal?"yes":"no");
         }
         
         // update the 'trun' flags if needed
-        if (all_segment_durations_equal) {
+        if (all_sample_durations_equal) {
             tfhd->SetDefaultSampleDuration(constant_sample_duration);
             tfhd->UpdateFlags(tfhd->GetFlags() | AP4_TFHD_FLAG_DEFAULT_SAMPLE_DURATION_PRESENT);
         } else {
