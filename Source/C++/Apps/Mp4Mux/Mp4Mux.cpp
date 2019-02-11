@@ -44,6 +44,7 @@
                "(c) 2002-20016 Axiomatic Systems, LLC"
 
 const unsigned int AP4_MUX_DEFAULT_VIDEO_FRAME_RATE = 24;
+const unsigned int AP4_MUX_READ_BUFFER_SIZE         = 65536;
 
 /*----------------------------------------------------------------------
 |   globals
@@ -301,7 +302,7 @@ AddAacTrack(AP4_Movie&            movie,
         }
 
         // read some data and feed the parser
-        AP4_UI08 input_buffer[4096];
+        AP4_UI08 input_buffer[AP4_MUX_READ_BUFFER_SIZE];
         AP4_Size to_read = parser.GetBytesFree();
         if (to_read) {
             AP4_Size bytes_read = 0;
@@ -381,7 +382,7 @@ AddH264Track(AP4_Movie&            movie,
     AP4_AvcFrameParser parser;
     for (;;) {
         bool eos;
-        unsigned char input_buffer[4096];
+        unsigned char input_buffer[AP4_MUX_READ_BUFFER_SIZE];
         AP4_Size bytes_in_buffer = 0;
         result = input->ReadPartial(input_buffer, sizeof(input_buffer), bytes_in_buffer);
         if (AP4_SUCCEEDED(result)) {
@@ -602,7 +603,7 @@ AddH265Track(AP4_Movie&            movie,
     AP4_HevcFrameParser parser;
     for (;;) {
         bool eos;
-        unsigned char input_buffer[4096];
+        unsigned char input_buffer[AP4_MUX_READ_BUFFER_SIZE];
         AP4_Size bytes_in_buffer = 0;
         result = input->ReadPartial(input_buffer, sizeof(input_buffer), bytes_in_buffer);
         if (AP4_SUCCEEDED(result)) {
