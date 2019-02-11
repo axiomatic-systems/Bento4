@@ -34,11 +34,13 @@
 +---------------------------------------------------------------------*/
 #include "Ap4Types.h"
 #include "Ap4AvcParser.h"
+#include "Ap4HevcParser.h"
 #include "Ap4AdtsParser.h"
 #include "Ap4List.h"
 #include "Ap4Sample.h"
 #include "Ap4String.h"
 #include "Ap4Track.h"
+#include "Ap4SampleDescription.h"
 
 /*----------------------------------------------------------------------
 |   class references
@@ -67,6 +69,7 @@ public:
     
     // methods
     virtual AP4_Result AddSample(AP4_Sample& sample);
+    //virtual AP4_Result CreateTrack(AP4_Track*& track); // create an AP4_Track object representing the media so far
     virtual AP4_Result WriteMediaSegment(AP4_ByteStream& stream, unsigned int sequence_number);
     virtual AP4_Result WriteInitSegment(AP4_ByteStream& stream) = 0;
     
@@ -97,29 +100,23 @@ public:
     // methods
     virtual AP4_Result Feed(const void* data,
                             AP4_Size    data_size,
-                            AP4_Size&   bytes_consumed) = 0;    
+                            AP4_Size&   bytes_consumed) = 0;
 };
 
 /*----------------------------------------------------------------------
-|   AP4_AvcSegmentBuilder
+|   AP4_VideoSegmentBuilder
 +---------------------------------------------------------------------*/
-class AP4_AvcSegmentBuilder : public AP4_FeedSegmentBuilder
+class AP4_VideoSegmentBuilder : public AP4_FeedSegmentBuilder
 {
 public:
     // constructor
-    AP4_AvcSegmentBuilder(AP4_UI32 track_id,
-                          double   frames_per_second,
-                          AP4_UI64 media_time_origin = 0);
+    AP4_VideoSegmentBuilder(AP4_UI32 track_id,
+                            double   frames_per_second,
+                            AP4_UI64 media_time_origin = 0);
     
     // AP4_SegmentBuilder methods
     virtual AP4_Result WriteMediaSegment(AP4_ByteStream& stream, unsigned int sequence_number);
-    virtual AP4_Result WriteInitSegment(AP4_ByteStream& stream);
 
-    // methods
-    AP4_Result Feed(const void* data,
-                    AP4_Size    data_size,
-                    AP4_Size&   bytes_consumed);
-    
 protected:
     // types
     struct SampleOrder {
@@ -132,11 +129,65 @@ protected:
     
     // methods
     void SortSamples(SampleOrder* array, unsigned int n);
+    AP4_Result WriteInitSegment(AP4_ByteStream&        stream,
+                                AP4_SampleDescription* sample_description,
+                                unsigned int           width,
+                                unsigned int           height,
+                                AP4_UI32               brand);
 
     // members
-    AP4_AvcFrameParser     m_FrameParser;
     double                 m_FramesPerSecond;
     AP4_Array<SampleOrder> m_SampleOrders;
+};
+
+/*----------------------------------------------------------------------
+|   AP4_AvcSegmentBuilder
++---------------------------------------------------------------------*/
+class AP4_AvcSegmentBuilder : public AP4_VideoSegmentBuilder
+{
+public:
+    // constructor
+    AP4_AvcSegmentBuilder(AP4_UI32 track_id,
+                          double   frames_per_second,
+                          AP4_UI64 media_time_origin = 0);
+    
+    // AP4_SegmentBuilder methods
+    virtual AP4_Result WriteInitSegment(AP4_ByteStream& stream);
+
+    // methods
+    AP4_Result Feed(const void* data,
+                    AP4_Size    data_size,
+                    AP4_Size&   bytes_consumed);
+    
+protected:
+    // members
+    AP4_AvcFrameParser m_FrameParser;
+};
+
+/*----------------------------------------------------------------------
+|   AP4_HevcSegmentBuilder
++---------------------------------------------------------------------*/
+class AP4_HevcSegmentBuilder : public AP4_VideoSegmentBuilder
+{
+public:
+    // constructor
+    AP4_HevcSegmentBuilder(AP4_UI32 track_id,
+                           double   frames_per_second,
+                           AP4_UI32 video_format = AP4_SAMPLE_FORMAT_HEV1,
+                           AP4_UI64 media_time_origin = 0);
+    
+    // AP4_SegmentBuilder methods
+    virtual AP4_Result WriteInitSegment(AP4_ByteStream& stream);
+
+    // methods
+    AP4_Result Feed(const void* data,
+                    AP4_Size    data_size,
+                    AP4_Size&   bytes_consumed);
+    
+protected:
+    // members
+    AP4_HevcFrameParser m_FrameParser;
+    AP4_UI32            m_VideoFormat;
 };
 
 /*----------------------------------------------------------------------
@@ -161,6 +212,30 @@ protected:
     // members
     AP4_AdtsParser                  m_FrameParser;
     AP4_MpegAudioSampleDescription* m_SampleDescription;
+};
+
+/*----------------------------------------------------------------------
+|   AP4_StreamFeeder
+|
+|   Class that can be used to feed an AP4_FeedSegmentBuilder from a stream
++---------------------------------------------------------------------*/
+class AP4_StreamFeeder
+{
+public:
+    // constructor and destructor
+    AP4_StreamFeeder(AP4_ByteStream* source, AP4_FeedSegmentBuilder& builder);
+    ~AP4_StreamFeeder();
+    
+    // methods
+    AP4_Result Feed(); // Read some data from the stream and feed it to the builder
+    
+private:
+    AP4_ByteStream*         m_Source;
+    AP4_FeedSegmentBuilder& m_Builder;
+    AP4_UI08*               m_FeedBuffer;
+    AP4_Size                m_FeedBufferSize;
+    AP4_Size                m_FeedBytesPending;  // number of bytes not yet parsed
+    AP4_Size                m_FeedBytesParsed;   // number of bytes already parsed
 };
 
 #endif // _AP4_SEGMENT_BUILDER_H_

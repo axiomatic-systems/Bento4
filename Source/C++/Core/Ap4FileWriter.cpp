@@ -117,7 +117,7 @@ AP4_FileWriter::Write(AP4_File& file, AP4_ByteStream& stream, Interleaving /* in
     movie->GetMoovAtom()->Write(stream);
     
     // create and write the media data (mdat)
-    // FIXME: this only supports 32-bit mdat size
+    // TODO: this only supports 32-bit mdat size
     stream.WriteUI32((AP4_UI32)mdat_size);
     stream.WriteUI32(AP4_ATOM_TYPE_MDAT);
     
