@@ -294,7 +294,7 @@ AP4_VideoSegmentBuilder::WriteInitSegment(AP4_ByteStream&        stream,
     brands.Append(AP4_FILE_BRAND_ISOM);
     brands.Append(AP4_FILE_BRAND_MP42);
     brands.Append(AP4_FILE_BRAND_MP41);
-    brands.Append(AP4_FILE_BRAND_HVC1);
+    brands.Append(brand);
 
     AP4_FtypAtom* ftyp = new AP4_FtypAtom(AP4_FILE_BRAND_MP42, 1, &brands[0], brands.ItemCount());
     ftyp->Write(stream);
