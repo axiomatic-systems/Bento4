@@ -79,9 +79,9 @@ AP4_ElstAtom::AP4_ElstAtom(AP4_UI32        size,
     } else {
         max_entries = (size - (AP4_FULL_ATOM_HEADER_SIZE + 4)) / 20;
     }
-    //if (entry_count > max_entries) {
-    //    entry_count = max_entries;
-    //}
+    if (entry_count > max_entries) {
+        entry_count = max_entries;
+    }
     
     // read the entries
     m_Entries.EnsureCapacity(entry_count);
