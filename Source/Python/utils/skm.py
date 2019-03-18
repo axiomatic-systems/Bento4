@@ -2,6 +2,7 @@ import aes
 import os
 import hashlib
 import json
+import urllib
 
 KEKID_CONSTANT_1 = "KEKID_1"
 
@@ -149,7 +150,7 @@ def ResolveKey(options, spec):
         kid = spec_params['kid']
         if '?' in base_url:
             (base_url_path, base_url_query) = tuple(base_url.split('?', 1))
-            base_url_query = '?'+base_url_query
+            base_url_query = '?'+urllib.unquote(base_url_query).decode('utf8')
         else:
             base_url_path = base_url
             base_url_query = ''
