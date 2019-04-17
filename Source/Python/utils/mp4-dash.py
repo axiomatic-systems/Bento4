@@ -395,7 +395,10 @@ def OutputDash(options, set_attributes, audio_sets, video_sets, subtitles_sets, 
             if options.encryption_key or options.marlin or options.playready or options.widevine:
                 AddContentProtection(options, adaptation_set, video_tracks)
 
-            if not options.on_demand:
+            if options.on_demand:
+                adaptation_set.set('subsegmentAlignment', 'true')
+                adaptation_set.set('subsegmentStartsWithSAP', '1')
+            else:
                 if options.split:
                     init_segment_url                  = '$RepresentationID$/' + SPLIT_INIT_SEGMENT_NAME
                     media_segment_url_template_prefix = '$RepresentationID$/'
@@ -445,7 +448,10 @@ def OutputDash(options, set_attributes, audio_sets, video_sets, subtitles_sets, 
             if options.encryption_key or options.marlin or options.playready or options.widevine:
                 AddContentProtection(options, adaptation_set, audio_tracks)
 
-            if not options.on_demand:
+            if options.on_demand:
+                adaptation_set.set('subsegmentAlignment', 'true')
+                adaptation_set.set('subsegmentStartsWithSAP', '1')
+            else:
                 if options.split:
                     init_segment_url                  = '$RepresentationID$/' + SPLIT_INIT_SEGMENT_NAME
                     media_segment_url_template_prefix = '$RepresentationID$/'
