@@ -129,11 +129,11 @@ protected:
     
     // methods
     void SortSamples(SampleOrder* array, unsigned int n);
-    AP4_Result WriteInitSegment(AP4_ByteStream&        stream,
-                                AP4_SampleDescription* sample_description,
-                                unsigned int           width,
-                                unsigned int           height,
-                                AP4_UI32               brand);
+    AP4_Result WriteVideoInitSegment(AP4_ByteStream&        stream,
+                                     AP4_SampleDescription* sample_description,
+                                     unsigned int           width,
+                                     unsigned int           height,
+                                     AP4_UI32               brand);
 
     // members
     double                 m_FramesPerSecond;
