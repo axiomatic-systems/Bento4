@@ -42,8 +42,21 @@
 class AP4_NalParser {
 public:
     // class methods
+    
+    /**
+     * Remove emulation prevention bytes from a buffer.
+     */
     static void Unescape(AP4_DataBuffer& data);
     
+    /**
+     * Count how many emualation prevention bytes are encountered until
+     * a certain number of bytes can be produced from an escaped buffer
+     */
+    static unsigned int CountEmulationPreventionBytes(const AP4_UI08* data,
+                                                      unsigned int    data_size,
+                                                      unsigned int    unescaped_size);
+    
+    // constructor
     AP4_NalParser();
     
     /**

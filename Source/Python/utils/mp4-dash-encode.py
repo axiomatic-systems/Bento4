@@ -210,8 +210,7 @@ def main():
 
 ###########################
 if __name__ == '__main__':
-    global Options
-    Options = None
+    Options = None # global
     try:
         main()
     except Exception, err:

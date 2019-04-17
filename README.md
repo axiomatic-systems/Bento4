@@ -1,9 +1,11 @@
-Bento4 
+Bento4
 =====
 [![Build Status](https://travis-ci.org/axiomatic-systems/Bento4.svg?branch=master)](https://travis-ci.org/axiomatic-systems/Bento4.svg?branch=master)
+[![Code Quality: Cpp](https://img.shields.io/lgtm/grade/cpp/g/axiomatic-systems/Bento4.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/axiomatic-systems/Bento4/context:cpp)
+[![Total Alerts](https://img.shields.io/lgtm/alerts/g/axiomatic-systems/Bento4.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/axiomatic-systems/Bento4/alerts)
            
-Bento4 is a C++ class library and tools designed to read and write ISO-MP4 files. 
-This format is defined in international specifications ISO/IEC 14496-12, 14496-14 and 14496-15. 
+Bento4 is a C++ class library and tools designed to read and write ISO-MP4 files.
+This format is defined in international specifications ISO/IEC 14496-12, 14496-14 and 14496-15.
 The format is a derivative of the Apple Quicktime file format, so Bento4 can be used to read and write most Quicktime files as well.
 
 Visit [www.bento4.com](http://www.bento4.com) for details
@@ -121,4 +123,3 @@ For Debug builds:
 
 For Release builds:
 ```make AP4_BUILD_CONFIG=Release```
-

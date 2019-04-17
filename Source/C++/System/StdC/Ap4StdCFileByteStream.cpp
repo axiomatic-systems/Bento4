@@ -265,6 +265,9 @@ AP4_StdcFileByteStream::WritePartial(const void* buffer,
     if (nbWritten > 0) {
         bytesWritten = (AP4_Size)nbWritten;
         m_Position += nbWritten;
+        if (m_Position > m_Size) {
+            m_Size = m_Position;
+        }
         return AP4_SUCCESS;
     } else {
         bytesWritten = 0;

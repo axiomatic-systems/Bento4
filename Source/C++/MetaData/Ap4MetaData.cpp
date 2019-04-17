@@ -783,6 +783,27 @@ AP4_MetaData::Entry::ToAtom(AP4_Atom*& atom) const
         
          // not supported
          return AP4_ERROR_NOT_SUPPORTED; 
+    } else if (m_Key.GetNamespace() == "3gpp") {
+        // convert the name into an atom type
+        if (m_Key.GetName().GetLength() != 4) {
+            // the name is not in the right format
+            return AP4_ERROR_INVALID_PARAMETERS;
+        }
+        AP4_Atom::Type atom_type = AP4_Atom::TypeFromString(m_Key.GetName().GetChars());
+
+        if (AP4_MetaDataAtomTypeHandler::IsTypeInList(atom_type,
+            AP4_MetaDataAtomTypeHandler::_3gppLocalizedStringTypeList)) {
+            AP4_String atom_value = m_Value->ToString();
+            const char* language = "eng"; // default
+            if (m_Value->GetLanguage().GetLength() != 0) {
+                language = m_Value->GetLanguage().GetChars();
+            }
+            atom = new AP4_3GppLocalizedStringAtom(atom_type, language, atom_value.GetChars());
+            return AP4_SUCCESS;
+        }
+
+         // not supported
+         return AP4_ERROR_NOT_SUPPORTED;
     } else {
         // create a '----' atom
         AP4_ContainerAtom* container = new AP4_ContainerAtom(AP4_ATOM_TYPE_dddd);
@@ -847,16 +868,18 @@ AP4_MetaData::Entry::AddToFileIlst(AP4_File& file, AP4_Ordinal index)
     AP4_Atom* atom;
     AP4_Result result = ToAtom(atom);
     if (AP4_FAILED(result)) return result;
-    AP4_ContainerAtom* entry_atom = AP4_DYNAMIC_CAST(AP4_ContainerAtom, atom);
-    if (entry_atom == NULL) {
-        return AP4_ERROR_INVALID_FORMAT;
-    }
 
     // look for the 'moov'
     AP4_Movie* movie = file.GetMovie();
-    if (movie == NULL) return AP4_ERROR_INVALID_FORMAT;
+    if (movie == NULL) {
+        delete atom;
+        return AP4_ERROR_INVALID_FORMAT;
+    }
     AP4_MoovAtom* moov = movie->GetMoovAtom();
-    if (moov == NULL) return AP4_ERROR_INVALID_FORMAT;
+    if (moov == NULL) {
+        delete atom;
+        return AP4_ERROR_INVALID_FORMAT;
+    }
     
     // look for 'udta', and create if it does not exist 
     AP4_ContainerAtom* udta = AP4_DYNAMIC_CAST(AP4_ContainerAtom, moov->FindChild("udta", true));
@@ -884,10 +907,21 @@ AP4_MetaData::Entry::AddToFileIlst(AP4_File& file, AP4_Ordinal index)
     // look if there is already a container for this entry
     AP4_ContainerAtom* existing = FindInIlst(ilst);
     if (existing == NULL) {
+        // look for a simple entry with the same type
+        AP4_Atom* previous = ilst->GetChild(atom->GetType());
+        if (previous) {
+            ilst->RemoveChild(previous);
+        }
+
         // just add the one we have
-        ilst->AddChild(entry_atom);
+        ilst->AddChild(atom);
     } else {
         // add the entry's data to the existing entry
+        AP4_ContainerAtom* entry_atom = AP4_DYNAMIC_CAST(AP4_ContainerAtom, atom);
+        if (entry_atom == NULL) {
+            return AP4_ERROR_INVALID_FORMAT;
+        }
+
         AP4_DataAtom* data_atom = AP4_DYNAMIC_CAST(AP4_DataAtom, entry_atom->GetChild(AP4_ATOM_TYPE_DATA));
         if (data_atom == NULL) return AP4_ERROR_INTERNAL;
         entry_atom->RemoveChild(data_atom);
@@ -925,6 +959,39 @@ AP4_MetaData::Entry::AddToFileDcf(AP4_File& file, AP4_Ordinal index)
 }
 
 /*----------------------------------------------------------------------
+|   AP4_MetaData::Entry::AddToFileUdta
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_MetaData::Entry::AddToFileUdta(AP4_File& file, AP4_Ordinal index)
+{
+    // check that we have a correct entry
+    if (m_Value == NULL) return AP4_ERROR_INVALID_STATE;
+
+    // convert the entry into an atom
+    AP4_Atom* atom;
+    AP4_Result result = ToAtom(atom);
+    if (AP4_FAILED(result)) return result;
+
+    // look for the 'moov'
+    AP4_Movie* movie = file.GetMovie();
+    if (movie == NULL) return AP4_ERROR_INVALID_FORMAT;
+    AP4_MoovAtom* moov = movie->GetMoovAtom();
+    if (moov == NULL) return AP4_ERROR_INVALID_FORMAT;
+
+    // look for 'udta', and create if it does not exist
+    AP4_ContainerAtom* udta = AP4_DYNAMIC_CAST(AP4_ContainerAtom, moov->FindChild("udta", true));
+    if (udta == NULL) return AP4_ERROR_INTERNAL;
+
+    // convert the entry into an atom
+    AP4_Atom* data_atom;
+    result = ToAtom(data_atom);
+    if (AP4_FAILED(result)) return result;
+
+    // add the entry's data to the container
+    return udta->AddChild(data_atom, index);
+}
+
+/*----------------------------------------------------------------------
 |   AP4_MetaData::Entry::AddToFile
 +---------------------------------------------------------------------*/
 AP4_Result
@@ -938,6 +1005,8 @@ AP4_MetaData::Entry::AddToFile(AP4_File& file, AP4_Ordinal index)
         return AddToFileIlst(file, index);
     } else if (m_Key.GetNamespace() == "dcf") {
         return AddToFileDcf(file, index);
+    } else if (m_Key.GetNamespace() == "3gpp") {
+        return AddToFileUdta(file, index);
     } else {
         // custom namespace
         return AddToFileIlst(file, index);
@@ -1005,6 +1074,30 @@ AP4_MetaData::Entry::RemoveFromFileDcf(AP4_File& file, AP4_Ordinal index)
 }
 
 /*----------------------------------------------------------------------
+|   AP4_MetaData::Entry::RemoveFromFileUdta
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_MetaData::Entry::RemoveFromFileUdta(AP4_File& file, AP4_Ordinal index)
+{
+    // look for the 'moov'
+    AP4_Movie* movie = file.GetMovie();
+    if (movie == NULL) return AP4_ERROR_INVALID_FORMAT;
+    AP4_MoovAtom* moov = movie->GetMoovAtom();
+    if (moov == NULL) return AP4_ERROR_INVALID_FORMAT;
+
+    // look for 'udta'
+    AP4_ContainerAtom* udta = AP4_DYNAMIC_CAST(AP4_ContainerAtom, moov->FindChild("udta"));
+    if (udta == NULL) return AP4_ERROR_NO_SUCH_ITEM;
+
+    // remove the data atom in the entry
+    AP4_UI32 type = AP4_BytesToUInt32BE((const unsigned char*)m_Key.GetName().GetChars());
+    AP4_Result result = udta->DeleteChild(type, index);
+    if (AP4_FAILED(result)) return result;
+
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
 |   AP4_MetaData::Entry::RemoveFromFile
 +---------------------------------------------------------------------*/
 AP4_Result
@@ -1015,6 +1108,8 @@ AP4_MetaData::Entry::RemoveFromFile(AP4_File& file, AP4_Ordinal index)
         return RemoveFromFileIlst(file, index);
     } else if (m_Key.GetNamespace() == "dcf") {
         return RemoveFromFileDcf(file, index);
+    } else if (m_Key.GetNamespace() == "3gpp") {
+        return RemoveFromFileUdta(file, index);
     } else {
         // custom namespace
         return RemoveFromFileIlst(file, index);

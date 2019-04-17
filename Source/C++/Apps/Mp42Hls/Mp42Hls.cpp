@@ -2,7 +2,7 @@
 |
 |    AP4 - MP4 to HLS File Converter
 |
-|    Copyright 2002-2015 Axiomatic Systems, LLC
+|    Copyright 2002-2018 Axiomatic Systems, LLC
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -39,9 +39,9 @@
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-#define BANNER "MP4 To HLS File Converter - Version 1.1\n"\
+#define BANNER "MP4 To HLS File Converter - Version 1.2\n"\
                "(Bento4 Version " AP4_VERSION_STRING ")\n"\
-               "(c) 2002-2015 Axiomatic Systems, LLC"
+               "(c) 2002-2018 Axiomatic Systems, LLC"
  
 /*----------------------------------------------------------------------
 |   options
@@ -91,6 +91,7 @@ static struct _Options {
     const char*           encryption_key_format;
     const char*           encryption_key_format_versions;
     AP4_Array<AP4_String> encryption_key_lines;
+    AP4_UI64              pcr_offset;
 } Options;
 
 static struct _Stats {
@@ -143,6 +144,7 @@ PrintUsageAndExit()
             "    Target segment duration in seconds (default: 6)\n"
             "  --segment-duration-threshold <t>\n"
             "    Segment duration threshold in milliseconds (default: 15)\n"
+            "  --pcr-offset <offset> in units of 90kHz (default 10000)\n"
             "  --index-filename <filename>\n"
             "    Filename to use for the playlist/index (default: stream.m3u8)\n"
             "  --segment-filename-template <pattern>\n"
@@ -560,7 +562,7 @@ SampleEncrypter::EncryptVideoSample(AP4_DataBuffer& sample, AP4_UI08 nalu_length
             PreventStartCodeEmulation(nalu+nalu_length_size, nalu_length, escaped_nalu);
             
             // the size may have changed
-            // FIXME: this could overflow if nalu_length_size is too small
+            // TODO: this could overflow if nalu_length_size is too small
             switch (nalu_length_size) {
                 case 1:
                     nalu[0] = (AP4_UI08)(escaped_nalu.GetDataSize()&0xFF);
@@ -1551,6 +1553,7 @@ main(int argc, char** argv)
     Options.encryption_key_uri             = "key.bin";
     Options.encryption_key_format          = NULL;
     Options.encryption_key_format_versions = NULL;
+    Options.pcr_offset                     = AP4_MPEG2_TS_DEFAULT_PCR_OFFSET;
     AP4_SetMemory(Options.encryption_key, 0, sizeof(Options.encryption_key));
     AP4_SetMemory(Options.encryption_iv,  0, sizeof(Options.encryption_iv));
     AP4_SetMemory(&Stats, 0, sizeof(Stats));
@@ -1639,6 +1642,12 @@ main(int argc, char** argv)
                 return 1;
             }
             Options.video_track_id = (unsigned int)strtoul(*args++, NULL, 10);
+        } else if (!strcmp(arg, "--pcr-offset")) {
+            if (*args == NULL) {
+                fprintf(stderr, "ERROR: --pcr-offset requires a number\n");
+                return 1;
+            }
+            Options.pcr_offset = (unsigned int)strtoul(*args++, NULL, 10);
         } else if (!strcmp(arg, "--output-single-file")) {
             Options.output_single_file = true;
         } else if (!strcmp(arg, "--index-filename")) {
@@ -2014,8 +2023,8 @@ main(int argc, char** argv)
                                                stream_id,
                                                audio_stream,
                                                Options.audio_pid,
-                                               NULL,
-                                               0);
+                                               NULL, 0,
+                                               Options.pcr_offset);
             if (AP4_FAILED(result)) {
                 fprintf(stderr, "could not create audio stream (%d)\n", result);
                 goto end;
@@ -2072,8 +2081,8 @@ main(int argc, char** argv)
                                                stream_id,
                                                video_stream,
                                                Options.video_pid,
-                                               NULL,
-                                               0);
+                                               NULL, 0,
+                                               Options.pcr_offset);
             if (AP4_FAILED(result)) {
                 fprintf(stderr, "could not create video stream (%d)\n", result);
                 goto end;

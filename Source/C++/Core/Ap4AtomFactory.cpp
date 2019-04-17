@@ -197,6 +197,12 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
         stream.GetSize(stream_size);
         if (stream_size >= start) {
             size = stream_size - start;
+
+            if (size <= 0xFFFFFFFF) {
+                size_32 = (AP4_UI32)size;
+            } else {
+                size_32 = 1; // signal a large atom
+            }
         }
     } else if (size == 1) {
         // 64-bit size
@@ -206,6 +212,10 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
             return AP4_ERROR_INVALID_FORMAT;
         }
         stream.ReadUI64(size);
+        if (size < 16) {
+            stream.Seek(start);
+            return AP4_ERROR_INVALID_FORMAT;
+        }
         if (size <= 0xFFFFFFFF) {
             force_64 = true;
         }

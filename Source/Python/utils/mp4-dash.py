@@ -18,7 +18,6 @@ import shutil
 import xml.etree.ElementTree as xml
 from xml.dom.minidom import parseString
 import tempfile
-import fractions
 import re
 import platform
 import sys
@@ -28,7 +27,7 @@ from subtitles import *
 
 # setup main options
 VERSION = "1.8.0"
-SDK_REVISION = '626'
+SDK_REVISION = '628'
 SCRIPT_PATH = path.abspath(path.dirname(__file__))
 sys.path += [SCRIPT_PATH]
 
@@ -160,14 +159,11 @@ def AddSegmentTemplate(options, container, init_segment_url, media_url_template_
 
     if options.use_segment_timeline or track.type == 'subtitles':
         url_template = SEGMENT_URL_TEMPLATE
-        use_template_numbers = True
         if options.smooth:
             url_base = path.basename(options.smooth_server_manifest_filename)
             url_template = url_base + DASH_MEDIA_SEGMENT_URL_PATTERN_SMOOTH % stream_name
-            use_template_numbers = False
         elif options.hippo:
             url_template = DASH_MEDIA_SEGMENT_URL_PATTERN_HIPPO % stream_name
-            use_template_numbers = False
 
         args = [container, 'SegmentTemplate']
         kwargs = {'timescale': str(track.timescale),
@@ -478,10 +474,10 @@ def OutputDash(options, set_attributes, audio_sets, video_sets, subtitles_sets, 
                 else:
                     audio_channel_config_value = str(audio_track.channels)
                     scheme_id_uri = MPEG_DASH_AUDIO_CHANNEL_CONFIGURATION_SCHEME_ID_URI
-                audio_channel_config = xml.SubElement(representation,
-                                                      'AudioChannelConfiguration',
-                                                      schemeIdUri=scheme_id_uri,
-                                                      value=audio_channel_config_value)
+                xml.SubElement(representation,
+                               'AudioChannelConfiguration',
+                               schemeIdUri=scheme_id_uri,
+                               value=audio_channel_config_value)
 
                 if options.on_demand:
                     base_url = xml.SubElement(representation, 'BaseURL')
@@ -584,7 +580,7 @@ def ComputeHlsWidevineKeyLine(options, track):
             fields[name] = value
     except:
         raise Exception('invalid syntax for --widevine-header option')
-    
+
     if 'content_id' not in fields:
         fields['content_id'] = '*'
     if 'kid' not in fields:
@@ -627,7 +623,7 @@ def OutputHlsCommon(options, track, media_subdir, playlist_name, media_file_name
 
         if len(key_lines) == 0:
             key_lines.append('URI="'+options.hls_key_url+'",IV=0x'+track.key_info['iv'])
-        
+
         for key_line in key_lines:
             playlist_file.write('#EXT-X-KEY:METHOD=SAMPLE-AES,'+key_line+'\r\n')
 
@@ -692,12 +688,12 @@ def OutputHlsIframeIndex(options, track, media_subdir, iframes_playlist_name, me
             index_playlist_file.write('#EXTINF:%f,\r\n' % (track.segment_durations[i]))
             index_playlist_file.write('#EXT-X-BYTERANGE:%d@0\r\n' % (iframe_range_size))
             index_playlist_file.write(fragment_basename+'\r\n')
-        
+
     index_playlist_file.write('#EXT-X-ENDLIST\r\n')
 
 #############################################
 def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, subtitles_files):
-    all_audio_tracks     = sum(audio_sets.values(),     [])
+    # all_audio_tracks     = sum(audio_sets.values(),     [])
     all_video_tracks     = sum(video_sets.values(),     [])
     all_subtitles_tracks = sum(subtitles_sets.values(), [])
 
@@ -817,21 +813,21 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
                 continue
             language = subtitles_track.language.decode('utf-8')
             language_name = LanguageNames.get(language, language).decode('utf-8')
-            
+
             if options.on_demand or not options.split:
                 media_subdir        = ''
-                media_file_name     = subtitles_track.parent.media_name
+                # media_file_name     = subtitles_track.parent.media_name
                 media_playlist_name = subtitles_track.representation_id+".m3u8"
                 media_playlist_path = media_playlist_name
             else:
                 media_subdir        = subtitles_track.representation_id
-                media_file_name     = ''
+                # media_file_name     = ''
                 media_playlist_name = options.hls_media_playlist_name
                 media_playlist_path = media_subdir+'/'+media_playlist_name
 
             master_playlist_file.write('#EXT-X-MEDIA:TYPE=SUBTITLES,GROUP-ID="imsc1",NAME="{0:s}",DEFAULT=NO,AUTOSELECT=YES,LANGUAGE="{1:s}",URI="{2:s}"\r\n'
                                        .format(language_name, language, media_playlist_path))
-            
+
     # WebVTT subtitles
     if len(subtitles_files):
         master_playlist_file.write('\r\n# Subtitles (WebVTT)\r\n')
@@ -1478,7 +1474,7 @@ def main():
     if options.fairplay_key_uri:
         if not options.hls:
             sys.stderr.write('WARNING: --fairplay-key-uri is only valid with --hls, ignoring\n')
-            
+
     if options.hls:
         if options.encryption_key and options.encryption_cenc_scheme != 'cbcs':
             raise Exception('--hls requires --encryption-cenc-scheme=cbcs')
@@ -1676,8 +1672,11 @@ def main():
         prev_track = None
         for track in tracks:
             if prev_track:
-                if track.total_sample_count != prev_track.total_sample_count:
-                    sys.stderr.write('WARNING: video sample count mismatch between "'+str(track)+'" and "'+str(prev_track)+'"\n')
+                # compute the total duration, excluding the last segment, which may be somewhat mismatched
+                track_duration_truncated = reduce(operator.add, track.segment_scaled_durations[:-1], 0)
+                prev_track_duration_truncated = reduce(operator.add, prev_track.segment_scaled_durations[:-1], 0)
+                if track_duration_truncated != prev_track_duration_truncated:
+                    sys.stderr.write('WARNING: video duration mismatch between "'+str(track)+'" and "'+str(prev_track)+'"\n')
             prev_track = track
 
     # check that the video segments match for all video tracks in the same adaptation set
@@ -1685,7 +1684,7 @@ def main():
         if len(tracks) > 1:
             anchor = tracks[0]
             for track in tracks[1:]:
-                if track.sample_counts[:-1] != anchor.sample_counts[:-1]:
+                if track.segment_scaled_durations[:-1] != anchor.segment_scaled_durations[:-1]:
                     PrintErrorAndExit('ERROR: video tracks are not aligned ("'+str(track)+'" differs from '+str(anchor)+')')
 
     # check that the video segment durations are almost all equal

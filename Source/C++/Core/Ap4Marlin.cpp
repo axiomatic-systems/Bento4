@@ -353,7 +353,7 @@ AP4_MarlinIpmpSampleDecrypter::Create(AP4_AtomParent&                 /*top_leve
                                       AP4_BlockCipherFactory*         block_cipher_factory,
                                       AP4_MarlinIpmpSampleDecrypter*& sample_decrypter)
 {
-    // FIXME: need to parse group key info
+    // TODO: need to parse group key info
     return Create(key, key_size, block_cipher_factory, sample_decrypter);
 }
 
@@ -730,7 +730,7 @@ AP4_MarlinIpmpEncryptingProcessor::Initialize(
     
     // create an initial object descriptor
     AP4_InitialObjectDescriptor* iod = 
-        // FIXME: get real values from the property map
+        // TODO: get real values from the property map
         new AP4_InitialObjectDescriptor(AP4_DESCRIPTOR_TAG_MP4_IOD,
                                         1022, // object descriptor id
                                         false, 

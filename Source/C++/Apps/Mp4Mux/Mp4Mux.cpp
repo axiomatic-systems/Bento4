@@ -2,7 +2,7 @@
 |
 |    AP4 - Elementary Stream Muliplexer
 |
-|    Copyright 2002-2016 Axiomatic Systems, LLC
+|    Copyright 2002-2019 Axiomatic Systems, LLC
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -39,11 +39,12 @@
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-#define BANNER "MP4 Elementary Stream Multiplexer - Version 1.1\n"\
+#define BANNER "MP4 Elementary Stream Multiplexer - Version 2.0\n"\
                "(Bento4 Version " AP4_VERSION_STRING ")\n"\
-               "(c) 2002-20016 Axiomatic Systems, LLC"
+               "(c) 2002-20019 Axiomatic Systems, LLC"
 
 const unsigned int AP4_MUX_DEFAULT_VIDEO_FRAME_RATE = 24;
+const unsigned int AP4_MUX_READ_BUFFER_SIZE         = 65536;
 
 /*----------------------------------------------------------------------
 |   globals
@@ -301,7 +302,7 @@ AddAacTrack(AP4_Movie&            movie,
         }
 
         // read some data and feed the parser
-        AP4_UI08 input_buffer[4096];
+        AP4_UI08 input_buffer[AP4_MUX_READ_BUFFER_SIZE];
         AP4_Size to_read = parser.GetBytesFree();
         if (to_read) {
             AP4_Size bytes_read = 0;
@@ -381,7 +382,7 @@ AddH264Track(AP4_Movie&            movie,
     AP4_AvcFrameParser parser;
     for (;;) {
         bool eos;
-        unsigned char input_buffer[4096];
+        unsigned char input_buffer[AP4_MUX_READ_BUFFER_SIZE];
         AP4_Size bytes_in_buffer = 0;
         result = input->ReadPartial(input_buffer, sizeof(input_buffer), bytes_in_buffer);
         if (AP4_SUCCEEDED(result)) {
@@ -602,7 +603,7 @@ AddH265Track(AP4_Movie&            movie,
     AP4_HevcFrameParser parser;
     for (;;) {
         bool eos;
-        unsigned char input_buffer[4096];
+        unsigned char input_buffer[AP4_MUX_READ_BUFFER_SIZE];
         AP4_Size bytes_in_buffer = 0;
         result = input->ReadPartial(input_buffer, sizeof(input_buffer), bytes_in_buffer);
         if (AP4_SUCCEEDED(result)) {
@@ -716,8 +717,8 @@ AddH265Track(AP4_Movie&            movie,
     AP4_UI32 min_spatial_segmentation =            0; // TBD (should read from VUI if present)
     AP4_UI08 parallelism_type =                    0; // unknown
     AP4_UI08 chroma_format =                       sps->chroma_format_idc;
-    AP4_UI08 luma_bit_depth =                      8; // FIXME: hardcoded temporarily, should be read from the bitstream
-    AP4_UI08 chroma_bit_depth =                    8; // FIXME: hardcoded temporarily, should be read from the bitstream
+    AP4_UI08 luma_bit_depth =                      8; // hardcoded temporarily, should be read from the bitstream
+    AP4_UI08 chroma_bit_depth =                    8; // hardcoded temporarily, should be read from the bitstream
     AP4_UI16 average_frame_rate =                  0; // unknown
     AP4_UI08 constant_frame_rate =                 0; // unknown
     AP4_UI08 num_temporal_layers =                 0; // unknown
