@@ -771,10 +771,10 @@ Fragment(AP4_File&                input_file,
     AP4_Position  sidx_position = 0;
     output_stream.Tell(sidx_position);
     if (create_segment_index) {
-        AP4_UI32 timescale = timescale ? timescale : indexed_cursor->m_Track->GetMediaTimeScale();
-        AP4_UI64 earliest_presentation_time = (AP4_UI64)(Options.tfdt_start * (double)timescale);
+        AP4_UI32 sidx_timescale = timescale ? timescale : indexed_cursor->m_Track->GetMediaTimeScale();
+        AP4_UI64 earliest_presentation_time = (AP4_UI64)(Options.tfdt_start * (double)sidx_timescale);
         sidx = new AP4_SidxAtom(indexed_cursor->m_Track->GetId(),
-                                timescale,
+                                sidx_timescale,
                                 earliest_presentation_time,
                                 0);
         // reserve space for the entries now, but they will be computed and updated later
