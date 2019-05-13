@@ -2,7 +2,7 @@
 |
 |    AP4 - MP4 Fragmenter
 |
-|    Copyright 2002-2015 Axiomatic Systems, LLC
+|    Copyright 2002-2019 Axiomatic Systems, LLC
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -37,9 +37,9 @@
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-#define BANNER "MP4 Fragmenter - Version 1.6.0\n"\
+#define BANNER "MP4 Fragmenter - Version 1.6.1\n"\
                "(Bento4 Version " AP4_VERSION_STRING ")\n"\
-               "(c) 2002-2015 Axiomatic Systems, LLC"
+               "(c) 2002-2019 Axiomatic Systems, LLC"
 
 /*----------------------------------------------------------------------
 |   constants
@@ -86,8 +86,8 @@ PrintUsageAndExit()
             "  --index (re)create the segment index\n"
             "  --trim trim excess media in longer tracks\n"
             "  --no-tfdt don't add 'tfdt' boxes in the fragments (may be needed for legacy Smooth Streaming clients)\n"
-            "  --tfdt-start <start> Value of the first tfdt timestamp, expressed either as a floating point number in seconds)\n"
-            "  --sequence-number-start <start> Value of the first segment sequence number (default: 1)\n"
+            "  --tfdt-start <start> value of the first tfdt timestamp, expressed as a floating point number in seconds\n"
+            "  --sequence-number-start <start> value of the first segment sequence number (default: 1)\n"
             "  --force-i-frame-sync <auto|all> treat all I-frames as sync samples (for open-gop sequences)\n"
             "    'auto' only forces the flag if an open-gop source is detected, 'all' forces the flag in all cases\n"
             "  --copy-udta copy the moov/udta atom from input to output\n"
@@ -771,9 +771,11 @@ Fragment(AP4_File&                input_file,
     AP4_Position  sidx_position = 0;
     output_stream.Tell(sidx_position);
     if (create_segment_index) {
+        AP4_UI32 timescale = timescale ? timescale : indexed_cursor->m_Track->GetMediaTimeScale();
+        AP4_UI64 earliest_presentation_time = (AP4_UI64)(Options.tfdt_start * (double)timescale);
         sidx = new AP4_SidxAtom(indexed_cursor->m_Track->GetId(),
-                                timescale ? timescale : indexed_cursor->m_Track->GetMediaTimeScale(),
-                                0,
+                                timescale,
+                                earliest_presentation_time,
                                 0);
         // reserve space for the entries now, but they will be computed and updated later
         sidx->SetReferenceCount(indexed_segments.ItemCount());
