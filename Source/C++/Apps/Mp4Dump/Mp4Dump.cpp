@@ -78,7 +78,7 @@ CreateTrackDumpByteStream(const char* mp4_filename,
                           AP4_Ordinal track_id)
 {
     // create the output file name
-    AP4_Size mp4_filename_len = strlen(mp4_filename);
+    AP4_Size mp4_filename_len = (AP4_Size)strlen(mp4_filename);
     char* dump_filename = new char[mp4_filename_len+16]; // <filename>.<trackid>
     strcpy(dump_filename, mp4_filename);
     dump_filename[mp4_filename_len] = '.';
@@ -278,7 +278,7 @@ main(int argc, char** argv)
                 fprintf(stderr, "ERROR: missing argument after --verbosity option\n");
                 return 1;
             }
-            verbosity = strtoul(arg, NULL, 10);
+            verbosity = (unsigned int)strtoul(arg, NULL, 10);
         } else if (!strcmp(arg, "--format")) {
             arg = *argv++;
             if (arg == NULL) {

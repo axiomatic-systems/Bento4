@@ -2,7 +2,7 @@
 |
 |    AP4 - tenc Atoms 
 |
-|    Copyright 2002-2011 Axiomatic Systems, LLC
+|    Copyright 2002-2016 Axiomatic Systems, LLC
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -45,20 +45,30 @@ AP4_TencAtom::Create(AP4_Size size, AP4_ByteStream& stream)
 {
     AP4_UI08 version;
     AP4_UI32 flags;
+    if (size < AP4_FULL_ATOM_HEADER_SIZE) return NULL;
     if (AP4_FAILED(ReadFullHeader(stream, version, flags))) return NULL;
-    if (version != 0) return NULL;
-    return new AP4_TencAtom(size, version, flags, stream);
+    if (version > 1) return NULL;
+    AP4_TencAtom* tenc = new AP4_TencAtom(size, version, flags);
+    if (tenc == NULL) return NULL;
+    AP4_Result result = tenc->Parse(stream);
+    if (AP4_FAILED(result)) {
+        delete tenc;
+        return NULL;
+    }
+    
+    return tenc;
 }
 
 /*----------------------------------------------------------------------
 |   AP4_TencAtom::AP4_TencAtom
 +---------------------------------------------------------------------*/
-AP4_TencAtom::AP4_TencAtom(AP4_UI32        default_algorithm_id,
-                           AP4_UI08        default_iv_size,
+AP4_TencAtom::AP4_TencAtom(AP4_UI32        default_is_protected,
+                           AP4_UI08        default_per_sample_iv_size,
                            const AP4_UI08* default_kid) :
     AP4_Atom(AP4_ATOM_TYPE_TENC, AP4_FULL_ATOM_HEADER_SIZE+20, 0, 0),
-    AP4_CencTrackEncryption(default_algorithm_id,
-                            default_iv_size,
+    AP4_CencTrackEncryption(0,
+                            default_is_protected,
+                            default_per_sample_iv_size,
                             default_kid)
 {
 }
@@ -66,12 +76,33 @@ AP4_TencAtom::AP4_TencAtom(AP4_UI32        default_algorithm_id,
 /*----------------------------------------------------------------------
 |   AP4_TencAtom::AP4_TencAtom
 +---------------------------------------------------------------------*/
-AP4_TencAtom::AP4_TencAtom(AP4_UI32        size, 
-                           AP4_UI08        version,
-                           AP4_UI32        flags,
-                           AP4_ByteStream& stream) :
+AP4_TencAtom::AP4_TencAtom(AP4_UI32        default_is_protected,
+                           AP4_UI08        default_per_sample_iv_size,
+                           const AP4_UI08* default_kid,
+                           AP4_UI08        default_constant_iv_size,
+                           const AP4_UI08* default_constant_iv,
+                           AP4_UI08        default_crypt_byte_block,
+                           AP4_UI08        default_skip_byte_block) :
+    AP4_Atom(AP4_ATOM_TYPE_TENC, AP4_FULL_ATOM_HEADER_SIZE+20+(default_per_sample_iv_size?0:1+default_constant_iv_size), 1, 0),
+    AP4_CencTrackEncryption(1,
+                            default_is_protected,
+                            default_per_sample_iv_size,
+                            default_kid,
+                            default_constant_iv_size,
+                            default_constant_iv,
+                            default_crypt_byte_block,
+                            default_skip_byte_block)
+{
+}
+
+/*----------------------------------------------------------------------
+|   AP4_TencAtom::Create
++---------------------------------------------------------------------*/
+AP4_TencAtom::AP4_TencAtom(AP4_UI32 size,
+                           AP4_UI08 version,
+                           AP4_UI32 flags) :
     AP4_Atom(AP4_ATOM_TYPE_TENC, size, version, flags),
-    AP4_CencTrackEncryption(stream)
+    AP4_CencTrackEncryption(version)
 {
 }
 

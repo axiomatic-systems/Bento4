@@ -59,6 +59,8 @@ const AP4_UI08 AP4_MPEG2_STREAM_TYPE_HEVC                = 0x24;
 const AP4_UI08 AP4_MPEG2_STREAM_TYPE_ATSC_AC3            = 0x81;
 const AP4_UI08 AP4_MPEG2_STREAM_TYPE_ATSC_EAC3           = 0x81;
 
+const AP4_UI64 AP4_MPEG2_TS_DEFAULT_PCR_OFFSET = 10000;
+
 /*----------------------------------------------------------------------
 |   AP4_Mpeg2TsWriter
 +---------------------------------------------------------------------*/
@@ -92,11 +94,18 @@ public:
     
     class SampleStream : public Stream {
     public:
-        SampleStream(AP4_UI16 pid, AP4_UI08 stream_type, AP4_UI16 stream_id, AP4_UI32 timescale, const AP4_UI08* descriptor, AP4_Size descriptor_length) :
+        SampleStream(AP4_UI16        pid,
+                     AP4_UI08        stream_type,
+                     AP4_UI16        stream_id,
+                     AP4_UI32        timescale,
+                     const AP4_UI08* descriptor,
+                     AP4_Size        descriptor_length,
+                     AP4_UI64        pcr_offset = AP4_MPEG2_TS_DEFAULT_PCR_OFFSET) :
             Stream(pid), 
             m_StreamType(stream_type),
             m_StreamId(stream_id),
-            m_TimeScale(timescale) {
+            m_TimeScale(timescale),
+            m_PcrOffset(pcr_offset) {
                 if (descriptor && descriptor_length) {
                     m_Descriptor.SetData(descriptor, descriptor_length);
                 }
@@ -132,6 +141,7 @@ public:
         AP4_UI16       m_StreamId;
         AP4_UI32       m_TimeScale;
         AP4_DataBuffer m_Descriptor;
+        AP4_UI64       m_PcrOffset;
     };
     
     // constructor
@@ -148,14 +158,16 @@ public:
                               SampleStream*&  stream,
                               AP4_UI16        pid = AP4_MPEG2_TS_DEFAULT_PID_AUDIO,
                               const AP4_UI08* descriptor = NULL,
-                              AP4_Size        descriptor_length = 0);
+                              AP4_Size        descriptor_length = 0,
+                              AP4_UI64        pcr_offset = AP4_MPEG2_TS_DEFAULT_PCR_OFFSET);
     AP4_Result SetVideoStream(AP4_UI32        timescale,
                               AP4_UI08        stream_type,
                               AP4_UI16        stream_id,
                               SampleStream*&  stream,
                               AP4_UI16        pid = AP4_MPEG2_TS_DEFAULT_PID_VIDEO,
                               const AP4_UI08* descriptor = NULL,
-                              AP4_Size        descriptor_length = 0);
+                              AP4_Size        descriptor_length = 0,
+                              AP4_UI64        pcr_offset = AP4_MPEG2_TS_DEFAULT_PCR_OFFSET);
     
 private:
     Stream*       m_PAT;

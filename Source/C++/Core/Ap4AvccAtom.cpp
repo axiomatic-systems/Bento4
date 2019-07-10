@@ -85,8 +85,8 @@ AP4_AvccAtom::Create(AP4_Size size, AP4_ByteStream& stream)
         cursor += 2+AP4_BytesToInt16BE(&payload[cursor]);
         if (cursor > payload_size) return NULL;
     }
+    if (cursor+1 > payload_size) return NULL;
     unsigned int num_pic_params = payload[cursor++];
-    if (cursor > payload_size) return NULL;
     for (unsigned int i=0; i<num_pic_params; i++) {
         if (cursor+2 > payload_size) return NULL;
         cursor += 2+AP4_BytesToInt16BE(&payload[cursor]);
@@ -152,18 +152,28 @@ AP4_AvccAtom::AP4_AvccAtom(AP4_UI32 size, const AP4_UI08* payload) :
     m_SequenceParameters.EnsureCapacity(num_seq_params);
     unsigned int cursor = 6;
     for (unsigned int i=0; i<num_seq_params; i++) {
-        m_SequenceParameters.Append(AP4_DataBuffer());
-        AP4_UI16 param_length = AP4_BytesToInt16BE(&payload[cursor]);
-        m_SequenceParameters[i].SetData(&payload[cursor]+2, param_length);
-        cursor += 2+param_length;
+        if (cursor+2 <= payload_size) {
+            AP4_UI16 param_length = AP4_BytesToInt16BE(&payload[cursor]);
+            cursor += 2;
+            if (cursor + param_length <= payload_size) {
+                m_SequenceParameters.Append(AP4_DataBuffer());
+                m_SequenceParameters[i].SetData(&payload[cursor], param_length);
+                cursor += param_length;
+            }
+        }
     }
     AP4_UI08 num_pic_params = payload[cursor++];
     m_PictureParameters.EnsureCapacity(num_pic_params);
     for (unsigned int i=0; i<num_pic_params; i++) {
-        m_PictureParameters.Append(AP4_DataBuffer());
-        AP4_UI16 param_length = AP4_BytesToInt16BE(&payload[cursor]);
-        m_PictureParameters[i].SetData(&payload[cursor]+2, param_length);
-        cursor += 2+param_length;
+        if (cursor+2 <= payload_size) {
+            AP4_UI16 param_length = AP4_BytesToInt16BE(&payload[cursor]);
+            cursor += 2;
+            if (cursor + param_length <= payload_size) {
+                m_PictureParameters.Append(AP4_DataBuffer());
+                m_PictureParameters[i].SetData(&payload[cursor], param_length);
+                cursor += param_length;
+            }
+        }
     }
 }
 
@@ -270,7 +280,7 @@ AP4_AvccAtom::InspectFields(AP4_AtomInspector& inspector)
     for (unsigned int i=0; i<m_SequenceParameters.ItemCount(); i++) {
         inspector.AddField("Sequence Parameter", m_SequenceParameters[i].GetData(), m_SequenceParameters[i].GetDataSize());
     }
-    for (unsigned int i=0; i<m_SequenceParameters.ItemCount(); i++) {
+    for (unsigned int i=0; i<m_PictureParameters.ItemCount(); i++) {
         inspector.AddField("Picture Parameter", m_PictureParameters[i].GetData(), m_PictureParameters[i].GetDataSize());
     }
     return AP4_SUCCESS;

@@ -81,6 +81,8 @@ public:
     AP4_UI32 GetDefaultSampleFlags()                     { return m_DefaultSampleFlags;        }
     void     SetDefaultSampleFlags(AP4_UI32 flags)       { m_DefaultSampleFlags = flags;       }
 
+    void UpdateFlags(AP4_UI32 flags);
+    
 private:
     // methods
     AP4_TfhdAtom(AP4_UI32        size, 

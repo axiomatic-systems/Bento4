@@ -120,7 +120,7 @@ app.loadStream = function() {
   var mediaUrl = document.getElementById('manifestUrlInput').value;
 
   // (re)configure the player
-  drmConfig = {
+  var drmConfig = {
       drm: {
           servers: {
               'com.widevine.alpha': 'https://widevine-proxy.appspot.com/proxy'

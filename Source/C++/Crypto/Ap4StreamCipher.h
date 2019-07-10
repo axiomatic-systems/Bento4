@@ -165,4 +165,39 @@ private:
                              bool            is_last_buffer);
 };
 
+/*----------------------------------------------------------------------
+|   AP4_PatternStreamCipher
++---------------------------------------------------------------------*/
+class AP4_PatternStreamCipher : public AP4_StreamCipher
+{
+public:
+    // methods
+
+    /**
+     * The stream cipher is passed with transfer of ownership (it will
+     * be destroyed when this object is destroyed).
+     */
+    AP4_PatternStreamCipher(AP4_StreamCipher* cipher, AP4_UI08 crypt_byte_block, AP4_UI08 skip_byte_block);
+    ~AP4_PatternStreamCipher();
+    
+    // AP4_StreamCipher implementation
+    virtual AP4_Result      SetStreamOffset(AP4_UI64      offset,
+                                            AP4_Cardinal* preroll);
+    virtual AP4_UI64        GetStreamOffset() { return m_StreamOffset; }
+    virtual AP4_Result      ProcessBuffer(const AP4_UI08* in,
+                                          AP4_Size        in_size,
+                                          AP4_UI08*       out,
+                                          AP4_Size*       out_size,
+                                          bool            is_last_buffer = false);
+    virtual AP4_Result      SetIV(const AP4_UI08* iv);
+    virtual const AP4_UI08* GetIV();
+
+private:
+    // members
+    AP4_StreamCipher* m_Cipher;
+    AP4_UI08          m_CryptByteBlock;
+    AP4_UI08          m_SkipByteBlock;
+    AP4_UI64          m_StreamOffset;
+};
+
 #endif // _AP4_STREAM_CIPHER_H_

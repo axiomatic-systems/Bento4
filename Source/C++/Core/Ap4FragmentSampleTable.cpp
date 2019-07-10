@@ -47,7 +47,8 @@ AP4_FragmentSampleTable::AP4_FragmentSampleTable(AP4_ContainerAtom* traf,
                                                  AP4_ByteStream*    sample_stream,
                                                  AP4_Position       moof_offset,
                                                  AP4_Position       mdat_payload_offset,
-                                                 AP4_UI64           dts_origin)
+                                                 AP4_UI64           dts_origin) :
+    m_Duration(0)
 {
     AP4_TfhdAtom* tfhd = AP4_DYNAMIC_CAST(AP4_TfhdAtom, traf->GetChild(AP4_ATOM_TYPE_TFHD));
     if (tfhd == NULL) return;
@@ -260,7 +261,7 @@ AP4_FragmentSampleTable::GetSampleCount()
 AP4_SampleDescription*
 AP4_FragmentSampleTable::GetSampleDescription(AP4_Ordinal /*index*/)
 {
-    return NULL; // FIXME
+    return NULL; // TODO
 }
 
 /*----------------------------------------------------------------------
@@ -269,7 +270,7 @@ AP4_FragmentSampleTable::GetSampleDescription(AP4_Ordinal /*index*/)
 AP4_Cardinal
 AP4_FragmentSampleTable::GetSampleDescriptionCount()
 {
-    return 1; // FIXME
+    return 1; // TODO
 }
 
 /*----------------------------------------------------------------------
@@ -293,7 +294,7 @@ AP4_Result
 AP4_FragmentSampleTable::GetSampleIndexForTimeStamp(AP4_UI64     /*ts*/, 
                                                     AP4_Ordinal& sample_index)
 {
-    sample_index = 0; // FIXME
+    sample_index = 0; // TODO
     return AP4_SUCCESS;
 }
 
@@ -303,6 +304,6 @@ AP4_FragmentSampleTable::GetSampleIndexForTimeStamp(AP4_UI64     /*ts*/,
 AP4_Ordinal  
 AP4_FragmentSampleTable::GetNearestSyncSampleIndex(AP4_Ordinal /*sample_index*/, bool /*before*/)
 {
-    return 0; // FIXME
+    return 0; // TODO
 }
 

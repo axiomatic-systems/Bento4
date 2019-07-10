@@ -46,6 +46,7 @@ AP4_StszAtom::Create(AP4_Size size, AP4_ByteStream& stream)
 {
     AP4_UI08 version;
     AP4_UI32 flags;
+    if (size < AP4_FULL_ATOM_HEADER_SIZE) return NULL;
     if (AP4_FAILED(AP4_Atom::ReadFullHeader(stream, version, flags))) return NULL;
     if (version != 0) return NULL;
     return new AP4_StszAtom(size, version, flags, stream);
@@ -73,12 +74,21 @@ AP4_StszAtom::AP4_StszAtom(AP4_UI32        size,
     stream.ReadUI32(m_SampleSize);
     stream.ReadUI32(m_SampleCount);
     if (m_SampleSize == 0) { // means that the samples have different sizes
+        // check for overflow
+        if (m_SampleCount > (size-8)/4) {
+            m_SampleCount = 0;
+            return;
+        }
+        
+        // read the entries
         AP4_Cardinal sample_count = m_SampleCount;
         m_Entries.SetItemCount(sample_count);
         unsigned char* buffer = new unsigned char[sample_count*4];
         AP4_Result result = stream.Read(buffer, sample_count*4);
         if (AP4_FAILED(result)) {
             delete[] buffer;
+            m_Entries.Clear();
+            m_SampleCount = 0;
             return;
         }
         for (unsigned int i=0; i<sample_count; i++) {
@@ -159,7 +169,7 @@ AP4_StszAtom::SetSampleSize(AP4_Ordinal sample, AP4_Size sample_size)
             // all samples must have the same size
             if (sample_size != m_SampleSize) {
                 // not the same
-                if (sample == 1) {
+                if (sample == 1 && sample_size != 0) {
                     // if this is the first sample, update the global size
                     m_SampleSize = sample_size;
                     return AP4_SUCCESS;
@@ -170,6 +180,9 @@ AP4_StszAtom::SetSampleSize(AP4_Ordinal sample, AP4_Size sample_size)
             }
         } else {
             // each sample has a different size
+            if (sample > m_Entries.ItemCount()) {
+                return AP4_ERROR_OUT_OF_RANGE;
+            }
             m_Entries[sample - 1] = sample_size;
         }
 

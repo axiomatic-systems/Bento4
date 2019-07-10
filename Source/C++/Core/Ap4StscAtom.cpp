@@ -46,6 +46,7 @@ AP4_StscAtom::Create(AP4_Size size, AP4_ByteStream& stream)
 {
     AP4_UI08 version;
     AP4_UI32 flags;
+    if (size < AP4_FULL_ATOM_HEADER_SIZE) return NULL;
     if (AP4_FAILED(AP4_Atom::ReadFullHeader(stream, version, flags))) return NULL;
     if (version != 0) return NULL;
     return new AP4_StscAtom(size, version, flags, stream);
@@ -72,7 +73,11 @@ AP4_StscAtom::AP4_StscAtom(AP4_UI32        size,
 {
     AP4_UI32 first_sample = 1;
     AP4_UI32 entry_count;
+    if (size - AP4_ATOM_HEADER_SIZE < 4) return;
     stream.ReadUI32(entry_count);
+    if ((size - AP4_ATOM_HEADER_SIZE - 4)/12 < entry_count) {
+        return;
+    }
     m_Entries.SetItemCount(entry_count);
     unsigned char* buffer = new unsigned char[entry_count*12];
     AP4_Result result = stream.Read(buffer, entry_count*12);

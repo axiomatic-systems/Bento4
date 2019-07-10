@@ -1,8 +1,8 @@
 import aes
-import urllib2
 import os
 import hashlib
 import json
+import urllib
 
 KEKID_CONSTANT_1 = "KEKID_1"
 
@@ -23,8 +23,8 @@ def WrapKey(key, kek):
     # Inputs:      Plaintext, n 64-bit values {P1, P2, ..., Pn}, and
     # Key, K (the KEK).
     # Outputs:     Ciphertext, (n+1) 64-bit values {C0, C1, ..., Cn}.
-    n = len(key)/8;
-    if n < 1: 
+    n = len(key) // 8;
+    if n < 1:
         raise Exception('key too short')
 
     # 1) Initialize variables.
@@ -72,7 +72,7 @@ def UnwrapKey(key, kek):
     # Inputs:  Ciphertext, (n+1) 64-bit values {C0, C1, ..., Cn}, and
     # Key, K (the KEK).
     # Outputs: Plaintext, n 64-bit values {P0, P1, K, Pn}.
-    n = len(key)/8 - 1;
+    n = len(key) // 8 - 1;
     if n < 1:
         raise Exception('wrapped key too short');
 
@@ -150,7 +150,7 @@ def ResolveKey(options, spec):
         kid = spec_params['kid']
         if '?' in base_url:
             (base_url_path, base_url_query) = tuple(base_url.split('?', 1))
-            base_url_query = '?'+base_url_query
+            base_url_query = '?'+urllib.unquote(base_url_query).decode('utf8')
         else:
             base_url_path = base_url
             base_url_query = ''
@@ -174,7 +174,7 @@ def ResolveKey(options, spec):
 
         if options.debug:
             print 'Request:', base_url, json.dumps(key_object)
-            
+
         response = requests.post(base_url, headers={'content-type': 'application/json'}, data=json.dumps(key_object))
     else:
         raise Exception('Unsupported SKM query mode')

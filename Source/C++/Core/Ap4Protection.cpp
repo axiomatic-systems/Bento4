@@ -232,6 +232,8 @@ AP4_EncvSampleEntry::ToTargetSampleDescription(AP4_UI32 format)
         case AP4_SAMPLE_FORMAT_AVC2:
         case AP4_SAMPLE_FORMAT_AVC3:
         case AP4_SAMPLE_FORMAT_AVC4:
+        case AP4_SAMPLE_FORMAT_DVAV:
+        case AP4_SAMPLE_FORMAT_DVA1:
             return new AP4_AvcSampleDescription(
                 format,
                 m_Width,
@@ -242,6 +244,8 @@ AP4_EncvSampleEntry::ToTargetSampleDescription(AP4_UI32 format)
                 
         case AP4_SAMPLE_FORMAT_HVC1:
         case AP4_SAMPLE_FORMAT_HEV1:
+        case AP4_SAMPLE_FORMAT_DVHE:
+        case AP4_SAMPLE_FORMAT_DVH1:
             return new AP4_HevcSampleDescription(
                 format,
                 m_Width,

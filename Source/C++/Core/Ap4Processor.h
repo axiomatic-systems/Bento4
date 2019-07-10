@@ -218,12 +218,12 @@ public:
     /**
      * This method can be overridden by concrete subclasses.
      * It is called once for each track in the input file.
-     * @param track Pointer to the track for which a handler should be
+     * @param trak Pointer to the track for which a handler should be
      * created. 
      * @return A pointer to a track handler, or NULL if no handler 
      * needs to be created for that track.
      */
-    virtual TrackHandler* CreateTrackHandler(AP4_TrakAtom* /*trak*/) { return NULL; }
+    virtual TrackHandler* CreateTrackHandler(AP4_TrakAtom* trak) { (void)trak; return NULL; }
 
     /**
      * This method can be overridden by concrete subclasses.

@@ -47,20 +47,27 @@ public:
     static AP4_TencAtom* Create(AP4_Size size, AP4_ByteStream& stream);
 
     // constructors
-    AP4_TencAtom(AP4_UI32        default_algorithm_id,
-                 AP4_UI08        default_iv_size,
+    AP4_TencAtom(AP4_UI32        default_is_protected,
+                 AP4_UI08        default_per_sample_iv_size,
                  const AP4_UI08* default_kid);
   
+    AP4_TencAtom(AP4_UI32        default_is_protected,
+                 AP4_UI08        default_per_sample_iv_size,
+                 const AP4_UI08* default_kid,
+                 AP4_UI08        default_constant_iv_size,
+                 const AP4_UI08* default_constant_iv,
+                 AP4_UI08        default_crypt_byte_block,
+                 AP4_UI08        default_skip_byte_block);
+
     // methods
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
 
 private:
     // methods
-    AP4_TencAtom(AP4_UI32        size, 
-                 AP4_UI08        version,
-                 AP4_UI32        flags,
-                 AP4_ByteStream& stream);
+    AP4_TencAtom(AP4_UI32 size,
+                 AP4_UI08 version,
+                 AP4_UI32 flags);
 };
 
 #endif // _AP4_TENC_ATOM_H_

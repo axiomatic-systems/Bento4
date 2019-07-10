@@ -158,7 +158,9 @@ MakeFramePrefix(AP4_SampleDescription* sdesc, AP4_DataBuffer& prefix, unsigned i
         return AP4_FAILURE;
     }
     
-    if (sdesc->GetFormat() == AP4_SAMPLE_FORMAT_AVC3 || sdesc->GetFormat() == AP4_SAMPLE_FORMAT_AVC4) {
+    if (sdesc->GetFormat() == AP4_SAMPLE_FORMAT_AVC3 ||
+        sdesc->GetFormat() == AP4_SAMPLE_FORMAT_AVC4 ||
+        sdesc->GetFormat() == AP4_SAMPLE_FORMAT_DVAV) {
         // no need for a prefix, SPS/PPS NALs should be in the elementary stream already
         return AP4_SUCCESS;
     }
@@ -329,8 +331,8 @@ main(int argc, char** argv)
 
     // show info
     AP4_Debug("Video Track:\n");
-    AP4_Debug("  duration: %ld ms\n", video_track->GetDurationMs());
-    AP4_Debug("  sample count: %ld\n", video_track->GetSampleCount());
+    AP4_Debug("  duration: %u ms\n",  (int)video_track->GetDurationMs());
+    AP4_Debug("  sample count: %u\n", (int)video_track->GetSampleCount());
 
     switch (sample_description->GetType()) {
         case AP4_SampleDescription::TYPE_AVC:

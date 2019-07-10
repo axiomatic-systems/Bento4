@@ -2,7 +2,7 @@
 |
 |    AP4 - Elementary Stream Muliplexer
 |
-|    Copyright 2002-2016 Axiomatic Systems, LLC
+|    Copyright 2002-2019 Axiomatic Systems, LLC
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -39,11 +39,12 @@
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-#define BANNER "MP4 Elementary Stream Multiplexer - Version 1.1\n"\
+#define BANNER "MP4 Elementary Stream Multiplexer - Version 2.0\n"\
                "(Bento4 Version " AP4_VERSION_STRING ")\n"\
-               "(c) 2002-20016 Axiomatic Systems, LLC"
+               "(c) 2002-20019 Axiomatic Systems, LLC"
 
 const unsigned int AP4_MUX_DEFAULT_VIDEO_FRAME_RATE = 24;
+const unsigned int AP4_MUX_READ_BUFFER_SIZE         = 65536;
 
 /*----------------------------------------------------------------------
 |   globals
@@ -82,7 +83,7 @@ PrintUsageAndExit()
 {
     fprintf(stderr, 
             BANNER 
-            "\n\nusage: mp4mux [options] --track [<type>:]<input>[#<params] [--track [<type>:]<input>[#<params] ...] <output>\n"
+            "\n\nusage: mp4mux [options] --track [<type>:]<input>[#<params>] [--track [<type>:]<input>[#<params>] ...] <output>\n"
             "\n"
             "  <params>, when specified, are expressd as a comma-separated list of\n"
             "  one or more <name>=<value> parameters\n"
@@ -92,6 +93,7 @@ PrintUsageAndExit()
             "  h265: H265/HEVC NAL units\n"
             "    optional params:\n"
             "      frame_rate: floating point number in frames per second (default=24.0)\n"
+            "      format: hev1 or hvc1 (default) for HEVC tracks\n"
             "  aac:  AAC in ADTS format\n"
             "  mp4:  MP4 track(s) from an MP4 file\n"
             "    optional params:\n"
@@ -153,30 +155,6 @@ public:
         remove(m_Filename.GetChars());
     }
     
-    AP4_Result StoreSample(AP4_Sample& from_sample, AP4_Sample& to_sample) {
-        // clone the sample fields
-        to_sample = from_sample;
-        
-        // read the sample data
-        AP4_DataBuffer sample_data;
-        AP4_Result result = from_sample.ReadData(sample_data);
-        if (AP4_FAILED(result)) return result;
-        
-        // mark where we are going to store the sample data
-        AP4_Position position;
-        m_Stream->Tell(position);
-        to_sample.SetOffset(position);
-        
-        // write the sample data
-        result = m_Stream->Write(sample_data.GetData(), sample_data.GetDataSize());
-        if (AP4_FAILED(result)) return result;
-        
-        // update the stream for the new sample
-        to_sample.SetDataStream(*m_Stream);
-    
-        return AP4_SUCCESS;
-    }
-
     AP4_ByteStream* GetStream() { return m_Stream; }
     
 private:
@@ -324,7 +302,7 @@ AddAacTrack(AP4_Movie&            movie,
         }
 
         // read some data and feed the parser
-        AP4_UI08 input_buffer[4096];
+        AP4_UI08 input_buffer[AP4_MUX_READ_BUFFER_SIZE];
         AP4_Size to_read = parser.GetBytesFree();
         if (to_read) {
             AP4_Size bytes_read = 0;
@@ -387,6 +365,7 @@ AddH264Track(AP4_Movie&            movie,
             double frame_rate = atof(parameters[i].m_Value.GetChars());
             if (frame_rate == 0.0) {
                 fprintf(stderr, "ERROR: invalid video frame rate %s\n", parameters[i].m_Value.GetChars());
+                input->Release();
                 return;
             }
             video_frame_rate = (unsigned int)(1000.0*frame_rate);
@@ -403,7 +382,7 @@ AddH264Track(AP4_Movie&            movie,
     AP4_AvcFrameParser parser;
     for (;;) {
         bool eos;
-        unsigned char input_buffer[4096];
+        unsigned char input_buffer[AP4_MUX_READ_BUFFER_SIZE];
         AP4_Size bytes_in_buffer = 0;
         result = input->ReadPartial(input_buffer, sizeof(input_buffer), bytes_in_buffer);
         if (AP4_SUCCEEDED(result)) {
@@ -585,7 +564,8 @@ AddH265Track(AP4_Movie&            movie,
 {
     unsigned int video_width = 0;
     unsigned int video_height = 0;
-
+    AP4_UI32     format = AP4_SAMPLE_FORMAT_HVC1;
+    
     AP4_ByteStream* input;
     AP4_Result result = AP4_FileByteStream::Create(input_name, AP4_FileByteStream::STREAM_MODE_READ, input);
     if (AP4_FAILED(result)) {
@@ -600,9 +580,16 @@ AddH265Track(AP4_Movie&            movie,
             double frame_rate = atof(parameters[i].m_Value.GetChars());
             if (frame_rate == 0.0) {
                 fprintf(stderr, "ERROR: invalid video frame rate %s\n", parameters[i].m_Value.GetChars());
+                input->Release();
                 return;
             }
             video_frame_rate = (unsigned int)(1000.0*frame_rate);
+        } else if (parameters[i].m_Name == "format") {
+            if (parameters[i].m_Value == "hev1") {
+                format = AP4_SAMPLE_FORMAT_HEV1;
+            } else if (parameters[i].m_Value == "hvc1") {
+                format = AP4_SAMPLE_FORMAT_HVC1;
+            }
         }
     }
     
@@ -616,7 +603,7 @@ AddH265Track(AP4_Movie&            movie,
     AP4_HevcFrameParser parser;
     for (;;) {
         bool eos;
-        unsigned char input_buffer[4096];
+        unsigned char input_buffer[AP4_MUX_READ_BUFFER_SIZE];
         AP4_Size bytes_in_buffer = 0;
         result = input->ReadPartial(input_buffer, sizeof(input_buffer), bytes_in_buffer);
         if (AP4_SUCCEEDED(result)) {
@@ -730,8 +717,8 @@ AddH265Track(AP4_Movie&            movie,
     AP4_UI32 min_spatial_segmentation =            0; // TBD (should read from VUI if present)
     AP4_UI08 parallelism_type =                    0; // unknown
     AP4_UI08 chroma_format =                       sps->chroma_format_idc;
-    AP4_UI08 luma_bit_depth =                      8; // FIXME: hardcoded temporarily, should be read from the bitstream
-    AP4_UI08 chroma_bit_depth =                    8; // FIXME: hardcoded temporarily, should be read from the bitstream
+    AP4_UI08 luma_bit_depth =                      8; // hardcoded temporarily, should be read from the bitstream
+    AP4_UI08 chroma_bit_depth =                    8; // hardcoded temporarily, should be read from the bitstream
     AP4_UI16 average_frame_rate =                  0; // unknown
     AP4_UI08 constant_frame_rate =                 0; // unknown
     AP4_UI08 num_temporal_layers =                 0; // unknown
@@ -764,8 +751,9 @@ AddH265Track(AP4_Movie&            movie,
     }
     
     // setup the video the sample descripton
+    AP4_UI08 parameters_completeness = (format == AP4_SAMPLE_FORMAT_HVC1 ? 1 : 0);
     AP4_HevcSampleDescription* sample_description =
-        new AP4_HevcSampleDescription(AP4_SAMPLE_FORMAT_HEV1,
+        new AP4_HevcSampleDescription(format,
                                       video_width,
                                       video_height,
                                       24,
@@ -787,8 +775,11 @@ AddH265Track(AP4_Movie&            movie,
                                       temporal_id_nested,
                                       nalu_length_size,
                                       vps_array,
+                                      parameters_completeness,
                                       sps_array,
-                                      pps_array);
+                                      parameters_completeness,
+                                      pps_array,
+                                      parameters_completeness);
     
     sample_table->AddSampleDescription(sample_description);
     
@@ -1026,14 +1017,16 @@ main(int argc, char** argv)
         return 1;
     }
     
-    // create a multimedia file
-    AP4_File file(movie);
+    {
+        // create a multimedia file
+        AP4_File file(movie);
 
-    // set the file type
-    file.SetFileType(AP4_FILE_BRAND_MP42, 1, &brands[0], brands.ItemCount());
+        // set the file type
+        file.SetFileType(AP4_FILE_BRAND_MP42, 1, &brands[0], brands.ItemCount());
 
-    // write the file to the output
-    AP4_FileWriter::Write(file, *output);
+        // write the file to the output
+        AP4_FileWriter::Write(file, *output);
+    }
     
     // cleanup
     delete sample_storage;

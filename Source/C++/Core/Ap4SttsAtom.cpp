@@ -46,6 +46,7 @@ AP4_SttsAtom::Create(AP4_Size size, AP4_ByteStream& stream)
 {
     AP4_UI08 version;
     AP4_UI32 flags;
+    if (size < AP4_FULL_ATOM_HEADER_SIZE) return NULL;
     if (AP4_FAILED(AP4_Atom::ReadFullHeader(stream, version, flags))) return NULL;
     if (version != 0) return NULL;
     return new AP4_SttsAtom(size, version, flags, stream);
@@ -133,7 +134,7 @@ AP4_SttsAtom::GetDts(AP4_Ordinal sample, AP4_UI64& dts, AP4_UI32* duration)
  
         // update the sample and dts bases
         sample_start += entry.m_SampleCount;
-        dts_start    += entry.m_SampleCount*entry.m_SampleDuration;
+        dts_start    += (AP4_UI64)entry.m_SampleCount * (AP4_UI64)entry.m_SampleDuration;
     }
 
     // sample is greater than the number of samples

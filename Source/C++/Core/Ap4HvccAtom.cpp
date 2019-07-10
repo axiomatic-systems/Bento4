@@ -178,8 +178,11 @@ AP4_HvccAtom::AP4_HvccAtom(AP4_UI08                         general_profile_spac
                            AP4_UI08                         temporal_id_nested,
                            AP4_UI08                         nalu_length_size,
                            const AP4_Array<AP4_DataBuffer>& video_parameters,
+                           AP4_UI08                         video_parameters_completeness,
                            const AP4_Array<AP4_DataBuffer>& sequence_parameters,
-                           const AP4_Array<AP4_DataBuffer>& picture_parameters) :
+                           AP4_UI08                         sequence_parameters_completeness,
+                           const AP4_Array<AP4_DataBuffer>& picture_parameters,
+                           AP4_UI08                         picture_parameters_completeness) :
     AP4_Atom(AP4_ATOM_TYPE_HVCC, AP4_ATOM_HEADER_SIZE),
     m_ConfigurationVersion(1),
     m_GeneralProfileSpace(general_profile_space),
@@ -207,7 +210,7 @@ AP4_HvccAtom::AP4_HvccAtom(AP4_UI08                         general_profile_spac
     // deep copy of the parameters
     AP4_HvccAtom::Sequence vps_sequence;
     vps_sequence.m_NaluType = AP4_HEVC_NALU_TYPE_VPS_NUT;
-    vps_sequence.m_ArrayCompleteness = 0;
+    vps_sequence.m_ArrayCompleteness = video_parameters_completeness;
     for (unsigned int i=0; i<video_parameters.ItemCount(); i++) {
         vps_sequence.m_Nalus.Append(video_parameters[i]);
     }
@@ -217,7 +220,7 @@ AP4_HvccAtom::AP4_HvccAtom(AP4_UI08                         general_profile_spac
     
     AP4_HvccAtom::Sequence sps_sequence;
     sps_sequence.m_NaluType = AP4_HEVC_NALU_TYPE_SPS_NUT;
-    sps_sequence.m_ArrayCompleteness = 0;
+    sps_sequence.m_ArrayCompleteness = sequence_parameters_completeness;
     for (unsigned int i=0; i<sequence_parameters.ItemCount(); i++) {
         sps_sequence.m_Nalus.Append(sequence_parameters[i]);
     }
@@ -227,7 +230,7 @@ AP4_HvccAtom::AP4_HvccAtom(AP4_UI08                         general_profile_spac
 
     AP4_HvccAtom::Sequence pps_sequence;
     pps_sequence.m_NaluType = AP4_HEVC_NALU_TYPE_PPS_NUT;
-    pps_sequence.m_ArrayCompleteness = 0;
+    pps_sequence.m_ArrayCompleteness = picture_parameters_completeness;
     for (unsigned int i=0; i<picture_parameters.ItemCount(); i++) {
         pps_sequence.m_Nalus.Append(picture_parameters[i]);
     }
@@ -247,6 +250,9 @@ AP4_HvccAtom::AP4_HvccAtom(AP4_UI32 size, const AP4_UI08* payload) :
 {
     // make a copy of our configuration bytes
     unsigned int payload_size = size-AP4_ATOM_HEADER_SIZE;
+
+    // keep a raw copy
+    if (payload_size < 22) return;
     m_RawBytes.SetData(payload, payload_size);
 
     // parse the payload

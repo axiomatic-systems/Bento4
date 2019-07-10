@@ -351,6 +351,8 @@ AP4_OmaDcfSampleDecrypter::Create(AP4_ProtectedSampleDescription* sample_descrip
     if (odaf) {
         if (odaf->GetIvLength() > AP4_CIPHER_BLOCK_SIZE) return AP4_ERROR_INVALID_FORMAT;
         if (odaf->GetKeyIndicatorLength() != 0) return AP4_ERROR_INVALID_FORMAT;
+    } else {
+        return AP4_ERROR_INVALID_FORMAT;
     }
 
     // check the scheme details and create the cipher

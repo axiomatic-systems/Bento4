@@ -1,0 +1,6 @@
+path_classifiers:
+    docs:
+        - Documents
+
+    test:
+        - Test

@@ -4,7 +4,7 @@ import sys
 import os
 import shutil
 import re
-   
+
 #############################################################
 # GetSdkRevision
 #############################################################
@@ -51,7 +51,7 @@ BENTO4_HOME = os.path.join(script_dir,'..')
 BENTO4_VERSION = GetVersion()
 
 SDK_REVISION = GetSdkRevision()
-if SDK_REVISION == None:
+if SDK_REVISION is None:
     sys.exit(1)
 print "Exporting Revision", SDK_REVISION
 
@@ -59,7 +59,7 @@ print "Exporting Revision", SDK_REVISION
 SDK_NAME='Bento4-SRC-'+BENTO4_VERSION+'-'+SDK_REVISION
 SDK_OUTPUT_ROOT=BENTO4_HOME+'/SDK'
 SDK_ROOT=SDK_OUTPUT_ROOT+'/'+SDK_NAME
-            
+
 print SDK_NAME
 
 # remove any previous SDK directory
@@ -71,7 +71,7 @@ if not os.path.exists(SDK_OUTPUT_ROOT):
     os.makedirs(SDK_OUTPUT_ROOT)
 
 ### export
-cmd = 'git archive --format=zip HEAD -o '+SDK_ROOT+'.zip' 
+cmd = 'git archive --format=zip HEAD -o '+SDK_ROOT+'.zip'
 print cmd
 #cmd = 'svn export -r'+SDK_REVISION+' https://zebulon.bok.net/svn/Bento4/trunk '+SDK_NAME
 os.system(cmd)

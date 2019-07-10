@@ -40,13 +40,19 @@
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-#define BANNER "MP4 File Info - Version 1.3.3\n"\
+#define BANNER "MP4 File Info - Version 1.3.4\n"\
                "(Bento4 Version " AP4_VERSION_STRING ")\n"\
-               "(c) 2002-2015 Axiomatic Systems, LLC"
+               "(c) 2002-2017 Axiomatic Systems, LLC"
  
 /*----------------------------------------------------------------------
 |   globals
 +---------------------------------------------------------------------*/
+typedef struct {
+    AP4_UI64 sample_count;
+    AP4_UI64 duration;
+    double   bitrate;
+} MediaInfo;
+
 typedef enum {
     TEXT_FORMAT,
     JSON_FORMAT
@@ -366,8 +372,10 @@ ShowSampleDescription_Text(AP4_SampleDescription& description, bool verbose)
     AP4_SampleDescription* desc = &description;
     if (desc->GetType() == AP4_SampleDescription::TYPE_PROTECTED) {
         AP4_ProtectedSampleDescription* prot_desc = AP4_DYNAMIC_CAST(AP4_ProtectedSampleDescription, desc);
-        if (prot_desc) ShowProtectedSampleDescription_Text(*prot_desc, verbose);
-        desc = prot_desc->GetOriginalSampleDescription();
+        if (prot_desc) {
+            ShowProtectedSampleDescription_Text(*prot_desc, verbose);
+            desc = prot_desc->GetOriginalSampleDescription();
+        }
     }
     
     if (verbose) {
@@ -423,11 +431,11 @@ ShowSampleDescription_Text(AP4_SampleDescription& description, bool verbose)
 
     // Dolby Digital specifics
     if (desc->GetFormat() == AP4_SAMPLE_FORMAT_EC_3) {
-        AP4_Dec3Atom* dec3 = AP4_DYNAMIC_CAST(AP4_Dec3Atom, desc->GetDetails().GetChild(AP4_ATOM_TYPE('d', 'e', 'c', '3')));
+        AP4_Dec3Atom* dec3 = AP4_DYNAMIC_CAST(AP4_Dec3Atom, desc->GetDetails().GetChild(AP4_ATOM_TYPE_DEC3));
         if (dec3) {
-            printf("    AC3 Data Rate: %d\n", dec3->GetDataRate());
+            printf("    AC-3 Data Rate: %d\n", dec3->GetDataRate());
             for (unsigned int i=0; i<dec3->GetSubStreams().ItemCount(); i++) {
-                printf("    AC3 Substream %d:\n", i);
+                printf("    AC-3 Substream %d:\n", i);
                 printf("        fscod       = %d\n", dec3->GetSubStreams()[i].fscod);
                 printf("        bsid        = %d\n", dec3->GetSubStreams()[i].bsid);
                 printf("        bsmod       = %d\n", dec3->GetSubStreams()[i].bsmod);
@@ -436,12 +444,40 @@ ShowSampleDescription_Text(AP4_SampleDescription& description, bool verbose)
                 printf("        num_dep_sub = %d\n", dec3->GetSubStreams()[i].num_dep_sub);
                 printf("        chan_loc    = %d\n", dec3->GetSubStreams()[i].chan_loc);
             }
-            printf("    AC3 dec3 payload: [");
+            printf("    AC-3 dec3 payload: [");
             ShowData(dec3->GetRawBytes());
             printf("]\n");
         }
     }
-    
+
+    // Dolby AC-4 specifics
+    if (desc->GetFormat() == AP4_SAMPLE_FORMAT_AC_4) {
+        AP4_Dac4Atom* dac4 = AP4_DYNAMIC_CAST(AP4_Dac4Atom, desc->GetDetails().GetChild(AP4_ATOM_TYPE_DAC4));
+        if (dac4) {
+            printf("    Codecs String: ");
+            AP4_String codec;
+            dac4->GetCodecString(codec);
+            printf("%s", codec.GetChars());
+            printf("\n");
+
+            const AP4_Dac4Atom::Ac4Dsi& dsi = dac4->GetDsi();
+            if (dsi.ac4_dsi_version == 1) {
+                for (unsigned int i = 0; i < dsi.d.v1.n_presentations; i++) {
+                    AP4_Dac4Atom::Ac4Dsi::PresentationV1& presentation = dsi.d.v1.presentations[i];
+                    if (presentation.presentation_version == 1) {
+                        printf("    AC-4 Presentation %d:\n", i);
+                        printf("        presentation_channel_mask_v1 = %x\n",
+                               presentation.d.v1.presentation_channel_mask_v1);
+                    }
+                }
+            }
+            
+            printf("    AC-4 dac4 payload: [");
+            ShowData(dac4->GetRawBytes());
+            printf("]\n");
+        }
+    }
+
     // AVC specifics
     if (desc->GetType() == AP4_SampleDescription::TYPE_AVC) {
         // AVC Sample Description
@@ -561,8 +597,8 @@ ShowSampleDescription_Json(AP4_SampleDescription& description, bool verbose)
         if (prot_desc) {
             ShowProtectedSampleDescription_Json(*prot_desc, verbose);
             printf(",\n");
+            desc = prot_desc->GetOriginalSampleDescription();
         }
-        desc = prot_desc->GetOriginalSampleDescription();
     }
     char coding[5];
     AP4_FormatFourChars(coding, desc->GetFormat());
@@ -579,7 +615,7 @@ ShowSampleDescription_Json(AP4_SampleDescription& description, bool verbose)
         // MPEG sample description
         AP4_MpegSampleDescription* mpeg_desc = AP4_DYNAMIC_CAST(AP4_MpegSampleDescription, desc);
 
-        printf(",\n"),
+        printf(",\n");
         printf("\"stream_type\":%d,\n",          mpeg_desc->GetStreamType());
         printf("\"stream_type_name\":\"%s\",\n", mpeg_desc->GetStreamTypeString(mpeg_desc->GetStreamType()));
         printf("\"object_type\":%d,\n",          mpeg_desc->GetObjectTypeId());
@@ -603,7 +639,7 @@ ShowSampleDescription_Json(AP4_SampleDescription& description, bool verbose)
     AP4_AudioSampleDescription* audio_desc = AP4_DYNAMIC_CAST(AP4_AudioSampleDescription, desc);
     if (audio_desc) {
         // Audio sample description
-        printf(",\n"),
+        printf(",\n");
         printf("\"sample_rate\":%d,\n", audio_desc->GetSampleRate());
         printf("\"sample_size\":%d,\n", audio_desc->GetSampleSize());
         printf("\"channels\":%d",       audio_desc->GetChannelCount());
@@ -612,7 +648,7 @@ ShowSampleDescription_Json(AP4_SampleDescription& description, bool verbose)
         AP4_DYNAMIC_CAST(AP4_VideoSampleDescription, desc);
     if (video_desc) {
         // Video sample description
-        printf(",\n"),
+        printf(",\n");
         printf("\"width\":%d,\n",  video_desc->GetWidth());
         printf("\"height\":%d,\n", video_desc->GetHeight());
         printf("\"depth\":%d",     video_desc->GetDepth());
@@ -643,6 +679,41 @@ ShowSampleDescription_Json(AP4_SampleDescription& description, bool verbose)
                 sep = ",\n";
             }
             printf("\n  ]\n}");
+        }
+    }
+
+    // Dolby AC-4 specifics
+    if (desc->GetFormat() == AP4_SAMPLE_FORMAT_AC_4) {
+        AP4_Dac4Atom* dac4 = AP4_DYNAMIC_CAST(AP4_Dac4Atom, desc->GetDetails().GetChild(AP4_ATOM_TYPE_DAC4));
+        if (dac4) {
+            printf(",\n");
+            printf("\"dolby_ac4_info\": {\n");
+
+            printf("  \"presentations\": [\n");
+            const AP4_Dac4Atom::Ac4Dsi& dsi = dac4->GetDsi();
+            if (dsi.ac4_dsi_version == 1) {
+                const char* separator = "";
+                for (unsigned int i = 0; i < dsi.d.v1.n_presentations; i++) {
+                    AP4_Dac4Atom::Ac4Dsi::PresentationV1& presentation = dsi.d.v1.presentations[i];
+                    if (presentation.presentation_version == 1) {
+                        printf("%s    { \"presentation_channel_mask_v1\": %u }",
+                               separator,
+                               presentation.d.v1.presentation_channel_mask_v1);
+                        separator = ",\n";
+                    }
+                }
+            }
+            printf("\n  ],\n");
+
+            printf("  \"dac4_payload\": \"");
+            ShowData(dac4->GetRawBytes());
+            printf("\"\n},\n");
+            
+            printf("\"codecs_string\":\"");
+            AP4_String codec;
+            dac4->GetCodecString(codec);
+            printf("%s", codec.GetChars());
+            printf("\"");
         }
     }
 
@@ -964,12 +1035,11 @@ ShowSample_Text(AP4_Track&      track,
 }
 
 /*----------------------------------------------------------------------
-|   ComputeBitrate
+|   ScanMedia
 +---------------------------------------------------------------------*/
-static double
-ComputeBitrate(AP4_Movie& movie, AP4_Track& track, AP4_ByteStream& stream)
+static void
+ScanMedia(AP4_Movie& movie, AP4_Track& track, AP4_ByteStream& stream, MediaInfo& info)
 {
-    double   bitrate = 0.0;
     AP4_UI64 total_size = 0;
     AP4_UI64 total_duration = 0;
     
@@ -978,6 +1048,8 @@ ComputeBitrate(AP4_Movie& movie, AP4_Track& track, AP4_ByteStream& stream)
     stream.Seek(0);
     AP4_LinearReader reader(movie, &stream);
     reader.EnableTrack(track.GetId());
+    
+    info.sample_count = 0;
     
     AP4_Sample sample;
     if (movie.HasFragments()) {
@@ -988,11 +1060,13 @@ ComputeBitrate(AP4_Movie& movie, AP4_Track& track, AP4_ByteStream& stream)
             if (AP4_SUCCEEDED(result)) {
                 total_size += sample.GetSize();
                 total_duration += sample.GetDuration();
+                ++info.sample_count;
             } else {
                 break;
             }
         }
     } else {
+        info.sample_count = track.GetSampleCount();
         for (unsigned int i=0; i<track.GetSampleCount(); i++) {
             if (AP4_SUCCEEDED(track.GetSample(i, sample))) {
                 total_size += sample.GetSize();
@@ -1000,13 +1074,14 @@ ComputeBitrate(AP4_Movie& movie, AP4_Track& track, AP4_ByteStream& stream)
         }
         total_duration = track.GetMediaDuration();
     }
+    info.duration = total_duration;
     
     double duration_ms = (double)AP4_ConvertTime(total_duration, track.GetMediaTimeScale(), 1000);
     if (duration_ms) {
-        bitrate = 8.0*1000.0*(double)total_size/duration_ms;
+        info.bitrate = 8.0*1000.0*(double)total_size/duration_ms;
+    } else {
+        info.bitrate = 0.0;
     }
-    
-    return bitrate;
 }
 
 /*----------------------------------------------------------------------
@@ -1053,7 +1128,14 @@ ShowTrackInfo_Text(AP4_Movie& movie, AP4_Track& track, AP4_ByteStream& stream, b
     printf("    duration:     %lld (media timescale units)\n", track.GetMediaDuration());
     printf("    duration:     %d (ms)\n", (AP4_UI32)AP4_ConvertTime(track.GetMediaDuration(), track.GetMediaTimeScale(), 1000));
     if (!fast) {
-    printf("    bitrate (computed): %.3f Kbps\n", (float)ComputeBitrate(movie, track, stream)/1000.0);
+        MediaInfo media_info;
+        ScanMedia(movie, track, stream, media_info);
+        printf("    bitrate (computed): %.3f Kbps\n", media_info.bitrate/1000.0);
+        if (movie.HasFragments()) {
+            printf("    sample count with fragments: %lld\n", media_info.sample_count);
+            printf("    duration with fragments:     %lld\n", media_info.duration);
+            printf("    duration with fragments:     %d (ms)\n", (AP4_UI32)AP4_ConvertTime(media_info.duration, track.GetMediaTimeScale(), 1000));
+        }
     }
     if (track.GetWidth()  || track.GetHeight()) {
         printf("  display width:  %f\n", (float)track.GetWidth()/65536.0);
@@ -1141,8 +1223,17 @@ ShowTrackInfo_Json(AP4_Movie& movie, AP4_Track& track, AP4_ByteStream& stream, b
     printf("    \"duration\":%lld,\n", track.GetMediaDuration());
     printf("    \"duration_ms\":%d", (AP4_UI32)AP4_ConvertTime(track.GetMediaDuration(), track.GetMediaTimeScale(), 1000));
     if (!fast) {
+        MediaInfo media_info;
+        ScanMedia(movie, track, stream, media_info);
         printf(",\n");
-    printf("    \"bitrate\":%.3f\n", (float)ComputeBitrate(movie, track, stream)/1000.0);
+        printf("    \"bitrate\":%.3f", media_info.bitrate/1000.0);
+        if (movie.HasFragments()) {
+            printf(",\n");
+            printf("    \"sample_count_with_fragments\":%lld,\n", media_info.sample_count);
+            printf("    \"duration_with_fragments\":%lld,\n", media_info.duration);
+            printf("    \"duration_with_fragments_ms\":%d", (AP4_UI32)AP4_ConvertTime(media_info.duration, track.GetMediaTimeScale(), 1000));
+        }
+        printf("\n");
     } else {
         printf("\n");
     }
@@ -1259,13 +1350,19 @@ ShowFileInfo(AP4_File& file)
                 break;
         }
     }
+    
+    if (Options.format == JSON_FORMAT) {
+        printf("],\n");
+    }
+
+    // fast-start
     switch (Options.format) {
         case TEXT_FORMAT:
-            printf("\n");
+            printf("  fast start:       %s\n\n", file.IsMoovBeforeMdat() ? "yes" : "no");
             break;
             
         case JSON_FORMAT:
-            printf("]\n},\n");
+            printf("  \"fast_start\":%s\n},\n", file.IsMoovBeforeMdat() ? "true" : "false");
             break;
     }
 }
@@ -1535,7 +1632,6 @@ main(int argc, char** argv)
     if (Options.format == JSON_FORMAT) printf("{\n");
     
     AP4_File* file = new AP4_File(*input, true);
-    input->Release();
     ShowFileInfo(*file);
 
     AP4_Movie* movie = file->GetMovie();
@@ -1576,6 +1672,7 @@ main(int argc, char** argv)
     
     if (Options.format == JSON_FORMAT) printf("}\n");
 
+    input->Release();
     delete file;
 
     return 0;

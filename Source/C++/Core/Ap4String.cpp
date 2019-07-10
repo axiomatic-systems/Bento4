@@ -100,7 +100,7 @@ AP4_String::~AP4_String()
 const AP4_String&
 AP4_String::operator=(const AP4_String& s)
 {
-    if (&s == this) return s;
+    if (&s == this) return *this;
     if (m_Chars != &EmptyString) delete[] m_Chars;
     m_Length = s.m_Length;
     m_Chars = new char[m_Length+1];

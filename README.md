@@ -1,8 +1,11 @@
-Bento4 
-======
+Bento4
+=====
+[![Build Status](https://travis-ci.org/axiomatic-systems/Bento4.svg?branch=master)](https://travis-ci.org/axiomatic-systems/Bento4.svg?branch=master)
+[![Code Quality: Cpp](https://img.shields.io/lgtm/grade/cpp/g/axiomatic-systems/Bento4.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/axiomatic-systems/Bento4/context:cpp)
+[![Total Alerts](https://img.shields.io/lgtm/alerts/g/axiomatic-systems/Bento4.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/axiomatic-systems/Bento4/alerts)
            
-Bento4 is a C++ class library and tools designed to read and write ISO-MP4 files. 
-This format is defined in international specifications ISO/IEC 14496-12, 14496-14 and 14496-15. 
+Bento4 is a C++ class library and tools designed to read and write ISO-MP4 files.
+This format is defined in international specifications ISO/IEC 14496-12, 14496-14 and 14496-15.
 The format is a derivative of the Apple Quicktime file format, so Bento4 can be used to read and write most Quicktime files as well.
 
 Visit [www.bento4.com](http://www.bento4.com) for details
@@ -74,7 +77,7 @@ Open the XCode project file Build/Targets/universal-apple-macosx/Bento4.xcodepro
 ### Windows using Visual Studio
 Open the Visual Studio solution file Build/Targets/x86-microsoft-win32-vs2010/Bento4.sln and build
 
-### Using SCons
+### On Linux and other platforms, using SCons
 Make sure you the the SCons build tool installed on your host machine (http://www.scons.org).
 To build the Debug configuration, simply enter the command:
 
@@ -90,7 +93,7 @@ To cross-compile for a target other than your host architecture, specify target=
 
 Example:
 
-```scons -u build_config=Release target=arm-unknown-linux```
+```scons -u build_config=Release target=x86_64-unknown-linux```
 
 ### Using CMake
 CMake can generate Makefiles, Xcode project files, or Visual Studios project files.
@@ -120,4 +123,3 @@ For Debug builds:
 
 For Release builds:
 ```make AP4_BUILD_CONFIG=Release```
-

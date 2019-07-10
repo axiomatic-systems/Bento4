@@ -37,9 +37,9 @@
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-#define BANNER "MP4 To MPEG2-TS File Converter - Version 1.2\n"\
+#define BANNER "MP4 To MPEG2-TS File Converter - Version 1.3\n"\
                "(Bento4 Version " AP4_VERSION_STRING ")\n"\
-               "(c) 2002-2014 Axiomatic Systems, LLC"
+               "(c) 2002-2018 Axiomatic Systems, LLC"
  
 /*----------------------------------------------------------------------
 |   options
@@ -55,6 +55,7 @@ struct _Options {
     const char*  output;
     unsigned int segment_duration;
     unsigned int segment_duration_threshold;
+    unsigned int pcr_offset;
 } Options;
 
 /*----------------------------------------------------------------------
@@ -80,6 +81,7 @@ PrintUsageAndExit()
             "     like \"seg-%cd.ts\"]\n"
             "  --segment-duration-threshold in ms (default = 50)\n"
             "    [only used with the --segment option]\n"
+            "  --pcr-offset <offset> in units of 90kHz (default 10000)\n"
             "  --verbose\n"
             "  --playlist <filename>\n"
             "  --playlist-hls-version <n> (default=3)\n"
@@ -183,6 +185,9 @@ ReadSample(SampleReader&   reader,
         } else {
             return result;
         }
+    }
+    if (sample_data.GetDataSize() == 0) {
+        return AP4_ERROR_INVALID_FORMAT;
     }
     ts = (double)sample.GetDts()/(double)track.GetMediaTimeScale();
     
@@ -347,7 +352,7 @@ WriteSamples(AP4_Mpeg2TsWriter&               writer,
         unsigned int target_duration = 0;
         for (unsigned int i=0; i<segment_durations.ItemCount(); i++) {
             if ((unsigned int)(segment_durations[i]+0.5) > target_duration) {
-                target_duration = segment_durations[i];
+                target_duration = (unsigned int)segment_durations[i];
             }
         }
 
@@ -414,6 +419,7 @@ main(int argc, char** argv)
     Options.input                      = NULL;
     Options.output                     = NULL;
     Options.segment_duration_threshold = DefaultSegmentDurationThreshold;
+    Options.pcr_offset                 = AP4_MPEG2_TS_DEFAULT_PCR_OFFSET;
     
     // parse command line
     AP4_Result result;
@@ -424,13 +430,13 @@ main(int argc, char** argv)
                 fprintf(stderr, "ERROR: --segment requires a number\n");
                 return 1;
             }
-            Options.segment_duration = strtoul(*args++, NULL, 10);
+            Options.segment_duration = (unsigned int)strtoul(*args++, NULL, 10);
         } else if (!strcmp(arg, "--segment-duration-threshold")) {
             if (*args == NULL) {
                 fprintf(stderr, "ERROR: --segment-duration-threshold requires a number\n");
                 return 1;
             }
-            Options.segment_duration_threshold = strtoul(*args++, NULL, 10);
+            Options.segment_duration_threshold = (unsigned int)strtoul(*args++, NULL, 10);
         } else if (!strcmp(arg, "--verbose")) {
             Options.verbose = true;
         } else if (!strcmp(arg, "--pmt-pid")) {
@@ -438,19 +444,25 @@ main(int argc, char** argv)
                 fprintf(stderr, "ERROR: --pmt-pid requires a number\n");
                 return 1;
             }
-            Options.pmt_pid = strtoul(*args++, NULL, 10);
+            Options.pmt_pid = (unsigned int)strtoul(*args++, NULL, 10);
         } else if (!strcmp(arg, "--audio-pid")) {
             if (*args == NULL) {
                 fprintf(stderr, "ERROR: --audio-pid requires a number\n");
                 return 1;
             }
-            Options.audio_pid = strtoul(*args++, NULL, 10);
+            Options.audio_pid = (unsigned int)strtoul(*args++, NULL, 10);
         } else if (!strcmp(arg, "--video-pid")) {
             if (*args == NULL) {
                 fprintf(stderr, "ERROR: --video-pid requires a number\n");
                 return 1;
             }
-            Options.video_pid = strtoul(*args++, NULL, 10);
+            Options.video_pid = (unsigned int)strtoul(*args++, NULL, 10);
+        } else if (!strcmp(arg, "--pcr-offset")) {
+            if (*args == NULL) {
+                fprintf(stderr, "ERROR: --pcr-offset requires a number\n");
+                return 1;
+            }
+            Options.pcr_offset = (unsigned int)strtoul(*args++, NULL, 10);
         } else if (!strcmp(arg, "--playlist")) {
             if (*args == NULL) {
                 fprintf(stderr, "ERROR: --playlist requires a filename\n");
@@ -462,7 +474,7 @@ main(int argc, char** argv)
                 fprintf(stderr, "ERROR: --playlist-hls-version requires a number\n");
                 return 1;
             }
-            Options.playlist_hls_version = strtoul(*args++, NULL, 10);
+            Options.playlist_hls_version = (unsigned int)strtoul(*args++, NULL, 10);
             if (Options.playlist_hls_version ==0) {
                 fprintf(stderr, "ERROR: --playlist-hls-version requires number > 0\n");
                 return 1;
@@ -572,7 +584,9 @@ main(int argc, char** argv)
                                        stream_type,
                                        stream_id,
                                        audio_stream,
-                                       Options.audio_pid);
+                                       Options.audio_pid,
+                                       NULL, 0,
+                                       Options.pcr_offset);
         if (AP4_FAILED(result)) {
             fprintf(stderr, "could not create audio stream (%d)\n", result);
             goto end;
@@ -593,10 +607,14 @@ main(int argc, char** argv)
         if (sample_description->GetFormat() == AP4_SAMPLE_FORMAT_AVC1 ||
             sample_description->GetFormat() == AP4_SAMPLE_FORMAT_AVC2 ||
             sample_description->GetFormat() == AP4_SAMPLE_FORMAT_AVC3 ||
-            sample_description->GetFormat() == AP4_SAMPLE_FORMAT_AVC4) {
+            sample_description->GetFormat() == AP4_SAMPLE_FORMAT_AVC4 ||
+            sample_description->GetFormat() == AP4_SAMPLE_FORMAT_DVAV ||
+            sample_description->GetFormat() == AP4_SAMPLE_FORMAT_DVA1) {
             stream_type = AP4_MPEG2_STREAM_TYPE_AVC;
         } else if (sample_description->GetFormat() == AP4_SAMPLE_FORMAT_HEV1 ||
-                   sample_description->GetFormat() == AP4_SAMPLE_FORMAT_HVC1) {
+                   sample_description->GetFormat() == AP4_SAMPLE_FORMAT_HVC1 ||
+                   sample_description->GetFormat() == AP4_SAMPLE_FORMAT_DVHE ||
+                   sample_description->GetFormat() == AP4_SAMPLE_FORMAT_DVH1) {
             stream_type = AP4_MPEG2_STREAM_TYPE_HEVC;
         } else {
             fprintf(stderr, "ERROR: video codec not supported\n");
@@ -606,7 +624,9 @@ main(int argc, char** argv)
                                        stream_type,
                                        stream_id,
                                        video_stream,
-                                       Options.video_pid);
+                                       Options.video_pid,
+                                       NULL, 0,
+                                       Options.pcr_offset);
         if (AP4_FAILED(result)) {
             fprintf(stderr, "could not create video stream (%d)\n", result);
             goto end;

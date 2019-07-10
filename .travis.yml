@@ -1,0 +1,19 @@
+language: cpp
+
+matrix:
+  include:
+    - os: osx
+      osx_image: xcode9.2  
+      env: 
+        - BUILD_DIR=Build/Targets/universal-apple-macosx
+        - BUILD_SCRIPT="xcodebuild -target All -configuration Release"
+
+    - os: linux
+      env:
+        - BUILD_DIR=. 
+        - BUILD_SCRIPT="scons build_config=all stop_on_warning=yes"
+
+script: 
+  - cd $BUILD_DIR
+  - $BUILD_SCRIPT
+

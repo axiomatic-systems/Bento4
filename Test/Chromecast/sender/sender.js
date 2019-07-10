@@ -72,7 +72,7 @@ function sessionUpdateListener(isAlive) {
 
 function receiverListener(e) {
   debugLog('receiver listener callback: ' + e);
-  if (e === 'available') {
+  if (e === chrome.cast.ReceiverAvailability.AVAILABLE) {
     debugLog("receiver found");
   } else {
     debugLog("receiver list empty");

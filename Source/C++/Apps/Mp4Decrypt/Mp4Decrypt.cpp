@@ -125,7 +125,7 @@ main(int argc, char** argv)
                     return 1;
                 }
             } else {
-                track_id = strtoul(keyid_text, NULL, 10);
+                track_id = (unsigned int)strtoul(keyid_text, NULL, 10);
                 if (track_id == 0) {
                     fprintf(stderr, "ERROR: invalid key id\n");
                     return 1;
@@ -223,7 +223,10 @@ main(int argc, char** argv)
                     if (sdesc && sdesc->GetType() == AP4_SampleDescription::TYPE_PROTECTED) {
                         AP4_ProtectedSampleDescription* psdesc = AP4_DYNAMIC_CAST(AP4_ProtectedSampleDescription, sdesc);
                         if (psdesc) {
-                            if (psdesc->GetSchemeType() == AP4_PROTECTION_SCHEME_TYPE_CENC) {
+                            if (psdesc->GetSchemeType() == AP4_PROTECTION_SCHEME_TYPE_CENC ||
+                                psdesc->GetSchemeType() == AP4_PROTECTION_SCHEME_TYPE_CBC1 ||
+                                psdesc->GetSchemeType() == AP4_PROTECTION_SCHEME_TYPE_CENS ||
+                                psdesc->GetSchemeType() == AP4_PROTECTION_SCHEME_TYPE_CBCS) {
                                 processor = new AP4_CencDecryptingProcessor(&key_map);
                                 break;
                             }

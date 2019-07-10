@@ -70,6 +70,7 @@ const AP4_UI32 AP4_SAMPLE_FORMAT_AVCP = AP4_ATOM_TYPE('a','v','c','p');
 const AP4_UI32 AP4_SAMPLE_FORMAT_DRAC = AP4_ATOM_TYPE('d','r','a','c');
 const AP4_UI32 AP4_SAMPLE_FORMAT_DRA1 = AP4_ATOM_TYPE('d','r','a','1');
 const AP4_UI32 AP4_SAMPLE_FORMAT_AC_3 = AP4_ATOM_TYPE('a','c','-','3');
+const AP4_UI32 AP4_SAMPLE_FORMAT_AC_4 = AP4_ATOM_TYPE('a','c','-','4');
 const AP4_UI32 AP4_SAMPLE_FORMAT_EC_3 = AP4_ATOM_TYPE('e','c','-','3');
 const AP4_UI32 AP4_SAMPLE_FORMAT_DTSC = AP4_ATOM_TYPE('d','t','s','c');
 const AP4_UI32 AP4_SAMPLE_FORMAT_DTSH = AP4_ATOM_TYPE('d','t','s','h');
@@ -374,9 +375,12 @@ public:
                               AP4_UI08                         temporal_id_nested,
                               AP4_UI08                         nalu_length_size,
                               const AP4_Array<AP4_DataBuffer>& video_parameters,
+                              AP4_UI08                         video_parameters_completeness,
                               const AP4_Array<AP4_DataBuffer>& sequence_parameters,
-                              const AP4_Array<AP4_DataBuffer>& picture_parameters);
-    
+                              AP4_UI08                         sequence_parameters_completeness,
+                              const AP4_Array<AP4_DataBuffer>& picture_parameters,
+                              AP4_UI08                         picture_parameters_completeness);
+ 
     // accessors
     AP4_UI08 GetConfigurationVersion()             const { return m_HvccAtom->GetConfigurationVersion(); }
     AP4_UI08 GetGeneralProfileSpace()              const { return m_HvccAtom->GetGeneralProfileSpace(); }

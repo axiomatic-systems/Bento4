@@ -54,22 +54,94 @@ PrintUsageAndExit()
 }
 
 /*----------------------------------------------------------------------
-|   CloneTest
+|   SampleDescriptionCloneTest
 +---------------------------------------------------------------------*/
 static bool
-CloneTest(AP4_File* file)
+SampleDescriptionCloneTest(AP4_File* file)
 {
     AP4_Track* track = file->GetMovie()->GetTrack(AP4_Track::TYPE_VIDEO);
     AP4_SampleDescription* sdesc = track->GetSampleDescription(0);
+    if (sdesc) {
+        AP4_SampleDescription* clone = sdesc->Clone();
+    
+        if (clone == NULL) return false;
+        if (clone->GetFormat()         != sdesc->GetFormat())         return false;
+    }
+    
     AP4_ProtectedSampleDescription* psdesc = AP4_DYNAMIC_CAST(AP4_ProtectedSampleDescription, sdesc);
-    if (psdesc == NULL) return false;
+    if (psdesc) {
+        AP4_SampleDescription* clone = psdesc->Clone();
+        AP4_ProtectedSampleDescription* pclone = AP4_DYNAMIC_CAST(AP4_ProtectedSampleDescription, clone);
     
-    AP4_SampleDescription* clone = psdesc->Clone();
-    AP4_ProtectedSampleDescription* pclone = AP4_DYNAMIC_CAST(AP4_ProtectedSampleDescription, clone);
+        if (pclone == NULL) return false;
+        if (pclone->GetFormat()         != psdesc->GetFormat())         return false;
+        if (pclone->GetOriginalFormat() != psdesc->GetOriginalFormat()) return false;
+    }
     
-    if (pclone == NULL) return false;
-    if (pclone->GetFormat()         != psdesc->GetFormat())         return false;
-    if (pclone->GetOriginalFormat() != psdesc->GetOriginalFormat()) return false;
+    return true;
+}
+
+/*----------------------------------------------------------------------
+|   AtomCloneTest
++---------------------------------------------------------------------*/
+static bool
+AtomCloneTest(AP4_Atom* atom, unsigned int depth)
+{
+    for (unsigned int i=0l; i<depth; i++) {
+        printf(" ");
+    }
+
+    char str[5];
+    AP4_FormatFourCharsPrintable(str, atom->GetType());
+    str[4] = 0;
+    printf("+%s\n", str);
+
+    AP4_ContainerAtom* container = AP4_DYNAMIC_CAST(AP4_ContainerAtom, atom);
+    if (container) {
+        AP4_List<AP4_Atom>& children = container->GetChildren();
+        AP4_List<AP4_Atom>::Item* child = children.FirstItem();
+        while (child) {
+            AtomCloneTest(child->GetData(), depth+1);
+            child = child->GetNext();
+        }
+    } else {
+        AP4_Atom* clone = atom->Clone();
+        if (clone == NULL) {
+            fprintf(stderr, "ERROR: clone is NULL\n");
+            return false;
+        }
+        if (clone->GetSize() != atom->GetSize()) {
+            fprintf(stderr, "ERROR: clone.GetSize() [%lld] != atom->GetSize() [%lld]\n", clone->GetSize(), atom->GetSize());
+            return false;
+        }
+        AP4_MemoryByteStream* mbs = new AP4_MemoryByteStream();
+        clone->Write(*mbs);
+        if (mbs->GetDataSize() != clone->GetSize()) {
+            fprintf(stderr, "ERROR: serialized size [%d] != atom size [%lld]\n", mbs->GetDataSize(), clone->GetSize());
+            return false;
+        }
+        mbs->Release();
+    }
+    
+    return true;
+}
+
+/*----------------------------------------------------------------------
+|   AtomCloneTest
++---------------------------------------------------------------------*/
+static bool
+AtomCloneTest(AP4_ByteStream* input)
+{
+    AP4_DefaultAtomFactory factory;
+    
+    AP4_Result result;
+    do {
+        AP4_Atom* atom = NULL;
+        result = factory.CreateAtomFromStream(*input, atom);
+        if (AP4_SUCCEEDED(result)) {
+            AtomCloneTest(atom, 0);
+        }
+    } while (AP4_SUCCEEDED(result));
     
     return true;
 }
@@ -96,6 +168,12 @@ main(int argc, char** argv)
         return 1;
     }
     
+    bool result = AtomCloneTest(input);
+    if (!result) {
+        fprintf(stderr, "SampleDescriptionCloneTest failed\n");
+    }
+    input->Seek(0);
+    
     // open the output
     AP4_ByteStream* output = new AP4_FileByteStream(
         output_filename,
@@ -104,7 +182,10 @@ main(int argc, char** argv)
     // parse the file
     AP4_File* mp4_file = new AP4_File(*input);
     
-    CloneTest(mp4_file);
+    result = SampleDescriptionCloneTest(mp4_file);
+    if (!result) {
+        fprintf(stderr, "SampleDescriptionCloneTest failed\n");
+    }
     
     // write the file to the output
     AP4_FileWriter::Write(*mp4_file, *output);

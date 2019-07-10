@@ -178,7 +178,7 @@ LanguageNames = {
     "rm": 'Rumantsch Grischun',
     "rn": 'Rundi',
     "ro": 'Rom\xc3\xa2n\xc4\x83',
-    "ru": '\xd1\x80\xd1\x83\xd1\x81\xd1\x81\xd0\xba\xd0\xb8\xd0\xb9 \xd1\x8f\xd0\xb7\xd1\x8b\xd0\xba',
+    "ru": '\xd0\xa0\xd1\x83\xd1\x81\xd1\x81\xd0\xba\xd0\xb8\xd0\xb9',
     "rw": 'Ikinyarwanda',
     "sa": '\xe0\xa4\xb8\xe0\xa4\x82\xe0\xa4\xb8\xe0\xa5\x8d\xe0\xa4\x95\xe0\xa5\x83\xe0\xa4\xa4\xe0\xa4\xae\xe0\xa5\x8d',
     "sc": 'Sardu',
@@ -235,9 +235,9 @@ def PrintErrorAndExit(message):
     sys.exit(1)
 
 def XmlDuration(d):
-    h  = int(d)/3600
+    h  = int(d) // 3600
     d -= h*3600
-    m  = int(d)/60
+    m  = int(d) // 60
     s  = d-m*60
     xsd = 'PT'
     if h:
@@ -253,12 +253,20 @@ def Bento4Command(options, name, *args, **kwargs):
     cmd = [executable]
     for kwarg in kwargs:
         arg = kwarg.replace('_', '-')
-        cmd.append('--'+arg)
-        if not isinstance(kwargs[kwarg], bool):
-            cmd.append(kwargs[kwarg])
+        if isinstance(kwargs[kwarg], bool):
+            cmd.append('--'+arg)
+        else :
+            if isinstance(kwargs[kwarg], list):
+                for element in kwargs[kwarg]:
+                    cmd.append('--'+arg)
+                    cmd.append(element)
+            else:
+                cmd.append('--'+arg)
+                cmd.append(kwargs[kwarg])
+
     cmd += args
     if options.debug:
-        print 'COMMAND: ', cmd
+        print 'COMMAND: ', " ".join(cmd), cmd
     try:
         try:
             print os.getcwd()
@@ -295,6 +303,9 @@ def Mp4Encrypt(options, input_filename, output_filename, *args, **kwargs):
 def Mp42Hls(options, input_filename, *args, **kwargs):
     return Bento4Command(options, 'mp42hls', input_filename, *args, **kwargs)
 
+def Mp4IframIndex(options, input_filename, *args, **kwargs):
+    return Bento4Command(options, 'mp4iframeindex', input_filename, *args, **kwargs)
+
 class Mp4Atom:
     def __init__(self, type, size, position):
         self.type     = type
@@ -320,7 +331,7 @@ def WalkAtoms(filename, until=None):
             atoms.append(Mp4Atom(type, size, cursor))
             cursor += size
             file.seek(cursor)
-        except:
+        except Exception:
             break
 
     return atoms
@@ -355,6 +366,7 @@ class Mp4Track:
         self.segment_bitrates         = []
         self.total_sample_count       = 0
         self.total_duration           = 0
+        self.total_scaled_duration    = 0
         self.media_size               = 0
         self.average_segment_duration = 0
         self.average_segment_bitrate  = 0
@@ -420,6 +432,7 @@ class Mp4Track:
 
         # compute the total duration
         self.total_duration = reduce(operator.add, self.segment_durations, 0)
+        self.total_scaled_duration = reduce(operator.add, self.segment_scaled_durations, 0)
 
         # compute the average segment durations
         segment_count = len(self.segment_durations)
@@ -439,6 +452,8 @@ class Mp4Track:
         # compute the max segment bitrates
         if len(self.segment_bitrates) > 1:
             self.max_segment_bitrate = max(self.segment_bitrates[:-1])
+        else:
+            self.max_segment_bitrate = self.average_segment_bitrate
 
         # compute the bandwidth
         if options.min_buffer_time == 0.0:
@@ -458,7 +473,6 @@ class Mp4Track:
         moov = FilterChildren(self.parent.tree, 'moov')[0]
         traks = FilterChildren(moov, 'trak')
         for trak in traks:
-            tkhd = FindChild(trak, ['tkhd'])
             tenc = FindChild(trak, ('mdia', 'minf', 'stbl', 'stsd', 'encv', 'sinf', 'schi', 'tenc'))
             if tenc is None:
                 tenc = FindChild(trak, ('mdia', 'minf', 'stbl', 'stsd', 'enca', 'sinf', 'schi', 'tenc'))
@@ -539,6 +553,7 @@ class Mp4File:
         for atom in self.tree:
             segment_size += atom['size']
             if atom['name'] == 'moof':
+                segment_size = atom['size']
                 trafs = FilterChildren(atom, 'traf')
                 if len(trafs) != 1:
                     PrintErrorAndExit('ERROR: unsupported input file, more than one "traf" box in fragment')
@@ -567,7 +582,6 @@ class Mp4File:
                 # remove the 'trun' entries to save some memory
                 for traf in trafs:
                     traf['children'] = [x for x in traf['children'] if x['name'] != 'trun']
-
             elif atom['name'] == 'mdat':
                 # end of fragment on 'mdat' atom
                 if track:
@@ -645,6 +659,7 @@ class Mp4File:
 class MediaSource:
     def __init__(self, name):
         self.name = name
+        self.track_key_infos = {}
         if name.startswith('[') and ']' in name:
             try:
                 params = name[1:name.find(']')]
@@ -684,7 +699,7 @@ def ComputeBandwidth(buffer_time, sizes, durations):
             accu_size     += sizes[j]
             accu_duration += durations[j]
             max_avail = buffer_size+accu_duration*bandwidth/8.0
-            if accu_size > max_avail:
+            if accu_size > max_avail and accu_duration != 0:
                 bandwidth = 8.0*(accu_size-buffer_size)/accu_duration
                 break
     return int(bandwidth)
@@ -882,6 +897,17 @@ def ComputeDolbyDigitalAudioChannelConfig(track):
             config |= flags[channel]
     return hex(config).upper()[2:]
 
+def ComputeDolbyAc4AudioChannelConfig(track):
+    sample_desc = track.info['sample_descriptions'][0]
+    if 'dolby_ac4_info' in sample_desc:
+        dolby_ac4_info = sample_desc['dolby_ac4_info']
+        if 'presentations' in dolby_ac4_info and dolby_ac4_info['presentations']:
+            presentation = dolby_ac4_info['presentations'][0]
+            if 'presentation_channel_mask_v1' in presentation:
+                return '%06x' % presentation['presentation_channel_mask_v1']
+
+    return '000000'
+
 def ComputeDolbyDigitalAudioChannelMask(track):
     masks = {
         'L':       0x1,             # SPEAKER_FRONT_LEFT
@@ -1035,8 +1061,6 @@ def ComputePlayReadyHeader(header_spec, kid_hex, key_hex):
         header_xml += '</DATA></WRMHEADER>'
         return WrapPlayreadyHeaderXml(header_xml)
 
-    return ""
-
 def ComputePrimetimeMetaData(metadata_spec, kid_hex):
     # construct the base64 header
     if metadata_spec is None:
@@ -1117,5 +1141,3 @@ def ComputeWidevineHeader(header_spec, kid_hex):
         if 'policy' in fields:
             protobuf_fields.append((6, fields['policy']))
         return WidevineMakeHeader(protobuf_fields)
-
-    return ""

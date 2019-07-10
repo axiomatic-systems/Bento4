@@ -128,7 +128,7 @@ ParseTrackIds(char* ids)
             }
             bool the_end = (*separator == 0);
             *separator = 0;
-            Options.track_ids[Options.track_id_count++] = strtoul(ids, NULL, 10);
+            Options.track_ids[Options.track_id_count++] = (unsigned int)strtoul(ids, NULL, 10);
             if (the_end) break;
             ids = separator+1;
         }
@@ -203,7 +203,7 @@ main(int argc, char** argv)
                 return 1;
             }
         } else if (!strcmp(arg, "--start-number")) {
-            Options.start_number = strtoul(*args++, NULL, 10);
+            Options.start_number = (unsigned int)strtoul(*args++, NULL, 10);
         } else if (!strcmp(arg, "--init-only")) {
             Options.init_only = true;
         } else if (!strcmp(arg, "--audio")) {
@@ -392,7 +392,7 @@ main(int argc, char** argv)
                 }
 
                 AP4_UI64 p[2] = {0,0};
-                unsigned int params_len = strlen(Options.pattern_params);
+                unsigned int params_len = (unsigned int)strlen(Options.pattern_params);
                 for (unsigned int i=0; i<params_len; i++) {
                     if (Options.pattern_params[i] == 'I') {
                         p[i] = track_id;

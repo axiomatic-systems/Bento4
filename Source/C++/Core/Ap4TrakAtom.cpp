@@ -315,9 +315,11 @@ AP4_TrakAtom::AdjustChunkOffsets(AP4_SI64 delta)
     AP4_Atom* atom;
     if ((atom = FindChild("mdia/minf/stbl/stco")) != NULL) {
         AP4_StcoAtom* stco = AP4_DYNAMIC_CAST(AP4_StcoAtom, atom);
+        if (stco == NULL) return AP4_ERROR_INVALID_FORMAT;
         return stco->AdjustChunkOffsets((int)delta);
     } else if ((atom = FindChild("mdia/minf/stbl/co64")) != NULL) {
         AP4_Co64Atom* co64 = AP4_DYNAMIC_CAST(AP4_Co64Atom, atom);
+        if (co64 == NULL) return AP4_ERROR_INVALID_FORMAT;
         return co64->AdjustChunkOffsets(delta);
     } else {
         return AP4_ERROR_INVALID_STATE;
