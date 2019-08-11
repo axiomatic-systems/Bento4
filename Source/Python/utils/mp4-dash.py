@@ -1535,6 +1535,7 @@ def main():
                         track_file.name,
                         track = str(track.id),
                         index = True,
+                        copy_udta = True,
                         quiet = True)
 
             media_source = MediaSource(track_file.name)
