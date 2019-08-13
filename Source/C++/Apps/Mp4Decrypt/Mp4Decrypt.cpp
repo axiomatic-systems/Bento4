@@ -79,7 +79,8 @@ public:
 AP4_Result
 ProgressListener::OnProgress(unsigned int step, unsigned int total)
 {
-    printf("\r%d/%d", step, total);
+    fprintf(stdout, "\r%d/%d", step, total);
+    fflush(stdout);
     return AP4_SUCCESS;
 }
 
