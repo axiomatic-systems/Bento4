@@ -42,9 +42,9 @@ SPLIT_INIT_SEGMENT_NAME     = 'init.mp4'
 NOSPLIT_INIT_FILE_PATTERN   = 'init-%s.mp4'
 ONDEMAND_MEDIA_FILE_PATTERN = '%s-%s.mp4'
 
-PADDED_SEGMENT_PATTERN      = 'seg-%04llu.m4s'
-PADDED_SEGMENT_URL_PATTERN  = 'seg-%04d.m4s'
-PADDED_SEGMENT_URL_TEMPLATE = '$RepresentationID$/seg-$Number%04d$.m4s'
+PADDED_SEGMENT_PATTERN      = 'seg-%05llu.m4s'
+PADDED_SEGMENT_URL_PATTERN  = 'seg-%05d.m4s'
+PADDED_SEGMENT_URL_TEMPLATE = '$RepresentationID$/seg-$Number%05d$.m4s'
 NOPAD_SEGMENT_PATTERN       = 'seg-%llu.m4s'
 NOPAD_SEGMENT_URL_PATTERN   = 'seg-%d.m4s'
 NOPAD_SEGMENT_URL_TEMPLATE  = '$RepresentationID$/seg-$Number$.m4s'
@@ -766,6 +766,7 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
             media_playlist_name   = options.hls_media_playlist_name
             media_playlist_path   = media_subdir+'/'+media_playlist_name
             iframes_playlist_name = options.hls_iframes_playlist_name
+            iframes_playlist_path = media_subdir+'/'+iframes_playlist_name
 
         if len(audio_groups):
             # one entry per audio group
@@ -799,7 +800,7 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
                                      video_track.codec,
                                      video_track.width,
                                      video_track.height,
-                                     media_playlist_path))
+                                     iframes_playlist_path))
 
     master_playlist_file.write('\r\n# I-Frame Playlists\r\n')
     master_playlist_file.write(''.join(iframe_playlist_lines))
