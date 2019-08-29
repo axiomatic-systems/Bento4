@@ -63,24 +63,28 @@ AP4_EsDescriptor::AP4_EsDescriptor(AP4_ByteStream& stream,
                                    AP4_Size        payload_size) :
     AP4_Descriptor(AP4_DESCRIPTOR_TAG_ES, header_size, payload_size)
 {
-    AP4_Position start;
-    stream.Tell(start);
-
     // read descriptor fields
+    if (payload_size < 3) return;
     stream.ReadUI16(m_EsId);
     unsigned char bits;
     stream.ReadUI08(bits);
+    payload_size -= 3;
     m_Flags = (bits>>5)&7;
     m_StreamPriority = bits&0x1F;
     if (m_Flags & AP4_ES_DESCRIPTOR_FLAG_STREAM_DEPENDENCY) {
+        if (payload_size < 2) return;
         stream.ReadUI16(m_DependsOn);
+        payload_size -= 2;
     }  else {
         m_DependsOn = 0;
     }
     if (m_Flags & AP4_ES_DESCRIPTOR_FLAG_URL) {
         unsigned char url_length;
+        if (payload_size < 1) return;
         stream.ReadUI08(url_length);
+        --payload_size;
         if (url_length) {
+            if (payload_size < url_length) return;
             char* url = new char[url_length+1];
             if (url) {
                 stream.Read(url, url_length);
@@ -88,10 +92,13 @@ AP4_EsDescriptor::AP4_EsDescriptor(AP4_ByteStream& stream,
                 m_Url = url;
                 delete[] url;
             }
+            payload_size -= url_length;
         }
     }
     if (m_Flags & AP4_ES_DESCRIPTOR_FLAG_URL) {
+        if (payload_size < 2) return;
         stream.ReadUI16(m_OcrEsId);
+        payload_size -= 2;
     } else {
         m_OcrEsId = 0;
     }
@@ -99,8 +106,7 @@ AP4_EsDescriptor::AP4_EsDescriptor(AP4_ByteStream& stream,
     // read other descriptors
     AP4_Position offset;
     stream.Tell(offset);
-    AP4_SubStream* substream = new AP4_SubStream(stream, offset, 
-                                                 payload_size-AP4_Size(offset-start));
+    AP4_SubStream* substream = new AP4_SubStream(stream, offset, payload_size);
     AP4_Descriptor* descriptor = NULL;
     while (AP4_DescriptorFactory::CreateDescriptorFromStream(*substream, 
                                                              descriptor) 
