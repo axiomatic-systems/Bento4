@@ -656,7 +656,7 @@ def OutputHlsIframeIndex(options, track, media_subdir, iframes_playlist_name, me
 
     index_playlist_file.write('#EXT-X-I-FRAMES-ONLY\r\n')
 
-   
+
     iframe_total_segment_size = 0
     iframe_total_segment_duration = 0
     iframe_bitrate = 0
@@ -675,12 +675,12 @@ def OutputHlsIframeIndex(options, track, media_subdir, iframes_playlist_name, me
                 iframe_offset     = int(index_entry['offset'])
                 iframe_size       = int(index_entry['size'])
 
-                iframe_total_segment_size += iframe_size      
+                iframe_total_segment_size += iframe_size
                 iframe_total_segment_duration += iframe_segment_duration
                 iframe_bitrate = 8.0*(iframe_size/iframe_segment_duration)
                 if iframe_bitrate > iframe_max_bitrate:
                     iframe_max_bitrate = iframe_bitrate
-                            
+
                 iframe_range_size = iframe_size + (iframe_offset-fragment_start)
                 index_playlist_file.write('#EXT-X-BYTERANGE:%d@%d\r\n' % (iframe_range_size, fragment_start))
                 index_playlist_file.write(media_file_name+'\r\n')
@@ -704,9 +704,9 @@ def OutputHlsIframeIndex(options, track, media_subdir, iframes_playlist_name, me
             index_playlist_file.write('#EXT-X-BYTERANGE:%d@0\r\n' % (iframe_range_size))
             index_playlist_file.write(fragment_basename+'\r\n')
 
-            iframe_total_segment_size += iframe_size      
+            iframe_total_segment_size += iframe_size
             iframe_total_segment_duration += iframe_segment_duration
-            
+
             iframe_bitrate = 8.0*(iframe_size/iframe_segment_duration)
             if iframe_bitrate > iframe_max_bitrate:
                 iframe_max_bitrate = iframe_bitrate
@@ -786,6 +786,7 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
             media_playlist_name   = video_track.representation_id+".m3u8"
             media_playlist_path   = media_playlist_name
             iframes_playlist_name = video_track.representation_id+"_iframes.m3u8"
+            iframes_playlist_path = iframes_playlist_name
         else:
             media_subdir          = video_track.representation_id
             media_file_name       = ''
@@ -821,7 +822,7 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
         OutputHlsTrack(options, video_track, media_subdir, media_playlist_name, media_file_name)
         iframe_average_segment_bitrate,iframe_max_bitrate = OutputHlsIframeIndex(options, video_track, media_subdir, iframes_playlist_name, media_file_name)
 
-        
+
         # this will be written later
         iframe_playlist_lines.append('#EXT-X-I-FRAME-STREAM-INF:AVERAGE-BANDWIDTH=%d,BANDWIDTH=%d,CODECS="%s",RESOLUTION=%dx%d,URI="%s"\r\n' % (
                                      iframe_average_segment_bitrate,
