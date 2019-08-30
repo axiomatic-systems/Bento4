@@ -444,7 +444,7 @@ def OutputHls(options, media_sources):
                                 int(media_info['stats']['max_segment_bitrate'])+group_info['max_segment_bitrate'],
                                 ','.join(codecs))
             if 'video' in media_info:
-                ext_x_stream_inf += ',RESOLUTION='+str(int(media_info['video']['width']))+'x'+str(int(media_info['video']['height']))
+                ext_x_stream_inf += ',FRAME-RATE='+str(media_info['stats']['frame_rate'])+',RESOLUTION='+str(int(media_info['video']['width']))+'x'+str(int(media_info['video']['height']))
 
             # audio info
             if group_name:
