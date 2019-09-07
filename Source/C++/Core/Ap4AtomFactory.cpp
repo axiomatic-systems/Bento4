@@ -331,6 +331,8 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
           case AP4_ATOM_TYPE_DTSH:
           case AP4_ATOM_TYPE_DTSL:
           case AP4_ATOM_TYPE_DTSE:
+          case AP4_ATOM_TYPE_FLAC:
+          case AP4_ATOM_TYPE_OPUS:
             atom = new AP4_AudioSampleEntry(type, size_32, stream, *this);
             break;
             
