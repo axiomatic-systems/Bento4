@@ -454,6 +454,10 @@ def OutputHls(options, media_sources):
             if len(subtitles_files):
                 ext_x_stream_inf += ',SUBTITLES="subtitles"'
 
+            # captions info
+            if media['source'].spec.get('+captions'):
+                ext_x_stream_inf += ',CLOSED-CAPTIONS=' + media['source'].spec.get('+captions')
+
             master_playlist.write(ext_x_stream_inf+'\r\n')
             master_playlist.write(options.base_url+media['dir']+'/'+options.media_playlist_name+'\r\n')
 
