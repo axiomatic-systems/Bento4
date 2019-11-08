@@ -11,6 +11,7 @@ __copyright__ = 'Copyright 2011-2016 Axiomatic Systems, LLC.'
 # <platform> depends on the platform you're running on:
 # Mac OSX   --> platform = macosx
 # Linux x86 --> platform = linux-x86
+# Linux x64 --> platform = linux-x86_64
 # Windows   --> platform = win32
 
 from optparse import OptionParser
