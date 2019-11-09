@@ -41,8 +41,7 @@
 |   AP4_LinearReader::AP4_LinearReader
 +---------------------------------------------------------------------*/
 AP4_LinearReader::AP4_LinearReader(AP4_Movie&      movie, 
-                                   AP4_ByteStream* fragment_stream,
-                                   AP4_Size        max_buffer) :
+                                   AP4_ByteStream* fragment_stream) :
     m_Movie(movie),
     m_Fragment(NULL),
     m_FragmentStream(fragment_stream),
@@ -50,7 +49,6 @@ AP4_LinearReader::AP4_LinearReader(AP4_Movie&      movie,
     m_NextFragmentPosition(0),
     m_BufferFullness(0),
     m_BufferFullnessPeak(0),
-    m_MaxBufferFullness(max_buffer),
     m_Mfra(NULL)
 {
     m_HasFragments = movie.HasFragments();
@@ -404,11 +402,7 @@ AP4_LinearReader::AdvanceFragment()
 AP4_Result
 AP4_LinearReader::Advance(bool read_data)
 {
-    // first, check if we have space to advance
-    if (m_BufferFullness >= m_MaxBufferFullness) {
-        return AP4_ERROR_NOT_ENOUGH_SPACE;
-    }
-    
+
     AP4_UI64 min_offset = (AP4_UI64)(-1);
     Tracker* next_tracker = NULL;
     for (;;) {
