@@ -2327,6 +2327,36 @@ AP4_CencDecryptingProcessor::AP4_CencDecryptingProcessor(const AP4_ProtectionKey
 }
 
 /*----------------------------------------------------------------------
+|   AP4_CencDecryptingProcessor:GetKeyForTrak
++---------------------------------------------------------------------*/
+const AP4_DataBuffer*
+AP4_CencDecryptingProcessor::GetKeyForTrak(AP4_UI32 track_id, AP4_ProtectedSampleDescription* sample_description)
+{
+    // look for the key by track ID
+    const AP4_DataBuffer* key = m_KeyMap->GetKey(track_id);
+    if (!key) {
+        // no key found by track ID, look for a key by KID
+        if (sample_description) {
+            AP4_ProtectionSchemeInfo* scheme_info = sample_description->GetSchemeInfo();
+            if (scheme_info) {
+                AP4_ContainerAtom* schi = scheme_info->GetSchiAtom();
+                if (schi) {
+                    AP4_TencAtom* tenc = AP4_DYNAMIC_CAST(AP4_TencAtom, schi->FindChild("tenc"));
+                    if (tenc) {
+                        const AP4_UI08* kid = tenc->GetDefaultKid();
+                        if (kid) {
+                            key = m_KeyMap->GetKeyByKid(kid);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return key;
+}
+
+/*----------------------------------------------------------------------
 |   AP4_CencDecryptingProcessor:CreateTrackHandler
 +---------------------------------------------------------------------*/
 AP4_Processor::TrackHandler* 
@@ -2363,8 +2393,8 @@ AP4_CencDecryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
     }
     if (sample_entries.ItemCount() == 0) return NULL;
     
-    // look for the key by track ID
-    const AP4_DataBuffer* key = m_KeyMap->GetKey(trak->GetId());
+    // get the key for this track
+    const AP4_DataBuffer* key = GetKeyForTrak(trak->GetId(), sample_descs.ItemCount() ? sample_descs[0] : NULL);
 
     // create a decrypter with this key
     if (key) {
@@ -2385,7 +2415,7 @@ AP4_CencDecryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
 |   AP4_CencDecryptingProcessor::CreateFragmentHandler
 +---------------------------------------------------------------------*/
 AP4_Processor::FragmentHandler* 
-AP4_CencDecryptingProcessor::CreateFragmentHandler(AP4_TrakAtom*    /*trak*/,
+AP4_CencDecryptingProcessor::CreateFragmentHandler(AP4_TrakAtom*      trak,
                                                    AP4_TrexAtom*      trex,
                                                    AP4_ContainerAtom* traf,
                                                    AP4_ByteStream&    moof_data,
@@ -2410,10 +2440,10 @@ AP4_CencDecryptingProcessor::CreateFragmentHandler(AP4_TrakAtom*    /*trak*/,
                     sample_description = track_decrypter->GetSampleDescription(index-1);
                 }
                 if (sample_description == NULL) return NULL;
+
+                // get the key for this track
+                key = GetKeyForTrak(tfhd->GetTrackId(), sample_description);
             }
-            
-            // get the matching key by track ID
-            key = m_KeyMap->GetKey(tfhd->GetTrackId());
             
             break;
         }

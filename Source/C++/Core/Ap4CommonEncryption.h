@@ -664,7 +664,10 @@ public:
                                                                   AP4_ByteStream&    moof_data,
                                                                   AP4_Position       moof_offset);
     
-protected:    
+protected:
+    // methods
+    const AP4_DataBuffer* GetKeyForTrak(AP4_UI32 track_id, AP4_ProtectedSampleDescription* sample_description);
+
     // members
     AP4_BlockCipherFactory*     m_BlockCipherFactory;
     const AP4_ProtectionKeyMap* m_KeyMap;
