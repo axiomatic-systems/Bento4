@@ -467,13 +467,18 @@ def OutputDash(options, set_attributes, audio_sets, video_sets, subtitles_sets, 
                                                 bandwidth=str(audio_track.bandwidth),
                                                 audioSamplingRate=str(audio_track.sample_rate))
                 if audio_track.codec == 'ec-3':
-                    audio_channel_config_value = ComputeDolbyDigitalAudioChannelConfig(audio_track)
+                    audio_channel_config_value = ComputeDolbyDigitalPlusAudioChannelConfig(audio_track)
                     scheme_id_uri = DOLBY_DIGITAL_AUDIO_CHANNEL_CONFIGURATION_SCHEME_ID_URI
                 elif audio_track.codec.startswith('ac-4'):
                     audio_channel_config_value = ComputeDolbyAc4AudioChannelConfig(audio_track)
                     scheme_id_uri = DOLBY_AC4_AUDIO_CHANNEL_CONFIGURATION_SCHEME_ID_URI
                 else:
-                    audio_channel_config_value = str(audio_track.channels)
+                    # detect the actual number of channels
+                    sample_description = audio_track.info['sample_descriptions'][0]
+                    if 'mpeg_4_audio_decoder_config' in sample_description:
+                        audio_channel_config_value = str(sample_description['mpeg_4_audio_decoder_config']['channels'])
+                    else:
+                        audio_channel_config_value = str(audio_track.channels)
                     scheme_id_uri = MPEG_DASH_AUDIO_CHANNEL_CONFIGURATION_SCHEME_ID_URI
                 xml.SubElement(representation,
                                'AudioChannelConfiguration',
@@ -900,7 +905,7 @@ def OutputSmooth(options, audio_tracks, video_tracks):
 
         if audio_track.codec == 'ec-3':
             # Dolby Digital Plus
-            (channels, codec_private_data) = ComputeDolbyDigitalSmoothStreamingInfo(audio_track)
+            (channels, codec_private_data) = ComputeDolbyDigitalPlusSmoothStreamingInfo(audio_track)
             audio_tag = '65534'
             fourcc = 'EC-3'
             channels = str(channels)

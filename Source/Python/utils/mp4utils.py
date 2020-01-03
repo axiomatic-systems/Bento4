@@ -846,7 +846,7 @@ DolbyDigital_acmod = {
     7: ['L', 'C', 'R', 'Ls', 'Rs']
 }
 
-def GetDolbyDigitalChannels(track):
+def GetDolbyDigitalPlusChannels(track):
     sample_desc = track.info['sample_descriptions'][0]
     if 'dolby_digital_info' not in sample_desc:
         return (track.channels, [])
@@ -867,7 +867,7 @@ def GetDolbyDigitalChannels(track):
             channel_count += 1
     return (channel_count, channels)
 
-def ComputeDolbyDigitalAudioChannelConfig(track):
+def ComputeDolbyDigitalPlusAudioChannelConfig(track):
     flags = {
         'L':       1<<15,
         'C':       1<<14,
@@ -886,7 +886,7 @@ def ComputeDolbyDigitalAudioChannelConfig(track):
         'LFE2':    1<<1,
         'LFE':     1<<0
     }
-    (channel_count, channels) = GetDolbyDigitalChannels(track)
+    (channel_count, channels) = GetDolbyDigitalPlusChannels(track)
     if len(channels) == 0:
         return str(channel_count)
     config = 0
@@ -938,7 +938,7 @@ def ComputeDolbyDigitalAudioChannelMask(track):
                 channel_mask |= masks[channel2]
     return (channel_count, channel_mask)
 
-def ComputeDolbyDigitalSmoothStreamingInfo(track):
+def ComputeDolbyDigitalPlusSmoothStreamingInfo(track):
     (channel_count, channel_mask) = ComputeDolbyDigitalAudioChannelMask(track)
     info = "0006" # 1536 in little-endian
     mask_hex_be = "{0:0{1}x}".format(channel_mask, 4)

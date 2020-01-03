@@ -80,6 +80,8 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
+		AC28E6BA2389DE05005D9BE9 /* Ap4Dac3Atom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AC28E6B82389DE04005D9BE9 /* Ap4Dac3Atom.cpp */; };
+		AC28E6BB2389DE05005D9BE9 /* Ap4Dac3Atom.h in Headers */ = {isa = PBXBuildFile; fileRef = AC28E6B92389DE05005D9BE9 /* Ap4Dac3Atom.h */; };
 		CA00667D1015399A004C0D5F /* Mp42Ts.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA00667C1015399A004C0D5F /* Mp42Ts.cpp */; };
 		CA00A65C1A1C38210064B4D3 /* Mp4Pssh.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA00A65B1A1C38210064B4D3 /* Mp4Pssh.cpp */; };
 		CA00A6611A1C3BD90064B4D3 /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAA7E6C914ACD763008AA54E /* libBento4.a */; };
@@ -1029,6 +1031,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		AC28E6B82389DE04005D9BE9 /* Ap4Dac3Atom.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4Dac3Atom.cpp; sourceTree = "<group>"; };
+		AC28E6B92389DE05005D9BE9 /* Ap4Dac3Atom.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4Dac3Atom.h; sourceTree = "<group>"; };
 		CA00667310153951004C0D5F /* mp42ts */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mp42ts; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA00667C1015399A004C0D5F /* Mp42Ts.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Mp42Ts.cpp; sourceTree = "<group>"; };
 		CA00A6531A1C36560064B4D3 /* mp4pssh */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mp4pssh; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -2074,6 +2078,8 @@
 				CA93661F0B437D030067D50B /* Ap4ContainerAtom.h */,
 				CA9366200B437D040067D50B /* Ap4CttsAtom.cpp */,
 				CA9366210B437D040067D50B /* Ap4CttsAtom.h */,
+				AC28E6B82389DE04005D9BE9 /* Ap4Dac3Atom.cpp */,
+				AC28E6B92389DE05005D9BE9 /* Ap4Dac3Atom.h */,
 				CAA55DAA20F12F3C00CBAA11 /* Ap4Dac4Atom.cpp */,
 				CAA55DA920F12F3C00CBAA11 /* Ap4Dac4Atom.h */,
 				CA9366220B437D040067D50B /* Ap4DataBuffer.cpp */,
@@ -2605,6 +2611,7 @@
 				CAD6A7C40F7AFFD800456513 /* Ap4DynamicCast.h in Headers */,
 				CA9CB9BF0F86ABB400063C70 /* Ap48bdlAtom.h in Headers */,
 				CAEFE10F0FB6993D00AF6434 /* Ap4MehdAtom.h in Headers */,
+				AC28E6BB2389DE05005D9BE9 /* Ap4Dac3Atom.h in Headers */,
 				CAEFE1350FB69CF600AF6434 /* Ap4TrexAtom.h in Headers */,
 				CAE724000FC33618008F2905 /* Ap4LinearReader.h in Headers */,
 				CAFC31DA0FEB95F700EF80A0 /* Ap4MovieFragment.h in Headers */,
@@ -3791,6 +3798,7 @@
 				CA9367000B437D040067D50B /* Ap4SampleEntry.cpp in Sources */,
 				CA9367020B437D040067D50B /* Ap4SampleTable.cpp in Sources */,
 				CAEE5E7A1CC69FED0094DF0D /* Ap4DvccAtom.cpp in Sources */,
+				AC28E6BA2389DE05005D9BE9 /* Ap4Dac3Atom.cpp in Sources */,
 				CA9367040B437D040067D50B /* Ap4SchmAtom.cpp in Sources */,
 				CA9367060B437D040067D50B /* Ap4SdpAtom.cpp in Sources */,
 				CA9367080B437D040067D50B /* Ap4SLConfigDescriptor.cpp in Sources */,

@@ -1913,6 +1913,12 @@ AP4_CencSingleSampleDecrypter::DecryptSampleData(AP4_DataBuffer& data_in,
             in  += cleartext_size+encrypted_size;
             out += cleartext_size+encrypted_size;
         }
+
+        // copy any leftover partial block
+        unsigned int partial = (unsigned int)(in_end-in);
+        if (partial) {
+            AP4_CopyMemory(out, in, partial);
+        }
     } else {
         if (m_FullBlocksOnly) {
             unsigned int block_count = data_in.GetDataSize()/16;
@@ -1933,7 +1939,7 @@ AP4_CencSingleSampleDecrypter::DecryptSampleData(AP4_DataBuffer& data_in,
         } else {
             // process the entire sample data at once
             AP4_Size encrypted_size = data_in.GetDataSize();
-            AP4_Result result = m_Cipher->ProcessBuffer(in, encrypted_size, out, &encrypted_size, false);
+            AP4_Result result = m_Cipher->ProcessBuffer(in, encrypted_size, out, &encrypted_size, true);
             if (AP4_FAILED(result)) return result;
         }
     }
@@ -2771,20 +2777,8 @@ AP4_CencSampleInfoTable::Create(AP4_ProtectedSampleDescription* sample_descripti
         }
     }
 
-    // try to create a sample info table from senc
-    if (sample_info_table == NULL && sample_encryption_atom) {
-        AP4_Result result = sample_encryption_atom->CreateSampleInfoTable(0,
-                                                                          crypt_byte_block,
-                                                                          skip_byte_block,
-                                                                          per_sample_iv_size,
-                                                                          constant_iv_size,
-                                                                          constant_iv,
-                                                                          sample_info_table);
-        if (AP4_FAILED(result)) return result;
-    }
-
     // try to create a sample info table from saio/saiz
-    if (traf) {
+    if (sample_info_table == NULL && traf) {
         for (AP4_List<AP4_Atom>::Item* child = traf->GetChildren().FirstItem();
                                        child;
                                        child = child->GetNext()) {
@@ -2800,7 +2794,7 @@ AP4_CencSampleInfoTable::Create(AP4_ProtectedSampleDescription* sample_descripti
                 }
             }
         }
-        if (sample_info_table == NULL && saio && saiz) {
+        if (saio && saiz) {
             AP4_Result result = Create(0,
                                        crypt_byte_block,
                                        skip_byte_block,
@@ -2817,6 +2811,18 @@ AP4_CencSampleInfoTable::Create(AP4_ProtectedSampleDescription* sample_descripti
         }
     }
     
+    // try to create a sample info table from senc
+    if (sample_info_table == NULL && sample_encryption_atom) {
+        AP4_Result result = sample_encryption_atom->CreateSampleInfoTable(0,
+                                                                          crypt_byte_block,
+                                                                          skip_byte_block,
+                                                                          per_sample_iv_size,
+                                                                          constant_iv_size,
+                                                                          constant_iv,
+                                                                          sample_info_table);
+        if (AP4_FAILED(result)) return result;
+    }
+
     if (sample_info_table == NULL) {
         return AP4_ERROR_INVALID_FORMAT;
     }

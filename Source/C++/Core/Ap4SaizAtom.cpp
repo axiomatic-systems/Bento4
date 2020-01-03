@@ -149,8 +149,10 @@ AP4_SaizAtom::GetSampleInfoSize(AP4_Ordinal sample, AP4_UI08& sample_info_size)
     } else {
         // check the sample index
         if (sample >= m_SampleCount) {
+            // just return a 0 size, not an error, because of the possibility
+            // that we have a degenerate case where sample_count is 0 and
+            // the default_sample_info_size is also 0
             sample_info_size = 0;
-            return AP4_ERROR_OUT_OF_RANGE;
         } else {
             sample_info_size = m_Entries[sample];
         }

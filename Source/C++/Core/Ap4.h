@@ -310,6 +310,7 @@
 #include "Ap4TfraAtom.h"
 #include "Ap4SbgpAtom.h"
 #include "Ap4MfroAtom.h"
+#include "Ap4Dac3Atom.h"
 #include "Ap4Dec3Atom.h"
 #include "Ap4Dac4Atom.h"
 #include "Ap4SidxAtom.h"
