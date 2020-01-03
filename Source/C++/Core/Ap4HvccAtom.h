@@ -1,6 +1,6 @@
 /*****************************************************************
 |
-|    AP4 - avcC Atoms 
+|    AP4 - hvcC Atoms 
 |
 |    Copyright 2002-2014 Axiomatic Systems, LLC
 |

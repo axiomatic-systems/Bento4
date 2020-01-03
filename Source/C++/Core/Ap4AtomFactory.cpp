@@ -86,6 +86,7 @@
 #include "Ap4AvccAtom.h"
 #include "Ap4HvccAtom.h"
 #include "Ap4DvccAtom.h"
+#include "Ap4VpccAtom.h"
 #include "Ap4Marlin.h"
 #include "Ap48bdlAtom.h"
 #include "Ap4Piff.h"
@@ -337,6 +338,12 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
             atom = new AP4_AudioSampleEntry(type, size_32, stream, *this);
             break;
             
+          case AP4_ATOM_TYPE_VP08:
+          case AP4_ATOM_TYPE_VP09:
+          case AP4_ATOM_TYPE_VP10:
+            atom = new AP4_VisualSampleEntry(type, size_32, stream, *this);
+            break;
+
           case AP4_ATOM_TYPE_RTP_:
             atom = new AP4_RtpHintSampleEntry(size_32, stream, *this);
             break;
@@ -500,6 +507,11 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
           case AP4_ATOM_TYPE_DVCC:
             if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
             atom = AP4_DvccAtom::Create(size_32, stream);
+            break;
+
+          case AP4_ATOM_TYPE_VPCC:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_VpccAtom::Create(size_32, stream);
             break;
 
           case AP4_ATOM_TYPE_HVCE:

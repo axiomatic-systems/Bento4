@@ -164,7 +164,7 @@ AP4_SaioAtom::InspectFields(AP4_AtomInspector& inspector)
         inspector.AddField("aux info type", m_AuxInfoType, AP4_AtomInspector::HINT_HEX);
         inspector.AddField("aux info type parameter", m_AuxInfoTypeParameter, AP4_AtomInspector::HINT_HEX);
     }
-    inspector.AddField("entry count", m_Entries.ItemCount());
+    inspector.AddField("entry_count", m_Entries.ItemCount());
 
     if (inspector.GetVerbosity() >= 2) {
         char header[32];

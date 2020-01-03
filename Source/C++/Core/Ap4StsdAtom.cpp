@@ -213,7 +213,7 @@ AP4_StsdAtom::GetSampleDescriptionCount()
 AP4_Result
 AP4_StsdAtom::InspectFields(AP4_AtomInspector& inspector)
 {
-    inspector.AddField("entry-count", m_Children.ItemCount());
+    inspector.AddField("entry_count", m_Children.ItemCount());
     
     // inspect children
     m_Children.Apply(AP4_AtomListInspector(inspector));

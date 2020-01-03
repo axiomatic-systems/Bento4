@@ -82,6 +82,8 @@
 /* Begin PBXBuildFile section */
 		AC28E6BA2389DE05005D9BE9 /* Ap4Dac3Atom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AC28E6B82389DE04005D9BE9 /* Ap4Dac3Atom.cpp */; };
 		AC28E6BB2389DE05005D9BE9 /* Ap4Dac3Atom.h in Headers */ = {isa = PBXBuildFile; fileRef = AC28E6B92389DE05005D9BE9 /* Ap4Dac3Atom.h */; };
+		ACB4314823BF9B8F003C0A81 /* Ap4VpccAtom.h in Headers */ = {isa = PBXBuildFile; fileRef = ACB4314623BF9B8F003C0A81 /* Ap4VpccAtom.h */; };
+		ACB4314923BF9B8F003C0A81 /* Ap4VpccAtom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ACB4314723BF9B8F003C0A81 /* Ap4VpccAtom.cpp */; };
 		CA00667D1015399A004C0D5F /* Mp42Ts.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA00667C1015399A004C0D5F /* Mp42Ts.cpp */; };
 		CA00A65C1A1C38210064B4D3 /* Mp4Pssh.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA00A65B1A1C38210064B4D3 /* Mp4Pssh.cpp */; };
 		CA00A6611A1C3BD90064B4D3 /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAA7E6C914ACD763008AA54E /* libBento4.a */; };
@@ -1033,6 +1035,8 @@
 /* Begin PBXFileReference section */
 		AC28E6B82389DE04005D9BE9 /* Ap4Dac3Atom.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4Dac3Atom.cpp; sourceTree = "<group>"; };
 		AC28E6B92389DE05005D9BE9 /* Ap4Dac3Atom.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4Dac3Atom.h; sourceTree = "<group>"; };
+		ACB4314623BF9B8F003C0A81 /* Ap4VpccAtom.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4VpccAtom.h; sourceTree = "<group>"; };
+		ACB4314723BF9B8F003C0A81 /* Ap4VpccAtom.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4VpccAtom.cpp; sourceTree = "<group>"; };
 		CA00667310153951004C0D5F /* mp42ts */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mp42ts; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA00667C1015399A004C0D5F /* Mp42Ts.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Mp42Ts.cpp; sourceTree = "<group>"; };
 		CA00A6531A1C36560064B4D3 /* mp4pssh */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mp4pssh; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -2284,6 +2288,8 @@
 				CA93669D0B437D040067D50B /* Ap4Version.h */,
 				CA93669E0B437D040067D50B /* Ap4VmhdAtom.cpp */,
 				CA93669F0B437D040067D50B /* Ap4VmhdAtom.h */,
+				ACB4314723BF9B8F003C0A81 /* Ap4VpccAtom.cpp */,
+				ACB4314623BF9B8F003C0A81 /* Ap4VpccAtom.h */,
 				CA9CB9BC0F86ABB400063C70 /* Ap48bdlAtom.cpp */,
 				CA9CB9BD0F86ABB400063C70 /* Ap48bdlAtom.h */,
 			);
@@ -2626,6 +2632,7 @@
 				CAA4FF2110B2CBB3009C8F5B /* Ap4Mp4AudioInfo.h in Headers */,
 				CA39215F13AC0B36006718F0 /* Ap4Stz2Atom.h in Headers */,
 				CA5733B813B27B7500953446 /* Ap4TfdtAtom.h in Headers */,
+				ACB4314823BF9B8F003C0A81 /* Ap4VpccAtom.h in Headers */,
 				CA5733E913B3AB0A00953446 /* Ap4CommonEncryption.h in Headers */,
 				CA57340C13B3B9C000953446 /* Ap4TencAtom.h in Headers */,
 				CA5734ED13B5DBB100953446 /* Ap4SaioAtom.h in Headers */,
@@ -3750,6 +3757,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				CA9366A20B437D040067D50B /* Ap4Atom.cpp in Sources */,
+				ACB4314923BF9B8F003C0A81 /* Ap4VpccAtom.cpp in Sources */,
 				CA9366A40B437D040067D50B /* Ap4AtomFactory.cpp in Sources */,
 				CA9366A60B437D040067D50B /* Ap4AtomSampleTable.cpp in Sources */,
 				CA9366A80B437D040067D50B /* Ap4ByteStream.cpp in Sources */,

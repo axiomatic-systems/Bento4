@@ -920,7 +920,7 @@ AP4_HevcSequenceParameterSet::Parse(const unsigned char* data, unsigned int data
         return AP4_ERROR_INVALID_FORMAT;
     }
     for (unsigned int i=0; i<num_short_term_ref_pic_sets; i++) {
-        AP4_Result result = parse_st_ref_pic_set(&short_term_ref_pic_sets[i], this, i, num_short_term_ref_pic_sets, bits);
+        result = parse_st_ref_pic_set(&short_term_ref_pic_sets[i], this, i, num_short_term_ref_pic_sets, bits);
         if (AP4_FAILED(result)) return result;
     }
     long_term_ref_pics_present_flag = bits.ReadBit();

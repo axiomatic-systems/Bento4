@@ -35,6 +35,7 @@
 #include "Ap4SampleEntry.h"
 #include "Ap4AvccAtom.h"
 #include "Ap4HvccAtom.h"
+#include "Ap4VpccAtom.h"
 #include "Ap4Utils.h"
 #include "Ap4Mp4AudioInfo.h"
 
@@ -107,6 +108,9 @@ AP4_GetFormatName(AP4_UI32 format)
         case AP4_SAMPLE_FORMAT_VC_1: return "SMPTE VC-1";
         case AP4_SAMPLE_FORMAT_XML_: return "XML Metadata";
         case AP4_SAMPLE_FORMAT_STPP: return "Timed Text";
+        case AP4_SAMPLE_FORMAT_VP8:  return "VP8";
+        case AP4_SAMPLE_FORMAT_VP9:  return "VP9";
+        case AP4_SAMPLE_FORMAT_VP10: return "VP10";
         default: return NULL;
     }
 }

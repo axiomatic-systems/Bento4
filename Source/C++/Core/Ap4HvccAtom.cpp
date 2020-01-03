@@ -76,7 +76,7 @@ AP4_HvccAtom::GetChromaFormatName(AP4_UI08 chroma_format)
 }
 
 /*----------------------------------------------------------------------
-|   AP4_AvccAtom::Create
+|   AP4_HvccAtom::Create
 +---------------------------------------------------------------------*/
 AP4_HvccAtom*
 AP4_HvccAtom::Create(AP4_Size size, AP4_ByteStream& stream)

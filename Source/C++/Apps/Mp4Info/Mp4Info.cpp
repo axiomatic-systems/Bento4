@@ -591,6 +591,27 @@ ShowSampleDescription_Text(AP4_SampleDescription& description, bool verbose)
         printf("      BL Present:  %s\n", dvcc->GetBlPresentFlag()?"true":"false");
     }
     
+    // VPx Specifics
+    if (desc->GetFormat() == AP4_SAMPLE_FORMAT_VP8 ||
+        desc->GetFormat() == AP4_SAMPLE_FORMAT_VP9 ||
+        desc->GetFormat() == AP4_SAMPLE_FORMAT_VP10) {
+        AP4_VpccAtom* vpcc = AP4_DYNAMIC_CAST(AP4_VpccAtom, desc->GetDetails().GetChild(AP4_ATOM_TYPE_VPCC));
+        if (vpcc) {
+            printf("    Profile:                  %d\n", vpcc->GetProfile());
+            printf("    Level:                    %d\n", vpcc->GetLevel());
+            printf("    Bit Depth:                %d\n", vpcc->GetBitDepth());
+            printf("    Chroma Subsampling:       %d\n", vpcc->GetChromaSubsampling());
+            printf("    Colour Primaries:         %d\n", vpcc->GetColourPrimaries());
+            printf("    Transfer Characteristics: %d\n", vpcc->GetTransferCharacteristics());
+            printf("    Matrix Coefficients:      %d\n", vpcc->GetMatrixCoefficients());
+            printf("    Video Full Range Flag:    %s\n", vpcc->GetVideoFullRangeFlag() ? "true" : "false");
+            AP4_String codec;
+            vpcc->GetCodecString(desc->GetFormat(), codec);
+            printf("    Codecs String:            %s", codec.GetChars());
+            printf("\n");
+        }
+    }
+
     // Subtitles
     if (desc->GetType() == AP4_SampleDescription::TYPE_SUBTITLES) {
         AP4_SubtitleSampleDescription* subt_desc = AP4_DYNAMIC_CAST(AP4_SubtitleSampleDescription, desc);
@@ -859,7 +880,32 @@ ShowSampleDescription_Json(AP4_SampleDescription& description, bool verbose)
         printf("   \"bl_present\": %s\n", dvcc->GetBlPresentFlag()?"true":"false");
         printf("}");
     }
-    
+
+    // VPx Specifics
+    if (desc->GetFormat() == AP4_SAMPLE_FORMAT_VP8 ||
+        desc->GetFormat() == AP4_SAMPLE_FORMAT_VP9 ||
+        desc->GetFormat() == AP4_SAMPLE_FORMAT_VP10) {
+        AP4_VpccAtom* vpcc = AP4_DYNAMIC_CAST(AP4_VpccAtom, desc->GetDetails().GetChild(AP4_ATOM_TYPE_VPCC));
+        if (vpcc) {
+            printf(",\n");
+            printf("\"vpx_info\": {\n");
+            printf("    \"profile\":%d,\n", vpcc->GetProfile());
+            printf("    \"level\":%d,\n", vpcc->GetLevel());
+            printf("    \"bit_depth\":%d,\n", vpcc->GetBitDepth());
+            printf("    \"chroma_subsampling\":%d,\n", vpcc->GetChromaSubsampling());
+            printf("    \"colour_primaries\":%d,\n", vpcc->GetColourPrimaries());
+            printf("    \"transfer_characteristics\":%d,\n", vpcc->GetTransferCharacteristics());
+            printf("    \"matrix_coefficients\":%d,\n", vpcc->GetMatrixCoefficients());
+            printf("    \"video_full_range_flag\":%s\n", vpcc->GetVideoFullRangeFlag() ? "true" : "false");
+            printf("},\n");
+            printf("\"codecs_string\":\"");
+            AP4_String codec;
+            vpcc->GetCodecString(desc->GetFormat(), codec);
+            printf("%s", codec.GetChars());
+            printf("\"");
+        }
+    }
+
     // Subtitles
     if (desc->GetType() == AP4_SampleDescription::TYPE_SUBTITLES) {
         printf(",\n");
