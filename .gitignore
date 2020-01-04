@@ -47,3 +47,4 @@ Build/Targets/x86_64-microsoft-win32-vs2015/**/Release
 IDEWorkspaceChecks.plist
 .scannerwork
 Test/Output
+.coverage
