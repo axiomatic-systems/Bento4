@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 __author__    = 'Gilles Boccon-Gibod (bok@bok.net)'
-__copyright__ = 'Copyright 2011-2016 Axiomatic Systems, LLC.'
+__copyright__ = 'Copyright 2011-2020 Axiomatic Systems, LLC.'
 
 import xml.etree.ElementTree as ET
 import os.path

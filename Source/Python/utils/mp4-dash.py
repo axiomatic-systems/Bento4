@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 __author__    = 'Gilles Boccon-Gibod (bok@bok.net)'
-__copyright__ = 'Copyright 2011-2018 Axiomatic Systems, LLC.'
+__copyright__ = 'Copyright 2011-2020 Axiomatic Systems, LLC.'
 
 ###
 # NOTE: this script needs Bento4 command line binaries to run
@@ -1466,6 +1466,8 @@ def main():
         default_exec_dir = path.join(SCRIPT_PATH, 'bin')
     if not path.exists(default_exec_dir):
         default_exec_dir = path.join(SCRIPT_PATH, '..', 'bin')
+    if not path.exists(default_exec_dir):
+        default_exec_dir = '-'
 
     # parse options
     parser = OptionParser(usage="%prog [options] <media-file> [<media-file> ...]",
@@ -1582,7 +1584,7 @@ def main():
     parser.add_option('', "--fairplay-key-uri", dest="fairplay_key_uri",
                       help="Specify the key URI to use for FairPlay Streaming key delivery (only valid with --hls option)")
     parser.add_option('', "--exec-dir", metavar="<exec_dir>", dest="exec_dir", default=default_exec_dir,
-                      help="Directory where the Bento4 executables are located")
+                      help="Directory where the Bento4 executables are located (use '-' to look for executable in the current PATH)")
     (options, args) = parser.parse_args()
     if not args:
         parser.print_help()
@@ -1607,8 +1609,9 @@ def main():
         if options.use_segment_list:
             raise Exception('ERROR: --hippo and --use-segment-list are mutually exclusive')
 
-    if not path.exists(options.exec_dir):
-        PrintErrorAndExit('Executable directory does not exist ('+Options.exec_dir+'), use --exec-dir')
+    if options.exec_dir != "-":
+        if not path.exists(options.exec_dir):
+            PrintErrorAndExit('Executable directory does not exist ('+Options.exec_dir+'), use --exec-dir')
 
     if options.max_playout_rate_strategy:
         if not options.max_playout_rate_strategy.startswith('lowest:'):

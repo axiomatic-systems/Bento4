@@ -2,7 +2,7 @@
 import collections
 
 __author__    = 'Gilles Boccon-Gibod (bok@bok.net)'
-__copyright__ = 'Copyright 2011-2015 Axiomatic Systems, LLC.'
+__copyright__ = 'Copyright 2011-2020 Axiomatic Systems, LLC.'
 
 import sys
 import os
@@ -249,7 +249,7 @@ def XmlDuration(d):
     return xsd
 
 def Bento4Command(options, name, *args, **kwargs):
-    executable = path.join(options.exec_dir, name)
+    executable = path.join(options.exec_dir, name) if options.exec_dir != '-' else name
     cmd = [executable]
     for kwarg in kwargs:
         arg = kwarg.replace('_', '-')
