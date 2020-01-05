@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 __author__    = 'Gilles Boccon-Gibod (bok@bok.net)'
 __copyright__ = 'Copyright 2011-2020 Axiomatic Systems, LLC.'
@@ -624,7 +624,7 @@ def ComputeHlsWidevineKeyLine(options, track):
 
     json_param = '{ "provider": "%(provider)s", "content_id": "%(content_id)s", "key_ids": ["%(kid)s"] }' % fields
     key_line   = 'URI="data:text/plain;base64,%s",KEYFORMAT="com.widevine",KEYFORMATVERSIONS="1",IV=0x%s' % (
-        Base64Encode(json_param),
+        Base64Encode(json_param.encode('ascii')),
         track.key_info['iv']
     )
 
@@ -723,7 +723,7 @@ def OutputHlsIframeIndex(options, track, all_tracks, media_subdir, iframes_playl
 
     if not options.split:
         # get the I-frame index for a single file
-        json_index = Mp4IframIndex(options, path.join(options.output_dir, media_file_name))
+        json_index = Mp4IframeIndex(options, path.join(options.output_dir, media_file_name))
         index = json.loads(json_index)
         for i in range(len(track.segment_durations)):
             if i < len(index):
@@ -751,7 +751,7 @@ def OutputHlsIframeIndex(options, track, all_tracks, media_subdir, iframes_playl
             init_file = path.join(options.output_dir, media_subdir, options.init_segment)
             if not path.exists(fragment_file):
                 break
-            json_index = Mp4IframIndex(options, fragment_file, fragments_info=init_file)
+            json_index = Mp4IframeIndex(options, fragment_file, fragments_info=init_file)
             index = json.loads(json_index)
             if len(index) < 1:
                 break
@@ -1126,7 +1126,7 @@ def OutputHippo(options, audio_tracks, video_tracks):
 
     # save the Manifest
     if options.hippo_server_manifest_filename != '':
-        open(path.join(options.output_dir, options.hippo_server_manifest_filename), "wb").write(server_manifest)
+        open(path.join(options.output_dir, options.hippo_server_manifest_filename), "w").write(server_manifest)
 
 #############################################
 def SelectTracks(options, media_sources):

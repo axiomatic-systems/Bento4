@@ -48,3 +48,5 @@ IDEWorkspaceChecks.plist
 .scannerwork
 Test/Output
 .coverage
+coverage_html
+Test/Output

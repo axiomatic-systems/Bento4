@@ -330,19 +330,19 @@ class rijndael:
 
 def cbc_encrypt(plaintext, key, IV):
     # padding
-    padding_size = 16-(len(plaintext) % 16)
-    plaintext += chr(padding_size)*padding_size
+    padding_size = 16 - (len(plaintext) % 16)
+    plaintext += bytes([padding_size]) * padding_size
 
     # init
     chainBytes = IV
     cipher = rijndael(key)
-    ciphertext = ''
+    ciphertext = b''
 
     # CBC Mode: For each block...
     for x in range(len(plaintext)//16):
 
         # XOR with the chaining block
-        block = ''.join([plaintext[x*16+y] ^ chainBytes[y] for y in range(16)])
+        block = bytes([plaintext[x*16+y] ^ chainBytes[y] for y in range(16)])
 
         # Encrypt and chain
         chainBytes = cipher.encrypt(block)
@@ -353,7 +353,7 @@ def cbc_encrypt(plaintext, key, IV):
 def cbc_decrypt(ciphertext, key, IV):
     chainBytes = IV
     cipher = rijndael(key)
-    plaintext = ''
+    plaintext = b''
 
     # sanity check
     if len(ciphertext)%16: raise ValueError('ciphertext not an integral number of blocks')
@@ -366,13 +366,13 @@ def cbc_decrypt(ciphertext, key, IV):
         decrypted = cipher.decrypt(block)
 
         # XOR with the chaining block and add to plaintext
-        plaintext += ''.join([decrypted[y] ^ chainBytes[y] for y in range(16)])
+        plaintext += bytes([decrypted[y] ^ chainBytes[y] for y in range(16)])
 
         # Set the next chaining block
         chainBytes = block
 
     # padding
-    padding_size = plaintext[-1:]
+    padding_size = plaintext[-1]
     if padding_size > 16: raise ValueError('invalid padding')
 
     return plaintext[:-padding_size]

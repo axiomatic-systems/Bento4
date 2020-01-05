@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 import collections
 from functools import reduce
 
@@ -310,7 +309,7 @@ def Mp4Encrypt(options, input_filename, output_filename, *args, **kwargs):
 def Mp42Hls(options, input_filename, *args, **kwargs):
     return Bento4Command(options, 'mp42hls', input_filename, *args, **kwargs)
 
-def Mp4IframIndex(options, input_filename, *args, **kwargs):
+def Mp4IframeIndex(options, input_filename, *args, **kwargs):
     return Bento4Command(options, 'mp4iframeindex', input_filename, *args, **kwargs)
 
 class Mp4Atom:
@@ -525,7 +524,6 @@ class Mp4File:
 
         # get a complete file dump
         json_dump = Mp4Dump(options, filename, format='json', verbosity='1')
-        #print json_dump
         self.tree = json.loads(json_dump, strict=False, object_pairs_hook=collections.OrderedDict)
 
         # look for KIDs
@@ -920,7 +918,7 @@ def ComputeDolbyAc4AudioChannelConfig(track):
 
     return '000000'
 
-def ComputeDolbyDigitalAudioChannelMask(track):
+def ComputeDolbyDigitalPlusAudioChannelMask(track):
     masks = {
         'L':       0x1,             # SPEAKER_FRONT_LEFT
         'R':       0x2,             # SPEAKER_FRONT_RIGHT
@@ -937,7 +935,7 @@ def ComputeDolbyDigitalAudioChannelMask(track):
         'Vhl/Vhr': 0x1000 | 0x4000, # SPEAKER_TOP_FRONT_LEFT/SPEAKER_TOP_FRONT_RIGHT
         'Vhc':     0x2000,          # SPEAKER_TOP_FRONT_CENTER
     }
-    (channel_count, channels) = GetDolbyDigitalChannels(track)
+    (channel_count, channels) = GetDolbyDigitalPlusChannels(track)
     if not channels:
         return (channel_count, 3)
     channel_mask = 0
@@ -953,7 +951,7 @@ def ComputeDolbyDigitalAudioChannelMask(track):
     return (channel_count, channel_mask)
 
 def ComputeDolbyDigitalPlusSmoothStreamingInfo(track):
-    (channel_count, channel_mask) = ComputeDolbyDigitalAudioChannelMask(track)
+    (channel_count, channel_mask) = ComputeDolbyDigitalPlusAudioChannelMask(track)
     info = "0006" # 1536 in little-endian
     mask_hex_be = "{0:0{1}x}".format(channel_mask, 4)
     info += mask_hex_be[2:4]+mask_hex_be[0:2]+'0000'
@@ -963,7 +961,7 @@ def ComputeDolbyDigitalPlusSmoothStreamingInfo(track):
 
 def ComputeMarlinPssh(options):
     # create a dummy (empty) Marlin PSSH
-    return struct.pack('>I4sI4sII', 24, 'marl', 16, 'mkid', 0, 0)
+    return struct.pack('>I4sI4sII', 24, b'marl', 16, b'mkid', 0, 0)
 
 def DerivePlayReadyKey(seed, kid, swap=True):
     if len(seed) < 30:
@@ -994,7 +992,7 @@ def DerivePlayReadyKey(seed, kid, swap=True):
     sha.update(kid)
     sha_C = sha.digest()
 
-    content_key = bytes([sha_A[i] ^ sha_A[i+16] ^ sha_B[i] ^ sha_B[i+16] ^ sha_C[i] ^ sha_C[i+16]] for i in range(16))
+    content_key = bytes([sha_A[i] ^ sha_A[i+16] ^ sha_B[i] ^ sha_B[i+16] ^ sha_C[i] ^ sha_C[i+16] for i in range(16)])
 
     return content_key
 
@@ -1179,8 +1177,8 @@ def WidevineMakeHeader(fields):
             wire_val = WidevineVarInt(field_val)
         elif type(field_val) == str:
             wire_type = 2
-            wire_val = WidevineVarInt(len(field_val))+field_val
-        buffer += bytes([field_num << 3 | wire_type, wire_val])
+            wire_val = WidevineVarInt(len(field_val)) + field_val.encode('ascii')
+        buffer += bytes([(field_num << 3) | wire_type]) + wire_val
     return buffer
 
 def ComputeWidevineHeader(header_spec, encryption_scheme, kid_hex):
@@ -1210,7 +1208,7 @@ def ComputeWidevineHeader(header_spec, encryption_scheme, kid_hex):
             protobuf_fields.append((6, fields['policy']))
 
         if encryption_scheme != 'cenc':
-            four_cc = struct.unpack('>I', encryption_scheme)[0]
+            four_cc = struct.unpack('>I', encryption_scheme.encode('ascii'))[0]
             protobuf_fields.append((9, four_cc))
 
         return WidevineMakeHeader(protobuf_fields)
