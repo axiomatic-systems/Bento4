@@ -72,8 +72,8 @@ PRIMETIME_SCHEME_ID_URI     = 'urn:uuid:F239E769-EFA3-4850-9C16-A903C6932EFB'
 
 MPEG_COMMON_ENCRYPTION_SCHEME_ID_URI = 'urn:mpeg:dash:mp4protection:2011'
 
-EME_COMMON_ENCRYPTION_PSSH_SYSTEM_ID = '1077efecc0b24d02ace33c1e52e2fb4b'
-EME_COMMON_ENCRYPTION_SCHEME_ID_URI  = 'urn:uuid:1077efec-c0b2-4d02-ace3-3c1e52e2fb4b'
+EME_COMMON_ENCRYPTION_PSSH_SYSTEM_ID = 'e2719d58a985b3c9781ab030af78d30e'
+EME_COMMON_ENCRYPTION_SCHEME_ID_URI  = 'urn:uuid:e2719d58-a985-b3c9-781a-b030af78d30e'
 
 SMOOTH_DEFAULT_TIMESCALE    = 10000000
 
@@ -82,6 +82,7 @@ SMIL_NAMESPACE              = 'http://www.w3.org/2001/SMIL20/Language'
 CENC_2013_NAMESPACE         = 'urn:mpeg:cenc:2013'
 
 DASH_DEFAULT_ROLE_NAMESPACE = 'urn:mpeg:dash:role:2011'
+DASH_DEFAULT_ROLE           = 'main'
 
 DASH_MEDIA_SEGMENT_URL_PATTERN_SMOOTH = "/QualityLevels($Bandwidth$)/Fragments(%s=$Time$)"
 DASH_MEDIA_SEGMENT_URL_PATTERN_HIPPO  = '%s/Bitrate($Bandwidth$)/Fragment($Time$)'
@@ -444,6 +445,10 @@ def OutputDash(options, set_attributes, audio_sets, video_sets, subtitles_sets, 
             # setup content protection
             if options.encryption_key or options.marlin or options.playready or options.widevine:
                 AddContentProtection(options, adaptation_set, audio_tracks)
+
+            if len(adaptation_set_name) == 4:
+                role = adaptation_set_name[3]
+                AddDescriptor(adaptation_set, {"audio":{'Role':role}}, 'audio/' + language, 'audio')
 
             if options.on_demand:
                 adaptation_set.set('subsegmentAlignment', 'true')
@@ -1177,6 +1182,12 @@ def SelectTracks(options, media_sources):
             elif options.language_map and language in options.language_map:
                 language = options.language_map[language]
             track.language = language
+            
+            track.role = DASH_DEFAULT_ROLE
+            if options.role_map:
+                track.role =  options.role_map.get(track.id, DASH_DEFAULT_ROLE)
+                if track.role and options.verbose:
+                    print "Adding role",track.role,"to",track
 
             # video scan type
             if track.type == 'video':
@@ -1185,6 +1196,8 @@ def SelectTracks(options, media_sources):
         # process audio tracks
         for track in [t for t in tracks if t.type == 'audio']:
             adaptation_set_name = ('audio', track.language, track.codec_family)
+            if track.role:
+                adaptation_set_name += (track.role,)
             adaptation_set = audio_adaptation_sets.get(adaptation_set_name, [])
             audio_adaptation_sets[adaptation_set_name] = adaptation_set
 
@@ -1337,6 +1350,11 @@ def main():
                       help="Max Playout Rate setting strategy for trick-play support. Supported strategies: lowest:X"),
     parser.add_option('', "--language-map", dest="language_map", metavar="<lang_from>:<lang_to>[,...]",
                       help="Remap language code <lang_from> to <lang_to>. Multiple mappings can be specified, separated by ','")
+    parser.add_option('', "--role-map", dest="role_map_raw", metavar="<stream_id>:<role>[,...]",
+                      help="Map role for stream <stream_id> to <role>. Multiple mappings can be specified, separated by ','. "+
+                           "Supersede contents of --role-map-file if both specified.")
+    parser.add_option('', "--role-map-file", dest="role_map_file", metavar="<filename>.json",
+                      help="JSON mapping of roles for streams.")
     parser.add_option('', "--always-output-lang", dest="always_output_lang", action='store_true', default=False,
                       help="Always output an @lang attribute for audio tracks even when the language is undefined"),
     parser.add_option('', "--subtitles", dest="subtitles", action="store_true", default=False,
@@ -1420,6 +1438,7 @@ def main():
 
     # set some synthetic (not from command line) options
     options.on_demand = False
+    options.role_map = {}
 
     # check the consistency of the options
     if options.smooth:
@@ -1534,6 +1553,21 @@ def main():
         for mapping in mappings:
             from_lang, to_lang = mapping.split(':')
             options.language_map[from_lang] = to_lang
+
+    # process role map options
+    if options.role_map_file:
+        fp = open(options.role_map_file)
+        mappings = json.load(fp)
+        for stream_id,mapping in mappings.items():
+            role = mapping.get('role')
+            if role :
+                options.role_map[int(stream_id)] = role
+
+    if options.role_map_raw:
+        mappings = options.role_map_raw.split(',')
+        for mapping in mappings:
+            stream_id, role = mapping.split(':')
+            options.role_map[int(stream_id)] = role
 
     # parse the attributes definitions
     set_attributes = {}

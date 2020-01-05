@@ -269,6 +269,7 @@ def Bento4Command(options, name, *args, **kwargs):
         print 'COMMAND: ', " ".join(cmd), cmd
     try:
         try:
+            print os.getcwd()
             return check_output(cmd)
         except OSError as e:
             if options.debug:
@@ -278,7 +279,7 @@ def Bento4Command(options, name, *args, **kwargs):
     except CalledProcessError as e:
         message = "binary tool failed with error %d" % e.returncode
         if options.verbose:
-            message += " - " + str(cmd)
+            message += " - " + str(cmd) + " - " + str(e.output)
         raise Exception(message)
     except OSError as e:
         raise Exception('executable "'+name+'" not found, ensure that it is in your path or in the directory '+options.exec_dir)
@@ -372,6 +373,7 @@ class Mp4Track:
         self.max_segment_bitrate      = 0
         self.bandwidth                = 0
         self.language                 = ''
+        self.role                     = 'main'
         self.order_index              = 0
         self.id = info['id']
         if info['type'] == 'Audio':
