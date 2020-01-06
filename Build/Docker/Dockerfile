@@ -2,10 +2,8 @@ FROM alpine:latest
 
 # Setup environment variables
 ENV BENTO4_VERSION 1.5.1-629
-ENV BENTO4_INSTALL_DIR=/opt/bento4
-ENV PATH=/opt/bento4/bin:${PATH}
 
-# Install dependencies
+# Install Dependencies
 RUN apk update && \
     apk add --no-cache ca-certificates bash python3 make cmake gcc g++ git
 
@@ -19,10 +17,18 @@ RUN rm -rf /opt/bento4/dist/cmakebuild && mkdir -p /opt/bento4/dist/cmakebuild &
 # Install
 RUN cd /opt/bento4/dist && python3 Scripts/SdkPackager.py x86_64-unknown-linux . cmake && mv SDK/Bento4-SDK-*.x86_64-unknown-linux/* .
 
-# Second Stage
-FROM alpine:latest
-RUN apk --no-cache add ca-certificates bash python3
+# === Second Stage ===
+#FROM alpine:latest
+
+# Setup environment variables
+#ENV PATH=/opt/bento4/bin:${PATH}
+
+# Install Dependencies
+#RUN apk --no-cache add ca-certificates bash python3
+
+# Copy Binaries
+#COPY --from=0 /opt/bento4 .
+
 WORKDIR /opt/bento4
-COPY --from=0 /opt/bento4 .
 
 CMD ["bash"]
