@@ -182,14 +182,14 @@ SDK_ROOT=SDK_BUILD_ROOT+'/'+SDK_NAME
 SDK_TARGET_DIR='Build/Targets/'+SDK_TARGET
 SDK_TARGET_ROOT=BENTO4_HOME+'/'+SDK_TARGET_DIR
 
-# special case for Xcode builds
-if SDK_TARGET == 'universal-apple-macosx':
-    SDK_TARGET_DIR='Build/Targets/universal-apple-macosx/build'
-
 if CMAKE_BUILD:
     SDK_BUILD_OUTPUT_DIR = 'cmakebuild'
 else:
-    SDK_BUILD_OUTPUT_DIR = SDK_TARGET_DIR + '/Release'
+    # special case for Xcode builds
+    if SDK_TARGET == 'universal-apple-macosx':
+        SDK_BUILD_OUTPUT_DIR='Build/Targets/universal-apple-macosx/Build/Products/Release'
+    else:
+        SDK_BUILD_OUTPUT_DIR = SDK_TARGET_DIR + '/Release'
 
 print(SDK_NAME)
 
