@@ -17,11 +17,12 @@ COPY ./ /opt/bento4/dist
 RUN rm -rf /opt/bento4/dist/cmakebuild && mkdir -p /opt/bento4/dist/cmakebuild && cd /opt/bento4/dist/cmakebuild && cmake -DCMAKE_BUILD_TYPE=Release .. && make
 
 # Install
-RUN cd /opt/bento4/dist && python3 Scripts/SdkPackager.py x86_64-unknown-linux . cmake
+RUN cd /opt/bento4/dist && python3 Scripts/SdkPackager.py x86_64-unknown-linux . cmake && mv SDK/Bento4-SDK-*.x86_64-unknown-linux/* .
 
-# Cleanup.
-RUN rm -rf /var/cache/apk/* /tmp/*
-
+# Second Stage
+FROM alpine:latest
+RUN apk --no-cache add ca-certificates bash python3
 WORKDIR /opt/bento4
+COPY --from=0 /opt/bento4 .
 
 CMD ["bash"]
