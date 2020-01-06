@@ -22,7 +22,7 @@ FROM alpine:latest
 ENV PATH=/opt/bento4/bin:${PATH}
 
 # Install Dependencies
-RUN apk --no-cache add ca-certificates bash python3
+RUN apk --no-cache add ca-certificates bash python3 libstdc++
 
 # Copy Binaries
 COPY --from=0 /opt/bento4 /opt/bento4
