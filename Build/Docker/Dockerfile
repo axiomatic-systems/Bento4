@@ -17,6 +17,10 @@ RUN cd /tmp/bento4 && python3 Scripts/SdkPackager.py x86_64-unknown-linux . cmak
 
 # === Second Stage ===
 FROM alpine:latest
+ARG BENTO4_VERSION
+LABEL "com.example.vendor"="Axiomatic Systems, LLC."
+LABEL version=$BENTO4_VERSION
+LABEL maintainer="bok@bok.net"
 
 # Setup environment variables
 ENV PATH=/opt/bento4/bin:${PATH}

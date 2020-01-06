@@ -1,5 +1,17 @@
 import os
+import re
 from invoke import task
+
+def get_version():
+    script_dir  = os.path.abspath(os.path.dirname(__file__))
+    bento4_home = os.path.join(script_dir,'..')
+    with open(bento4_home + '/Source/C++/Core/Ap4Version.h') as f:
+        lines = f.readlines()
+        for line in lines:
+            m = re.match(r'.*AP4_VERSION_STRING *"([0-9]*)\.([0-9]*)\.([0-9]*).*"', line)
+            if m:
+                return m.group(1) + '.' + m.group(2) + '.' + m.group(3)
+    return '0.0.0'
 
 def get_sdk_revision():
     cmd = 'git status --porcelain -b'
@@ -9,9 +21,8 @@ def get_sdk_revision():
         print('WARNING: not on master branch')
         branch = '+' + lines[0][3:].strip()
     if len(lines) > 1:
-        print('ERROR: git status not empty')
+        print('WARNING: git status not empty')
         print(''.join(lines))
-        return None
 
     cmd = 'git tag --contains HEAD'
     tags = os.popen(cmd).readlines()
@@ -26,5 +37,5 @@ def get_sdk_revision():
 
 @task(default = True)
 def build(ctx):
-    command = "echo docker image build -t bento4:{} -t bento4:latest -f Build/Docker/Dockerfile .".format(get_sdk_revision())
+    command = "docker image build -t bento4:{version}-{revision} -t bento4:latest --build-arg BENTO4_VERSION={version}-{revision} -f Build/Docker/Dockerfile .".format(version=get_version(), revision=get_sdk_revision())
     ctx.run(command)
