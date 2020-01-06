@@ -263,7 +263,7 @@ AP4_TrunAtom::InspectFields(AP4_AtomInspector& inspector)
                 AP4_FormatString(v3, sizeof(v3), "%sc:%u", sep, m_Entries[i].sample_composition_time_offset);
                 s3 = v3;
             }
-            char value[128];
+            char value[256];
             AP4_FormatString(value, sizeof(value), "%s%s%s%s", s0, s1, s2, s3);
             inspector.AddField(header, value);
         }
@@ -300,7 +300,7 @@ AP4_TrunAtom::InspectFields(AP4_AtomInspector& inspector)
                 AP4_FormatString(v3, sizeof(v3), "%ssample_composition_time_offset:%u", sep, m_Entries[i].sample_composition_time_offset);
                 s3 = v3;
             }
-            char value[128];
+            char value[256];
             AP4_FormatString(value, sizeof(value), "%s%s%s%s", s0, s1, s2, s3);
             inspector.AddField(header, value);
         }
