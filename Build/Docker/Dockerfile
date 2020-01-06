@@ -17,7 +17,7 @@ COPY ./ /opt/bento4/dist
 RUN rm -rf /opt/bento4/dist/cmakebuild && mkdir -p /opt/bento4/dist/cmakebuild && cd /opt/bento4/dist/cmakebuild && cmake -DCMAKE_BUILD_TYPE=Release .. && make
 
 # Install
-RUN cd /opt/bento4/dist && python3 Scripts/SdkPackager.py /opt/bento4/dist
+RUN cd /opt/bento4/dist && python3 Scripts/SdkPackager.py
 
 # Cleanup.
 RUN rm -rf /var/cache/apk/* /tmp/*
