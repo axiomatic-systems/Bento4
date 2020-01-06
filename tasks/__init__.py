@@ -15,3 +15,7 @@ def test(ctx, coverage=False):
     ctx.run(command, env={'PYTHONPATH': 'Source/Python/utils', 'BENTO4_HOME': os.path.abspath(os.path.curdir)})
     if coverage:
         ctx.run("coverage3 html -d coverage_html")
+
+def docker(ctx):
+    command = "docker image build -t bento4 -f Build/Docker/Dockerfile ."
+    ctx.run(command)
