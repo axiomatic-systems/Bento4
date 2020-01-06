@@ -25,7 +25,7 @@ ENV PATH=/opt/bento4/bin:${PATH}
 RUN apk --no-cache add ca-certificates bash python3
 
 # Copy Binaries
-COPY --from=0 /opt/bento4 .
+COPY --from=0 /opt/bento4 /opt/bento4
 
 WORKDIR /opt/bento4
 
