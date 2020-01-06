@@ -16,10 +16,8 @@ def get_version():
 def get_sdk_revision():
     cmd = 'git status --porcelain -b'
     lines = os.popen(cmd).readlines()
-    branch = ''
     if not lines[0].startswith('## master'):
         print('WARNING: not on master branch')
-        branch = '+' + lines[0][3:].strip()
     if len(lines) > 1:
         print('WARNING: git status not empty')
         print(''.join(lines))
@@ -33,7 +31,7 @@ def get_sdk_revision():
     sep = version.find('-')
     if sep < 0:
         print('ERROR: unrecognized version string format:', version)
-    return version[sep+1:] + branch
+    return version[sep+1:]
 
 @task(default = True)
 def build(ctx):
