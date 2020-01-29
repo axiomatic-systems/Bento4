@@ -11,23 +11,23 @@ All rights reserved.
 
 LICENSE TERMS
 
-The free distribution and use of this software in both source and binary 
+The free distribution and use of this software in both source and binary
 form is allowed (with or without changes) provided that:
 
-1. distributions of this source code include the above copyright 
+1. distributions of this source code include the above copyright
 notice, this list of conditions and the following disclaimer;
 
 2. distributions in binary form include the above copyright
 notice, this list of conditions and the following disclaimer
 in the documentation and/or other associated materials;
 
-3. the copyright holder's name is not used to endorse products 
-built using this software without specific written permission. 
+3. the copyright holder's name is not used to endorse products
+built using this software without specific written permission.
 
 DISCLAIMER
 
 This software is provided 'as is' with no explicit or implied warranties
-in respect of its properties, including, but not limited to, correctness 
+in respect of its properties, including, but not limited to, correctness
 and fitness for purpose.
 -------------------------------------------------------------------------
 Issue Date: 29/07/2002
@@ -39,6 +39,7 @@ Issue Date: 29/07/2002
 #include "Ap4AesBlockCipher.h"
 #include "Ap4Results.h"
 #include "Ap4Utils.h"
+#include "Ap4Config.h"
 
 /*----------------------------------------------------------------------
 |   AES types
@@ -69,21 +70,21 @@ struct aes_ctx                     // the AES context for encryption
 /*  START OF CONFIGURATION OPTIONS
 
     USE OF DEFINES
-  
-    Later in this section there are a number of defines that control the 
-    operation of the code.  In each section, the purpose of each define is 
-    explained so that the relevant form can be included or excluded by 
-    setting either 1's or 0's respectively on the branches of the related 
+
+    Later in this section there are a number of defines that control the
+    operation of the code.  In each section, the purpose of each define is
+    explained so that the relevant form can be included or excluded by
+    setting either 1's or 0's respectively on the branches of the related
     #if clauses.
 */
 
 /*  1. BYTE ORDER IN 32-BIT WORDS
 
-    To obtain the highest speed on processors with 32-bit words, this code 
+    To obtain the highest speed on processors with 32-bit words, this code
     needs to determine the order in which bytes are packed into such words.
-    The following block of code is an attempt to capture the most obvious 
-    ways in which various environemnts define byte order. It may well fail, 
-    in which case the definitions will need to be set by editing at the 
+    The following block of code is an attempt to capture the most obvious
+    ways in which various environments define byte order. It may well fail,
+    in which case the definitions will need to be set by editing at the
     points marked **** EDIT HERE IF NECESSARY **** below.
 */
 #define AES_LITTLE_ENDIAN   1234 /* byte 0 is least significant (i386) */
@@ -105,27 +106,27 @@ struct aes_ctx                     // the AES context for encryption
 
 /*  2. BYTE ORDER WITHIN 32 BIT WORDS
 
-    The fundamental data processing units in Rijndael are 8-bit bytes. The 
-    input, output and key input are all enumerated arrays of bytes in which 
-    bytes are numbered starting at zero and increasing to one less than the 
-    number of bytes in the array in question. This enumeration is only used 
-    for naming bytes and does not imply any adjacency or order relationship 
-    from one byte to another. When these inputs and outputs are considered 
-    as bit sequences, bits 8*n to 8*n+7 of the bit sequence are mapped to 
-    byte[n] with bit 8n+i in the sequence mapped to bit 7-i within the byte. 
-    In this implementation bits are numbered from 0 to 7 starting at the 
+    The fundamental data processing units in Rijndael are 8-bit bytes. The
+    input, output and key input are all enumerated arrays of bytes in which
+    bytes are numbered starting at zero and increasing to one less than the
+    number of bytes in the array in question. This enumeration is only used
+    for naming bytes and does not imply any adjacency or order relationship
+    from one byte to another. When these inputs and outputs are considered
+    as bit sequences, bits 8*n to 8*n+7 of the bit sequence are mapped to
+    byte[n] with bit 8n+i in the sequence mapped to bit 7-i within the byte.
+    In this implementation bits are numbered from 0 to 7 starting at the
     numerically least significant end of each byte (bit n represents 2^n).
 
-    However, Rijndael can be implemented more efficiently using 32-bit 
+    However, Rijndael can be implemented more efficiently using 32-bit
     words by packing bytes into words so that bytes 4*n to 4*n+3 are placed
-    into word[n]. While in principle these bytes can be assembled into words 
-    in any positions, this implementation only supports the two formats in 
+    into word[n]. While in principle these bytes can be assembled into words
+    in any positions, this implementation only supports the two formats in
     which bytes in adjacent positions within words also have adjacent byte
-    numbers. This order is called big-endian if the lowest numbered bytes 
-    in words have the highest numeric significance and little-endian if the 
-    opposite applies. 
-    
-    This code can work in either order irrespective of the order used by the 
+    numbers. This order is called big-endian if the lowest numbered bytes
+    in words have the highest numeric significance and little-endian if the
+    opposite applies.
+
+    This code can work in either order irrespective of the order used by the
     machine on which it runs. Normally the internal byte order will be set
     to the order of the processor on which the code is to be run but this
     define can be used to reverse this in special situations
@@ -138,20 +139,20 @@ struct aes_ctx                     // the AES context for encryption
 #define INTERNAL_BYTE_ORDER AES_BIG_ENDIAN
 #endif
 
-/*  3. FAST INPUT/OUTPUT OPERATIONS.  
+/*  3. FAST INPUT/OUTPUT OPERATIONS.
 
-    On some machines it is possible to improve speed by transferring the 
-    bytes in the input and output arrays to and from the internal 32-bit 
-    variables by addressing these arrays as if they are arrays of 32-bit 
-    words.  On some machines this will always be possible but there may 
-    be a large performance penalty if the byte arrays are not aligned on 
-    the normal word boundaries. On other machines this technique will 
+    On some machines it is possible to improve speed by transferring the
+    bytes in the input and output arrays to and from the internal 32-bit
+    variables by addressing these arrays as if they are arrays of 32-bit
+    words.  On some machines this will always be possible but there may
+    be a large performance penalty if the byte arrays are not aligned on
+    the normal word boundaries. On other machines this technique will
     lead to memory access errors when such 32-bit word accesses are not
-    properly aligned. The option SAFE_IO avoids such problems but will 
-    often be slower on those machines that support misaligned access 
-    (especially so if care is taken to align the input  and output byte 
-    arrays on 32-bit word boundaries). If SAFE_IO is not defined it is 
-    assumed that access to byte arrays as if they are arrays of 32-bit 
+    properly aligned. The option SAFE_IO avoids such problems but will
+    often be slower on those machines that support misaligned access
+    (especially so if care is taken to align the input  and output byte
+    arrays on 32-bit word boundaries). If SAFE_IO is not defined it is
+    assumed that access to byte arrays as if they are arrays of 32-bit
     words will not cause problems when such accesses are misaligned.
 */
 #if 1
@@ -161,12 +162,12 @@ struct aes_ctx                     // the AES context for encryption
 /*  4. LOOP UNROLLING
 
     The code for encryption and decrytpion cycles through a number of rounds
-    that can be implemented either in a loop or by expanding the code into a 
+    that can be implemented either in a loop or by expanding the code into a
     long sequence of instructions, the latter producing a larger program but
     one that will often be much faster. The latter is called loop unrolling.
     There are also potential speed advantages in expanding two iterations in
     a loop with half the number of iterations, which is called partial loop
-    unrolling.  The following options allow partial or full loop unrolling 
+    unrolling.  The following options allow partial or full loop unrolling
     to be set independently for encryption and decryption
 */
 #if 0
@@ -187,8 +188,8 @@ struct aes_ctx                     // the AES context for encryption
 
 /*  5. FIXED OR DYNAMIC TABLES
 
-    When this section is included the tables used by the code are comipled 
-    statically into the binary file.  Otherwise they are computed once when 
+    When this section is included the tables used by the code are comipled
+    statically into the binary file.  Otherwise they are computed once when
     the code is first used.
 */
 #if 1
@@ -197,7 +198,7 @@ struct aes_ctx                     // the AES context for encryption
 
 /*  6. FAST FINITE FIELD OPERATIONS
 
-    If this section is included, tables are used to provide faster finite 
+    If this section is included, tables are used to provide faster finite
     field arithmetic (this has no effect if FIXED_TABLES is defined).
 */
 #if 1
@@ -206,8 +207,8 @@ struct aes_ctx                     // the AES context for encryption
 
 /*  7. INTERNAL STATE VARIABLE FORMAT
 
-    The internal state of Rijndael is stored in a number of local 32-bit 
-    word varaibles which can be defined either as an array or as individual 
+    The internal state of Rijndael is stored in a number of local 32-bit
+    word varaibles which can be defined either as an array or as individual
     names variables. Include this section if you want to store these local
     variables in arrays. Otherwise individual local variables will be used.
 */
@@ -217,10 +218,10 @@ struct aes_ctx                     // the AES context for encryption
 
 /* In this implementation the columns of the state array are each held in
    32-bit words. The state array can be held in various ways: in an array
-   of words, in a number of individual word variables or in a number of 
+   of words, in a number of individual word variables or in a number of
    processor registers. The following define maps a variable name x and
    a column number c to the way the state array variable is to be held.
-   The first define below maps the state into an array x[c] whereas the 
+   The first define below maps the state into an array x[c] whereas the
    second form maps the state into a number of individual variables x0,
    x1, etc.  Another form could map individual state colums to machine
    register names.
@@ -246,16 +247,16 @@ struct aes_ctx                     // the AES context for encryption
 
     This cipher proceeds by repeating in a number of cycles known as 'rounds'
     which are implemented by a round function which can optionally be speeded
-    up using tables.  The basic tables are each 256 32-bit words, with either 
+    up using tables.  The basic tables are each 256 32-bit words, with either
     one or four tables being required for each round function depending on
     how much speed is required. The encryption and decryption round functions
     are different and the last encryption and decrytpion round functions are
     different again making four different round functions in all.
 
     This means that:
-      1. Normal encryption and decryption rounds can each use either 0, 1 
+      1. Normal encryption and decryption rounds can each use either 0, 1
          or 4 tables and table spaces of 0, 1024 or 4096 bytes each.
-      2. The last encryption and decryption rounds can also use either 0, 1 
+      2. The last encryption and decryption rounds can also use either 0, 1
          or 4 tables and table spaces of 0, 1024 or 4096 bytes each.
 
     Include or exclude the appropriate definitions below to set the number
@@ -295,7 +296,7 @@ struct aes_ctx                     // the AES context for encryption
 #endif
 
 /*  The decryption key schedule can be speeded up with tables in the same
-    way that the round functions can.  Include or exclude the following 
+    way that the round functions can.  Include or exclude the following
     defines to set this requirement.
 */
 #if 1
@@ -317,7 +318,7 @@ struct aes_ctx                     // the AES context for encryption
 
 #if defined(BLOCK_SIZE) && ((BLOCK_SIZE & 3) || BLOCK_SIZE < 16 || BLOCK_SIZE > 32)
 #error An illegal block size has been specified.
-#endif  
+#endif
 
 #if !defined(BLOCK_SIZE)
 #define RC_LENGTH    29
@@ -332,7 +333,7 @@ struct aes_ctx                     // the AES context for encryption
 #define LAST_ENC_ROUND  NO_TABLES
 #elif ENC_ROUND == ONE_TABLE && LAST_ENC_ROUND == FOUR_TABLES
 #undef  LAST_ENC_ROUND
-#define LAST_ENC_ROUND  ONE_TABLE 
+#define LAST_ENC_ROUND  ONE_TABLE
 #endif
 
 #if ENC_ROUND == NO_TABLES && ENC_UNROLL != NONE
@@ -345,7 +346,7 @@ struct aes_ctx                     // the AES context for encryption
 #define LAST_DEC_ROUND  NO_TABLES
 #elif DEC_ROUND == ONE_TABLE && LAST_DEC_ROUND == FOUR_TABLES
 #undef  LAST_DEC_ROUND
-#define LAST_DEC_ROUND  ONE_TABLE 
+#define LAST_DEC_ROUND  ONE_TABLE
 #endif
 
 #if DEC_ROUND == NO_TABLES && DEC_UNROLL != NONE
@@ -355,11 +356,11 @@ struct aes_ctx                     // the AES context for encryption
 
 /*  upr(x,n):  rotates bytes within words by n positions, moving bytes to
                higher index positions with wrap around into low positions
-    ups(x,n):  moves bytes by n positions to higher index positions in 
+    ups(x,n):  moves bytes by n positions to higher index positions in
                words but without wrap around
     bval(x,n): extracts a byte from a word
 
-    NOTE:      The definitions given here are intended only for use with 
+    NOTE:      The definitions given here are intended only for use with
                unsigned variables and with shift counts that are compile
                time constants
 */
@@ -401,7 +402,7 @@ struct aes_ctx                     // the AES context for encryption
 #if !defined(_MSC_VER)
 #define _lrotl(x,n)     ((((aes_32t)(x)) <<  n) | (((aes_32t)(x)) >> (32 - n)))
 #endif
-#define bswap_32(x)     ((_lrotl((x),8) & 0x00ff00ff) | (_lrotl((x),24) & 0xff00ff00)) 
+#define bswap_32(x)     ((_lrotl((x),8) & 0x00ff00ff) | (_lrotl((x),24) & 0xff00ff00))
 #endif
 
 #define word_in(x)      bswap_32(*(aes_32t*)(x))
@@ -424,9 +425,9 @@ struct aes_ctx                     // the AES context for encryption
    give improved performance if a fast 32-bit multiply is not available. Note
    that a temporary variable u needs to be defined where FFmulX is used.
 
-#define FFmulX(x) (u = (x) & m1, u |= (u >> 1), ((x) & m2) << 1) ^ ((u >> 3) | (u >> 6)) 
+#define FFmulX(x) (u = (x) & m1, u |= (u >> 1), ((x) & m2) << 1) ^ ((u >> 3) | (u >> 6))
 #define m4  (0x01010101 * BPOLY)
-#define FFmulX(x) (u = (x) & m1, ((x) & m2) << 1) ^ ((u - (u >> 7)) & m4) 
+#define FFmulX(x) (u = (x) & m1, ((x) & m2) << 1) ^ ((u - (u >> 7)) & m4)
 */
 
 /* Work out which tables are needed for the different options   */
@@ -651,7 +652,7 @@ void gen_tabs(void);
 /*----------------------------------------------------------------------
 |   tables
 +---------------------------------------------------------------------*/
-#if defined(FIXED_TABLES) || !defined(FF_TABLES) 
+#if defined(FIXED_TABLES) || !defined(FF_TABLES)
 
 /*  finite field arithmetic operations */
 
@@ -773,7 +774,7 @@ void gen_tabs(void);
 
 #define h0(x)   (x)
 
-/*  These defines are used to ensure tables are generated in the 
+/*  These defines are used to ensure tables are generated in the
     right format depending on the internal byte order required
 */
 
@@ -831,7 +832,7 @@ static const aes_08t inv_s_box[256] = { isb_data(h0) };
 static const aes_32t ft_tab[256] = { sb_data(u0) };
 #endif
 #ifdef  FT4_SET
-static const aes_32t ft_tab[4][256] = 
+static const aes_32t ft_tab[4][256] =
     { {  sb_data(u0) }, {  sb_data(u1) }, {  sb_data(u2) }, {  sb_data(u3) } };
 #endif
 
@@ -839,7 +840,7 @@ static const aes_32t ft_tab[4][256] =
 static const aes_32t fl_tab[256] = { sb_data(w0) };
 #endif
 #ifdef  FL4_SET
-static const aes_32t fl_tab[4][256] = 
+static const aes_32t fl_tab[4][256] =
     { {  sb_data(w0) }, {  sb_data(w1) }, {  sb_data(w2) }, {  sb_data(w3) } };
 #endif
 
@@ -855,7 +856,7 @@ static const aes_32t it_tab[4][256] =
 static const aes_32t il_tab[256] = { isb_data(w0) };
 #endif
 #ifdef  IL4_SET
-static const aes_32t il_tab[4][256] = 
+static const aes_32t il_tab[4][256] =
     { { isb_data(w0) }, { isb_data(w1) }, { isb_data(w2) }, { isb_data(w3) } };
 #endif
 
@@ -863,7 +864,7 @@ static const aes_32t il_tab[4][256] =
 static const aes_32t ls_tab[256] = { sb_data(w0) };
 #endif
 #ifdef  LS4_SET
-/* GBG: unused? 
+/* GBG: unused?
 static const aes_32t ls_tab[4][256] =
     { {  sb_data(w0) }, {  sb_data(w1) }, {  sb_data(w2) }, {  sb_data(w3) } };
 */
@@ -873,7 +874,7 @@ static const aes_32t ls_tab[4][256] =
 static const aes_32t im_tab[256] = { mm_data(v0) };
 #endif
 #ifdef  IM4_SET
-static const aes_32t im_tab[4][256] = 
+static const aes_32t im_tab[4][256] =
     { {  mm_data(v0) }, {  mm_data(v1) }, {  mm_data(v2) }, {  mm_data(v3) } };
 #endif
 
@@ -938,8 +939,8 @@ aes_32t im_tab[4][256];
 
 /*  Generate the tables for the dynamic table option
 
-    It will generally be sensible to use tables to compute finite 
-    field multiplies and inverses but where memory is scarse this 
+    It will generally be sensible to use tables to compute finite
+    field multiplies and inverses but where memory is scarse this
     code might sometimes be better. But it only has effect during
     initialisation so its pretty unimportant in overall terms.
 */
@@ -951,7 +952,7 @@ aes_32t im_tab[4][256];
 
 static aes_08t hibit(const aes_32t x)
 {   aes_08t r = (aes_08t)((x >> 1) | (x >> 2));
-    
+
     r |= (r >> 2);
     r |= (r >> 4);
     return (r + 1) >> 1;
@@ -969,14 +970,14 @@ static aes_08t fi(const aes_08t x)
         if(!n1) return v1;
 
         while(n2 >= n1)
-        {   
+        {
             n2 /= n1; p2 ^= p1 * n2; v2 ^= v1 * n2; n2 = hibit(p2);
         }
-        
+
         if(!n2) return v2;
 
         while(n1 >= n2)
-        {   
+        {
             n1 /= n2; p1 ^= p2 * n1; v1 ^= v2 * n1; n1 = hibit(p1);
         }
     }
@@ -1016,9 +1017,9 @@ void gen_tabs(void)
         root is 0x03, used here to generate the tables
     */
 
-    i = 0; w = 1; 
+    i = 0; w = 1;
     do
-    {   
+    {
         pow[i] = (aes_08t)w;
         pow[i + 255] = (aes_08t)w;
         log[w] = (aes_08t)i++;
@@ -1128,8 +1129,8 @@ static aes_rval aes_blk_len(unsigned int blen, aes_ctx cx[1])
     if(!tab_init) gen_tabs();
 #endif
 
-    if((blen & 7) || blen < 16 || blen > 32) 
-    {     
+    if((blen & 7) || blen < 16 || blen > 32)
+    {
         cx->n_blk = 0; return aes_bad;
     }
 
@@ -1144,10 +1145,10 @@ static aes_rval aes_blk_len(unsigned int blen, aes_ctx cx[1])
    This corresponds to bit lengths of 128, 192 and 256 bits, and
    to Nk values of 4, 6 and 8 respectively.
 
-   The following macros implement a single cycle in the key 
-   schedule generation process. The number of cycles needed 
+   The following macros implement a single cycle in the key
+   schedule generation process. The number of cycles needed
    for each cx->n_col and nk value is:
- 
+
     nk =             4  5  6  7  8
     ------------------------------
     cx->n_col = 4   10  9  8  7  7
@@ -1190,7 +1191,7 @@ static aes_rval aes_blk_len(unsigned int blen, aes_ctx cx[1])
 #if defined(ENCRYPTION_KEY_SCHEDULE)
 
 static aes_rval aes_enc_key(const unsigned char in_key[], unsigned int klen, aes_ctx cx[1])
-{   aes_32t    ss[8]; 
+{   aes_32t    ss[8];
 
 #if !defined(FIXED_TABLES)
     if(!tab_init) gen_tabs();
@@ -1201,7 +1202,7 @@ static aes_rval aes_enc_key(const unsigned char in_key[], unsigned int klen, aes
 #else
     cx->n_blk = BLOCK_SIZE;
 #endif
-    
+
     cx->n_blk = (cx->n_blk & ~3) | 1;
 
     cx->k_sch[0] = ss[0] = word_in(in_key     );
@@ -1213,29 +1214,29 @@ static aes_rval aes_enc_key(const unsigned char in_key[], unsigned int klen, aes
 
     switch(klen)
     {
-    case 16:    ke4(cx->k_sch, 0); ke4(cx->k_sch, 1); 
+    case 16:    ke4(cx->k_sch, 0); ke4(cx->k_sch, 1);
                 ke4(cx->k_sch, 2); ke4(cx->k_sch, 3);
-                ke4(cx->k_sch, 4); ke4(cx->k_sch, 5); 
+                ke4(cx->k_sch, 4); ke4(cx->k_sch, 5);
                 ke4(cx->k_sch, 6); ke4(cx->k_sch, 7);
-                ke4(cx->k_sch, 8); kel4(cx->k_sch, 9); 
+                ke4(cx->k_sch, 8); kel4(cx->k_sch, 9);
                 cx->n_rnd = 10; break;
     case 24:    cx->k_sch[4] = ss[4] = word_in(in_key + 16);
                 cx->k_sch[5] = ss[5] = word_in(in_key + 20);
-                ke6(cx->k_sch, 0); ke6(cx->k_sch, 1); 
+                ke6(cx->k_sch, 0); ke6(cx->k_sch, 1);
                 ke6(cx->k_sch, 2); ke6(cx->k_sch, 3);
-                ke6(cx->k_sch, 4); ke6(cx->k_sch, 5); 
-                ke6(cx->k_sch, 6); kel6(cx->k_sch, 7); 
+                ke6(cx->k_sch, 4); ke6(cx->k_sch, 5);
+                ke6(cx->k_sch, 6); kel6(cx->k_sch, 7);
                 cx->n_rnd = 12; break;
     case 32:    cx->k_sch[4] = ss[4] = word_in(in_key + 16);
                 cx->k_sch[5] = ss[5] = word_in(in_key + 20);
                 cx->k_sch[6] = ss[6] = word_in(in_key + 24);
                 cx->k_sch[7] = ss[7] = word_in(in_key + 28);
-                ke8(cx->k_sch, 0); ke8(cx->k_sch, 1); 
+                ke8(cx->k_sch, 0); ke8(cx->k_sch, 1);
                 ke8(cx->k_sch, 2); ke8(cx->k_sch, 3);
-                ke8(cx->k_sch, 4); ke8(cx->k_sch, 5); 
-                kel8(cx->k_sch, 6); 
+                ke8(cx->k_sch, 4); ke8(cx->k_sch, 5);
+                kel8(cx->k_sch, 6);
                 cx->n_rnd = 14; break;
-    default:    cx->n_rnd = 0; return aes_bad; 
+    default:    cx->n_rnd = 0; return aes_bad;
     }
 #else
     {   aes_32t i, l;
@@ -1259,7 +1260,7 @@ static aes_rval aes_enc_key(const unsigned char in_key[], unsigned int klen, aes
                     for(i = 0; i < l; ++i)
                         ke8(cx->k_sch,  i);
                     break;
-        default:    cx->n_rnd = 0; return aes_bad; 
+        default:    cx->n_rnd = 0; return aes_bad;
         }
     }
 #endif
@@ -1357,7 +1358,7 @@ static aes_rval aes_enc_key(const unsigned char in_key[], unsigned int klen, aes
 }
 
 static aes_rval aes_dec_key(const unsigned char in_key[], unsigned int klen, aes_ctx cx[1])
-{   aes_32t    ss[8]; 
+{   aes_32t    ss[8];
     d_vars
 
 #if !defined(FIXED_TABLES)
@@ -1381,29 +1382,29 @@ static aes_rval aes_dec_key(const unsigned char in_key[], unsigned int klen, aes
 
     switch(klen)
     {
-    case 16:    kdf4(cx->k_sch, 0); kd4(cx->k_sch, 1); 
+    case 16:    kdf4(cx->k_sch, 0); kd4(cx->k_sch, 1);
                 kd4(cx->k_sch, 2); kd4(cx->k_sch, 3);
-                kd4(cx->k_sch, 4); kd4(cx->k_sch, 5); 
+                kd4(cx->k_sch, 4); kd4(cx->k_sch, 5);
                 kd4(cx->k_sch, 6); kd4(cx->k_sch, 7);
-                kd4(cx->k_sch, 8); kdl4(cx->k_sch, 9); 
+                kd4(cx->k_sch, 8); kdl4(cx->k_sch, 9);
                 cx->n_rnd = 10; break;
     case 24:    cx->k_sch[4] = ff(ss[4] = word_in(in_key + 16));
                 cx->k_sch[5] = ff(ss[5] = word_in(in_key + 20));
-                kdf6(cx->k_sch, 0); kd6(cx->k_sch, 1); 
+                kdf6(cx->k_sch, 0); kd6(cx->k_sch, 1);
                 kd6(cx->k_sch, 2); kd6(cx->k_sch, 3);
-                kd6(cx->k_sch, 4); kd6(cx->k_sch, 5); 
-                kd6(cx->k_sch, 6); kdl6(cx->k_sch, 7); 
+                kd6(cx->k_sch, 4); kd6(cx->k_sch, 5);
+                kd6(cx->k_sch, 6); kdl6(cx->k_sch, 7);
                 cx->n_rnd = 12; break;
     case 32:    cx->k_sch[4] = ff(ss[4] = word_in(in_key + 16));
                 cx->k_sch[5] = ff(ss[5] = word_in(in_key + 20));
                 cx->k_sch[6] = ff(ss[6] = word_in(in_key + 24));
                 cx->k_sch[7] = ff(ss[7] = word_in(in_key + 28));
-                kdf8(cx->k_sch, 0); kd8(cx->k_sch, 1); 
+                kdf8(cx->k_sch, 0); kd8(cx->k_sch, 1);
                 kd8(cx->k_sch, 2); kd8(cx->k_sch, 3);
-                kd8(cx->k_sch, 4); kd8(cx->k_sch, 5); 
-                kdl8(cx->k_sch, 6); 
+                kd8(cx->k_sch, 4); kd8(cx->k_sch, 5);
+                kdl8(cx->k_sch, 6);
                 cx->n_rnd = 14; break;
-    default:    cx->n_rnd = 0; return aes_bad; 
+    default:    cx->n_rnd = 0; return aes_bad;
     }
 #else
     {   aes_32t i, l;
@@ -1412,7 +1413,7 @@ static aes_rval aes_dec_key(const unsigned char in_key[], unsigned int klen, aes
 
         switch(klen)
         {
-        case 16: 
+        case 16:
                     for(i = 0; i < l; ++i)
                         ke4(cx->k_sch, i);
                     break;
@@ -1428,7 +1429,7 @@ static aes_rval aes_dec_key(const unsigned char in_key[], unsigned int klen, aes
                     for(i = 0; i < l; ++i)
                         ke8(cx->k_sch,  i);
                     break;
-        default:    cx->n_rnd = 0; return aes_bad; 
+        default:    cx->n_rnd = 0; return aes_bad;
         }
 #if (DEC_ROUND != NO_TABLES)
         for(i = nc; i < nc * cx->n_rnd; ++i)
@@ -1456,7 +1457,7 @@ static aes_rval aes_dec_key(const unsigned char in_key[], unsigned int klen, aes
 #define locals(y,x)     x[4],y[4]
 #else
 #define locals(y,x)     x##0,x##1,x##2,x##3,y##0,y##1,y##2,y##3
- /* 
+ /*
    the following defines prevent the compiler requiring the declaration
    of generated but unused variables in the fwd_var and inv_var macros
  */
@@ -1570,18 +1571,18 @@ switch(nc) \
 #if defined(ENCRYPTION)
 
 /* I am grateful to Frank Yellin for the following construction
-   (and that for decryption) which, given the column (c) of the 
-   output state variable, gives the input state variables which 
+   (and that for decryption) which, given the column (c) of the
+   output state variable, gives the input state variables which
    are needed in its computation for each row (r) of the state.
 
-   For the fixed block size options, compilers should be able to 
-   reduce this complex expression (and the equivalent one for 
-   decryption) to a static variable reference at compile time. 
+   For the fixed block size options, compilers should be able to
+   reduce this complex expression (and the equivalent one for
+   decryption) to a static variable reference at compile time.
    But for variable block size code, there will be some limbs on
    which conditional clauses will be returned.
 */
 
-/* y = output word, x = input word, r = row, c = column for r = 0, 
+/* y = output word, x = input word, r = row, c = column for r = 0,
    1, 2 and 3 = column accessed for row r.
 */
 
@@ -1650,7 +1651,7 @@ static aes_rval aes_enc_blk(const unsigned char in_blk[], unsigned char out_blk[
 
     if(!(cx->n_blk & 1)) return aes_bad;
 
-    state_in(b0, in_blk, kp); 
+    state_in(b0, in_blk, kp);
 
 #if (ENC_UNROLL == FULL)
 
@@ -1658,31 +1659,31 @@ static aes_rval aes_enc_blk(const unsigned char in_blk[], unsigned char out_blk[
 
     switch(cx->n_rnd)
     {
-    case 14:    round(fwd_rnd,  b1, b0, kp - 4 * nc); 
+    case 14:    round(fwd_rnd,  b1, b0, kp - 4 * nc);
                 round(fwd_rnd,  b0, b1, kp - 3 * nc);
-    case 12:    round(fwd_rnd,  b1, b0, kp - 2 * nc); 
+    case 12:    round(fwd_rnd,  b1, b0, kp - 2 * nc);
                 round(fwd_rnd,  b0, b1, kp -     nc);
-    case 10:    round(fwd_rnd,  b1, b0, kp         );             
+    case 10:    round(fwd_rnd,  b1, b0, kp         );
                 round(fwd_rnd,  b0, b1, kp +     nc);
-                round(fwd_rnd,  b1, b0, kp + 2 * nc); 
+                round(fwd_rnd,  b1, b0, kp + 2 * nc);
                 round(fwd_rnd,  b0, b1, kp + 3 * nc);
-                round(fwd_rnd,  b1, b0, kp + 4 * nc); 
+                round(fwd_rnd,  b1, b0, kp + 4 * nc);
                 round(fwd_rnd,  b0, b1, kp + 5 * nc);
-                round(fwd_rnd,  b1, b0, kp + 6 * nc); 
+                round(fwd_rnd,  b1, b0, kp + 6 * nc);
                 round(fwd_rnd,  b0, b1, kp + 7 * nc);
                 round(fwd_rnd,  b1, b0, kp + 8 * nc);
                 round(fwd_lrnd, b0, b1, kp + 9 * nc);
     }
 #else
-    
+
 #if (ENC_UNROLL == PARTIAL)
     {   aes_32t    rnd;
         for(rnd = 0; rnd < (cx->n_rnd >> 1) - 1; ++rnd)
         {
             kp += nc;
-            round(fwd_rnd, b1, b0, kp); 
+            round(fwd_rnd, b1, b0, kp);
             kp += nc;
-            round(fwd_rnd, b0, b1, kp); 
+            round(fwd_rnd, b0, b1, kp);
         }
         kp += nc;
         round(fwd_rnd,  b1, b0, kp);
@@ -1691,7 +1692,7 @@ static aes_rval aes_enc_blk(const unsigned char in_blk[], unsigned char out_blk[
         for(rnd = 0; rnd < cx->n_rnd - 1; ++rnd)
         {
             kp += nc;
-            round(fwd_rnd, p1, p0, kp); 
+            round(fwd_rnd, p1, p0, kp);
             pt = p0; p0 = p1; p1 = pt;
         }
 #endif
@@ -1784,27 +1785,27 @@ static aes_rval aes_dec_blk(const unsigned char in_blk[], unsigned char out_blk[
                 round(inv_rnd,  b0, b1, kp + 3 * nc);
     case 12:    round(inv_rnd,  b1, b0, kp + 2 * nc);
                 round(inv_rnd,  b0, b1, kp + nc    );
-    case 10:    round(inv_rnd,  b1, b0, kp         );             
+    case 10:    round(inv_rnd,  b1, b0, kp         );
                 round(inv_rnd,  b0, b1, kp -     nc);
-                round(inv_rnd,  b1, b0, kp - 2 * nc); 
+                round(inv_rnd,  b1, b0, kp - 2 * nc);
                 round(inv_rnd,  b0, b1, kp - 3 * nc);
-                round(inv_rnd,  b1, b0, kp - 4 * nc); 
+                round(inv_rnd,  b1, b0, kp - 4 * nc);
                 round(inv_rnd,  b0, b1, kp - 5 * nc);
-                round(inv_rnd,  b1, b0, kp - 6 * nc); 
+                round(inv_rnd,  b1, b0, kp - 6 * nc);
                 round(inv_rnd,  b0, b1, kp - 7 * nc);
                 round(inv_rnd,  b1, b0, kp - 8 * nc);
                 round(inv_lrnd, b0, b1, kp - 9 * nc);
     }
 #else
-    
+
 #if (DEC_UNROLL == PARTIAL)
     {   aes_32t    rnd;
         for(rnd = 0; rnd < (cx->n_rnd >> 1) - 1; ++rnd)
         {
-            kp -= nc; 
-            round(inv_rnd, b1, b0, kp); 
-            kp -= nc; 
-            round(inv_rnd, b0, b1, kp); 
+            kp -= nc;
+            round(inv_rnd, b1, b0, kp);
+            kp -= nc;
+            round(inv_rnd, b0, b1, kp);
         }
         kp -= nc;
         round(inv_rnd, b1, b0, kp);
@@ -1813,7 +1814,7 @@ static aes_rval aes_dec_blk(const unsigned char in_blk[], unsigned char out_blk[
         for(rnd = 0; rnd < cx->n_rnd - 1; ++rnd)
         {
             kp -= nc;
-            round(inv_rnd, p1, p0, kp); 
+            round(inv_rnd, p1, p0, kp);
             pt = p0; p0 = p1; p1 = pt;
         }
 #endif
@@ -1837,9 +1838,9 @@ public:
     AP4_AesCbcBlockCipher(CipherDirection direction,
                           aes_ctx*        context) :
         AP4_AesBlockCipher(direction, CBC, context) {}
-        
+
     // AP4_BlockCipher methods
-    virtual AP4_Result Process(const AP4_UI08* input, 
+    virtual AP4_Result Process(const AP4_UI08* input,
                                AP4_Size        input_size,
                                AP4_UI08*       output,
                                const AP4_UI08* iv);
@@ -1848,8 +1849,8 @@ public:
 /*----------------------------------------------------------------------
 |   AP4_AesCbcBlockCipher::Process
 +---------------------------------------------------------------------*/
-AP4_Result 
-AP4_AesCbcBlockCipher::Process(const AP4_UI08* input, 
+AP4_Result
+AP4_AesCbcBlockCipher::Process(const AP4_UI08* input,
                                AP4_Size        input_size,
                                AP4_UI08*       output,
                                const AP4_UI08* iv)
@@ -1858,7 +1859,7 @@ AP4_AesCbcBlockCipher::Process(const AP4_UI08* input,
     if (input_size%AP4_AES_BLOCK_SIZE) {
         return AP4_ERROR_INVALID_PARAMETERS;
     }
-    
+
     // setup the chaining block from the IV
     AP4_UI08 chaining_block[AP4_AES_BLOCK_SIZE];
     if (iv) {
@@ -1866,7 +1867,7 @@ AP4_AesCbcBlockCipher::Process(const AP4_UI08* input,
     } else {
         AP4_SetMemory(chaining_block, 0, AP4_AES_BLOCK_SIZE);
     }
-    
+
     // process all blocks
     unsigned int block_count = input_size/AP4_AES_BLOCK_SIZE;
     if (m_Direction == ENCRYPT) {
@@ -1880,7 +1881,7 @@ AP4_AesCbcBlockCipher::Process(const AP4_UI08* input,
             input  += AP4_AES_BLOCK_SIZE;
             output += AP4_AES_BLOCK_SIZE;
         }
-    } else {        
+    } else {
         for (unsigned int i=0; i<block_count; i++) {
             aes_dec_blk(input, output, m_Context);
             for (unsigned int j=0; j<AP4_AES_BLOCK_SIZE; j++) {
@@ -1891,7 +1892,7 @@ AP4_AesCbcBlockCipher::Process(const AP4_UI08* input,
             output += AP4_AES_BLOCK_SIZE;
         }
     }
-    
+
     return AP4_SUCCESS;
 }
 
@@ -1906,9 +1907,9 @@ public:
                           aes_ctx*        context) :
         AP4_AesBlockCipher(direction, CTR, context)
         /*m_CounterSize(counter_size)*/ {}
-        
+
     // AP4_BlockCipher methods
-    virtual AP4_Result Process(const AP4_UI08* input, 
+    virtual AP4_Result Process(const AP4_UI08* input,
                                AP4_Size        input_size,
                                AP4_UI08*       output,
                                const AP4_UI08* iv);
@@ -1920,8 +1921,8 @@ public:
 /*----------------------------------------------------------------------
 |   AP4_AesCtrBlockCipher::Process
 +---------------------------------------------------------------------*/
-AP4_Result 
-AP4_AesCtrBlockCipher::Process(const AP4_UI08* input, 
+AP4_Result
+AP4_AesCtrBlockCipher::Process(const AP4_UI08* input,
                                AP4_Size        input_size,
                                AP4_UI08*       output,
                                const AP4_UI08* iv)
@@ -1933,7 +1934,7 @@ AP4_AesCtrBlockCipher::Process(const AP4_UI08* input,
     } else {
         AP4_SetMemory(counter, 0, AP4_AES_BLOCK_SIZE);
     }
-    
+
     // process all blocks
     while (input_size) {
         AP4_UI08 block[AP4_AES_BLOCK_SIZE];
@@ -1954,7 +1955,7 @@ AP4_AesCtrBlockCipher::Process(const AP4_UI08* input,
                     break;
                 }
             }
-            
+
             // move to the next block
             input  += AP4_AES_BLOCK_SIZE;
             output += AP4_AES_BLOCK_SIZE;
@@ -1967,7 +1968,7 @@ AP4_AesCtrBlockCipher::Process(const AP4_UI08* input,
 |   AP4_AesBlockCipher::Create
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_AesBlockCipher::Create(const AP4_UI08*      key, 
+AP4_AesBlockCipher::Create(const AP4_UI08*      key,
                            CipherDirection      direction,
                            CipherMode           mode,
                            const void*          mode_params,
@@ -1976,7 +1977,7 @@ AP4_AesBlockCipher::Create(const AP4_UI08*      key,
     cipher = NULL;
 
     aes_ctx* context = new aes_ctx();
-    
+
     switch (mode) {
         case AP4_BlockCipher::CBC:
             if (direction == AP4_BlockCipher::ENCRYPT) {
@@ -1986,7 +1987,7 @@ AP4_AesBlockCipher::Create(const AP4_UI08*      key,
             }
             cipher = new AP4_AesCbcBlockCipher(direction, context);
             break;
-            
+
         case AP4_BlockCipher::CTR: {
             aes_enc_key(key, AP4_AES_KEY_LENGTH, context);
             const AP4_BlockCipher::CtrParams* ctr_params = (const AP4_BlockCipher::CtrParams*)mode_params;
@@ -1997,7 +1998,7 @@ AP4_AesBlockCipher::Create(const AP4_UI08*      key,
             cipher = new AP4_AesCtrBlockCipher(direction, counter_size, context);
             break;
         }
-            
+
         default:
             return AP4_ERROR_INVALID_PARAMETERS;
     }

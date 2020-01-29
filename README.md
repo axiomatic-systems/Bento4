@@ -115,6 +115,16 @@ CMake can generate Makefiles, Xcode project files, or Visual Studios project fil
 	cmake -G "Visual Studio 10 Win64" -DCMAKE_BUILD_TYPE=Release ..
 
 
+#### CMake for Android NDK
+    mkdir cmakebuild
+    cd cmakebuild
+    cmake -DCMAKE_TOOLCHAIN_FILE=$NDK/build/cmake/android.toolchain.cmake -DANDROID_ABI=$ABI -DANDROID_NATIVE_API_LEVEL=$MINSDKVERSION ..
+    make
+
+    See https://developer.android.com/ndk/guides/cmake for details on the choice of ABI and other parameters.
+    
+    Where $NDK is set to the directory path where you have installed the NDK, $ABI is the Android ABI (ex: arm64-v8a) and $MINSDKVERSION is the minimum SDK version (ex: 23)
+
 ### Using Make
 From a command shell, go to your build target directory.
 
