@@ -638,6 +638,9 @@ const AP4_MpegSampleDescription::OTI AP4_OTI_DTS_AUDIO            = 0xA9;
 const AP4_MpegSampleDescription::OTI AP4_OTI_DTS_HIRES_AUDIO      = 0xAA;
 const AP4_MpegSampleDescription::OTI AP4_OTI_DTS_MASTER_AUDIO     = 0xAB;
 const AP4_MpegSampleDescription::OTI AP4_OTI_DTS_EXPRESS_AUDIO    = 0xAC;
+const AP4_MpegSampleDescription::OTI AP4_OTI_OPUS_AUDIO           = 0xAD;
+const AP4_MpegSampleDescription::OTI AP4_OTI_VP9_VIDEO            = 0xB1;
+const AP4_MpegSampleDescription::OTI AP4_OTI_VORBIS_AUDIO         = 0xDD; // Not standard!
 const AP4_MpegSampleDescription::OTI AP4_OTI_13K_VOICE            = 0xE1;
 
 const AP4_UI08 AP4_MPEG4_AUDIO_OBJECT_TYPE_AAC_MAIN              = 1;  /**< AAC Main Profile                             */

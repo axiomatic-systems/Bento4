@@ -903,6 +903,9 @@ AP4_MpegSampleDescription::GetObjectTypeString(OTI oti)
         case AP4_OTI_DTS_HIRES_AUDIO:      return "DTS High Resolution Audio";
         case AP4_OTI_DTS_MASTER_AUDIO:     return "DTS Master Audio";
         case AP4_OTI_DTS_EXPRESS_AUDIO:    return "DTS Express/LBR Audio";
+        case AP4_OTI_OPUS_AUDIO:           return "Opus Audio";
+        case AP4_OTI_VP9_VIDEO:            return "VP9 Video";
+        case AP4_OTI_VORBIS_AUDIO:         return "Vorbis Audio";
         case AP4_OTI_13K_VOICE:            return "13K Voice";
         default:                           return "UNKNOWN";
     }
