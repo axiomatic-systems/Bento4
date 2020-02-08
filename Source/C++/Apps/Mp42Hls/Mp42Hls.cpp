@@ -127,6 +127,7 @@ PrintUsageAndExit()
             "\n\nusage: mp42hls [options] <input>\n"
             "Options:\n"
             "  --verbose\n"
+            "  --show-info\n"
             "  --hls-version <n> (default: 3)\n"
             "  --pmt-pid <pid>\n"
             "    PID to use for the PMT (default: 0x100)\n"
@@ -2111,7 +2112,12 @@ main(int argc, char** argv)
 
         double frame_rate = 0.0;
         if (Stats.segments_total_duration != 0.0) {
-            frame_rate = (double)video_track->GetSampleCount()/((double)video_track->GetMediaDuration()/(double)video_track->GetMediaTimeScale());
+            double sample_count = (double)video_track->GetSampleCount();
+            double media_duration = (double)video_track->GetMediaDuration();
+            double timescale = (double)video_track->GetMediaTimeScale();
+            if (media_duration > 0.0) {
+                frame_rate = sample_count/(media_duration/timescale);
+            }
         }
 
         printf(
