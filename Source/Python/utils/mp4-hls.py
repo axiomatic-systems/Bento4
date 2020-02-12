@@ -634,7 +634,7 @@ def main():
         options.hls_version = 5
 
     # parse media sources syntax
-    media_sources = [MediaSource(source) for source in args]
+    media_sources = [MediaSource(options, source) for source in args]
     for media_source in media_sources:
         media_source.has_audio  = False
         media_source.has_video  = False
