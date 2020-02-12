@@ -763,7 +763,7 @@ def OutputHlsIframeIndex(options, track, all_tracks, media_subdir, iframes_playl
 
 #############################################
 def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, subtitles_files):
-    # all_audio_tracks     = sum(audio_sets.values(),     [])
+    all_audio_tracks     = sum(audio_sets.values(),     [])
     all_video_tracks     = sum(video_sets.values(),     [])
     all_subtitles_tracks = sum(subtitles_sets.values(), [])
 
