@@ -197,7 +197,7 @@ static void
 scaling_list_data(AP4_BitReader& bits)
 {
     for (unsigned int sizeId = 0; sizeId < 4; sizeId++) {
-        for (unsigned int matrixId = 0; (unsigned int)(matrixId < ((sizeId == 3)?2:6)); matrixId++) {
+        for (unsigned int matrixId = 0; matrixId < (unsigned int)((sizeId == 3)?2:6); matrixId++) {
             unsigned int flag = bits.ReadBit(); // scaling_list_pred_mode_flag[ sizeId ][ matrixId ]
             if (!flag) {
                 ReadGolomb(bits); // scaling_list_pred_matrix_id_delta[ sizeId ][ matrixId ]
