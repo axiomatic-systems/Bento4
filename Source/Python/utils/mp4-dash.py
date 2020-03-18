@@ -11,7 +11,6 @@ __copyright__ = 'Copyright 2011-2020 Axiomatic Systems, LLC.'
 # <platform> depends on the platform you're running on:
 # Mac OSX   --> platform = macosx
 # Linux x86 --> platform = linux-x86
-# Linux x64 --> platform = linux-x86_64
 # Windows   --> platform = win32
 
 from optparse import OptionParser
@@ -92,6 +91,7 @@ HIPPO_MEDIA_SEGMENT_REGEXP_SMOOTH  = 'QualityLevels\\\\(%d\\\\)/Fragments\\\\(%s
 HIPPO_MEDIA_SEGMENT_GROUPS_SMOOTH  = '["time"]'
 
 MPEG_DASH_AUDIO_CHANNEL_CONFIGURATION_SCHEME_ID_URI     = 'urn:mpeg:dash:23003:3:audio_channel_configuration:2011'
+MPEG_DASH_NEW_AUDIO_CHANNEL_CONFIGURATION_SCHEME_ID_URI = 'urn:mpeg:mpegB:cicp:ChannelConfiguration'
 DOLBY_DIGITAL_AUDIO_CHANNEL_CONFIGURATION_SCHEME_ID_URI = 'tag:dolby.com,2014:dash:audio_channel_configuration:2011'
 DOLBY_AC4_AUDIO_CHANNEL_CONFIGURATION_SCHEME_ID_URI     = 'tag:dolby.com,2015:dash:audio_channel_configuration:2015'
 
@@ -384,7 +384,12 @@ def OutputDash(options, set_attributes, audio_sets, video_sets, subtitles_sets, 
     if video_sets:
         period.append(xml.Comment(' Video '))
 
-        for video_tracks in video_sets.values():
+        # Re-group video sets to handle the duplicated video track for Dolby Vision profile 8
+        regroup_video_sets = ReGroupVideoSetsDASH(video_sets.values())
+        
+        # Re-order video tracks according to input order via command line
+        ordered_video_track = ReOrderMediaTrack(regroup_video_sets)
+        for video_tracks in ordered_video_track:
             # compute the max values
             maxWidth  = 0
             maxHeight = 0
@@ -445,7 +450,13 @@ def OutputDash(options, set_attributes, audio_sets, video_sets, subtitles_sets, 
     # process the audio tracks
     if audio_sets:
         period.append(xml.Comment(' Audio '))
-        for _, audio_tracks in audio_sets.items():
+		# Re-group audio sets for AC-4 stream. (add channel attributes, and whether it's self contained (Mulit-PID))
+        audio_sets = ReGroupAC4Sets(audio_sets)
+        # Re-order audio tracks internally according to input order. It's not mandatory for ReGroupAC4Sets function. Put here just in case extending the ReGroupAC4Sets.
+        audio_sets = ReOrderAudioSetsInternally(audio_sets)
+		# Re-order audio tracks according to input order via command line 
+        ordered_audio_track = ReOrderMediaTrack(audio_sets.values())
+        for audio_tracks in ordered_audio_track:
             args = [period, 'AdaptationSet']
             kwargs = {'mimeType': AUDIO_MIMETYPE, 'startWithSAP': '1', 'segmentAlignment': 'true'}
             language = audio_tracks[0].language
@@ -481,12 +492,20 @@ def OutputDash(options, set_attributes, audio_sets, video_sets, subtitles_sets, 
                                                 codecs=audio_track.codec,
                                                 bandwidth=str(audio_track.bandwidth),
                                                 audioSamplingRate=str(audio_track.sample_rate))
-                if audio_track.codec == 'ec-3':
+                if audio_track.codec == 'ec-3' or audio_track.codec == 'ac-3':
                     audio_channel_config_value = ComputeDolbyDigitalPlusAudioChannelConfig(audio_track)
-                    scheme_id_uri = DOLBY_DIGITAL_AUDIO_CHANNEL_CONFIGURATION_SCHEME_ID_URI
+                    (mpeg_scheme, audio_channel_config_value) = DolbyDigitalWithMPEGDASHScheme(audio_channel_config_value)
+                    if (mpeg_scheme):
+                        scheme_id_uri = MPEG_DASH_NEW_AUDIO_CHANNEL_CONFIGURATION_SCHEME_ID_URI
+                    else:
+                        scheme_id_uri = DOLBY_DIGITAL_AUDIO_CHANNEL_CONFIGURATION_SCHEME_ID_URI
                 elif audio_track.codec.startswith('ac-4'):
                     audio_channel_config_value = ComputeDolbyAc4AudioChannelConfig(audio_track)
-                    scheme_id_uri = DOLBY_AC4_AUDIO_CHANNEL_CONFIGURATION_SCHEME_ID_URI
+                    (mpeg_scheme, audio_channel_config_value) = DolbyAc4WithMPEGDASHScheme(audio_channel_config_value)
+                    if (mpeg_scheme):
+                        scheme_id_uri = MPEG_DASH_NEW_AUDIO_CHANNEL_CONFIGURATION_SCHEME_ID_URI
+                    else:
+                        scheme_id_uri = DOLBY_AC4_AUDIO_CHANNEL_CONFIGURATION_SCHEME_ID_URI
                 else:
                     # detect the actual number of channels
                     sample_description = audio_track.info['sample_descriptions'][0]
@@ -499,7 +518,23 @@ def OutputDash(options, set_attributes, audio_sets, video_sets, subtitles_sets, 
                                'AudioChannelConfiguration',
                                schemeIdUri=scheme_id_uri,
                                value=audio_channel_config_value)
-
+                # DD+ Atmos SupplementalProperty
+                if audio_track.codec_family == 'ec-3' and audio_track.dolby_ddp_atmos == 'Yes':
+                    xml.SubElement(representation,
+                                   'SupplementalProperty',
+                                   schemeIdUri='tag:dolby.com,2018:dash:EC3_ExtensionType:2018',
+                                   value='JOC')
+                    xml.SubElement(representation,
+                                   'SupplementalProperty',
+                                   schemeIdUri='tag:dolby.com,2018:dash:EC3_ExtensionComplexityIndex:2018',
+                                   value=str(audio_track.complexity_index))
+                # AC-4 IMS SupplementalProperty
+                if audio_track.codec_family == 'ac-4' and audio_track.dolby_ac4_ims == 'Yes':
+                    xml.SubElement(representation,
+                                   'SupplementalProperty',
+                                   schemeIdUri='tag:dolby.com,2016:dash:virtualized_content:2016',
+                                   value='1')
+                    
                 if options.on_demand:
                     base_url = xml.SubElement(representation, 'BaseURL')
                     base_url.text = ONDEMAND_MEDIA_FILE_PATTERN % (options.media_prefix, audio_track.representation_id)
@@ -612,9 +647,7 @@ def ComputeHlsWidevineKeyLine(options, track):
         json_param.encode('base64').replace('\n',''),
         track.key_info['iv']
     )
-
     return key_line
-
 #############################################
 def ComputeHlsPlayReadyKeyLine(options, track, all_tracks):
     # compute a list of all keys if we need to merge keys into a single list
@@ -700,12 +733,10 @@ def OutputHlsIframeIndex(options, track, all_tracks, media_subdir, iframes_playl
 
     index_playlist_file.write('#EXT-X-I-FRAMES-ONLY\r\n')
 
-
     iframe_total_segment_size = 0
     iframe_total_segment_duration = 0
     iframe_bitrate = 0
     iframe_max_bitrate = 0
-
     if not options.split:
         # get the I-frame index for a single file
         json_index = Mp4IframIndex(options, path.join(options.output_dir, media_file_name))
@@ -718,13 +749,11 @@ def OutputHlsIframeIndex(options, track, all_tracks, media_subdir, iframes_playl
                 fragment_start    = int(index_entry['fragmentStart'])
                 iframe_offset     = int(index_entry['offset'])
                 iframe_size       = int(index_entry['size'])
-
                 iframe_total_segment_size += iframe_size
                 iframe_total_segment_duration += iframe_segment_duration
                 iframe_bitrate = 8.0*(iframe_size/iframe_segment_duration)
                 if iframe_bitrate > iframe_max_bitrate:
                     iframe_max_bitrate = iframe_bitrate
-
                 iframe_range_size = iframe_size + (iframe_offset-fragment_start)
                 index_playlist_file.write('#EXT-X-BYTERANGE:%d@%d\r\n' % (iframe_range_size, fragment_start))
                 index_playlist_file.write(media_file_name+'\r\n')
@@ -750,46 +779,62 @@ def OutputHlsIframeIndex(options, track, all_tracks, media_subdir, iframes_playl
 
             iframe_total_segment_size += iframe_size
             iframe_total_segment_duration += iframe_segment_duration
-
             iframe_bitrate = 8.0*(iframe_size/iframe_segment_duration)
             if iframe_bitrate > iframe_max_bitrate:
                 iframe_max_bitrate = iframe_bitrate
-
     index_playlist_file.write('#EXT-X-ENDLIST\r\n')
 
     iframe_average_segment_bitrate = 8.0*(iframe_total_segment_size/iframe_total_segment_duration)
-
     return (iframe_average_segment_bitrate, iframe_max_bitrate)
-
 #############################################
 def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, subtitles_files):
-    # all_audio_tracks     = sum(audio_sets.values(),     [])
+    all_audio_tracks     = sum(audio_sets.values(),     [])
     all_video_tracks     = sum(video_sets.values(),     [])
     all_subtitles_tracks = sum(subtitles_sets.values(), [])
 
+    contain_pq_video_range = ContainPQTracks(video_sets)
     master_playlist_file = open(path.join(options.output_dir, options.hls_master_playlist_name), 'wb+')
     master_playlist_file.write('#EXTM3U\r\n')
     master_playlist_file.write('# Created with Bento4 mp4-dash.py, VERSION=' + VERSION + '-' + SDK_REVISION+'\r\n')
     master_playlist_file.write('#\r\n')
-    master_playlist_file.write('#EXT-X-VERSION:6\r\n')
+    master_playlist_file.write('#EXT-X-VERSION:' + ('8' if contain_pq_video_range else '7') + '\r\n')
     master_playlist_file.write('\r\n')
     master_playlist_file.write('# Media Playlists\r\n')
 
     master_playlist_file.write('\r\n')
     master_playlist_file.write('# Audio\r\n')
+    
+    # Start to process audio tracks
     audio_groups = {}
-    for adaptation_set_name, audio_tracks in audio_sets.items():
-        language = audio_tracks[0].language.decode('utf-8')
-        language_name = LanguageNames.get(language, language).decode('utf-8')
-
-        audio_group_name = adaptation_set_name[0]+'/'+adaptation_set_name[2]
+    # Re-group the audio tracks. (codec + channels, including DD+ Atmos and AC-4 IMS)
+    audio_sets = ReGroupAudioSets(audio_sets)
+    # Re-order audio tracks internally according to input order
+    audio_sets = ReOrderAudioSetsInternally(audio_sets)
+    # Re-order the audio tracks according to input order via command line
+    ordered_audio_track = ReOrderMediaTrack(audio_sets.values())
+    
+    print_blank_line = PrintBlankLine(ordered_audio_track)
+    for audio_tracks in ordered_audio_track:
+        audio_channel_name = str(audio_tracks[0].channels)
+        if audio_channel_name.find('/JOC') != -1:
+            audio_channel_name = audio_channel_name.replace('/', '-')
+        elif audio_channel_name.find('2/IMS,ATMOS') != -1:
+            audio_channel_name = '2-IMS-ATMOS'
+        elif audio_channel_name.find('2/IMS') != -1:
+            audio_channel_name = '2-IMS'
+        # TODO: for AC-4 CBI and Atmos, not clear
+        else:
+            audio_channel_name += 'ch'
+        audio_group_name = 'audio' + '/'+ audio_tracks[0].codec_family + '/' + audio_channel_name
         audio_groups[audio_group_name] = {
             'codec': '',
+            'channels': '',
             'average_segment_bitrate': 0,
-            'max_segment_bitrate': 0
+            'max_segment_bitrate': 0,
+            'group_order': ordered_audio_track.index(audio_tracks) + 1
         }
         for audio_track in audio_tracks:
-            # update the avergage and max bitrates
+            # update the average and max bitrates
             if audio_track.average_segment_bitrate > audio_groups[audio_group_name]['average_segment_bitrate']:
                 audio_groups[audio_group_name]['average_segment_bitrate'] = audio_track.average_segment_bitrate
             if audio_track.max_segment_bitrate > audio_groups[audio_group_name]['max_segment_bitrate']:
@@ -801,6 +846,14 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
             else:
                 if audio_groups[audio_group_name]['codec'] != audio_track.codec:
                     print 'WARNING: audio codecs not all the same:', audio_groups[audio_group_name]['codec'], audio_track.codec
+            
+             # update/check the channels
+            if audio_groups[audio_group_name]['channels'] == '':
+                audio_groups[audio_group_name]['channels'] = audio_track.channels
+            else:
+                # shall never happen
+                if audio_groups[audio_group_name]['channels'] != audio_track.channels:
+                    print 'WARNING: audio channels not all the same:', audio_groups[audio_group_name]['channels'], audio_track.channels
 
             if options.on_demand or not options.split:
                 media_subdir        = ''
@@ -812,71 +865,143 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
                 media_file_name     = ''
                 media_playlist_name = options.hls_media_playlist_name
                 media_playlist_path = media_subdir+'/'+media_playlist_name
-
-            master_playlist_file.write(('#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="%s",LANGUAGE="%s",NAME="%s",AUTOSELECT=YES,DEFAULT=YES,URI="%s"\r\n' % (
+            
+            # different languages can be belonged to same group, so put here.
+            language = audio_track.language.decode('utf-8')
+            language_name = LanguageNames.get(language, language).decode('utf-8')
+            default = 'YES'
+            # Only the first item in the audio group shall set the DEFAULT to YES
+            if audio_tracks.index(audio_track) > 0:
+                default = 'NO'
+            
+            master_playlist_file.write(('#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="%s",NAME="%s",LANGUAGE="%s",AUTOSELECT=YES,DEFAULT=%s,CHANNELS="%s",URI="%s"\r\n' % (
                                         audio_group_name,
-                                        language,
                                         language_name,
+                                        language,
+                                        default,
+                                        audio_track.channels,
                                         media_playlist_path)).encode('utf-8'))
             OutputHlsTrack(options, audio_track, all_audio_tracks + all_video_tracks, media_subdir, media_playlist_name, media_file_name)
-
+        if print_blank_line:
+                master_playlist_file.write('\r\n')
+    # Print the blank line for audio blocks            
     master_playlist_file.write('\r\n')
-    master_playlist_file.write('# Video\r\n')
-    iframe_playlist_lines = []
-    for video_track in all_video_tracks:
-        if options.on_demand or not options.split:
-            media_subdir          = ''
-            media_file_name       = video_track.parent.media_name
-            media_playlist_name   = video_track.representation_id+".m3u8"
-            media_playlist_path   = media_playlist_name
-            iframes_playlist_name = video_track.representation_id+"_iframes.m3u8"
-            iframes_playlist_path = iframes_playlist_name
-        else:
-            media_subdir          = video_track.representation_id
-            media_file_name       = ''
-            media_playlist_name   = options.hls_media_playlist_name
-            media_playlist_path   = media_subdir+'/'+media_playlist_name
-            iframes_playlist_name = options.hls_iframes_playlist_name
-            iframes_playlist_path = media_subdir+'/'+iframes_playlist_name
-
-        if audio_groups:
-            # one entry per audio group
-            for audio_group_name in audio_groups:
-                audio_codec = audio_groups[audio_group_name]['codec']
-                master_playlist_file.write('#EXT-X-STREAM-INF:AUDIO="%s",AVERAGE-BANDWIDTH=%d,BANDWIDTH=%d,CODECS="%s",RESOLUTION=%dx%d,FRAME-RATE=%s\r\n' % (
-                                           audio_group_name,
-                                           video_track.average_segment_bitrate + audio_groups[audio_group_name]['average_segment_bitrate'],
-                                           video_track.max_segment_bitrate + audio_groups[audio_group_name]['max_segment_bitrate'],
-                                           video_track.codec+','+audio_codec,
-                                           video_track.width,
-                                           video_track.height,
-                                           video_track.frame_rate))
+    
+    # Start to process video tracks
+    audio_group_name_list = []
+    for audio_group_name in audio_groups:
+        audio_group_name_list.append(audio_group_name)
+    # create the default audio groups     
+    if len(audio_groups) == 0:
+        audio_groups['no_audio_group'] =  {
+            'codec': '',
+            'channels': '',
+            'average_segment_bitrate': 0,
+            'max_segment_bitrate': 0,
+            'group_order': -1
+        }
+    # Group video sets according to the codec
+    video_sets = GenVideoSets(all_video_tracks)
+    # Handle avc1, avc2, avc3 and avc4. It's not mandatory for ReGroupVideoSetsHLS function. Put here just in case extending the ReGroupVideoSetsHLS.
+    regroup_video_sets = ReGroupVideoSetsHLS(video_sets.values())
+    # Re-order video tracks according to input order from command line
+    ordered_video_track = ReOrderMediaTrack(regroup_video_sets)
+    for video_group in ordered_video_track:
+        master_playlist_file.write(('# Video %s\r\n' % (video_group[0].codec_family.upper())).encode('utf-8'))
+        iframe_playlist_lines = []
+        # flag used to avoid duplicated work for generate video tracks
+        processing_video_tracks = True
+        for idx in range(len(audio_groups)):
+            audio_group_name = FindAudioGroups(idx + 1, audio_groups)
+            for video_track in video_group:
+                if options.on_demand or not options.split:
+                    media_subdir          = ''
+                    media_file_name       = video_track.parent.media_name
+                    media_playlist_name   = video_track.representation_id+".m3u8"
+                    media_playlist_path   = media_playlist_name
+                    iframes_playlist_name = video_track.representation_id+"_iframes.m3u8"
+                    iframes_playlist_path = iframes_playlist_name
+                else:
+                    media_subdir          = video_track.representation_id
+                    media_file_name       = ''
+                    media_playlist_name   = options.hls_media_playlist_name
+                    media_playlist_path   = media_subdir+'/'+media_playlist_name
+                    iframes_playlist_name = options.hls_iframes_playlist_name
+                    iframes_playlist_path = media_subdir+'/'+iframes_playlist_name
+                if audio_group_name == 'no_audio_group':
+                    # no audio
+                    if contain_pq_video_range:
+                        video_range_value = GetVideoRangeValue(video_track)
+                        master_playlist_file.write('#EXT-X-STREAM-INF:AVERAGE-BANDWIDTH=%d,BANDWIDTH=%d,VIDEO-RANGE=%s,CODECS="%s",RESOLUTION=%dx%d,FRAME-RATE=%.3f\r\n' % (
+                                               video_track.average_segment_bitrate,
+                                               video_track.max_segment_bitrate,
+                                               video_range_value,
+                                               video_track.codec,
+                                               video_track.width,
+                                               video_track.height,
+                                               video_track.frame_rate))
+                    else:
+                        master_playlist_file.write('#EXT-X-STREAM-INF:AVERAGE-BANDWIDTH=%d,BANDWIDTH=%d,CODECS="%s",RESOLUTION=%dx%d,FRAME-RATE=%.3f\r\n' % (
+                                               video_track.average_segment_bitrate,
+                                               video_track.max_segment_bitrate,
+                                               video_track.codec,
+                                               video_track.width,
+                                               video_track.height,
+                                               video_track.frame_rate))
+                else:
+                    audio_codec = audio_groups[audio_group_name]['codec']
+                    if contain_pq_video_range:
+                        video_range_value = GetVideoRangeValue(video_track)
+                        master_playlist_file.write('#EXT-X-STREAM-INF:AVERAGE-BANDWIDTH=%d,BANDWIDTH=%d,VIDEO-RANGE=%s,CODECS="%s",RESOLUTION=%dx%d,FRAME-RATE=%.3f,AUDIO="%s"\r\n' % (
+                                                   video_track.average_segment_bitrate + audio_groups[audio_group_name]['average_segment_bitrate'],
+                                                   video_track.max_segment_bitrate + audio_groups[audio_group_name]['max_segment_bitrate'],
+                                                   video_range_value,
+                                                   video_track.codec+','+audio_codec,
+                                                   video_track.width,
+                                                   video_track.height,
+                                                   video_track.frame_rate,
+                                                   audio_group_name))
+                    else:
+                        master_playlist_file.write('#EXT-X-STREAM-INF:AVERAGE-BANDWIDTH=%d,BANDWIDTH=%d,CODECS="%s",RESOLUTION=%dx%d,FRAME-RATE=%.3f,AUDIO="%s"\r\n' % (
+                                                   video_track.average_segment_bitrate + audio_groups[audio_group_name]['average_segment_bitrate'],
+                                                   video_track.max_segment_bitrate + audio_groups[audio_group_name]['max_segment_bitrate'],
+                                                   video_track.codec+','+audio_codec,
+                                                   video_track.width,
+                                                   video_track.height,
+                                                   video_track.frame_rate,
+                                                   audio_group_name))
                 master_playlist_file.write(media_playlist_path+'\r\n')
-        else:
-            # no audio
-            master_playlist_file.write('#EXT-X-STREAM-INF:AVERAGE-BANDWIDTH=%d,BANDWIDTH=%d,CODECS="%s",RESOLUTION=%dx%d,FRAME-RATE=%s\r\n' % (
-                                       video_track.average_segment_bitrate,
-                                       video_track.max_segment_bitrate,
-                                       video_track.codec,
-                                       video_track.width,
-                                       video_track.height,
-                                       video_track.frame_rate))
-            master_playlist_file.write(media_playlist_path+'\r\n')
-
-        OutputHlsTrack(options, video_track, all_audio_tracks + all_video_tracks, media_subdir, media_playlist_name, media_file_name)
-        iframe_average_segment_bitrate,iframe_max_bitrate = OutputHlsIframeIndex(options, video_track, all_audio_tracks + all_video_tracks, media_subdir, iframes_playlist_name, media_file_name)
-
-        # this will be written later
-        iframe_playlist_lines.append('#EXT-X-I-FRAME-STREAM-INF:AVERAGE-BANDWIDTH=%d,BANDWIDTH=%d,CODECS="%s",RESOLUTION=%dx%d,URI="%s"\r\n' % (
-                                     iframe_average_segment_bitrate,
-                                     iframe_max_bitrate,
-                                     video_track.codec,
-                                     video_track.width,
-                                     video_track.height,
-                                     iframes_playlist_path))
-
-    master_playlist_file.write('\r\n# I-Frame Playlists\r\n')
-    master_playlist_file.write(''.join(iframe_playlist_lines))
+                
+                if processing_video_tracks:
+                    OutputHlsTrack(options, video_track, all_audio_tracks + all_video_tracks, media_subdir, media_playlist_name, media_file_name)
+                    iframe_average_segment_bitrate,iframe_max_bitrate = OutputHlsIframeIndex(options, video_track, all_audio_tracks + all_video_tracks, media_subdir, iframes_playlist_name, media_file_name)
+                      
+                    # this will be written later
+                    if contain_pq_video_range:
+                        video_range_value = GetVideoRangeValue(video_track)
+                        iframe_playlist_lines.append('#EXT-X-I-FRAME-STREAM-INF:AVERAGE-BANDWIDTH=%d,BANDWIDTH=%d,VIDEO-RANGE=%s,CODECS="%s",RESOLUTION=%dx%d,URI="%s"\r\n' % (
+                                                     iframe_average_segment_bitrate,
+                                                     iframe_max_bitrate,
+                                                     video_range_value,
+                                                     video_track.codec,
+                                                     video_track.width,
+                                                     video_track.height,
+                                                     iframes_playlist_path))
+                    else:
+                        iframe_playlist_lines.append('#EXT-X-I-FRAME-STREAM-INF:AVERAGE-BANDWIDTH=%d,BANDWIDTH=%d,CODECS="%s",RESOLUTION=%dx%d,URI="%s"\r\n' % (
+                                                     iframe_average_segment_bitrate,
+                                                     iframe_max_bitrate,
+                                                     video_track.codec,
+                                                     video_track.width,
+                                                     video_track.height,
+                                                     iframes_playlist_path))
+            # Print blank line
+            if len(video_group) > 1:
+                master_playlist_file.write('\r\n')
+            processing_video_tracks = False
+        master_playlist_file.write(('# I-Frame Playlists %s\r\n' % (video_group[0].codec_family.upper())).encode('utf-8'))
+        master_playlist_file.write(''.join(iframe_playlist_lines))
+        master_playlist_file.write('\r\n')
 
     # IMSC1 subtitles
     if all_subtitles_tracks:
@@ -946,7 +1071,11 @@ def OutputSmooth(options, audio_tracks, video_tracks):
             audio_tag = '65534'
             fourcc = 'EC-3'
             channels = str(channels)
-            data_rate = int(audio_track.info['sample_descriptions'][0]['dolby_digital_info']['data_rate'])
+            if audio_track.info['sample_descriptions'][0].has_key('dolby_digital_info'):
+                data_rate = int(audio_track.info['sample_descriptions'][0]['dolby_digital_info']['data_rate'])
+            else:
+                # set the default data rate value
+                data_rate = 256
             packet_size = str(4*data_rate)
         else:
             # assume AAC
@@ -1164,6 +1293,8 @@ def SelectTracks(options, media_sources):
     audio_adaptation_sets     = {}
     video_adaptation_sets     = {}
     subtitles_adaptation_sets = {}
+    audio_source_idx = 0
+    video_source_idx = 0
     for media_source in media_sources:
         track_id       = media_source.spec['track']
         track_type     = media_source.spec['type']
@@ -1211,28 +1342,42 @@ def SelectTracks(options, media_sources):
             # video scan type
             if track.type == 'video':
                 track.scan_type = media_source.spec.get('+scan_type', track.scan_type)
-
+                
+            # 'ac-3' and 'ec-3' channels
+            if track.codec_family == 'ac-3' or track.codec_family == 'ec-3':
+                (track.channels, _channels) = GetDolbyDigitalPlusChannels(track)
         # process audio tracks
         for track in [t for t in tracks if t.type == 'audio']:
             adaptation_set_name = ('audio', track.language, track.codec_family)
             adaptation_set = audio_adaptation_sets.get(adaptation_set_name, [])
-            audio_adaptation_sets[adaptation_set_name] = adaptation_set
+            audio_adaptation_sets[adaptation_set_name] = adaptation_set 
 
             # only keep this track if there isn't already a track with the same codec at the same bitrate (within 10%)
-            with_same_bandwidth = [t for t in adaptation_set if abs(float(t.bandwidth-track.bandwidth)/float(t.bandwidth)) < 0.1]
+            with_same_bandwidth = [t for t in adaptation_set if abs(float(t.bandwidth-track.bandwidth)/float(t.bandwidth)) < 0.1 and t.channels == track.channels]
             if with_same_bandwidth:
                 continue
-
+            
+            audio_source_idx += 1
             adaptation_set.append(track)
             track.order_index = len(adaptation_set)
+            if hasattr(media_source, 'input_order'):
+                track.input_order = media_source.input_order
+            else:
+                track.input_order = audio_source_idx
 
         # process video tracks
         for track in [t for t in tracks if t.type == 'video']:
             adaptation_set_name = ('video', track.codec_family)
             adaptation_set = video_adaptation_sets.get(adaptation_set_name, [])
             video_adaptation_sets[adaptation_set_name] = adaptation_set
+            
+            video_source_idx += 1
             adaptation_set.append(track)
             track.order_index = len(adaptation_set)
+            if hasattr(media_source, 'input_order'):
+                track.input_order = media_source.input_order
+            else:
+                track.input_order = video_source_idx
 
         # process subtitle tracks
         if options.subtitles:
@@ -1660,7 +1805,6 @@ def main():
     if options.smooth:
         if ISOFF_LIVE_PROFILE not in options.profiles:
             raise Exception('--smooth requires the live profile')
-
     if options.hippo:
         if ISOFF_LIVE_PROFILE not in options.profiles:
             raise Exception('--hippo requires the live profile')
@@ -1725,10 +1869,13 @@ def main():
     # for on-demand, we need to first extract tracks into individual media files
     if options.on_demand:
         (audio_sets, video_sets, subtitles_sets, mp4_files) = SelectTracks(options, media_sources)
-        media_sources = filter(lambda x: x.format == "webvtt", media_sources) # Keep subtitles
-        for track in sum(audio_sets.values() + video_sets.values(), []):
+        media_sources = filter(lambda x: x.format == "webvtt", media_sources) #Keep subtitles
+        # Just for display order is correct, can be removed
+        ordered_audio_track = ReOrderMediaTrack(audio_sets.values())
+        ordered_video_track = ReOrderMediaTrack(video_sets.values())
+        for track in sum(ordered_audio_track + ordered_video_track, []):
             print 'Extracting track', track.id, 'from', GetMappedFileName(track.parent.media_source.filename)
-            track_file = tempfile.NamedTemporaryFile(dir=options.output_dir, delete=False)
+            track_file = tempfile.NamedTemporaryFile(dir = options.output_dir, delete=False)
             TempFiles.append(track_file.name)
             track_file.close() # necessary on Windows
             MapFileName(track_file.name, path.basename(track_file.name) + ' = Extracted[track '+str(track.id) + ' from '+GetMappedFileName(track.parent.media_source.filename)+']')
@@ -1743,6 +1890,8 @@ def main():
 
             media_source = MediaSource(options, track_file.name)
             media_source.spec = track.parent.media_source.spec
+            if hasattr(track, 'input_order'):
+                media_source.input_order = track.input_order
             media_sources.append(media_source)
 
     # compute the KID(s) and encryption key(s)
@@ -1962,6 +2111,10 @@ def main():
                 media_filename = path.join(out_dir, subtitles_file.media_name)
                 shutil.copyfile(subtitles_file.media_source.filename, media_filename)
 
+    # dual entry for Dolby Vision profile 8
+    DolbyVisionProfile8DualEntry(video_sets, 'hvc1', 'dvh1')
+    DolbyVisionProfile8DualEntry(video_sets, 'hev1', 'dvhe')
+    
     # output the DASH MPD
     OutputDash(options, set_attributes, audio_sets, video_sets, subtitles_sets, subtitles_files)
 
