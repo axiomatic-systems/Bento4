@@ -91,6 +91,7 @@ PrintUsageAndExit()
             "  --force-i-frame-sync <auto|all> treat all I-frames as sync samples (for open-gop sequences)\n"
             "    'auto' only forces the flag if an open-gop source is detected, 'all' forces the flag in all cases\n"
             "  --copy-udta copy the moov/udta atom from input to output\n"
+            "  --trun-version-zero set the 'trun' box version to zero (default version: 1)\n"
             );
     exit(1);
 }
@@ -306,7 +307,8 @@ Fragment(AP4_File&                input_file,
          AP4_UI32                 fragment_duration,
          AP4_UI32                 timescale,
          bool                     create_segment_index,
-         bool                     copy_udta)
+         bool                     copy_udta,
+         bool                     trun_version_one)
 {
     AP4_List<FragmentInfo>       fragments;
     AP4_List<IndexedSegmentInfo> indexed_segments;
@@ -357,40 +359,42 @@ Fragment(AP4_File&                input_file,
                                                 track);
         
         // add an edit list if needed
-        if (const AP4_TrakAtom* trak = track->GetTrakAtom()) {
-            AP4_ContainerAtom* edts = AP4_DYNAMIC_CAST(AP4_ContainerAtom, trak->GetChild(AP4_ATOM_TYPE_EDTS));
-            if (edts) {
-                // create an 'edts' container
-                AP4_ContainerAtom* new_edts = new AP4_ContainerAtom(AP4_ATOM_TYPE_EDTS);
+        if (trun_version_one == false) {
+            if (const AP4_TrakAtom* trak = track->GetTrakAtom()) {
+                AP4_ContainerAtom* edts = AP4_DYNAMIC_CAST(AP4_ContainerAtom, trak->GetChild(AP4_ATOM_TYPE_EDTS));
+                if (edts) {
+                    // create an 'edts' container
+                    AP4_ContainerAtom* new_edts = new AP4_ContainerAtom(AP4_ATOM_TYPE_EDTS);
                 
-                // create a new 'edts' for each original 'edts'
-                for (AP4_List<AP4_Atom>::Item* edts_entry = edts->GetChildren().FirstItem();
-                     edts_entry;
-                     edts_entry = edts_entry->GetNext()) {
-                    AP4_ElstAtom* elst = AP4_DYNAMIC_CAST(AP4_ElstAtom, edts_entry->GetData());
-                    AP4_ElstAtom* new_elst = new AP4_ElstAtom();
+                    // create a new 'edts' for each original 'edts'
+                    for (AP4_List<AP4_Atom>::Item* edts_entry = edts->GetChildren().FirstItem();
+                         edts_entry;
+                         edts_entry = edts_entry->GetNext()) {
+                        AP4_ElstAtom* elst = AP4_DYNAMIC_CAST(AP4_ElstAtom, edts_entry->GetData());
+                        AP4_ElstAtom* new_elst = new AP4_ElstAtom();
                     
-                    // adjust the fields to match the correct timescale
-                    for (unsigned int j=0; j<elst->GetEntries().ItemCount(); j++) {
-                        AP4_ElstEntry new_elst_entry = elst->GetEntries()[j];
-                        new_elst_entry.m_SegmentDuration = AP4_ConvertTime(new_elst_entry.m_SegmentDuration,
-                                                                           input_movie->GetTimeScale(),
-                                                                           AP4_FRAGMENTER_OUTPUT_MOVIE_TIMESCALE);
-                        if (new_elst_entry.m_MediaTime > 0 && timescale) {
-                            new_elst_entry.m_MediaTime = (AP4_SI64)AP4_ConvertTime(new_elst_entry.m_MediaTime,
-                                                                                   track->GetMediaTimeScale(),
-                                                                                   timescale?timescale:track->GetMediaTimeScale());
+                        // adjust the fields to match the correct timescale
+                        for (unsigned int j=0; j<elst->GetEntries().ItemCount(); j++) {
+                            AP4_ElstEntry new_elst_entry = elst->GetEntries()[j];
+                            new_elst_entry.m_SegmentDuration = AP4_ConvertTime(new_elst_entry.m_SegmentDuration,
+                                                                               input_movie->GetTimeScale(),
+                                                                               AP4_FRAGMENTER_OUTPUT_MOVIE_TIMESCALE);
+                            if (new_elst_entry.m_MediaTime > 0 && timescale) {
+                                new_elst_entry.m_MediaTime = (AP4_SI64)AP4_ConvertTime(new_elst_entry.m_MediaTime,
+                                                                                       track->GetMediaTimeScale(),
+                                                                                       timescale?timescale:track->GetMediaTimeScale());
                                                                                
+                            }
+                            new_elst->AddEntry(new_elst_entry);
                         }
-                        new_elst->AddEntry(new_elst_entry);
-                    }
                     
-                    // add the 'elst' to the 'edts' container
-                    new_edts->AddChild(new_elst);
-                }
+                        // add the 'elst' to the 'edts' container
+                        new_edts->AddChild(new_elst);
+                    }
                 
-                // add the edit list to the output track (just after the 'tkhd' atom)
-                output_track->UseTrakAtom()->AddChild(new_edts, 1);
+                    // add the edit list to the output track (just after the 'tkhd' atom)
+                    output_track->UseTrakAtom()->AddChild(new_edts, 1);
+                }
             }
         }
         
@@ -626,12 +630,19 @@ Fragment(AP4_File&                input_file,
         AP4_UI32 trun_flags = AP4_TRUN_FLAG_DATA_OFFSET_PRESENT |
                               AP4_TRUN_FLAG_SAMPLE_SIZE_PRESENT;
         AP4_UI32 first_sample_flags = 0;
-        if (cursor->m_Track->GetType() == AP4_Track::TYPE_VIDEO) {
+        if ( (cursor->m_Track->GetType() == AP4_Track::TYPE_VIDEO) ||
+			 (cursor->m_Track->GetSampleDescriptionCount() >= 1 && cursor->m_Track->GetSampleDescription(0)->GetFormat() == AP4_SAMPLE_FORMAT_AC_4) ) {
             trun_flags |= AP4_TRUN_FLAG_FIRST_SAMPLE_FLAGS_PRESENT;
             first_sample_flags = 0x2000000; // sample_depends_on=2 (I frame)
         }
         AP4_TrunAtom* trun = new AP4_TrunAtom(trun_flags, 0, first_sample_flags);
         
+        unsigned int initial_offset = 0;
+        if(trun_version_one) {
+            trun->SetVersion(1);
+            initial_offset = cursor->m_Sample.GetCtsDelta();
+        }
+
         traf->AddChild(trun);
         moof->AddChild(traf);
         
@@ -667,7 +678,10 @@ Fragment(AP4_File&                input_file,
                                                                                   cursor->m_Track->GetMediaTimeScale(),
                                                                                   timescale):
                                                         cursor->m_Sample.GetCtsDelta();
-                        
+                                                        
+            if(trun->GetVersion() == 1) {
+                trun_entry.sample_composition_time_offset -= initial_offset;
+            }
             fragment->m_SampleIndexes.SetItemCount(sample_count+1);
             fragment->m_SampleIndexes[sample_count] = cursor->m_SampleIndex;
             fragment->m_MdatSize += trun_entry.sample_size;
@@ -837,6 +851,8 @@ Fragment(AP4_File&                input_file,
             reference.m_ReferencedSize     = segment->m_Size;
             reference.m_SubsegmentDuration = segment->m_Duration;
             reference.m_StartsWithSap      = true;
+			// TODO: need more check for video track
+			reference.m_SapType            = 1;
             sidx->SetReference(segment_index++, reference);
         }
         AP4_Position here = 0;
@@ -1078,6 +1094,7 @@ main(int argc, char** argv)
     bool         create_segment_index          = false;
     bool         quiet                         = false;
     bool         copy_udta                     = false;
+    bool         trun_version_one              = true;
     AP4_UI32     timescale                     = 0;
     AP4_Result   result;
 
@@ -1088,7 +1105,7 @@ main(int argc, char** argv)
     Options.tfdt_start            = 0.0;
     Options.sequence_number_start = 1;
     Options.force_i_frame_sync    = AP4_FRAGMENTER_FORCE_SYNC_MODE_NONE;
-    
+
     // parse the command line
     argv++;
     char* arg;
@@ -1159,6 +1176,8 @@ main(int argc, char** argv)
                 fprintf(stderr, "ERROR: missing argument after --track option\n");
                 return 1;
             }
+        } else if (!strcmp(arg, "--trun-version-zero")) {
+            trun_version_one = false;
         } else if (!strcmp(arg, "--copy-udta")) {
             copy_udta = true;
         } else {
@@ -1409,7 +1428,7 @@ main(int argc, char** argv)
     } else {
         tracks_to_fragment = cursors;
     }
-    Fragment(input_file, *output_stream, tracks_to_fragment, fragment_duration, timescale, create_segment_index, copy_udta);
+    Fragment(input_file, *output_stream, tracks_to_fragment, fragment_duration, timescale, create_segment_index, copy_udta, trun_version_one);
     
     // cleanup and exit
     if (input_stream)  input_stream->Release();

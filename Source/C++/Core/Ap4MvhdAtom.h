@@ -63,6 +63,10 @@ public:
         m_TimeScale = time_scale;
         return AP4_SUCCESS;
     }
+    AP4_Result         SetNextTrackId(AP4_UI32 next_track_id){
+        m_NextTrackId = next_track_id;
+        return AP4_SUCCESS;
+    }
 
 private:
     // methods

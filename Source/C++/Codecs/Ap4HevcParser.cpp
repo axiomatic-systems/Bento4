@@ -105,6 +105,10 @@ AP4_HevcNalParser::NaluTypeName(unsigned int nalu_type)
         case 38: return "FD_NUT - Filler data";
         case 39: return "PREFIX_SEI_NUT - Supplemental enhancement information";
         case 40: return "SUFFIX_SEI_NUT - Supplemental enhancement information";
+#if defined(AP4_HEVC_DOVI_EXTENSION)
+        case 62: return "Dolby Vision RPU NAL units";
+        case 63: return "Dolby Vision EL NAL units";
+#endif
         default: return NULL;
     }
 }
@@ -197,7 +201,7 @@ static void
 scaling_list_data(AP4_BitReader& bits)
 {
     for (unsigned int sizeId = 0; sizeId < 4; sizeId++) {
-        for (unsigned int matrixId = 0; matrixId < ((sizeId == 3)?2:6); matrixId++) {
+        for (unsigned int matrixId = 0; matrixId < (unsigned int)((sizeId == 3)?2:6); matrixId++) {
             unsigned int flag = bits.ReadBit(); // scaling_list_pred_mode_flag[ sizeId ][ matrixId ]
             if (!flag) {
                 ReadGolomb(bits); // scaling_list_pred_matrix_id_delta[ sizeId ][ matrixId ]
@@ -972,6 +976,18 @@ AP4_HevcVideoParameterSet::AP4_HevcVideoParameterSet() :
     }
 }
 
+#if defined(AP4_HEVC_DOVI_EXTENSION)
+/*----------------------------------------------------------------------
+|   AP4_HevcVideoParameterSet::GetInfo
++---------------------------------------------------------------------*/
+void
+AP4_HevcVideoParameterSet::GetInfo(unsigned int& time_scale, unsigned int& num_units)
+{
+    time_scale  = vps_time_scale;
+    num_units = vps_num_units_in_tick;
+}
+#endif
+
 /*----------------------------------------------------------------------
 |   AP4_HevcVideoParameterSet::Parse
 +---------------------------------------------------------------------*/
@@ -1326,6 +1342,14 @@ AP4_HevcFrameParser::Feed(const AP4_UI08* nal_unit,
         } else if (nal_unit_type == AP4_HEVC_NALU_TYPE_SUFFIX_SEI_NUT){
             AppendNalUnitData(nal_unit, nal_unit_size);
         }
+#if defined(AP4_HEVC_DOVI_EXTENSION)
+        else if (nal_unit_type == AP4_HEVC_NALU_TYPE_UNSPEC62) {
+            AppendNalUnitData(nal_unit, nal_unit_size);
+        }
+        else if (nal_unit_type == AP4_HEVC_NALU_TYPE_UNSPEC63) {
+            AppendNalUnitData(nal_unit, nal_unit_size);
+        }
+#endif
         DBG_PRINTF_0("\n");
         m_TotalNalUnitCount++;
     }

@@ -29,6 +29,7 @@
 /*----------------------------------------------------------------------
 |   includes
 +---------------------------------------------------------------------*/
+#include <time.h>
 #include "Ap4ByteStream.h"
 #include "Ap4HdlrAtom.h"
 #include "Ap4MvhdAtom.h"
@@ -104,13 +105,16 @@ AP4_Track::AP4_Track(Type             type,
             break;
     }
 
+    time_t timer;
+    time(&timer);
+    AP4_UI32 cur_time = (AP4_UI32)(timer + 0x7C25B080);
     // create a trak atom
     m_TrakAtom = new AP4_TrakAtom(sample_table,
                                   hdlr_type, 
                                   hdlr_name,
-                                  track_id, 
-                                  0, 
-                                  0, 
+                                  track_id,
+                                  cur_time,
+                                  cur_time,
                                   track_duration,
                                   media_time_scale,
                                   media_duration,

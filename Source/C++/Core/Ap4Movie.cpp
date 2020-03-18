@@ -29,6 +29,7 @@
 /*----------------------------------------------------------------------
 |   includes
 +---------------------------------------------------------------------*/
+#include <time.h>
 #include "Ap4File.h"
 #include "Ap4Atom.h"
 #include "Ap4TrakAtom.h"
@@ -78,9 +79,13 @@ private:
 AP4_Movie::AP4_Movie(AP4_UI32 time_scale, AP4_UI64 duration) :
     m_MoovAtomIsOwned(true)
 {
+    time_t timer;
+    time(&timer);
+    AP4_UI32 cur_time = (AP4_UI32)(timer + 0x7C25B080);
     m_MoovAtom = new AP4_MoovAtom();
-    m_MvhdAtom = new AP4_MvhdAtom(0, 0, 
-                                  time_scale, 
+    m_MvhdAtom = new AP4_MvhdAtom(cur_time,
+                                  cur_time,
+                                  time_scale,
                                   duration,
                                   0x00010000,
                                   0x0100);

@@ -46,6 +46,8 @@ const AP4_UI08 AP4_DV_PROFILE_DVHE_DTR = 4;
 const AP4_UI08 AP4_DV_PROFILE_DVHE_STN = 5;
 const AP4_UI08 AP4_DV_PROFILE_DVHE_DTH = 6;
 const AP4_UI08 AP4_DV_PROFILE_DVHE_DTB = 7;
+const AP4_UI08 AP4_DV_PROFILE_DVHE_ST  = 8;
+const AP4_UI08 AP4_DV_PROFILE_DVHE_SE  = 9;
 
 /*----------------------------------------------------------------------
 |   AP4_DvccAtom
@@ -67,20 +69,22 @@ public:
                  AP4_UI08 dv_level,
                  bool     rpu_present_flag,
                  bool     el_present_flag,
-                 bool     bl_present_flag);
+                 bool     bl_present_flag,
+                 AP4_UI08 dv_bl_signal_compatibility_id);
     
     // methods
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
 
     // accessors
-    AP4_UI08 GetDvVersionMajor() { return m_DvVersionMajor;      }
-    AP4_UI08 GetDvVersionMinor() { return m_DvVersionMinor;      }
-    AP4_UI08 GetDvProfile()      { return m_DvProfile;           }
-    AP4_UI08 GetDvLevel()        { return m_DvLevel;             }
-    bool     GetRpuPresentFlag() { return m_RpuPresentFlag != 0; }
-    bool     GetElPresentFlag()  { return m_ElPresentFlag  != 0; }
-    bool     GetBlPresentFlag()  { return m_BlPresentFlag  != 0; }
+    AP4_UI08 GetDvVersionMajor()            { return m_DvVersionMajor;            }
+    AP4_UI08 GetDvVersionMinor()            { return m_DvVersionMinor;            }
+    AP4_UI08 GetDvProfile()                 { return m_DvProfile;                 }
+    AP4_UI08 GetDvLevel()                   { return m_DvLevel;                   }
+    bool     GetRpuPresentFlag()            { return m_RpuPresentFlag != 0;       }
+    bool     GetElPresentFlag()             { return m_ElPresentFlag  != 0;       }
+    bool     GetBlPresentFlag()             { return m_BlPresentFlag  != 0;       }
+    AP4_UI08 GetDvBlSignalCompatibilityID() { return m_DvBlSignalCompatibilityID; }
 
 private:
     // members
@@ -91,6 +95,7 @@ private:
     AP4_UI08 m_RpuPresentFlag;
     AP4_UI08 m_ElPresentFlag;
     AP4_UI08 m_BlPresentFlag;
+    AP4_UI08 m_DvBlSignalCompatibilityID;
 };
 
 #endif // _AP4_DVCC_ATOM_H_

@@ -30,6 +30,7 @@
 |   includes
 +---------------------------------------------------------------------*/
 #include "Ap4Utils.h"
+#include "Ap4Debug.h"
 
 /*----------------------------------------------------------------------
 |   AP4_GlobalOptions::g_Entry
@@ -165,6 +166,28 @@ AP4_BytesFromUInt64BE(unsigned char* bytes, AP4_UI64 value)
     bytes[5] = (unsigned char)((value >> 16) & 0xFF);
     bytes[6] = (unsigned char)((value >>  8) & 0xFF);
     bytes[7] = (unsigned char)((value      ) & 0xFF);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_ByteSwap
++---------------------------------------------------------------------*/
+void
+AP4_ByteSwap(unsigned char* bytes, AP4_UI32 length){
+	unsigned char *pbs = bytes;
+    unsigned char *pbe = pbs + length;
+	unsigned char *pt  = NULL;
+	unsigned char  tmp = 0;
+
+    AP4_ASSERT(!(length & 0x1));
+
+    while (pbs < pbe)
+    {
+		pt   = pbs;
+        tmp  = *(++pbs);
+        *pbs = *pt;
+        *pt  = tmp;
+        pbs++;
+    }
 }
 
 /*----------------------------------------------------------------------
