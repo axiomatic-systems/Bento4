@@ -94,7 +94,6 @@
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4AinfAtom.cpp" />
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4BlocAtom.cpp" />
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4CommonEncryption.cpp" />
-    <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4VpccAtom.cpp" />
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4Dac3Atom.cpp" />
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4Dac4Atom.cpp" />
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4Dec3Atom.cpp" />
@@ -111,6 +110,7 @@
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4Stz2Atom.cpp" />
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4TencAtom.cpp" />
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4TfdtAtom.cpp" />
+    <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4VpccAtom.cpp" />
     <ClCompile Include="..\..\..\..\Source\C++\Crypto\Ap4AesBlockCipher.cpp" />
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4Atom.cpp" />
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4AtomFactory.cpp" />
@@ -228,7 +228,6 @@
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4AinfAtom.h" />
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4BlocAtom.h" />
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4CommonEncryption.h" />
-    <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4VpccAtom.h" />
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4Dac3Atom.h" />
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4Dac4Atom.h" />
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4Dec3Atom.h" />
@@ -244,6 +243,7 @@
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4Stz2Atom.h" />
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4TencAtom.h" />
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4TfdtAtom.h" />
+    <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4VpccAtom.h" />
     <ClInclude Include="..\..\..\..\Source\C++\Crypto\Ap4AesBlockCipher.h" />
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4Array.h" />
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4Atom.h" />
