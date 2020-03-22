@@ -1,5 +1,5 @@
-#!/usr/bin/env python
 import collections
+from functools import reduce
 
 __author__    = 'Gilles Boccon-Gibod (bok@bok.net)'
 __copyright__ = 'Copyright 2011-2020 Axiomatic Systems, LLC.'
@@ -15,6 +15,7 @@ import operator
 import hashlib
 import fractions
 import xml.sax.saxutils as saxutils
+import base64
 
 LanguageCodeMap = {
     'aar': 'aa', 'abk': 'ab', 'afr': 'af', 'aka': 'ak', 'alb': 'sq', 'amh': 'am', 'ara': 'ar', 'arg': 'an',
@@ -46,188 +47,188 @@ LanguageCodeMap = {
 }
 
 LanguageNames = {
-    "aa": 'Qafara',
-    "ab": '\xd0\x90\xd2\xa7\xd1\x81\xd1\x83\xd0\xb0',
-    "ae": 'Avesta',
-    "af": 'Afrikaans',
-    "ak": 'Akana',
-    "am": '\xe1\x8a\xa0\xe1\x88\x9b\xe1\x88\xad\xe1\x8a\x9b',
-    "an": 'Aragon\xc3\xa9s',
-    "ar": '\xd8\xa7\xd9\x84\xd8\xb9\xd8\xb1\xd8\xa8\xd9\x8a\xd8\xa9',
-    "as": '\xe0\xa6\x85\xe0\xa6\xb8\xe0\xa6\xae\xe0\xa7\x80\xe0\xa6\xaf\xe0\xa6\xbc\xe0\xa6\xbe',
-    "av": '\xd0\xb0\xd0\xb2\xd0\xb0\xd1\x80 \xd0\xbc\xd0\xb0\xd1\x86\xd3\x80; \xd0\xbc\xd0\xb0\xd0\xb3\xd3\x80\xd0\xb0\xd1\x80\xd1\x83\xd0\xbb \xd0\xbc\xd0\xb0\xd1\x86\xd3\x80',
-    "ay": 'Aymar Aru',
-    "az": 'Az\xc9\x99rbaycanca',
-    "ba": '\xd0\xb1\xd0\xb0\xd1\x88\xd2\xa1\xd0\xbe\xd1\x80\xd1\x82 \xd1\x82\xd0\xb5\xd0\xbb\xd0\xb5',
-    "be": '\xd0\x91\xd0\xb5\xd0\xbb\xd0\xb0\xd1\x80\xd1\x83\xd1\x81\xd0\xba\xd0\xb0\xd1\x8f \xd0\xbc\xd0\xbe\xd0\xb2\xd0\xb0',
-    "bg": '\xd0\xb1\xd1\x8a\xd0\xbb\xd0\xb3\xd0\xb0\xd1\x80\xd1\x81\xd0\xba\xd0\xb8 \xd0\xb5\xd0\xb7\xd0\xb8\xd0\xba',
-    "bh": '\xe0\xa4\xad\xe0\xa5\x8b\xe0\xa4\x9c\xe0\xa4\xaa\xe0\xa5\x81\xe0\xa4\xb0\xe0\xa5\x80',
-    "bi": 'Bislama',
-    "bm": 'Bamanankan',
-    "bn": '\xe0\xa6\xac\xe0\xa6\xbe\xe0\xa6\x82\xe0\xa6\xb2\xe0\xa6\xbe',
-    "bo": '\xe0\xbd\x96\xe0\xbd\xbc\xe0\xbd\x91\xe0\xbc\x8b\xe0\xbd\xa1\xe0\xbd\xb2\xe0\xbd\x82',
-    "br": 'Brezhoneg',
-    "bs": 'Bosanski',
-    "ca": 'Catal\xc3\xa0',
-    "ce": '\xd0\xbd\xd0\xbe\xd1\x85\xd1\x87\xd0\xb8\xd0\xb9\xd0\xbd \xd0\xbc\xd0\xbe\xd1\x82\xd1\x82',
-    "ch": 'Chamoru',
-    "co": 'Corsu',
-    "cr": '\xe1\x93\x80\xe1\x90\xa6\xe1\x90\x83\xe1\x94\xad\xe1\x90\x8d\xe1\x90\x8f\xe1\x90\xa3',
-    "cs": '\xc4\x8de\xc5\xa1tina',
-    "cu": '\xd1\xa9\xd0\xb7\xd1\x8b\xd0\xba\xd1\x8a \xd1\x81\xd0\xbb\xd0\xbe\xd0\xb2\xd1\xa3\xd0\xbd\xd1\x8c\xd1\x81\xd0\xba\xd1\x8a',
-    "cv": '\xd1\x87\xd3\x91\xd0\xb2\xd0\xb0\xd1\x88 \xd1\x87\xd3\x97\xd0\xbb\xd1\x85\xd0\xb8',
-    "cy": 'Cymraeg',
-    "da": 'Dansk',
-    "de": 'Deutsch',
-    "dz": '\xe0\xbd\xa2\xe0\xbe\xab\xe0\xbd\xbc\xe0\xbd\x84\xe0\xbc\x8b\xe0\xbd\x81',
-    "ee": '\xc6\x90\xca\x8b\xc9\x9bgb\xc9\x9b',
-    "el": '\xce\x95\xce\xbb\xce\xbb\xce\xb7\xce\xbd\xce\xb9\xce\xba\xce\xac',
-    "en": 'English',
-    "eo": 'Esperanto',
-    "es": 'Espa\xc3\xb1ol',
-    "et": 'Eesti Keel',
-    "eu": 'Euskara',
-    "fa": '\xd9\x81\xd8\xa7\xd8\xb1\xd8\xb3\xdb\x8c',
-    "ff": 'Fulfulde',
-    "fi": 'Suomi',
-    "fj": 'Vosa Vakaviti',
-    "fo": 'F\xc3\xb8royskt',
-    "fr": 'Fran\xc3\xa7ais',
-    "fy": 'Frysk',
-    "ga": 'Gaeilge',
-    "gd": 'G\xc3\xa0idhlig',
-    "gl": 'Galego',
-    "gn": "Ava\xc3\xb1e'\xe1\xba\xbd",
-    "gu": '\xe0\xaa\x97\xe0\xab\x81\xe0\xaa\x9c\xe0\xaa\xb0\xe0\xaa\xbe\xe0\xaa\xa4\xe0\xab\x80',
-    "gv": 'Gaelg; Manninagh',
-    "ha": 'Hausanc\xc4\xab; \xd9\x87\xd9\x8e\xd9\x88\xd9\x8f\xd8\xb3\xd9\x8e',
-    "he": '\xd7\xa2\xd6\xb4\xd7\x91\xd6\xb0\xd7\xa8\xd6\xb4\xd7\x99\xd7\xaa; \xd7\xa2\xd7\x91\xd7\xa8\xd7\x99\xd7\xaa',
-    "hi": '\xe0\xa4\xb9\xe0\xa4\xbf\xe0\xa4\xa8\xe0\xa5\x8d\xe0\xa4\xa6\xe0\xa5\x80',
-    "ho": 'Hiri Motu',
-    "hr": 'Hrvatski',
-    "ht": 'Krey\xc3\xb2l ayisyen',
-    "hu": 'Magyar',
-    "hy": '\xd5\x80\xd5\xa1\xd5\xb5\xd5\xa5\xd6\x80\xd5\xa5\xd5\xb6 \xd5\xac\xd5\xa5\xd5\xa6\xd5\xb8\xd6\x82',
-    "hz": 'Otjiherero',
-    "ia": 'Interlingua',
-    "id": 'Bahasa Indonesia',
-    "ie": 'Interlingue',
-    "ig": 'Igbo',
-    "ii": '\xea\x86\x87\xea\x89\x99',
-    "ik": 'I\xc3\xb1upiaq; I\xc3\xb1upiatun',
-    "io": 'Ido',
-    "is": '\xc3\xadslenska',
-    "it": 'Italiano',
-    "iu": '\xe1\x90\x83\xe1\x93\x84\xe1\x92\x83\xe1\x91\x8e\xe1\x91\x90\xe1\x91\xa6',
-    "ja": '\xe6\x97\xa5\xe6\x9c\xac\xe8\xaa\x9e',
-    "ka": '\xe1\x83\xa5\xe1\x83\x90\xe1\x83\xa0\xe1\x83\x97\xe1\x83\xa3\xe1\x83\x9a\xe1\x83\x98 \xe1\x83\x94\xe1\x83\x9c\xe1\x83\x90 (kartuli ena)',
-    "kg": 'Kikongo',
-    "ki": 'G\xc4\xa9k\xc5\xa9y\xc5\xa9',
-    "kj": 'Kuanyama',
-    "kk": '\xd2\x9a\xd0\xb0\xd0\xb7\xd0\xb0\xd2\x9b \xd1\x82\xd1\x96\xd0\xbb\xd1\x96',
-    "kl": 'Kalaallisut',
-    "km": '\xe1\x9e\x97\xe1\x9e\xb6\xe1\x9e\x9f\xe1\x9e\xb6\xe1\x9e\x81\xe1\x9f\x92\xe1\x9e\x98\xe1\x9f\x82\xe1\x9e\x9a',
-    "kn": '\xe0\xb2\x95\xe0\xb2\xa8\xe0\xb3\x8d\xe0\xb2\xa8\xe0\xb2\xa1',
-    "ko": '\xed\x95\x9c\xea\xb5\xad\xec\x96\xb4 (\xe9\x9f\x93\xe5\x9c\x8b\xe8\xaa\x9e); \xec\xa1\xb0\xec\x84\xa0\xeb\xa7\x90 (\xe6\x9c\x9d\xe9\xae\xae\xe8\xaa\x9e)',
-    "kr": 'Kanuri',
-    "ks": '\xe0\xa4\x95\xe0\xa5\x89\xe0\xa4\xb6\xe0\xa5\x81\xe0\xa4\xb0; \xda\xa9\xd9\xb2\xd8\xb4\xd9\x8f\xd8\xb1',
-    "ku": 'Kurd\xc3\xae; \xd9\x83\xd9\x88\xd8\xb1\xd8\xaf\xd9\x8a',
-    "kv": '\xd0\xba\xd0\xbe\xd0\xbc\xd0\xb8 \xd0\xba\xd1\x8b\xd0\xb2',
-    "kw": 'Kernewek',
-    "ky": '\xd0\xba\xd1\x8b\xd1\x80\xd0\xb3\xd1\x8b\xd0\xb7 \xd1\x82\xd0\xb8\xd0\xbb\xd0\xb8',
-    "la": 'latine; lingua Latina',
-    "lb": 'L\xc3\xabtzebuergesch',
-    "lg": 'Luganda',
-    "li": 'Limburgs',
-    "ln": 'Lingala',
-    "lo": '\xe0\xba\x9e\xe0\xba\xb2\xe0\xba\xaa\xe0\xba\xb2\xe0\xba\xa5\xe0\xba\xb2\xe0\xba\xa7',
-    "lt": 'Lietuvi\xc5\xb3 Kalba',
-    "lv": 'Latvie\xc5\xa1u Valoda',
-    "mg": 'Malagasy fiteny',
-    "mh": 'Kajin M\xcc\xa7aje\xc4\xbc',
-    "mi": 'Te Reo M\xc4\x81ori',
-    "mk": '\xd0\xbc\xd0\xb0\xd0\xba\xd0\xb5\xd0\xb4\xd0\xbe\xd0\xbd\xd1\x81\xd0\xba\xd0\xb8 \xd1\x98\xd0\xb0\xd0\xb7\xd0\xb8\xd0\xba',
-    "ml": '\xe0\xb4\xae\xe0\xb4\xb2\xe0\xb4\xaf\xe0\xb4\xbe\xe0\xb4\xb3\xe0\xb4\x82',
-    "mn": '\xd0\xbc\xd0\xbe\xd0\xbd\xd0\xb3\xd0\xbe\xd0\xbb \xd1\x85\xd1\x8d\xd0\xbb',
-    "mr": '\xe0\xa4\xae\xe0\xa4\xb0\xe0\xa4\xbe\xe0\xa4\xa0\xe0\xa5\x80',
-    "ms": 'Bahasa Melayu; \xd8\xa8\xd9\x87\xd8\xa7\xd8\xb3 \xd9\x85\xd9\x84\xd8\xa7\xd9\x8a\xd9\x88',
-    "mt": 'Malti',
-    "my": '\xe1\x80\x99\xe1\x80\xbc\xe1\x80\x94\xe1\x80\xba\xe1\x80\x99\xe1\x80\xac\xe1\x80\x85\xe1\x80\xac',
-    "na": 'Ekakair\xc5\xa9 Naoero',
-    "nb": 'Bokm\xc3\xa5l',
-    "nd": 'isiNdebele',
-    "ne": '\xe0\xa4\xa8\xe0\xa5\x87\xe0\xa4\xaa\xe0\xa4\xbe\xe0\xa4\xb2\xe0\xa5\x80',
-    "ng": 'Owambo',
-    "nl": 'Nederlands',
-    "nn": 'Nynorsk',
-    "no": 'Norsk',
-    "nr": 'isiNdebele',
-    "nv": 'Din\xc3\xa9 bizaad; Din\xc3\xa9k\xca\xbceh\xc7\xb0\xc3\xad',
-    "ny": 'chiChe\xc5\xb5a; chinyanja',
-    "oc": 'Occitan',
-    "oj": '\xe1\x90\x8a\xe1\x93\x82\xe1\x94\x91\xe1\x93\x87\xe1\x90\xaf\xe1\x92\xa7\xe1\x90\x8f\xe1\x90\xa3 (Anishinaabemowin)',
-    "om": 'Afaan Oromoo',
-    "or": '\xe0\xac\x93\xe0\xac\xa1\xe0\xac\xbc\xe0\xac\xbf\xe0\xac\x86',
-    "os": '\xd0\xb8\xd1\x80\xd0\xbe\xd0\xbd \xd3\x95\xd0\xb2\xd0\xb7\xd0\xb0\xd0\xb3',
-    "pa": '\xe0\xa8\xaa\xe0\xa9\xb0\xe0\xa8\x9c\xe0\xa8\xbe\xe0\xa8\xac\xe0\xa9\x80; \xd9\xbe\xd9\x86\xd8\xac\xd8\xa7\xd8\xa8\xdb\x8c',
-    "pi": '\xe0\xa4\xaa\xe0\xa4\xbe\xe0\xa4\xb2\xe0\xa4\xbf',
-    "pl": 'Polski',
-    "ps": '\xd9\xbe\xda\x9a\xd8\xaa\xd9\x88',
-    "pt": 'Portugu\xc3\xaas',
-    "qu": 'Runa Simi; Kichwa',
-    "rm": 'Rumantsch Grischun',
-    "rn": 'Rundi',
-    "ro": 'Rom\xc3\xa2n\xc4\x83',
-    "ru": '\xd0\xa0\xd1\x83\xd1\x81\xd1\x81\xd0\xba\xd0\xb8\xd0\xb9',
-    "rw": 'Ikinyarwanda',
-    "sa": '\xe0\xa4\xb8\xe0\xa4\x82\xe0\xa4\xb8\xe0\xa5\x8d\xe0\xa4\x95\xe0\xa5\x83\xe0\xa4\xa4\xe0\xa4\xae\xe0\xa5\x8d',
-    "sc": 'Sardu',
-    "sd": '\xd8\xb3\xd9\x86\xda\x8c\xd9\x8a\xd8\x8c \xd8\xb3\xd9\x86\xd8\xaf\xda\xbe\xdb\x8c; \xe0\xa4\xb8\xe0\xa4\xbf\xe0\xa4\xa8\xe0\xa5\x8d\xe0\xa4\xa7\xe0\xa5\x80',
-    "se": 's\xc3\xa1mi; s\xc3\xa1megiella',
-    "sg": 'y\xc3\xa2ng\xc3\xa2 t\xc3\xae s\xc3\xa4ng\xc3\xb6',
-    "si": '\xe0\xb7\x83\xe0\xb7\x92\xe0\xb6\x82\xe0\xb7\x84\xe0\xb6\xbd',
-    "sk": 'Sloven\xc4\x8dina',
-    "sl": 'Sloven\xc5\xa1\xc4\x8dina',
+    "aa": "Qafara",
+    "ab": "Аҧсуа",
+    "ae": "Avesta",
+    "af": "Afrikaans",
+    "ak": "Akana",
+    "am": "አማርኛ",
+    "an": "Aragonés",
+    "ar": "العربية",
+    "as": "অসমীয়া",
+    "av": "авар мацӀ; магӀарул мацӀ",
+    "ay": "Aymar Aru",
+    "az": "Azərbaycanca",
+    "ba": "башҡорт теле",
+    "be": "Беларуская мова",
+    "bg": "български език",
+    "bh": "भोजपुरी",
+    "bi": "Bislama",
+    "bm": "Bamanankan",
+    "bn": "বাংলা",
+    "bo": "བོད་ཡིག",
+    "br": "Brezhoneg",
+    "bs": "Bosanski",
+    "ca": "Català",
+    "ce": "нохчийн мотт",
+    "ch": "Chamoru",
+    "co": "Corsu",
+    "cr": "ᓀᐦᐃᔭᐍᐏᐣ",
+    "cs": "čeština",
+    "cu": "ѩзыкъ словѣньскъ",
+    "cv": "чӑваш чӗлхи",
+    "cy": "Cymraeg",
+    "da": "Dansk",
+    "de": "Deutsch",
+    "dz": "རྫོང་ཁ",
+    "ee": "Ɛʋɛgbɛ",
+    "el": "Ελληνικά",
+    "en": "English",
+    "eo": "Esperanto",
+    "es": "Español",
+    "et": "Eesti Keel",
+    "eu": "Euskara",
+    "fa": "فارسی",
+    "ff": "Fulfulde",
+    "fi": "Suomi",
+    "fj": "Vosa Vakaviti",
+    "fo": "Føroyskt",
+    "fr": "Français",
+    "fy": "Frysk",
+    "ga": "Gaeilge",
+    "gd": "Gàidhlig",
+    "gl": "Galego",
+    "gn": "Avañe'ẽ",
+    "gu": "ગુજરાતી",
+    "gv": "Gaelg; Manninagh",
+    "ha": "Hausancī; هَوُسَ",
+    "he": "עִבְרִית; עברית",
+    "hi": "हिन्दी",
+    "ho": "Hiri Motu",
+    "hr": "Hrvatski",
+    "ht": "Kreyòl ayisyen",
+    "hu": "Magyar",
+    "hy": "Հայերեն լեզու",
+    "hz": "Otjiherero",
+    "ia": "Interlingua",
+    "id": "Bahasa Indonesia",
+    "ie": "Interlingue",
+    "ig": "Igbo",
+    "ii": "ꆇꉙ",
+    "ik": "Iñupiaq; Iñupiatun",
+    "io": "Ido",
+    "is": "íslenska",
+    "it": "Italiano",
+    "iu": "ᐃᓄᒃᑎᑐᑦ",
+    "ja": "日本語",
+    "ka": "ქართული ენა (kartuli ena)",
+    "kg": "Kikongo",
+    "ki": "Gĩkũyũ",
+    "kj": "Kuanyama",
+    "kk": "Қазақ тілі",
+    "kl": "Kalaallisut",
+    "km": "ភាសាខ្មែរ",
+    "kn": "ಕನ್ನಡ",
+    "ko": "한국어 (韓國語); 조선말 (朝鮮語)",
+    "kr": "Kanuri",
+    "ks": "कॉशुर; کٲشُر",
+    "ku": "Kurdî; كوردي",
+    "kv": "коми кыв",
+    "kw": "Kernewek",
+    "ky": "кыргыз тили",
+    "la": "latine; lingua Latina",
+    "lb": "Lëtzebuergesch",
+    "lg": "Luganda",
+    "li": "Limburgs",
+    "ln": "Lingala",
+    "lo": "ພາສາລາວ",
+    "lt": "Lietuvių Kalba",
+    "lv": "Latviešu Valoda",
+    "mg": "Malagasy fiteny",
+    "mh": "Kajin M̧ajeļ",
+    "mi": "Te Reo Māori",
+    "mk": "македонски јазик",
+    "ml": "മലയാളം",
+    "mn": "монгол хэл",
+    "mr": "मराठी",
+    "ms": "Bahasa Melayu; بهاس ملايو",
+    "mt": "Malti",
+    "my": "မြန်မာစာ",
+    "na": "Ekakairũ Naoero",
+    "nb": "Bokmål",
+    "nd": "isiNdebele",
+    "ne": "नेपाली",
+    "ng": "Owambo",
+    "nl": "Nederlands",
+    "nn": "Nynorsk",
+    "no": "Norsk",
+    "nr": "isiNdebele",
+    "nv": "Diné bizaad; Dinékʼehǰí",
+    "ny": "chiCheŵa; chinyanja",
+    "oc": "Occitan",
+    "oj": "ᐊᓂᔑᓇᐯᒧᐏᐣ (Anishinaabemowin)",
+    "om": "Afaan Oromoo",
+    "or": "ଓଡ଼ିଆ",
+    "os": "ирон ӕвзаг",
+    "pa": "ਪੰਜਾਬੀ; پنجابی",
+    "pi": "पालि",
+    "pl": "Polski",
+    "ps": "پښتو",
+    "pt": "Português",
+    "qu": "Runa Simi; Kichwa",
+    "rm": "Rumantsch Grischun",
+    "rn": "Rundi",
+    "ro": "Română",
+    "ru": "Русский",
+    "rw": "Ikinyarwanda",
+    "sa": "संस्कृतम्",
+    "sc": "Sardu",
+    "sd": "سنڌي، سندھی; सिन्धी",
+    "se": "sámi; sámegiella",
+    "sg": "yângâ tî sängö",
+    "si": "සිංහල",
+    "sk": "Slovenčina",
+    "sl": "Slovenščina",
     "sm": "Gagana fa'a Samoa",
-    "sn": 'chiShona',
-    "so": 'Soomaaliga; af Soomaali',
-    "sq": 'Shqip',
-    "sr": '\xd1\x81\xd1\x80\xd0\xbf\xd1\x81\xd0\xba\xd0\xb8 \xd1\x98\xd0\xb5\xd0\xb7\xd0\xb8\xd0\xba; srpski jezik',
-    "ss": 'siSwati',
-    "st": 'Sesotho',
-    "su": 'Basa Sunda',
-    "sv": 'Svenska',
-    "sw": 'Kiswahili',
-    "ta": '\xe0\xae\xa4\xe0\xae\xae\xe0\xae\xbf\xe0\xae\xb4\xe0\xaf\x8d',
-    "te": '\xe0\xb0\xa4\xe0\xb1\x86\xe0\xb0\xb2\xe0\xb1\x81\xe0\xb0\x97\xe0\xb1\x81',
-    "tg": '\xd1\x82\xd0\xbe\xd2\xb7\xd0\xb8\xd0\xba\xd3\xa3; \xd8\xaa\xd8\xa7\xd8\xac\xdb\x8c\xda\xa9\xdb\x8c',
-    "th": '\xe0\xb8\xa0\xe0\xb8\xb2\xe0\xb8\xa9\xe0\xb8\xb2\xe0\xb9\x84\xe0\xb8\x97\xe0\xb8\xa2',
-    "ti": '\xe1\x89\xb5\xe1\x8c\x8d\xe1\x88\xad\xe1\x8a\x9b',
-    "tk": '\xd0\xa2\xd2\xaf\xd1\x80\xd0\xba\xd0\xbc\xd0\xb5\xd0\xbd',
-    "tl": 'Wikang Tagalog; \xe1\x9c\x8f\xe1\x9c\x92\xe1\x9c\x83\xe1\x9c\x85\xe1\x9c\x94 \xe1\x9c\x86\xe1\x9c\x84\xe1\x9c\x8e\xe1\x9c\x93\xe1\x9c\x84\xe1\x9c\x94',
-    "tn": 'Setswana',
-    "to": 'Faka-Tonga',
-    "tr": 'T\xc3\xbcrk\xc3\xa7e',
-    "ts": 'Xitsonga',
-    "tt": '\xd1\x82\xd0\xb0\xd1\x82\xd0\xb0\xd1\x80\xd1\x87\xd0\xb0; tatar\xc3\xa7a; \xd8\xaa\xd8\xa7\xd8\xaa\xd8\xa7\xd8\xb1\xda\x86\xd8\xa7',
-    "tw": 'Twi',
-    "ty": 'te reo Tahiti; te reo M\xc4\x81\xca\xbcohi',
-    "ug": 'Uy\xc6\xa3urq\xc9\x99; Uy\xc4\x9fur\xc3\xa7e; \xd8\xa6\xdb\x87\xd9\x8a\xd8\xba\xdb\x87\xd8\xb1\xda\x86',
-    "uk": '\xd1\x83\xd0\xba\xd1\x80\xd0\xb0\xd1\x97\xd0\xbd\xd1\x81\xd1\x8c\xd0\xba\xd0\xb0 \xd0\xbc\xd0\xbe\xd0\xb2\xd0\xb0',
-    "ur": '\xd8\xa7\xd8\xb1\xd8\xaf\xd9\x88',
-    "uz": "O'zbek; \xd0\x8e\xd0\xb7\xd0\xb1\xd0\xb5\xd0\xba; \xd8\xa3\xdb\x87\xd8\xb2\xd8\xa8\xdb\x90\xd9\x83",
-    "ve": 'Tshiven\xe1\xb8\x93a',
-    "vi": 'Ti\xe1\xba\xbfng Vi\xe1\xbb\x87t',
-    "vo": 'Volap\xc3\xbck',
-    "wa": 'Walon',
-    "wo": 'Wolof',
-    "xh": 'isiXhosa',
-    "yi": '\xd7\x99\xd7\x99\xd6\xb4\xd7\x93\xd7\x99\xd7\xa9',
-    "yo": 'Yor\xc3\xb9b\xc3\xa1',
-    "za": 'Sa\xc9\xaf cue\xc5\x8b\xc6\x85; Saw cuengh',
-    "zh": '\xe6\xbc\xa2\xe8\xaa\x9e; \xe6\xb1\x89\xe8\xaf\xad; \xe4\xb8\xad\xe6\x96\x87',
-    "zu": 'isiZulu',
-    "und": 'Unknown'
+    "sn": "chiShona",
+    "so": "Soomaaliga; af Soomaali",
+    "sq": "Shqip",
+    "sr": "српски језик; srpski jezik",
+    "ss": "siSwati",
+    "st": "Sesotho",
+    "su": "Basa Sunda",
+    "sv": "Svenska",
+    "sw": "Kiswahili",
+    "ta": "தமிழ்",
+    "te": "తెలుగు",
+    "tg": "тоҷикӣ; تاجیکی",
+    "th": "ภาษาไทย",
+    "ti": "ትግርኛ",
+    "tk": "Түркмен",
+    "tl": "Wikang Tagalog; ᜏᜒᜃᜅ᜔ ᜆᜄᜎᜓᜄ᜔",
+    "tn": "Setswana",
+    "to": "Faka-Tonga",
+    "tr": "Türkçe",
+    "ts": "Xitsonga",
+    "tt": "татарча; tatarça; تاتارچا",
+    "tw": "Twi",
+    "ty": "te reo Tahiti; te reo Māʼohi",
+    "ug": "Uyƣurqə; Uyğurçe; ئۇيغۇرچ",
+    "uk": "українська мова",
+    "ur": "اردو",
+    "uz": "O'zbek; Ўзбек; أۇزبېك",
+    "ve": "Tshivenḓa",
+    "vi": "Tiếng Việt",
+    "vo": "Volapük",
+    "wa": "Walon",
+    "wo": "Wolof",
+    "xh": "isiXhosa",
+    "yi": "ייִדיש",
+    "yo": "Yorùbá",
+    "za": "Saɯ cueŋƅ; Saw cuengh",
+    "zh": "漢語; 汉语; 中文",
+    "zu": "isiZulu",
+    "und": "Unknown"
 }
 
 def PrintErrorAndExit(message):
@@ -248,6 +249,12 @@ def XmlDuration(d):
         xsd += ('%.3fS' % (s))
     return xsd
 
+def Base64Encode(x):
+    return base64.b64encode(x).decode('ascii')
+
+def Base64Decode(x):
+    return base64.b64decode(x)
+
 def Bento4Command(options, name, *args, **kwargs):
     executable = path.join(options.exec_dir, name) if options.exec_dir != '-' else name
     cmd = [executable]
@@ -266,13 +273,13 @@ def Bento4Command(options, name, *args, **kwargs):
 
     cmd += args
     if options.debug:
-        print 'COMMAND: ', " ".join(cmd), cmd
+        print('COMMAND: ', " ".join(cmd), cmd)
     try:
         try:
             return check_output(cmd)
         except OSError as e:
             if options.debug:
-                print 'executable ' + executable + ' not found in exec_dir, trying with PATH'
+                print('executable ' + executable + ' not found in exec_dir, trying with PATH')
             cmd[0] = path.basename(cmd[0])
             return check_output(cmd)
     except CalledProcessError as e:
@@ -302,7 +309,7 @@ def Mp4Encrypt(options, input_filename, output_filename, *args, **kwargs):
 def Mp42Hls(options, input_filename, *args, **kwargs):
     return Bento4Command(options, 'mp42hls', input_filename, *args, **kwargs)
 
-def Mp4IframIndex(options, input_filename, *args, **kwargs):
+def Mp4IframeIndex(options, input_filename, *args, **kwargs):
     return Bento4Command(options, 'mp4iframeindex', input_filename, *args, **kwargs)
 
 class Mp4Atom:
@@ -322,7 +329,7 @@ def WalkAtoms(filename, until=None):
     while True:
         try:
             size = struct.unpack('>I', file.read(4))[0]
-            type = file.read(4)
+            type = file.read(4).decode('ascii')
             if type == until:
                 break
             if size == 1:
@@ -492,7 +499,7 @@ class Mp4File:
 
         filename = media_source.filename
         if options.debug:
-            print 'Processing MP4 file', filename
+            print('Processing MP4 file', filename)
 
         # by default, the media name is the basename of the source file
         self.media_name = os.path.basename(filename)
@@ -510,18 +517,17 @@ class Mp4File:
                     self.segments[-1].append(atom)
         #print self.segments
         if options.debug:
-            print '  found', len(self.segments), 'segments'
+            print('  found', len(self.segments), 'segments')
 
         for track in self.info['tracks']:
             self.tracks[track['id']] = Mp4Track(self, track)
 
         # get a complete file dump
         json_dump = Mp4Dump(options, filename, format='json', verbosity='1')
-        #print json_dump
         self.tree = json.loads(json_dump, strict=False, object_pairs_hook=collections.OrderedDict)
 
         # look for KIDs
-        for track in self.tracks.itervalues():
+        for track in self.tracks.values():
             track.compute_kid()
 
         # compute default sample durations and timescales
@@ -562,7 +568,7 @@ class Mp4File:
                 default_sample_duration = tfhd.get('default sample duration', track.default_sample_duration)
                 for trun in FilterChildren(trafs[0], 'trun'):
                     track.sample_counts.append(trun['sample count'])
-                    for (name, value) in trun.items():
+                    for (name, value) in list(trun.items()):
                         if name[0] in '0123456789':
                             sample_duration = -1
                             fields = value.split(',')
@@ -604,7 +610,7 @@ class Mp4File:
                     continue
                 track = self.tracks[track_id]
                 moof_pointers = []
-                for (name, value) in tfra.items():
+                for (name, value) in list(tfra.items()):
                     if name.startswith('['):
                         attributes = value.split(',')
                         attribute_dict = {}
@@ -634,15 +640,15 @@ class Mp4File:
 
         # print debug info if requested
         if options.debug:
-            for track in self.tracks.itervalues():
-                print 'Track ID                     =', track.id
-                print '    Segment Count            =', len(track.segment_durations)
-                print '    Type                     =', track.type
-                print '    Sample Count             =', track.total_sample_count
-                print '    Average segment bitrate  =', track.average_segment_bitrate
-                print '    Max segment bitrate      =', track.max_segment_bitrate
-                print '    Required bandwidth       =', int(track.bandwidth)
-                print '    Average segment duration =', track.average_segment_duration
+            for track in self.tracks.values():
+                print('Track ID                     =', track.id)
+                print('    Segment Count            =', len(track.segment_durations))
+                print('    Type                     =', track.type)
+                print('    Sample Count             =', track.total_sample_count)
+                print('    Average segment bitrate  =', track.average_segment_bitrate)
+                print('    Max segment bitrate      =', track.max_segment_bitrate)
+                print('    Required bandwidth       =', int(track.bandwidth))
+                print('    Average segment duration =', track.average_segment_duration)
 
     def find_track_by_id(self, track_id_to_find):
         for track_id in self.tracks:
@@ -652,7 +658,7 @@ class Mp4File:
         return None
 
     def find_tracks_by_type(self, track_type_to_find):
-        return [track for track in self.tracks.values() if track_type_to_find == '' or track_type_to_find == track.type]
+        return [track for track in list(self.tracks.values()) if track_type_to_find == '' or track_type_to_find == track.type]
 
 class MediaSource:
     def __init__(self, options, name):
@@ -720,19 +726,19 @@ def MakeNewDir(dir, exit_if_exists=False, severity=None):
 
 def MakePsshBox(system_id, payload):
     pssh_size = 12+16+4+len(payload)
-    return struct.pack('>I', pssh_size)+'pssh'+struct.pack('>I',0)+system_id+struct.pack('>I', len(payload))+payload
+    return struct.pack('>I', pssh_size)+b'pssh'+struct.pack('>I',0)+system_id+struct.pack('>I', len(payload))+payload
 
 def MakePsshBoxV1(system_id, kids, payload):
-    pssh_size = 12+16++4+(16*len(kids))+4+len(payload)
-    pssh = struct.pack('>I', pssh_size)+'pssh'+struct.pack('>I',0x01000000)+system_id+struct.pack('>I', len(kids))
+    pssh_size = 12+16+4+(16*len(kids))+4+len(payload)
+    pssh = struct.pack('>I', pssh_size)+b'pssh'+struct.pack('>I',0x01000000)+system_id+struct.pack('>I', len(kids))
     for kid in kids:
-        pssh += kid.decode('hex')
+        pssh += bytes.fromhex(kid)
     pssh += struct.pack('>I', len(payload))+payload
     return pssh
 
 def GetEncryptionKey(options, spec):
     if options.debug:
-        print 'Resolving KID and Key from spec:', spec
+        print('Resolving KID and Key from spec:', spec)
     if spec.startswith('skm:'):
         import skm
         return skm.ResolveKey(options, spec[4:])
@@ -912,7 +918,7 @@ def ComputeDolbyAc4AudioChannelConfig(track):
 
     return '000000'
 
-def ComputeDolbyDigitalAudioChannelMask(track):
+def ComputeDolbyDigitalPlusAudioChannelMask(track):
     masks = {
         'L':       0x1,             # SPEAKER_FRONT_LEFT
         'R':       0x2,             # SPEAKER_FRONT_RIGHT
@@ -929,7 +935,7 @@ def ComputeDolbyDigitalAudioChannelMask(track):
         'Vhl/Vhr': 0x1000 | 0x4000, # SPEAKER_TOP_FRONT_LEFT/SPEAKER_TOP_FRONT_RIGHT
         'Vhc':     0x2000,          # SPEAKER_TOP_FRONT_CENTER
     }
-    (channel_count, channels) = GetDolbyDigitalChannels(track)
+    (channel_count, channels) = GetDolbyDigitalPlusChannels(track)
     if not channels:
         return (channel_count, 3)
     channel_mask = 0
@@ -945,7 +951,7 @@ def ComputeDolbyDigitalAudioChannelMask(track):
     return (channel_count, channel_mask)
 
 def ComputeDolbyDigitalPlusSmoothStreamingInfo(track):
-    (channel_count, channel_mask) = ComputeDolbyDigitalAudioChannelMask(track)
+    (channel_count, channel_mask) = ComputeDolbyDigitalPlusAudioChannelMask(track)
     info = "0006" # 1536 in little-endian
     mask_hex_be = "{0:0{1}x}".format(channel_mask, 4)
     info += mask_hex_be[2:4]+mask_hex_be[0:2]+'0000'
@@ -955,7 +961,7 @@ def ComputeDolbyDigitalPlusSmoothStreamingInfo(track):
 
 def ComputeMarlinPssh(options):
     # create a dummy (empty) Marlin PSSH
-    return struct.pack('>I4sI4sII', 24, 'marl', 16, 'mkid', 0, 0)
+    return struct.pack('>I4sI4sII', 24, b'marl', 16, b'mkid', 0, 0)
 
 def DerivePlayReadyKey(seed, kid, swap=True):
     if len(seed) < 30:
@@ -964,31 +970,29 @@ def DerivePlayReadyKey(seed, kid, swap=True):
         raise Exception('kid must be 16 bytes')
 
     if swap:
-        kid = kid[3]+kid[2]+kid[1]+kid[0]+kid[5]+kid[4]+kid[7]+kid[6]+kid[8:]
+        kid = kid[3:4]+kid[2:3]+kid[1:2]+kid[0:1]+kid[5:6]+kid[4:5]+kid[7:8]+kid[6:7]+kid[8:]
 
     seed = seed[:30]
 
     sha = hashlib.sha256()
     sha.update(seed)
     sha.update(kid)
-    sha_A = [ord(x) for x in sha.digest()]
+    sha_A = sha.digest()
 
     sha = hashlib.sha256()
     sha.update(seed)
     sha.update(kid)
     sha.update(seed)
-    sha_B = [ord(x) for x in sha.digest()]
+    sha_B = sha.digest()
 
     sha = hashlib.sha256()
     sha.update(seed)
     sha.update(kid)
     sha.update(seed)
     sha.update(kid)
-    sha_C = [ord(x) for x in sha.digest()]
+    sha_C = sha.digest()
 
-    content_key = ""
-    for i in range(16):
-        content_key += chr(sha_A[i] ^ sha_A[i+16] ^ sha_B[i] ^ sha_B[i+16] ^ sha_C[i] ^ sha_C[i+16])
+    content_key = bytes([sha_A[i] ^ sha_A[i+16] ^ sha_B[i] ^ sha_B[i+16] ^ sha_C[i] ^ sha_C[i+16] for i in range(16)])
 
     return content_key
 
@@ -1004,14 +1008,14 @@ def WrapPlayReadyHeaderXml(header_xml):
 
 def ComputePlayReadyKeyInfo(key_spec):
     (kid_hex, key_hex) = key_spec
-    kid = kid_hex.decode('hex')
-    kid = kid[3]+kid[2]+kid[1]+kid[0]+kid[5]+kid[4]+kid[7]+kid[6]+kid[8:]
+    kid = bytes.fromhex(kid_hex)
+    kid = kid[3:4]+kid[2:3]+kid[1:2]+kid[0:1]+kid[5:6]+kid[4:5]+kid[7:8]+kid[6:7]+kid[8:]
 
     xml_key_checksum = None
     if key_hex:
-        xml_key_checksum = ComputePlayReadyChecksum(kid, key_hex.decode('hex')).encode('base64').replace('\n', '')
+        xml_key_checksum = Base64Encode(ComputePlayReadyChecksum(kid, bytes.fromhex(key_hex)))
 
-    return (kid.encode('base64').replace('\n', '' ), xml_key_checksum)
+    return (Base64Encode(kid), xml_key_checksum)
 
 def ComputePlayReadyXmlKid(key_spec, algid):
     (xml_kid, xml_key_checksum) = ComputePlayReadyKeyInfo(key_spec)
@@ -1045,7 +1049,7 @@ def ComputePlayReadyHeader(version, header_spec, encryption_scheme, key_specs):
         header_spec = ''
     if header_spec.startswith('#'):
         header_b64 = header_spec[1:]
-        header = header_b64.decode('base64')
+        header = Base64Decode(header_b64)
         if not header:
             raise Exception('invalid base64 encoding')
         return header
@@ -1059,13 +1063,13 @@ def ComputePlayReadyHeader(version, header_spec, encryption_scheme, key_specs):
         # read the header from the file
         header = open(header_spec, 'rb').read()
         header_xml = None
-        if (ord(header[0]) == 0xff and ord(header[1]) == 0xfe) or (ord(header[0]) == 0xfe and ord(header[1]) == 0xff):
+        if (header[0] == 0xff and header[1] == 0xfe) or (header[0] == 0xfe and header[1] == 0xff):
             # this is UTF-16 XML
             header_xml = header.decode('utf-16')
-        elif header[0] == '<' and ord(header[1]) != 0x00:
+        elif header[0] == '<' and header[1] != 0x00:
             # this is ASCII or UTF-8 XML
             header_xml = header.decode('utf-8')
-        elif header[0] == '<' and ord(header[1]) == 0x00:
+        elif header[0] == '<' and header[1] == 0x00:
             # this UTF-16LE XML without charset header
             header_xml = header.decode('utf-16-le')
         if header_xml is not None:
@@ -1116,7 +1120,7 @@ def ComputePlayReadyHeader(version, header_spec, encryption_scheme, key_specs):
         header_xml += '<PROTECTINFO>' + xml_protectinfo + '</PROTECTINFO>'
         header_xml += xml_extras
         if 'CUSTOMATTRIBUTES' in fields:
-            header_xml += '<CUSTOMATTRIBUTES>'+fields['CUSTOMATTRIBUTES'].decode('base64').replace('\n', '')+'</CUSTOMATTRIBUTES>'
+            header_xml += '<CUSTOMATTRIBUTES>'+Base64Decode(fields['CUSTOMATTRIBUTES']).decode('utf-8').replace('\n', '')+'</CUSTOMATTRIBUTES>'
         if 'LA_URL' in fields:
             header_xml += '<LA_URL>'+saxutils.escape(fields['LA_URL'])+'</LA_URL>'
         if 'LUI_URL' in fields:
@@ -1133,7 +1137,7 @@ def ComputePrimetimeMetaData(metadata_spec, kid_hex):
         metadata_spec = ''
     if metadata_spec.startswith('#'):
         metadata_b64 = metadata_spec[1:]
-        metadata = metadata_b64.decode('base64')
+        metadata = Base64Decode(metadata_b64)
         if not metadata:
             raise Exception('invalid base64 encoding')
     elif metadata_spec.startswith('@'):
@@ -1149,7 +1153,7 @@ def ComputePrimetimeMetaData(metadata_spec, kid_hex):
     if metadata:
         amet_flags |= 2
         amet_size += 4+len(metadata)
-    amet_box = struct.pack('>I4sII', amet_size, 'amet', amet_flags, 1)+kid_hex.decode("hex")
+    amet_box = struct.pack('>I4sII', amet_size, 'amet', amet_flags, 1) + bytes.fromhex(kid_hex)
     if metadata:
         amet_box += struct.pack('>I', len(metadata))+metadata
 
@@ -1163,25 +1167,25 @@ def WidevineVarInt(value):
         value >>= 7
     for i in range(len(parts) - 1):
         parts[i] |= (1<<7)
-    return ''.join([chr(x) for x in parts])
+    return bytes(parts)
 
 def WidevineMakeHeader(fields):
-    buffer = ''
+    buffer = b''
     for (field_num, field_val) in fields:
         if type(field_val) == int:
             wire_type = 0 # varint
             wire_val = WidevineVarInt(field_val)
         elif type(field_val) == str:
             wire_type = 2
-            wire_val = WidevineVarInt(len(field_val))+field_val
-        buffer += chr(field_num<<3 | wire_type) + wire_val
+            wire_val = WidevineVarInt(len(field_val)) + field_val.encode('ascii')
+        buffer += bytes([(field_num << 3) | wire_type]) + wire_val
     return buffer
 
 def ComputeWidevineHeader(header_spec, encryption_scheme, kid_hex):
     # construct the base64 header
     if header_spec.startswith('#'):
         header_b64 = header_spec[1:]
-        header = header_b64.decode('base64')
+        header = Base64Decode(header_b64)
         if not header:
             raise Exception('invalid base64 encoding')
         return header
@@ -1195,16 +1199,16 @@ def ComputeWidevineHeader(header_spec, encryption_scheme, kid_hex):
         except:
             raise Exception('invalid syntax for argument')
 
-        protobuf_fields = [(1, 1), (2, kid_hex.decode('hex'))]
+        protobuf_fields = [(1, 1), (2, bytes.fromhex(kid_hex))]
         if 'provider' in fields:
             protobuf_fields.append((3, fields['provider']))
         if 'content_id' in fields:
-            protobuf_fields.append((4, fields['content_id'].decode('hex')))
+            protobuf_fields.append((4, bytes.fromhex(fields['content_id'])))
         if 'policy' in fields:
             protobuf_fields.append((6, fields['policy']))
 
         if encryption_scheme != 'cenc':
-            four_cc = struct.unpack('>I', encryption_scheme)[0]
+            four_cc = struct.unpack('>I', encryption_scheme.encode('ascii'))[0]
             protobuf_fields.append((9, four_cc))
 
         return WidevineMakeHeader(protobuf_fields)

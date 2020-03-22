@@ -561,9 +561,11 @@ ShowSampleDescription_Text(AP4_SampleDescription& description, bool verbose)
                 printf(" (%s)", nalu_type_name);
             }
             printf("\n");
+            const char* sep = "";
             for (unsigned int j=0; j<seq.m_Nalus.ItemCount(); j++) {
-                printf("        ");
+                printf("%s        ", sep);
                 ShowData(seq.m_Nalus[j]);
+                sep = "\n";
             }
             printf("\n      }\n");
         }
