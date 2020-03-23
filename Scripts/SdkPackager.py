@@ -93,7 +93,7 @@ def ZipDir(top, archive, dir) :
             archive.write(path, zip_name)
 
 def ZipIt(basename, dir) :
-    path = os.path(basename, dir)
+    path = os.path.join(basename, dir)
     zip_filename = path+'.zip'
     print('ZIP: '+path+' -> '+zip_filename)
 
