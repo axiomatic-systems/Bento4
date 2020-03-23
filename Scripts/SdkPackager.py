@@ -180,16 +180,11 @@ SDK_NAME='Bento4-SDK-'+BENTO4_VERSION+'-'+SDK_REVISION+'.'+SDK_TARGET
 SDK_BUILD_ROOT=BENTO4_HOME+'/SDK'
 SDK_ROOT=SDK_BUILD_ROOT+'/'+SDK_NAME
 SDK_TARGET_DIR='Build/Targets/'+SDK_TARGET
-SDK_TARGET_ROOT=BENTO4_HOME+'/'+SDK_TARGET_DIR
 
-if CMAKE_BUILD:
-    SDK_BUILD_OUTPUT_DIR = 'cmakebuild'
-else:
-    # special case for Xcode builds
-    if SDK_TARGET == 'universal-apple-macosx':
-        SDK_BUILD_OUTPUT_DIR='Build/Targets/universal-apple-macosx/Build/Products/Release'
-    else:
-        SDK_BUILD_OUTPUT_DIR = SDK_TARGET_DIR + '/Release'
+SDK_BUILD_OUTPUT_DIR = 'cmakebuild'
+# special case for Windows builds
+if SDK_TARGET == 'x86-microsoft-win32-vs2010':
+        SDK_BUILD_OUTPUT_DIR='Build/Targets/{}/Build/Release'.format(SDK_TARGET)
 
 print(SDK_NAME)
 
