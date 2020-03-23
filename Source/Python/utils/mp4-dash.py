@@ -29,7 +29,7 @@ from functools import reduce
 
 # setup main options
 VERSION = "2.0.0"
-SDK_REVISION = '630'
+SDK_REVISION = '632'
 SCRIPT_PATH = path.abspath(path.dirname(__file__))
 sys.path += [SCRIPT_PATH]
 
