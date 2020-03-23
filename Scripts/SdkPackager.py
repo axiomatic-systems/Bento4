@@ -22,7 +22,7 @@ import platform
 # GetVersion
 #############################################################
 def GetVersion():
-    f = open(BENTO4_HOME+'/Source/C++/Core/Ap4Version.h')
+    f = open(os.path.join(BENTO4_HOME, 'Source', 'C++', 'Core', 'Ap4Version.h'))
     lines = f.readlines()
     f.close()
     for line in lines:
@@ -63,15 +63,15 @@ def GetSdkRevision():
 def CopyFiles(file_patterns, configs=[''], rename_map={}):
     for config in configs:
         for (source,pattern,dest) in file_patterns:
-            source_dir = BENTO4_HOME+'/'+source+'/'+config
+            source_dir = os.path.join(BENTO4_HOME, source, config)
             file_list = [os.path.join(source_dir, file) for file in fnmatch.filter(os.listdir(source_dir), pattern)]
             for file in file_list:
-                dest_dir = SDK_ROOT+'/'+dest+'/'+config
+                dest_dir = os.path.join(SDK_ROOT, dest, config)
                 if not os.path.exists(dest_dir):
                     os.makedirs(dest_dir)
                 filename = os.path.basename(file)
                 if filename in rename_map:
-                    dest_name = dest_dir+'/'+rename_map[filename]
+                    dest_name = os.path.join(dest_dir, rename_map[filename])
                 else:
                     dest_name = dest_dir
                 print('COPY: '+file+' -> '+dest_name)
@@ -93,7 +93,7 @@ def ZipDir(top, archive, dir) :
             archive.write(path, zip_name)
 
 def ZipIt(basename, dir) :
-    path = basename+'/'+dir
+    path = os.path(basename, dir)
     zip_filename = path+'.zip'
     print('ZIP: '+path+' -> '+zip_filename)
 
@@ -139,9 +139,9 @@ else :
 
 # compute the target if it is not specified
 if SDK_TARGET is None:
-    targets_dir = BENTO4_HOME+'/Build/Targets'
+    targets_dir = os.path.join(BENTO4_HOME, 'Build', 'Targets')
     targets_dirs = os.listdir(targets_dir)
-    target_platforms = [x for x in targets_dirs if os.path.exists(targets_dir +'/'+x+'/Config.scons')]
+    target_platforms = [x for x in targets_dirs if os.path.exists(os.path.join(targets_dir, x, 'Config.scons'))]
     platform_id = sys.platform
     if platform.system() == 'Linux':
         if (platform.machine() == 'i386' or
@@ -176,15 +176,15 @@ BENTO4_VERSION = GetVersion()
 SDK_REVISION = GetSdkRevision()
 if SDK_REVISION is None:
     sys.exit(1)
-SDK_NAME='Bento4-SDK-'+BENTO4_VERSION+'-'+SDK_REVISION+'.'+SDK_TARGET
-SDK_BUILD_ROOT=BENTO4_HOME+'/SDK'
-SDK_ROOT=SDK_BUILD_ROOT+'/'+SDK_NAME
-SDK_TARGET_DIR='Build/Targets/'+SDK_TARGET
+SDK_NAME = 'Bento4-SDK-'+BENTO4_VERSION+'-'+SDK_REVISION+'.'+SDK_TARGET
+SDK_BUILD_ROOT = os.path.join(BENTO4_HOME, 'SDK')
+SDK_ROOT = os.path.join(SDK_BUILD_ROOT, SDK_NAME)
+SDK_TARGET_DIR = os.path.join('Build', 'Targets', SDK_TARGET)
 
 SDK_BUILD_OUTPUT_DIR = 'cmakebuild'
 # special case for Windows builds
 if SDK_TARGET == 'x86-microsoft-win32-vs2010':
-        SDK_BUILD_OUTPUT_DIR='Build/Targets/{}/Build/Release'.format(SDK_TARGET)
+        SDK_BUILD_OUTPUT_DIR=os.path.join('Build', 'Targets', SDK_TARGET, 'Release')
 
 print(SDK_NAME)
 
