@@ -95,7 +95,8 @@ PrintUsageAndExit()
             "      dv_profile: integer number for Dolby vision profile ID (valid value: 5,8,9)\n"
             "      dv_bc: integer number for Dolby vision BL signal cross-compatibility ID (mandatory if dv_profile is set to 8/9)\n"
             "      frame_rate: floating point number in frames per second (default=24.0)\n"
-            "      format: hev1 or hvc1 (default) for HEVC tracks, dvhe or dvh1 (default) for HEVC Dolby vision tracks\n"
+            "      format: hev1 or hvc1 (default) for HEVC tracks and Dolby Vision back-compatible tracks\n"
+            "              dvhe or dvh1 (default) for Dolby vision tracks\n"
             "  aac:  AAC in ADTS format\n"
             "  ac3:  Dolby Digital\n"
             "  ec3:  Dolby Digital Plus\n"
@@ -500,17 +501,17 @@ AddAacTrack(AP4_Movie&            movie,
             }
         }
     }
-
+    
     // create an audio track
     AP4_Track* track = new AP4_Track(AP4_Track::TYPE_AUDIO,
                                      sample_table,
-                                     0,                            // track id
-                                     sample_rate,                // movie time scale
-                                     sample_count*1024,            // track duration
-                                     sample_rate,                // media time scale
-                                     sample_count*1024,            // media duration
+                                     0,                         // track id
+                                     sample_rate,               // movie time scale
+                                     sample_count*1024,         // track duration
+                                     sample_rate,               // media time scale
+                                     sample_count*1024,         // media duration
                                      track_languages.GetChars(),// language
-                                     0, 0);                        // width, height
+                                     0, 0);                     // width, height
 
     // cleanup
     input->Release();
@@ -1003,13 +1004,13 @@ AddH264Track(AP4_Movie&            movie,
             video_frame_rate = (unsigned int)(1000.0*frame_rate);
         }
     }
-
+    
     // create a sample table
     AP4_SyntheticSampleTable* sample_table = new AP4_SyntheticSampleTable();
 
     // allocate an array to keep track of sample order
     AP4_Array<SampleOrder> sample_orders;
-
+    
     // parse the input
     AP4_AvcFrameParser parser;
     for (;;) {
@@ -1502,7 +1503,7 @@ AddH265Track(AP4_Movie&            movie,
             }
         }
     }
-
+    
     // create a sample table
     AP4_SyntheticSampleTable* sample_table = new AP4_SyntheticSampleTable();
 
@@ -2303,7 +2304,6 @@ main(int argc, char** argv)
         brands.Append(AP4_FILE_BRAND_DBY1);
     }
 
-    // Update the next_track_ID to align with ONDEL mp4muxer's behavior
     movie->GetMvhdAtom()->SetNextTrackId(movie->GetTracks().ItemCount() + 1);
 
     // open the output

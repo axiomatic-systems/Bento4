@@ -531,6 +531,7 @@ ShowSampleDescription_Text(AP4_SampleDescription& description, bool verbose)
                     }
                 }
             }
+            
             printf("    Self Contained: %s\n", (self_contained == dsi.d.v1.n_presentations) ? "Yes": ((self_contained == 0)? "No": "Part"));
             printf("    AC-4 dac4 payload: [");
             ShowData(dac4->GetRawBytes());
@@ -794,7 +795,7 @@ ShowSampleDescription_Json(AP4_SampleDescription& description, bool verbose)
             printf("}");
         }
     }
-        
+
     // Dolby Digital Plus specifics
     if (desc->GetFormat() == AP4_SAMPLE_FORMAT_EC_3) {
         AP4_Dec3Atom* dec3 = AP4_DYNAMIC_CAST(AP4_Dec3Atom, desc->GetDetails().GetChild(AP4_ATOM_TYPE('d', 'e', 'c', '3')));
@@ -888,6 +889,7 @@ ShowSampleDescription_Json(AP4_SampleDescription& description, bool verbose)
                 }
             }
             printf("\n  ],\n");
+
             printf("  \"Self Contained\": \"%s\",\n", (self_contained == dsi.d.v1.n_presentations) ? "Yes": ((self_contained == 0)? "No": "Part"));
             printf("  \"dac4_payload\": \"");
             ShowData(dac4->GetRawBytes());
@@ -1044,7 +1046,7 @@ ShowSampleDescription_Json(AP4_SampleDescription& description, bool verbose)
         printf("%s", codec.GetChars());
         printf("\"");
     }
-    
+
     // VPx Specifics
     if (desc->GetFormat() == AP4_SAMPLE_FORMAT_VP8 ||
         desc->GetFormat() == AP4_SAMPLE_FORMAT_VP9 ||
@@ -1203,12 +1205,12 @@ ShowAvcInfo(const AP4_DataBuffer& sample_data, AP4_AvcSampleDescription* avc_des
                     case 0: printf("<P>");  break;
                     case 1: printf("<B>");  break;
                     case 2: printf("<I>");  break;
-                    case 3:    printf("<SP>"); break;
+                    case 3: printf("<SP>"); break;
                     case 4: printf("<SI>"); break;
                     case 5: printf("<P>");  break;
                     case 6: printf("<B>");  break;
                     case 7: printf("<I>");  break;
-                    case 8:    printf("<SP>"); break;
+                    case 8: printf("<SP>"); break;
                     case 9: printf("<SI>"); break;
                     default: printf("<S/%d>", slice_type); break;
                 }

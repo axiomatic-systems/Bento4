@@ -499,7 +499,7 @@ main(int argc, char** argv)
         return 1;
     }
     
-	// create the input stream
+    // create the input stream
     AP4_ByteStream* input = NULL;
     result = AP4_FileByteStream::Create(Options.input, AP4_FileByteStream::STREAM_MODE_READ, input);
     if (AP4_FAILED(result)) {
@@ -507,7 +507,7 @@ main(int argc, char** argv)
         return 1;
     }
     
-	// open the file
+    // open the file
     AP4_File* input_file = new AP4_File(*input, true);
 
     // get the movie

@@ -103,9 +103,9 @@ PrintUsageAndExit()
 static double 
 strtof(char* s, char** /* end */)
 {
-	_CRT_DOUBLE value = {0.0};
+    _CRT_DOUBLE value = {0.0};
     int result = _atodbl(&value, s);
-	return result == 0 ? (double)value.x : 0.0;
+    return result == 0 ? (double)value.x : 0.0;
 }
 #endif
 
@@ -368,8 +368,8 @@ Fragment(AP4_File&                input_file,
                 
                     // create a new 'edts' for each original 'edts'
                     for (AP4_List<AP4_Atom>::Item* edts_entry = edts->GetChildren().FirstItem();
-                         edts_entry;
-                         edts_entry = edts_entry->GetNext()) {
+                        edts_entry;
+                        edts_entry = edts_entry->GetNext()) {
                         AP4_ElstAtom* elst = AP4_DYNAMIC_CAST(AP4_ElstAtom, edts_entry->GetData());
                         AP4_ElstAtom* new_elst = new AP4_ElstAtom();
                     
@@ -631,7 +631,7 @@ Fragment(AP4_File&                input_file,
                               AP4_TRUN_FLAG_SAMPLE_SIZE_PRESENT;
         AP4_UI32 first_sample_flags = 0;
         if ( (cursor->m_Track->GetType() == AP4_Track::TYPE_VIDEO) ||
-			 (cursor->m_Track->GetSampleDescriptionCount() >= 1 && cursor->m_Track->GetSampleDescription(0)->GetFormat() == AP4_SAMPLE_FORMAT_AC_4) ) {
+             (cursor->m_Track->GetSampleDescriptionCount() >= 1 && cursor->m_Track->GetSampleDescription(0)->GetFormat() == AP4_SAMPLE_FORMAT_AC_4) ) {
             trun_flags |= AP4_TRUN_FLAG_FIRST_SAMPLE_FLAGS_PRESENT;
             first_sample_flags = 0x2000000; // sample_depends_on=2 (I frame)
         }
@@ -678,7 +678,7 @@ Fragment(AP4_File&                input_file,
                                                                                   cursor->m_Track->GetMediaTimeScale(),
                                                                                   timescale):
                                                         cursor->m_Sample.GetCtsDelta();
-                                                        
+                        
             if(trun->GetVersion() == 1) {
                 trun_entry.sample_composition_time_offset -= initial_offset;
             }
@@ -851,8 +851,8 @@ Fragment(AP4_File&                input_file,
             reference.m_ReferencedSize     = segment->m_Size;
             reference.m_SubsegmentDuration = segment->m_Duration;
             reference.m_StartsWithSap      = true;
-			// TODO: need more check for video track
-			reference.m_SapType            = 1;
+            // TODO: need more check for video track
+            reference.m_SapType            = 1;
             sidx->SetReference(segment_index++, reference);
         }
         AP4_Position here = 0;
@@ -1105,7 +1105,7 @@ main(int argc, char** argv)
     Options.tfdt_start            = 0.0;
     Options.sequence_number_start = 1;
     Options.force_i_frame_sync    = AP4_FRAGMENTER_FORCE_SYNC_MODE_NONE;
-
+    
     // parse the command line
     argv++;
     char* arg;

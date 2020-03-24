@@ -2243,45 +2243,6 @@ main(int argc, char** argv)
                     height = video_desc->GetHeight();
                 }
             }
-            /* Dolby Vision */
-            AP4_DvccAtom* dvcc = AP4_DYNAMIC_CAST(AP4_DvccAtom, sdesc->GetDetails().GetChild(AP4_ATOM_TYPE_DVCC));
-            if(!dvcc) {
-                dvcc = AP4_DYNAMIC_CAST(AP4_DvccAtom, sdesc->GetDetails().GetChild(AP4_ATOM_TYPE_DVVC));
-            }
-            if (dvcc) {
-                char coding[5];
-                char workspace[64];
-                AP4_FormatFourChars(coding, sdesc->GetFormat());
-                /* Non back-compatible */
-                if (strcmp(coding, "dvav") == 0 || strcmp(coding, "dva1") == 0 ||
-                    strcmp(coding, "dvhe") == 0 || strcmp(coding, "dvh1") == 0){
-                    AP4_FormatString(workspace,
-                                 sizeof(workspace),
-                                 "%s.%02d.%02d",
-                                 coding,
-                                 dvcc->GetDvProfile(),
-                                 dvcc->GetDvLevel());
-                    codec = workspace;
-                } else {
-                    if (strcmp(coding, "avc1") == 0){
-                        strcpy(coding, "dva1");
-                    }else if (strcmp(coding, "avc3") == 0){
-                        strcpy(coding, "dvav");
-                    }else if (strcmp(coding, "hev1") == 0){
-                        strcpy(coding, "dvhe");
-                    }else if (strcmp(coding, "hvc1") == 0){
-                        strcpy(coding, "dvh1");
-                    }
-                    AP4_FormatString(workspace,
-                                 sizeof(workspace),
-                                 "%s,%s.%02d.%02d",
-                                 codec.GetChars(),
-                                 coding,
-                                 dvcc->GetDvProfile(),
-                                 dvcc->GetDvLevel());
-                    codec = workspace;
-                }
-            }
             printf(
                 ",\n"
                 "  \"video\": {\n"
