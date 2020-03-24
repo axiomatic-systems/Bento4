@@ -835,6 +835,15 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
                                         media_playlist_path)))
             OutputHlsTrack(options, audio_track, all_audio_tracks + all_video_tracks, media_subdir, media_playlist_name, media_file_name)
 
+            # Add audio reference if there are no video tracks
+            if len(all_video_tracks) == 0:
+                master_playlist_file.write('#EXT-X-STREAM-INF:AUDIO="%s",AVERAGE-BANDWIDTH=%d,BANDWIDTH=%d,CODECS="%s"\r\n' % (
+                                           audio_group_name,
+                                           audio_track.average_segment_bitrate,
+                                           audio_track.max_segment_bitrate,
+                                           audio_track.codec))
+                master_playlist_file.write(media_playlist_path+'\r\n')
+
     master_playlist_file.write('\r\n')
     master_playlist_file.write('# Video\r\n')
     iframe_playlist_lines = []
