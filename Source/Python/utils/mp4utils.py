@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 import collections
-from __builtin__ import True
 
 __author__    = 'Gilles Boccon-Gibod (bok@bok.net)'
 __copyright__ = 'Copyright 2011-2020 Axiomatic Systems, LLC.'
@@ -404,9 +403,11 @@ class Mp4Track:
         if self.type == 'audio':
             self.sample_rate = sample_desc['sample_rate']
             self.channels = sample_desc['channels']
+            # Set the default values for Dolby audio codec flags
             self.dolby_ddp_atmos = 'No'
             self.dolby_ac4_ims   = 'No'
             self.self_contained  = 'Yes'
+            # Completed main and associated audio flags
             self.CM              = 'CMNA'
             self.AA              = 'AANA'
             if self.codec_family == 'ec-3' and sample_desc.has_key('dolby_digital_info'):
@@ -902,6 +903,7 @@ def ComputeDolbyDigitalPlusAudioChannelConfig(track):
             config |= flags[channel]
     return hex(config).upper()[2:]
 
+# ETSI TS 102 366 V1.4.1 (2017-09) Table I.1.1
 def DolbyDigitalWithMPEGDASHScheme(mask):
     available_mask_dict = {'4000': '1' , 'A000': '2' , 'E000': '3' , 'E100': '4' ,
                            'F800': '5' , 'F801': '6' , 'F821': '7' , 'A100': '9' ,
@@ -923,6 +925,7 @@ def ComputeDolbyAc4AudioChannelConfig(track):
 
     return '000000'
 
+# ETSI TS 103 190-2 V1.2.1 (2018-02) Table G.1
 def DolbyAc4WithMPEGDASHScheme(mask):
     available_mask_dict = {
         '000002' : '1' , '000001' : '2' , '000003' : '3' , '008003' : '4' ,
@@ -943,38 +946,6 @@ def ContainPQTracks(video_sets):
             if (item.codec_family == 'dvh1' or item.codec_family == 'dvhe'):
                 return True
     return False
-
-def DolbyVisionProfile8DualEntryHLS(video_sets, hevc_codec, dv_codec):
-    if video_sets.has_key(('video', hevc_codec)):
-        duplicate_vdieo_sets = []
-        hevc_videos = video_sets[('video', hevc_codec)];
-        for item_video in hevc_videos:
-            codecs = item_video['info']['video']['codec'].split(',')
-            remove_codec = ''
-            for item_codec in codecs:
-                if item_codec[0:7] == dv_codec+'.08':
-                    # duplicate the video track
-                    duplicate_video = copy.deepcopy(item_video)
-                    duplicate_video['info']['video']['codec'] = item_codec
-                    duplicate_vdieo_sets.append(duplicate_video)
-                    # record the remove codec
-                    remove_codec = item_codec;
-                    # TODO: need confirm
-                    all_tracks = item_video['source'].tracks
-                    for track in all_tracks:
-                        if 'dolby_vision' in track.info['sample_descriptions'][0]:
-                            bl_compatibility_id = track.info['sample_descriptions'][0]['dolby_vision']['dv_bl_signal_compatibility_id']
-                            if bl_compatibility_id in [1, 3, 4] :
-                                item_video['PQ'] = 'Yes'
-            # remove the Dolby codec string from the original video track
-            if remove_codec != '':
-                codecs.remove(remove_codec)
-                item_video['info']['video']['codec'] = ','.join(codecs)
-        if (duplicate_vdieo_sets):
-            new_codec = dv_codec.decode('utf-8')
-            video_sets[('video', new_codec)] = []
-            for item in duplicate_vdieo_sets:
-                video_sets[('video', new_codec)].append(item)
     
 def DolbyVisionProfile8DualEntry(video_sets, hevc_codec, dv_codec):
     if video_sets.has_key(('video', hevc_codec)):
@@ -992,7 +963,6 @@ def DolbyVisionProfile8DualEntry(video_sets, hevc_codec, dv_codec):
                     duplicate_vdieo_sets.append(duplicate_video)
                     # record the remove codec
                     remove_codec = item_codec;
-                    # TODO: need confirm
                     bl_compatibility_id = item_video.info['sample_descriptions'][0]['dolby_vision']['dv_bl_signal_compatibility_id']
                     if bl_compatibility_id in [1, 3, 4] :
                         item_video.PQ = 'Yes'
@@ -1005,26 +975,6 @@ def DolbyVisionProfile8DualEntry(video_sets, hevc_codec, dv_codec):
             video_sets[('video', new_codec)] = []
             for item in duplicate_vdieo_sets:
                 video_sets[('video', new_codec)].append(item)
-
-def PickVideoTrackHLS(video_sets, codec, len,  new_video_sets):
-     for item in video_sets:
-        if item[0]['info']['video']['codec'][0:len] == codec:
-            new_video_sets.append(item)
-            break
-    
-def PickVideoTrack(video_sets, codec, len,  new_video_sets):
-     for item in video_sets:
-        if item[0].codec[0:len] == codec:
-            new_video_sets.append(item)
-            break
-    
-def GetVideoRangeValueHLS(track):
-    if 'PQ' in track:
-        return 'PQ'
-    codec_format = track['info']['video']['codec'].split('.')[0]
-    if codec_format == 'dvh1' or codec_format == 'dvhe':
-            return 'PQ'
-    return 'SDR'
     
 def GetVideoRangeValue(track):
     if hasattr(track,'PQ') or track.codec_family == 'dvh1' or track.codec_family == 'dvhe':
@@ -1032,16 +982,13 @@ def GetVideoRangeValue(track):
     else:
         return 'SDR'
 
-def CreateVideoSetsHLS(video_sets):
-    new_video_sets = []
-    PickVideoTrackHLS(video_sets, 'avc' , 3, new_video_sets)
-    PickVideoTrackHLS(video_sets, 'hev1', 4, new_video_sets)
-    PickVideoTrackHLS(video_sets, 'dvhe', 4, new_video_sets)
-    PickVideoTrackHLS(video_sets, 'hvc1', 4, new_video_sets)
-    PickVideoTrackHLS(video_sets, 'dvh1', 4, new_video_sets)
-    return  new_video_sets
+def PickVideoTrack(video_sets, codec, len,  new_video_sets):
+    for item in video_sets:
+        if item[0].codec[0:len] == codec:
+            new_video_sets.append(item)
+            break
 
-# Handle duplicated video track for Dolby Vision profile 8, separate function in case for future changes
+# Handle duplicated video track for Dolby Vision profile 8 for video order, separate function in case for future changes
 def ReGroupVideoSetsHLS(video_sets):
     new_video_sets = []
     PickVideoTrack(video_sets, 'avc' , 3, new_video_sets)
@@ -1051,7 +998,7 @@ def ReGroupVideoSetsHLS(video_sets):
     PickVideoTrack(video_sets, 'dvh1', 4, new_video_sets)
     return  new_video_sets
 
-# Handle duplicated video track for Dolby Vision profile 8, separate function in case for future changes
+# Handle duplicated video track for Dolby Vision profile 8 for video order, separate function in case for future changes
 def ReGroupVideoSetsDASH(video_sets):
     new_video_sets = []
     PickVideoTrack(video_sets, 'avc' , 3, new_video_sets)
@@ -1091,7 +1038,6 @@ def ReOrderMediaTrack(media_tracks):
         for tracks in media_tracks:
             if expected_order_idx == tracks[0].input_order:
                 ordered_media_tracks.append(tracks)
-                #expected_order_idx += len(tracks)
                 expected_order_idx  = NextExpectedOrderIndex(expected_order_idx, ordered_media_tracks)
                 break
     # handle the duplicated video track for Dolby Vision profile 8
@@ -1145,7 +1091,7 @@ def ReGroupAudioSets(audio_sets):
             group_set_value.append(track)
     return audio_group_sets
 
-def NeedReGroupDDPSets(audio_sets):
+def NeedReGroupDlbAudioSets(audio_sets):
     b_CM = False
     b_AA = False
     for name, audio_tracks in audio_sets.items():
@@ -1160,8 +1106,8 @@ def NeedReGroupDDPSets(audio_sets):
     else:
         return False
 
-# dual decoding use case
-def ReGroupDDPSets(audio_sets):
+# CM + AA use case
+def ReGroupDlbAudioSets(audio_sets):
     regroup_audio_sets    = {}
     audio_adaptation_sets = {}
     for name, audio_tracks in audio_sets.items():
@@ -1187,15 +1133,6 @@ def FindDependencyId(audio_tracks, AA_id):
             if AA_id == track.CM:
                 return track.representation_id
     return -1
-
-def GenVideoSetsHLS(video_tracks):
-    video_sets = {}
-    for track in video_tracks:
-        sets_name  = ('video', track['info']['video']['codec'].split('.')[0])
-        sets_value = video_sets.get(sets_name, [])
-        video_sets[sets_name] = sets_value
-        sets_value.append(track)
-    return video_sets
 
 def GenVideoSets(video_tracks):
     video_sets = {}
@@ -1252,7 +1189,7 @@ def ComputeDolbyDigitalAudioChannelMask(track):
     masks = {
         'L':       0x1,             # SPEAKER_FRONT_LEFT
         'R':       0x2,             # SPEAKER_FRONT_RIGHT
-        'C':	   0x4,             # SPEAKER_FRONT_CENTER
+        'C':       0x4,             # SPEAKER_FRONT_CENTER
         'LFE':     0x8,             # SPEAKER_LOW_FREQUENCY
         'Ls':      0x10,            # SPEAKER_BACK_LEFT
         'Rs':      0x20,            # SPEAKER_BACK_RIGHT

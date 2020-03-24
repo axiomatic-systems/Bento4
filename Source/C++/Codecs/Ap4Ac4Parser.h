@@ -2,7 +2,7 @@
 |
 |    AP4 - AC4 Sync Frame Parser
 |
-|    Copyright 2002-2008 Axiomatic Systems, LLC
+|    Copyright 2002-2020 Axiomatic Systems, LLC
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).

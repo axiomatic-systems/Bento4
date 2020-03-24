@@ -172,9 +172,9 @@ def SelectAudioTracks(options, media_sources):
         # process audio tracks
         for track in [t for t in media_source.tracks if t.type == 'audio']:
             if track.codec_family == 'ec-3' and track.dolby_ddp_atmos == 'Yes':
-                complex_idx = str(track.info['sample_descriptions'][0]['dolby_digital_info']['Dolby Atmos Complexity Index'])
-                group_id = track.group_id + '_' + complex_idx  + '_JOC'
-                track.channels = complex_idx + '/JOC'
+                complexity_idx = str(track.info['sample_descriptions'][0]['dolby_digital_info']['Dolby Atmos Complexity Index'])
+                group_id = track.group_id + '_' + complexity_idx  + '_JOC'
+                track.channels = complexity_idx + '/JOC'
             elif track.codec_family == 'ac-4' and track.dolby_ac4_ims == 'Yes':
                 if track.info['sample_descriptions'][0]['dolby_ac4_info']['presentations'][0]['Dolby Atmos source'] == 'Yes':
                     group_id = track.group_id + '_' + '2_IMS_ATMOS'
@@ -355,7 +355,7 @@ def OutputHls(options, media_sources):
             if options.audio_format == 'packed':
                 audio_track.media_info['file_extension'] = ComputeCodecName(audio_track.codec_family)
             elif ContainAtmosAndAC4(audio_tracks.values()):
-                PrintErrorAndExit('ERROR: For DD+JOC and AC-4, the format of segment audio must be packed audio, please add "--audio-format packed"')
+                PrintErrorAndExit('ERROR: For DD+/Atmos and AC-4, the format of segment audio must be packed audio, please add "--audio-format packed"')
                 
             # process the source
             out_dir = path.join(options.output_dir, 'audio', group_id, audio_track.language)
@@ -366,14 +366,10 @@ def OutputHls(options, media_sources):
     master_playlist = open(path.join(options.output_dir, options.master_playlist_name), "wb+")
     master_playlist.write("#EXTM3U\r\n")
     master_playlist.write('# Created with Bento4 mp4-hls.py version '+VERSION+'r'+SDK_REVISION+'\r\n')
-    if options.hls_version_auto == True:
-        if ContainDolbyVision(main_media):
-            #options.hls_version = 8
-            #print "WARNING: Change HLS version to 8 due to containing Dolby Vision."
-            PrintErrorAndExit('ERROR: For Dolby Vision, the format of segment audio must be fragemnted MP4, please use mp4-dash.py')
-        elif ContainDolbyAudio(audio_tracks.values()):
-            options.hls_version = 7
-            print "WARNING: Change HLS version to 7 due to containing Dolby Audio."
+    if ContainDolbyVision(main_media):
+        PrintErrorAndExit('ERROR: For Dolby Vision, the format of segment video must be fragemnted MP4, please use mp4-dash.py')
+    elif ContainDolbyAudio(audio_tracks.values()) and options.hls_version < 7:
+        print "WARNING: Please set HLS version to 7 (--hls-version 7) due to Dolby's audio need CHANNELS tag which introduced in HLS version 7."
     if options.hls_version >= 4:
         master_playlist.write('\r\n')
         master_playlist.write('#EXT-X-VERSION:'+str(options.hls_version)+'\r\n')
@@ -443,7 +439,6 @@ def OutputHls(options, media_sources):
                 'avg_segment_bitrate': group_avg_segment_bitrate,
                 'max_segment_bitrate': group_max_segment_bitrate
             })
-            # print blank line
             if print_blank_line:
                 master_playlist.write('\r\n')
 
@@ -462,87 +457,55 @@ def OutputHls(options, media_sources):
     # media playlists
     master_playlist.write('\r\n')
     master_playlist.write('# Media Playlists\r\n')
-    video_sets = GenVideoSetsHLS(main_media)
-    
-    # dual entry for Dolby Vision profile 8
-    if options.hls_version >= 8:
-        DolbyVisionProfile8DualEntryHLS(video_sets, 'hvc1', 'dvh1')
-        DolbyVisionProfile8DualEntryHLS(video_sets, 'hev1', 'dvhe')
-    
-    regroup_video_sets = CreateVideoSetsHLS(video_sets.values())
-    for video_group in regroup_video_sets:
+    for media in main_media:
+        media_info = media['info']
+
         for group_info in audio_groups:
             group_name  = group_info['name']
             group_codec = group_info['codec']
-            
-            for media in video_group:
-                media_info = media['info']
-                # stream inf
-                codecs = []
-                if 'video' in media_info:
-                    codecs.append(media_info['video']['codec'])
-                if 'audio' in media_info:
-                    codecs.append(media_info['audio']['codec'])
-                elif group_name and group_codec:
-                    codecs.append(group_codec)
-    
-                ext_x_stream_inf = '#EXT-X-STREAM-INF:AVERAGE-BANDWIDTH=%d,BANDWIDTH=%d,CODECS="%s"' % (
-                                    int(media_info['stats']['avg_segment_bitrate'])+group_info['avg_segment_bitrate'],
-                                    int(media_info['stats']['max_segment_bitrate'])+group_info['max_segment_bitrate'],
-                                    ','.join(codecs))
-                if 'video' in media_info:
-                    ext_x_stream_inf += ',RESOLUTION='+str(int(media_info['video']['width']))+'x'+str(int(media_info['video']['height']))
-                
-                if options.hls_version >= 8:
-                    video_range_value = GetVideoRangeValueHLS(media)
-                    all_tracks =  media['source'].tracks
-                    for track in all_tracks:
-                        if hasattr(track,'frame_rate'):
-                            frame_rate_value = track.frame_rate
-                            break
-                    ext_x_stream_inf += ',VIDEO-RANGE=%s,FRAME-RATE=%.3f' % (video_range_value, frame_rate_value)
-                # audio info
-                if group_name:
-                    ext_x_stream_inf += ',AUDIO="'+group_name+'"'
-    
-                # subtitles info
-                if len(subtitles_files):
-                    ext_x_stream_inf += ',SUBTITLES="subtitles"'
-    
-                master_playlist.write(ext_x_stream_inf+'\r\n')
-                master_playlist.write(options.base_url+media['dir']+'/'+options.media_playlist_name+'\r\n')
-            if len(video_group) > 1:
-                master_playlist.write('\r\n')
-        if len(audio_groups) > 1:
-            master_playlist.write('\r\n')
+
+            # stream inf
+            codecs = []
+            if 'video' in media_info:
+                codecs.append(media_info['video']['codec'])
+            if 'audio' in media_info:
+                codecs.append(media_info['audio']['codec'])
+            elif group_name and group_codec:
+                codecs.append(group_codec)
+
+            ext_x_stream_inf = '#EXT-X-STREAM-INF:AVERAGE-BANDWIDTH=%d,BANDWIDTH=%d,CODECS="%s"' % (
+                                int(media_info['stats']['avg_segment_bitrate'])+group_info['avg_segment_bitrate'],
+                                int(media_info['stats']['max_segment_bitrate'])+group_info['max_segment_bitrate'],
+                                ','.join(codecs))
+            if 'video' in media_info:
+                ext_x_stream_inf += ',RESOLUTION='+str(int(media_info['video']['width']))+'x'+str(int(media_info['video']['height']))
+
+            # audio info
+            if group_name:
+                ext_x_stream_inf += ',AUDIO="'+group_name+'"'
+
+            # subtitles info
+            if len(subtitles_files):
+                ext_x_stream_inf += ',SUBTITLES="subtitles"'
+
+            master_playlist.write(ext_x_stream_inf+'\r\n')
+            master_playlist.write(options.base_url+media['dir']+'/'+options.media_playlist_name+'\r\n')
+        master_playlist.write('\r\n')
 
     # write the I-FRAME playlist info
     if not audio_only and options.hls_version >= 4:
-        master_playlist.write('\r\n')
         master_playlist.write('# I-Frame Playlists\r\n')
-        for video_group in regroup_video_sets:
-            for media in video_group:
-                media_info = media['info']
-                if not 'video' in media_info: continue
-                ext_x_i_frame_stream_inf = '#EXT-X-I-FRAME-STREAM-INF:AVERAGE-BANDWIDTH=%d,BANDWIDTH=%d,CODECS="%s",RESOLUTION=%dx%d' % (
-                                            int(media_info['stats']['avg_iframe_bitrate']),
-                                            int(media_info['stats']['max_iframe_bitrate']),
-                                            media_info['video']['codec'],
-                                            int(media_info['video']['width']),
-                                            int(media_info['video']['height']))
-                if options.hls_version >= 8:
-                    video_range_value = GetVideoRangeValueHLS(media)
-                    all_tracks =  media['source'].tracks
-                    for track in all_tracks:
-                        if hasattr(track,'frame_rate'):
-                            frame_rate_value = track.frame_rate
-                            break;
-                    ext_x_i_frame_stream_inf += ',VIDEO-RANGE=%s,FRAME-RATE=%.3f' % (video_range_value, frame_rate_value)
-
-                ext_x_i_frame_stream_inf += ',URI="%s"' % (options.base_url+media['dir']+'/'+options.iframe_playlist_name)
-                master_playlist.write(ext_x_i_frame_stream_inf+'\r\n')
-            if len(video_group) > 1:
-                master_playlist.write('\r\n')
+        for media in main_media:
+            media_info = media['info']
+            if not 'video' in media_info: continue
+            ext_x_i_frame_stream_inf = '#EXT-X-I-FRAME-STREAM-INF:AVERAGE-BANDWIDTH=%d,BANDWIDTH=%d,CODECS="%s",RESOLUTION=%dx%d,URI="%s"' % (
+                                        int(media_info['stats']['avg_iframe_bitrate']),
+                                        int(media_info['stats']['max_iframe_bitrate']),
+                                        media_info['video']['codec'],
+                                        int(media_info['video']['width']),
+                                        int(media_info['video']['height']),
+                                        options.base_url+media['dir']+'/'+options.iframe_playlist_name)
+            master_playlist.write(ext_x_i_frame_stream_inf+'\r\n')
 
 #############################################
 Options = None
@@ -577,8 +540,6 @@ def main():
                       help="Allow output to an existing directory")
     parser.add_option('', '--hls-version', dest="hls_version", type="int", metavar="<version>", default=4,
                       help="HLS Version (default: 4)")
-    parser.add_option('', '--hls-version-auto', dest="hls_version_auto", action='store_true', default=False,
-                      help="Update HLS verion based on the test signals")
     parser.add_option('', '--master-playlist-name', dest="master_playlist_name", metavar="<filename>", default='master.m3u8',
                       help="Master Playlist name")
     parser.add_option('', '--media-playlist-name', dest="media_playlist_name", metavar="<name>", default='stream.m3u8',

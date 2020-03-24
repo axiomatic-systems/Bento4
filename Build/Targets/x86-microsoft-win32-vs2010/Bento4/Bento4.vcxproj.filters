@@ -818,7 +818,7 @@
     <ClInclude Include="..\..\..\..\Source\C++\Codecs\Ap4Eac3Parser.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\Source\C++\Codecs\Ap4VpccAtom.h">
+    <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4VpccAtom.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4Dac3Atom.h">

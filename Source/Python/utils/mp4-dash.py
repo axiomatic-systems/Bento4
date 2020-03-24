@@ -11,6 +11,7 @@ __copyright__ = 'Copyright 2011-2020 Axiomatic Systems, LLC.'
 # <platform> depends on the platform you're running on:
 # Mac OSX   --> platform = macosx
 # Linux x86 --> platform = linux-x86
+# Linux x64 --> platform = linux-x86_64
 # Windows   --> platform = win32
 
 from optparse import OptionParser
@@ -450,11 +451,11 @@ def OutputDash(options, set_attributes, audio_sets, video_sets, subtitles_sets, 
     # process the audio tracks
     if audio_sets:
         period.append(xml.Comment(' Audio '))
-		# Re-group audio sets for AC-4 stream. (add channel attributes, and whether it's self contained (Mulit-PID))
+        # Re-group audio sets for AC-4 stream. (add channel attributes, and whether it's self contained (Multi-PID))
         audio_sets = ReGroupAC4Sets(audio_sets)
-        # Re-order audio tracks internally according to input order. It's not mandatory for ReGroupAC4Sets function. Put here just in case extending the ReGroupAC4Sets.
+        # Re-order audio tracks internally according to input order.
         audio_sets = ReOrderAudioSetsInternally(audio_sets)
-		# Re-order audio tracks according to input order via command line 
+        # Re-order audio tracks according to input order via command line 
         ordered_audio_track = ReOrderMediaTrack(audio_sets.values())
         for audio_tracks in ordered_audio_track:
             args = [period, 'AdaptationSet']
@@ -647,7 +648,9 @@ def ComputeHlsWidevineKeyLine(options, track):
         json_param.encode('base64').replace('\n',''),
         track.key_info['iv']
     )
+
     return key_line
+
 #############################################
 def ComputeHlsPlayReadyKeyLine(options, track, all_tracks):
     # compute a list of all keys if we need to merge keys into a single list
@@ -733,10 +736,12 @@ def OutputHlsIframeIndex(options, track, all_tracks, media_subdir, iframes_playl
 
     index_playlist_file.write('#EXT-X-I-FRAMES-ONLY\r\n')
 
+
     iframe_total_segment_size = 0
     iframe_total_segment_duration = 0
     iframe_bitrate = 0
     iframe_max_bitrate = 0
+
     if not options.split:
         # get the I-frame index for a single file
         json_index = Mp4IframIndex(options, path.join(options.output_dir, media_file_name))
@@ -749,11 +754,13 @@ def OutputHlsIframeIndex(options, track, all_tracks, media_subdir, iframes_playl
                 fragment_start    = int(index_entry['fragmentStart'])
                 iframe_offset     = int(index_entry['offset'])
                 iframe_size       = int(index_entry['size'])
+
                 iframe_total_segment_size += iframe_size
                 iframe_total_segment_duration += iframe_segment_duration
                 iframe_bitrate = 8.0*(iframe_size/iframe_segment_duration)
                 if iframe_bitrate > iframe_max_bitrate:
                     iframe_max_bitrate = iframe_bitrate
+
                 iframe_range_size = iframe_size + (iframe_offset-fragment_start)
                 index_playlist_file.write('#EXT-X-BYTERANGE:%d@%d\r\n' % (iframe_range_size, fragment_start))
                 index_playlist_file.write(media_file_name+'\r\n')
@@ -779,13 +786,17 @@ def OutputHlsIframeIndex(options, track, all_tracks, media_subdir, iframes_playl
 
             iframe_total_segment_size += iframe_size
             iframe_total_segment_duration += iframe_segment_duration
+
             iframe_bitrate = 8.0*(iframe_size/iframe_segment_duration)
             if iframe_bitrate > iframe_max_bitrate:
                 iframe_max_bitrate = iframe_bitrate
+
     index_playlist_file.write('#EXT-X-ENDLIST\r\n')
 
     iframe_average_segment_bitrate = 8.0*(iframe_total_segment_size/iframe_total_segment_duration)
+
     return (iframe_average_segment_bitrate, iframe_max_bitrate)
+
 #############################################
 def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, subtitles_files):
     all_audio_tracks     = sum(audio_sets.values(),     [])
@@ -902,7 +913,7 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
         }
     # Group video sets according to the codec
     video_sets = GenVideoSets(all_video_tracks)
-    # Handle avc1, avc2, avc3 and avc4. It's not mandatory for ReGroupVideoSetsHLS function. Put here just in case extending the ReGroupVideoSetsHLS.
+    # It's not mandatory for ReGroupVideoSetsHLS function to handle avc1, avc2, avc3 and avc4. Put here just in case extending the ReGroupVideoSetsHLS.
     regroup_video_sets = ReGroupVideoSetsHLS(video_sets.values())
     # Re-order video tracks according to input order from command line
     ordered_video_track = ReOrderMediaTrack(regroup_video_sets)
@@ -1870,7 +1881,7 @@ def main():
     if options.on_demand:
         (audio_sets, video_sets, subtitles_sets, mp4_files) = SelectTracks(options, media_sources)
         media_sources = filter(lambda x: x.format == "webvtt", media_sources) #Keep subtitles
-        # Just for display order is correct, can be removed
+        # Just for display order (log) is correct, it's not mandatory.
         ordered_audio_track = ReOrderMediaTrack(audio_sets.values())
         ordered_video_track = ReOrderMediaTrack(video_sets.values())
         for track in sum(ordered_audio_track + ordered_video_track, []):
