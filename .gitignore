@@ -30,7 +30,8 @@ Build/Targets/universal-apple-macosx/build
 Build/Targets/universal-apple-macosx/Bento4.xcodeproj/xcuserdata
 Build/Targets/universal-apple-Build/Targets/arm-android-linux
 Build/Targets/universal-apple-macosx/cov-int
-macosx/Bento4.xcodeproj/project.xcworkspace/xcuserdata
+Build/Targets/universal-apple-macosx/Bento4.xcodeproj/xcshareddata
+Build/Targets/universal-apple-macosx/Bento4.xcodeproj/project.xcworkspace/xcuserdata
 .svn
 .sconsign.dblite
 Bento4.xccheckout
@@ -48,4 +49,7 @@ third_party
 *.opendb
 IDEWorkspaceChecks.plist
 .scannerwork
+Test/Output
+.coverage
+coverage_html
 Test/Output

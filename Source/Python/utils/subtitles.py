@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 __author__    = 'Gilles Boccon-Gibod (bok@bok.net)'
 __copyright__ = 'Copyright 2011-2020 Axiomatic Systems, LLC.'
 
@@ -17,7 +16,7 @@ class SubtitlesFile:
         filename = media_source.filename
         self.media_name = os.path.basename(filename)
         if options.debug:
-            print 'Processing Subtitles file', filename
+            print('Processing Subtitles file', filename)
 
         self.size = os.path.getsize(filename)
 
@@ -49,7 +48,7 @@ class SubtitlesFile:
 
         if xml_root.tag != '{'+TTML_XML_NAMESPACE+'}tt':
             if options.debug:
-                print 'ERROR: no root level <tt> element found'
+                print('ERROR: no root level <tt> element found')
 
         # get the language
         language = xml_root.get('{'+XML_NAMESPACE+'}lang')

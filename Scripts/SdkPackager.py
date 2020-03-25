@@ -1,4 +1,4 @@
-#! /usr/bin/python
+#! /usr/bin/env python3
 
 ########################################################################
 #
@@ -39,22 +39,22 @@ def GetSdkRevision():
     lines = os.popen(cmd).readlines()
     branch = ''
     if not lines[0].startswith('## master'):
-        print 'WARNING: not on master branch'
+        print('WARNING: not on master branch')
         branch = '+' + lines[0][3:].strip()
     if len(lines) > 1:
-        print 'ERROR: git status not empty'
-        print ''.join(lines)
+        print('ERROR: git status not empty')
+        print(''.join(lines))
         return None
 
     cmd = 'git tag --contains HEAD'
     tags = os.popen(cmd).readlines()
     if len(tags) != 1:
-        print 'ERROR: expected exactly one tag for HEAD, found', len(tags), ':', tags
+        print('ERROR: expected exactly one tag for HEAD, found', len(tags), ':', tags)
         return None
     version = tags[0].strip()
     sep = version.find('-')
     if sep < 0:
-        print 'ERROR: unrecognized version string format:', version
+        print('ERROR: unrecognized version string format:', version)
     return version[sep+1:] + branch
 
 #############################################################
@@ -70,11 +70,11 @@ def CopyFiles(file_patterns, configs=[''], rename_map={}):
                 if not os.path.exists(dest_dir):
                     os.makedirs(dest_dir)
                 filename = os.path.basename(file)
-                if rename_map.has_key(filename):
+                if filename in rename_map:
                     dest_name = dest_dir+'/'+rename_map[filename]
                 else:
                     dest_name = dest_dir
-                print 'COPY: '+file+' -> '+dest_name
+                print('COPY: '+file+' -> '+dest_name)
                 shutil.copy2(file, dest_name)
 
 #############################################################
@@ -95,7 +95,7 @@ def ZipDir(top, archive, dir) :
 def ZipIt(basename, dir) :
     path = basename+'/'+dir
     zip_filename = path+'.zip'
-    print 'ZIP: '+path+' -> '+zip_filename
+    print('ZIP: '+path+' -> '+zip_filename)
 
     if os.path.exists(zip_filename):
         os.remove(zip_filename)
@@ -117,17 +117,25 @@ else:
     SDK_TARGET = None
 
 if len(sys.argv) > 2:
-    BENTO4_HOME = sys.argv[1]
+    BENTO4_HOME = sys.argv[2]
 else:
     script_dir  = os.path.abspath(os.path.dirname(__file__))
     BENTO4_HOME = os.path.join(script_dir,'..')
 
+CMAKE_BUILD = False
+if len(sys.argv) > 3:
+    if sys.argv[3] == 'cmake':
+        CMAKE_BUILD = True
+    else:
+        print('ERROR: unknown build type')
+        sys.exit(1)
+
 # ensure that BENTO4_HOME has been set and exists
 if not os.path.exists(BENTO4_HOME) :
-    print 'ERROR: BENTO4_HOME ('+BENTO4_HOME+') does not exist'
+    print('ERROR: BENTO4_HOME ('+BENTO4_HOME+') does not exist')
     sys.exit(1)
 else :
-    print 'BENTO4_HOME = ' + BENTO4_HOME
+    print('BENTO4_HOME = ' + BENTO4_HOME)
 
 # compute the target if it is not specified
 if SDK_TARGET is None:
@@ -154,13 +162,13 @@ if SDK_TARGET is None:
         'darwin'      : 'universal-apple-macosx'
     }
 
-    if platform_to_target_map.has_key(platform_id):
+    if platform_id in platform_to_target_map:
         SDK_TARGET = platform_to_target_map[platform_id]
     else:
-        print 'ERROR: SDK_TARGET is not set and cannot be detected'
+        print('ERROR: SDK_TARGET is not set and cannot be detected')
         sys.exit(1)
 
-print "TARGET = " + SDK_TARGET
+print("TARGET = " + SDK_TARGET)
 
 BENTO4_VERSION = GetVersion()
 
@@ -174,11 +182,16 @@ SDK_ROOT=SDK_BUILD_ROOT+'/'+SDK_NAME
 SDK_TARGET_DIR='Build/Targets/'+SDK_TARGET
 SDK_TARGET_ROOT=BENTO4_HOME+'/'+SDK_TARGET_DIR
 
-# special case for Xcode builds
-if SDK_TARGET == 'universal-apple-macosx':
-    SDK_TARGET_DIR='Build/Targets/universal-apple-macosx/build'
+if CMAKE_BUILD:
+    SDK_BUILD_OUTPUT_DIR = 'cmakebuild'
+else:
+    # special case for Xcode builds
+    if SDK_TARGET == 'universal-apple-macosx':
+        SDK_BUILD_OUTPUT_DIR='Build/Targets/universal-apple-macosx/Build/Products/Release'
+    else:
+        SDK_BUILD_OUTPUT_DIR = SDK_TARGET_DIR + '/Release'
 
-print SDK_NAME
+print(SDK_NAME)
 
 # remove any previous SDK directory
 if os.path.exists(SDK_ROOT):
@@ -213,7 +226,7 @@ else:
     script_bin_dir = None
 
 # binaries
-bin_in = SDK_TARGET_DIR+'/Release'
+bin_in = SDK_BUILD_OUTPUT_DIR
 bin_files = [
     (bin_in,'mp4*.exe','bin'),
     (bin_in,'aac2mp4.exe','bin'),

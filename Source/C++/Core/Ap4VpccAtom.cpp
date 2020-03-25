@@ -130,7 +130,7 @@ AP4_VpccAtom::GetCodecString(AP4_UI32 container_type, AP4_String& codec)
 {
     char type_name[5];
     AP4_FormatFourChars(type_name, container_type);
-    char string[32];
+    char string[64];
     AP4_FormatString(string,
                      sizeof(string),
                      "%s.%02d.%02d.%02d.%02d.%02d.%02d.%02d.%02d",

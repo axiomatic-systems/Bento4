@@ -1,3 +1,3 @@
 @echo off
 SET parent=%~dp0
-python "%parent%..\utils\mp4-dash-clone.py" %*
+python3 "%parent%..\utils\mp4-dash-clone.py" %*
