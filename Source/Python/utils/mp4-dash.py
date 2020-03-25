@@ -814,9 +814,9 @@ def OutputHlsIframeIndex(options, track, all_tracks, media_subdir, iframes_playl
 
 #############################################
 def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, subtitles_files):
-    all_audio_tracks     = sum(audio_sets.values(),     [])
-    all_video_tracks     = sum(video_sets.values(),     [])
-    all_subtitles_tracks = sum(subtitles_sets.values(), [])
+    all_audio_tracks     = sum(audio_sets.values(),           [])
+    all_video_tracks     = sum(list(video_sets.values()),     [])
+    all_subtitles_tracks = sum(list(subtitles_sets.values()), [])
 
     contain_pq_video_range = ContainPQTracks(video_sets)
     master_playlist_file = open(path.join(options.output_dir, options.hls_master_playlist_name), 'w+')
@@ -871,7 +871,7 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
                 audio_groups[audio_group_name]['codec'] = audio_track.codec
             else:
                 if audio_groups[audio_group_name]['codec'] != audio_track.codec:
-                    print ('WARNING: audio codecs not all the same:', audio_groups[audio_group_name]['codec'], audio_track.codec)
+                    print('WARNING: audio codecs not all the same:', audio_groups[audio_group_name]['codec'], audio_track.codec)
             
              # update/check the channels
             if audio_groups[audio_group_name]['channels'] == '':
@@ -893,8 +893,8 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
                 media_playlist_path = media_subdir+'/'+media_playlist_name
             
             # different languages can be belonged to same group, so put here.
-            language = audio_track.language.decode('utf-8')
-            language_name = LanguageNames.get(language, language).decode('utf-8')
+            language = audio_track.language
+            language_name = LanguageNames.get(language, language)
             default = 'YES'
             # Only the first item in the audio group shall set the DEFAULT to YES
             if audio_tracks.index(audio_track) > 0:
@@ -1903,13 +1903,13 @@ def main():
     # for on-demand, we need to first extract tracks into individual media files
     if options.on_demand:
         (audio_sets, video_sets, subtitles_sets, mp4_files) = SelectTracks(options, media_sources)
-        media_sources = filter(lambda x: x.format == "webvtt", media_sources) #Keep subtitles
+        media_sources = [x for x in media_sources if x.format == "webvtt"] # Keep subtitles
         # Just for display order (log) is correct, it's not mandatory.
         ordered_audio_track = ReOrderMediaTrack(audio_sets.values())
         ordered_video_track = ReOrderMediaTrack(video_sets.values())
         for track in sum(ordered_audio_track + ordered_video_track, []):
-            print 'Extracting track', track.id, 'from', GetMappedFileName(track.parent.media_source.filename)
-            track_file = tempfile.NamedTemporaryFile(dir = options.output_dir, delete=False)
+            print('Extracting track', track.id, 'from', GetMappedFileName(track.parent.media_source.filename))
+            track_file = tempfile.NamedTemporaryFile(dir=options.output_dir, delete=False)
             TempFiles.append(track_file.name)
             track_file.close() # necessary on Windows
             MapFileName(track_file.name, path.basename(track_file.name) + ' = Extracted[track '+str(track.id) + ' from '+GetMappedFileName(track.parent.media_source.filename)+']')

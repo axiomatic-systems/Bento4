@@ -1191,10 +1191,11 @@ def ContainAtmosAndAC4(audio_sets):
             return True
     return False
 
-def ComputeDolbyDigitalAudioChannelMask(track):
+def ComputeDolbyDigitalPlusAudioChannelMask(track):
     masks = {
         'L':       0x1,             # SPEAKER_FRONT_LEFT
         'R':       0x2,             # SPEAKER_FRONT_RIGHT
+        'C':       0x4,             # SPEAKER_FRONT_CENTER
         'LFE':     0x8,             # SPEAKER_LOW_FREQUENCY
         'Ls':      0x10,            # SPEAKER_BACK_LEFT
         'Rs':      0x20,            # SPEAKER_BACK_RIGHT

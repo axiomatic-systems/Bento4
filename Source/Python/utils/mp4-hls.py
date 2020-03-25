@@ -431,7 +431,7 @@ def OutputHls(options, media_sources):
                             extra_info)
                 if options.hls_version >= 7:
                     ext_x_media += 'CHANNELS="%s",' % str(audio_track.channels)
-                ext_x_media += 'URI="%s"\r\n' % (options.base_url+audio_track.media_info['dir']+'/'+options.media_playlist_name).encode('utf-8')
+                ext_x_media += 'URI="%s"\r\n' % (options.base_url+audio_track.media_info['dir']+'/'+options.media_playlist_name)
                 master_playlist.write(ext_x_media)
             audio_groups.append({
                 'name':                group_name,
@@ -665,17 +665,17 @@ def main():
     if options.encryption_mode == 'SAMPLE-AES':
         options.hls_version = 5
 
+    # parse media sources syntax
+    media_sources = [MediaSource(options, source) for source in args]
+    for media_source in media_sources:
+        media_source.has_audio  = False
+        media_source.has_video  = False
+
     # create the output directory
     severity = 'ERROR'
     if options.force_output: severity = None
     MakeNewDir(dir=options.output_dir, exit_if_exists = not options.force_output, severity=severity)
 
-     # parse media sources syntax
-    media_sources = [MediaSource(options, source) for source in args]
-    for media_source in media_sources:
-        media_source.has_audio  = False
-        media_source.has_video  = False
-    
     # output the media playlists
     OutputHls(options, media_sources)
 
