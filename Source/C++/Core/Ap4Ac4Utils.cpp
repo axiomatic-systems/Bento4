@@ -32,7 +32,8 @@
 #include "Ap4Ac4Utils.h"
 
 AP4_UI32
-AP4_Ac4VariableBits(AP4_BitReader &data, int nBits){
+AP4_Ac4VariableBits(AP4_BitReader &data, int nBits)
+{
     AP4_UI32 value = 0;
     AP4_UI32 b_moreBits;
     do{
@@ -47,7 +48,8 @@ AP4_Ac4VariableBits(AP4_BitReader &data, int nBits){
 }
 
 AP4_Result
-AP4_Ac4ChannelCountFromSpeakerGroupIndexMask(unsigned int speakerGroupIndexMask) {
+AP4_Ac4ChannelCountFromSpeakerGroupIndexMask(unsigned int speakerGroupIndexMask)
+{
 
     unsigned int channelCount= 0;
     if ((speakerGroupIndexMask & 1) != 0) { // 0: L,R 0b1

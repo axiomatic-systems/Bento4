@@ -42,7 +42,8 @@ const unsigned int AP4_AC4_FRAME_RATE_NUM       = 14;   /* AC-4 frame rate numbe
 const unsigned int AP4_AC4_SUBSTREAM_GROUP_NUM  = 3;    /* AC-4 Maximum substream group if presentation_config < 5 */
 
 const unsigned char 
-SUPER_SET_CH_MODE[AP4_CH_MODE_LENGTH][AP4_CH_MODE_LENGTH] = {
+SUPER_SET_CH_MODE[AP4_CH_MODE_LENGTH][AP4_CH_MODE_LENGTH] =
+{
     {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,11,12,13,14,15},
     {1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,11,12,13,14,15},
     {2, 2, 2, 3, 4, 5, 6, 7, 8, 9, 10,11,12,13,14,15},
@@ -82,7 +83,8 @@ const int CH_MODE_RESERVED  = 16;
 
 // speaker group index mask, indexed by ch_mode - TS 103 190-2 A.27 
 const int 
-AC4_SPEAKER_GROUP_INDEX_MASK_BY_CH_MODE[] = {
+AC4_SPEAKER_GROUP_INDEX_MASK_BY_CH_MODE[] =
+{
     2,        // 0b10 - 1.0
     1,        // 0b01 - 2.0
     3,        // 0b11 - 3.0
@@ -90,26 +92,28 @@ AC4_SPEAKER_GROUP_INDEX_MASK_BY_CH_MODE[] = {
     71,       // 0b1000111 - 5.1
     15,       // 0b0001111 - 7.0: 3/4/0
     79,       // 0b1001111 - 7.1: 3/4/0.1
-    131079,   //  0b100000000000000111 - 7.0: 5/2/0
-    131143,   //  0b100000000001000111 - 7.1: 5/2/0.1
+    131079,   // 0b100000000000000111 - 7.0: 5/2/0
+    131143,   // 0b100000000001000111 - 7.1: 5/2/0.1
     262151,   // 0b1000000000000000111 - 7.0: 3/2/2
     262215,   // 0b1000000000001000111 - 7.1: 3/2/2.1
     63,       // 0b0111111 - 7.0.4
     127,      // 0b1111111 - 7.1.4
-    65599,    //  0b10000000000111111 - 9.0.4
-    65663,    //  0b10000000001111111 - 9.1.4
+    65599,    // 0b10000000000111111 - 9.0.4
+    65663,    // 0b10000000001111111 - 9.1.4
     196479,   // 0b101111111101111111 - 22.2
     0         // reserved
 };
 
 const AP4_UI32
-AP4_Ac4SamplingFrequencyTable[] = {
+AP4_Ac4SamplingFrequencyTable[] =
+{
     44100,  // 44.1 kHz
     48000   // 48 kHz
 };
 
 const AP4_UI32
-AP4_Ac4SampleDeltaTable[AP4_AC4_FRAME_RATE_NUM] = {
+AP4_Ac4SampleDeltaTable[AP4_AC4_FRAME_RATE_NUM] =
+{
     2002,
     2000,
     1920,
@@ -127,7 +131,7 @@ AP4_Ac4SampleDeltaTable[AP4_AC4_FRAME_RATE_NUM] = {
 };
 
 const AP4_UI32
-AP4_Ac4MediaTimeScaleTable[AP4_AC4_FRAME_RATE_NUM] = 
+AP4_Ac4MediaTimeScaleTable[AP4_AC4_FRAME_RATE_NUM] =
 {
     48000,
     48000,

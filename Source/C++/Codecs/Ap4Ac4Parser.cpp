@@ -93,11 +93,10 @@ AP4_Ac4Header::AP4_Ac4Header(const AP4_UI08* bytes, unsigned int size)
         }
     }
     if (m_BitstreamVersion <= 1){
-        // TODO:
-		if (m_DeprecatedV0){
-			m_DeprecatedV0 = false;
-			printf("Warning: Bitstream version 0 is deprecated\n");
-		}
+        if (m_DeprecatedV0){
+            m_DeprecatedV0 = false;
+            printf("Warning: Bitstream version 0 is deprecated\n");
+        }
     }else{
         m_BProgramId = bits.ReadBit();
         if (m_BProgramId == 1){
@@ -164,7 +163,7 @@ AP4_Ac4Header::AP4_Ac4Header(const AP4_UI08* bytes, unsigned int size)
         for (unsigned int pres_idx = 0; pres_idx < m_NPresentations; pres_idx++){
             m_PresentationV1[pres_idx].d.v1.substream_groups = new AP4_Dac4Atom::Ac4Dsi::SubStreamGroupV1[m_PresentationV1[pres_idx].d.v1.n_substream_groups];
             for (unsigned int sg = 0; sg < m_PresentationV1[pres_idx].d.v1.n_substream_groups; sg++){
-                // TODO: default copy construct
+                // TODO: Default Copy Construct Function
                 m_PresentationV1[pres_idx].d.v1.substream_groups[sg]   = substream_groups[m_PresentationV1[pres_idx].d.v1.substream_group_indexs[sg]];
                 m_PresentationV1[pres_idx].d.v1.dolby_atmos_indicator |= m_PresentationV1[pres_idx].d.v1.substream_groups[sg].d.v1.dolby_atmos_indicator;
             }
@@ -189,7 +188,7 @@ bool
 AP4_Ac4Header::MatchFixed(AP4_Ac4Header frame, AP4_Ac4Header next_frame)
 {
     // Some parameter shall be const which defined in AC-4 in ISO-BMFF specs
-    // TODO: Add more to meet the AC-4 packager guideline
+    // TODO: More constraints will be added
     if ((frame.m_FsIndex == next_frame.m_FsIndex) &&
         (frame.m_FrameRateIndex == next_frame.m_FrameRateIndex)){
         return true;
@@ -321,7 +320,7 @@ AP4_Ac4Parser::FindHeader(AP4_UI08* header)
             
            return AP4_SUCCESS;
         } else {
-            m_Bits.SkipBytes(1); // skip
+            m_Bits.SkipBytes(1); 
         }
     }
 
@@ -340,9 +339,9 @@ AP4_Ac4Parser::GetSyncFrameSize(AP4_BitReader &bits)
         frame_size = bits.ReadBits(24);
         head_size += 3; 
     }
-	if (sync_word == AP4_AC4_SYNC_WORD_CRC) {
-		head_size += 2;
-	}
+    if (sync_word == AP4_AC4_SYNC_WORD_CRC) {
+        head_size += 2;
+    }
     return (head_size + frame_size); 
 }
 
@@ -363,7 +362,7 @@ AP4_Ac4Parser::FindFrame(AP4_Ac4Frame& frame)
     result = FindHeader(raw_header);
     if (AP4_FAILED(result)) return result;
 
-    // duplicate work, just to get the frame size
+    // duplicated work, just to get the frame size
     AP4_BitReader tmp_bits(raw_header, AP4_AC4_HEADER_SIZE);
     unsigned int sync_frame_size = GetSyncFrameSize(tmp_bits);
     if (sync_frame_size > (AP4_BITSTREAM_BUFFER_SIZE - 1)) {
@@ -373,9 +372,9 @@ AP4_Ac4Parser::FindFrame(AP4_Ac4Frame& frame)
     delete[] raw_header;
     raw_header = new unsigned char[sync_frame_size];
     /*
-	 * Error handling to skip the 'fake' sync word. 
-	 * - the maximum sync frame size is about (AP4_BITSTREAM_BUFFER_SIZE - 1) bytes.
-	 */
+     * Error handling to skip the 'fake' sync word. 
+     * - the maximum sync frame size is about (AP4_BITSTREAM_BUFFER_SIZE - 1) bytes.
+     */
     if (m_Bits.GetBytesAvailable() < sync_frame_size ) {
         if (m_Bits.GetBytesAvailable() == (AP4_BITSTREAM_BUFFER_SIZE - 1)) {
             // skip the sync word, assume it's 'fake' sync word
@@ -383,7 +382,7 @@ AP4_Ac4Parser::FindFrame(AP4_Ac4Frame& frame)
         }
         return AP4_ERROR_NOT_ENOUGH_DATA;
     }
-	// copy the whole frame becasue toc size is unknown
+    // copy the whole frame becasue toc size is unknown
     m_Bits.PeekBytes(raw_header, sync_frame_size);
     /* parse the header */
     AP4_Ac4Header ac4_header(raw_header, sync_frame_size);
@@ -394,22 +393,21 @@ AP4_Ac4Parser::FindFrame(AP4_Ac4Frame& frame)
     /* check the header */
     result = ac4_header.Check();
     if (AP4_FAILED(result)) {
-		m_Bits.SkipBytes(sync_frame_size);
-		goto fail;
-	}
+        m_Bits.SkipBytes(sync_frame_size);
+        goto fail;
+    }
     
     /* check if we have enough data to peek at the next header */
     available = m_Bits.GetBytesAvailable();
-	// TODO: find the proper AP4_AC4_MAX_TOC_SIZE or just parse what this step need?
+    // TODO: find the proper AP4_AC4_MAX_TOC_SIZE or just parse what this step need ?
     if (available >= ac4_header.m_FrameSize + ac4_header.m_HeaderSize + ac4_header.m_CrcSize + AP4_AC4_HEADER_SIZE + AP4_AC4_MAX_TOC_SIZE) {
         // enough to peek at the header of the next frame
         unsigned char *peek_raw_header = new unsigned char[AP4_AC4_HEADER_SIZE];
 
         m_Bits.SkipBytes(ac4_header.m_FrameSize + ac4_header.m_HeaderSize + ac4_header.m_CrcSize);
         m_Bits.PeekBytes(peek_raw_header, AP4_AC4_HEADER_SIZE);
-        //m_Bits.SkipBytes(-((int)(ac4_header.m_FrameSize + ac4_header.m_HeaderSize + ac4_header.m_CrcSize)));
 
-        // duplicate work
+        // duplicated work, just to get the frame size
         AP4_BitReader peak_tmp_bits(peek_raw_header, AP4_AC4_HEADER_SIZE);
         unsigned int peak_sync_frame_size = GetSyncFrameSize(peak_tmp_bits);
 
@@ -417,7 +415,7 @@ AP4_Ac4Parser::FindFrame(AP4_Ac4Frame& frame)
         peek_raw_header = new unsigned char[peak_sync_frame_size];
         // copy the whole frame becasue toc size is unknown
         if (m_Bits.GetBytesAvailable() < (peak_sync_frame_size)) {
-			peak_sync_frame_size = m_Bits.GetBytesAvailable();
+            peak_sync_frame_size = m_Bits.GetBytesAvailable();
         }
         m_Bits.PeekBytes(peek_raw_header, peak_sync_frame_size);
 
@@ -427,16 +425,16 @@ AP4_Ac4Parser::FindFrame(AP4_Ac4Frame& frame)
         AP4_Ac4Header peek_ac4_header(peek_raw_header, peak_sync_frame_size);
         result = peek_ac4_header.Check();
         if (AP4_FAILED(result)) {
-			// TODO: maybe need to reserve current sync frame
-			m_Bits.SkipBytes(sync_frame_size + peak_sync_frame_size);
-			goto fail;
-		}
+            // TODO: need to reserve current sync frame ?
+            m_Bits.SkipBytes(sync_frame_size + peak_sync_frame_size);
+            goto fail;
+        }
 
         /* check that the fixed part of this header is the same as the */
         /* fixed part of the previous header                           */
         if (!AP4_Ac4Header::MatchFixed(ac4_header, peek_ac4_header)) {
-			// TODO: maybe need to reserve current sync frame
-			m_Bits.SkipBytes(sync_frame_size + peak_sync_frame_size);
+            // TODO: need to reserve current sync frame ?
+            m_Bits.SkipBytes(sync_frame_size + peak_sync_frame_size);
             goto fail;
         }
     } else if (available < (ac4_header.m_FrameSize + ac4_header.m_HeaderSize + ac4_header.m_CrcSize) || (m_Bits.m_Flags & AP4_BITSTREAM_FLAG_EOS) == 0) {
@@ -449,7 +447,7 @@ AP4_Ac4Parser::FindFrame(AP4_Ac4Frame& frame)
     /* fill in the frame info */
     frame.m_Info.m_HeaderSize     = ac4_header.m_HeaderSize;
     frame.m_Info.m_FrameSize      = ac4_header.m_FrameSize;
-	frame.m_Info.m_CRCSize        = ac4_header.m_CrcSize;
+    frame.m_Info.m_CRCSize        = ac4_header.m_CrcSize;
     frame.m_Info.m_ChannelCount   = ac4_header.m_ChannelCount; 
     frame.m_Info.m_SampleDuration = (ac4_header.m_FsIndex == 0)? 2048 : AP4_Ac4SampleDeltaTable   [ac4_header.m_FrameRateIndex];
     frame.m_Info.m_MediaTimeScale = (ac4_header.m_FsIndex == 0)? 44100: AP4_Ac4MediaTimeScaleTable[ac4_header.m_FrameRateIndex];
@@ -472,8 +470,8 @@ AP4_Ac4Parser::FindFrame(AP4_Ac4Frame& frame)
     else if (ac4_header.m_WaitFrames >  6)                                 { bit_rate_mode = 3;}
 
     frame.m_Info.m_Ac4Dsi.d.v1.ac4_bitrate_dsi.bit_rate_mode = bit_rate_mode;
-    frame.m_Info.m_Ac4Dsi.d.v1.ac4_bitrate_dsi.bit_rate = 0; // unknown, fixed value now
-    frame.m_Info.m_Ac4Dsi.d.v1.ac4_bitrate_dsi.bit_rate_precision = 0xffffffff; //unknown, fixed value now
+    frame.m_Info.m_Ac4Dsi.d.v1.ac4_bitrate_dsi.bit_rate = 0;                    // unknown, fixed value now
+    frame.m_Info.m_Ac4Dsi.d.v1.ac4_bitrate_dsi.bit_rate_precision = 0xffffffff; // unknown, fixed value now
     frame.m_Info.m_Ac4Dsi.d.v1.n_presentations = ac4_header.m_NPresentations;
     frame.m_Info.m_Ac4Dsi.d.v1.presentations   = ac4_header.m_PresentationV1;
 
@@ -485,7 +483,6 @@ AP4_Ac4Parser::FindFrame(AP4_Ac4Frame& frame)
 fail:
     /* skip the header and return (only skip the first byte in  */
     /* case this was a false header that hides one just after)  */
-    //m_Bits.SkipBytes(-(AP4_AC4_HEADER_SIZE-1));
     return AP4_ERROR_CORRUPTED_BITSTREAM;
 }
 

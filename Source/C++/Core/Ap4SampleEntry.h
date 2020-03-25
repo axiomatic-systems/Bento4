@@ -272,10 +272,10 @@ class AP4_Ac3SampleEntry : public AP4_AudioSampleEntry
 {
 public:
     AP4_Ac3SampleEntry(AP4_UI32             format,
-                        AP4_UI32             sample_rate,
-                        AP4_UI16             sample_size,
-                        AP4_UI16             channel_count,
-                        const AP4_AtomParent *details);
+                       AP4_UI32             sample_rate,
+                       AP4_UI16             sample_size,
+                       AP4_UI16             channel_count,
+                       const AP4_AtomParent *details);
     
     // inherited from AP4_SampleEntry
     virtual AP4_SampleDescription* ToSampleDescription();

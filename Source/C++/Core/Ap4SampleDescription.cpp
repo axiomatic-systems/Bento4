@@ -768,10 +768,10 @@ AP4_MpegSampleDescription::AP4_MpegSampleDescription(
 AP4_EsDescriptor* 
 AP4_MpegSampleDescription::CreateEsDescriptor() const
 {
-    AP4_EsDescriptor* desc = new AP4_EsDescriptor(0); //descriptorProperty
+    AP4_EsDescriptor* desc = new AP4_EsDescriptor(0);
     AP4_DecoderSpecificInfoDescriptor* dsi_desc;
     if (m_DecoderInfo.GetDataSize() != 0) {
-        dsi_desc = new AP4_DecoderSpecificInfoDescriptor(m_DecoderInfo); //decSepcificInfo
+        dsi_desc = new AP4_DecoderSpecificInfoDescriptor(m_DecoderInfo);
     } else {
         dsi_desc = NULL;
     }
@@ -782,7 +782,7 @@ AP4_MpegSampleDescription::CreateEsDescriptor() const
         m_MaxBitrate,
         m_AvgBitrate,
         dsi_desc);
-    desc->AddSubDescriptor(decoder_config); //decConfigDescr
+    desc->AddSubDescriptor(decoder_config);
     
     // add a fixed SL Config
     desc->AddSubDescriptor(new AP4_SLConfigDescriptor());
@@ -933,17 +933,17 @@ AP4_MpegAudioSampleDescription::GetMpeg4AudioObjectType() const
 /*----------------------------------------------------------------------
  |   AP4_Ac3SampleDescription::AP4_Ac3SampleDescription
  +---------------------------------------------------------------------*/
-AP4_Ac3SampleDescription::AP4_Ac3SampleDescription(AP4_UI32            sample_rate,
-                                                     AP4_UI16            sample_size,
-                                                     AP4_UI16            channel_count,
-                                                     const AP4_Dac3Atom* dac3Atom):
-AP4_SampleDescription(TYPE_AC3, AP4_SAMPLE_FORMAT_AC_3, NULL),
-AP4_AudioSampleDescription(sample_rate, sample_size, channel_count)
+AP4_Ac3SampleDescription::AP4_Ac3SampleDescription(AP4_UI32             sample_rate,
+                                                   AP4_UI16             sample_size,
+                                                   AP4_UI16             channel_count,
+                                                   const AP4_Dac3Atom*  dac3Atom):
+    AP4_SampleDescription(TYPE_AC3, AP4_SAMPLE_FORMAT_AC_3, NULL),
+    AP4_AudioSampleDescription(sample_rate, sample_size, channel_count)
 {
     if (dac3Atom) {
         m_Dac3Atom = new AP4_Dac3Atom(*dac3Atom);
     } else {
-        // TODO: add default construtor, m_Dac3Atom = new AP4_Dac3Atom(), very low priority becasue it shall never happen.
+        // TODO: add default construtor, m_Dac3Atom = new AP4_Dac3Atom(). It shall never happen.
         m_Dac3Atom = NULL;
     }
     m_Details.AddChild(m_Dac3Atom);
@@ -953,18 +953,18 @@ AP4_AudioSampleDescription(sample_rate, sample_size, channel_count)
  |   AP4_Ac3SampleDescription::AP4_Ac3SampleDescription
  +---------------------------------------------------------------------*/
 AP4_Ac3SampleDescription::AP4_Ac3SampleDescription(AP4_UI32        sample_rate,
-                                                     AP4_UI16        sample_size,
-                                                     AP4_UI16        channel_count,
-                                                     AP4_AtomParent* details) :
-AP4_SampleDescription(TYPE_AC3, AP4_SAMPLE_FORMAT_AC_3, details),
-AP4_AudioSampleDescription(sample_rate, sample_size, channel_count),
+                                                   AP4_UI16        sample_size,
+                                                   AP4_UI16        channel_count,
+                                                   AP4_AtomParent* details) :
+    AP4_SampleDescription(TYPE_AC3, AP4_SAMPLE_FORMAT_AC_3, details),
+    AP4_AudioSampleDescription(sample_rate, sample_size, channel_count),
 m_Dac3Atom(NULL)
 {
     AP4_Dac3Atom* ac3 = AP4_DYNAMIC_CAST(AP4_Dac3Atom, m_Details.GetChild(AP4_SAMPLE_FORMAT_AC_3));
     if (ac3) {
         m_Dac3Atom = ac3;
     } else {
-        // TODO: add default construtor, m_Dac3Atom = new AP4_Dac3Atom(), very low priority becasue it shall never happen.
+        // TODO: add default construtor, m_Dac3Atom = new AP4_Dac3Atom(). It shall never happen.
         m_Dac3Atom = NULL;
         m_Details.AddChild(m_Dac3Atom);
     }
@@ -974,13 +974,13 @@ m_Dac3Atom(NULL)
  |   AP4_Ac3SampleDescription::AP4_Ac3SampleDescription
  +---------------------------------------------------------------------*/
 
-AP4_Ac3SampleDescription::AP4_Ac3SampleDescription(AP4_UI32                       sample_rate,
-                                                     AP4_UI16                       sample_size,
-                                                     AP4_UI16                       channel_count,
-                                                     AP4_UI32                       size,
-                                                     const AP4_Dac3Atom::StreamInfo* m_Ac3StreamInfo):
-AP4_SampleDescription(TYPE_AC3, AP4_SAMPLE_FORMAT_AC_3, NULL),
-AP4_AudioSampleDescription(sample_rate, sample_size, channel_count)
+AP4_Ac3SampleDescription::AP4_Ac3SampleDescription(AP4_UI32                         sample_rate,
+                                                   AP4_UI16                         sample_size,
+                                                   AP4_UI16                         channel_count,
+                                                   AP4_UI32                         size,
+                                                   const AP4_Dac3Atom::StreamInfo*  m_Ac3StreamInfo):
+    AP4_SampleDescription(TYPE_AC3, AP4_SAMPLE_FORMAT_AC_3, NULL),
+    AP4_AudioSampleDescription(sample_rate, sample_size, channel_count)
 {
     m_Dac3Atom = new AP4_Dac3Atom(m_Ac3StreamInfo);
     m_Details.AddChild(m_Dac3Atom);
@@ -994,12 +994,11 @@ AP4_Atom*
 AP4_Ac3SampleDescription::ToAtom() const
 {
     return new AP4_Ac3SampleEntry(m_Format,
-                                   m_SampleRate<<16,
-                                   m_SampleSize,
-                                   m_ChannelCount,
-                                   &m_Details);
+                                  m_SampleRate<<16,
+                                  m_SampleSize,
+                                  m_ChannelCount,
+                                  &m_Details);
 }
-
 
 /*----------------------------------------------------------------------
 |   AP4_Eac3SampleDescription::AP4_Eac3SampleDescription
@@ -1076,10 +1075,10 @@ AP4_Atom*
 AP4_Eac3SampleDescription::ToAtom() const
 {
     return new AP4_Eac3SampleEntry(m_Format,
-                                  m_SampleRate<<16,
-                                  m_SampleSize,
-                                  m_ChannelCount,
-                                  &m_Details);
+                                   m_SampleRate<<16,
+                                   m_SampleSize,
+                                   m_ChannelCount,
+                                   &m_Details);
 }
 
 /*----------------------------------------------------------------------
@@ -1095,7 +1094,7 @@ AP4_Ac4SampleDescription::AP4_Ac4SampleDescription(AP4_UI32            sample_ra
     if (dac4Atom) {
         m_Dac4Atom = new AP4_Dac4Atom(*dac4Atom);
     } else {
-        // TODO: add default construtor, m_Dac4Atom = new AP4_Dac4Atom(), very low priority becasue it shall never happen.
+        // TODO: add default construtor, m_Dac4Atom = new AP4_Dac4Atom(). It shall never happen.
         m_Dac4Atom = NULL;
     }
     m_Details.AddChild(m_Dac4Atom);
@@ -1116,7 +1115,7 @@ AP4_Ac4SampleDescription::AP4_Ac4SampleDescription(AP4_UI32        sample_rate,
     if (ac4) {
         m_Dac4Atom = ac4;
     } else {
-        // TODO: add default construtor, m_Dac4Atom = new AP4_Dac4Atom(), very low priority becasue it shall never happen.
+        // TODO: add default construtor, m_Dac4Atom = new AP4_Dac4Atom(). It shall never happen.
         m_Dac4Atom = NULL;
         m_Details.AddChild(m_Dac4Atom);
     }
@@ -1213,7 +1212,7 @@ AP4_MpegSampleDescription::GetStreamTypeString(StreamType type)
     switch (type) {
         case AP4_STREAM_TYPE_FORBIDDEN: return "INVALID"; 
         case AP4_STREAM_TYPE_OD:        return "Object Descriptor";
-        case AP4_STREAM_TYPE_CR:        return "CR";    
+        case AP4_STREAM_TYPE_CR:        return "CR";
         case AP4_STREAM_TYPE_BIFS:      return "BIFS";
         case AP4_STREAM_TYPE_VISUAL:    return "Visual";
         case AP4_STREAM_TYPE_AUDIO:     return "Audio";

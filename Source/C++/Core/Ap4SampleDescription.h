@@ -50,7 +50,6 @@
 +---------------------------------------------------------------------*/
 #define AP4_HEVC_DOVI_EXTENSION 1
 
-
 /*----------------------------------------------------------------------
 |   class references
 +---------------------------------------------------------------------*/
@@ -336,11 +335,9 @@ public:
     AP4_Array<AP4_DataBuffer>& GetSequenceParameters() {return m_AvccAtom->GetSequenceParameters(); }
     AP4_Array<AP4_DataBuffer>& GetPictureParameters() { return m_AvccAtom->GetPictureParameters(); }
     const AP4_DataBuffer& GetRawBytes() const { return m_AvccAtom->GetRawBytes(); }
-
     AP4_UI08 GetChromaFormat() const { return m_AvccAtom->GetChromaFormat(); }
     AP4_UI08 GetBitDepthLumaMinus8() const { return m_AvccAtom->GetBitDepthLumaMinus8(); }
     AP4_UI08 GetBitDepthChromaMinus8() const { return m_AvccAtom->GetBitDepthChromaMinus8(); }
-
     
     // inherited from AP4_SampleDescription
     virtual AP4_Atom* ToAtom() const;
@@ -645,21 +642,21 @@ public:
     
     // constructors
     AP4_Ac3SampleDescription(AP4_UI32            sample_rate,
-                              AP4_UI16            sample_size,
-                              AP4_UI16            channel_count,
-                              const AP4_Dac3Atom* dac3Atom);
+                             AP4_UI16            sample_size,
+                             AP4_UI16            channel_count,
+                             const AP4_Dac3Atom* dac3Atom);
     
     AP4_Ac3SampleDescription(AP4_UI32        sample_rate,
-                              AP4_UI16        sample_size,
-                              AP4_UI16        channel_count,
-                              AP4_AtomParent* details);
+                             AP4_UI16        sample_size,
+                             AP4_UI16        channel_count,
+                             AP4_AtomParent* details);
     
-    AP4_Ac3SampleDescription(AP4_UI32                       sample_rate,
-                              AP4_UI16                       sample_size,
-                              AP4_UI16                       channel_count,
-                              AP4_UI32                       size, // DSI size
-                              const AP4_Dac3Atom::StreamInfo* ac3_stream_info);
-    
+    AP4_Ac3SampleDescription(AP4_UI32                        sample_rate,
+                             AP4_UI16                        sample_size,
+                             AP4_UI16                        channel_count,
+                             AP4_UI32                        size, // DSI size
+                             const AP4_Dac3Atom::StreamInfo* ac3_stream_info);
+
     // inherited from AP4_SampleDescription
     virtual AP4_Result GetCodecString(AP4_String& codec) { codec = "ac-3"; return AP4_SUCCESS; }
     virtual AP4_Atom* ToAtom() const;

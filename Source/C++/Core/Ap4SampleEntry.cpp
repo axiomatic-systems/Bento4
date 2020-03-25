@@ -686,10 +686,9 @@ AP4_Ac3SampleEntry::AP4_Ac3SampleEntry(AP4_UI32             format,
                                        AP4_UI16             sample_size,
                                        AP4_UI16             channel_count,
                                        const AP4_AtomParent *details):
-AP4_AudioSampleEntry(format, sample_rate, sample_size, channel_count)
+    AP4_AudioSampleEntry(format, sample_rate, sample_size, channel_count)
 {
     if (details){
-        // TODO: check whether need copyChildren
         AP4_AtomParent* parent = new AP4_AtomParent();
         details->CopyChildren(*parent);
         AP4_Atom* child = parent->GetChild(AP4_ATOM_TYPE_DAC3);
@@ -710,9 +709,9 @@ AP4_Ac3SampleEntry::ToSampleDescription()
         return NULL;
     }else{
         return new AP4_Ac3SampleDescription(GetSampleRate(),
-                                             GetSampleSize(),
-                                             GetChannelCount(),
-                                             dac3);
+                                            GetSampleSize(),
+                                            GetChannelCount(),
+                                            dac3);
     }
 }
 
@@ -762,7 +761,6 @@ AP4_Ac4SampleEntry::AP4_Ac4SampleEntry(AP4_UI32            format,
     AP4_AudioSampleEntry(format, sample_rate, sample_size, channel_count)
 {
     if (details){ 
-        // TODO: check whether need copyChildren
         AP4_AtomParent* parent = new AP4_AtomParent();
         details->CopyChildren(*parent);
         AP4_Atom* child = parent->GetChild(AP4_ATOM_TYPE_DAC4);

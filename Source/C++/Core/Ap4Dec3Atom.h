@@ -50,7 +50,7 @@ public:
 
     // types
     struct SubStream {
-		SubStream() : fscod(0), bsid(0), bsmod(0), acmod(0), lfeon(0), num_dep_sub(0), chan_loc(0) {}
+        SubStream() : fscod(0), bsid(0), bsmod(0), acmod(0), lfeon(0), num_dep_sub(0), chan_loc(0) {}
         unsigned int fscod;
         unsigned int bsid;
         unsigned int bsmod;
@@ -63,7 +63,7 @@ public:
     // class methods
     static AP4_Dec3Atom* Create(AP4_Size size, AP4_ByteStream& stream);
 
-     // constructors
+    // constructors
     AP4_Dec3Atom();
     AP4_Dec3Atom(const AP4_Dec3Atom& other);
     AP4_Dec3Atom(AP4_UI32 au_size, const SubStream* substream, const unsigned int complexity_index_type_a);  // DSI vaiable initialize m_RawBytes (substream -> m_RawBytes)
@@ -77,8 +77,8 @@ public:
     const AP4_DataBuffer&       GetRawBytes()   const { return m_RawBytes;   }
     unsigned int                GetDataRate()   const { return m_DataRate;   }
     const AP4_Array<SubStream>& GetSubStreams() const { return m_SubStreams; }
-	unsigned int                GetFlagEC3ExtensionTypeA() const { return m_FlagEC3ExtensionTypeA; }
-	unsigned int                GetComplexityIndexTypeA()  const { return m_ComplexityIndexTypeA; }
+    unsigned int                GetFlagEC3ExtensionTypeA() const { return m_FlagEC3ExtensionTypeA; }
+    unsigned int                GetComplexityIndexTypeA()  const { return m_ComplexityIndexTypeA; }
     
 private:
     // methods
@@ -86,8 +86,8 @@ private:
     
     // members
     unsigned int              m_DataRate;
-	unsigned int			  m_FlagEC3ExtensionTypeA;
-	unsigned int              m_ComplexityIndexTypeA;
+    unsigned int              m_FlagEC3ExtensionTypeA;
+    unsigned int              m_ComplexityIndexTypeA;
     AP4_Array<SubStream>      m_SubStreams;
     AP4_DataBuffer            m_RawBytes;
 };

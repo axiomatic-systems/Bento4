@@ -38,14 +38,13 @@
 AP4_Eac3Header::AP4_Eac3Header(const AP4_UI08* bytes)
 {
     AP4_BitReader bits(bytes, AP4_EAC3_HEADER_SIZE);
-    bits.SkipBits(16); // sync word
+    bits.SkipBits(16);                          // sync word
 
     m_Strmtyp     = bits.ReadBits(2);
     m_Substreamid = bits.ReadBits(3);
     m_Frmsiz      = bits.ReadBits(11);
     m_FrameSize   = (m_Frmsiz + 1) * 2;
 
-    // TODO: check whether is be compatibled with latest specs
     m_Fscod       = bits.ReadBits(2);
     unsigned char numblkscod   = 0;
     unsigned int  blks_per_frm = 0;
@@ -71,26 +70,25 @@ AP4_Eac3Header::AP4_Eac3Header(const AP4_UI08* bytes)
         return;
     }
 
-    unsigned char dialnorm = bits.ReadBits(5); // dialnorm
+    unsigned char dialnorm = bits.ReadBits(5);  // dialnorm
     unsigned char compr;
-    if (bits.ReadBit()) { // compre
+    if (bits.ReadBit()) {                       // compre
         compr = bits.ReadBits(8);
     }
     
-    if (m_Acmod == 0x0){  // if 1+1 mode (dual mono, so some items need a second value)
-        bits.SkipBits(5); // dialnorm2
-        if (bits.ReadBit()) { // compr2e
-            bits.SkipBits(8); // compr2
+    if (m_Acmod == 0x0){                        // if 1+1 mode (dual mono, so some items need a second value)
+        bits.SkipBits(5);                       // dialnorm2
+        if (bits.ReadBit()) {                   // compr2e
+            bits.SkipBits(8);                   // compr2
         } 
     }
 
-    // TODO: check whether is be compatibled with latest specs
-    if (m_Strmtyp == 0x1) { // if dependent stream
+    if (m_Strmtyp == 0x1) {                     // if dependent stream
         m_Chanmape = bits.ReadBit();
         if (m_Chanmape) {
             m_Chanmap  = bits.ReadBits(16);
         }else {
-            //TODO: Derive chanmap from the acmod and lfeon parameters (refer to ddpinfo) ?
+            //TODO: Derive chanmap from the acmod and lfeon parameters
             m_Chanmap = 0;
         }
     }else {
@@ -100,7 +98,7 @@ AP4_Eac3Header::AP4_Eac3Header(const AP4_UI08* bytes)
     
     // Extract mixing metadata 
     unsigned char dmixmod, ltrtcmixlev, lorocmixlev, ltrtsurmixlev, lorosurmixlev, lfemixlevcod;
-    if (bits.ReadBit()){ // mixmdate
+    if (bits.ReadBit()){                        // mixmdate
         if (m_Acmod  > 0x2) {
             dmixmod = bits.ReadBits(2);
         }
@@ -113,134 +111,133 @@ AP4_Eac3Header::AP4_Eac3Header(const AP4_UI08* bytes)
             lorosurmixlev = bits.ReadBits(3);
         }
         if (m_Lfeon) { 
-            if (bits.ReadBit()) { // lfemixlevcode
+            if (bits.ReadBit()) {               // lfemixlevcode
                 lfemixlevcod = bits.ReadBits(5);
             }
         } 
-        if (m_Strmtyp == 0x0) { // if independent stream
+        if (m_Strmtyp == 0x0) {                 // if independent stream
             unsigned char pgmscl, extpgmscl;
-            if (bits.ReadBit()) { // pgmscle
+            if (bits.ReadBit()) {               // pgmscle
                 pgmscl = bits.ReadBits(6);
             }
 
-            if (m_Acmod == 0x0){ // if 1+1 mode (dual mono, so some items need a second value)
-                if(bits.ReadBit()) {  // pgmscl2e
-                    bits.SkipBits(6); // pgmscl2
+            if (m_Acmod == 0x0){                // if 1+1 mode (dual mono, so some items need a second value)
+                if(bits.ReadBit()) {            // pgmscl2e
+                    bits.SkipBits(6);           // pgmscl2
                 } 
             }
 
-            if(bits.ReadBit()) { // extpgmscle
+            if(bits.ReadBit()) {                // extpgmscle
                 extpgmscl = bits.ReadBits(6);
             }
 
             char mixdef = bits.ReadBits(2);
-            if(mixdef == 0x1)       { bits.SkipBits(5) ;} // premixcmpsel, drcsrc, premixcmpscl
-            else if (mixdef == 0x2) { bits.SkipBits(12);} // mixdata
+            if(mixdef == 0x1)       { bits.SkipBits(5) ;}   // premixcmpsel, drcsrc, premixcmpscl
+            else if (mixdef == 0x2) { bits.SkipBits(12);}   // mixdata
             else if (mixdef == 0x3) {
                 char mixdeflen = bits.ReadBits(5);
-                unsigned int mixdefbits = 1;  // the initial value represents mixdata2e
-                if(bits.ReadBit()){   // mixdata2e
-                    bits.SkipBits(5); // premixcmpsel, drcsrc, premixcmpscl
+                unsigned int mixdefbits = 1;                // the initial value represents mixdata2e
+                if(bits.ReadBit()){                         // mixdata2e
+                    bits.SkipBits(5);                       // premixcmpsel, drcsrc, premixcmpscl
                     mixdefbits += 5; 
 
-                    mixdefbits += 1;  // extpgmlscle
+                    mixdefbits += 1;                        // extpgmlscle
                     if(bits.ReadBit()) { 
-                        bits.SkipBits(4); // extpgmlscl
+                        bits.SkipBits(4);                   // extpgmlscl
                         mixdefbits += 4;
                     }
 
-                    mixdefbits += 1;  // extpgmcscle
+                    mixdefbits += 1;                        // extpgmcscle
                     if(bits.ReadBit()) { 
-                        bits.SkipBits(4); // extpgmcscl
+                        bits.SkipBits(4);                   // extpgmcscl
                         mixdefbits += 4;
                     } 
 
-                    mixdefbits += 1;  // extpgmrscle
+                    mixdefbits += 1;                        // extpgmrscle
                     if(bits.ReadBit()) { 
-                        bits.SkipBits(4);  // extpgmrscl
+                        bits.SkipBits(4);                   // extpgmrscl
                         mixdefbits += 4;
                     }
 
-                    mixdefbits += 1; // extpgmlsscle
+                    mixdefbits += 1;                        // extpgmlsscle
                     if(bits.ReadBit()) { 
-                        bits.SkipBits(4); // extpgmlsscl
+                        bits.SkipBits(4);                   // extpgmlsscl
                         mixdefbits += 4;
                     } 
 
-                    mixdefbits += 1; // extpgmrsscle
+                    mixdefbits += 1;                        // extpgmrsscle
                     if(bits.ReadBit()) { 
-                        bits.SkipBits(4); // extpgmrsscl
+                        bits.SkipBits(4);                   // extpgmrsscl
                         mixdefbits += 4;
                     } 
 
-                    mixdefbits += 1; // extpgmlfescle
+                    mixdefbits += 1;                        // extpgmlfescle
                     if(bits.ReadBit()) { 
-                        bits.SkipBits(4); // extpgmlfescl
+                        bits.SkipBits(4);                   // extpgmlfescl
                         mixdefbits += 4;
                     } 
 
-                    mixdefbits += 1; // dmixscle
+                    mixdefbits += 1;                        // dmixscle
                     if(bits.ReadBit()) { 
-                        bits.SkipBits(4); // dmixscl
+                        bits.SkipBits(4);                   // dmixscl
                         mixdefbits += 4;
                     } 
 
                     mixdefbits += 1;
-                    if(bits.ReadBit()){ // addche
+                    if(bits.ReadBit()){                     // addche
                         mixdefbits += 1;
-                        if(bits.ReadBit()) {  // extpgmaux1scle
-                            bits.SkipBits(4); // extpgmaux1scl
+                        if(bits.ReadBit()) {                // extpgmaux1scle
+                            bits.SkipBits(4);               // extpgmaux1scl
                             mixdefbits += 4;
                         } 
 
                         mixdefbits += 1;
-                        if(bits.ReadBit()) {  // extpgmaux2scle
-                            bits.SkipBits(4); // extpgmaux2scl
+                        if(bits.ReadBit()) {                // extpgmaux2scle
+                            bits.SkipBits(4);               // extpgmaux2scl
                             mixdefbits += 4;
                         } 
                     }
                 } //  if(bits.ReadBit()){   // mixdata2e
 
                 mixdefbits += 1;
-                if(bits.ReadBit()){ // mixdata3e
-                    bits.SkipBits(5); // spchdat
+                if(bits.ReadBit()){                         // mixdata3e
+                    bits.SkipBits(5);                       // spchdat
                     mixdefbits += 5;
 
                     mixdefbits += 1;
-                    if(bits.ReadBit()){   // addspchdate
-                        bits.SkipBits(7); // spchdat1, spchan1att
+                    if(bits.ReadBit()){                     // addspchdate
+                        bits.SkipBits(7);                   // spchdat1, spchan1att
                         mixdefbits += 7;
 
                         mixdefbits += 1;
-                        if(bits.ReadBit()){   // addspdat1e
-                            bits.SkipBits(8); // spchdat2, spchan2att
+                        if(bits.ReadBit()){                 // addspdat1e
+                            bits.SkipBits(8);               // spchdat2, spchan2att
                             mixdefbits += 8;
                         }
                     }
                 } //  if(bits.ReadBit()){   // mixdata3e
 
-                // TODO: check whether is be compatibled with latest specs
                 bits.SkipBits(8 * (mixdeflen + 2) - mixdefbits); // mixdatafill
             }
 
-            if (m_Acmod < 0x2) {// if mono or dual mono source 
-                if(bits.ReadBit()){ // paninfoe
-                    bits.SkipBits(8 + 6); // panmean, paninfo
+            if (m_Acmod < 0x2) {                                // if mono or dual mono source 
+                if(bits.ReadBit()){                             // paninfoe
+                    bits.SkipBits(8 + 6);                       // panmean, paninfo
                 }
-                if (m_Acmod == 0x0) { // if 1+1 mode (dual mono - some items need a second value) 
-                    if(bits.ReadBit()){ // paninfo2e
-                        bits.SkipBits(8 + 6); // panmean2, paninfo2
+                if (m_Acmod == 0x0) {                           // if 1+1 mode (dual mono - some items need a second value) 
+                    if(bits.ReadBit()){                         // paninfo2e
+                        bits.SkipBits(8 + 6);                   // panmean2, paninfo2
                     }
                 }
             }
 
-            if (bits.ReadBit()){ // frmmixcfginfoe
+            if (bits.ReadBit()){                            // frmmixcfginfoe
                 if (blks_per_frm == 1) {
-                    bits.SkipBits(5); // blkmixcfginfo[0]
+                    bits.SkipBits(5);                       // blkmixcfginfo[0]
                 }else{
                     for (unsigned int idx = 0; idx < blks_per_frm; idx++){
-                        if(bits.ReadBit()){ // blkmixcfginfoe
-                            bits.SkipBits(5); // blkmixcfginfo[blk]
+                        if(bits.ReadBit()){                 // blkmixcfginfoe
+                            bits.SkipBits(5);               // blkmixcfginfo[blk]
                         }
                     }
                 }
@@ -255,22 +252,22 @@ AP4_Eac3Header::AP4_Eac3Header(const AP4_UI08* bytes)
         copyrightb = bits.ReadBits(1);
         origbs     = bits.ReadBits(1);
 
-        if (m_Acmod == 0x2) { // if in 2/0 mode
-            bits.SkipBits(4); // dsurmod, dheadphonmod
+        if (m_Acmod == 0x2) {                               // if in 2/0 mode
+            bits.SkipBits(4);                               // dsurmod, dheadphonmod
         }
-        if (m_Acmod >= 0x6) { // if both surround channels exist
+        if (m_Acmod >= 0x6) {                               // if both surround channels exist
             dsurexmod = bits.ReadBits(2);
         }
-        if(bits.ReadBit()){   // audprodie
-            bits.SkipBits(8); // mixlevel, roomtyp, adconvtyp
+        if(bits.ReadBit()){                                 // audprodie
+            bits.SkipBits(8);                               // mixlevel, roomtyp, adconvtyp
         }
-        if (m_Acmod == 0x0) { //if 1+1 mode (dual mono, so some items need a second value)
-            if(bits.ReadBit()){ // audprodi2e
-                bits.SkipBits(8); // mixlevel2, roomtyp2, adconvtyp2
+        if (m_Acmod == 0x0) {                               //if 1+1 mode (dual mono, so some items need a second value)
+            if(bits.ReadBit()){                             // audprodi2e
+                bits.SkipBits(8);                           // mixlevel2, roomtyp2, adconvtyp2
             }
         }
-        if (m_Fscod < 0x3) {  // if not half sample rate
-            bits.SkipBits(1); // sourcefscod
+        if (m_Fscod < 0x3) {                                // if not half sample rate
+            bits.SkipBits(1);                               // sourcefscod
         }
     } else { // if (m_Infomdate)
         m_Bsmod = 0;
@@ -281,14 +278,14 @@ AP4_Eac3Header::AP4_Eac3Header(const AP4_UI08* bytes)
         m_Convsync = bits.ReadBits(1); 
     }
 
-    if (m_Strmtyp == 0x2) { // if bit stream converted from AC-3
+    if (m_Strmtyp == 0x2) {                                 // if bit stream converted from AC-3
         unsigned char blkid = 0;
         if (numblkscod == 0x3) {
             blkid = 1;
         }else {
             blkid = bits.ReadBits(1);
         }
-        if (blkid) {bits.SkipBits(6); } // frmsizecod
+        if (blkid) {bits.SkipBits(6); }                     // frmsizecod
     } 
 
     m_Addbsie = bits.ReadBit();
@@ -413,19 +410,19 @@ AP4_Eac3Parser::FindHeader(AP4_UI08* header, AP4_Size& skip_size)
         m_Bits.PeekBytes(header, 2);
 
         if( (((header[0] << 8) | header[1]) == AP4_EAC3_SYNC_WORD_BIG_ENDIAN) || 
-			(((header[0] << 8) | header[1]) == AP4_EAC3_SYNC_WORD_LITTLE_ENDIAN) ){
-			if (((header[0] << 8) | header[1]) == AP4_EAC3_SYNC_WORD_LITTLE_ENDIAN) {
-				m_LittleEndian = true;
-			} else {
-				m_LittleEndian = false;
-			}
+            (((header[0] << 8) | header[1]) == AP4_EAC3_SYNC_WORD_LITTLE_ENDIAN) ){
+            if (((header[0] << 8) | header[1]) == AP4_EAC3_SYNC_WORD_LITTLE_ENDIAN) {
+                m_LittleEndian = true;
+            } else {
+                m_LittleEndian = false;
+            }
             /* found a sync pattern, read the entire the header */
             m_Bits.PeekBytes(header, AP4_EAC3_HEADER_SIZE);
             
            return AP4_SUCCESS;
         } else {
             m_Bits.ReadByte(); // skip
-			skip_size++;
+            skip_size++;
         }
     }
 
@@ -441,7 +438,7 @@ AP4_Eac3Parser::FindFrame(AP4_Eac3Frame& frame)
     bool           dependent_stream_exist    = false;
     unsigned int   dependent_stream_chan_loc = 0;
     unsigned int   dependent_stream_length   = 0;
-	unsigned int   skip_size = 0;
+    unsigned int   skip_size = 0;
     unsigned int   available;
     unsigned char  raw_header[AP4_EAC3_HEADER_SIZE];
     AP4_Result     result;
@@ -453,9 +450,9 @@ AP4_Eac3Parser::FindFrame(AP4_Eac3Frame& frame)
     result = FindHeader(raw_header, skip_size);
     if (AP4_FAILED(result)) return result;
 
-	if (m_LittleEndian) {
-		AP4_ByteSwap(raw_header, AP4_EAC3_HEADER_SIZE);
-	}
+    if (m_LittleEndian) {
+        AP4_ByteSwap(raw_header, AP4_EAC3_HEADER_SIZE);
+    }
 
     /* parse the header */
     AP4_Eac3Header eac3_header(raw_header);
@@ -463,9 +460,8 @@ AP4_Eac3Parser::FindFrame(AP4_Eac3Frame& frame)
     /* check the header */
     result = eac3_header.Check();
     if (AP4_FAILED(result)) {
-		//m_Bits.SkipBytes(2);
-		goto fail;
-	}
+        goto fail;
+    }
     
     /* check if we have enough data to peek at the next header */
     available = m_Bits.GetBytesAvailable();
@@ -474,24 +470,22 @@ AP4_Eac3Parser::FindFrame(AP4_Eac3Frame& frame)
         unsigned char peek_raw_header[AP4_EAC3_HEADER_SIZE];
 
         m_Bits.SkipBytes(eac3_header.m_FrameSize);
-		skip_size = 0;
-		result = FindHeader(peek_raw_header, skip_size);
-		if (AP4_FAILED(result)) return result;
-        //m_Bits.PeekBytes(peek_raw_header, AP4_EAC3_HEADER_SIZE);
+        skip_size = 0;
+        result = FindHeader(peek_raw_header, skip_size);
+        if (AP4_FAILED(result)) return result;
         m_Bits.SkipBytes(-((int)(eac3_header.m_FrameSize + skip_size)));
 
-		if (m_LittleEndian) {
-			AP4_ByteSwap(peek_raw_header, AP4_EAC3_HEADER_SIZE);
-		}
+        if (m_LittleEndian) {
+            AP4_ByteSwap(peek_raw_header, AP4_EAC3_HEADER_SIZE);
+        }
         /* check the header */
         AP4_Eac3Header peek_eac3_header(peek_raw_header);
         result = peek_eac3_header.Check();
         if (AP4_FAILED(result)) {
-			//m_Bits.SkipBytes(eac3_header.m_FrameSize + 2);
-			goto fail;
-		}
+            goto fail;
+        }
 
-        // TODO: only for 7.1-Channel DD+ stream ?
+        // TODO: Only support 7.1-channel now
         if (peek_eac3_header.m_Strmtyp  == 1) {
             dependent_stream_exist = true;
             if (peek_eac3_header.m_Chanmape == 0){
@@ -511,15 +505,12 @@ AP4_Eac3Parser::FindFrame(AP4_Eac3Frame& frame)
         /* check that the fixed part of this header is the same as the */
         /* fixed part of the previous header                           */
         else if (!AP4_Eac3Header::MatchFixed(eac3_header, peek_eac3_header)) {
-			//m_Bits.SkipBytes(eac3_header.m_FrameSize + 2);
             goto fail;
         }
     } else if (available < eac3_header.m_FrameSize || (m_Bits.m_Flags & AP4_BITSTREAM_FLAG_EOS) == 0) {
         // not enough for a frame, or not at the end (in which case we'll want to peek at the next header)
         return AP4_ERROR_NOT_ENOUGH_DATA;
     }
-
-    //m_Bits.SkipBytes(eac3_header.m_HeadSize);
 
     /* fill in the frame info */
     frame.m_Info.m_ChannelCount   = eac3_header.m_ChannelCount;
@@ -548,7 +539,7 @@ AP4_Eac3Parser::FindFrame(AP4_Eac3Frame& frame)
     }   
 
     /* set the little endian flag */
-	frame.m_LittleEndian = m_LittleEndian;
+    frame.m_LittleEndian = m_LittleEndian;
 
     /* set the frame source */
     frame.m_Source = &m_Bits;
@@ -565,19 +556,14 @@ fail:
 AP4_Size
 AP4_Eac3Parser::GetBytesFree()
 {
-	return (m_Bits.GetBytesFree());
+    return (m_Bits.GetBytesFree());
 }
-
-
 
 /*----------------------------------------------------------------------+
 |    AP4_Eac3Parser::GetBytesAvailable
 +----------------------------------------------------------------------*/
-AP4_Size	
+AP4_Size    
 AP4_Eac3Parser::GetBytesAvailable()
 {
-	return (m_Bits.GetBytesAvailable());
+    return (m_Bits.GetBytesAvailable());
 }
-
-
-

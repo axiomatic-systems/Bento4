@@ -173,16 +173,15 @@ AP4_BytesFromUInt64BE(unsigned char* bytes, AP4_UI64 value)
 +---------------------------------------------------------------------*/
 void
 AP4_ByteSwap(unsigned char* bytes, AP4_UI32 length){
-	unsigned char *pbs = bytes;
+    unsigned char *pbs = bytes;
     unsigned char *pbe = pbs + length;
-	unsigned char *pt  = NULL;
-	unsigned char  tmp = 0;
+    unsigned char *pt  = NULL;
+    unsigned char  tmp = 0;
 
     AP4_ASSERT(!(length & 0x1));
 
-    while (pbs < pbe)
-    {
-		pt   = pbs;
+    while (pbs < pbe){
+        pt   = pbs;
         tmp  = *(++pbs);
         *pbs = *pt;
         *pt  = tmp;
@@ -196,8 +195,8 @@ AP4_ByteSwap(unsigned char* bytes, AP4_UI32 length){
 AP4_UI32
 AP4_DurationMsFromUnits(AP4_UI64 units, AP4_UI32 units_per_second)
 {
-	if (units_per_second == 0) return 0;
-	return (AP4_UI32)(((double)units*1000.0)/(double)units_per_second);
+    if (units_per_second == 0) return 0;
+    return (AP4_UI32)(((double)units*1000.0)/(double)units_per_second);
 }
 
 /*----------------------------------------------------------------------

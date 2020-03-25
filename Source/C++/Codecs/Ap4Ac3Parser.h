@@ -49,13 +49,13 @@ const AP4_UI32 FRAME_SIZE_CODE_ARY_AC3[3][38] = {
     {69,70,87,88,104,105,121,122,139,140,174,175,208,209,243,244,278,279,348,349,417,418,487,488,557,558696,697,835,836,976,977,1114,1115,1253,1254,1393,1394},
     {96,96,120,120,144,144,168,168,192,192,240,240,288,288,336,336,384,384,480,480,576,576,672,672,768,768,960,960,1152,1152,1344,1344,1536,1536,1728,1728,1920,1920}};
 const AP4_UI32 FSCOD_AC3[4] = {48000, 44100, 32000, 0};
+
 /*----------------------------------------------------------------------
  |   types
  +---------------------------------------------------------------------*/
 class AP4_Ac3Header {
 public:
     // constructor
-    // TODO: check whether need size var
     AP4_Ac3Header(const AP4_UI08* bytes);
     
     // methods
@@ -63,7 +63,7 @@ public:
     
     AP4_UI32 m_HeadSize;
     AP4_UI32 m_FrameSize;
-	AP4_UI32 m_ChannelCount;
+    AP4_UI32 m_ChannelCount;
     
     // AC-3 sysninfo()
     AP4_UI32 m_Fscod;
@@ -83,7 +83,7 @@ public:
 };
 
 typedef struct {
-	AP4_UI32  m_ChannelCount;
+    AP4_UI32  m_ChannelCount;
     AP4_UI32  m_FrameSize;
     AP4_UI32  m_SampleRate;
     AP4_Dac3Atom::StreamInfo m_Ac3StreamInfo;

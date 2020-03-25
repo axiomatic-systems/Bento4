@@ -83,7 +83,7 @@ public:
     AP4_UI32 m_BProgramUuidPresent;
     AP4_Byte m_ProgramUuid[16];
 
-	static bool m_DeprecatedV0;
+    static bool m_DeprecatedV0;
 
     // AC-4 Presentation Information
     AP4_Dac4Atom::Ac4Dsi::PresentationV1 *m_PresentationV1;
@@ -97,7 +97,7 @@ private:
 typedef struct {
     AP4_UI32  m_HeaderSize;
     AP4_UI32  m_FrameSize;
-	AP4_UI32  m_CRCSize;
+    AP4_UI32  m_CRCSize;
     AP4_UI32  m_ChannelCount;
     AP4_UI32  m_SampleDuration;
     AP4_UI32  m_MediaTimeScale;

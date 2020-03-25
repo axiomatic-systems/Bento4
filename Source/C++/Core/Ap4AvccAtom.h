@@ -85,7 +85,6 @@ public:
     AP4_Array<AP4_DataBuffer>& GetSequenceParameters() { return m_SequenceParameters; }
     AP4_Array<AP4_DataBuffer>& GetPictureParameters()  { return m_PictureParameters; }
     const AP4_DataBuffer& GetRawBytes() const { return m_RawBytes; }
-
     AP4_UI08 GetChromaFormat() const         { return m_ChromaFormat; }
     AP4_UI08 GetBitDepthLumaMinus8() const   { return m_BitDepthLumaMinus8; }
     AP4_UI08 GetBitDepthChromaMinus8() const { return m_BitDepthChromaMinus8; }
@@ -101,11 +100,9 @@ private:
     AP4_UI08                  m_Level;
     AP4_UI08                  m_ProfileCompatibility;
     AP4_UI08                  m_NaluLengthSize;
-    
     AP4_UI08                  m_ChromaFormat;
     AP4_UI08                  m_BitDepthLumaMinus8;
     AP4_UI08                  m_BitDepthChromaMinus8;
-
     AP4_Array<AP4_DataBuffer> m_SequenceParameters;
     AP4_Array<AP4_DataBuffer> m_PictureParameters;
     AP4_DataBuffer            m_RawBytes;

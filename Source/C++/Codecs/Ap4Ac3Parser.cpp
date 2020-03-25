@@ -36,59 +36,59 @@
  |    AP4_Ac3Header::AP4_Ac3Header
  +----------------------------------------------------------------------*/
 AP4_Ac3Header::AP4_Ac3Header(const AP4_UI08* bytes)
-    {
+{
     AP4_BitReader bits(bytes, AP4_AC3_HEADER_SIZE);
-    bits.SkipBits(16); // sync word
-    bits.SkipBits(16); // crc1
+    bits.SkipBits(16);                  // sync word
+    bits.SkipBits(16);                  // crc1
     m_Fscod       = bits.ReadBits(2);
-    m_Frmsizecod  = bits.ReadBits(6); // frmsizecod
+    m_Frmsizecod  = bits.ReadBits(6);   // frmsizecod
     m_FrameSize   = FRAME_SIZE_CODE_ARY_AC3[m_Fscod][m_Frmsizecod] * 2;
     
     m_Bsid        = bits.ReadBits(5);
     m_Bsmod       = bits.ReadBits(3);
     m_Acmod       = bits.ReadBits(3);
     if((m_Acmod & 0x1) && (m_Acmod != 0x1)){
-        bits.SkipBits(2);  //cmixlev
+        bits.SkipBits(2);               //cmixlev
     }
     if(m_Acmod & 0x4){
-        bits.SkipBits(2);  //surmixlev
+        bits.SkipBits(2);               //surmixlev
     }
     if(m_Acmod == 0x2){
-        bits.SkipBits(2);  //dsurmod
+        bits.SkipBits(2);               //dsurmod
     }
-    m_Lfeon       = bits.ReadBit();
-	m_ChannelCount = GLOBAL_CHANNEL_ARY[m_Acmod]  + m_Lfeon;
-    bits.SkipBits(5);  //dialnorm
-    if(bits.ReadBit()){  //compre
-        bits.SkipBits(8); // compr
+    m_Lfeon         = bits.ReadBit();
+    m_ChannelCount  = GLOBAL_CHANNEL_ARY[m_Acmod] + m_Lfeon;
+    bits.SkipBits(5);                   // dialnorm
+    if(bits.ReadBit()){                 // compre
+        bits.SkipBits(8);               // compr
     }
-    if(bits.ReadBit()){   //langcode
-        bits.SkipBits(8); // langcod
+    if(bits.ReadBit()){                 // langcode
+        bits.SkipBits(8);               // langcod
     }
-    if(bits.ReadBit()){  //audprodie
-        bits.SkipBits(5); // mixlevel
-        bits.SkipBits(2); // roomtyp
+    if(bits.ReadBit()){                 // audprodie
+        bits.SkipBits(5);               // mixlevel
+        bits.SkipBits(2);               // roomtyp
     }
     if (m_Acmod == 0){
-        bits.SkipBits(5);  //dialnorm2
-        if(bits.ReadBit()){  //compr2e
-            bits.SkipBits(8); // compr2
+        bits.SkipBits(5);               // dialnorm2
+        if(bits.ReadBit()){             // compr2e
+            bits.SkipBits(8);           // compr2
         }
-        if(bits.ReadBit()){  //langcod2e
-            bits.SkipBits(8); // langcod2
+        if(bits.ReadBit()){             // langcod2e
+            bits.SkipBits(8);           // langcod2
         }
-        if(bits.ReadBit()){  //audprodi2e
-            bits.SkipBits(5); // mixlevel2
-            bits.SkipBits(2); // roomtyp2
+        if(bits.ReadBit()){             // audprodi2e
+            bits.SkipBits(5);           // mixlevel2
+            bits.SkipBits(2);           // roomtyp2
         }
     }
-    bits.SkipBits(1); // copyrightb
-    bits.SkipBits(1); // origbs
-    if(bits.ReadBit()){  //timecod1e
-        bits.SkipBits(14); // timecod1
+    bits.SkipBits(1);                   // copyrightb
+    bits.SkipBits(1);                   // origbs
+    if(bits.ReadBit()){                 // timecod1e
+        bits.SkipBits(14);              // timecod1
     }
-    if(bits.ReadBit()){  //timecod2e
-        bits.SkipBits(14); // timecod2
+    if(bits.ReadBit()){                 //timecod2e
+        bits.SkipBits(14);              // timecod2
     }
     m_Addbsie = bits.ReadBit();
     if (m_Addbsie){
@@ -276,7 +276,7 @@ AP4_Ac3Parser::FindFrame(AP4_Ac3Frame& frame)
         // not enough for a frame, or not at the end (in which case we'll want to peek at the next header)
         return AP4_ERROR_NOT_ENOUGH_DATA;
     }
-	frame.m_Info.m_ChannelCount                 = ac3_header.m_ChannelCount;
+    frame.m_Info.m_ChannelCount                 = ac3_header.m_ChannelCount;
     frame.m_Info.m_SampleRate                   = FSCOD_AC3[ac3_header.m_Fscod];
     frame.m_Info.m_FrameSize                    = ac3_header.m_FrameSize;
     frame.m_Info.m_Ac3StreamInfo.fscod          = ac3_header.m_Fscod;
@@ -309,8 +309,6 @@ AP4_Ac3Parser::GetBytesFree()
     return (m_Bits.GetBytesFree());
 }
 
-
-
 /*----------------------------------------------------------------------+
  |    AP4_Ac3Parser::GetBytesAvailable
  +----------------------------------------------------------------------*/
@@ -319,6 +317,3 @@ AP4_Ac3Parser::GetBytesAvailable()
 {
     return (m_Bits.GetBytesAvailable());
 }
-
-
-

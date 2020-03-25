@@ -93,7 +93,7 @@ typedef struct {
 typedef struct {
     AP4_BitStream*   m_Source;
     AP4_Eac3FrameInfo m_Info;
-	AP4_Flags m_LittleEndian;
+    AP4_Flags m_LittleEndian;
 } AP4_Eac3Frame;
 
 class AP4_Eac3Parser {
