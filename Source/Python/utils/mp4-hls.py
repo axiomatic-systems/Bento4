@@ -34,14 +34,14 @@ sys.path += [SCRIPT_PATH]
 #############################################
 def CreateSubtitlesPlaylist(playlist_filename, webvtt_filename, duration):
     playlist = open(playlist_filename, 'w+')
-    playlist.write('#EXTM3U\r\n')
-    playlist.write('#EXT-X-TARGETDURATION:%d\r\n' % (duration))
-    playlist.write('#EXT-X-VERSION:3\r\n')
-    playlist.write('#EXT-X-MEDIA-SEQUENCE:0\r\n')
-    playlist.write('#EXT-X-PLAYLIST-TYPE:VOD\r\n')
-    playlist.write('#EXTINF:%d,\r\n' % (duration))
-    playlist.write(webvtt_filename+'\r\n')
-    playlist.write('#EXT-X-ENDLIST\r\n')
+    playlist.write('#EXTM3U\n')
+    playlist.write('#EXT-X-TARGETDURATION:%d\n' % (duration))
+    playlist.write('#EXT-X-VERSION:3\n')
+    playlist.write('#EXT-X-MEDIA-SEQUENCE:0\n')
+    playlist.write('#EXT-X-PLAYLIST-TYPE:VOD\n')
+    playlist.write('#EXTINF:%d,\n' % (duration))
+    playlist.write(webvtt_filename+'\n')
+    playlist.write('#EXT-X-ENDLIST\n')
 
 
 #############################################
@@ -364,15 +364,15 @@ def OutputHls(options, media_sources):
 
     # start the master playlist
     master_playlist = open(path.join(options.output_dir, options.master_playlist_name), "w+")
-    master_playlist.write("#EXTM3U\r\n")
-    master_playlist.write('# Created with Bento4 mp4-hls.py version '+VERSION+'r'+SDK_REVISION+'\r\n')
+    master_playlist.write("#EXTM3U\n")
+    master_playlist.write('# Created with Bento4 mp4-hls.py version '+VERSION+'r'+SDK_REVISION+'\n')
     if ContainDolbyVision(main_media):
         PrintErrorAndExit('ERROR: For Dolby Vision, the format of segment video must be fragemnted MP4, please use mp4-dash.py')
     elif ContainDolbyAudio(audio_tracks.values()) and options.hls_version < 7:
-        print "WARNING: Please set HLS version to 7 (--hls-version 7) due to Dolby's audio need CHANNELS tag which introduced in HLS version 7."
+        print ("WARNING: Please set HLS version to 7 (--hls-version 7) due to Dolby's audio need CHANNELS tag which introduced in HLS version 7.")
     if options.hls_version >= 4:
-        master_playlist.write('\r\n')
-        master_playlist.write('#EXT-X-VERSION:'+str(options.hls_version)+'\r\n')
+        master_playlist.write('\n')
+        master_playlist.write('#EXT-X-VERSION:'+str(options.hls_version)+'\n')
 
     # optional session key
     if options.signal_session_key:
@@ -381,13 +381,13 @@ def OutputHls(options, media_sources):
             ext_x_session_key_line += ',KEYFORMAT="'+options.encryption_key_format+'"'
         if options.encryption_key_format_versions:
             ext_x_session_key_line += ',KEYFORMATVERSIONS="'+options.encryption_key_format_versions+'"'
-        master_playlist.write(ext_x_session_key_line+'\r\n')
+        master_playlist.write(ext_x_session_key_line+'\n')
 
     # process subtitles sources
     subtitles_files = [SubtitlesFile(options, media_source) for media_source in media_sources if media_source.format in ['ttml', 'webvtt']]
     if len(subtitles_files):
-        master_playlist.write('\r\n')
-        master_playlist.write('# Subtitles\r\n')
+        master_playlist.write('\n')
+        master_playlist.write('# Subtitles\n')
         MakeNewDir(path.join(options.output_dir, 'subtitles'))
         for subtitles_file in subtitles_files:
             out_dir = path.join(options.output_dir, 'subtitles', subtitles_file.language)
@@ -398,13 +398,13 @@ def OutputHls(options, media_sources):
             playlist_filename = path.join(out_dir, 'subtitles.m3u8')
             CreateSubtitlesPlaylist(playlist_filename, subtitles_file.media_name, total_duration)
 
-            master_playlist.write('#EXT-X-MEDIA:TYPE=SUBTITLES,GROUP-ID="subtitles",NAME="%s",LANGUAGE="%s",URI="%s"\r\n' % (subtitles_file.language_name, subtitles_file.language, relative_url))
+            master_playlist.write('#EXT-X-MEDIA:TYPE=SUBTITLES,GROUP-ID="subtitles",NAME="%s",LANGUAGE="%s",URI="%s"\n' % (subtitles_file.language_name, subtitles_file.language, relative_url))
 
     # process audio sources
     audio_groups = []
     if len(audio_tracks):
-        master_playlist.write('\r\n')
-        master_playlist.write('# Audio\r\n')
+        master_playlist.write('\n')
+        master_playlist.write('# Audio\n')
         print_blank_line = PrintBlankLine(audio_tracks.values())
         for group_id in audio_tracks:
             group = audio_tracks[group_id]
@@ -431,7 +431,7 @@ def OutputHls(options, media_sources):
                             extra_info)
                 if options.hls_version >= 7:
                     ext_x_media += 'CHANNELS="%s",' % str(audio_track.channels)
-                ext_x_media += 'URI="%s"\r\n' % (options.base_url+audio_track.media_info['dir']+'/'+options.media_playlist_name)
+                ext_x_media += 'URI="%s"\n' % (options.base_url+audio_track.media_info['dir']+'/'+options.media_playlist_name)
                 master_playlist.write(ext_x_media)
             audio_groups.append({
                 'name':                group_name,
@@ -440,7 +440,7 @@ def OutputHls(options, media_sources):
                 'max_segment_bitrate': group_max_segment_bitrate
             })
             if print_blank_line:
-                master_playlist.write('\r\n')
+                master_playlist.write('\n')
 
         if options.debug:
             print('Audio Groups:')
@@ -455,8 +455,8 @@ def OutputHls(options, media_sources):
         }]
 
     # media playlists
-    master_playlist.write('\r\n')
-    master_playlist.write('# Media Playlists\r\n')
+    master_playlist.write('\n')
+    master_playlist.write('# Media Playlists\n')
     for media in main_media:
         media_info = media['info']
 
@@ -488,13 +488,13 @@ def OutputHls(options, media_sources):
             if len(subtitles_files):
                 ext_x_stream_inf += ',SUBTITLES="subtitles"'
 
-            master_playlist.write(ext_x_stream_inf+'\r\n')
-            master_playlist.write(options.base_url+media['dir']+'/'+options.media_playlist_name+'\r\n')
-        master_playlist.write('\r\n')
+            master_playlist.write(ext_x_stream_inf+'\n')
+            master_playlist.write(options.base_url+media['dir']+'/'+options.media_playlist_name+'\n')
+        master_playlist.write('\n')
 
     # write the I-FRAME playlist info
     if not audio_only and options.hls_version >= 4:
-        master_playlist.write('# I-Frame Playlists\r\n')
+        master_playlist.write('# I-Frame Playlists\n')
         for media in main_media:
             media_info = media['info']
             if not 'video' in media_info: continue
@@ -505,7 +505,7 @@ def OutputHls(options, media_sources):
                                         int(media_info['video']['width']),
                                         int(media_info['video']['height']),
                                         options.base_url+media['dir']+'/'+options.iframe_playlist_name)
-            master_playlist.write(ext_x_i_frame_stream_inf+'\r\n')
+            master_playlist.write(ext_x_i_frame_stream_inf+'\n')
 
 #############################################
 Options = None

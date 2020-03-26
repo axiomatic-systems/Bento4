@@ -337,6 +337,8 @@ def AddDescriptor(adaptation_set, set_attributes, set_name, category_name):
     if not attributes:
         return
 
+    descriptor_list  = []
+    descriptor_names = ['Accessibility', 'Role', 'Rating', 'Viewpoint']
     for descriptor_name in attributes:
         descriptor_values = attributes[descriptor_name]
         for descriptor_value in descriptor_values.split(','):
@@ -356,15 +358,20 @@ def AddDescriptor(adaptation_set, set_attributes, set_name, category_name):
             if descriptor_name == 'rating':        descriptor_name = 'Rating'
             if descriptor_name == 'viewpoint':     descriptor_name = 'Viewpoint'
 
-            if descriptor_name not in ['Accessibility', 'Role', 'Rating', 'Viewpoint']:
+            if descriptor_name not in descriptor_names:
                 continue
             if descriptor_namespace:
-                xml.SubElement(adaptation_set,
-                               descriptor_name,
-                               schemeIdUri=descriptor_namespace,
-                               value=descriptor_value)
+                descriptor_list.append({'order':descriptor_names.index(descriptor_name), 'name':descriptor_name, 'schemeIdUri':descriptor_namespace,'value':descriptor_value})
             else:
                 sys.stderr.write('WARNING: ignoring ' + descriptor_name + ' descriptor for set "' + set_name + '", the schemeIdUri must be specified\n')
+
+    if descriptor_list:
+        descriptor_list.sort(key=lambda x: x['order'])
+        for item in descriptor_list:
+            xml.SubElement(adaptation_set_or_preselection,
+                           item['name'],
+                           schemeIdUri=item['schemeIdUri'],
+                           value=item['value'])
 
 #############################################
 def OutputDash(options, set_attributes, audio_sets, video_sets, subtitles_sets, subtitles_files):
@@ -639,7 +646,9 @@ def OutputDash(options, set_attributes, audio_sets, video_sets, subtitles_sets, 
         mpd_xml = parseString(xml.tostring(mpd)).toprettyxml("  ")
         # use a regex to fix a bug in toprettyxml() that inserts newlines in text content
         mpd_xml = re.sub(r'((?<=>)(\n[\s]*)(?=[^<\s]))|(?<=[^>\s])(\n[\s]*)(?=<)', '', mpd_xml)
-        open(path.join(options.output_dir, options.mpd_filename), "w").write(mpd_xml)
+        mpd_file = open(path.join(options.output_dir, options.mpd_filename), "w")
+        for line in mpd_xml:
+            mpd_file.write(line)
 
 
 #############################################
@@ -693,19 +702,19 @@ def OutputHlsCommon(options, track, all_tracks, media_subdir, playlist_name, med
     hls_target_duration = math.ceil(max(track.segment_durations))
 
     playlist_file = open(path.join(options.output_dir, media_subdir, playlist_name), 'w+')
-    playlist_file.write('#EXTM3U\r\n')
-    playlist_file.write('# Created with Bento4 mp4-dash.py, VERSION=' + VERSION + '-' + SDK_REVISION+'\r\n')
-    playlist_file.write('#\r\n')
-    playlist_file.write('#EXT-X-VERSION:6\r\n')
-    playlist_file.write('#EXT-X-PLAYLIST-TYPE:VOD\r\n')
-    playlist_file.write('#EXT-X-INDEPENDENT-SEGMENTS\r\n')
-    playlist_file.write('#EXT-X-TARGETDURATION:%d\r\n' % (hls_target_duration))
-    playlist_file.write('#EXT-X-MEDIA-SEQUENCE:0\r\n')
+    playlist_file.write('#EXTM3U\n')
+    playlist_file.write('# Created with Bento4 mp4-dash.py, VERSION=' + VERSION + '-' + SDK_REVISION+'\n')
+    playlist_file.write('#\n')
+    playlist_file.write('#EXT-X-VERSION:6\n')
+    playlist_file.write('#EXT-X-PLAYLIST-TYPE:VOD\n')
+    playlist_file.write('#EXT-X-INDEPENDENT-SEGMENTS\n')
+    playlist_file.write('#EXT-X-TARGETDURATION:%d\n' % (hls_target_duration))
+    playlist_file.write('#EXT-X-MEDIA-SEQUENCE:0\n')
     if options.split:
-        playlist_file.write('#EXT-X-MAP:URI="%s"\r\n' % (SPLIT_INIT_SEGMENT_NAME))
+        playlist_file.write('#EXT-X-MAP:URI="%s"\n' % (SPLIT_INIT_SEGMENT_NAME))
     else:
         init_segment_size = track.parent.init_segment.position + track.parent.init_segment.size
-        playlist_file.write('#EXT-X-MAP:URI="%s",BYTERANGE="%d@0"\r\n' % (media_file_name, init_segment_size))
+        playlist_file.write('#EXT-X-MAP:URI="%s",BYTERANGE="%d@0"\n' % (media_file_name, init_segment_size))
 
     if options.encryption_key:
         key_lines = []
@@ -720,7 +729,7 @@ def OutputHlsCommon(options, track, all_tracks, media_subdir, playlist_name, med
             key_lines.append('URI="'+options.hls_key_url+'",IV=0x'+track.key_info['iv'])
 
         for key_line in key_lines:
-            playlist_file.write('#EXT-X-KEY:METHOD=SAMPLE-AES,'+key_line+'\r\n')
+            playlist_file.write('#EXT-X-KEY:METHOD=SAMPLE-AES,'+key_line+'\n')
 
     return playlist_file
 
@@ -732,24 +741,24 @@ def OutputHlsTrack(options, track, all_tracks, media_subdir, media_playlist_name
         segment_pattern = SEGMENT_PATTERN.replace('ll','')
 
     for i in range(len(track.segment_durations)):
-        media_playlist_file.write('#EXTINF:%f,\r\n' % (track.segment_durations[i]))
+        media_playlist_file.write('#EXTINF:%f,\n' % (track.segment_durations[i]))
         if options.on_demand or not options.split:
             segment          = track.parent.segments[track.moofs[i]]
             segment_position = segment[0].position
             segment_size     = reduce(operator.add, [atom.size for atom in segment], 0)
-            media_playlist_file.write('#EXT-X-BYTERANGE:%d@%d\r\n' % (segment_size, segment_position))
+            media_playlist_file.write('#EXT-X-BYTERANGE:%d@%d\n' % (segment_size, segment_position))
             media_playlist_file.write(media_file_name)
         else:
             media_playlist_file.write(segment_pattern % (i+1))
-        media_playlist_file.write('\r\n')
+        media_playlist_file.write('\n')
 
-    media_playlist_file.write('#EXT-X-ENDLIST\r\n')
+    media_playlist_file.write('#EXT-X-ENDLIST\n')
 
 #############################################
 def OutputHlsIframeIndex(options, track, all_tracks, media_subdir, iframes_playlist_name, media_file_name):
     index_playlist_file = OutputHlsCommon(options, track, all_tracks, media_subdir, iframes_playlist_name, media_file_name)
 
-    index_playlist_file.write('#EXT-X-I-FRAMES-ONLY\r\n')
+    index_playlist_file.write('#EXT-X-I-FRAMES-ONLY\n')
 
 
     iframe_total_segment_size = 0
@@ -765,7 +774,7 @@ def OutputHlsIframeIndex(options, track, all_tracks, media_subdir, iframes_playl
             if i < len(index):
                 index_entry = index[i]
                 iframe_segment_duration = track.segment_durations[i]
-                index_playlist_file.write('#EXTINF:%f,\r\n' % (iframe_segment_duration))
+                index_playlist_file.write('#EXTINF:%f,\n' % (iframe_segment_duration))
                 fragment_start    = int(index_entry['fragmentStart'])
                 iframe_offset     = int(index_entry['offset'])
                 iframe_size       = int(index_entry['size'])
@@ -777,8 +786,8 @@ def OutputHlsIframeIndex(options, track, all_tracks, media_subdir, iframes_playl
                     iframe_max_bitrate = iframe_bitrate
 
                 iframe_range_size = iframe_size + (iframe_offset-fragment_start)
-                index_playlist_file.write('#EXT-X-BYTERANGE:%d@%d\r\n' % (iframe_range_size, fragment_start))
-                index_playlist_file.write(media_file_name+'\r\n')
+                index_playlist_file.write('#EXT-X-BYTERANGE:%d@%d\n' % (iframe_range_size, fragment_start))
+                index_playlist_file.write(media_file_name+'\n')
     else:
         segment_pattern = SEGMENT_PATTERN.replace('ll','')
         for i in range(len(track.segment_durations)):
@@ -795,9 +804,9 @@ def OutputHlsIframeIndex(options, track, all_tracks, media_subdir, iframes_playl
             iframe_offset     = int(index[0]['offset'])
             iframe_range_size = iframe_size + iframe_offset
             iframe_segment_duration = track.segment_durations[i]
-            index_playlist_file.write('#EXTINF:%f,\r\n' % (iframe_segment_duration))
-            index_playlist_file.write('#EXT-X-BYTERANGE:%d@0\r\n' % (iframe_range_size))
-            index_playlist_file.write(fragment_basename+'\r\n')
+            index_playlist_file.write('#EXTINF:%f,\n' % (iframe_segment_duration))
+            index_playlist_file.write('#EXT-X-BYTERANGE:%d@0\n' % (iframe_range_size))
+            index_playlist_file.write(fragment_basename+'\n')
 
             iframe_total_segment_size += iframe_size
             iframe_total_segment_duration += iframe_segment_duration
@@ -806,7 +815,7 @@ def OutputHlsIframeIndex(options, track, all_tracks, media_subdir, iframes_playl
             if iframe_bitrate > iframe_max_bitrate:
                 iframe_max_bitrate = iframe_bitrate
 
-    index_playlist_file.write('#EXT-X-ENDLIST\r\n')
+    index_playlist_file.write('#EXT-X-ENDLIST\n')
 
     iframe_average_segment_bitrate = 8.0*(iframe_total_segment_size/iframe_total_segment_duration)
 
@@ -820,15 +829,15 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
 
     contain_pq_video_range = ContainPQTracks(video_sets)
     master_playlist_file = open(path.join(options.output_dir, options.hls_master_playlist_name), 'w+')
-    master_playlist_file.write('#EXTM3U\r\n')
-    master_playlist_file.write('# Created with Bento4 mp4-dash.py, VERSION=' + VERSION + '-' + SDK_REVISION+'\r\n')
-    master_playlist_file.write('#\r\n')
-    master_playlist_file.write('#EXT-X-VERSION:' + ('8' if contain_pq_video_range else '7') + '\r\n')
-    master_playlist_file.write('\r\n')
-    master_playlist_file.write('# Media Playlists\r\n')
+    master_playlist_file.write('#EXTM3U\n')
+    master_playlist_file.write('# Created with Bento4 mp4-dash.py, VERSION=' + VERSION + '-' + SDK_REVISION+'\n')
+    master_playlist_file.write('#\n')
+    master_playlist_file.write('#EXT-X-VERSION:' + ('8' if contain_pq_video_range else '7') + '\n')
+    master_playlist_file.write('\n')
+    master_playlist_file.write('# Media Playlists\n')
 
-    master_playlist_file.write('\r\n')
-    master_playlist_file.write('# Audio\r\n')
+    master_playlist_file.write('\n')
+    master_playlist_file.write('# Audio\n')
     
     # Start to process audio tracks
     audio_groups = {}
@@ -879,7 +888,7 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
             else:
                 # shall never happen
                 if audio_groups[audio_group_name]['channels'] != audio_track.channels:
-                    print 'WARNING: audio channels not all the same:', audio_groups[audio_group_name]['channels'], audio_track.channels
+                    print ('WARNING: audio channels not all the same:', audio_groups[audio_group_name]['channels'], audio_track.channels)
 
             if options.on_demand or not options.split:
                 media_subdir        = ''
@@ -900,7 +909,7 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
             if audio_tracks.index(audio_track) > 0:
                 default = 'NO'
             
-            master_playlist_file.write(('#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="%s",NAME="%s",LANGUAGE="%s",AUTOSELECT=YES,DEFAULT=%s,CHANNELS="%s",URI="%s"\r\n' % (
+            master_playlist_file.write(('#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="%s",NAME="%s",LANGUAGE="%s",AUTOSELECT=YES,DEFAULT=%s,CHANNELS="%s",URI="%s"\n' % (
                                         audio_group_name,
                                         language_name,
                                         language,
@@ -909,9 +918,9 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
                                         media_playlist_path)))
             OutputHlsTrack(options, audio_track, all_audio_tracks + all_video_tracks, media_subdir, media_playlist_name, media_file_name)
         if print_blank_line:
-                master_playlist_file.write('\r\n')
+                master_playlist_file.write('\n')
     # Print the blank line for audio blocks            
-    master_playlist_file.write('\r\n')
+    master_playlist_file.write('\n')
     
     # Start to process video tracks
     audio_group_name_list = []
@@ -933,7 +942,7 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
     # Re-order video tracks according to input order from command line
     ordered_video_track = ReOrderMediaTrack(regroup_video_sets)
     for video_group in ordered_video_track:
-        master_playlist_file.write(('# Video %s\r\n' % (video_group[0].codec_family.upper())).encode('utf-8'))
+        master_playlist_file.write('# Video %s\n' % (video_group[0].codec_family.upper()))
         iframe_playlist_lines = []
         # flag used to avoid duplicated work for generate video tracks
         processing_video_tracks = True
@@ -958,7 +967,7 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
                     # no audio
                     if contain_pq_video_range:
                         video_range_value = GetVideoRangeValue(video_track)
-                        master_playlist_file.write('#EXT-X-STREAM-INF:AVERAGE-BANDWIDTH=%d,BANDWIDTH=%d,VIDEO-RANGE=%s,CODECS="%s",RESOLUTION=%dx%d,FRAME-RATE=%.3f\r\n' % (
+                        master_playlist_file.write('#EXT-X-STREAM-INF:AVERAGE-BANDWIDTH=%d,BANDWIDTH=%d,VIDEO-RANGE=%s,CODECS="%s",RESOLUTION=%dx%d,FRAME-RATE=%.3f\n' % (
                                                video_track.average_segment_bitrate,
                                                video_track.max_segment_bitrate,
                                                video_range_value,
@@ -967,7 +976,7 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
                                                video_track.height,
                                                video_track.frame_rate))
                     else:
-                        master_playlist_file.write('#EXT-X-STREAM-INF:AVERAGE-BANDWIDTH=%d,BANDWIDTH=%d,CODECS="%s",RESOLUTION=%dx%d,FRAME-RATE=%.3f\r\n' % (
+                        master_playlist_file.write('#EXT-X-STREAM-INF:AVERAGE-BANDWIDTH=%d,BANDWIDTH=%d,CODECS="%s",RESOLUTION=%dx%d,FRAME-RATE=%.3f\n' % (
                                                video_track.average_segment_bitrate,
                                                video_track.max_segment_bitrate,
                                                video_track.codec,
@@ -978,7 +987,7 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
                     audio_codec = audio_groups[audio_group_name]['codec']
                     if contain_pq_video_range:
                         video_range_value = GetVideoRangeValue(video_track)
-                        master_playlist_file.write('#EXT-X-STREAM-INF:AVERAGE-BANDWIDTH=%d,BANDWIDTH=%d,VIDEO-RANGE=%s,CODECS="%s",RESOLUTION=%dx%d,FRAME-RATE=%.3f,AUDIO="%s"\r\n' % (
+                        master_playlist_file.write('#EXT-X-STREAM-INF:AVERAGE-BANDWIDTH=%d,BANDWIDTH=%d,VIDEO-RANGE=%s,CODECS="%s",RESOLUTION=%dx%d,FRAME-RATE=%.3f,AUDIO="%s"\n' % (
                                                    video_track.average_segment_bitrate + audio_groups[audio_group_name]['average_segment_bitrate'],
                                                    video_track.max_segment_bitrate + audio_groups[audio_group_name]['max_segment_bitrate'],
                                                    video_range_value,
@@ -988,7 +997,7 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
                                                    video_track.frame_rate,
                                                    audio_group_name))
                     else:
-                        master_playlist_file.write('#EXT-X-STREAM-INF:AVERAGE-BANDWIDTH=%d,BANDWIDTH=%d,CODECS="%s",RESOLUTION=%dx%d,FRAME-RATE=%.3f,AUDIO="%s"\r\n' % (
+                        master_playlist_file.write('#EXT-X-STREAM-INF:AVERAGE-BANDWIDTH=%d,BANDWIDTH=%d,CODECS="%s",RESOLUTION=%dx%d,FRAME-RATE=%.3f,AUDIO="%s"\n' % (
                                                    video_track.average_segment_bitrate + audio_groups[audio_group_name]['average_segment_bitrate'],
                                                    video_track.max_segment_bitrate + audio_groups[audio_group_name]['max_segment_bitrate'],
                                                    video_track.codec+','+audio_codec,
@@ -996,7 +1005,7 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
                                                    video_track.height,
                                                    video_track.frame_rate,
                                                    audio_group_name))
-                master_playlist_file.write(media_playlist_path+'\r\n')
+                master_playlist_file.write(media_playlist_path+'\n')
                 
                 if processing_video_tracks:
                     OutputHlsTrack(options, video_track, all_audio_tracks + all_video_tracks, media_subdir, media_playlist_name, media_file_name)
@@ -1005,7 +1014,7 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
                     # this will be written later
                     if contain_pq_video_range:
                         video_range_value = GetVideoRangeValue(video_track)
-                        iframe_playlist_lines.append('#EXT-X-I-FRAME-STREAM-INF:AVERAGE-BANDWIDTH=%d,BANDWIDTH=%d,VIDEO-RANGE=%s,CODECS="%s",RESOLUTION=%dx%d,URI="%s"\r\n' % (
+                        iframe_playlist_lines.append('#EXT-X-I-FRAME-STREAM-INF:AVERAGE-BANDWIDTH=%d,BANDWIDTH=%d,VIDEO-RANGE=%s,CODECS="%s",RESOLUTION=%dx%d,URI="%s"\n' % (
                                                      iframe_average_segment_bitrate,
                                                      iframe_max_bitrate,
                                                      video_range_value,
@@ -1014,7 +1023,7 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
                                                      video_track.height,
                                                      iframes_playlist_path))
                     else:
-                        iframe_playlist_lines.append('#EXT-X-I-FRAME-STREAM-INF:AVERAGE-BANDWIDTH=%d,BANDWIDTH=%d,CODECS="%s",RESOLUTION=%dx%d,URI="%s"\r\n' % (
+                        iframe_playlist_lines.append('#EXT-X-I-FRAME-STREAM-INF:AVERAGE-BANDWIDTH=%d,BANDWIDTH=%d,CODECS="%s",RESOLUTION=%dx%d,URI="%s"\n' % (
                                                      iframe_average_segment_bitrate,
                                                      iframe_max_bitrate,
                                                      video_track.codec,
@@ -1023,15 +1032,15 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
                                                      iframes_playlist_path))
             # Print blank line
             if len(video_group) > 1:
-                master_playlist_file.write('\r\n')
+                master_playlist_file.write('\n')
             processing_video_tracks = False
-        master_playlist_file.write(('# I-Frame Playlists %s\r\n' % (video_group[0].codec_family.upper())).encode('utf-8'))
+        master_playlist_file.write(('# I-Frame Playlists %s\n' % video_group[0].codec_family.upper()))
         master_playlist_file.write(''.join(iframe_playlist_lines))
-        master_playlist_file.write('\r\n')
+        master_playlist_file.write('\n')
 
     # IMSC1 subtitles
     if all_subtitles_tracks:
-        master_playlist_file.write('\r\n# Subtitles (IMSC1)\r\n')
+        master_playlist_file.write('\n# Subtitles (IMSC1)\n')
         for subtitles_track in all_subtitles_tracks:
             if subtitles_track.codec != 'stpp':
                 # only accept IMSC1 tracks
@@ -1050,14 +1059,14 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
                 media_playlist_name = options.hls_media_playlist_name
                 media_playlist_path = media_subdir+'/'+media_playlist_name
 
-            master_playlist_file.write('#EXT-X-MEDIA:TYPE=SUBTITLES,GROUP-ID="imsc1",NAME="{0:s}",DEFAULT=NO,AUTOSELECT=YES,LANGUAGE="{1:s}",URI="{2:s}"\r\n'
+            master_playlist_file.write('#EXT-X-MEDIA:TYPE=SUBTITLES,GROUP-ID="imsc1",NAME="{0:s}",DEFAULT=NO,AUTOSELECT=YES,LANGUAGE="{1:s}",URI="{2:s}"\n'
                                        .format(language_name, language, media_playlist_path))
 
     # WebVTT subtitles
     if subtitles_files:
-        master_playlist_file.write('\r\n# Subtitles (WebVTT)\r\n')
+        master_playlist_file.write('\n# Subtitles (WebVTT)\n')
         for subtitles_file in subtitles_files:
-            master_playlist_file.write('#EXT-X-MEDIA:TYPE=SUBTITLES,GROUP-ID="subs",NAME="{0:s}",DEFAULT=NO,AUTOSELECT=YES,FORCED=YES,LANGUAGE="{0:s}",URI="subtitles/{0:s}/{1:s}"\r\n'
+            master_playlist_file.write('#EXT-X-MEDIA:TYPE=SUBTITLES,GROUP-ID="subs",NAME="{0:s}",DEFAULT=NO,AUTOSELECT=YES,FORCED=YES,LANGUAGE="{0:s}",URI="subtitles/{0:s}/{1:s}"\n'
                                        .format(subtitles_file.language,subtitles_file.media_name))
 
 #############################################

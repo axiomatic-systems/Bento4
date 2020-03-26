@@ -417,11 +417,11 @@ class Mp4Track:
             # Completed main and associated audio flags
             self.CM              = 'CMNA'
             self.AA              = 'AANA'
-            if self.codec_family == 'ec-3' and sample_desc.has_key('dolby_digital_info'):
+            if self.codec_family == 'ec-3' and 'dolby_digital_info' in sample_desc:
                 self.dolby_ddp_atmos = sample_desc['dolby_digital_info']['Dolby Digital Plus with Dolby Atmos']
                 if (self.dolby_ddp_atmos == 'Yes'):
                     self.complexity_index = sample_desc['dolby_digital_info']['Dolby Atmos Complexity Index']
-            elif self.codec_family == 'ac-4' and sample_desc.has_key('dolby_ac4_info'):
+            elif self.codec_family == 'ac-4' and 'dolby_ac4_info' in sample_desc:
                 stream_type = sample_desc['dolby_ac4_info']['presentations'][0]['Stream Type'];
                 if stream_type == 'Immersive stereo':
                     self.dolby_ac4_ims = 'Yes'
@@ -915,7 +915,7 @@ def DolbyDigitalWithMPEGDASHScheme(mask):
                            'F800': '5' , 'F801': '6' , 'F821': '7' , 'A100': '9' ,
                            'B800': '10', 'E301': '11', 'FA01': '12', 'F811': '14',
                            'F815': '16', 'F89D': '17', 'E255': '19'}
-    if available_mask_dict.has_key(mask):
+    if mask in available_mask_dict:
         return (True, available_mask_dict[mask])
     else:
         return (False, mask)
@@ -941,7 +941,7 @@ def DolbyAc4WithMPEGDASHScheme(mask):
         '04144F' : '15', '000077' : '16', '040067' : '16', '000A77' : '17',
         '040A67' : '17', '000A7F' : '18', '040A6F' : '18', '00007F' : '19',
         '04006F' : '19', '01007F' : '20', '05006F' : '2'}
-    if available_mask_dict.has_key(mask):
+    if mask in available_mask_dict:
         return (True, available_mask_dict[mask])
     else:
         return (False, mask)
@@ -954,7 +954,7 @@ def ContainPQTracks(video_sets):
     return False
     
 def DolbyVisionProfile8DualEntry(video_sets, hevc_codec, dv_codec):
-    if video_sets.has_key(('video', hevc_codec)):
+    if ('video', hevc_codec) in video_sets:
         duplicate_vdieo_sets = []
         hevc_videos = video_sets[('video', hevc_codec)];
         for item_video in hevc_videos:
@@ -977,7 +977,7 @@ def DolbyVisionProfile8DualEntry(video_sets, hevc_codec, dv_codec):
                 codecs.remove(remove_codec)
                 item_video.codec = ','.join(codecs)
         if (duplicate_vdieo_sets):
-            new_codec = dv_codec.decode('utf-8')
+            new_codec = dv_codec
             video_sets[('video', new_codec)] = []
             for item in duplicate_vdieo_sets:
                 video_sets[('video', new_codec)].append(item)
@@ -1229,7 +1229,7 @@ def ComputeDolbyDigitalPlusSmoothStreamingInfo(track):
     mask_hex_be = "{0:0{1}x}".format(channel_mask, 4)
     info += mask_hex_be[2:4]+mask_hex_be[0:2]+'0000'
     info += "af87fba7022dfb42a4d405cd93843bdd"
-    if track.info['sample_descriptions'][0].has_key('dolby_digital_info'):
+    if 'dolby_digital_info' in track.info['sample_descriptions'][0]:
         info += track.info['sample_descriptions'][0]['dolby_digital_info']['dec3_payload']
     return (channel_count, info.lower())
 
