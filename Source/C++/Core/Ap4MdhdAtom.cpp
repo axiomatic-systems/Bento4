@@ -106,7 +106,10 @@ AP4_MdhdAtom::AP4_MdhdAtom(AP4_UI32        size,
     char l0 = ((lang[0]>>2)&0x1F);
     char l1 = (((lang[0]&0x3)<<3) | ((lang[1]>>5)&0x7));
     char l2 = ((lang[1]&0x1F));
-    if (l0 && l1 && l2) {
+    if (lang[0] == 0x7F && lang[1] == 0xFF) {
+        // undefined (Quicktime)
+        m_Language.Assign("und", 3);
+    } else if (l0 && l1 && l2) {
         char lang_str[3] = {(char)(l0+0x60), (char)(l1+0x60), (char)(l2+0x60)};
         m_Language.Assign(lang_str, 3);
     } else {
