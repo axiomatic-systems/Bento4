@@ -581,7 +581,7 @@ AP4_PatternStreamCipher::ProcessBuffer(const AP4_UI08* in,
             crypt_size = (m_CryptByteBlock-pattern_position)*16;
         } else {
             // in the skipped part
-            skip_size = pattern_span-pattern_position;
+            skip_size = (pattern_span-pattern_position)*16;
         }
         
         // clip
