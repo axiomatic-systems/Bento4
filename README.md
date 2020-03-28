@@ -77,25 +77,7 @@ Open the XCode project file Build/Targets/universal-apple-macosx/Bento4.xcodepro
 ### Windows using Visual Studio
 Open the Visual Studio solution file Build/Targets/x86-microsoft-win32-vs2010/Bento4.sln and build
 
-### On Linux and other platforms, using SCons
-Make sure you the the SCons build tool installed on your host machine (http://www.scons.org).
-To build the Debug configuration, simply enter the command:
-
-```scons -u```
-
-in a terminal from any directory (either from the top level directory where you downloaded the Bento4 distribution, or from the Build/Targets/xxx subdirectory for your specific target).
-
-To build the Release configuration, use the command:
-
-```scons -u build_config=Release```
-
-To cross-compile for a target other than your host architecture, specify target=xxxx as an argument to the scons build command.
-
-Example:
-
-```scons -u build_config=Release target=x86_64-unknown-linux```
-
-### Using CMake
+### On Linux and other platforms, Using CMake
 CMake can generate Makefiles, Xcode project files, or Visual Studios project files.
 
 #### CMake/Make
@@ -124,6 +106,24 @@ CMake can generate Makefiles, Xcode project files, or Visual Studios project fil
     See https://developer.android.com/ndk/guides/cmake for details on the choice of ABI and other parameters.
     
     Where $NDK is set to the directory path where you have installed the NDK, $ABI is the Android ABI (ex: arm64-v8a) and $MINSDKVERSION is the minimum SDK version (ex: 23)
+
+### On Linux and other platforms, using SCons (deprecated)
+Make sure you the the SCons build tool installed on your host machine (http://www.scons.org).
+To build the Debug configuration, simply enter the command:
+
+```scons -u```
+
+in a terminal from any directory (either from the top level directory where you downloaded the Bento4 distribution, or from the Build/Targets/xxx subdirectory for your specific target).
+
+To build the Release configuration, use the command:
+
+```scons -u build_config=Release```
+
+To cross-compile for a target other than your host architecture, specify target=xxxx as an argument to the scons build command.
+
+Example:
+
+```scons -u build_config=Release target=x86_64-unknown-linux```
 
 ### Using Make
 From a command shell, go to your build target directory.
