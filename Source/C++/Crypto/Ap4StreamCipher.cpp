@@ -568,7 +568,7 @@ AP4_PatternStreamCipher::ProcessBuffer(const AP4_UI08* in,
     if (m_StreamOffset % 16) return AP4_ERROR_INVALID_FORMAT;
     
     // compute where we are in the pattern
-    unsigned int pattern_span = m_CryptByteBlock+m_SkipByteBlock;
+    unsigned int pattern_span     = m_CryptByteBlock+m_SkipByteBlock;
     unsigned int block_position   = (unsigned int)(m_StreamOffset/16);
     unsigned int pattern_position = block_position % pattern_span;
 
