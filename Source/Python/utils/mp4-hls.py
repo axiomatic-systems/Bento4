@@ -254,7 +254,6 @@ def OutputHls(options, media_sources):
     AnalyzeSources(options, media_sources)
 
     # select audio tracks
-    audio_media = []
     audio_tracks = SelectAudioTracks(options, [media_source for media_source in mp4_sources if not media_source.spec.get('+audio_fallback')])
 
     # check if this is an audio-only presentation
@@ -457,7 +456,7 @@ def OutputHls(options, media_sources):
                 ext_x_stream_inf += ',AUDIO="'+group_name+'"'
 
             # subtitles info
-            if len(subtitles_files):
+            if subtitles_files:
                 ext_x_stream_inf += ',SUBTITLES="subtitles"'
 
             master_playlist.write(ext_x_stream_inf+'\r\n')
