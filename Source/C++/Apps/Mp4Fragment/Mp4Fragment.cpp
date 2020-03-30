@@ -65,6 +65,7 @@ struct _Options {
     double        tfdt_start;
     unsigned int  sequence_number_start;
     ForceSyncMode force_i_frame_sync;
+    bool          no_zero_elst;
 } Options;
 
 /*----------------------------------------------------------------------
@@ -91,6 +92,7 @@ PrintUsageAndExit()
             "  --force-i-frame-sync <auto|all> treat all I-frames as sync samples (for open-gop sequences)\n"
             "    'auto' only forces the flag if an open-gop source is detected, 'all' forces the flag in all cases\n"
             "  --copy-udta copy the moov/udta atom from input to output\n"
+            "  --no-zero-elst don't set the last edit list entry to 0 duration\n"
             );
     exit(1);
 }
@@ -373,9 +375,17 @@ Fragment(AP4_File&                input_file,
                     // adjust the fields to match the correct timescale
                     for (unsigned int j=0; j<elst->GetEntries().ItemCount(); j++) {
                         AP4_ElstEntry new_elst_entry = elst->GetEntries()[j];
-                        new_elst_entry.m_SegmentDuration = AP4_ConvertTime(new_elst_entry.m_SegmentDuration,
-                                                                           input_movie->GetTimeScale(),
-                                                                           AP4_FRAGMENTER_OUTPUT_MOVIE_TIMESCALE);
+                        if (j == elst->GetEntries().ItemCount() - 1 &&
+                            new_elst_entry.m_SegmentDuration == track->GetDuration() &&
+                            !Options.no_zero_elst) {
+                            // if this is the last entry, make the segment duration 0 (i.e last until the end)
+                            // in order to be compliant with the CMAF specification
+                            new_elst_entry.m_SegmentDuration = 0;
+                        } else {
+                            new_elst_entry.m_SegmentDuration = AP4_ConvertTime(new_elst_entry.m_SegmentDuration,
+                                                                               input_movie->GetTimeScale(),
+                                                                               AP4_FRAGMENTER_OUTPUT_MOVIE_TIMESCALE);
+                        }
                         if (new_elst_entry.m_MediaTime > 0 && timescale) {
                             new_elst_entry.m_MediaTime = (AP4_SI64)AP4_ConvertTime(new_elst_entry.m_MediaTime,
                                                                                    track->GetMediaTimeScale(),
@@ -594,10 +604,7 @@ Fragment(AP4_File&                input_file,
         // index of the first sample in the group, which may not be correct. This
         // should be fixed later)
         unsigned int sample_desc_index = cursor->m_Sample.GetDescriptionIndex();
-        unsigned int tfhd_flags = AP4_TFHD_FLAG_DEFAULT_BASE_IS_MOOF;
-        if (sample_desc_index > 0) {
-            tfhd_flags |= AP4_TFHD_FLAG_SAMPLE_DESCRIPTION_INDEX_PRESENT;
-        }
+        unsigned int tfhd_flags = AP4_TFHD_FLAG_DEFAULT_BASE_IS_MOOF | AP4_TFHD_FLAG_SAMPLE_DESCRIPTION_INDEX_PRESENT;
         if (cursor->m_Track->GetType() == AP4_Track::TYPE_VIDEO) {
             tfhd_flags |= AP4_TFHD_FLAG_DEFAULT_SAMPLE_FLAGS_PRESENT;
         }
@@ -757,8 +764,11 @@ Fragment(AP4_File&                input_file,
                                                   compatible_brands.ItemCount());
         ftyp = new_ftyp;
     } else {
-        AP4_UI32 compat = AP4_FILE_BRAND_ISO5;
-        ftyp = new AP4_FtypAtom(AP4_FTYP_BRAND_MP42, 0, &compat, 1);
+        AP4_UI32 compat[2] = {
+            AP4_FILE_BRAND_ISOM,
+            AP4_FILE_BRAND_ISO5
+        };
+        ftyp = new AP4_FtypAtom(AP4_FTYP_BRAND_MP42, 0, &compat[0], 2);
     }
     ftyp->Write(output_stream);
     delete ftyp;
@@ -1161,6 +1171,8 @@ main(int argc, char** argv)
             }
         } else if (!strcmp(arg, "--copy-udta")) {
             copy_udta = true;
+        } else if (!strcmp(arg, "--no-zero-elst")) {
+            Options.no_zero_elst = true;
         } else {
             if (input_filename == NULL) {
                 input_filename = arg;
