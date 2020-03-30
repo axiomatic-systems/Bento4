@@ -343,7 +343,7 @@ class Cloner:
             use_temp_file = True
             outfile_name_final = outfile_name
             outfile_name += '.tmp'
-        outfile = open(outfile_name, 'wb+')
+        outfile = open(outfile_name, 'wb')
         try:
             shutil.copyfileobj(data, outfile)
             outfile.close()
