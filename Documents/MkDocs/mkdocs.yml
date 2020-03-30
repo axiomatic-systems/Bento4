@@ -1,0 +1,27 @@
+site_name: Bento4
+
+use_directory_urls: false
+
+nav:
+  - Home: index.md
+
+copyright: © 2020 Axiomatic Systems, LLC. All rights reserved.
+
+theme:
+  name: 'material'
+  logo:
+      icon: "\uE80D"
+  custom_dir: 'theme'
+
+docs_dir: 'src'
+
+# Extensions
+markdown_extensions:
+  - admonition
+  - attr_list
+  - pymdownx.details
+  - pymdownx.superfences
+  - codehilite:
+      guess_lang: false
+  - toc:
+      permalink: true
