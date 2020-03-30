@@ -2111,7 +2111,7 @@ main(int argc, char** argv)
         }
 
         double frame_rate = 0.0;
-        if (Stats.segments_total_duration != 0.0) {
+        if (video_track && (Stats.segments_total_duration != 0.0)) {
             double sample_count = (double)video_track->GetSampleCount();
             double media_duration = (double)video_track->GetMediaDuration();
             double timescale = (double)video_track->GetMediaTimeScale();
