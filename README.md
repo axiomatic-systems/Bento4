@@ -81,21 +81,24 @@ Open the Visual Studio solution file Build/Targets/x86-microsoft-win32-vs2010/Be
 CMake can generate Makefiles, Xcode project files, or Visual Studios project files.
 
 #### CMake/Make
+
 	mkdir cmakebuild
 	cd cmakebuild
 	cmake -DCMAKE_BUILD_TYPE=Release ..
 	make
 
 #### CMake/Xcode
+
 	mkdir cmakebuild
 	cd cmakebuild
-	cmake -G Xcode -DCMAKE_BUILD_TYPE=Release ..
+	cmake -G Xcode
+    cmake --build . --config Release
 
 #### CMake/Visual Studio
 	mkdir cmakebuild
 	cd cmakebuild
-	cmake -G "Visual Studio 10 Win64" -DCMAKE_BUILD_TYPE=Release ..
-
+	cmake -DCMAKE_BUILD_TYPE=Release ..
+    cmake --build . --config Release
 
 #### CMake for Android NDK
     mkdir cmakebuild

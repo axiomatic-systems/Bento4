@@ -9,8 +9,7 @@ copyright: © 2020 Axiomatic Systems, LLC. All rights reserved.
 
 theme:
   name: 'material'
-  logo:
-      icon: "\uE80D"
+  logo: 'images/bento4-small.jpg'
   custom_dir: 'theme'
 
 docs_dir: 'src'
