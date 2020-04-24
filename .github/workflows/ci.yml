@@ -20,7 +20,7 @@ jobs:
           - os: ubuntu-latest
             CMAKE_OPTIONS: -DCMAKE_BUILD_TYPE=Release
           - os: macos-latest
-            CMAKE_OPTIONS: -G XCode
+            CMAKE_OPTIONS: -G Xcode
 
     steps:
       # Checks-out the repository under $GITHUB_WORKSPACE, so that the jobs can access it
