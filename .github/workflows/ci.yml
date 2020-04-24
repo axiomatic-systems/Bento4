@@ -1,0 +1,35 @@
+# CI Workflow for Bento4
+name: CI
+
+# Controls when the action will run. Triggers the workflow on push or pull request
+# events but only for the master branch
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build-linux-macos:
+    name: Bento4 Build ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: ['ubuntu-latest', 'macos-latest']
+        include:
+          - os: ubuntu-latest
+            CMAKE_OPTIONS: -DCMAKE_BUILD_TYPE=Release
+          - os: macos-latest
+            CMAKE_OPTIONS: -G XCode
+
+    steps:
+      # Checks-out the repository under $GITHUB_WORKSPACE, so that the jobs can access it
+      - uses: actions/checkout@v2
+
+      # CMake Build
+      - name: Release Build with CMake
+        run: |
+          mkdir cmakebuild
+          cd cmakebuild
+          cmake ${{matrix.CMAKE_OPTIONS}} ..
+          cmake --build . --config Release
