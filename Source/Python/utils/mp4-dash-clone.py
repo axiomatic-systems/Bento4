@@ -16,7 +16,7 @@ __copyright__ = 'Copyright 2011-2012 Axiomatic Systems, LLC.'
 ### Imports
 import sys
 import os
-import os.path
+import os.path as path
 from optparse import OptionParser
 import urllib.request, urllib.error, urllib.parse
 import urllib.parse
@@ -35,7 +35,7 @@ MARLIN_MAS_NS_URN  = 'urn:marlin:mas:1-0:services:schemas:mpd'
 MARLIN_MAS_NS      = '{'+MARLIN_MAS_NS_URN+'}'
 
 def Bento4Command(name, *args, **kwargs):
-    cmd = [os.path.join(Options.exec_dir, name)]
+    cmd = [path.join(Options.exec_dir, name)]
     for kwarg in kwargs:
         arg = kwarg.replace('_', '-')
         cmd.append('--'+arg)
@@ -206,7 +206,7 @@ class DashRepresentation:
             for s in timeline:
                 if 't' in s:
                     current_time = s['t']
-                for r in range(1+s['r']):
+                for _ in range(1+s['r']):
                     url = ProcessUrlTemplate(media, representation_id=self.id, bandwidth=self.bandwidth, time=str(current_time), number=str(current_number))
                     current_number += 1
                     current_time += s['d']
@@ -288,7 +288,7 @@ def ParseMpd(url, xml):
     return mpd
 
 def MakeNewDir(dir, is_warning=False):
-    if os.path.exists(dir):
+    if path.exists(dir):
         if is_warning:
             print('WARNING: ', end=' ')
         else:
@@ -310,7 +310,7 @@ def ComputeUrl(base_url, url):
         raise Exception('Absolute URLs are not supported')
 
     if base_url.startswith('file://'):
-        return os.path.join(os.path.dirname(base_url), url)
+        return path.join(path.dirname(base_url), url)
     else:
         return urllib.parse.urljoin(base_url, url)
 
@@ -323,21 +323,21 @@ class Cloner:
     def CloneSegment(self, url, path_out, is_init):
         while path_out.startswith('/'):
             path_out = path_out[1:]
-        target_dir = os.path.join(self.root_dir, path_out)
+        target_dir = path.join(self.root_dir, path_out)
         if Options.verbose:
             print('Cloning', url, 'to', path_out)
 
         #os.makedirs(target_dir)
         try:
-            os.makedirs(os.path.dirname(target_dir))
+            os.makedirs(path.dirname(target_dir))
         except OSError:
-            if os.path.exists(target_dir):
+            if path.exists(target_dir):
                 pass
         except:
             raise
 
         data = OpenURL(url)
-        outfile_name = os.path.join(self.root_dir, path_out)
+        outfile_name = path.join(self.root_dir, path_out)
         use_temp_file = False
         if Options.encrypt:
             use_temp_file = True
@@ -394,7 +394,7 @@ def main():
                       dest='encrypt', default=None,
                       help="Encrypt the media, with KID and KEY specified in Hex (32 characters each)")
     parser.add_option('', "--exec-dir", metavar="<exec_dir>",
-                      dest="exec_dir", default=os.path.join(SCRIPT_PATH, 'bin', platform),
+                      dest="exec_dir", default=path.join(SCRIPT_PATH, 'bin', platform),
                       help="Directory where the Bento4 executables are located")
 
     global Options
@@ -472,9 +472,9 @@ def main():
 
     # write the MPD
     xml_tree = ElementTree.ElementTree(mpd.xml)
-    xml_tree.write(os.path.join(output_dir, os.path.basename(urllib.parse.urlparse(mpd_url).path)), encoding="UTF-8", xml_declaration=True)
+    xml_tree.write(path.join(output_dir, path.basename(urllib.parse.urlparse(mpd_url).path)), encoding="UTF-8", xml_declaration=True)
 
 ###########################
-SCRIPT_PATH = os.path.abspath(os.path.dirname(__file__))
+SCRIPT_PATH = path.abspath(path.dirname(__file__))
 if __name__ == '__main__':
     main()

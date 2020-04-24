@@ -17,6 +17,7 @@ Features
 A number of formats and features based on the ISO-MP4 format and related technologies are also supported, including:
 
  * MPEG DASH with fragmented MP4 files, as defined in ISO/IEC 23009-1
+ * CMAF (Common Media Application Format) as defined in ISO/IEC 23000-19
  * MPEG Common Encryption (CENC) as specified in ISO/IEC 23001-7
  * PIFF (Protected Interoperable File Format): encrypted, fragmented MP4 format specified by Microsoft and used for encrypted HTTP Smooth Streaming.
  * Reading and writing 3GPP and iTunes-compatible metadata.

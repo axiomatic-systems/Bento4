@@ -22,10 +22,38 @@ import tempfile
 import re
 import platform
 import sys
+import os
+import os.path as path
+import json
 import math
-from mp4utils import *
-from subtitles import *
+import operator
 from functools import reduce
+from subtitles import SubtitlesFile
+from mp4utils import MakePsshBox,\
+                     MakePsshBoxV1,\
+                     Base64Encode,\
+                     Base64Decode,\
+                     ComputeWidevineHeader,\
+                     ComputePlayReadyHeader,\
+                     ComputePrimetimeMetaData,\
+                     ComputeDolbyAc4AudioChannelConfig,\
+                     ComputeDolbyDigitalPlusAudioChannelConfig,\
+                     ComputeDolbyDigitalPlusSmoothStreamingInfo,\
+                     ComputeMarlinPssh,\
+                     Mp4IframeIndex,\
+                     Mp4File,\
+                     Mp4Encrypt,\
+                     Mp4Fragment,\
+                     Mp4Split,\
+                     MediaSource,\
+                     WalkAtoms,\
+                     GetEncryptionKey,\
+                     DerivePlayReadyKey,\
+                     LanguageNames,\
+                     LanguageCodeMap,\
+                     XmlDuration,\
+                     PrintErrorAndExit,\
+                     MakeNewDir
 
 # setup main options
 VERSION = "2.0.0"
@@ -1188,7 +1216,7 @@ def SelectTracks(options, media_sources):
             continue
 
         # parse the file
-        if not os.path.exists(media_file):
+        if not path.exists(media_file):
             PrintErrorAndExit('ERROR: media file ' + media_file + ' does not exist')
 
         # get the file info

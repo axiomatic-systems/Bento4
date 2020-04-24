@@ -15,15 +15,19 @@ __copyright__ = 'Copyright 2011-2020 Axiomatic Systems, LLC.'
 
 from optparse import OptionParser
 import shutil
-import xml.etree.ElementTree as xml
-from xml.dom.minidom import parseString
-import tempfile
-import fractions
-import re
 import platform
 import sys
-from mp4utils import *
-from subtitles import *
+import os.path as path
+import json
+from subtitles import SubtitlesFile
+from mp4utils import Base64Encode,\
+                     Mp4File,\
+                     Mp42Hls,\
+                     MediaSource,\
+                     LanguageNames,\
+                     LanguageCodeMap,\
+                     PrintErrorAndExit,\
+                     MakeNewDir
 
 # setup main options
 VERSION = "1.2.0"
@@ -94,7 +98,7 @@ def AnalyzeSources(options, media_sources):
             continue
 
         # parse the file
-        if not os.path.exists(media_file):
+        if not path.exists(media_file):
             PrintErrorAndExit('ERROR: media file ' + media_file + ' does not exist')
 
         # get the file info
