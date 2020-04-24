@@ -1,5 +1,6 @@
 Bento4
 =====
+![CI](https://github.com/axiomatic-systems/Bento4/workflows/CI/badge.svg?branch=master)
 [![Build Status](https://travis-ci.org/axiomatic-systems/Bento4.svg?branch=master)](https://travis-ci.org/axiomatic-systems/Bento4.svg?branch=master)
 [![Code Quality: Cpp](https://img.shields.io/lgtm/grade/cpp/g/axiomatic-systems/Bento4.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/axiomatic-systems/Bento4/context:cpp)
 [![Total Alerts](https://img.shields.io/lgtm/alerts/g/axiomatic-systems/Bento4.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/axiomatic-systems/Bento4/alerts)
