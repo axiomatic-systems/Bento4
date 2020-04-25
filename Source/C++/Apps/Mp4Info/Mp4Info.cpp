@@ -709,7 +709,7 @@ ShowSampleDescription_Json(AP4_SampleDescription& description, bool verbose)
             printf("    \"bsid\": %d,\n",  dac3->GetStreamInfo().bsid);
             printf("    \"bsmod\": %d,\n", dac3->GetStreamInfo().bsmod);
             printf("    \"acmod\": %d,\n", dac3->GetStreamInfo().acmod);
-            printf("    \"lfeon\": %d,\n", dac3->GetStreamInfo().lfeon);
+            printf("    \"lfeon\": %d\n", dac3->GetStreamInfo().lfeon);
             printf("  }\n");
             printf("}");
         }
