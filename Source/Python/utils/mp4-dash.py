@@ -1221,7 +1221,7 @@ def SelectTracks(options, media_sources):
 
         # get the file info
         print('Parsing media file', str(file_list_index)+':', GetMappedFileName(media_file))
-        mp4_file = Mp4File(Options, media_source)
+        mp4_file = Mp4File(options, media_source)
 
         # set some metadata properties for this file
         mp4_file.file_list_index = file_list_index

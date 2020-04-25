@@ -218,7 +218,7 @@ if __name__ == '__main__':
     try:
         main()
     except Exception as err:
-        if Options is None or Options.debug:
+        if Options and Options.debug:
             raise
         else:
             PrintErrorAndExit('ERROR: %s\n' % str(err))

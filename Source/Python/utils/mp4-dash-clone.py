@@ -19,7 +19,6 @@ import os
 import os.path as path
 from optparse import OptionParser
 import urllib.request, urllib.error, urllib.parse
-import urllib.parse
 import shutil
 import json
 import sys
