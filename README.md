@@ -1,5 +1,6 @@
 Bento4
 =====
+![CI](https://github.com/axiomatic-systems/Bento4/workflows/CI/badge.svg?branch=master)
 [![Build Status](https://travis-ci.org/axiomatic-systems/Bento4.svg?branch=master)](https://travis-ci.org/axiomatic-systems/Bento4.svg?branch=master)
 [![Code Quality: Cpp](https://img.shields.io/lgtm/grade/cpp/g/axiomatic-systems/Bento4.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/axiomatic-systems/Bento4/context:cpp)
 [![Total Alerts](https://img.shields.io/lgtm/alerts/g/axiomatic-systems/Bento4.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/axiomatic-systems/Bento4/alerts)
@@ -16,6 +17,7 @@ Features
 A number of formats and features based on the ISO-MP4 format and related technologies are also supported, including:
 
  * MPEG DASH with fragmented MP4 files, as defined in ISO/IEC 23009-1
+ * CMAF (Common Media Application Format) as defined in ISO/IEC 23000-19
  * MPEG Common Encryption (CENC) as specified in ISO/IEC 23001-7
  * PIFF (Protected Interoperable File Format): encrypted, fragmented MP4 format specified by Microsoft and used for encrypted HTTP Smooth Streaming.
  * Reading and writing 3GPP and iTunes-compatible metadata.

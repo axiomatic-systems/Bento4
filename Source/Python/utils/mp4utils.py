@@ -502,7 +502,7 @@ class Mp4File:
             print('Processing MP4 file', filename)
 
         # by default, the media name is the basename of the source file
-        self.media_name = os.path.basename(filename)
+        self.media_name = path.basename(filename)
 
         # walk the atom structure
         self.atoms = WalkAtoms(filename)
@@ -715,7 +715,7 @@ def ComputeBandwidth(buffer_time, sizes, durations):
     return int(bandwidth)
 
 def MakeNewDir(dir, exit_if_exists=False, severity=None):
-    if os.path.exists(dir):
+    if path.exists(dir):
         if severity:
             sys.stderr.write(severity+': ')
             sys.stderr.write('directory "'+dir+'" already exists\n')
@@ -1053,11 +1053,11 @@ def ComputePlayReadyHeader(version, header_spec, encryption_scheme, key_specs):
         if not header:
             raise Exception('invalid base64 encoding')
         return header
-    elif header_spec.startswith('@') or os.path.exists(header_spec):
+    elif header_spec.startswith('@') or path.exists(header_spec):
         # check that the file exists
         if header_spec.startswith('@'):
             header_spec = header_spec[1:]
-            if not os.path.exists(header_spec):
+            if not path.exists(header_spec):
                 raise Exception('header data file does not exist')
 
         # read the header from the file
@@ -1142,7 +1142,7 @@ def ComputePrimetimeMetaData(metadata_spec, kid_hex):
             raise Exception('invalid base64 encoding')
     elif metadata_spec.startswith('@'):
         metadata_filename = metadata_spec[1:]
-        if not os.path.exists(metadata_filename):
+        if not path.exists(metadata_filename):
             raise Exception('data file does not exist')
 
         # read the header from the file
@@ -1212,3 +1212,41 @@ def ComputeWidevineHeader(header_spec, encryption_scheme, kid_hex):
             protobuf_fields.append((9, four_cc))
 
         return WidevineMakeHeader(protobuf_fields)
+
+#############################################
+# Module Exports
+#############################################
+__all__ = [
+    'LanguageCodeMap',
+    'LanguageNames',
+    'PrintErrorAndExit',
+    'XmlDuration',
+    'Base64Encode',
+    'Base64Decode',
+    'Bento4Command',
+    'Mp4Info',
+    'Mp4Dump',
+    'Mp4Split',
+    'Mp4Fragment',
+    'Mp4Encrypt',
+    'Mp42Hls',
+    'Mp4IframeIndex',
+    'WalkAtoms',
+    'Mp4Track',
+    'Mp4File',
+    'MediaSource',
+    'ComputeBandwidth',
+    'MakeNewDir',
+    'MakePsshBox',
+    'MakePsshBoxV1',
+    'GetEncryptionKey',
+    'GetDolbyDigitalPlusChannels',
+    'ComputeDolbyDigitalPlusAudioChannelConfig',
+    'ComputeDolbyAc4AudioChannelConfig',
+    'ComputeDolbyDigitalPlusSmoothStreamingInfo',
+    'ComputeMarlinPssh',
+    'DerivePlayReadyKey',
+    'ComputePlayReadyHeader',
+    'ComputePrimetimeMetaData',
+    'ComputeWidevineHeader'
+]

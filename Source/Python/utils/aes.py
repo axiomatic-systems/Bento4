@@ -1,7 +1,6 @@
 # Based on the public domain code from tlslite (Trevor Perrin, http://trevp.net/tlslite/)
 
 import copy
-import string
 
 shifts = [[[0, 0], [1, 3], [2, 2], [3, 1]],
           [[0, 0], [1, 5], [2, 4], [3, 3]],
