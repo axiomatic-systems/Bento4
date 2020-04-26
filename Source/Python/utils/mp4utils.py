@@ -1178,6 +1178,9 @@ def WidevineMakeHeader(fields):
         elif type(field_val) == str:
             wire_type = 2
             wire_val = WidevineVarInt(len(field_val)) + field_val.encode('ascii')
+        elif type(field_val) == bytes:
+            wire_type = 2
+            wire_val = WidevineVarInt(len(field_val)) + field_val
         buffer += bytes([(field_num << 3) | wire_type]) + wire_val
     return buffer
 

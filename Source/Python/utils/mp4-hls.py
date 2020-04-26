@@ -73,8 +73,13 @@ def SplitArgs(args):
 
 #############################################
 def ComputeWidevineKeyLine(params):
-    json_param = '{ "provider": "%(provider)s", "content_id": "%(content_id)s", "key_ids": ["%(kid)s"] }' % params
-    key_line   = 'URI="data:text/plain;base64,' + Base64Encode(json_param) + '",KEYFORMAT="com.widevine",KEYFORMATVERSIONS="1"'
+    if type(params) == str:
+        # already in base64 form
+        base64_header = params
+    else:
+        # base64-encode a JSON object for the parameters
+        base64_header = Base64Encode(('{ "provider": "%(provider)s", "content_id": "%(content_id)s", "key_ids": ["%(kid)s"] }' % params).encode('ascii'))
+    key_line   = 'URI="data:text/plain;base64,' + base64_header + '",KEYFORMAT="com.widevine",KEYFORMATVERSIONS="1"'
 
     return key_line
 
@@ -543,8 +548,16 @@ def main():
                       help="Encryption key format versions.")
     parser.add_option('', '--signal-session-key', dest='signal_session_key', action='store_true', default=False,
                       help="Signal an #EXT-X-SESSION-KEY tag in the master playlist")
-    parser.add_option('', '--fairplay', dest="fairplay", metavar="<fairplay-parameters>", help="Enable Fairplay Key Delivery. The <fairplay-parameters> argument is one or more <name>:<value> pair(s) (separated by '#' if more than one). Names include 'uri' [string] (required)")
-    parser.add_option('', '--widevine', dest="widevine", metavar="<widevine-parameters>", help="Enable Widevine Key Delivery. The <widevine-parameters> argument is one or more <name>:<value> pair(s) (separated by '#' if more than one). Names include 'provider' [string] (required), 'content_id' [byte array in hex] (optional), 'kid' [16-byte array in hex] (required)")
+    parser.add_option('', '--fairplay', dest="fairplay", metavar="<fairplay-parameters>",
+                      help="Enable Fairplay Key Delivery. " +
+                           "The <fairplay-parameters> argument is one or more <name>:<value> pair(s) (separated by '#' if more than one). " +
+                           "Names include 'uri' [string] (required)")
+    parser.add_option('', '--widevine', dest="widevine", metavar="<widevine-parameters>",
+                      help="Enable Widevine Key Delivery. " +
+                           "The <widevine-header> argument can be either: " +
+                           "(1) the character '#' followed by a Widevine header encoded in Base64, or " +
+                           "(2) one or more <name>:<value> pair(s) (separated by '#' if more than one) specifying fields of a Widevine header " +
+                           "(field names include 'provider' [string] (required), 'content_id' [byte array in hex] (optional), 'kid' [16-byte array in hex] (required))")
     parser.add_option('', '--output-encryption-key', dest="output_encryption_key", action="store_true", default=False,
                       help="Output the encryption key to a file (default: don't output the key). This option is only valid when the encryption key format is 'identity'")
     parser.add_option('', "--exec-dir", metavar="<exec_dir>", dest="exec_dir", default=default_exec_dir,
@@ -618,20 +631,24 @@ def main():
                 sys.exit(1)
         else:
             options.encryption_mode = 'SAMPLE-AES'
-        options.widevine = SplitArgs(options.widevine)
-        if 'kid' not in options.widevine:
-            sys.stderr.write('ERROR: --widevine option requires a "kid" parameter\n')
-            sys.exit(1)
-        if len(options.widevine['kid']) != 32:
-            sys.stderr.write('ERROR: --widevine option "kid" must be 32 hex characters\n')
-            sys.exit(1)
-        if 'provider' not in options.widevine:
-            sys.stderr.write('ERROR: --widevine option requires a "provider" parameter\n')
-            sys.exit(1)
-        if 'content_id' in options.widevine:
-            options.widevine['content_id'] = bytes.fromhex(options.widevine['content_id'])
+
+        if options.widevine.startswith('#'):
+            options.widevine = options.widevine[1:]
         else:
-            options.widevine['content_id'] = '*'
+            options.widevine = SplitArgs(options.widevine)
+            if 'kid' not in options.widevine:
+                sys.stderr.write('ERROR: --widevine option requires a "kid" parameter\n')
+                sys.exit(1)
+            if len(options.widevine['kid']) != 32:
+                sys.stderr.write('ERROR: --widevine option "kid" must be 32 hex characters\n')
+                sys.exit(1)
+            if 'provider' not in options.widevine:
+                sys.stderr.write('ERROR: --widevine option requires a "provider" parameter\n')
+                sys.exit(1)
+            if 'content_id' in options.widevine:
+                options.widevine['content_id'] = bytes.fromhex(options.widevine['content_id'])
+            else:
+                options.widevine['content_id'] = '*'
 
     # defaults
     if options.encryption_key and not options.encryption_mode:

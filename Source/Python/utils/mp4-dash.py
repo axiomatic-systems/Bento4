@@ -636,24 +636,13 @@ def OutputDash(options, set_attributes, audio_sets, video_sets, subtitles_sets, 
 
 #############################################
 def ComputeHlsWidevineKeyLine(options, track):
-    try:
-        pairs = options.widevine_header.split('#')
-        fields = {}
-        for pair in pairs:
-            name, value = pair.split(':', 1)
-            fields[name] = value
-    except:
-        raise Exception('invalid syntax for --widevine-header option')
-
-    if 'content_id' not in fields:
-        fields['content_id'] = '*'
-    if 'kid' not in fields:
-        fields['kid'] = track.key_info['kid']
-
-    json_param = '{ "provider": "%(provider)s", "content_id": "%(content_id)s", "key_ids": ["%(kid)s"] }' % fields
-    key_line   = 'URI="data:text/plain;base64,{}",KEYFORMAT="com.widevine",KEYFORMATVERSIONS="1",IV=0x{}'.format(
-        Base64Encode(json_param.encode('ascii')),
-        track.key_info['iv']
+    # V2 key line
+    kid = track.key_info['kid']
+    widevine_header = ComputeWidevineHeader(options.widevine_header, options.encryption_cenc_scheme, kid)
+    pssh_box = MakePsshBox(bytes.fromhex(WIDEVINE_PSSH_SYSTEM_ID), widevine_header)
+    key_line = 'URI="data:text/plain;base64,{}",KEYFORMAT="urn:uuid:edef8ba9-79d6-4ace-a3c8-27dcd51d21ed",KEYID=0x{},KEYFORMATVERSIONS="1"'.format(
+        Base64Encode(pssh_box),
+        kid
     )
 
     return key_line
@@ -1770,8 +1759,6 @@ def main():
 
     if options.widevine_header:
         options.widevine = True
-        if options.hls and options.widevine_header.startswith('#'):
-            raise Exception('with --hls, only the <name>:<value> pair syntax is supported for the --widevine-header option')
 
     if options.primetime_metadata:
         options.primetime = True
