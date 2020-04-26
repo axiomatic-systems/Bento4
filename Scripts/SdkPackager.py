@@ -122,14 +122,6 @@ else:
     script_dir  = os.path.abspath(os.path.dirname(__file__))
     BENTO4_HOME = os.path.join(script_dir,'..')
 
-CMAKE_BUILD = False
-if len(sys.argv) > 3:
-    if sys.argv[3] == 'cmake':
-        CMAKE_BUILD = True
-    else:
-        print('ERROR: unknown build type')
-        sys.exit(1)
-
 # ensure that BENTO4_HOME has been set and exists
 if not os.path.exists(BENTO4_HOME) :
     print('ERROR: BENTO4_HOME ('+BENTO4_HOME+') does not exist')
@@ -158,7 +150,7 @@ if SDK_TARGET is None:
         'linux-i386'  : 'x86-unknown-linux',
         'linux-x86_64': 'x86_64-unknown-linux',
         'linux2'      : 'x86-unknown-linux',
-        'win32'       : 'x86-microsoft-win32-vs2010',
+        'win32'       : 'x86_64-microsoft-win32',
         'darwin'      : 'universal-apple-macosx'
     }
 
@@ -182,14 +174,7 @@ SDK_ROOT=SDK_BUILD_ROOT+'/'+SDK_NAME
 SDK_TARGET_DIR='Build/Targets/'+SDK_TARGET
 SDK_TARGET_ROOT=BENTO4_HOME+'/'+SDK_TARGET_DIR
 
-if CMAKE_BUILD:
-    SDK_BUILD_OUTPUT_DIR = 'cmakebuild'
-else:
-    # special case for Xcode builds
-    if SDK_TARGET == 'universal-apple-macosx':
-        SDK_BUILD_OUTPUT_DIR='Build/Targets/universal-apple-macosx/Build/Products/Release'
-    else:
-        SDK_BUILD_OUTPUT_DIR = SDK_TARGET_DIR + '/Release'
+SDK_BUILD_OUTPUT_DIR = 'cmakebuild'
 
 print(SDK_NAME)
 
