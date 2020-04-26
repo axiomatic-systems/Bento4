@@ -39,7 +39,10 @@
 #include <errno.h>
 #include <sys/stat.h>
 #endif
-
+#if defined(_WIN32)
+#include <io.h>
+#include <fcntl.h>
+#endif
 #include "Ap4FileByteStream.h"
 
 /*----------------------------------------------------------------------
@@ -129,10 +132,20 @@ AP4_StdcFileByteStream::Create(AP4_FileByteStream*      delegator,
     // open the file
     FILE* file = NULL;
     AP4_Position size = 0;
-    if (!strcmp(name, "-stdin")) {
+    if (!strcmp(name, "-stdin") || !strcmp(name, "-stdin#")) {
         file = stdin;
-    } else if (!strcmp(name, "-stdout")) {
+#if defined(_WIN32)
+        if (name[6] == '#') {
+            _setmode(fileno(stdin), O_BINARY);
+        }
+#endif
+    } else if (!strcmp(name, "-stdout") || !strcmp(name, "-stdout#")) {
         file = stdout;
+#if defined(_WIN32)
+        if (name[7] == '#') {
+            _setmode(fileno(stdout), O_BINARY);
+        }
+#endif
     } else if (!strcmp(name, "-stderr")) {
         file = stderr;
     } else {
