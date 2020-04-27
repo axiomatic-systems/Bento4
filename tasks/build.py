@@ -18,6 +18,6 @@ def build(ctx, clean = False):
         ctx.run(command)
         ctx.run("cmake --build . --config Release")
 
-@task
+@task(build)
 def sdk(ctx):
     ctx.run("python3 Scripts/SdkPackager.py")
