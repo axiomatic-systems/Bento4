@@ -12,7 +12,7 @@ set(SOURCE_METADATA ${SOURCE_ROOT}/MetaData)
 set(SOURCE_SYSTEM ${SOURCE_ROOT}/System)
 
 # Compiler warning and optimization flags
-if(CMAKE_C_COMPILER_ID MATCHES "GNU" OR CMAKE_C_COMPILER_ID MATCHES "Clang")
+if(CMAKE_C_COMPILER_ID MATCHES "GNU")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-class-memaccess")
 endif()
 
