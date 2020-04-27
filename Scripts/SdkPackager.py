@@ -174,7 +174,13 @@ SDK_ROOT=SDK_BUILD_ROOT+'/'+SDK_NAME
 SDK_TARGET_DIR='Build/Targets/'+SDK_TARGET
 SDK_TARGET_ROOT=BENTO4_HOME+'/'+SDK_TARGET_DIR
 
-SDK_BUILD_OUTPUT_DIR = 'cmakebuild'
+# Different platforms have different build dirs
+SDK_BUILD_OUTPUT_DIRS = {
+    'x86_64-microsoft-win32': 'cmakebuild/Release',
+    'universal-apple-macosx': 'cmakebuild/Relesse',
+    'x86_64-unknown-linux':   'cmakebuild'
+}
+SDK_BUILD_OUTPUT_DIR = SDK_BUILD_OUTPUT_DIRS[SDK_TARGET]
 
 print(SDK_NAME)
 
