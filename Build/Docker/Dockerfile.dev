@@ -10,7 +10,9 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y \
     python3 \
     python3-pip \
     git &&\
-    pip3 install invoke
+    pip3 install invoke &&\
+    update-alternatives --install /usr/bin/python python /usr/bin/python3 1 &&\
+    update-alternatives --set python /usr/bin/python3
 
 # Add a user
 ARG USER=bento4
