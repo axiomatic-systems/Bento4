@@ -44,7 +44,7 @@ file_out = open(filename, "wb")
 for line in file_lines:
     if line.startswith("SDK_REVISION = "):
         line = "SDK_REVISION = '"+SDK_REVISION+"'\n"
-    file_out.write(line)
+    file_out.write(line.encode('ascii'))
 
 filename = os.path.join(BENTO4_HOME, "Source", "Python", "utils", "mp4-hls.py")
 print("Patching", filename)
@@ -53,4 +53,4 @@ file_out = open(filename, "wb")
 for line in file_lines:
     if line.startswith("SDK_REVISION = "):
         line = "SDK_REVISION = '"+SDK_REVISION+"'\n"
-    file_out.write(line)
+    file_out.write(line.encode('ascii'))
