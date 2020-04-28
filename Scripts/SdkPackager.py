@@ -168,19 +168,19 @@ BENTO4_VERSION = GetVersion()
 SDK_REVISION = GetSdkRevision()
 if SDK_REVISION is None:
     sys.exit(1)
-SDK_NAME='Bento4-SDK-'+BENTO4_VERSION+'-'+SDK_REVISION+'.'+SDK_TARGET
-SDK_BUILD_ROOT=BENTO4_HOME+'/SDK'
-SDK_ROOT=SDK_BUILD_ROOT+'/'+SDK_NAME
-SDK_TARGET_DIR='Build/Targets/'+SDK_TARGET
-SDK_TARGET_ROOT=BENTO4_HOME+'/'+SDK_TARGET_DIR
+SDK_NAME=f'Bento4-SDK-{BENTO4_VERSION}-{SDK_REVISION}.{SDK_TARGET}'
+SDK_BUILD_ROOT='{BENTO4_HOME}/SDK'
+SDK_ROOT=f'{SDK_BUILD_ROOT}/{SDK_NAME}'
+SDK_TARGET_DIR=f'Build/Targets/{SDK_TARGET}'
+SDK_TARGET_ROOT=f'{BENTO4_HOME}/{SDK_TARGET_DIR}'
 
 # Different platforms have different build dirs
-SDK_BUILD_OUTPUT_DIRS = {
-    'x86_64-microsoft-win32': 'cmakebuild/Release',
-    'universal-apple-macosx': 'cmakebuild/Release',
-    'x86_64-unknown-linux':   'cmakebuild'
+SDK_BUILD_OUTPUT_SUBDIRS = {
+    'x86_64-microsoft-win32': '/Release',
+    'universal-apple-macosx': '/Release'
 }
-SDK_BUILD_OUTPUT_DIR = SDK_BUILD_OUTPUT_DIRS[SDK_TARGET]
+SDK_BUILD_OUTPUT_SUBDIR = SDK_BUILD_OUTPUT_SUBDIRS.get(SDK_TARGET, '')
+SDK_BUILD_OUTPUT_DIR = f'cmakebuild/{SDK_TARGET}{SDK_BUILD_OUTPUT_SUBDIR}'
 
 print(SDK_NAME)
 
