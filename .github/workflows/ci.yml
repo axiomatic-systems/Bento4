@@ -8,6 +8,8 @@ on:
     branches: [ master ]
   pull_request:
     branches: [ master ]
+  release:
+    types: [published]
 
 jobs:
   build-linux-macos:
@@ -38,11 +40,12 @@ jobs:
 
       # Create SDK
       - name: Create SDK
+        if: github.event_name == 'release'
         run: python3 Scripts/SdkPackager.py
-        
         
       # Upload the SDK
       - name: Upload SDK
+        if: github.event_name == 'release'
         uses: actions/upload-artifact@v2
         with:
           path: SDK/*.zip
