@@ -12,7 +12,7 @@ on:
     types: [published]
 
 jobs:
-  build-linux-macos:
+  build:
     name: Bento4 Build ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
