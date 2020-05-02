@@ -38,16 +38,20 @@ def GetSdkRevision():
     cmd = 'git status --porcelain -b'
     lines = os.popen(cmd).readlines()
     branch = ''
+    suffix = ''
     if not lines[0].startswith('## master'):
         print('WARNING: not on master branch')
         branch = '+' + lines[0][3:].strip()
     if len(lines) > 1:
-        print('ERROR: git status not empty')
+        print('WARNING: git status not empty')
         print(''.join(lines))
-        return None
+        suffix = '*'
 
     cmd = 'git tag --contains HEAD'
     tags = os.popen(cmd).readlines()
+    if not tags:
+        # no tags, use the commit hash
+        return os.popen('git rev-parse --short HEAD').readlines[0] + suffix
     if len(tags) != 1:
         print('ERROR: expected exactly one tag for HEAD, found', len(tags), ':', tags)
         return None
@@ -55,7 +59,7 @@ def GetSdkRevision():
     sep = version.find('-')
     if sep < 0:
         print('ERROR: unrecognized version string format:', version)
-    return version[sep+1:] + branch
+    return version[sep+1:] + branch + suffix
 
 #############################################################
 # File Copy
