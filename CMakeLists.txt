@@ -35,20 +35,25 @@ else()
   set(AP4_SOURCES ${AP4_SOURCES} ${SOURCE_SYSTEM}/Posix/Ap4PosixRandom.cpp)
 endif()
 
-add_library(ap4 STATIC ${AP4_SOURCES})
-
 # Includes
-include_directories(
+set(AP4_INCLUDE_DIRS
   ${SOURCE_CORE}
   ${SOURCE_CODECS}
   ${SOURCE_CRYPTO}
   ${SOURCE_METADATA}
 )
+include_directories(${AP4_INCLUDE_DIRS})
+
+add_library(ap4 STATIC ${AP4_SOURCES})
+target_include_directories(ap4 INTERFACE ${AP4_INCLUDE_DIRS})
 
 # Apps
+option(BUILD_APPS "Build example applications" ON)
+if(BUILD_APPS)
 file(GLOB BENTO4_APPS RELATIVE ${SOURCE_ROOT}/Apps ${SOURCE_ROOT}/Apps/*)
 foreach(app ${BENTO4_APPS})
   string(TOLOWER ${app} binary_name)
   add_executable(${binary_name} ${SOURCE_ROOT}/Apps/${app}/${app}.cpp)
   target_link_libraries(${binary_name} ap4)
 endforeach()
+endif(BUILD_APPS)
