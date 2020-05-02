@@ -19,10 +19,13 @@ jobs:
         include:
           - os: ubuntu-latest
             CMAKE_OPTIONS: -DCMAKE_BUILD_TYPE=Release
+            CMAKE_OUTPUT_SUBDIR: x86_64-unknown-linux
           - os: macos-latest
             CMAKE_OPTIONS: -G Xcode
+            CMAKE_OUTPUT_SUBDIR: universal-apple-macosx
           - os: windows-latest
             CMAKE_OPTIONS: -DCMAKE_BUILD_TYPE=Release
+            CMAKE_OUTPUT_SUBDIR: x86_64-microsoft-win32
 
     steps:
       # Check out the repository under $GITHUB_WORKSPACE, so that the jobs can access it
@@ -33,6 +36,8 @@ jobs:
         run: |
           mkdir cmakebuild
           cd cmakebuild
+          mkdir ${{matrix.CMAKE_OUTPUT_SUBDIR}}
+          cd ${{matrix.CMAKE_OUTPUT_SUBDIR}}
           cmake ${{matrix.CMAKE_OPTIONS}} ..
           cmake --build . --config Release
 
