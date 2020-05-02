@@ -25,7 +25,7 @@ jobs:
             CMAKE_OPTIONS: -DCMAKE_BUILD_TYPE=Release
 
     steps:
-      # Checks-out the repository under $GITHUB_WORKSPACE, so that the jobs can access it
+      # Check out the repository under $GITHUB_WORKSPACE, so that the jobs can access it
       - uses: actions/checkout@v2
 
       # CMake Build
@@ -35,3 +35,14 @@ jobs:
           cd cmakebuild
           cmake ${{matrix.CMAKE_OPTIONS}} ..
           cmake --build . --config Release
+
+      # Create SDK
+      - name: Create SDK
+        run: python3 Scripts/SdkPackager.py
+        
+        
+      # Upload the SDK
+      - name: Upload SDK
+        uses: actions/upload-artifact@v2
+        with:
+          path: SDK/*.zip
