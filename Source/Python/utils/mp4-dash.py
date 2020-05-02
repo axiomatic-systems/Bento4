@@ -1285,13 +1285,18 @@ def SelectTracks(options, media_sources):
                 language = options.language_map[language]
             track.language = language
 
+            # track representation id
+            custom_representation_id = media_source.spec.get('+representation_id')
+            if custom_representation_id:
+                track.representation_id = custom_representation_id
+
             # video scan type
             if track.type == 'video':
                 track.scan_type = media_source.spec.get('+scan_type', track.scan_type)
 
         # process audio tracks
         for track in [t for t in tracks if t.type == 'audio']:
-            adaptation_set_name = ('audio', track.language, track.codec_family)
+            adaptation_set_name = ('audio', track.language, track.codec_family, str(track.parent.file_list_index), str(track.id))
             adaptation_set = audio_adaptation_sets.get(adaptation_set_name, [])
             audio_adaptation_sets[adaptation_set_name] = adaptation_set
 
@@ -1917,19 +1922,23 @@ def main():
     for adaptation_sets in [audio_sets, video_sets, subtitles_sets]:
         for adaptation_set_name, tracks in list(adaptation_sets.items()):
             for track in tracks:
-                if options.split:
-                    track.representation_id = '/'.join(adaptation_set_name)
-                    if len(tracks) > 1:
-                        track.representation_id += '/'+str(track.order_index)
-                    track.init_segment_name = SPLIT_INIT_SEGMENT_NAME
-                else:
-                    track.representation_id = '-'.join(adaptation_set_name)
-                    if len(tracks) > 1:
-                        track.representation_id += '-'+str(track.order_index)
-                    if options.on_demand:
-                        track.parent.media_name = ONDEMAND_MEDIA_FILE_PATTERN % (options.media_prefix, track.representation_id)
+                if not hasattr(track, 'representation_id'):
+                    if options.split:
+                        track.representation_id = '/'.join(adaptation_set_name)
+                        if len(tracks) > 1:
+                            track.representation_id += '/'+str(track.order_index)
                     else:
-                        track.init_segment_name = NOSPLIT_INIT_FILE_PATTERN % (track.representation_id)
+                        track.representation_id = '-'.join(adaptation_set_name)
+                        if len(tracks) > 1:
+                            track.representation_id += '-'+str(track.order_index)
+
+                if options.split:
+                    track.init_segment_name = SPLIT_INIT_SEGMENT_NAME
+                elif options.on_demand:
+                    track.parent.media_name = ONDEMAND_MEDIA_FILE_PATTERN % (options.media_prefix, track.representation_id)
+                else:
+                    track.init_segment_name = NOSPLIT_INIT_FILE_PATTERN % (track.representation_id)
+
                 track.stream_id = adaptation_set_name[0]
                 if adaptation_set_name[0] == 'audio':
                     track.stream_id += '_'+track.language
@@ -1980,15 +1989,9 @@ def main():
         if options.split:
             for adaptation_sets in [audio_sets, video_sets, subtitles_sets]:
                 for adaptation_set_name, tracks in list(adaptation_sets.items()):
-                    base_dir = options.output_dir
-                    for subdir in adaptation_set_name:
-                        base_dir = path.join(base_dir, subdir)
-                        MakeNewDir(base_dir)
                     for track in tracks:
-                        out_dir = base_dir
-                        if len(tracks) > 1:
-                            out_dir = path.join(out_dir, str(track.order_index))
-                            MakeNewDir(out_dir)
+                        out_dir = path.join(options.output_dir, track.representation_id)
+                        MakeNewDir(out_dir, recursive=True)
                         print('Splitting media file ('+adaptation_set_name[0]+')', GetMappedFileName(track.parent.media_source.filename))
                         Mp4Split(options,
                                  track.parent.media_source.filename,
