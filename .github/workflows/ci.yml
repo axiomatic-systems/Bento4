@@ -38,7 +38,7 @@ jobs:
           cd cmakebuild
           mkdir ${{matrix.CMAKE_OUTPUT_SUBDIR}}
           cd ${{matrix.CMAKE_OUTPUT_SUBDIR}}
-          cmake ${{matrix.CMAKE_OPTIONS}} ..
+          cmake ${{matrix.CMAKE_OPTIONS}} ../..
           cmake --build . --config Release
 
       # Create SDK
