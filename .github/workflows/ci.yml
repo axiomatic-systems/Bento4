@@ -20,12 +20,15 @@ jobs:
           - os: ubuntu-latest
             CMAKE_OPTIONS: -DCMAKE_BUILD_TYPE=Release
             CMAKE_OUTPUT_SUBDIR: x86_64-unknown-linux
+            PYTHON3_COMMAND: python3  
           - os: macos-latest
             CMAKE_OPTIONS: -G Xcode
             CMAKE_OUTPUT_SUBDIR: universal-apple-macosx
+            PYTHON3_COMMAND: python3  
           - os: windows-latest
             CMAKE_OPTIONS: -DCMAKE_BUILD_TYPE=Release
             CMAKE_OUTPUT_SUBDIR: x86_64-microsoft-win32
+            PYTHON3_COMMAND: py  
 
     steps:
       # Check out the repository under $GITHUB_WORKSPACE, so that the jobs can access it
@@ -44,7 +47,7 @@ jobs:
       # Create SDK
       - name: Create SDK
         if: github.event_name == 'push'
-        run: python3 Scripts/SdkPackager.py
+        run: ${{matrix.PYTHON3_COMMAND}} Scripts/SdkPackager.py
         
       # Upload the SDK
       - name: Upload SDK
