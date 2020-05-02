@@ -51,7 +51,7 @@ def GetSdkRevision():
     tags = os.popen(cmd).readlines()
     if not tags:
         # no tags, use the commit hash
-        return os.popen('git rev-parse --short HEAD').readlines[0] + suffix
+        return os.popen('git rev-parse --short HEAD').readlines()[0].strip() + suffix
     if len(tags) != 1:
         print('ERROR: expected exactly one tag for HEAD, found', len(tags), ':', tags)
         return None
