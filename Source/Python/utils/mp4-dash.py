@@ -494,6 +494,9 @@ def OutputDash(options, set_attributes, audio_sets, video_sets, subtitles_sets, 
             language = audio_tracks[0].language
             if (language != 'und') or options.always_output_lang:
                 kwargs['lang'] = language
+            label = audio_tracks[0].label
+            if label != '':
+                kwargs['label'] = label
             adaptation_set = xml.SubElement(*args, **kwargs)
 
             # see if we have descriptors
@@ -827,7 +830,7 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
     audio_groups = {}
     for adaptation_set_name, audio_tracks in list(audio_sets.items()):
         language = audio_tracks[0].language
-        language_name = LanguageNames.get(language, language)
+        language_name = audio_tracks[0].language_name
 
         audio_group_name = adaptation_set_name[0]+'/'+adaptation_set_name[2]
         audio_groups[audio_group_name] = {
@@ -861,10 +864,11 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
                 media_playlist_name = options.hls_media_playlist_name
                 media_playlist_path = media_subdir+'/'+media_playlist_name
 
+            group_name = audio_track.label if audio_track.label != '' else language_name
             master_playlist_file.write('#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="{}",LANGUAGE="{}",NAME="{}",AUTOSELECT=YES,DEFAULT={},URI="{}"\n'.format(
                                        audio_group_name,
                                        language,
-                                       language_name,
+                                       group_name,
                                        'YES' if select_as_default else 'NO',
                                        media_playlist_path))
             select_as_default = False
@@ -949,7 +953,7 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
                 # only accept IMSC1 tracks
                 continue
             language = subtitles_track.language
-            language_name = LanguageNames.get(language, language)
+            language_name = subtitles_track.language_name
 
             if options.on_demand or not options.split:
                 media_subdir        = ''
@@ -1004,7 +1008,11 @@ def OutputSmooth(options, audio_tracks, video_tracks):
 
     # process the audio tracks
     for audio_track in audio_tracks:
-        stream_name = "audio_"+audio_track.language
+        stream_name = audio_track.label
+        if stream_name == '':
+            stream_name = audio_track.language_name
+        if stream_name == '' or stream_name == 'Unknown':
+            stream_name = "audio_"+audio_track.language
         audio_url_pattern="QualityLevels({bitrate})/Fragments(%s={start time})" % (stream_name)
         stream_index = xml.SubElement(client_manifest,
                                       'StreamIndex',
@@ -1241,6 +1249,7 @@ def SelectTracks(options, media_sources):
     audio_adaptation_sets     = {}
     video_adaptation_sets     = {}
     subtitles_adaptation_sets = {}
+    label_indexes             = {}
     for media_source in media_sources:
         track_id       = media_source.spec['track']
         track_type     = media_source.spec['type']
@@ -1285,6 +1294,9 @@ def SelectTracks(options, media_sources):
                 language = options.language_map[language]
             track.language = language
 
+            # track language name
+            track.language_name = media_source.spec.get('+language_name', LanguageNames.get(language, language))
+
             # track representation id
             custom_representation_id = media_source.spec.get('+representation_id')
             if custom_representation_id:
@@ -1294,21 +1306,29 @@ def SelectTracks(options, media_sources):
             if track.type == 'video':
                 track.scan_type = media_source.spec.get('+scan_type', track.scan_type)
 
+            # label
+            track.label = media_source.spec.get('+label', '')
+
+        # update label indexes (so that we can use numbers instead of strings for labels)
+        for track in tracks:
+            if track.label not in label_indexes:
+                label_indexes[track.label] = len(label_indexes) + 1
+
         # process audio tracks
         for track in [t for t in tracks if t.type == 'audio']:
             adaptation_set_name = ('audio', track.language, track.codec_family)
 
-            if options.keep_all_audio_tracks:
-                # add the file index and track ID to keep tthe tracks separate
-                adaptation_set_name += (str(track.parent.file_list_index), str(track.id))
+            # add the label index
+            adaptation_set_name += (str(label_indexes[track.label]),)
 
+            # lookup the adaptation set and start a new one if no entry is found
             adaptation_set = audio_adaptation_sets.get(adaptation_set_name, [])
 
-            # only keep this track if there isn't already a track with the same codec at the same bitrate (within 10%)
-            if not options.keep_all_audio_tracks:
-                with_same_bandwidth = [t for t in adaptation_set if abs(float(t.bandwidth-track.bandwidth)/float(t.bandwidth)) < 0.1]
-                if with_same_bandwidth:
-                    continue
+            # only keep this track if there isn't already a track with the same
+            # codec at the same bitrate (within 10%)
+            with_same_bandwidth = [t for t in adaptation_set if abs(float(t.bandwidth-track.bandwidth)/float(t.bandwidth)) < 0.1]
+            if with_same_bandwidth:
+                continue
 
             audio_adaptation_sets[adaptation_set_name] = adaptation_set
             adaptation_set.append(track)
@@ -1334,6 +1354,30 @@ def SelectTracks(options, media_sources):
 
                 adaptation_set.append(track)
                 track.order_index = len(adaptation_set)
+
+    # Try to simplify the adaptation set names where there's unnecessary sub-classification
+    # NOTE: in this version, we only try to simplify based on the last element of the name
+    # and we only try to simplify audio adaptation sets, because they are the only ones with
+    # labels. This should be updated when/if we add support for labels on other types.
+    for adaptation_set in [audio_adaptation_sets]:
+        prefixed = {}
+
+        # skip empty sets
+        if not adaptation_set:
+            continue
+
+        for name in adaptation_set:
+            prefix = name[:-1]
+            entry = prefixed.get(name[:-1], [0, name])
+            entry[0] += 1
+            prefixed[prefix] = entry
+
+        for prefix in prefixed:
+            [count, name] = prefixed[prefix]
+            if count == 1:
+                # there's only one entry with that prefix, we can simplify
+                adaptation_set[prefix] = adaptation_set[name]
+                del adaptation_set[name]
 
     return (audio_adaptation_sets, video_adaptation_sets, subtitles_adaptation_sets, mp4_files)
 
@@ -1596,8 +1640,6 @@ def main():
                       help="Remap language code <lang_from> to <lang_to>. Multiple mappings can be specified, separated by ','")
     parser.add_option('', "--always-output-lang", dest="always_output_lang", action='store_true', default=False,
                       help="Always output an @lang attribute for audio tracks even when the language is undefined"),
-    parser.add_option('', "--keep-all-audio-tracks", dest="keep_all_audio_tracks", action='store_true', default=False,
-                      help="Keep all audio tracks separate instead of de-duplicating audio tracks that appear to be the same"),
     parser.add_option('', "--subtitles", dest="subtitles", action="store_true", default=False,
                       help="Enable Subtitles")
     parser.add_option('', "--attributes", dest="attributes", action="append", metavar='<attributes-definition>', default=[],

@@ -378,6 +378,7 @@ class Mp4Track:
         self.max_segment_bitrate      = 0
         self.bandwidth                = 0
         self.language                 = ''
+        self.language_name            = ''
         self.order_index              = 0
         self.key_info                 = {}
         self.id = info['id']
@@ -430,6 +431,7 @@ class Mp4Track:
             self.channels = sample_desc['channels']
 
         self.language = info['language']
+        self.language_name = LanguageNames.get(LanguageCodeMap.get(self.language, 'und'), '')
 
     def update(self, options):
         # compute the total number of samples
