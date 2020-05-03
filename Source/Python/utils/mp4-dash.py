@@ -1296,15 +1296,21 @@ def SelectTracks(options, media_sources):
 
         # process audio tracks
         for track in [t for t in tracks if t.type == 'audio']:
-            adaptation_set_name = ('audio', track.language, track.codec_family, str(track.parent.file_list_index), str(track.id))
+            adaptation_set_name = ('audio', track.language, track.codec_family)
+
+            if options.keep_all_audio_tracks:
+                # add the file index and track ID to keep tthe tracks separate
+                adaptation_set_name += (str(track.parent.file_list_index), str(track.id))
+
             adaptation_set = audio_adaptation_sets.get(adaptation_set_name, [])
-            audio_adaptation_sets[adaptation_set_name] = adaptation_set
 
             # only keep this track if there isn't already a track with the same codec at the same bitrate (within 10%)
-            with_same_bandwidth = [t for t in adaptation_set if abs(float(t.bandwidth-track.bandwidth)/float(t.bandwidth)) < 0.1]
-            if with_same_bandwidth:
-                continue
+            if not options.keep_all_audio_tracks:
+                with_same_bandwidth = [t for t in adaptation_set if abs(float(t.bandwidth-track.bandwidth)/float(t.bandwidth)) < 0.1]
+                if with_same_bandwidth:
+                    continue
 
+            audio_adaptation_sets[adaptation_set_name] = adaptation_set
             adaptation_set.append(track)
             track.order_index = len(adaptation_set)
 
@@ -1590,6 +1596,8 @@ def main():
                       help="Remap language code <lang_from> to <lang_to>. Multiple mappings can be specified, separated by ','")
     parser.add_option('', "--always-output-lang", dest="always_output_lang", action='store_true', default=False,
                       help="Always output an @lang attribute for audio tracks even when the language is undefined"),
+    parser.add_option('', "--keep-all-audio-tracks", dest="keep_all_audio_tracks", action='store_true', default=False,
+                      help="Keep all audio tracks separate instead of de-duplicating audio tracks that appear to be the same"),
     parser.add_option('', "--subtitles", dest="subtitles", action="store_true", default=False,
                       help="Enable Subtitles")
     parser.add_option('', "--attributes", dest="attributes", action="append", metavar='<attributes-definition>', default=[],
