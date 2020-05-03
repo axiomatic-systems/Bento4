@@ -133,6 +133,7 @@ class AP4_Track {
     AP4_UI64      GetMediaDuration() const; // in the timescale of the media
     const char*   GetTrackName() const;
     const char*   GetTrackLanguage() const;
+    AP4_Result    SetTrackLanguage(const char* language);
     AP4_Result    Attach(AP4_MoovAtom* moov);
 
  protected:

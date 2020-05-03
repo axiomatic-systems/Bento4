@@ -67,6 +67,7 @@ public:
     AP4_UI32          GetTimeScale() { return m_TimeScale; }
     void              SetTimeScale(AP4_UI32 timescale) { m_TimeScale = timescale; }
     const AP4_String& GetLanguage()  { return m_Language;  }
+    AP4_Result        SetLanguage(const char* language);
 
 private:
     // methods

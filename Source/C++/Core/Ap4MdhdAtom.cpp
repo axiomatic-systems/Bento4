@@ -66,8 +66,11 @@ AP4_MdhdAtom::AP4_MdhdAtom(AP4_UI32    creation_time,
     m_TimeScale(time_scale),
     m_Duration(duration)
 {
-    m_Language.Assign(language, 3);
-
+    if (strlen(language) == 3) {
+        m_Language.Assign(language, 3);
+    } else {
+        m_Language = "und";
+    }
     if (duration > 0xFFFFFFFF) {
         m_Version = 1;
         m_Size32 += 12;
@@ -146,13 +149,18 @@ AP4_MdhdAtom::WriteFields(AP4_ByteStream& stream)
     }
 
     // write the language
-    AP4_UI08 l0 = m_Language[0]-0x60;
-    AP4_UI08 l1 = m_Language[1]-0x60;
-    AP4_UI08 l2 = m_Language[2]-0x60;
-    result = stream.WriteUI08((l0<<2 | l1>>3)&0xFF);
-    if (AP4_FAILED(result)) return result;
-    result = stream.WriteUI08((l1<<5 | l2)&0xFF);
-    if (AP4_FAILED(result)) return result;
+    if (m_Language.GetLength() == 3) {
+        AP4_UI08 l0 = m_Language[0]-0x60;
+        AP4_UI08 l1 = m_Language[1]-0x60;
+        AP4_UI08 l2 = m_Language[2]-0x60;
+        result = stream.WriteUI08((l0<<2 | l1>>3)&0xFF);
+        if (AP4_FAILED(result)) return result;
+        result = stream.WriteUI08((l1<<5 | l2)&0xFF);
+        if (AP4_FAILED(result)) return result;
+    } else {
+        result = stream.WriteUI16(0);
+        if (AP4_FAILED(result)) return result;
+    }
 
     // pre-defined
     return stream.WriteUI16(0);
@@ -165,6 +173,20 @@ AP4_UI32
 AP4_MdhdAtom::GetDurationMs()
 {
     return AP4_DurationMsFromUnits(m_Duration, m_TimeScale);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_MdhdAtom::SetLanguage
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_MdhdAtom::SetLanguage(const char* language)
+{
+    if (strlen(language) != 3) {
+        return AP4_ERROR_INVALID_PARAMETERS;
+    }
+    m_Language = language;
+
+    return AP4_SUCCESS;
 }
 
 /*----------------------------------------------------------------------

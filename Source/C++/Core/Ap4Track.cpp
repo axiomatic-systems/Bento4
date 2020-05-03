@@ -556,3 +556,19 @@ AP4_Track::GetTrackLanguage() const
     }
     return NULL;
 }
+
+/*----------------------------------------------------------------------
+|   AP4_Track::SetTrackLanguage
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_Track::SetTrackLanguage(const char* language)
+{
+    if (strlen(language) != 3) {
+        return AP4_ERROR_INVALID_PARAMETERS;
+    }
+
+    if (AP4_MdhdAtom* mdhd = AP4_DYNAMIC_CAST(AP4_MdhdAtom, m_TrakAtom->FindChild("mdia/mdhd"))) {
+        return mdhd->SetLanguage(language);
+    }
+    return AP4_ERROR_INVALID_STATE;
+}
