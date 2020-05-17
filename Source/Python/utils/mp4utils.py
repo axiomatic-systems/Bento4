@@ -1189,36 +1189,30 @@ def WidevineMakeHeader(fields):
     return buffer
 
 def ComputeWidevineHeader(header_spec, encryption_scheme, kid_hex):
-    # construct the base64 header
-    if header_spec.startswith('#'):
-        header_b64 = header_spec[1:]
-        header = Base64Decode(header_b64)
-        if not header:
-            raise Exception('invalid base64 encoding')
-        return header
-    else:
-        try:
-            pairs = header_spec.split('#')
-            fields = {}
-            for pair in pairs:
-                name, value = pair.split(':', 1)
-                fields[name] = value
-        except:
-            raise Exception('invalid syntax for argument')
+    try:
+        pairs = header_spec.split('#')
+        fields = {}
+        for pair in pairs:
+            name, value = pair.split(':', 1)
+            fields[name] = value
+    except:
+        raise Exception('invalid syntax for argument')
 
-        protobuf_fields = [(1, 1), (2, bytes.fromhex(kid_hex))]
-        if 'provider' in fields:
-            protobuf_fields.append((3, fields['provider']))
-        if 'content_id' in fields:
-            protobuf_fields.append((4, bytes.fromhex(fields['content_id'])))
-        if 'policy' in fields:
-            protobuf_fields.append((6, fields['policy']))
+    protobuf_fields = [(2, bytes.fromhex(kid_hex))]
+    if 'provider' in fields:
+        protobuf_fields.append((3, fields['provider']))
+    if 'content_id' in fields:
+        protobuf_fields.append((4, bytes.fromhex(fields['content_id'])))
+    if 'policy' in fields:
+        protobuf_fields.append((6, fields['policy']))
 
-        if encryption_scheme != 'cenc':
-            four_cc = struct.unpack('>I', encryption_scheme.encode('ascii'))[0]
-            protobuf_fields.append((9, four_cc))
+    if encryption_scheme == 'cenc':
+        protobuf_fields.append((1, 1))
 
-        return WidevineMakeHeader(protobuf_fields)
+    four_cc = struct.unpack('>I', encryption_scheme.encode('ascii'))[0]
+    protobuf_fields.append((9, four_cc))
+
+    return WidevineMakeHeader(protobuf_fields)
 
 #############################################
 # Module Exports

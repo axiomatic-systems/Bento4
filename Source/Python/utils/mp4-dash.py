@@ -27,6 +27,7 @@ import os.path as path
 import json
 import math
 import operator
+import struct
 from functools import reduce
 from subtitles import SubtitlesFile
 from mp4utils import MakePsshBox,\
@@ -336,8 +337,7 @@ def AddContentProtection(options, container, tracks, all_tracks):
         container.append(xml.Comment(' Widevine '))
         cp = xml.SubElement(container, 'ContentProtection', schemeIdUri=WIDEVINE_SCHEME_ID_URI)
         if options.widevine_header:
-            pssh_payload = ComputeWidevineHeader(options.widevine_header, options.encryption_cenc_scheme, default_kid)
-            pssh_box = MakePsshBox(bytes.fromhex(WIDEVINE_PSSH_SYSTEM_ID), pssh_payload)
+            pssh_box = ComputeWidevinePssh(options.widevine_header, options.encryption_cenc_scheme, default_kid)
             pssh_b64 = Base64Encode(pssh_box)
             pssh = xml.SubElement(cp, '{' + CENC_2013_NAMESPACE + '}pssh')
             pssh.text = pssh_b64
@@ -641,8 +641,7 @@ def OutputDash(options, set_attributes, audio_sets, video_sets, subtitles_sets, 
 def ComputeHlsWidevineKeyLine(options, track):
     # V2 key line
     kid = track.key_info['kid']
-    widevine_header = ComputeWidevineHeader(options.widevine_header, options.encryption_cenc_scheme, kid)
-    pssh_box = MakePsshBox(bytes.fromhex(WIDEVINE_PSSH_SYSTEM_ID), widevine_header)
+    pssh_box = ComputeWidevinePssh(options.widevine_header, options.encryption_cenc_scheme, kid)
     key_line = 'URI="data:text/plain;base64,{}",KEYFORMAT="urn:uuid:edef8ba9-79d6-4ace-a3c8-27dcd51d21ed",KEYID=0x{},KEYFORMATVERSIONS="1"'.format(
         Base64Encode(pssh_box),
         kid
@@ -1550,12 +1549,14 @@ def EncryptSources(options, media_sources):
 
         # Widevine
         if options.widevine_header:
-            widevine_header = ComputeWidevineHeader(options.widevine_header, options.encryption_cenc_scheme, default_kid)
+            pssh = ComputeWidevinePssh(options.widevine_header, options.encryption_cenc_scheme, default_kid)
+            pssh_payload = pssh[12:]
+            pssh_version = pssh[8]
             pssh_file = tempfile.NamedTemporaryFile(dir=options.output_dir, delete=False)
-            pssh_file.write(widevine_header)
+            pssh_file.write(pssh_payload)
             TempFiles.append(pssh_file.name)
             pssh_file.close() # necessary on Windows
-            args += ['--pssh', WIDEVINE_PSSH_SYSTEM_ID+':'+pssh_file.name]
+            args += ['--pssh' if pssh_version == 0 else 'pssh-v1', WIDEVINE_PSSH_SYSTEM_ID+':'+pssh_file.name]
 
         # Primetime
         if options.primetime_metadata:
@@ -1568,6 +1569,28 @@ def EncryptSources(options, media_sources):
 
         Mp4Encrypt(options, media_file, encrypted_file.name, *args)
         media_source.filename = encrypted_file.name
+
+#############################################
+def ComputeWidevinePssh(header_spec, encryption_scheme, kid):
+    if header_spec.startswith('#'):
+        # The header spec is a base-64 encoded precomputed byte array
+        header = Base64Decode(header_spec[1:])
+        if not header:
+            raise Exception('invalid base64 encoding')
+
+        # The header may be a raw header or a full PSSH box, find out which
+        if len(header) > 8:
+            (box_length, box_type) = struct.unpack('>I4s', header[:8])
+            if box_length == len(header) and box_type == b'pssh':
+                # That looks like a valid PSSH box
+                return header
+
+    else:
+        # The header spec is a set of properties
+        header = ComputeWidevineHeader(header_spec, encryption_scheme, kid)
+
+    # Wrap the header in a PSSH box
+    return MakePsshBox(bytes.fromhex(WIDEVINE_PSSH_SYSTEM_ID), header)
 
 #############################################
 FileNameMap = {}
@@ -1703,7 +1726,7 @@ def main():
     parser.add_option('', "--widevine-header", dest="widevine_header", metavar='<widevine-header>', default=None,
                       help="Add a Widevine entry in the MPD, and a Widevine PSSH box in the init segments. The use of this option implies the --widevine option. " +
                            "The <widevine-header> argument can be either: " +
-                           "(1) the character '#' followed by a Widevine header encoded in Base64, or " +
+                           "(1) the character '#' followed by a Widevine header encoded in Base64 (either a complete PSSH box or just the PSSH box payload), or " +
                            "(2) one or more <name>:<value> pair(s) (separated by '#' if more than one) specifying fields of a Widevine header (field names include 'provider' [string], 'content_id' [byte array in hex], 'policy' [string])")
     parser.add_option('', "--primetime", dest="primetime", action="store_true", default=False,
                       help="Add Primetime signaling to the MPD (requires an encrypted input, or the --encryption-key option)")

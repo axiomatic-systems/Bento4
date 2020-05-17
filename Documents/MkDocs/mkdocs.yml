@@ -14,6 +14,10 @@ theme:
 
 docs_dir: 'src'
 
+# Repo info
+repo_name: axiomatic-systems/Bento4
+repo_url: https://github.com/axiomatic-systems/Bento4
+
 # Extensions
 markdown_extensions:
   - admonition
