@@ -19,7 +19,7 @@ def build(ctx, clean = False):
         shutil.rmtree(target_dir, ignore_errors=True)
     try:
         os.makedirs(target_dir)
-    except:
+    except FileExistsError:
         pass
     with ctx.cd(target_dir):
         generator = ''
