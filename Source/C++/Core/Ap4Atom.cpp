@@ -468,11 +468,15 @@ AP4_NullTerminatedStringAtom::AP4_NullTerminatedStringAtom(AP4_Atom::Type  type,
                                                            AP4_ByteStream& stream) :
     AP4_Atom(type, size)
 {
-    AP4_Size str_size = (AP4_Size)size-AP4_ATOM_HEADER_SIZE;
-    char* str = new char[str_size];
-    stream.Read(str, str_size);
-    str[str_size-1] = '\0'; // force null-termination
-    m_Value = str;
+    AP4_Size str_size = (AP4_Size)size - AP4_ATOM_HEADER_SIZE;
+
+    if (str_size) {
+        char* str = new char[str_size];
+        stream.Read(str, str_size);
+        str[str_size - 1] = '\0'; // force null-termination
+        m_Value = str;
+        delete[] str;
+    }
 }
 
 /*----------------------------------------------------------------------
