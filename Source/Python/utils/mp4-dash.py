@@ -116,6 +116,8 @@ SMIL_NAMESPACE              = 'http://www.w3.org/2001/SMIL20/Language'
 
 CENC_2013_NAMESPACE         = 'urn:mpeg:cenc:2013'
 
+DASHIF_NAMESPACE            = 'https://dashif.org/'
+
 DASH_DEFAULT_ROLE_NAMESPACE = 'urn:mpeg:dash:role:2011'
 
 DASH_MEDIA_SEGMENT_URL_PATTERN_SMOOTH = "/QualityLevels($Bandwidth$)/Fragments(%s=$Time$)"
@@ -295,9 +297,15 @@ def AddContentProtection(options, container, tracks, all_tracks):
     if options.clearkey:
         container.append(xml.Comment(' Clear Key '))
         xml.register_namespace('ckey', CLEARKEY_CKEY_NAMESPACE)
+        xml.register_namespace('dashif', DASHIF_NAMESPACE)
         cp = xml.SubElement(container, 'ContentProtection', schemeIdUri=CLEARKEY_SCHEME_ID_URI, value=CLEARKEY_CONTENT_PROTECTION_VALUE)
         if options.clearkey_license_uri:
+            # First entry with the legacy namespace
             ck_license = xml.SubElement(cp, '{'+CLEARKEY_CKEY_NAMESPACE+'}Laurl', Lic_type=CLEARKEY_LICENSE_TYPE)
+            ck_license.text = options.clearkey_license_uri
+
+            # Second entry with the dashif namespace
+            ck_license = xml.SubElement(cp, '{'+DASHIF_NAMESPACE+'}laurl')
             ck_license.text = options.clearkey_license_uri
 
     # Marlin
