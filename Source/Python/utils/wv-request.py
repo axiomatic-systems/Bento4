@@ -5,6 +5,7 @@ import json
 import aes
 import hashlib
 import base64
+import struct
 from optparse import OptionParser
 
 WV_DEFAULT_SERVER_URL  = 'https://license.uat.widevine.com/cenc/getcontentkey'
@@ -41,6 +42,8 @@ parser.add_option('-t', '--track-types', dest="track_types", default='SD,HD,AUDI
                   help="List of track types, separated by ','")
 parser.add_option('-l', '--policy', dest="policy", default='',
                   help="Policy")
+parser.add_option('-s', '--protection-scheme', dest="protection_scheme", default='',
+                  help="Protection Scheme ('cenc', 'cbc1', 'cens', 'cbcs'), defaults to 'cenc'")
 
 (options, args) = parser.parse_args()
 if not options.content_id:
@@ -53,6 +56,9 @@ rq_payload = {
 	'drm_types':  ['WIDEVINE'],
 	'policy':      options.policy
 }
+
+if options.protection_scheme:
+    rq_payload['protection_scheme'] = struct.unpack('>I',options.protection_scheme.encode("ascii"))[0]
 
 if options.track_types:
 	rq_payload['tracks'] = [{'type': track_type} for track_type in options.track_types.split(',')]

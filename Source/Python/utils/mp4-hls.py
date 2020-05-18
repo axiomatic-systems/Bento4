@@ -15,25 +15,29 @@ __copyright__ = 'Copyright 2011-2020 Axiomatic Systems, LLC.'
 
 from optparse import OptionParser
 import shutil
-import xml.etree.ElementTree as xml
-from xml.dom.minidom import parseString
-import tempfile
-import fractions
-import re
 import platform
 import sys
-from mp4utils import *
-from subtitles import *
+import os.path as path
+import json
+from subtitles import SubtitlesFile
+from mp4utils import Base64Encode,\
+                     Mp4File,\
+                     Mp42Hls,\
+                     MediaSource,\
+                     LanguageNames,\
+                     LanguageCodeMap,\
+                     PrintErrorAndExit,\
+                     MakeNewDir
 
 # setup main options
 VERSION = "1.2.0"
-SDK_REVISION = '630'
+SDK_REVISION = '634'
 SCRIPT_PATH = path.abspath(path.dirname(__file__))
 sys.path += [SCRIPT_PATH]
 
 #############################################
 def CreateSubtitlesPlaylist(playlist_filename, webvtt_filename, duration):
-    playlist = open(playlist_filename, 'w+')
+    playlist = open(playlist_filename, 'w', newline='\r\n')
     playlist.write('#EXTM3U\n')
     playlist.write('#EXT-X-TARGETDURATION:%d\n' % (duration))
     playlist.write('#EXT-X-VERSION:3\n')
@@ -71,8 +75,13 @@ def SplitArgs(args):
 
 #############################################
 def ComputeWidevineKeyLine(params):
-    json_param = '{ "provider": "%(provider)s", "content_id": "%(content_id)s", "key_ids": ["%(kid)s"] }' % params
-    key_line   = 'URI="data:text/plain;base64,' + Base64Encode(json_param) + '",KEYFORMAT="com.widevine",KEYFORMATVERSIONS="1"'
+    if type(params) == str:
+        # already in base64 form
+        base64_header = params
+    else:
+        # base64-encode a JSON object for the parameters
+        base64_header = Base64Encode(('{ "provider": "%(provider)s", "content_id": "%(content_id)s", "key_ids": ["%(kid)s"] }' % params).encode('ascii'))
+    key_line   = 'URI="data:text/plain;base64,' + base64_header + '",KEYFORMAT="com.widevine",KEYFORMATVERSIONS="1"'
 
     return key_line
 
@@ -96,7 +105,7 @@ def AnalyzeSources(options, media_sources):
             continue
 
         # parse the file
-        if not os.path.exists(media_file):
+        if not path.exists(media_file):
             PrintErrorAndExit('ERROR: media file ' + media_file + ' does not exist')
 
         # get the file info
@@ -261,7 +270,7 @@ def ProcessSource(options, media_info, out_dir):
 
     # output the encryption key if needed
     if options.output_encryption_key:
-        open(path.join(out_dir, 'key.bin'), 'wb+').write(bytes.fromhex(options.encryption_key)[:16])
+        open(path.join(out_dir, 'key.bin'), 'wb').write(bytes.fromhex(options.encryption_key)[:16])
 
 #############################################
 def OutputHls(options, media_sources):
@@ -271,7 +280,6 @@ def OutputHls(options, media_sources):
     AnalyzeSources(options, media_sources)
 
     # select audio tracks
-    audio_media = []
     audio_tracks = SelectAudioTracks(options, [media_source for media_source in mp4_sources if not media_source.spec.get('+audio_fallback')])
 
     # check if this is an audio-only presentation
@@ -363,8 +371,8 @@ def OutputHls(options, media_sources):
             ProcessSource(options, audio_track.media_info, out_dir)
 
     # start the master playlist
-    master_playlist = open(path.join(options.output_dir, options.master_playlist_name), "w+")
-    master_playlist.write("#EXTM3U\n")
+    master_playlist = open(path.join(options.output_dir, options.master_playlist_name), 'w', newline='\r\n')
+    master_playlist.write('#EXTM3U\n')
     master_playlist.write('# Created with Bento4 mp4-hls.py version '+VERSION+'r'+SDK_REVISION+'\n')
     if ContainDolbyVision(main_media):
         PrintErrorAndExit('ERROR: For Dolby Vision, the format of segment video must be fragemnted MP4, please use mp4-dash.py')
@@ -485,7 +493,7 @@ def OutputHls(options, media_sources):
                 ext_x_stream_inf += ',AUDIO="'+group_name+'"'
 
             # subtitles info
-            if len(subtitles_files):
+            if subtitles_files:
                 ext_x_stream_inf += ',SUBTITLES="subtitles"'
 
             master_playlist.write(ext_x_stream_inf+'\n')
@@ -494,6 +502,7 @@ def OutputHls(options, media_sources):
 
     # write the I-FRAME playlist info
     if not audio_only and options.hls_version >= 4:
+        master_playlist.write('\n')
         master_playlist.write('# I-Frame Playlists\n')
         for media in main_media:
             media_info = media['info']
@@ -568,8 +577,16 @@ def main():
                       help="Encryption key format versions.")
     parser.add_option('', '--signal-session-key', dest='signal_session_key', action='store_true', default=False,
                       help="Signal an #EXT-X-SESSION-KEY tag in the master playlist")
-    parser.add_option('', '--fairplay', dest="fairplay", metavar="<fairplay-parameters>", help="Enable Fairplay Key Delivery. The <fairplay-parameters> argument is one or more <name>:<value> pair(s) (separated by '#' if more than one). Names include 'uri' [string] (required)")
-    parser.add_option('', '--widevine', dest="widevine", metavar="<widevine-parameters>", help="Enable Widevine Key Delivery. The <widevine-parameters> argument is one or more <name>:<value> pair(s) (separated by '#' if more than one). Names include 'provider' [string] (required), 'content_id' [byte array in hex] (optional), 'kid' [16-byte array in hex] (required)")
+    parser.add_option('', '--fairplay', dest="fairplay", metavar="<fairplay-parameters>",
+                      help="Enable Fairplay Key Delivery. " +
+                           "The <fairplay-parameters> argument is one or more <name>:<value> pair(s) (separated by '#' if more than one). " +
+                           "Names include 'uri' [string] (required)")
+    parser.add_option('', '--widevine', dest="widevine", metavar="<widevine-parameters>",
+                      help="Enable Widevine Key Delivery. " +
+                           "The <widevine-header> argument can be either: " +
+                           "(1) the character '#' followed by a Widevine header encoded in Base64, or " +
+                           "(2) one or more <name>:<value> pair(s) (separated by '#' if more than one) specifying fields of a Widevine header " +
+                           "(field names include 'provider' [string] (required), 'content_id' [byte array in hex] (optional), 'kid' [16-byte array in hex] (required))")
     parser.add_option('', '--output-encryption-key', dest="output_encryption_key", action="store_true", default=False,
                       help="Output the encryption key to a file (default: don't output the key). This option is only valid when the encryption key format is 'identity'")
     parser.add_option('', "--exec-dir", metavar="<exec_dir>", dest="exec_dir", default=default_exec_dir,
@@ -643,20 +660,24 @@ def main():
                 sys.exit(1)
         else:
             options.encryption_mode = 'SAMPLE-AES'
-        options.widevine = SplitArgs(options.widevine)
-        if 'kid' not in options.widevine:
-            sys.stderr.write('ERROR: --widevine option requires a "kid" parameter\n')
-            sys.exit(1)
-        if len(options.widevine['kid']) != 32:
-            sys.stderr.write('ERROR: --widevine option "kid" must be 32 hex characters\n')
-            sys.exit(1)
-        if 'provider' not in options.widevine:
-            sys.stderr.write('ERROR: --widevine option requires a "provider" parameter\n')
-            sys.exit(1)
-        if 'content_id' in options.widevine:
-            options.widevine['content_id'] = bytes.fromhex(options.widevine['content_id'])
+
+        if options.widevine.startswith('#'):
+            options.widevine = options.widevine[1:]
         else:
-            options.widevine['content_id'] = '*'
+            options.widevine = SplitArgs(options.widevine)
+            if 'kid' not in options.widevine:
+                sys.stderr.write('ERROR: --widevine option requires a "kid" parameter\n')
+                sys.exit(1)
+            if len(options.widevine['kid']) != 32:
+                sys.stderr.write('ERROR: --widevine option "kid" must be 32 hex characters\n')
+                sys.exit(1)
+            if 'provider' not in options.widevine:
+                sys.stderr.write('ERROR: --widevine option requires a "provider" parameter\n')
+                sys.exit(1)
+            if 'content_id' in options.widevine:
+                options.widevine['content_id'] = bytes.fromhex(options.widevine['content_id'])
+            else:
+                options.widevine['content_id'] = '*'
 
     # defaults
     if options.encryption_key and not options.encryption_mode:

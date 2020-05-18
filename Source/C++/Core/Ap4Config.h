@@ -99,6 +99,11 @@
 #define AP4_ftell ftell
 #endif
 
+/* MinGW-w64 */
+#if defined(__MINGW32__) || defined (__MINGW64__)
+#define AP4_CONFIG_HAVE_FOPEN_S
+#endif
+
 /* Symbian */
 #if defined(__SYMBIAN32__)
 #undef APT_CONFIG_HAVE_NEW_H

@@ -1,12 +1,14 @@
 #! /usr/bin/env python3
 
 from optparse import OptionParser
-from mp4utils import *
 from subprocess import check_output, CalledProcessError
 from pipes import quote
+import sys
 import os
+import os.path as path
 import json
 import math
+from mp4utils import MakeNewDir, PrintErrorAndExit
 
 # setup main options
 VERSION = "1.0.0"
@@ -163,7 +165,7 @@ def main():
     (bitrates, resolutions) = compute_bitrates_and_resolutions(options)
 
     for i in range(options.bitrates):
-        output_filename = os.path.join(options.output_dir, 'video_%05d.mp4' % int(bitrates[i]))
+        output_filename = path.join(options.output_dir, 'video_%05d.mp4' % int(bitrates[i]))
         temp_filename = output_filename+'_'
         base_cmd  = 'ffmpeg -i %s -strict experimental -codec:a %s -ac 2 -ab %dk -preset slow -map_metadata -1 -codec:v %s' % (quote(args[0]), options.audio_codec, options.audio_bitrate, options.video_codec)
         if options.video_codec == 'libx264':
@@ -171,11 +173,11 @@ def main():
         if options.text_overlay:
             if not options.text_overlay_font:
                 font_file = "/Library/Fonts/Courier New.ttf"
-                if os.path.exists(font_file):
-                    options.text_overlay_font = font_file;
+                if path.exists(font_file):
+                    options.text_overlay_font = font_file
                 else:
                     raise Exception('ERROR: no default font file, please use the --text-overlay-font option')
-            if not os.path.exists(options.text_overlay_font):
+            if not path.exists(options.text_overlay_font):
                 raise Exception('ERROR: font file "'+options.text_overlay_font+'" does not exist')
             base_cmd += ' -vf "drawtext=fontfile='+options.text_overlay_font+': text='+str(int(bitrates[i]))+'kbps '+str(resolutions[i][0])+'*'+str(resolutions[i][1])+': fontsize=50:  x=(w)/8: y=h-(2*lh): fontcolor=white:"'
         if options.select_streams:
@@ -216,7 +218,7 @@ if __name__ == '__main__':
     try:
         main()
     except Exception as err:
-        if Options is None or Options.debug:
+        if Options and Options.debug:
             raise
         else:
             PrintErrorAndExit('ERROR: %s\n' % str(err))

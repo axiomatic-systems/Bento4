@@ -379,6 +379,7 @@ class Mp4Track:
         self.max_segment_bitrate      = 0
         self.bandwidth                = 0
         self.language                 = ''
+        self.language_name            = ''
         self.order_index              = 0
         self.key_info                 = {}
         self.id = info['id']
@@ -432,6 +433,7 @@ class Mp4Track:
                 self.AA = self.parent.media_source.spec['AA']
                 
         self.language = info['language']
+        self.language_name = LanguageNames.get(LanguageCodeMap.get(self.language, 'und'), '')
 
     def update(self, options):
         # compute the total number of samples
@@ -504,7 +506,7 @@ class Mp4File:
             print('Processing MP4 file', filename)
 
         # by default, the media name is the basename of the source file
-        self.media_name = os.path.basename(filename)
+        self.media_name = path.basename(filename)
 
         # walk the atom structure
         self.atoms = WalkAtoms(filename)
@@ -716,13 +718,15 @@ def ComputeBandwidth(buffer_time, sizes, durations):
                 break
     return int(bandwidth)
 
-def MakeNewDir(dir, exit_if_exists=False, severity=None):
-    if os.path.exists(dir):
+def MakeNewDir(dir, exit_if_exists=False, severity=None, recursive=False):
+    if path.exists(dir):
         if severity:
             sys.stderr.write(severity+': ')
             sys.stderr.write('directory "'+dir+'" already exists\n')
         if exit_if_exists:
             sys.exit(1)
+    elif recursive:
+        os.makedirs(dir)
     else:
         os.mkdir(dir)
 
@@ -1327,11 +1331,11 @@ def ComputePlayReadyHeader(version, header_spec, encryption_scheme, key_specs):
         if not header:
             raise Exception('invalid base64 encoding')
         return header
-    elif header_spec.startswith('@') or os.path.exists(header_spec):
+    elif header_spec.startswith('@') or path.exists(header_spec):
         # check that the file exists
         if header_spec.startswith('@'):
             header_spec = header_spec[1:]
-            if not os.path.exists(header_spec):
+            if not path.exists(header_spec):
                 raise Exception('header data file does not exist')
 
         # read the header from the file
@@ -1416,7 +1420,7 @@ def ComputePrimetimeMetaData(metadata_spec, kid_hex):
             raise Exception('invalid base64 encoding')
     elif metadata_spec.startswith('@'):
         metadata_filename = metadata_spec[1:]
-        if not os.path.exists(metadata_filename):
+        if not path.exists(metadata_filename):
             raise Exception('data file does not exist')
 
         # read the header from the file
@@ -1452,37 +1456,72 @@ def WidevineMakeHeader(fields):
         elif type(field_val) == str:
             wire_type = 2
             wire_val = WidevineVarInt(len(field_val)) + field_val.encode('ascii')
+        elif type(field_val) == bytes:
+            wire_type = 2
+            wire_val = WidevineVarInt(len(field_val)) + field_val
         buffer += bytes([(field_num << 3) | wire_type]) + wire_val
     return buffer
 
 def ComputeWidevineHeader(header_spec, encryption_scheme, kid_hex):
-    # construct the base64 header
-    if header_spec.startswith('#'):
-        header_b64 = header_spec[1:]
-        header = Base64Decode(header_b64)
-        if not header:
-            raise Exception('invalid base64 encoding')
-        return header
-    else:
-        try:
-            pairs = header_spec.split('#')
-            fields = {}
-            for pair in pairs:
-                name, value = pair.split(':', 1)
-                fields[name] = value
-        except:
-            raise Exception('invalid syntax for argument')
+    try:
+        pairs = header_spec.split('#')
+        fields = {}
+        for pair in pairs:
+            name, value = pair.split(':', 1)
+            fields[name] = value
+    except:
+        raise Exception('invalid syntax for argument')
 
-        protobuf_fields = [(1, 1), (2, bytes.fromhex(kid_hex))]
-        if 'provider' in fields:
-            protobuf_fields.append((3, fields['provider']))
-        if 'content_id' in fields:
-            protobuf_fields.append((4, bytes.fromhex(fields['content_id'])))
-        if 'policy' in fields:
-            protobuf_fields.append((6, fields['policy']))
+    protobuf_fields = [(2, bytes.fromhex(kid_hex))]
+    if 'provider' in fields:
+        protobuf_fields.append((3, fields['provider']))
+    if 'content_id' in fields:
+        protobuf_fields.append((4, bytes.fromhex(fields['content_id'])))
+    if 'policy' in fields:
+        protobuf_fields.append((6, fields['policy']))
 
-        if encryption_scheme != 'cenc':
-            four_cc = struct.unpack('>I', encryption_scheme.encode('ascii'))[0]
-            protobuf_fields.append((9, four_cc))
+    if encryption_scheme == 'cenc':
+        protobuf_fields.append((1, 1))
 
-        return WidevineMakeHeader(protobuf_fields)
+    four_cc = struct.unpack('>I', encryption_scheme.encode('ascii'))[0]
+    protobuf_fields.append((9, four_cc))
+
+    return WidevineMakeHeader(protobuf_fields)
+
+#############################################
+# Module Exports
+#############################################
+__all__ = [
+    'LanguageCodeMap',
+    'LanguageNames',
+    'PrintErrorAndExit',
+    'XmlDuration',
+    'Base64Encode',
+    'Base64Decode',
+    'Bento4Command',
+    'Mp4Info',
+    'Mp4Dump',
+    'Mp4Split',
+    'Mp4Fragment',
+    'Mp4Encrypt',
+    'Mp42Hls',
+    'Mp4IframeIndex',
+    'WalkAtoms',
+    'Mp4Track',
+    'Mp4File',
+    'MediaSource',
+    'ComputeBandwidth',
+    'MakeNewDir',
+    'MakePsshBox',
+    'MakePsshBoxV1',
+    'GetEncryptionKey',
+    'GetDolbyDigitalPlusChannels',
+    'ComputeDolbyDigitalPlusAudioChannelConfig',
+    'ComputeDolbyAc4AudioChannelConfig',
+    'ComputeDolbyDigitalPlusSmoothStreamingInfo',
+    'ComputeMarlinPssh',
+    'DerivePlayReadyKey',
+    'ComputePlayReadyHeader',
+    'ComputePrimetimeMetaData',
+    'ComputeWidevineHeader'
+]

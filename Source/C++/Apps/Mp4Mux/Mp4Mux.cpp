@@ -101,11 +101,13 @@ PrintUsageAndExit()
             "  ac3:  Dolby Digital\n"
             "  ec3:  Dolby Digital Plus\n"
             "  ac4:  Dolby AC-4\n"
-            "    optional params:\n"
-            "      lang: language be compatible with iso 639-2/t (default=und)\n"
+
             "  mp4:  MP4 track(s) from an MP4 file\n"
             "    optional params:\n"
             "      track: audio, video, or integer track ID (default=all tracks)\n"
+            "\n"
+            "Common optional parameters for all types:\n"
+            "  language: language code (3-character ISO 639-2 Alpha-3 code)\n"
             "\n"
             "If no type is specified for an input, the type will be inferred from the file extension\n"
             "\n"
@@ -380,6 +382,30 @@ SortSamples(SampleOrder* array, unsigned int n)
 }
 
 /*----------------------------------------------------------------------
+|   GetLanguageFromParameters
++---------------------------------------------------------------------*/
+static const char*
+GetLanguageFromParameters(AP4_Array<Parameter>& parameters, const char* defaut_value)
+{
+    // check if we have a language parameter
+    for (unsigned int i=0; i<parameters.ItemCount(); i++) {
+        if (parameters[i].m_Name == "language") {
+            const char* language = parameters[i].m_Value.GetChars();
+
+            // the language must be a 3-character ISO 639-2 Alpha-3 code
+            if (strlen(language) != 3) {
+                fprintf(stderr, "ERROR: language codes must be 3-character ISO 639-2 Alpha-3 codes\n");
+                return NULL;
+            }
+
+            return language;
+        }
+    }
+
+    return defaut_value;
+}
+
+/*----------------------------------------------------------------------
 |   AddAacTrack
 +---------------------------------------------------------------------*/
 static void
@@ -395,16 +421,9 @@ AddAacTrack(AP4_Movie&            movie,
         return;
     }
 
-    // see if the language is specified
-    AP4_String track_languages("und");
-    for (unsigned int i=0; i<parameters.ItemCount(); i++) {
-        if (parameters[i].m_Name == "lang") {
-            if (parameters[i].m_Value.GetLength() != 3) {
-                fprintf(stderr, "WARN: language (%s) is not compatible with iso 639-2/t, and the language will be truncated.\n", parameters[i].m_Value.GetChars());
-            }
-            track_languages.Assign(parameters[i].m_Value.GetChars(), 3);
-        }
-    }
+    // check if we have a language parameter
+    const char* language = GetLanguageFromParameters(parameters, "und");
+    if (!language) return;
 
     // create a sample table
     AP4_SyntheticSampleTable* sample_table = new AP4_SyntheticSampleTable();
@@ -505,13 +524,13 @@ AddAacTrack(AP4_Movie&            movie,
     // create an audio track
     AP4_Track* track = new AP4_Track(AP4_Track::TYPE_AUDIO,
                                      sample_table,
-                                     0,                         // track id
-                                     sample_rate,               // movie time scale
-                                     sample_count*1024,         // track duration
-                                     sample_rate,               // media time scale
-                                     sample_count*1024,         // media duration
-                                     track_languages.GetChars(),// language
-                                     0, 0);                     // width, height
+                                     0,                 // track id
+                                     sample_rate,       // movie time scale
+                                     sample_count*1024, // track duration
+                                     sample_rate,       // media time scale
+                                     sample_count*1024, // media duration
+                                     language,          // language
+                                     0, 0);             // width, height
 
     // cleanup
     input->Release();
@@ -535,16 +554,9 @@ AddAc3Track(AP4_Movie&             movie,
         return;
     }
 
-    // see if the language is specified
-    AP4_String track_languages("und");
-    for (unsigned int i=0; i<parameters.ItemCount(); i++) {
-        if (parameters[i].m_Name == "lang") {
-            if (parameters[i].m_Value.GetLength() != 3) {
-                fprintf(stderr, "WARN: language (%s) is not compatible with iso 639-2/t, and the language will be truncated.\n", parameters[i].m_Value.GetChars());
-            }
-            track_languages.Assign(parameters[i].m_Value.GetChars(), 3);
-        }
-    }
+    // check if we have a language parameter
+    const char* language = GetLanguageFromParameters(parameters, "und");
+    if (!language) return;
 
     // create a sample table
     AP4_SyntheticSampleTable* sample_table = new AP4_SyntheticSampleTable(); // chunk_size is used to control chunk size in 'stsc' box
@@ -634,12 +646,12 @@ AddAc3Track(AP4_Movie&             movie,
     // create an audio track
     AP4_Track* track = new AP4_Track(AP4_Track::TYPE_AUDIO,
                                      sample_table,
-                                     0,                            // track id
-                                     sample_rate,                  // movie time scale
-                                     sample_count * 1536,          // track duration
-                                     sample_rate,                  // media time scale
-                                     sample_count * 1536,          // media duration
-                                     track_languages.GetChars(),   // language
+                                     0,                   // track id
+                                     sample_rate,         // movie time scale
+                                     sample_count * 1536, // track duration
+                                     sample_rate,         // media time scale
+                                     sample_count * 1536, // media duration
+                                     language,            // language
                                      0, 0);
 
     // add an edit list with MediaTime==0 to ac3 track defautly.
@@ -681,16 +693,9 @@ AddEac3Track(AP4_Movie&             movie,
         return;
     }
 
-    // see if the language is specified
-    AP4_String track_languages("und");
-    for (unsigned int i=0; i<parameters.ItemCount(); i++) {
-        if (parameters[i].m_Name == "lang") {
-            if (parameters[i].m_Value.GetLength() != 3) {
-                fprintf(stderr, "WARN: language (%s) is not compatible with iso 639-2/t, and the language will be truncated.\n", parameters[i].m_Value.GetChars());
-            }
-            track_languages.Assign(parameters[i].m_Value.GetChars(), 3);
-        }
-    }
+    // check if we have a language parameter
+    const char* language = GetLanguageFromParameters(parameters, "und");
+    if (!language) return;
 
     // create a sample table
     AP4_SyntheticSampleTable* sample_table = new AP4_SyntheticSampleTable(); // The parameter chunk_size is used to control chunk size in 'stsc' box
@@ -788,13 +793,13 @@ AddEac3Track(AP4_Movie&             movie,
     // create an audio track
     AP4_Track* track = new AP4_Track(AP4_Track::TYPE_AUDIO,
                                      sample_table,
-                                     0,                         // track id
-                                     sample_rate,               // movie time scale
-                                     sample_count * 1536,       // track duration
-                                     sample_rate,               // media time scale
-                                     sample_count * 1536,       // media duration
-                                     track_languages.GetChars(),// language
-                                     0, 0);                     // width, height
+                                     0,                   // track id
+                                     sample_rate,         // movie time scale
+                                     sample_count * 1536, // track duration
+                                     sample_rate,         // media time scale
+                                     sample_count * 1536, // media duration
+                                     language,            // language
+                                     0, 0);               // width, height
 
     // add an edit list with MediaTime==0 to ec3 track defautly.
     if(1) {
@@ -835,16 +840,9 @@ AddAc4Track(AP4_Movie&            movie,
         return;
     }
 
-    // see if the language is specified
-    AP4_String track_languages("und");
-    for (unsigned int i=0; i<parameters.ItemCount(); i++) {
-        if (parameters[i].m_Name == "lang") {
-            if (parameters[i].m_Value.GetLength() != 3) {
-                fprintf(stderr, "WARN: language (%s) is not compatible with iso 639-2/t, and the language will be truncated.\n", parameters[i].m_Value.GetChars());
-            }
-            track_languages.Assign(parameters[i].m_Value.GetChars(), 3);
-        }
-    }
+    // check if we have a language parameter
+    const char* language = GetLanguageFromParameters(parameters, "und");
+    if (!language) return;
 
     // create a sample table
     AP4_SyntheticSampleTable* sample_table = new AP4_SyntheticSampleTable(); // The parameter chunk_size is used to control chunk size in 'stsc' box
@@ -943,13 +941,13 @@ AddAc4Track(AP4_Movie&            movie,
     // create an audio track
     AP4_Track* track = new AP4_Track(AP4_Track::TYPE_AUDIO,
                                      sample_table,
-                                     0,                                 // track id
-                                     media_time_scale,                  // movie time scale
-                                     sample_count * sample_duration,    // track duration
-                                     media_time_scale,                  // media time scale
-                                     sample_count * sample_duration,    // media duration
-                                     track_languages.GetChars(),        // language
-                                     0, 0);                             // width, height
+                                     0,                              // track id
+                                     media_time_scale,               // movie time scale
+                                     sample_count * sample_duration, // track duration
+                                     media_time_scale,               // media time scale
+                                     sample_count * sample_duration, // media duration
+                                     language,                       // language
+                                     0, 0);                          // width, height
 
     // add an edit list with MediaTime==0 to ac4 track defautly.
     if(1) {
@@ -990,6 +988,10 @@ AddH264Track(AP4_Movie&            movie,
         fprintf(stderr, "ERROR: cannot open input file '%s' (%d))\n", input_name, result);
         return;
     }
+
+    // check if we have a language parameter
+    const char* language = GetLanguageFromParameters(parameters, "und");
+    if (!language) return;
 
     // see if the frame rate is specified
     unsigned int video_frame_rate = AP4_MUX_DEFAULT_VIDEO_FRAME_RATE*1000;
@@ -1174,7 +1176,7 @@ AddH264Track(AP4_Movie&            movie,
                                      video_track_duration, // track duration
                                      video_frame_rate,     // media time scale
                                      video_media_duration, // media duration
-                                     "und",                // language
+                                     language,             // language
                                      video_width<<16,      // width
                                      video_height<<16      // height
                                      );
@@ -1231,6 +1233,10 @@ AddH264DoviTrack(AP4_Movie&            movie,
         fprintf(stderr, "ERROR: cannot open input file '%s' (%d))\n", input_name, result);
         return;
     }
+
+    // check if we have a language parameter
+    const char* language = GetLanguageFromParameters(parameters, "und");
+    if (!language) return;
 
     // see if the frame rate is specified
     AP4_UI32 video_frame_rate = AP4_MUX_DEFAULT_VIDEO_FRAME_RATE*1000;
@@ -1434,7 +1440,7 @@ AddH264DoviTrack(AP4_Movie&            movie,
                                      video_track_duration, // track duration
                                      video_frame_rate,     // media time scale
                                      video_media_duration, // media duration
-                                     "und",                // language
+                                     language,              // language
                                      video_width<<16,      // width
                                      video_height<<16      // height
                                      );
@@ -1483,6 +1489,10 @@ AddH265Track(AP4_Movie&            movie,
         fprintf(stderr, "ERROR: cannot open input file '%s' (%d))\n", input_name, result);
         return;
     }
+
+    // check if we have a language parameter
+    const char* language = GetLanguageFromParameters(parameters, "und");
+    if (!language) return;
 
     // see if the frame rate is specified
     unsigned int video_frame_rate = AP4_MUX_DEFAULT_VIDEO_FRAME_RATE*1000;
@@ -1707,7 +1717,7 @@ AddH265Track(AP4_Movie&            movie,
                                      video_track_duration, // track duration
                                      video_frame_rate,     // media time scale
                                      video_media_duration, // media duration
-                                     "und",                // language
+                                     language,             // language
                                      video_width<<16,      // width
                                      video_height<<16      // height
                                      );
@@ -1772,6 +1782,10 @@ AddH265DoviTrack(AP4_Movie&        movie,
         fprintf(stderr, "ERROR: cannot open input file '%s' (%d))\n", input_name, result);
         return;
     }
+
+    // check if we have a language parameter
+    const char* language = GetLanguageFromParameters(parameters, "und");
+    if (!language) return;
 
     // see if the frame rate/format/dv_profile/dv_bc is specified
     unsigned int video_frame_rate = AP4_MUX_DEFAULT_VIDEO_FRAME_RATE*1000;
@@ -2036,7 +2050,7 @@ AddH265DoviTrack(AP4_Movie&        movie,
                                      video_track_duration, // track duration
                                      video_frame_rate,     // media time scale
                                      video_media_duration, // media duration
-                                     "und",                // language
+                                     language,             // language
                                      video_width<<16,      // width
                                      video_height<<16      // height
                                      );
@@ -2090,7 +2104,10 @@ AddMp4Tracks(AP4_Movie&            movie,
     if (input_movie == NULL) {
         return;
     }
-    
+
+    // check if we have a language parameter
+    const char* language = GetLanguageFromParameters(parameters, NULL);
+
     // check the parameters to decide which track(s) to import
     unsigned int track_id = 0;
     for (unsigned int i=0; i<parameters.ItemCount(); i++) {
@@ -2134,8 +2151,15 @@ AddMp4Tracks(AP4_Movie&            movie,
         AP4_Track* track = track_item->GetData();
         if (track_id == 0 || track->GetId() == track_id) {
             track = track->Clone();
+
             // reset the track ID so that it can be re-assigned
             track->SetId(0);
+
+            // override the language if specified in the parameters
+            if (language) {
+                track->SetTrackLanguage(language);
+            }
+
             movie.AddTrack(track);
         }
         track_item = track_item->GetNext();

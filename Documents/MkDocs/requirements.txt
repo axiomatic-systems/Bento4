@@ -1,0 +1,4 @@
+# This requirements file is for python3
+mkdocs == 1.1
+mkdocs-material == 4.6.3
+pymdown-extensions == 6.3

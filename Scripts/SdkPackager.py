@@ -38,16 +38,20 @@ def GetSdkRevision():
     cmd = 'git status --porcelain -b'
     lines = os.popen(cmd).readlines()
     branch = ''
+    suffix = ''
     if not lines[0].startswith('## master'):
         print('WARNING: not on master branch')
         branch = '+' + lines[0][3:].strip()
     if len(lines) > 1:
-        print('ERROR: git status not empty')
+        print('WARNING: git status not empty')
         print(''.join(lines))
-        return None
+        suffix = '*'
 
     cmd = 'git tag --contains HEAD'
     tags = os.popen(cmd).readlines()
+    if not tags:
+        # no tags, use the commit hash
+        return os.popen('git rev-parse --short HEAD').readlines()[0].strip() + suffix
     if len(tags) != 1:
         print('ERROR: expected exactly one tag for HEAD, found', len(tags), ':', tags)
         return None
@@ -55,7 +59,7 @@ def GetSdkRevision():
     sep = version.find('-')
     if sep < 0:
         print('ERROR: unrecognized version string format:', version)
-    return version[sep+1:] + branch
+    return version[sep+1:] + branch + suffix
 
 #############################################################
 # File Copy
@@ -122,14 +126,6 @@ else:
     script_dir  = os.path.abspath(os.path.dirname(__file__))
     BENTO4_HOME = os.path.join(script_dir,'..')
 
-CMAKE_BUILD = False
-if len(sys.argv) > 3:
-    if sys.argv[3] == 'cmake':
-        CMAKE_BUILD = True
-    else:
-        print('ERROR: unknown build type')
-        sys.exit(1)
-
 # ensure that BENTO4_HOME has been set and exists
 if not os.path.exists(BENTO4_HOME) :
     print('ERROR: BENTO4_HOME ('+BENTO4_HOME+') does not exist')
@@ -158,7 +154,7 @@ if SDK_TARGET is None:
         'linux-i386'  : 'x86-unknown-linux',
         'linux-x86_64': 'x86_64-unknown-linux',
         'linux2'      : 'x86-unknown-linux',
-        'win32'       : 'x86-microsoft-win32-vs2010',
+        'win32'       : 'x86_64-microsoft-win32',
         'darwin'      : 'universal-apple-macosx'
     }
 
@@ -176,20 +172,19 @@ BENTO4_VERSION = GetVersion()
 SDK_REVISION = GetSdkRevision()
 if SDK_REVISION is None:
     sys.exit(1)
-SDK_NAME='Bento4-SDK-'+BENTO4_VERSION+'-'+SDK_REVISION+'.'+SDK_TARGET
-SDK_BUILD_ROOT=BENTO4_HOME+'/SDK'
-SDK_ROOT=SDK_BUILD_ROOT+'/'+SDK_NAME
-SDK_TARGET_DIR='Build/Targets/'+SDK_TARGET
-SDK_TARGET_ROOT=BENTO4_HOME+'/'+SDK_TARGET_DIR
+SDK_NAME=f'Bento4-SDK-{BENTO4_VERSION}-{SDK_REVISION}.{SDK_TARGET}'
+SDK_BUILD_ROOT=f'{BENTO4_HOME}/SDK'
+SDK_ROOT=f'{SDK_BUILD_ROOT}/{SDK_NAME}'
+SDK_TARGET_DIR=f'Build/Targets/{SDK_TARGET}'
+SDK_TARGET_ROOT=f'{BENTO4_HOME}/{SDK_TARGET_DIR}'
 
-if CMAKE_BUILD:
-    SDK_BUILD_OUTPUT_DIR = 'cmakebuild'
-else:
-    # special case for Xcode builds
-    if SDK_TARGET == 'universal-apple-macosx':
-        SDK_BUILD_OUTPUT_DIR='Build/Targets/universal-apple-macosx/Build/Products/Release'
-    else:
-        SDK_BUILD_OUTPUT_DIR = SDK_TARGET_DIR + '/Release'
+# Different platforms have different build dirs
+SDK_BUILD_OUTPUT_SUBDIRS = {
+    'x86_64-microsoft-win32': '/Release',
+    'universal-apple-macosx': '/Release'
+}
+SDK_BUILD_OUTPUT_SUBDIR = SDK_BUILD_OUTPUT_SUBDIRS.get(SDK_TARGET, '')
+SDK_BUILD_OUTPUT_DIR = f'cmakebuild/{SDK_TARGET}{SDK_BUILD_OUTPUT_SUBDIR}'
 
 print(SDK_NAME)
 

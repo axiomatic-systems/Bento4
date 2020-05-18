@@ -22,14 +22,43 @@ import tempfile
 import re
 import platform
 import sys
+import os
+import os.path as path
+import json
 import math
-from mp4utils import *
-from subtitles import *
+import operator
+import struct
 from functools import reduce
+from subtitles import SubtitlesFile
+from mp4utils import MakePsshBox,\
+                     MakePsshBoxV1,\
+                     Base64Encode,\
+                     Base64Decode,\
+                     ComputeWidevineHeader,\
+                     ComputePlayReadyHeader,\
+                     ComputePrimetimeMetaData,\
+                     ComputeDolbyAc4AudioChannelConfig,\
+                     ComputeDolbyDigitalPlusAudioChannelConfig,\
+                     ComputeDolbyDigitalPlusSmoothStreamingInfo,\
+                     ComputeMarlinPssh,\
+                     Mp4IframeIndex,\
+                     Mp4File,\
+                     Mp4Encrypt,\
+                     Mp4Fragment,\
+                     Mp4Split,\
+                     MediaSource,\
+                     WalkAtoms,\
+                     GetEncryptionKey,\
+                     DerivePlayReadyKey,\
+                     LanguageNames,\
+                     LanguageCodeMap,\
+                     XmlDuration,\
+                     PrintErrorAndExit,\
+                     MakeNewDir
 
 # setup main options
 VERSION = "2.0.0"
-SDK_REVISION = '630'
+SDK_REVISION = '634'
 SCRIPT_PATH = path.abspath(path.dirname(__file__))
 sys.path += [SCRIPT_PATH]
 
@@ -86,6 +115,8 @@ SMOOTH_DEFAULT_TIMESCALE    = 10000000
 SMIL_NAMESPACE              = 'http://www.w3.org/2001/SMIL20/Language'
 
 CENC_2013_NAMESPACE         = 'urn:mpeg:cenc:2013'
+
+DASHIF_NAMESPACE            = 'https://dashif.org/'
 
 DASH_DEFAULT_ROLE_NAMESPACE = 'urn:mpeg:dash:role:2011'
 
@@ -267,9 +298,15 @@ def AddContentProtection(options, container, tracks, all_tracks):
     if options.clearkey:
         container.append(xml.Comment(' Clear Key '))
         xml.register_namespace('ckey', CLEARKEY_CKEY_NAMESPACE)
+        xml.register_namespace('dashif', DASHIF_NAMESPACE)
         cp = xml.SubElement(container, 'ContentProtection', schemeIdUri=CLEARKEY_SCHEME_ID_URI, value=CLEARKEY_CONTENT_PROTECTION_VALUE)
         if options.clearkey_license_uri:
+            # First entry with the legacy namespace
             ck_license = xml.SubElement(cp, '{'+CLEARKEY_CKEY_NAMESPACE+'}Laurl', Lic_type=CLEARKEY_LICENSE_TYPE)
+            ck_license.text = options.clearkey_license_uri
+
+            # Second entry with the dashif namespace
+            ck_license = xml.SubElement(cp, '{'+DASHIF_NAMESPACE+'}laurl')
             ck_license.text = options.clearkey_license_uri
 
     # Marlin
@@ -309,8 +346,7 @@ def AddContentProtection(options, container, tracks, all_tracks):
         container.append(xml.Comment(' Widevine '))
         cp = xml.SubElement(container, 'ContentProtection', schemeIdUri=WIDEVINE_SCHEME_ID_URI)
         if options.widevine_header:
-            pssh_payload = ComputeWidevineHeader(options.widevine_header, options.encryption_cenc_scheme, default_kid)
-            pssh_box = MakePsshBox(bytes.fromhex(WIDEVINE_PSSH_SYSTEM_ID), pssh_payload)
+            pssh_box = ComputeWidevinePssh(options.widevine_header, options.encryption_cenc_scheme, default_kid)
             pssh_b64 = Base64Encode(pssh_box)
             pssh = xml.SubElement(cp, '{' + CENC_2013_NAMESPACE + '}pssh')
             pssh.text = pssh_b64
@@ -368,7 +404,7 @@ def AddDescriptor(adaptation_set, set_attributes, set_name, category_name):
     if descriptor_list:
         descriptor_list.sort(key=lambda x: x['order'])
         for item in descriptor_list:
-            xml.SubElement(adaptation_set_or_preselection,
+            xml.SubElement(adaptation_set,
                            item['name'],
                            schemeIdUri=item['schemeIdUri'],
                            value=item['value'])
@@ -485,6 +521,9 @@ def OutputDash(options, set_attributes, audio_sets, video_sets, subtitles_sets, 
             language = audio_tracks[0].language
             if (language != 'und') or options.always_output_lang:
                 kwargs['lang'] = language
+            label = audio_tracks[0].label
+            if label != '':
+                kwargs['label'] = label
             adaptation_set = xml.SubElement(*args, **kwargs)
 
             # see if we have descriptors
@@ -646,31 +685,17 @@ def OutputDash(options, set_attributes, audio_sets, video_sets, subtitles_sets, 
         mpd_xml = parseString(xml.tostring(mpd)).toprettyxml("  ")
         # use a regex to fix a bug in toprettyxml() that inserts newlines in text content
         mpd_xml = re.sub(r'((?<=>)(\n[\s]*)(?=[^<\s]))|(?<=[^>\s])(\n[\s]*)(?=<)', '', mpd_xml)
-        mpd_file = open(path.join(options.output_dir, options.mpd_filename), "w")
-        for line in mpd_xml:
-            mpd_file.write(line)
+        open(path.join(options.output_dir, options.mpd_filename), 'w').write(mpd_xml)
 
 
 #############################################
 def ComputeHlsWidevineKeyLine(options, track):
-    try:
-        pairs = options.widevine_header.split('#')
-        fields = {}
-        for pair in pairs:
-            name, value = pair.split(':', 1)
-            fields[name] = value
-    except:
-        raise Exception('invalid syntax for --widevine-header option')
-
-    if 'content_id' not in fields:
-        fields['content_id'] = '*'
-    if 'kid' not in fields:
-        fields['kid'] = track.key_info['kid']
-
-    json_param = '{ "provider": "%(provider)s", "content_id": "%(content_id)s", "key_ids": ["%(kid)s"] }' % fields
-    key_line   = 'URI="data:text/plain;base64,%s",KEYFORMAT="com.widevine",KEYFORMATVERSIONS="1",IV=0x%s' % (
-        Base64Encode(json_param.encode('ascii')),
-        track.key_info['iv']
+    # V2 key line
+    kid = track.key_info['kid']
+    pssh_box = ComputeWidevinePssh(options.widevine_header, options.encryption_cenc_scheme, kid)
+    key_line = 'URI="data:text/plain;base64,{}",KEYFORMAT="urn:uuid:edef8ba9-79d6-4ace-a3c8-27dcd51d21ed",KEYID=0x{},KEYFORMATVERSIONS="1"'.format(
+        Base64Encode(pssh_box),
+        kid
     )
 
     return key_line
@@ -687,7 +712,7 @@ def ComputeHlsPlayReadyKeyLine(options, track, all_tracks):
                                        options.playready_header,
                                        options.encryption_cenc_scheme,
                                        key_set)
-    key_line = 'URI="data:text/plain;charset=UTF-16;base64,%s",KEYFORMAT="com.microsoft.playready",KEYFORMATVERSIONS="1"' % (
+    key_line = 'URI="data:text/plain;charset=UTF-16;base64,{}",KEYFORMAT="com.microsoft.playready",KEYFORMATVERSIONS="1"'.format(
         Base64Encode(pr_header)
     )
 
@@ -701,20 +726,20 @@ def ComputeHlsFairplayKeyLine(options):
 def OutputHlsCommon(options, track, all_tracks, media_subdir, playlist_name, media_file_name):
     hls_target_duration = math.ceil(max(track.segment_durations))
 
-    playlist_file = open(path.join(options.output_dir, media_subdir, playlist_name), 'w+')
+    playlist_file = open(path.join(options.output_dir, media_subdir, playlist_name), 'w', newline='\r\n')
     playlist_file.write('#EXTM3U\n')
     playlist_file.write('# Created with Bento4 mp4-dash.py, VERSION=' + VERSION + '-' + SDK_REVISION+'\n')
     playlist_file.write('#\n')
     playlist_file.write('#EXT-X-VERSION:6\n')
     playlist_file.write('#EXT-X-PLAYLIST-TYPE:VOD\n')
     playlist_file.write('#EXT-X-INDEPENDENT-SEGMENTS\n')
-    playlist_file.write('#EXT-X-TARGETDURATION:%d\n' % (hls_target_duration))
+    playlist_file.write('#EXT-X-TARGETDURATION:{}\n'.format(hls_target_duration))
     playlist_file.write('#EXT-X-MEDIA-SEQUENCE:0\n')
     if options.split:
-        playlist_file.write('#EXT-X-MAP:URI="%s"\n' % (SPLIT_INIT_SEGMENT_NAME))
+        playlist_file.write('#EXT-X-MAP:URI="{}"\n'.format(SPLIT_INIT_SEGMENT_NAME))
     else:
         init_segment_size = track.parent.init_segment.position + track.parent.init_segment.size
-        playlist_file.write('#EXT-X-MAP:URI="%s",BYTERANGE="%d@0"\n' % (media_file_name, init_segment_size))
+        playlist_file.write('#EXT-X-MAP:URI="{}",BYTERANGE="{}@0"\n'.format(media_file_name, init_segment_size))
 
     if options.encryption_key:
         key_lines = []
@@ -741,12 +766,12 @@ def OutputHlsTrack(options, track, all_tracks, media_subdir, media_playlist_name
         segment_pattern = SEGMENT_PATTERN.replace('ll','')
 
     for i in range(len(track.segment_durations)):
-        media_playlist_file.write('#EXTINF:%f,\n' % (track.segment_durations[i]))
+        media_playlist_file.write('#EXTINF:{},\n'.format(track.segment_durations[i]))
         if options.on_demand or not options.split:
             segment          = track.parent.segments[track.moofs[i]]
             segment_position = segment[0].position
             segment_size     = reduce(operator.add, [atom.size for atom in segment], 0)
-            media_playlist_file.write('#EXT-X-BYTERANGE:%d@%d\n' % (segment_size, segment_position))
+            media_playlist_file.write('#EXT-X-BYTERANGE:{}@{}\n'.format(segment_size, segment_position))
             media_playlist_file.write(media_file_name)
         else:
             media_playlist_file.write(segment_pattern % (i+1))
@@ -755,11 +780,26 @@ def OutputHlsTrack(options, track, all_tracks, media_subdir, media_playlist_name
     media_playlist_file.write('#EXT-X-ENDLIST\n')
 
 #############################################
+def OutputHlsWebvttPlaylist(options, media_subdir, media_playlist_name, media_file_name, total_duration):
+    # output a playlist with a single segment that covers the entire WebVTT file
+    playlist_file = open(path.join(options.output_dir, media_subdir, media_playlist_name), 'w', newline='\r\n')
+    playlist_file.write('#EXTM3U\n')
+    playlist_file.write('# Created with Bento4 mp4-dash.py, VERSION=' + VERSION + '-' + SDK_REVISION+'\n')
+    playlist_file.write('#\n')
+    playlist_file.write('#EXT-X-VERSION:6\n')
+    playlist_file.write('#EXT-X-INDEPENDENT-SEGMENTS\n')
+    playlist_file.write('#EXT-X-PLAYLIST-TYPE:VOD\n')
+    playlist_file.write('#EXT-X-TARGETDURATION:{}\n'.format(total_duration))
+    playlist_file.write('#EXTINF:{},\n'.format(total_duration))
+    playlist_file.write(media_file_name)
+    playlist_file.write('\n')
+    playlist_file.write('#EXT-X-ENDLIST\n')
+
+#############################################
 def OutputHlsIframeIndex(options, track, all_tracks, media_subdir, iframes_playlist_name, media_file_name):
     index_playlist_file = OutputHlsCommon(options, track, all_tracks, media_subdir, iframes_playlist_name, media_file_name)
 
     index_playlist_file.write('#EXT-X-I-FRAMES-ONLY\n')
-
 
     iframe_total_segment_size = 0
     iframe_total_segment_duration = 0
@@ -774,7 +814,7 @@ def OutputHlsIframeIndex(options, track, all_tracks, media_subdir, iframes_playl
             if i < len(index):
                 index_entry = index[i]
                 iframe_segment_duration = track.segment_durations[i]
-                index_playlist_file.write('#EXTINF:%f,\n' % (iframe_segment_duration))
+                index_playlist_file.write('#EXTINF:{},\n'.format(iframe_segment_duration))
                 fragment_start    = int(index_entry['fragmentStart'])
                 iframe_offset     = int(index_entry['offset'])
                 iframe_size       = int(index_entry['size'])
@@ -786,7 +826,7 @@ def OutputHlsIframeIndex(options, track, all_tracks, media_subdir, iframes_playl
                     iframe_max_bitrate = iframe_bitrate
 
                 iframe_range_size = iframe_size + (iframe_offset-fragment_start)
-                index_playlist_file.write('#EXT-X-BYTERANGE:%d@%d\n' % (iframe_range_size, fragment_start))
+                index_playlist_file.write('#EXT-X-BYTERANGE:{}@{}\n'.format(iframe_range_size, fragment_start))
                 index_playlist_file.write(media_file_name+'\n')
     else:
         segment_pattern = SEGMENT_PATTERN.replace('ll','')
@@ -804,8 +844,8 @@ def OutputHlsIframeIndex(options, track, all_tracks, media_subdir, iframes_playl
             iframe_offset     = int(index[0]['offset'])
             iframe_range_size = iframe_size + iframe_offset
             iframe_segment_duration = track.segment_durations[i]
-            index_playlist_file.write('#EXTINF:%f,\n' % (iframe_segment_duration))
-            index_playlist_file.write('#EXT-X-BYTERANGE:%d@0\n' % (iframe_range_size))
+            index_playlist_file.write('#EXTINF:{},\n'.format(iframe_segment_duration))
+            index_playlist_file.write('#EXT-X-BYTERANGE:{}@0\n'.format(iframe_range_size))
             index_playlist_file.write(fragment_basename+'\n')
 
             iframe_total_segment_size += iframe_size
@@ -827,8 +867,8 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
     all_video_tracks     = sum(list(video_sets.values()),     [])
     all_subtitles_tracks = sum(list(subtitles_sets.values()), [])
 
+    master_playlist_file = open(path.join(options.output_dir, options.hls_master_playlist_name), 'w', newline='\r\n')
     contain_pq_video_range = ContainPQTracks(video_sets)
-    master_playlist_file = open(path.join(options.output_dir, options.hls_master_playlist_name), 'w+')
     master_playlist_file.write('#EXTM3U\n')
     master_playlist_file.write('# Created with Bento4 mp4-dash.py, VERSION=' + VERSION + '-' + SDK_REVISION+'\n')
     master_playlist_file.write('#\n')
@@ -868,6 +908,7 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
             'max_segment_bitrate': 0,
             'group_order': ordered_audio_track.index(audio_tracks) + 1
         }
+        select_as_default = True
         for audio_track in audio_tracks:
             # update the average and max bitrates
             if audio_track.average_segment_bitrate > audio_groups[audio_group_name]['average_segment_bitrate']:
@@ -900,26 +941,32 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
                 media_file_name     = ''
                 media_playlist_name = options.hls_media_playlist_name
                 media_playlist_path = media_subdir+'/'+media_playlist_name
-            
+
             # different languages can be belonged to same group, so put here.
-            language = audio_track.language
-            language_name = LanguageNames.get(language, language)
-            default = 'YES'
-            # Only the first item in the audio group shall set the DEFAULT to YES
-            if audio_tracks.index(audio_track) > 0:
-                default = 'NO'
-            
-            master_playlist_file.write(('#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="%s",NAME="%s",LANGUAGE="%s",AUTOSELECT=YES,DEFAULT=%s,CHANNELS="%s",URI="%s"\n' % (
-                                        audio_group_name,
-                                        language_name,
-                                        language,
-                                        default,
-                                        audio_track.channels,
-                                        media_playlist_path)))
+            language = audio_tracks[0].language
+            language_name = audio_tracks[0].language_name
+            group_name = audio_track.label if audio_track.label != '' else language_name
+            master_playlist_file.write('#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="{}",LANGUAGE="{}",NAME="{}",AUTOSELECT=YES,DEFAULT={},CHANNELS=={},URI="{}"\n'.format(
+                                       audio_group_name,
+                                       language,
+                                       group_name,
+                                       'YES' if select_as_default else 'NO',
+                                       audio_track.channels,
+                                       media_playlist_path))
+            select_as_default = False
             OutputHlsTrack(options, audio_track, all_audio_tracks + all_video_tracks, media_subdir, media_playlist_name, media_file_name)
+
+            # Add an audio stream entry for audio-only presentations
+            if not all_video_tracks:
+                master_playlist_file.write('#EXT-X-STREAM-INF:AUDIO="{}",AVERAGE-BANDWIDTH={:.0f},BANDWIDTH={:.0f},CODECS="{}"\n'.format(
+                                            audio_group_name,
+                                            audio_track.average_segment_bitrate,
+                                            audio_track.max_segment_bitrate,
+                                            audio_track.codec))
+                master_playlist_file.write(media_playlist_path+'\n')
+
         if print_blank_line:
-                master_playlist_file.write('\n')
-    # Print the blank line for audio blocks            
+            master_playlist_file.write('\n')   
     master_playlist_file.write('\n')
     
     # Start to process video tracks
@@ -1005,7 +1052,6 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
                                                    video_track.height,
                                                    video_track.frame_rate,
                                                    audio_group_name))
-                master_playlist_file.write(media_playlist_path+'\n')
                 
                 if processing_video_tracks:
                     OutputHlsTrack(options, video_track, all_audio_tracks + all_video_tracks, media_subdir, media_playlist_name, media_file_name)
@@ -1041,12 +1087,13 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
     # IMSC1 subtitles
     if all_subtitles_tracks:
         master_playlist_file.write('\n# Subtitles (IMSC1)\n')
+        select_as_default = True
         for subtitles_track in all_subtitles_tracks:
             if subtitles_track.codec != 'stpp':
                 # only accept IMSC1 tracks
                 continue
             language = subtitles_track.language
-            language_name = LanguageNames.get(language, language)
+            language_name = subtitles_track.language_name
 
             if options.on_demand or not options.split:
                 media_subdir        = ''
@@ -1059,15 +1106,29 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
                 media_playlist_name = options.hls_media_playlist_name
                 media_playlist_path = media_subdir+'/'+media_playlist_name
 
-            master_playlist_file.write('#EXT-X-MEDIA:TYPE=SUBTITLES,GROUP-ID="imsc1",NAME="{0:s}",DEFAULT=NO,AUTOSELECT=YES,LANGUAGE="{1:s}",URI="{2:s}"\n'
-                                       .format(language_name, language, media_playlist_path))
+            master_playlist_file.write('#EXT-X-MEDIA:TYPE=SUBTITLES,GROUP-ID="subtitles",NAME="{}",DEFAULT={},AUTOSELECT=YES,LANGUAGE="{}",URI="{}"\n'.format(
+                                       language_name,
+                                       'YES' if select_as_default else 'NO',
+                                       language,
+                                       media_playlist_path))
+            select_as_default = False
 
     # WebVTT subtitles
     if subtitles_files:
         master_playlist_file.write('\n# Subtitles (WebVTT)\n')
+        presentation_duration = math.ceil(max([track.total_duration for track in all_video_tracks + all_audio_tracks]))
+        select_as_default = True
         for subtitles_file in subtitles_files:
-            master_playlist_file.write('#EXT-X-MEDIA:TYPE=SUBTITLES,GROUP-ID="subs",NAME="{0:s}",DEFAULT=NO,AUTOSELECT=YES,FORCED=YES,LANGUAGE="{0:s}",URI="subtitles/{0:s}/{1:s}"\n'
-                                       .format(subtitles_file.language,subtitles_file.media_name))
+            media_subdir = 'subtitles/{}'.format(subtitles_file.language)
+            media_playlist_name = options.hls_media_playlist_name
+            master_playlist_file.write('#EXT-X-MEDIA:TYPE=SUBTITLES,GROUP-ID="subtitles",NAME="{}",DEFAULT={},AUTOSELECT=YES,LANGUAGE="{}",URI="{}/{}"\n'.format(
+                                       language_name,
+                                       'YES' if select_as_default else 'NO',
+                                       subtitles_file.language,
+                                       media_subdir,
+                                       media_playlist_name))
+            select_as_default = False
+            OutputHlsWebvttPlaylist(options, media_subdir, media_playlist_name, subtitles_file.media_name, presentation_duration)
 
 #############################################
 def OutputSmooth(options, audio_tracks, video_tracks):
@@ -1087,7 +1148,11 @@ def OutputSmooth(options, audio_tracks, video_tracks):
 
     # process the audio tracks
     for audio_track in audio_tracks:
-        stream_name = "audio_"+audio_track.language
+        stream_name = audio_track.label
+        if stream_name == '':
+            stream_name = audio_track.language_name
+        if stream_name == '' or stream_name == 'Unknown':
+            stream_name = "audio_"+audio_track.language
         audio_url_pattern="QualityLevels({bitrate})/Fragments(%s={start time})" % (stream_name)
         stream_index = xml.SubElement(client_manifest,
                                       'StreamIndex',
@@ -1190,7 +1255,7 @@ def OutputSmooth(options, audio_tracks, video_tracks):
 
     # save the Smooth Client Manifest
     if options.smooth_client_manifest_filename != '':
-        open(path.join(options.output_dir, options.smooth_client_manifest_filename), "w").write(parseString(xml.tostring(client_manifest)).toprettyxml("  "))
+        open(path.join(options.output_dir, options.smooth_client_manifest_filename), 'w').write(parseString(xml.tostring(client_manifest)).toprettyxml('  '))
 
     # create the Server Manifest file
     server_manifest = xml.Element('smil', xmlns=SMIL_NAMESPACE)
@@ -1243,7 +1308,7 @@ def OutputSmooth(options, audio_tracks, video_tracks):
 
     # save the Manifest
     if options.smooth_server_manifest_filename != '':
-        open(path.join(options.output_dir, options.smooth_server_manifest_filename), "w").write(parseString(xml.tostring(server_manifest)).toprettyxml("  "))
+        open(path.join(options.output_dir, options.smooth_server_manifest_filename), 'w').write(parseString(xml.tostring(server_manifest)).toprettyxml('  '))
 
 #############################################
 def OutputHippo(options, audio_tracks, video_tracks):
@@ -1275,7 +1340,7 @@ def OutputHippo(options, audio_tracks, video_tracks):
 
     # save the Manifest
     if options.hippo_server_manifest_filename != '':
-        open(path.join(options.output_dir, options.hippo_server_manifest_filename), "w").write(server_manifest)
+        open(path.join(options.output_dir, options.hippo_server_manifest_filename), 'w').write(server_manifest)
 
 #############################################
 def SelectTracks(options, media_sources):
@@ -1292,12 +1357,12 @@ def SelectTracks(options, media_sources):
             continue
 
         # parse the file
-        if not os.path.exists(media_file):
+        if not path.exists(media_file):
             PrintErrorAndExit('ERROR: media file ' + media_file + ' does not exist')
 
         # get the file info
         print('Parsing media file', str(file_list_index)+':', GetMappedFileName(media_file))
-        mp4_file = Mp4File(Options, media_source)
+        mp4_file = Mp4File(options, media_source)
 
         # set some metadata properties for this file
         mp4_file.file_list_index = file_list_index
@@ -1313,7 +1378,7 @@ def SelectTracks(options, media_sources):
 
         if not options.split:
             if mp4_file.media_name in mp4_media_names:
-                PrintErrorAndExit('ERROR: output media name %s is not unique, consider using --rename-media'%mp4_file.media_name)
+                PrintErrorAndExit('ERROR: output media name {} is not unique, consider using --rename-media'.format(mp4_file.media_name))
 
         # check the file
         if mp4_file.info['movie']['fragments'] != True:
@@ -1328,6 +1393,7 @@ def SelectTracks(options, media_sources):
     audio_adaptation_sets     = {}
     video_adaptation_sets     = {}
     subtitles_adaptation_sets = {}
+    label_indexes             = {}
     audio_source_idx = 0
     video_source_idx = 0
     for media_source in media_sources:
@@ -1374,23 +1440,49 @@ def SelectTracks(options, media_sources):
                 language = options.language_map[language]
             track.language = language
 
+            # track language name
+            track.language_name = media_source.spec.get('+language_name', LanguageNames.get(language, language))
+
+            # track representation id
+            custom_representation_id = media_source.spec.get('+representation_id')
+            if custom_representation_id:
+                track.representation_id = custom_representation_id
+
             # video scan type
             if track.type == 'video':
                 track.scan_type = media_source.spec.get('+scan_type', track.scan_type)
-                
+
             # 'ac-3' and 'ec-3' channels
             if track.codec_family == 'ac-3' or track.codec_family == 'ec-3':
                 (track.channels, _channels) = GetDolbyDigitalPlusChannels(track)
+
+            # label
+            track.label = media_source.spec.get('+label', '')
+
+        # update label indexes (so that we can use numbers instead of strings for labels)
+        for track in tracks:
+            if track.label not in label_indexes:
+                label_indexes[track.label] = len(label_indexes) + 1
+
         # process audio tracks
         for track in [t for t in tracks if t.type == 'audio']:
             adaptation_set_name = ('audio', track.language, track.codec_family)
+
+            # add the label index
+            adaptation_set_name += (str(label_indexes[track.label]),)
+
+            # lookup the adaptation set and start a new one if no entry is found
             adaptation_set = audio_adaptation_sets.get(adaptation_set_name, [])
+            audio_adaptation_sets[adaptation_set_name] = adaptation_set
             audio_adaptation_sets[adaptation_set_name] = adaptation_set 
 
             # only keep this track if there isn't already a track with the same codec at the same bitrate (within 10%)
             with_same_bandwidth = [t for t in adaptation_set if abs(float(t.bandwidth-track.bandwidth)/float(t.bandwidth)) < 0.1 and t.channels == track.channels]
             if with_same_bandwidth:
                 continue
+
+
+            audio_adaptation_sets[adaptation_set_name] = adaptation_set
             
             audio_source_idx += 1
             adaptation_set.append(track)
@@ -1426,6 +1518,30 @@ def SelectTracks(options, media_sources):
 
                 adaptation_set.append(track)
                 track.order_index = len(adaptation_set)
+
+    # Try to simplify the adaptation set names where there's unnecessary sub-classification
+    # NOTE: in this version, we only try to simplify based on the last element of the name
+    # and we only try to simplify audio adaptation sets, because they are the only ones with
+    # labels. This should be updated when/if we add support for labels on other types.
+    for adaptation_set in [audio_adaptation_sets]:
+        prefixed = {}
+
+        # skip empty sets
+        if not adaptation_set:
+            continue
+
+        for name in adaptation_set:
+            prefix = name[:-1]
+            entry = prefixed.get(name[:-1], [0, name])
+            entry[0] += 1
+            prefixed[prefix] = entry
+
+        for prefix in prefixed:
+            [count, name] = prefixed[prefix]
+            if count == 1:
+                # there's only one entry with that prefix, we can simplify
+                adaptation_set[prefix] = adaptation_set[name]
+                del adaptation_set[name]
 
     return (audio_adaptation_sets, video_adaptation_sets, subtitles_adaptation_sets, mp4_files)
 
@@ -1548,7 +1664,6 @@ def EncryptSources(options, media_sources):
 
         # pick a default key
         default_kid = options.key_infos[0]['kid']
-        default_key = options.key_infos[0]['key']
 
         print('Encrypting track IDs ' + str(sorted(media_source.key_infos.keys()) ) +' in ' + GetMappedFileName(media_file))
         encrypted_file = tempfile.NamedTemporaryFile(dir=options.output_dir, delete=False)
@@ -1599,12 +1714,14 @@ def EncryptSources(options, media_sources):
 
         # Widevine
         if options.widevine_header:
-            widevine_header = ComputeWidevineHeader(options.widevine_header, options.encryption_cenc_scheme, default_kid)
+            pssh = ComputeWidevinePssh(options.widevine_header, options.encryption_cenc_scheme, default_kid)
+            pssh_payload = pssh[12:]
+            pssh_version = pssh[8]
             pssh_file = tempfile.NamedTemporaryFile(dir=options.output_dir, delete=False)
-            pssh_file.write(widevine_header)
+            pssh_file.write(pssh_payload)
             TempFiles.append(pssh_file.name)
             pssh_file.close() # necessary on Windows
-            args += ['--pssh', WIDEVINE_PSSH_SYSTEM_ID+':'+pssh_file.name]
+            args += ['--pssh' if pssh_version == 0 else 'pssh-v1', WIDEVINE_PSSH_SYSTEM_ID+':'+pssh_file.name]
 
         # Primetime
         if options.primetime_metadata:
@@ -1617,6 +1734,28 @@ def EncryptSources(options, media_sources):
 
         Mp4Encrypt(options, media_file, encrypted_file.name, *args)
         media_source.filename = encrypted_file.name
+
+#############################################
+def ComputeWidevinePssh(header_spec, encryption_scheme, kid):
+    if header_spec.startswith('#'):
+        # The header spec is a base-64 encoded precomputed byte array
+        header = Base64Decode(header_spec[1:])
+        if not header:
+            raise Exception('invalid base64 encoding')
+
+        # The header may be a raw header or a full PSSH box, find out which
+        if len(header) > 8:
+            (box_length, box_type) = struct.unpack('>I4s', header[:8])
+            if box_length == len(header) and box_type == b'pssh':
+                # That looks like a valid PSSH box
+                return header
+
+    else:
+        # The header spec is a set of properties
+        header = ComputeWidevineHeader(header_spec, encryption_scheme, kid)
+
+    # Wrap the header in a PSSH box
+    return MakePsshBox(bytes.fromhex(WIDEVINE_PSSH_SYSTEM_ID), header)
 
 #############################################
 FileNameMap = {}
@@ -1752,7 +1891,7 @@ def main():
     parser.add_option('', "--widevine-header", dest="widevine_header", metavar='<widevine-header>', default=None,
                       help="Add a Widevine entry in the MPD, and a Widevine PSSH box in the init segments. The use of this option implies the --widevine option. " +
                            "The <widevine-header> argument can be either: " +
-                           "(1) the character '#' followed by a Widevine header encoded in Base64, or " +
+                           "(1) the character '#' followed by a Widevine header encoded in Base64 (either a complete PSSH box or just the PSSH box payload), or " +
                            "(2) one or more <name>:<value> pair(s) (separated by '#' if more than one) specifying fields of a Widevine header (field names include 'provider' [string], 'content_id' [byte array in hex], 'policy' [string])")
     parser.add_option('', "--primetime", dest="primetime", action="store_true", default=False,
                       help="Add Primetime signaling to the MPD (requires an encrypted input, or the --encryption-key option)")
@@ -1862,8 +2001,6 @@ def main():
 
     if options.widevine_header:
         options.widevine = True
-        if options.hls and options.widevine_header.startswith('#'):
-            raise Exception('with --hls, only the <name>:<value> pair syntax is supported for the --widevine-header option')
 
     if options.primetime_metadata:
         options.primetime = True
@@ -1970,10 +2107,10 @@ def main():
         for track in audio_tracks + video_tracks + subtitles_tracks:
             message = 'Key info for ' + str(track) + ': '
             if track.key_info.get('key'):
-                message += '[KID=%s, KEY=%s]' % (track.key_info['kid'], track.key_info['key'])
+                message += '[KID={}, KEY={}]'.format(track.key_info['kid'], track.key_info['key'])
             else:
                 if track.key_info.get('kid'):
-                    message += '[PRE-ENCRYPTED KID=%s]' % track.key_info['kid']
+                    message += '[PRE-ENCRYPTED KID={}]'.format(track.key_info['kid'])
                 else:
                     message += '[NOT ENCRYPTED]'
             print(message)
@@ -2027,19 +2164,23 @@ def main():
     for adaptation_sets in [audio_sets, video_sets, subtitles_sets]:
         for adaptation_set_name, tracks in list(adaptation_sets.items()):
             for track in tracks:
-                if options.split:
-                    track.representation_id = '/'.join(adaptation_set_name)
-                    if len(tracks) > 1:
-                        track.representation_id += '/'+str(track.order_index)
-                    track.init_segment_name = SPLIT_INIT_SEGMENT_NAME
-                else:
-                    track.representation_id = '-'.join(adaptation_set_name)
-                    if len(tracks) > 1:
-                        track.representation_id += '-'+str(track.order_index)
-                    if options.on_demand:
-                        track.parent.media_name = ONDEMAND_MEDIA_FILE_PATTERN % (options.media_prefix, track.representation_id)
+                if not hasattr(track, 'representation_id'):
+                    if options.split:
+                        track.representation_id = '/'.join(adaptation_set_name)
+                        if len(tracks) > 1:
+                            track.representation_id += '/'+str(track.order_index)
                     else:
-                        track.init_segment_name = NOSPLIT_INIT_FILE_PATTERN % (track.representation_id)
+                        track.representation_id = '-'.join(adaptation_set_name)
+                        if len(tracks) > 1:
+                            track.representation_id += '-'+str(track.order_index)
+
+                if options.split:
+                    track.init_segment_name = SPLIT_INIT_SEGMENT_NAME
+                elif options.on_demand:
+                    track.parent.media_name = ONDEMAND_MEDIA_FILE_PATTERN % (options.media_prefix, track.representation_id)
+                else:
+                    track.init_segment_name = NOSPLIT_INIT_FILE_PATTERN % (track.representation_id)
+
                 track.stream_id = adaptation_set_name[0]
                 if adaptation_set_name[0] == 'audio':
                     track.stream_id += '_'+track.language
@@ -2064,7 +2205,14 @@ def main():
     # print info about the tracks
     if options.verbose:
         for track in audio_tracks+video_tracks+subtitles_tracks:
-            print(('%s track: ' + str(track) + ' - language=%s, max bitrate=%d, avg bitrate=%d, req bandwidth=%d, codec=%s') % (track.type, track.language, track.max_segment_bitrate, track.average_segment_bitrate, track.bandwidth, track.codec))
+            print(('{} track: {} - language={}, max bitrate={:.0f}, avg bitrate={:.0f}, req bandwidth={:.0f}, codec={}').format(
+                  track.type,
+                  str(track),
+                  track.language,
+                  track.max_segment_bitrate,
+                  track.average_segment_bitrate,
+                  track.bandwidth,
+                  track.codec))
 
     # deal with the max playout strategy if set
     if options.max_playout_rate_strategy:
@@ -2083,15 +2231,9 @@ def main():
         if options.split:
             for adaptation_sets in [audio_sets, video_sets, subtitles_sets]:
                 for adaptation_set_name, tracks in list(adaptation_sets.items()):
-                    base_dir = options.output_dir
-                    for subdir in adaptation_set_name:
-                        base_dir = path.join(base_dir, subdir)
-                        MakeNewDir(base_dir)
                     for track in tracks:
-                        out_dir = base_dir
-                        if len(tracks) > 1:
-                            out_dir = path.join(out_dir, str(track.order_index))
-                            MakeNewDir(out_dir)
+                        out_dir = path.join(options.output_dir, track.representation_id)
+                        MakeNewDir(out_dir, recursive=True)
                         print('Splitting media file ('+adaptation_set_name[0]+')', GetMappedFileName(track.parent.media_source.filename))
                         Mp4Split(options,
                                  track.parent.media_source.filename,
@@ -2158,7 +2300,7 @@ if __name__ == '__main__':
         if Options and Options.debug:
             raise
         else:
-            PrintErrorAndExit('ERROR: %s\n' % str(err))
+            PrintErrorAndExit('ERROR: {}\n'.format(str(err)))
     finally:
         for f in TempFiles:
             os.unlink(f)

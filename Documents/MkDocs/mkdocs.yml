@@ -1,0 +1,30 @@
+site_name: Bento4
+
+use_directory_urls: false
+
+nav:
+  - Home: index.md
+
+copyright: © 2020 Axiomatic Systems, LLC. All rights reserved.
+
+theme:
+  name: 'material'
+  logo: 'images/bento4-small.jpg'
+  custom_dir: 'theme'
+
+docs_dir: 'src'
+
+# Repo info
+repo_name: axiomatic-systems/Bento4
+repo_url: https://github.com/axiomatic-systems/Bento4
+
+# Extensions
+markdown_extensions:
+  - admonition
+  - attr_list
+  - pymdownx.details
+  - pymdownx.superfences
+  - codehilite:
+      guess_lang: false
+  - toc:
+      permalink: true
