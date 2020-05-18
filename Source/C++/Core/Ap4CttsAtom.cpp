@@ -74,8 +74,20 @@ AP4_CttsAtom::AP4_CttsAtom(AP4_UI32        size,
     m_LookupCache.sample      = 0;
     m_LookupCache.entry_index = 0;
 
+    if (size < AP4_FULL_ATOM_HEADER_SIZE + 4) {
+        return;
+    }
+
+    // read the number of entries
     AP4_UI32 entry_count;
     stream.ReadUI32(entry_count);
+
+    // check that there's enough data
+    if (((size - AP4_FULL_ATOM_HEADER_SIZE - 4) / 8) < entry_count) {
+        return;
+    }
+
+    // read the entries
     m_Entries.SetItemCount(entry_count);
     unsigned char* buffer = new unsigned char[entry_count*8];
     AP4_Result result = stream.Read(buffer, entry_count*8);
