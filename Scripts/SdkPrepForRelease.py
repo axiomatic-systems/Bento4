@@ -40,17 +40,26 @@ else :
 filename = os.path.join(BENTO4_HOME, "Source", "Python", "utils", "mp4-dash.py")
 print("Patching", filename)
 file_lines = open(filename).readlines()
-file_out = open(filename, "wb")
+file_out = open(filename, "w")
 for line in file_lines:
     if line.startswith("SDK_REVISION = "):
         line = "SDK_REVISION = '"+SDK_REVISION+"'\n"
-    file_out.write(line.encode('ascii'))
+    file_out.write(line)
 
 filename = os.path.join(BENTO4_HOME, "Source", "Python", "utils", "mp4-hls.py")
 print("Patching", filename)
 file_lines = open(filename).readlines()
-file_out = open(filename, "wb")
+file_out = open(filename, "w")
 for line in file_lines:
     if line.startswith("SDK_REVISION = "):
         line = "SDK_REVISION = '"+SDK_REVISION+"'\n"
-    file_out.write(line.encode('ascii'))
+    file_out.write(line)
+
+filename = os.path.join(BENTO4_HOME, "Build", "Docker", "Dockerfile")
+print("Patching", filename)
+file_lines = open(filename).readlines()
+file_out = open(filename, "w")
+for line in file_lines:
+    if line.startswith("ENV BENTO4_VERSION 1.6.0-"):
+        line = "ENV BENTO4_VERSION 1.6.0-"+SDK_REVISION+"\n"
+    file_out.write(line)
