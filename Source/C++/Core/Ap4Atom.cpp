@@ -1001,6 +1001,68 @@ AP4_JsonInspector::~AP4_JsonInspector()
 }
 
 /*----------------------------------------------------------------------
+|   AP4_JsonInspector::EscapeString
+|
+|   Not very efficient but simple funuction to escape characters in a
+|   JSON string
++---------------------------------------------------------------------*/
+AP4_String
+AP4_JsonInspector::EscapeString(const char* string)
+{
+    AP4_String result(string);
+
+    // Shortcut
+    if (result.GetLength() == 0) {
+        return result;
+    }
+
+    // Compute the output size
+    AP4_Size output_size = 0;
+    const char* input = string;
+    char c;
+    while ((c = *input++)) {
+        if (c == '"' || c == '\\') {
+            output_size += 2;
+        } else if (c <= 0x1F) {
+            output_size += 6;
+        } else {
+            output_size += 1;
+        }
+    }
+
+    // Shortcut
+    if (output_size == result.GetLength()) {
+        return result;
+    }
+
+    // Compute the escaped string in a temporary buffer
+    char* buffer = new char[output_size];
+    char* escaped = buffer;
+    input = string;
+    while ((c = *input++)) {
+        if (c == '"' || c == '\\') {
+            *escaped++ = '\\';
+            *escaped++ = c;
+        } else if (c <= 0x1F) {
+            *escaped++ = '\\';
+            *escaped++ = 'u';
+            *escaped++ = '0';
+            *escaped++ = '0';
+            *escaped++ = AP4_NibbleHex(c >> 4);
+            *escaped++ = AP4_NibbleHex(c & 0x0F);
+        } else {
+            *escaped++ = c;
+        }
+    }
+
+    // Copy the buffer to a final string
+    result.Assign(buffer, output_size);
+    delete[] buffer;
+
+    return result;
+}
+
+/*----------------------------------------------------------------------
 |   AP4_JsonInspector::StartAtom
 +---------------------------------------------------------------------*/
 void
@@ -1026,7 +1088,7 @@ AP4_JsonInspector::StartAtom(const char* name,
     m_Stream->WriteString("{\n");
     m_Stream->WriteString(prefix);
     m_Stream->WriteString("  \"name\":\"");
-    m_Stream->WriteString(name);
+    m_Stream->WriteString(EscapeString(name).GetChars());
     m_Stream->Write("\"", 1);
     m_Stream->WriteString(",\n");
     m_Stream->WriteString(prefix);
@@ -1094,9 +1156,9 @@ AP4_JsonInspector::AddField(const char* name, const char* value, FormatHint)
     m_Stream->WriteString(",\n");
     m_Stream->WriteString(prefix);
     m_Stream->Write("\"", 1);
-    m_Stream->WriteString(name);
+    m_Stream->WriteString(EscapeString(name).GetChars());
     m_Stream->Write("\":\"", 3);
-    m_Stream->WriteString(value);
+    m_Stream->WriteString(EscapeString(value).GetChars());
     m_Stream->Write("\"", 1);
 }
 
@@ -1137,7 +1199,7 @@ AP4_JsonInspector::AddFieldF(const char* name, float value, FormatHint /*hint*/)
                      "%f", 
                      value);
     m_Stream->Write("\"", 1);
-    m_Stream->WriteString(name);
+    m_Stream->WriteString(EscapeString(name).GetChars());
     m_Stream->Write("\":", 2);
     m_Stream->WriteString(str);
 }
@@ -1157,7 +1219,7 @@ AP4_JsonInspector::AddField(const char*          name,
     m_Stream->WriteString(prefix);
 
     m_Stream->Write("\"", 1);
-    m_Stream->WriteString(name);
+    m_Stream->WriteString(EscapeString(name).GetChars());
     m_Stream->Write("\":\"", 3);
     m_Stream->WriteString("[");
     unsigned int offset = 1;

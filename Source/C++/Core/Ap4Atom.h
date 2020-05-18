@@ -184,6 +184,9 @@ public:
     void AddField(const char* name, const unsigned char* bytes, AP4_Size size, FormatHint hint);
 
 private:
+    // methods
+    static AP4_String EscapeString(const char* string);
+    
     // members
     AP4_ByteStream*         m_Stream;
     AP4_Cardinal            m_Depth;
