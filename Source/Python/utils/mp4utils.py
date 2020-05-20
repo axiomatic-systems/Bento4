@@ -425,7 +425,7 @@ class Mp4Track:
                 if stream_type == 'Immersive stereo':
                     self.dolby_ac4_ims = 'Yes'
                 elif stream_type == 'Channel based immsersive':
-                    dolby_ac4_cbi = 'Yes'
+                    self.dolby_ac4_cbi = 'Yes'
                 self.self_contained = sample_desc['dolby_ac4_info']['Self Contained']
 
         self.language = info['language']
