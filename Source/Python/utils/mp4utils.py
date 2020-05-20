@@ -868,7 +868,10 @@ def GetDolbyDigitalPlusChannels(track):
     sample_desc = track.info['sample_descriptions'][0]
     if 'dolby_digital_info' not in sample_desc:
         return (track.channels, [])
-    dd_info = sample_desc['dolby_digital_info']['substreams'][0]
+    if 'substreams' in sample_desc['dolby_digital_info']:
+        dd_info = sample_desc['dolby_digital_info']['substreams'][0]
+    else:
+        dd_info = sample_desc['dolby_digital_info']['stream_info']
     channels = DolbyDigital_acmod[dd_info['acmod']][:]
     if dd_info['lfeon'] == 1:
         channels.append('LFE')
@@ -949,14 +952,7 @@ def DolbyAc4WithMPEGDASHScheme(mask):
         return (True, available_mask_dict[mask])
     else:
         return (False, mask)
-        
-def ContainPQTracks(video_sets):
-    for tracks in video_sets.values():
-        for item in tracks:
-            if (item.codec_family == 'dvh1' or item.codec_family == 'dvhe'):
-                return True
-    return False
-    
+
 def DolbyVisionProfile8DualEntry(video_sets, hevc_codec, dv_codec):
     if ('video', hevc_codec) in video_sets:
         duplicate_vdieo_sets = []
@@ -985,7 +981,7 @@ def DolbyVisionProfile8DualEntry(video_sets, hevc_codec, dv_codec):
             video_sets[('video', new_codec)] = []
             for item in duplicate_vdieo_sets:
                 video_sets[('video', new_codec)].append(item)
-    
+
 def GetVideoRangeValue(track):
     if hasattr(track,'PQ') or track.codec_family == 'dvh1' or track.codec_family == 'dvhe':
         return 'PQ'
@@ -1032,7 +1028,6 @@ def NextExpectedOrderIndex(cur_idx, ordered_tracks):
         else:
             break
     return expected_idx
-     
 
 def GetDuplicatedTrackIndex(media_tracks, search_input_order):
     for tracks in media_tracks:
@@ -1056,7 +1051,7 @@ def ReOrderMediaTrack(media_tracks):
             if tracks not in ordered_media_tracks:
                 insert_idx = GetDuplicatedTrackIndex(ordered_media_tracks, tracks[0].input_order)
                 ordered_media_tracks.insert(insert_idx, tracks)
-                
+
     return ordered_media_tracks
 
 def ReGroupAC4Sets(audio_sets):
@@ -1075,10 +1070,10 @@ def ReGroupAC4Sets(audio_sets):
                 adaptation_set.append(track) 
         else:
             regroup_audio_sets[name] = audio_tracks
-    
+
     for name, ac4_tracks in audio_adaptation_sets.items():
         regroup_audio_sets[name] = ac4_tracks
-        
+
     return regroup_audio_sets
 
 def ReGroupAudioSets(audio_sets):
@@ -1101,49 +1096,6 @@ def ReGroupAudioSets(audio_sets):
             group_set_value.append(track)
     return audio_group_sets
 
-def NeedReGroupDlbAudioSets(audio_sets):
-    b_CM = False
-    b_AA = False
-    for name, audio_tracks in audio_sets.items():
-        if name[2] == 'ec-3' or name[2] == 'ac-4':
-            for track in audio_tracks:
-                if 'CM' in track.parent.media_source.spec:
-                    b_CM = True
-                if 'AA' in track.parent.media_source.spec:
-                    b_AA = True
-    if b_CM and b_AA:
-        return True
-    else:
-        return False
-
-# CM + AA use case
-def ReGroupDlbAudioSets(audio_sets):
-    regroup_audio_sets    = {}
-    audio_adaptation_sets = {}
-    for name, audio_tracks in audio_sets.items():
-        if audio_tracks[0].codec_family == 'ec-3' or audio_tracks[0].codec_family == 'ac-4':
-            for track in audio_tracks:
-                adaptation_set_name = ('audio', track.language, track.codec_family)
-                if 'AA' in track.parent.media_source.spec:
-                    adaptation_set_name = adaptation_set_name + ('AA#' + str(track.parent.media_source.spec['AA']),)
-                adaptation_set = audio_adaptation_sets.get(adaptation_set_name, [])
-                audio_adaptation_sets[adaptation_set_name] = adaptation_set
-                adaptation_set.append(track) 
-        else:
-            regroup_audio_sets[name] = audio_tracks
-    
-    for name, ddp_tracks in audio_adaptation_sets.items():
-        regroup_audio_sets[name] = ddp_tracks
-        
-    return regroup_audio_sets
-
-def FindDependencyId(audio_tracks, AA_id):
-    for tracks in audio_tracks:
-        for track in tracks:
-            if AA_id == track.CM:
-                return track.representation_id
-    return -1
-
 def GenVideoSets(video_tracks):
     video_sets = {}
     for track in video_tracks:
@@ -1152,7 +1104,7 @@ def GenVideoSets(video_tracks):
         video_sets[sets_name] = sets_value
         sets_value.append(track)
     return video_sets
-    
+
 def OrderedByInputOrder(track):
     return track.input_order
 
@@ -1181,12 +1133,6 @@ def ContainDolbyVision(video_tracks):
                 return True
     return False
 
-def ContainDolbyAudio(audio_sets):
-    for audio_tracks in audio_sets:
-        if audio_tracks[0].codec_family in ['ac-3', 'ec-3', 'ac-4']:
-            return  True
-    return False
-    
 def ContainAtmosAndAC4(audio_sets):
     for audio_tracks in audio_sets:
         if audio_tracks[0].codec_family in ['ac-4']:

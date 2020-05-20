@@ -364,7 +364,7 @@ def OutputHls(options, media_sources):
                 audio_track.media_info['file_extension'] = ComputeCodecName(audio_track.codec_family)
             elif ContainAtmosAndAC4(audio_tracks.values()):
                 PrintErrorAndExit('ERROR: For DD+/Atmos and AC-4, the format of segment audio must be packed audio, please add "--audio-format packed"')
-                
+
             # process the source
             out_dir = path.join(options.output_dir, 'audio', group_id, audio_track.language)
             MakeNewDir(out_dir)
@@ -376,8 +376,6 @@ def OutputHls(options, media_sources):
     master_playlist.write('# Created with Bento4 mp4-hls.py version '+VERSION+'r'+SDK_REVISION+'\n')
     if ContainDolbyVision(main_media):
         PrintErrorAndExit('ERROR: For Dolby Vision, the format of segment video must be fragemnted MP4, please use mp4-dash.py')
-    elif ContainDolbyAudio(audio_tracks.values()) and options.hls_version < 7:
-        print ("WARNING: Please set HLS version to 7 (--hls-version 7) due to Dolby's audio need CHANNELS tag which introduced in HLS version 7.")
     if options.hls_version >= 4:
         master_playlist.write('\n')
         master_playlist.write('#EXT-X-VERSION:'+str(options.hls_version)+'\n')
@@ -413,7 +411,6 @@ def OutputHls(options, media_sources):
     if len(audio_tracks):
         master_playlist.write('\n')
         master_playlist.write('# Audio\n')
-        print_blank_line = PrintBlankLine(audio_tracks.values())
         for group_id in audio_tracks:
             group = audio_tracks[group_id]
             group_name = 'audio_'+group_id
@@ -432,22 +429,20 @@ def OutputHls(options, media_sources):
                 if default:
                     extra_info += 'DEFAULT=YES,'
                     default = False
-                ext_x_media='#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="%s",NAME="%s",LANGUAGE="%s",%s' %(
-                            group_name,
-                            audio_track.media_info['language_name'],
-                            audio_track.media_info['language'],
-                            extra_info)
-                if options.hls_version >= 7:
-                    ext_x_media += 'CHANNELS="%s",' % str(audio_track.channels)
-                ext_x_media += 'URI="%s"\n' % (options.base_url+audio_track.media_info['dir']+'/'+options.media_playlist_name)
-                master_playlist.write(ext_x_media)
+                master_playlist.write(('#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="%s",NAME="%s",LANGUAGE="%s",CHANNELS="%s",%sURI="%s"\n' % (
+                                      group_name,
+                                      audio_track.media_info['language_name'],
+                                      audio_track.media_info['language'],
+                                      str(audio_track.channels),
+                                      extra_info,
+                                      options.base_url+audio_track.media_info['dir']+'/'+options.media_playlist_name)))
             audio_groups.append({
                 'name':                group_name,
                 'codec':               group_codec,
                 'avg_segment_bitrate': group_avg_segment_bitrate,
                 'max_segment_bitrate': group_max_segment_bitrate
             })
-            if print_blank_line:
+            if PrintBlankLine(audio_tracks.values()):
                 master_playlist.write('\n')
 
         if options.debug:
