@@ -427,7 +427,7 @@ class Mp4Track:
                 elif stream_type == 'Channel based immsersive':
                     dolby_ac4_cbi = 'Yes'
                 self.self_contained = sample_desc['dolby_ac4_info']['Self Contained']
-                
+
         self.language = info['language']
         self.language_name = LanguageNames.get(LanguageCodeMap.get(self.language, 'und'), '')
 
@@ -963,7 +963,7 @@ def DolbyVisionProfile8DualEntry(video_sets, hevc_codec, dv_codec):
                     duplicate_video.codec = item_codec
                     duplicate_video.codec_family = item_codec[0:4]
                     duplicate_vdieo_sets.append(duplicate_video)
-                    # record the remove codec
+                    # record the removed codec
                     remove_codec = item_codec;
                     bl_compatibility_id = item_video.info['sample_descriptions'][0]['dolby_vision']['dv_bl_signal_compatibility_id']
                     if bl_compatibility_id in [1, 3, 4] :
@@ -1077,7 +1077,7 @@ def ReGroupAudioSets(audio_sets):
     for audio_tracks in audio_sets.values():
         for track in audio_tracks:
             if track.codec_family == 'ec-3' or track.codec_family == 'ac-3':
-                (track.channels, _channels) = GetDolbyDigitalPlusChannels(track)
+                track.channels = GetDolbyDigitalPlusChannels(track)[0]
                 if track.dolby_ddp_atmos == 'Yes':
                     track.channels =  str(track.info['sample_descriptions'][0]['dolby_digital_info']['Dolby Atmos Complexity Index']) + '/JOC'
             if track.codec_family == 'ac-4' and (track.dolby_ac4_ims == 'Yes' or track.dolby_ac4_cbi == 'Yes'):

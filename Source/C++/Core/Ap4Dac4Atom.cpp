@@ -1516,7 +1516,7 @@ AP4_Dac4Atom::Ac4Dsi::PresentationV1::WritePresentationV1Dsi(AP4_BitWriter &bits
             d.v1.substream_groups[0].WriteSubstreamGroupDsi(bits);
         }else {
             bits.Write(d.v1.b_multi_pid, 1);
-            if (d.v1.presentation_config_v1 >= 0 && d.v1.presentation_config_v1 <= 2){
+            if (d.v1.presentation_config_v1 <= 2){
                 d.v1.substream_groups[0].WriteSubstreamGroupDsi(bits);
                 d.v1.substream_groups[1].WriteSubstreamGroupDsi(bits);
             }

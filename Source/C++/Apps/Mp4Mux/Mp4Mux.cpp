@@ -219,7 +219,7 @@ CheckDoviInputParameters(AP4_Array<Parameter>& parameters)
     for (unsigned int i=0; i<parameters.ItemCount(); i++) {
         if (parameters[i].m_Name == "dv_bc") {
             bc = atoi(parameters[i].m_Value.GetChars());
-            if ((bc < 0) || (bc > 7)) {
+            if (bc > 7) {
                 fprintf(stderr, "ERROR: invalid dolby vision bl signal compatibility id\n");
                 return AP4_ERROR_INVALID_PARAMETERS;
             }
@@ -941,13 +941,13 @@ AddAc4Track(AP4_Movie&            movie,
     // create an audio track
     AP4_Track* track = new AP4_Track(AP4_Track::TYPE_AUDIO,
                                      sample_table,
-                                     0,                              // track id
-                                     media_time_scale,               // movie time scale
-                                     sample_count * sample_duration, // track duration
-                                     media_time_scale,               // media time scale
-                                     sample_count * sample_duration, // media duration
-                                     language,                       // language
-                                     0, 0);                          // width, height
+                                     0,                                        // track id
+                                     media_time_scale,                         // movie time scale
+                                     AP4_UI64(sample_count) * sample_duration, // track duration
+                                     media_time_scale,                         // media time scale
+                                     AP4_UI64(sample_count) * sample_duration, // media duration
+                                     language,                                 // language
+                                     0, 0);                                    // width, height
 
     // add an edit list with MediaTime==0 to ac4 track defautly.
     if(1) {
@@ -956,7 +956,7 @@ AddAc4Track(AP4_Movie&            movie,
         AP4_ElstAtom* new_elst = new AP4_ElstAtom();
         AP4_UI64 duration = 0;
         if(!movie.GetTimeScale()) {
-            duration = sample_count * sample_duration;
+            duration = AP4_UI64(sample_count) * sample_duration;
         } else {
             duration = AP4_ConvertTime(1000*sample_table->GetSampleCount(), media_time_scale, movie.GetTimeScale());
         }

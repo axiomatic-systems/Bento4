@@ -30,7 +30,8 @@ from mp4utils import Base64Encode,\
                      MakeNewDir,\
                      ContainDolbyVision,\
                      ContainAtmosAndAC4,\
-                     PrintBlankLine
+                     PrintBlankLine,\
+                     GetDolbyDigitalPlusChannels
 
 # setup main options
 VERSION = "1.2.0"

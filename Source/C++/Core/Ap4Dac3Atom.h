@@ -63,7 +63,7 @@ public:
     // constructors
     AP4_Dac3Atom(const AP4_Dac3Atom& other);
     AP4_Dac3Atom(const StreamInfo* StreamInfo);  // DSI vaiable initialize m_RawBytes (SpecificBoxInfo -> m_RawBytes)
-    
+
     // methods
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);

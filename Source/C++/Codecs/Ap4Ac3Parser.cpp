@@ -121,7 +121,7 @@ AP4_Ac3Header::MatchFixed(AP4_Ac3Header frame, AP4_Ac3Header next_frame)
 AP4_Result
 AP4_Ac3Header::Check()
 {
-    if (m_Bsid < 0 || m_Bsid > 8) {
+    if (m_Bsid > 8) {
         return AP4_FAILURE;
     }
     return AP4_SUCCESS;

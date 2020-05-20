@@ -861,6 +861,7 @@ Fragment(AP4_File&                input_file,
             reference.m_ReferencedSize     = segment->m_Size;
             reference.m_SubsegmentDuration = segment->m_Duration;
             reference.m_StartsWithSap      = true;
+            reference.m_SapType            = 1;
             sidx->SetReference(segment_index++, reference);
         }
         AP4_Position here = 0;
