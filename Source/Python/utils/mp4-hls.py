@@ -27,7 +27,10 @@ from mp4utils import Base64Encode,\
                      LanguageNames,\
                      LanguageCodeMap,\
                      PrintErrorAndExit,\
-                     MakeNewDir
+                     MakeNewDir,\
+                     ContainDolbyVision,\
+                     ContainAtmosAndAC4,\
+                     PrintBlankLine
 
 # setup main options
 VERSION = "1.2.0"
@@ -184,13 +187,9 @@ def SelectAudioTracks(options, media_sources):
                 complexity_idx = str(track.info['sample_descriptions'][0]['dolby_digital_info']['Dolby Atmos Complexity Index'])
                 group_id = track.group_id + '_' + complexity_idx  + '_JOC'
                 track.channels = complexity_idx + '/JOC'
-            elif track.codec_family == 'ac-4' and track.dolby_ac4_ims == 'Yes':
-                if track.info['sample_descriptions'][0]['dolby_ac4_info']['presentations'][0]['Dolby Atmos source'] == 'Yes':
-                    group_id = track.group_id + '_' + '2_IMS_ATMOS'
-                    track.channels ='2/IMS,ATMOS'
-                else:
-                    group_id = track.group_id + '_' +  '2_IMS'
-                    track.channels ='2/IMS'
+            elif track.codec_family == 'ac-4' and (track.dolby_ac4_ims == 'Yes' or track.dolby_ac4_cbi == 'Yes'):
+                group_id = track.group_id + '_' + str(track.channels) + '_IMS'
+                track.channels = str(track.channels) + '/IMS'
             else:
                 group_id = track.group_id + '_' + str(track.channels) + 'ch'
             group = audio_tracks.get(group_id, [])

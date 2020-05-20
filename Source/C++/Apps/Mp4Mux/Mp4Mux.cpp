@@ -1217,8 +1217,8 @@ AddH264DoviTrack(AP4_Movie&            movie,
 {
     double frame_rate = 0.0;
     //based on the Dovi iso spec, set the following values to const 
-    const AP4_UI32 dv_major_version = 2;
-    const AP4_UI32 dv_minor_version = 1;
+    const AP4_UI32 dv_major_version = 1;
+    const AP4_UI32 dv_minor_version = 0;
     const bool     dv_rpu_flag = 1;
     const bool     dv_el_flag = 0;
     const bool     dv_bl_flag = 1;
@@ -1764,8 +1764,8 @@ AddH265DoviTrack(AP4_Movie&        movie,
     double frame_rate = 0.0;
 
     //based on the Dovi iso spec, set the following values to const 
-    const AP4_UI32 dv_major_version = 2;
-    const AP4_UI32 dv_minor_version = 1;
+    const AP4_UI32 dv_major_version = 1;
+    const AP4_UI32 dv_minor_version = 0;
     const bool         dv_rpu_flag = 1;
     const bool         dv_el_flag = 0;
     const bool         dv_bl_flag = 1;

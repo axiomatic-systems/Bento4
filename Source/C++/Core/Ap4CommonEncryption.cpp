@@ -1640,6 +1640,12 @@ AP4_CencEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
         if (hvcc) {
             nalu_length_size = hvcc->GetNaluLengthSize();
         }
+    } else if (format == AP4_ATOM_TYPE_DVH1 ||
+               format == AP4_ATOM_TYPE_DVHE) {
+        AP4_HvccAtom* hvcc = AP4_DYNAMIC_CAST(AP4_HvccAtom, entries[0]->GetChild(AP4_ATOM_TYPE_HVCC));
+        if (hvcc) {
+            nalu_length_size = hvcc->GetNaluLengthSize();
+        }
     }
 
     // add a new cipher state for this track

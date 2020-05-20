@@ -414,10 +414,8 @@ class Mp4Track:
             # Set the default values for Dolby audio codec flags
             self.dolby_ddp_atmos = 'No'
             self.dolby_ac4_ims   = 'No'
+            self.dolby_ac4_cbi   = 'No'
             self.self_contained  = 'Yes'
-            # Completed main and associated audio flags
-            self.CM              = 'CMNA'
-            self.AA              = 'AANA'
             if self.codec_family == 'ec-3' and 'dolby_digital_info' in sample_desc:
                 self.dolby_ddp_atmos = sample_desc['dolby_digital_info']['Dolby Digital Plus with Dolby Atmos']
                 if (self.dolby_ddp_atmos == 'Yes'):
@@ -426,11 +424,9 @@ class Mp4Track:
                 stream_type = sample_desc['dolby_ac4_info']['presentations'][0]['Stream Type'];
                 if stream_type == 'Immersive stereo':
                     self.dolby_ac4_ims = 'Yes'
+                elif stream_type == 'Channel based immsersive':
+                    dolby_ac4_cbi = 'Yes'
                 self.self_contained = sample_desc['dolby_ac4_info']['Self Contained']
-            if 'CM' in self.parent.media_source.spec:
-                self.CM = self.parent.media_source.spec['CM']
-            if 'AA' in self.parent.media_source.spec:
-                self.AA = self.parent.media_source.spec['AA']
                 
         self.language = info['language']
         self.language_name = LanguageNames.get(LanguageCodeMap.get(self.language, 'und'), '')
@@ -1084,12 +1080,8 @@ def ReGroupAudioSets(audio_sets):
                 (track.channels, _channels) = GetDolbyDigitalPlusChannels(track)
                 if track.dolby_ddp_atmos == 'Yes':
                     track.channels =  str(track.info['sample_descriptions'][0]['dolby_digital_info']['Dolby Atmos Complexity Index']) + '/JOC'
-            # TODO: For CBI and Atmos are not clear.
-            if track.codec_family == 'ac-4' and track.dolby_ac4_ims == 'Yes':
-                if track.info['sample_descriptions'][0]['dolby_ac4_info']['presentations'][0]['Dolby Atmos source'] == 'Yes':
-                    track.channels = '2/IMS,ATMOS'
-                else:
-                    track.channels = '2/IMS'
+            if track.codec_family == 'ac-4' and (track.dolby_ac4_ims == 'Yes' or track.dolby_ac4_cbi == 'Yes'):
+                track.channels = str(track.channels) + '/IMS'
             group_set_name  = ('audio', track.codec_family, track.channels)
             group_set_value = audio_group_sets.get(group_set_name, [])
             audio_group_sets[group_set_name] = group_set_value
