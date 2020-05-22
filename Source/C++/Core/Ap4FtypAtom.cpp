@@ -46,7 +46,7 @@ AP4_FtypAtom::AP4_FtypAtom(AP4_UI32 size, AP4_ByteStream& stream) :
     m_MajorBrand(0),
     m_MinorVersion(0)
 {
-    if (size < 16) return;
+    if (size < AP4_ATOM_HEADER_SIZE + 8) return;
     stream.ReadUI32(m_MajorBrand);
     stream.ReadUI32(m_MinorVersion);
     size -= 16;
