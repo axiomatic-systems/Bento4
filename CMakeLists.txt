@@ -30,6 +30,7 @@ file(GLOB AP4_SOURCES
 )
 
 if(WIN32)
+  add_definitions(-D_CRT_SECURE_NO_WARNINGS)
   set(AP4_SOURCES ${AP4_SOURCES} ${SOURCE_SYSTEM}/Win32/Ap4Win32Random.cpp)
 else()
   set(AP4_SOURCES ${AP4_SOURCES} ${SOURCE_SYSTEM}/Posix/Ap4PosixRandom.cpp)
@@ -45,7 +46,6 @@ set(AP4_INCLUDE_DIRS
 include_directories(${AP4_INCLUDE_DIRS})
 
 add_library(ap4 STATIC ${AP4_SOURCES})
-target_include_directories(ap4 INTERFACE ${AP4_INCLUDE_DIRS})
 
 # Apps
 option(BUILD_APPS "Build example applications" ON)
@@ -57,3 +57,29 @@ foreach(app ${BENTO4_APPS})
   target_link_libraries(${binary_name} ap4)
 endforeach()
 endif(BUILD_APPS)
+
+
+file(GLOB AP4_INCLUDES
+     ${SOURCE_CODECS}/*.h
+     ${SOURCE_CORE}/*.h
+     ${SOURCE_CRYPTO}/*.h
+     ${SOURCE_METADATA}/*.h
+)
+
+install(TARGETS ap4
+        EXPORT   ${PROJECT_NAME}Targets
+        LIBRARY  DESTINATION lib
+        ARCHIVE  DESTINATION lib
+        RUNTIME  DESTINATION bin
+        INCLUDES DESTINATION include)
+
+install(EXPORT ${PROJECT_NAME}Targets
+        FILE ${PROJECT_NAME}Targets.cmake
+        NAMESPACE ${PROJECT_NAME}::
+        DESTINATION cmake/${PROJECT_NAME})
+
+install(FILES ${AP4_INCLUDES} DESTINATION include)
+
+install(FILES 
+        ${PROJECT_NAME}Config.cmake 
+        DESTINATION cmake/${PROJECT_NAME})
