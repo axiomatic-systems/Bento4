@@ -1080,7 +1080,7 @@ AP4_JsonInspector::EscapeString(const char* string)
 
     // Compute the output size
     size_t string_length = strlen(string);
-    const uint8_t* input = (const uint8_t*)string;
+    const AP4_UI08* input = (const AP4_UI08*)string;
     size_t input_length = string_length;
     AP4_Size output_size = 0;
     while (input_length) {
@@ -1110,7 +1110,7 @@ AP4_JsonInspector::EscapeString(const char* string)
     // Compute the escaped string in a temporary buffer
     char* buffer = new char[output_size];
     char* escaped = buffer;
-    input = (const uint8_t*)string;
+    input = (const AP4_UI08*)string;
     input_length = string_length;
     while (input_length) {
         size_t chars_available = input_length;
