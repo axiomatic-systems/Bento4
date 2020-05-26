@@ -36,7 +36,6 @@
 #include "Ap4AtomFactory.h"
 #include "Ap4Debug.h"
 #include "Ap4UuidAtom.h"
-#include <cstdint>
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
