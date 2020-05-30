@@ -1558,13 +1558,22 @@ def EncryptSources(options, media_sources):
         # Widevine
         if options.widevine_header:
             pssh = ComputeWidevinePssh(options.widevine_header, options.encryption_cenc_scheme, default_kid)
-            pssh_payload = pssh[12:]
             pssh_version = pssh[8]
+            if pssh_version == 0:
+                pssh_payload_offset = 32
+            elif pssh_version == 1:
+                kid_count = struct.unpack('>I', pssh[28:32])[0]
+                pssh_payload_offset = 32 + (16 * kid_count) + 4
+                if pssh_payload_offset > len(pssh):
+                    raise Exception('invalid pssh format')
+            else:
+                raise Exception('pssh version > 1 is not supported')
+            pssh_payload = pssh[pssh_payload_offset:]
             pssh_file = tempfile.NamedTemporaryFile(dir=options.output_dir, delete=False)
             pssh_file.write(pssh_payload)
             TempFiles.append(pssh_file.name)
             pssh_file.close() # necessary on Windows
-            args += ['--pssh' if pssh_version == 0 else 'pssh-v1', WIDEVINE_PSSH_SYSTEM_ID+':'+pssh_file.name]
+            args += ['--pssh' if pssh_version == 0 else '--pssh-v1', WIDEVINE_PSSH_SYSTEM_ID+':'+pssh_file.name]
 
         # Primetime
         if options.primetime_metadata:

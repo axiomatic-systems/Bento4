@@ -20,6 +20,8 @@ if (EMSCRIPTEN)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-warn-absolute-paths")
 endif()
 
+set(CMAKE_OSX_DEPLOYMENT_TARGET 10.12)
+
 # AP4 Library
 file(GLOB AP4_SOURCES
   ${SOURCE_CODECS}/*.cpp
