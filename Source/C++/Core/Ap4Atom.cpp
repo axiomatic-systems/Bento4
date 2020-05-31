@@ -1,6 +1,6 @@
 /*****************************************************************
 |
-|    AP4 - Atoms 
+|    AP4 - Atoms
 |
 |    Copyright 2002-2008 Axiomatic Systems, LLC
 |
@@ -57,7 +57,7 @@ AP4_Atom::Type
 AP4_Atom::TypeFromString(const char* s)
 {
     // convert the name into an atom type
-    return ((AP4_UI32)s[0])<<24 | 
+    return ((AP4_UI32)s[0])<<24 |
            ((AP4_UI32)s[1])<<16 |
            ((AP4_UI32)s[2])<< 8 |
            ((AP4_UI32)s[3]);
@@ -66,7 +66,7 @@ AP4_Atom::TypeFromString(const char* s)
 /*----------------------------------------------------------------------
 |   AP4_Atom::AP4_Atom
 +---------------------------------------------------------------------*/
-AP4_Atom::AP4_Atom(Type type, AP4_UI32 size /* = AP4_ATOM_HEADER_SIZE */) : 
+AP4_Atom::AP4_Atom(Type type, AP4_UI32 size /* = AP4_ATOM_HEADER_SIZE */) :
     m_Type(type),
     m_Size32(size),
     m_Size64(0),
@@ -80,7 +80,7 @@ AP4_Atom::AP4_Atom(Type type, AP4_UI32 size /* = AP4_ATOM_HEADER_SIZE */) :
 /*----------------------------------------------------------------------
 |   AP4_Atom::AP4_Atom
 +---------------------------------------------------------------------*/
-AP4_Atom::AP4_Atom(Type type, AP4_UI64 size, bool force_64) : 
+AP4_Atom::AP4_Atom(Type type, AP4_UI64 size, bool force_64) :
     m_Type(type),
     m_Size32(0),
     m_Size64(0),
@@ -95,9 +95,9 @@ AP4_Atom::AP4_Atom(Type type, AP4_UI64 size, bool force_64) :
 /*----------------------------------------------------------------------
 |   AP4_Atom::AP4_Atom
 +---------------------------------------------------------------------*/
-AP4_Atom::AP4_Atom(Type     type, 
-                   AP4_UI32 size, 
-                   AP4_UI08 version, 
+AP4_Atom::AP4_Atom(Type     type,
+                   AP4_UI32 size,
+                   AP4_UI08 version,
                    AP4_UI32 flags) :
     m_Type(type),
     m_Size32(size),
@@ -112,10 +112,10 @@ AP4_Atom::AP4_Atom(Type     type,
 /*----------------------------------------------------------------------
 |   AP4_Atom::AP4_Atom
 +---------------------------------------------------------------------*/
-AP4_Atom::AP4_Atom(Type     type, 
+AP4_Atom::AP4_Atom(Type     type,
                    AP4_UI64 size,
                    bool     force_64,
-                   AP4_UI08 version, 
+                   AP4_UI08 version,
                    AP4_UI32 flags) :
     m_Type(type),
     m_Size32(0),
@@ -132,8 +132,8 @@ AP4_Atom::AP4_Atom(Type     type,
 |   AP4_Atom::ReadFullHeader
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_Atom::ReadFullHeader(AP4_ByteStream& stream, 
-                         AP4_UI08&       version, 
+AP4_Atom::ReadFullHeader(AP4_ByteStream& stream,
+                         AP4_UI08&       version,
                          AP4_UI32&       flags)
 {
     AP4_UI32 header;
@@ -275,7 +275,7 @@ AP4_Atom::InspectHeader(AP4_AtomInspector& inspector)
     char name[5];
     AP4_FormatFourCharsPrintable(name, m_Type);
     name[4] = '\0';
-    inspector.StartAtom(name, 
+    inspector.StartAtom(name,
                         m_Version,
                         m_Flags,
                         GetHeaderSize(),
@@ -288,7 +288,7 @@ AP4_Atom::InspectHeader(AP4_AtomInspector& inspector)
 |   AP4_Atom::Detach
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_Atom::Detach() 
+AP4_Atom::Detach()
 {
     if (m_Parent) {
         return m_Parent->RemoveChild(this);
@@ -304,25 +304,25 @@ AP4_Atom*
 AP4_Atom::Clone()
 {
     AP4_Atom* clone = NULL;
-    
+
     // check the size (refuse to clone atoms that are too large)
     AP4_LargeSize size = GetSize();
     if (size > AP4_ATOM_MAX_CLONE_SIZE) return NULL;
 
     // create a memory byte stream to which we can serialize
     AP4_MemoryByteStream* mbs = new AP4_MemoryByteStream((AP4_Size)GetSize());
-    
+
     // serialize to memory
     if (AP4_FAILED(Write(*mbs))) {
         mbs->Release();
         return NULL;
     }
-    
+
     // create the clone from the serialized form
     mbs->Seek(0);
     AP4_DefaultAtomFactory atom_factory;
     atom_factory.CreateAtomFromStream(*mbs, clone);
-    
+
     // release the memory stream
     mbs->Release();
 
@@ -332,9 +332,9 @@ AP4_Atom::Clone()
 /*----------------------------------------------------------------------
 |   AP4_UnknownAtom::AP4_UnknownAtom
 +---------------------------------------------------------------------*/
-AP4_UnknownAtom::AP4_UnknownAtom(Type            type, 
+AP4_UnknownAtom::AP4_UnknownAtom(Type            type,
                                  AP4_UI64        size,
-                                 AP4_ByteStream& stream) : 
+                                 AP4_ByteStream& stream) :
     AP4_Atom(type, size),
     m_SourceStream(&stream)
 {
@@ -347,7 +347,7 @@ AP4_UnknownAtom::AP4_UnknownAtom(Type            type,
         stream.Read(m_Payload.UseData(), payload_size);
         return;
     }
-    
+
     // store source stream position
     stream.Tell(m_SourcePosition);
 
@@ -372,7 +372,7 @@ AP4_UnknownAtom::AP4_UnknownAtom(Type            type,
 /*----------------------------------------------------------------------
 |   AP4_UnknownAtom::AP4_UnknownAtom
 +---------------------------------------------------------------------*/
-AP4_UnknownAtom::AP4_UnknownAtom(Type            type, 
+AP4_UnknownAtom::AP4_UnknownAtom(Type            type,
                                  const AP4_UI08* payload,
                                  AP4_Size        payload_size) :
     AP4_Atom(type, AP4_ATOM_HEADER_SIZE+payload_size, false),
@@ -421,7 +421,7 @@ AP4_UnknownAtom::WriteFields(AP4_ByteStream& stream)
     if (m_SourceStream == NULL) {
         return stream.Write(m_Payload.GetData(), m_Payload.GetDataSize());
     }
-    
+
     // remember the source position
     AP4_Position position;
     m_SourceStream->Tell(position);
@@ -444,7 +444,7 @@ AP4_UnknownAtom::WriteFields(AP4_ByteStream& stream)
 /*----------------------------------------------------------------------
 |   AP4_UnknownAtom::Clone
 +---------------------------------------------------------------------*/
-AP4_Atom*  
+AP4_Atom*
 AP4_UnknownAtom::Clone()
 {
     return new AP4_UnknownAtom(*this);
@@ -463,8 +463,8 @@ AP4_NullTerminatedStringAtom::AP4_NullTerminatedStringAtom(AP4_Atom::Type type, 
 /*----------------------------------------------------------------------
 |   AP4_NullTerminatedStringAtom::AP4_NullTerminatedStringAtom
 +---------------------------------------------------------------------*/
-AP4_NullTerminatedStringAtom::AP4_NullTerminatedStringAtom(AP4_Atom::Type  type, 
-                                                           AP4_UI64        size, 
+AP4_NullTerminatedStringAtom::AP4_NullTerminatedStringAtom(AP4_Atom::Type  type,
+                                                           AP4_UI64        size,
                                                            AP4_ByteStream& stream) :
     AP4_Atom(type, size)
 {
@@ -609,7 +609,7 @@ AP4_AtomParent::GetChild(AP4_Atom::Type type, AP4_Ordinal index /* = 0 */) const
     AP4_Result result = m_Children.Find(AP4_AtomFinder(type, index), atom);
     if (AP4_SUCCEEDED(result)) {
         return atom;
-    } else { 
+    } else {
         return NULL;
     }
 }
@@ -639,7 +639,7 @@ AP4_AtomParent::GetChild(const AP4_UI08* uuid, AP4_Ordinal index /* = 0 */) cons
 |   AP4_AtomParent::FindChild
 +---------------------------------------------------------------------*/
 AP4_Atom*
-AP4_AtomParent::FindChild(const char* path, 
+AP4_AtomParent::FindChild(const char* path,
                           bool        auto_create,
                           bool        auto_create_full)
 {
@@ -650,12 +650,12 @@ AP4_AtomParent::FindChild(const char* path,
     while (path[0] && path[1] && path[2] && path[3]) {
         // we have 4 valid chars
         const char* end = &path[4];
-        
+
         // look for the end or a separator
         while (*end != '\0' && *end != '/' && *end != '[') {
             ++end;
         }
-        
+
         // decide if this is a 4-character code or a UUID
         AP4_UI08 uuid[16];
         AP4_Atom::Type type = 0;
@@ -685,7 +685,7 @@ AP4_AtomParent::FindChild(const char* path,
             }
             end = x+1;
         }
-        
+
         // check what's at the end now
         if (*end == '/') {
             ++end;
@@ -693,7 +693,7 @@ AP4_AtomParent::FindChild(const char* path,
             // malformed path
             return NULL;
         }
-        
+
         // look for this atom in the current list
         AP4_Atom* atom = NULL;
         if (is_uuid) {
@@ -739,7 +739,7 @@ AP4_AtomParent::CopyChildren(AP4_AtomParent& destination) const
         AP4_Atom* child_clone = child->GetData()->Clone();
         destination.AddChild(child_clone);
     }
-    
+
     return AP4_SUCCESS;
 }
 
@@ -788,7 +788,7 @@ AP4_MakePrefixString(unsigned int indent, char* prefix, AP4_Size size)
     for (unsigned int i=0; i<indent; i++) {
         prefix[i] = ' ';
     }
-    prefix[indent] = '\0';    
+    prefix[indent] = '\0';
 }
 
 /*----------------------------------------------------------------------
@@ -824,24 +824,24 @@ AP4_PrintInspector::StartAtom(const char* name,
     char extra[32] = "";
     if (header_size == 28 || header_size == 12 || header_size == 20) {
         if (version && flags) {
-            AP4_FormatString(extra, sizeof(extra), 
+            AP4_FormatString(extra, sizeof(extra),
                              ", version=%d, flags=%x",
                              version,
                              flags);
         } else if (version) {
-            AP4_FormatString(extra, sizeof(extra), 
+            AP4_FormatString(extra, sizeof(extra),
                              ", version=%d",
                              version);
         } else if (flags) {
-            AP4_FormatString(extra, sizeof(extra), 
+            AP4_FormatString(extra, sizeof(extra),
                              ", flags=%x",
                              flags);
         }
     }
-    AP4_FormatString(info, sizeof(info), 
-                     "size=%d+%lld%s", 
-                     header_size, 
-                     size-header_size, 
+    AP4_FormatString(info, sizeof(info),
+                     "size=%d+%lld%s",
+                     header_size,
+                     size-header_size,
                      extra);
 
     char prefix[256];
@@ -875,9 +875,9 @@ AP4_PrintInspector::StartDescriptor(const char* name,
 {
     // write atom name
     char info[128];
-    AP4_FormatString(info, sizeof(info), 
-                     "size=%d+%lld", 
-                     header_size, 
+    AP4_FormatString(info, sizeof(info),
+                     "size=%d+%lld",
+                     header_size,
                      size-header_size);
 
     char prefix[256];
@@ -910,7 +910,7 @@ AP4_PrintInspector::AddField(const char* name, const char* value, FormatHint)
     char prefix[256];
     AP4_MakePrefixString(m_Indent, prefix, sizeof(prefix));
     m_Stream->WriteString(prefix);
-    
+
     m_Stream->WriteString(name);
     m_Stream->WriteString(" = ");
     m_Stream->WriteString(value);
@@ -928,8 +928,8 @@ AP4_PrintInspector::AddField(const char* name, AP4_UI64 value, FormatHint hint)
     m_Stream->WriteString(prefix);
 
     char str[32];
-    AP4_FormatString(str, sizeof(str), 
-                     hint == HINT_HEX ? "%llx":"%lld", 
+    AP4_FormatString(str, sizeof(str),
+                     hint == HINT_HEX ? "%llx":"%lld",
                      value);
     m_Stream->WriteString(name);
     m_Stream->WriteString(" = ");
@@ -948,8 +948,8 @@ AP4_PrintInspector::AddFieldF(const char* name, float value, FormatHint /*hint*/
     m_Stream->WriteString(prefix);
 
     char str[32];
-    AP4_FormatString(str, sizeof(str), 
-                     "%f", 
+    AP4_FormatString(str, sizeof(str),
+                     "%f",
                      value);
     m_Stream->WriteString(name);
     m_Stream->WriteString(" = ");
@@ -961,8 +961,8 @@ AP4_PrintInspector::AddFieldF(const char* name, float value, FormatHint /*hint*/
 |   AP4_PrintInspector::AddField
 +---------------------------------------------------------------------*/
 void
-AP4_PrintInspector::AddField(const char*          name, 
-                             const unsigned char* bytes, 
+AP4_PrintInspector::AddField(const char*          name,
+                             const unsigned char* bytes,
                              AP4_Size             byte_count,
                              FormatHint           /* hint */)
 {
@@ -1008,7 +1008,7 @@ AP4_JsonInspector::~AP4_JsonInspector()
 |   Read one code point from a UTF-8 string
 +---------------------------------------------------------------------*/
 static AP4_Result
-ReadUTF8(const AP4_UI08* utf, size_t* length, AP4_UI32* code_point) {
+ReadUTF8(const AP4_UI08* utf, AP4_Size* length, AP4_UI32* code_point) {
     if (*length < 1) {
         return AP4_ERROR_NOT_ENOUGH_DATA;
     }
@@ -1079,12 +1079,12 @@ AP4_JsonInspector::EscapeString(const char* string)
     }
 
     // Compute the output size
-    size_t string_length = strlen(string);
+    AP4_Size string_length = (AP4_Size)strlen(string);
     const AP4_UI08* input = (const AP4_UI08*)string;
-    size_t input_length = string_length;
+    AP4_Size input_length = string_length;
     AP4_Size output_size = 0;
     while (input_length) {
-        size_t chars_available = input_length;
+        AP4_Size chars_available = input_length;
         AP4_UI32 code_point = 0;
         AP4_Result r = ReadUTF8(input, &chars_available, &code_point);
         if (AP4_FAILED(r)) {
@@ -1113,7 +1113,7 @@ AP4_JsonInspector::EscapeString(const char* string)
     input = (const AP4_UI08*)string;
     input_length = string_length;
     while (input_length) {
-        size_t chars_available = input_length;
+        AP4_Size chars_available = input_length;
         AP4_UI32 code_point = 0;
         AP4_Result r = ReadUTF8(input, &chars_available, &code_point);
         if (AP4_FAILED(r)) {
@@ -1131,7 +1131,7 @@ AP4_JsonInspector::EscapeString(const char* string)
             *escaped++ = AP4_NibbleHex(code_point >> 4);
             *escaped++ = AP4_NibbleHex(code_point & 0x0F);
         } else {
-            for (size_t i = 0; i < chars_available; i++) {
+            for (AP4_Size i = 0; i < chars_available; i++) {
                 *escaped++ = (char)input[i];
             }
         }
@@ -1185,7 +1185,7 @@ AP4_JsonInspector::StartAtom(const char* name,
     m_Stream->WriteString("  \"size\":");
     AP4_FormatString(val, sizeof(val), "%lld", size);
     m_Stream->WriteString(val);
-    
+
     ++m_Depth;
     m_Items.SetItemCount(m_Depth+1);
     m_Items[m_Depth] = 0;
@@ -1258,8 +1258,8 @@ AP4_JsonInspector::AddField(const char* name, AP4_UI64 value, FormatHint /* hint
     m_Stream->WriteString(prefix);
 
     char str[32];
-    AP4_FormatString(str, sizeof(str), 
-                     "%lld", 
+    AP4_FormatString(str, sizeof(str),
+                     "%lld",
                      value);
     m_Stream->Write("\"", 1);
     m_Stream->WriteString(name);
@@ -1279,8 +1279,8 @@ AP4_JsonInspector::AddFieldF(const char* name, float value, FormatHint /*hint*/)
     m_Stream->WriteString(prefix);
 
     char str[32];
-    AP4_FormatString(str, sizeof(str), 
-                     "%f", 
+    AP4_FormatString(str, sizeof(str),
+                     "%f",
                      value);
     m_Stream->Write("\"", 1);
     m_Stream->WriteString(EscapeString(name).GetChars());
@@ -1292,8 +1292,8 @@ AP4_JsonInspector::AddFieldF(const char* name, float value, FormatHint /*hint*/)
 |   AP4_JsonInspector::AddField
 +---------------------------------------------------------------------*/
 void
-AP4_JsonInspector::AddField(const char*          name, 
-                            const unsigned char* bytes, 
+AP4_JsonInspector::AddField(const char*          name,
+                            const unsigned char* bytes,
                             AP4_Size             byte_count,
                             FormatHint           /* hint */)
 {
