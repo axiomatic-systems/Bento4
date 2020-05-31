@@ -1,6 +1,6 @@
 # cmake -DCMAKE_BUILD_TYPE=Debug ..
 # cmake -DCMAKE_BUILD_TYPE=Release ..
-if(WIN32)
+if(MSVC)
   cmake_policy(SET CMP0091 NEW)
   cmake_minimum_required(VERSION 3.15)
 else()
@@ -28,6 +28,11 @@ endif()
 
 set(CMAKE_OSX_DEPLOYMENT_TARGET 10.12)
 
+if(MSVC)
+  add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /GF /Gy /GR")
+endif()
+
 # AP4 Library
 file(GLOB AP4_SOURCES
   ${SOURCE_CODECS}/*.cpp
@@ -39,7 +44,6 @@ file(GLOB AP4_SOURCES
 
 # Platform specifics
 if(WIN32)
-  add_definitions(-D_CRT_SECURE_NO_WARNINGS)
   set(AP4_SOURCES ${AP4_SOURCES} ${SOURCE_SYSTEM}/Win32/Ap4Win32Random.cpp)
 else()
   set(AP4_SOURCES ${AP4_SOURCES} ${SOURCE_SYSTEM}/Posix/Ap4PosixRandom.cpp)
@@ -57,8 +61,9 @@ add_library(ap4 STATIC ${AP4_SOURCES})
 target_include_directories(ap4 PUBLIC ${AP4_INCLUDE_DIRS})
 
 # Use the statically linked C runtime library
-if(WIN32)
+if(MSVC)
   set_property(TARGET ap4 PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+  target_compile_definitions(ap4 PRIVATE -D_LIB)
 endif()
 
 # Apps
@@ -70,8 +75,9 @@ foreach(app ${BENTO4_APPS})
   add_executable(${binary_name} ${SOURCE_ROOT}/Apps/${app}/${app}.cpp)
   target_link_libraries(${binary_name} ap4)
 
-  if(WIN32)
+  if(MSVC)
     set_property(TARGET ${binary_name} PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+    target_compile_definitions(${binary_name} PRIVATE -D_CONSOLE)
   endif()
 endforeach()
 endif(BUILD_APPS)
