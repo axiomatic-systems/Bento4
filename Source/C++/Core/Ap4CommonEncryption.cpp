@@ -1455,8 +1455,12 @@ AP4_CencEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
         case AP4_ATOM_TYPE_AVC2:
         case AP4_ATOM_TYPE_AVC3:
         case AP4_ATOM_TYPE_AVC4:
+        case AP4_ATOM_TYPE_DVAV:
+        case AP4_ATOM_TYPE_DVA1:
         case AP4_ATOM_TYPE_HEV1:
         case AP4_ATOM_TYPE_HVC1:
+        case AP4_ATOM_TYPE_DVHE:
+        case AP4_ATOM_TYPE_DVH1:
             enc_format = AP4_ATOM_TYPE_ENCV;
             break;
             
@@ -1629,13 +1633,17 @@ AP4_CencEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
     if (format == AP4_ATOM_TYPE_AVC1 ||
         format == AP4_ATOM_TYPE_AVC2 ||
         format == AP4_ATOM_TYPE_AVC3 ||
-        format == AP4_ATOM_TYPE_AVC4) {
+        format == AP4_ATOM_TYPE_AVC4 ||
+        format == AP4_ATOM_TYPE_DVAV ||
+        format == AP4_ATOM_TYPE_DVA1) {
         AP4_AvccAtom* avcc = AP4_DYNAMIC_CAST(AP4_AvccAtom, entries[0]->GetChild(AP4_ATOM_TYPE_AVCC));
         if (avcc) {
             nalu_length_size = avcc->GetNaluLengthSize();
         }
     } else if (format == AP4_ATOM_TYPE_HEV1 ||
-               format == AP4_ATOM_TYPE_HVC1) {
+               format == AP4_ATOM_TYPE_HVC1 ||
+               format == AP4_ATOM_TYPE_DVHE ||
+               format == AP4_ATOM_TYPE_DVH1) {
         AP4_HvccAtom* hvcc = AP4_DYNAMIC_CAST(AP4_HvccAtom, entries[0]->GetChild(AP4_ATOM_TYPE_HVCC));
         if (hvcc) {
             nalu_length_size = hvcc->GetNaluLengthSize();
