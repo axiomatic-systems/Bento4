@@ -138,3 +138,12 @@ For Debug builds:
 
 For Release builds:
 ```make AP4_BUILD_CONFIG=Release```
+
+Release Notes
+-------------
+
+### 1.6.0-636
+Dolby Vision encryption now properly encrypts in a NAL-unit-aware mode
+
+### Previous releases
+(no seaparate notes, please refer to commit logs)
