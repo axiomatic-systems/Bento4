@@ -113,6 +113,7 @@ CORE_SOURCES = 								\
     Ap4TencAtom.cpp							\
     Ap4TfdtAtom.cpp                         \
     Ap4PdinAtom.cpp                         \
+    Ap4Ac4Utils.cpp                         \
     Ap4AinfAtom.cpp                         \
     Ap4BlocAtom.cpp                         \
     Ap4PsshAtom.cpp			                \
@@ -125,7 +126,10 @@ CORE_SOURCES = 								\
     Ap4SgpdAtom.cpp                         \
     Ap4SbgpAtom.cpp                         \
     Ap4NalParser.cpp                        \
+    Ap4Ac4Parser.cpp                        \
     Ap4AvcParser.cpp                        \
+    Ap4Ac3Parser.cpp                        \
+    Ap4Eac3Parser.cpp                       \
     Ap4HevcParser.cpp                       \
     Ap4SegmentBuilder.cpp                   \
 

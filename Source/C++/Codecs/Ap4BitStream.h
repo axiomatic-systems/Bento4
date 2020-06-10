@@ -41,7 +41,7 @@
 const int AP4_ERROR_BASE_BITSTREAM   = -10000;
 
 // the max frame size we can handle 
-const unsigned int AP4_BITSTREAM_BUFFER_SIZE  = 8192;
+const unsigned int AP4_BITSTREAM_BUFFER_SIZE  = 32768;
 
 // flags
 #define AP4_BITSTREAM_FLAG_EOS 0x01

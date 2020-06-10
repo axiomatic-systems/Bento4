@@ -55,13 +55,13 @@ AP4_MvhdAtom::Create(AP4_Size size, AP4_ByteStream& stream)
 /*----------------------------------------------------------------------
 |   AP4_MvhdAtom::AP4_MvhdAtom
 +---------------------------------------------------------------------*/
-AP4_MvhdAtom::AP4_MvhdAtom(AP4_UI32 creation_time,
-                           AP4_UI32 modification_time,
+AP4_MvhdAtom::AP4_MvhdAtom(AP4_UI64 creation_time,
+                           AP4_UI64 modification_time,
                            AP4_UI32 time_scale,
                            AP4_UI64 duration,
                            AP4_UI32 rate,
                            AP4_UI16 volume) :
-    AP4_Atom(AP4_ATOM_TYPE_MVHD, AP4_FULL_ATOM_HEADER_SIZE+96, 0, 0),
+    AP4_Atom(AP4_ATOM_TYPE_MVHD, AP4_FULL_ATOM_HEADER_SIZE + 96, 0, 0),
     m_CreationTime(creation_time),
     m_ModificationTime(modification_time),
     m_TimeScale(time_scale),
@@ -84,7 +84,9 @@ AP4_MvhdAtom::AP4_MvhdAtom(AP4_UI32 creation_time,
     AP4_SetMemory(m_Reserved2, 0, sizeof(m_Reserved2));
     AP4_SetMemory(m_Predefined, 0, sizeof(m_Predefined));
 
-    if (duration > 0xFFFFFFFF) {
+    if (duration          > 0xFFFFFFFFULL ||
+        creation_time     > 0xFFFFFFFFULL ||
+        modification_time > 0xFFFFFFFFULL) {
         m_Version = 1;
         m_Size32 += 12;
     }

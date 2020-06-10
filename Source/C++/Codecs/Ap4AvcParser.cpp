@@ -77,6 +77,10 @@ AP4_AvcNalParser::NaluTypeName(unsigned int nalu_type)
         case 15: return "Subset sequence parameter set";
         case 19: return "Coded slice of an auxiliary coded picture without partitioning";
         case 20: return "Coded slice in scalable extension";
+#if defined(AP4_HEVC_DOVI_EXTENSION)
+        case 28: return "Dolby Vision RPU NAL units";
+        case 30: return "Dolby Vision EL NAL units";
+#endif
         default: return NULL;
     }
 }
@@ -1113,7 +1117,19 @@ AP4_AvcFrameParser::Feed(const AP4_UI08* nal_unit,
         } else if (nal_unit_type >= 14 && nal_unit_type <= 18) {
             CheckIfAccessUnitIsCompleted(access_unit_info);
             DBG_PRINTF_0("\n");
-        } else {
+        } 
+#if defined(AP4_HEVC_DOVI_EXTENSION)
+        else if (nal_unit_type == AP4_AVC_NAL_UNIT_TYPE_UNSPECIFIED28) {
+             AppendNalUnitData(nal_unit, nal_unit_size);
+             CheckIfAccessUnitIsCompleted(access_unit_info);
+             DBG_PRINTF_0("\n");
+        } else if (nal_unit_type == AP4_AVC_NAL_UNIT_TYPE_UNSPECIFIED30) {
+             AppendNalUnitData(nal_unit, nal_unit_size);
+             CheckIfAccessUnitIsCompleted(access_unit_info);
+             DBG_PRINTF_0("\n");
+        } 
+#endif
+        else {
             DBG_PRINTF_0("\n");
         }
         m_TotalNalUnitCount++;

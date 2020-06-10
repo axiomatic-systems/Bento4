@@ -38,6 +38,10 @@
 #include "Ap4AtomFactory.h"
 
 /*----------------------------------------------------------------------
+|   Dolby Vision extension 
++---------------------------------------------------------------------*/
+#define AP4_HEVC_DOVI_EXTENSION 1
+/*----------------------------------------------------------------------
 |   class references
 +---------------------------------------------------------------------*/
 class AP4_ByteStream;
@@ -72,7 +76,9 @@ const AP4_UI32 AP4_FILE_BRAND_ODCF = AP4_ATOM_TYPE('o','d','c','f');
 const AP4_UI32 AP4_FILE_BRAND_OPF2 = AP4_ATOM_TYPE('o','p','f','2');
 const AP4_UI32 AP4_FILE_BRAND_AVC1 = AP4_ATOM_TYPE('a','v','c','1');
 const AP4_UI32 AP4_FILE_BRAND_HVC1 = AP4_ATOM_TYPE('h','v','c','1');
-
+#if defined(AP4_HEVC_DOVI_EXTENSION)
+const AP4_UI32 AP4_FILE_BRAND_DBY1 = AP4_ATOM_TYPE('d','b','y','1');
+#endif
 /*----------------------------------------------------------------------
 |   AP4_File
 +---------------------------------------------------------------------*/

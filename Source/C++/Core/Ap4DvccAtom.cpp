@@ -54,6 +54,8 @@ AP4_DvccAtom::GetProfileName(AP4_UI08 profile)
         case AP4_DV_PROFILE_DVHE_STN: return "dvhe.stn";
         case AP4_DV_PROFILE_DVHE_DTH: return "dvhe.dth";
         case AP4_DV_PROFILE_DVHE_DTB: return "dvhr.dtb";
+        case AP4_DV_PROFILE_DVHE_ST : return "dvhe.st";
+        case AP4_DV_PROFILE_DVHE_SE : return "dvav.se";
     }
 
     return NULL;
@@ -77,7 +79,8 @@ AP4_DvccAtom::Create(AP4_Size size, AP4_ByteStream& stream)
                             ((payload[2]&1)<<5) | (payload[3]>>3),
                             (payload[3]&4) != 0,
                             (payload[3]&2) != 0,
-                            (payload[3]&1) != 0);
+                            (payload[3]&1) != 0,
+                            payload[4]>>4);
 }
 
 /*----------------------------------------------------------------------
@@ -91,7 +94,8 @@ AP4_DvccAtom::AP4_DvccAtom() :
     m_DvLevel(0),
     m_RpuPresentFlag(false),
     m_ElPresentFlag(false),
-    m_BlPresentFlag(false)
+    m_BlPresentFlag(false),
+    m_DvBlSignalCompatibilityID(0)
 {
 }
 
@@ -104,15 +108,17 @@ AP4_DvccAtom::AP4_DvccAtom(AP4_UI08 dv_version_major,
                            AP4_UI08 dv_level,
                            bool     rpu_present_flag,
                            bool     el_present_flag,
-                           bool     bl_present_flag) :
-    AP4_Atom(AP4_ATOM_TYPE_DVCC, AP4_ATOM_HEADER_SIZE+24),
+                           bool     bl_present_flag,
+                           AP4_UI08 dv_bl_signal_compatibility_id) :
+    AP4_Atom((dv_profile>7) ? AP4_ATOM_TYPE_DVVC : AP4_ATOM_TYPE_DVCC, AP4_ATOM_HEADER_SIZE+24),
     m_DvVersionMajor(dv_version_major),
     m_DvVersionMinor(dv_version_minor),
     m_DvProfile(dv_profile),
     m_DvLevel(dv_level),
     m_RpuPresentFlag(rpu_present_flag),
     m_ElPresentFlag(el_present_flag),
-    m_BlPresentFlag(bl_present_flag)
+    m_BlPresentFlag(bl_present_flag),
+    m_DvBlSignalCompatibilityID(dv_bl_signal_compatibility_id)
 {
 }
 
@@ -129,6 +135,7 @@ AP4_DvccAtom::WriteFields(AP4_ByteStream& stream)
     payload[1] = m_DvVersionMinor;
     payload[2] = (m_DvProfile<<1) | ((m_DvLevel&0x20)>>5);
     payload[3] = (m_DvLevel<<3) | (m_RpuPresentFlag?4:0) | (m_ElPresentFlag?2:0) | (m_BlPresentFlag?1:0);
+    payload[4] = m_DvBlSignalCompatibilityID<<4;
     
     return stream.Write(payload, 24);
 }
@@ -152,5 +159,6 @@ AP4_DvccAtom::InspectFields(AP4_AtomInspector& inspector)
     inspector.AddField("rpu_present_flag", m_RpuPresentFlag);
     inspector.AddField("el_present_flag",  m_ElPresentFlag);
     inspector.AddField("bl_present_flag",  m_BlPresentFlag);
+    inspector.AddField("dv_bl_signal_compatibility_id", m_DvBlSignalCompatibilityID);
     return AP4_SUCCESS;
 }
