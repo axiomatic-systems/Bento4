@@ -289,7 +289,7 @@ PreventStartCodeEmulation(const AP4_UI08* payload, AP4_Size payload_size, AP4_Da
 			++zero_counter;
 		} else {
 			zero_counter = 0;
-		}		
+        }
 	}
 
     output.SetDataSize(output_size);
@@ -667,6 +667,26 @@ WriteAdtsHeader(AP4_ByteStream& output,
 }
 
 /*----------------------------------------------------------------------
+|   WriteAc4Header
++---------------------------------------------------------------------*/
+static AP4_Result
+WriteAc4Header(AP4_ByteStream& output,
+                unsigned int    frame_size)
+{
+    unsigned char bits[7];
+
+    bits[0] = 0xac;
+    bits[1] = 0x40;
+    bits[2] = 0xff;
+    bits[3] = 0xff;
+    bits[4] = (frame_size>>16)&0xFF;
+    bits[5] = (frame_size>>8 )&0xFF;
+    bits[6] = (frame_size    )&0xFF;
+
+    return output.Write(bits, 7);
+}
+
+/*----------------------------------------------------------------------
 |   MakeAudioSetupData
 +---------------------------------------------------------------------*/
 static AP4_Result
@@ -960,6 +980,8 @@ PackedAudioWriter::WriteSample(AP4_Sample&            sample,
         unsigned int channel_configuration    = channel_count;
 
         WriteAdtsHeader(output, sample.GetSize(), sampling_frequency_index, channel_configuration);
+    } else if (sample_description->GetFormat() == AP4_SAMPLE_FORMAT_AC_4) {
+        WriteAc4Header(output, sample.GetSize());
     }
     return output.Write(sample_data.GetData(), sample_data.GetDataSize());
 }
@@ -1055,7 +1077,15 @@ WriteSamples(AP4_Mpeg2TsWriter*               ts_writer,
         AP4_Track* chosen_track= NULL;
         if (audio_track && !audio_eos) {
             chosen_track = audio_track;
-            if (video_track == NULL) sync_sample = true;
+            if (video_track == NULL) {
+                if (audio_track->GetSampleDescription(0)->GetFormat() == AP4_SAMPLE_FORMAT_AC_4) {
+                    if (audio_sample.IsSync()) {
+                        sync_sample = true;
+                    }
+                } else {
+                    sync_sample = true;
+                }
+            }
         }
         if (video_track && !video_eos) {
             if (audio_track) {
@@ -1962,6 +1992,9 @@ main(int argc, char** argv)
             } else if (sample_description->GetFormat() == AP4_SAMPLE_FORMAT_EC_3) {
                 default_stream_name    = "stream.ec3";
                 default_stream_pattern = "segment-%d.ec3";
+            } else if (sample_description->GetFormat() == AP4_SAMPLE_FORMAT_AC_4) {
+                default_stream_name    = "stream.ac4";
+                default_stream_pattern = "segment-%d.ac4";
             }
 
             // override the segment names
@@ -2019,7 +2052,50 @@ main(int argc, char** argv)
                 fprintf(stderr, "ERROR: audio codec not supported\n");
                 return 1;
             }
-
+            if (stream_type == AP4_MPEG2_STREAM_TYPE_ATSC_EAC3) {
+                // E-AC-3 descriptor
+                unsigned int number_of_channels = 0;
+                AP4_String track_language;
+                AP4_Dec3Atom* dec3 = AP4_DYNAMIC_CAST(AP4_Dec3Atom, sample_description->GetDetails().GetChild(AP4_ATOM_TYPE_DEC3));
+                AP4_BitWriter bits(8);
+                bits.Write(0xCC, 8);
+                bits.Write(0x06, 8);    // fixed value
+                bits.Write(0xC0, 8);    // reserved, bsid_flag, mainid_flag, asvc_flag, mixinfoexists, substream1_flag, substream2_flag and substream3_flag 
+                bits.Write(24, 5);      // reserved, full_service_flag and service_type
+                if (dec3->GetSubStreams()[0].acmod == 0) {
+                    number_of_channels = 1;
+                } else if (dec3->GetSubStreams()[0].acmod == 1) {
+                    number_of_channels = 0;
+                } else if (dec3->GetSubStreams()[0].acmod == 2) {
+                    number_of_channels = 2;
+                } else {
+                    number_of_channels = 4;
+                }
+                if (dec3->GetSubStreams()[0].num_dep_sub > 0) {
+                    number_of_channels = 5;
+                }
+                bits.Write(number_of_channels, 3);              // number_of_channels
+                bits.Write(4, 3);                               // language_flag, language_flag_2, reserved
+                bits.Write(dec3->GetSubStreams()[0].bsid, 5);   // bsid
+                track_language = audio_track->GetTrackLanguage();
+                if (track_language.GetLength() == 3) {
+                    bits.Write(track_language.GetChars()[0], 8);
+                    bits.Write(track_language.GetChars()[1], 8);
+                    bits.Write(track_language.GetChars()[2], 8);
+                } else {
+                    bits.Write(0x75, 8);
+                    bits.Write(0x6E, 8);
+                    bits.Write(0x64, 8);
+                }
+                 // setup the audio stream
+                result = ts_writer->SetAudioStream(audio_track->GetMediaTimeScale(),
+                                                   stream_type,
+                                                   stream_id,
+                                                   audio_stream,
+                                                   Options.audio_pid,
+                                                   bits.GetData(), 8,
+                                                   Options.pcr_offset);
+            } else {
             // setup the audio stream
             result = ts_writer->SetAudioStream(audio_track->GetMediaTimeScale(),
                                                stream_type,
@@ -2028,6 +2104,7 @@ main(int argc, char** argv)
                                                Options.audio_pid,
                                                NULL, 0,
                                                Options.pcr_offset);
+            }
             if (AP4_FAILED(result)) {
                 fprintf(stderr, "could not create audio stream (%d)\n", result);
                 goto end;

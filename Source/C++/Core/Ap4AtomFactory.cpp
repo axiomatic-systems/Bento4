@@ -510,6 +510,7 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
             break;
 
           case AP4_ATOM_TYPE_DVCC:
+          case AP4_ATOM_TYPE_DVVC:
             if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
             atom = AP4_DvccAtom::Create(size_32, stream);
             break;

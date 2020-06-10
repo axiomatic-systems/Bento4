@@ -302,6 +302,8 @@ public:
     // methods
     AP4_UI32           GetFlags() const { return m_Flags; }
     void               SetFlags(AP4_UI32 flags) { m_Flags = flags; }
+    AP4_UI08           GetVersion() const {return m_Version;}
+    void               SetVersion(AP4_UI08 version) { m_Version = version; }
     Type               GetType() const { return m_Type; }
     void               SetType(Type type) { m_Type = type; }
     virtual AP4_Size   GetHeaderSize() const;
@@ -545,6 +547,7 @@ const AP4_Atom::Type AP4_ATOM_TYPE_AVCC = AP4_ATOM_TYPE('a','v','c','C');
 const AP4_Atom::Type AP4_ATOM_TYPE_HVCC = AP4_ATOM_TYPE('h','v','c','C');
 const AP4_Atom::Type AP4_ATOM_TYPE_DVCC = AP4_ATOM_TYPE('d','v','c','C');
 const AP4_Atom::Type AP4_ATOM_TYPE_VPCC = AP4_ATOM_TYPE('v','p','c','C');
+const AP4_Atom::Type AP4_ATOM_TYPE_DVVC = AP4_ATOM_TYPE('d','v','v','C');
 const AP4_Atom::Type AP4_ATOM_TYPE_HVCE = AP4_ATOM_TYPE('h','v','c','E');
 const AP4_Atom::Type AP4_ATOM_TYPE_AVCE = AP4_ATOM_TYPE('a','v','c','E');
 const AP4_Atom::Type AP4_ATOM_TYPE_AV1C = AP4_ATOM_TYPE('a','v','1','C');

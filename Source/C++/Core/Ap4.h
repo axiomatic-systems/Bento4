@@ -317,7 +317,10 @@
 #include "Ap4Dac4Atom.h"
 #include "Ap4SidxAtom.h"
 #include "Ap4AdtsParser.h"
+#include "Ap4Ac4Parser.h"
 #include "Ap4AvcParser.h"
+#include "Ap4Eac3Parser.h"
+#include "Ap4Ac3Parser.h"
 #include "Ap4HevcParser.h"
 #include "Ap4SegmentBuilder.h"
 

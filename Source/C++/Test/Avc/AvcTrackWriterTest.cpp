@@ -360,6 +360,9 @@ main(int argc, char** argv)
         avc_desc->GetLevel(),
         avc_desc->GetProfileCompatibility(),
         avc_desc->GetNaluLengthSize(),
+        avc_desc->GetChromaFormat(),
+        avc_desc->GetBitDepthLumaMinus8(),
+        avc_desc->GetBitDepthChromaMinus8(),
         avc_desc->GetSequenceParameters(),
         avc_desc->GetPictureParameters()));
         

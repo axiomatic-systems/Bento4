@@ -40,6 +40,11 @@
 #include "Ap4Utils.h"
 
 /*----------------------------------------------------------------------
+|   Dolby Vision extension 
++---------------------------------------------------------------------*/
+#define AP4_HEVC_DOVI_EXTENSION 1
+
+/*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
 const unsigned int AP4_HEVC_NALU_TYPE_TRAIL_N        = 0;
@@ -90,6 +95,11 @@ const unsigned int AP4_HEVC_NALU_TYPE_RSV_NVCL44     = 44;
 const unsigned int AP4_HEVC_NALU_TYPE_RSV_NVCL45     = 45;
 const unsigned int AP4_HEVC_NALU_TYPE_RSV_NVCL46     = 46;
 const unsigned int AP4_HEVC_NALU_TYPE_RSV_NVCL47     = 47;
+
+#if defined(AP4_HEVC_DOVI_EXTENSION)
+const unsigned int AP4_HEVC_NALU_TYPE_UNSPEC62       = 62;
+const unsigned int AP4_HEVC_NALU_TYPE_UNSPEC63       = 63;
+#endif
 
 const unsigned int AP4_HEVC_PPS_MAX_ID               = 63;
 const unsigned int AP4_HEVC_SPS_MAX_ID               = 15;
@@ -278,6 +288,9 @@ struct AP4_HevcVideoParameterSet {
     
     // methods
     AP4_Result Parse(const unsigned char* data, unsigned int data_size);
+#if defined(AP4_HEVC_DOVI_EXTENSION)
+    void GetInfo(unsigned int& time_scale, unsigned int& num_units);
+#endif
 
     AP4_DataBuffer           raw_bytes;
     unsigned int             vps_video_parameter_set_id;

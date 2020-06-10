@@ -55,8 +55,8 @@ AP4_MdhdAtom::Create(AP4_Size size, AP4_ByteStream& stream)
 /*----------------------------------------------------------------------
 |   AP4_MdhdAtom::AP4_MdhdAtom
 +---------------------------------------------------------------------*/
-AP4_MdhdAtom::AP4_MdhdAtom(AP4_UI32    creation_time,
-                           AP4_UI32    modification_time,
+AP4_MdhdAtom::AP4_MdhdAtom(AP4_UI64    creation_time,
+                           AP4_UI64    modification_time,
                            AP4_UI32    time_scale,
                            AP4_UI64    duration,
                            const char* language) :
@@ -71,7 +71,9 @@ AP4_MdhdAtom::AP4_MdhdAtom(AP4_UI32    creation_time,
     } else {
         m_Language = "und";
     }
-    if (duration > 0xFFFFFFFF) {
+    if (duration          > 0xFFFFFFFFULL ||
+        creation_time     > 0xFFFFFFFFULL ||
+        modification_time > 0xFFFFFFFFULL) {
         m_Version = 1;
         m_Size32 += 12;
     }

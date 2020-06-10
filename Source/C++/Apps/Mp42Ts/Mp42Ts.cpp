@@ -571,9 +571,11 @@ main(int argc, char** argv)
         if (sample_description->GetFormat() == AP4_SAMPLE_FORMAT_MP4A) {
             stream_type = AP4_MPEG2_STREAM_TYPE_ISO_IEC_13818_7;
             stream_id   = AP4_MPEG2_TS_DEFAULT_STREAM_ID_AUDIO;
-        } else if (sample_description->GetFormat() == AP4_SAMPLE_FORMAT_AC_3 ||
-                   sample_description->GetFormat() == AP4_SAMPLE_FORMAT_EC_3) {
+        } else if (sample_description->GetFormat() == AP4_SAMPLE_FORMAT_AC_3) {
             stream_type = AP4_MPEG2_STREAM_TYPE_ATSC_AC3;
+            stream_id   = AP4_MPEG2_TS_STREAM_ID_PRIVATE_STREAM_1;
+        } else if ( sample_description->GetFormat() == AP4_SAMPLE_FORMAT_EC_3) {
+            stream_type = AP4_MPEG2_STREAM_TYPE_ATSC_EAC3;
             stream_id   = AP4_MPEG2_TS_STREAM_ID_PRIVATE_STREAM_1;
         } else {
             fprintf(stderr, "ERROR: audio codec not supported\n");

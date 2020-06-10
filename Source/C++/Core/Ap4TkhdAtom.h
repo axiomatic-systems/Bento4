@@ -56,8 +56,8 @@ public:
     static AP4_TkhdAtom* Create(AP4_Size size, AP4_ByteStream& stream);
 
     // methods
-    AP4_TkhdAtom(AP4_UI32        creation_time,
-                 AP4_UI32        modification_time,
+    AP4_TkhdAtom(AP4_UI64        creation_time,
+                 AP4_UI64        modification_time,
                  AP4_UI32        track_id,
                  AP4_UI64        duration,
                  AP4_UI16        volume,

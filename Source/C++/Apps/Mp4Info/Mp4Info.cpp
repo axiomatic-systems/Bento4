@@ -452,9 +452,9 @@ ShowSampleDescription_Text(AP4_SampleDescription& description, bool verbose)
         // Dolby Digital Plus specifics
         AP4_Dec3Atom* dec3 = AP4_DYNAMIC_CAST(AP4_Dec3Atom, desc->GetDetails().GetChild(AP4_ATOM_TYPE_DEC3));
         if (dec3) {
-            printf("    AC-3 Data Rate: %d\n", dec3->GetDataRate());
+            printf("    E-AC-3 Data Rate: %d\n", dec3->GetDataRate());
             for (unsigned int i=0; i<dec3->GetSubStreams().ItemCount(); i++) {
-                printf("    AC-3 Substream %d:\n", i);
+                printf("    E-AC-3 Substream %d:\n", i);
                 printf("        fscod       = %d\n", dec3->GetSubStreams()[i].fscod);
                 printf("        bsid        = %d\n", dec3->GetSubStreams()[i].bsid);
                 printf("        bsmod       = %d\n", dec3->GetSubStreams()[i].bsmod);
@@ -463,7 +463,13 @@ ShowSampleDescription_Text(AP4_SampleDescription& description, bool verbose)
                 printf("        num_dep_sub = %d\n", dec3->GetSubStreams()[i].num_dep_sub);
                 printf("        chan_loc    = %d\n", dec3->GetSubStreams()[i].chan_loc);
             }
-            printf("    AC-3 dec3 payload: [");
+            if (dec3->GetFlagEC3ExtensionTypeA()){
+                printf("    Dolby Digital Plus with Dolby Atmos: Yes\n");
+                printf("    Dolby Atmos Complexity Index: %d\n", dec3->GetComplexityIndexTypeA());
+            } else {
+                printf("    Dolby Digital Plus with Dolby Atmos: No\n");
+            }
+            printf("    E-AC-3 dec3 payload: [");
             ShowData(dec3->GetRawBytes());
             printf("]\n");
         }
@@ -481,17 +487,55 @@ ShowSampleDescription_Text(AP4_SampleDescription& description, bool verbose)
             printf("\n");
 
             const AP4_Dac4Atom::Ac4Dsi& dsi = dac4->GetDsi();
+            unsigned short self_contained = 0;
             if (dsi.ac4_dsi_version == 1) {
                 for (unsigned int i = 0; i < dsi.d.v1.n_presentations; i++) {
                     AP4_Dac4Atom::Ac4Dsi::PresentationV1& presentation = dsi.d.v1.presentations[i];
-                    if (presentation.presentation_version == 1) {
+                    if (presentation.presentation_version == 1 || presentation.presentation_version == 2) {
                         printf("    AC-4 Presentation %d:\n", i);
-                        printf("        presentation_channel_mask_v1 = %x\n",
-                               presentation.d.v1.presentation_channel_mask_v1);
+
+                        char presentation_type [64];
+                        char presentation_codec[64];
+                        char presentation_lang [64 + 1] = "un";
+                        AP4_FormatString(presentation_codec,
+                                         sizeof(presentation_codec),
+                                         "ac-4.%02x.%02x.%02x",
+                                         dsi.d.v1.bitstream_version,
+                                         presentation.presentation_version,
+                                         presentation.d.v1.mdcompat);
+                        for (int sg = 0; sg < presentation.d.v1.n_substream_groups; sg++){
+                            if ( presentation.d.v1.substream_groups[sg].d.v1.b_content_type &&
+                                (presentation.d.v1.substream_groups[sg].d.v1.content_classifier == 0 ||presentation.d.v1.substream_groups[sg].d.v1.content_classifier == 4) &&
+                                 presentation.d.v1.substream_groups[sg].d.v1.b_language_indicator){
+                                     memcpy(presentation_lang, presentation.d.v1.substream_groups[sg].d.v1.language_tag_bytes, presentation.d.v1.substream_groups[sg].d.v1.n_language_tag_bytes);
+                                     presentation_lang[presentation.d.v1.substream_groups[sg].d.v1.n_language_tag_bytes] = '\0';
+                            }
+                        }
+                        if (presentation.d.v1.b_multi_pid == 0) { self_contained ++; }
+                        if (presentation.d.v1.b_presentation_channel_coded == 1) {
+                            AP4_FormatString(presentation_type, sizeof(presentation_type), "Channel based");
+                            if (presentation.d.v1.dsi_presentation_ch_mode >= 11 && presentation.d.v1.dsi_presentation_ch_mode <= 15) {
+                                AP4_FormatString(presentation_type, sizeof(presentation_type), "Channel based immsersive");
+                            }
+                        } else {
+                            AP4_FormatString(presentation_type, sizeof(presentation_type), "Object based");
+                        }
+                        if (presentation.presentation_version == 2) {
+                            printf("        Stream Type = Immersive stereo\n");
+                        }else {
+                            printf("        Stream Type = %s\n", presentation_type);
+                        }
+                        printf("        presentation_id = %d\n", presentation.d.v1.b_presentation_id? presentation.d.v1.presentation_id : -1);
+                        printf("        Codec String = %s\n", presentation_codec);
+                        printf("        presentation_channel_mask_v1 = 0x%x\n", presentation.d.v1.presentation_channel_mask_v1);
+                        printf("        Dolby Atmos source = %s\n", presentation.d.v1.dolby_atmos_indicator? "Yes": "No");
+                        printf("        Language = %s\n", presentation_lang);
+                        printf("        Self Contained = %s\n", presentation.d.v1.b_multi_pid? "No": "Yes");
                     }
                 }
             }
             
+            printf("    Self Contained: %s\n", (self_contained == dsi.d.v1.n_presentations) ? "Yes": ((self_contained == 0)? "No": "Part"));
             printf("    AC-4 dac4 payload: [");
             ShowData(dac4->GetRawBytes());
             printf("]\n");
@@ -530,8 +574,6 @@ ShowSampleDescription_Text(AP4_SampleDescription& description, bool verbose)
             sep = ", ";
         }
         printf("]\n");
-        printf("    Codecs String: ");
-        AP4_String codec;
         avc_desc->GetCodecString(codec);
         printf("%s", codec.GetChars());
         printf("\n");
@@ -577,8 +619,6 @@ ShowSampleDescription_Text(AP4_SampleDescription& description, bool verbose)
             }
             printf("\n      }\n");
         }
-        printf("    Codecs String: ");
-        AP4_String codec;
         hevc_desc->GetCodecString(codec);
         printf("%s", codec.GetChars());
         printf("\n");
@@ -613,7 +653,49 @@ ShowSampleDescription_Text(AP4_SampleDescription& description, bool verbose)
     
     // Dolby Vision specifics
     AP4_DvccAtom* dvcc = AP4_DYNAMIC_CAST(AP4_DvccAtom, desc->GetDetails().GetChild(AP4_ATOM_TYPE_DVCC));
+    if(!dvcc) {
+        dvcc = AP4_DYNAMIC_CAST(AP4_DvccAtom, desc->GetDetails().GetChild(AP4_ATOM_TYPE_DVVC));
+    }
     if (dvcc) {
+        /* Codec String */
+        char workspace[64];
+        char coding[5];
+        strncpy(coding, codec.GetChars(), 4);
+        coding[4] = '\0';
+        
+        /* Non backward-compatible */
+        if (strcmp(coding, "dvav") == 0 || strcmp(coding, "dva1") == 0 ||
+            strcmp(coding, "dvhe") == 0 || strcmp(coding, "dvh1") == 0){
+            AP4_FormatString(workspace,
+                            sizeof(workspace),
+                            "%s.%02d.%02d",
+                            coding,
+                            dvcc->GetDvProfile(),
+                            dvcc->GetDvLevel());
+            codec = workspace;
+        } else {
+            if (strcmp(coding, "avc1") == 0){
+                strcpy(coding, "dva1");
+            }else if (strcmp(coding, "avc3") == 0){
+                strcpy(coding, "dvav");
+            }else if (strcmp(coding, "hev1") == 0){
+                strcpy(coding, "dvhe");
+            }else if (strcmp(coding, "hvc1") == 0){
+                strcpy(coding, "dvh1");
+            }
+            AP4_FormatString(workspace,
+                            sizeof(workspace),
+                            "%s,%s.%02d.%02d",
+                            codec.GetChars(),
+                            coding,
+                            dvcc->GetDvProfile(),
+                            dvcc->GetDvLevel());
+            codec = workspace;
+        }
+        printf("    Codecs String: ");
+        printf("%s", codec.GetChars());
+        printf("\n");
+        /* Dolby Vision */
         printf("    Dolby Vision:\n");
         printf("      Version:     %d.%d\n", dvcc->GetDvVersionMajor(), dvcc->GetDvVersionMinor());
         const char* profile_name = AP4_DvccAtom::GetProfileName(dvcc->GetDvProfile());
@@ -626,6 +708,11 @@ ShowSampleDescription_Text(AP4_SampleDescription& description, bool verbose)
         printf("      RPU Present: %s\n", dvcc->GetRpuPresentFlag()?"true":"false");
         printf("      EL Present:  %s\n", dvcc->GetElPresentFlag()?"true":"false");
         printf("      BL Present:  %s\n", dvcc->GetBlPresentFlag()?"true":"false");
+        printf("      BL Signal Compatibility ID:  %d\n", dvcc->GetDvBlSignalCompatibilityID());
+    } else if (desc->GetType() == AP4_SampleDescription::TYPE_AVC || desc->GetType() == AP4_SampleDescription::TYPE_HEVC){
+        printf("    Codecs String: ");
+        printf("%s", codec.GetChars());
+        printf("\n");
     }
     
     // VPx Specifics
@@ -764,6 +851,12 @@ ShowSampleDescription_Json(AP4_SampleDescription& description, bool verbose)
             ShowData(dec3->GetRawBytes());
             printf("\",\n");
             printf("  \"data_rate\": %d,\n", dec3->GetDataRate());
+            if (dec3->GetFlagEC3ExtensionTypeA()){
+                printf("  \"Dolby Digital Plus with Dolby Atmos\": \"Yes\",\n");
+                printf("  \"Dolby Atmos Complexity Index\": %d,\n", dec3->GetComplexityIndexTypeA());
+            } else {
+                printf("  \"Dolby Digital Plus with Dolby Atmos\": \"No\",\n");
+            }
             printf("  \"substreams\": [\n");
             const char* sep = "";
             for (unsigned int i=0; i<dec3->GetSubStreams().ItemCount(); i++) {
@@ -792,20 +885,58 @@ ShowSampleDescription_Json(AP4_SampleDescription& description, bool verbose)
 
             printf("  \"presentations\": [\n");
             const AP4_Dac4Atom::Ac4Dsi& dsi = dac4->GetDsi();
+            unsigned short self_contained = 0;
             if (dsi.ac4_dsi_version == 1) {
                 const char* separator = "";
                 for (unsigned int i = 0; i < dsi.d.v1.n_presentations; i++) {
                     AP4_Dac4Atom::Ac4Dsi::PresentationV1& presentation = dsi.d.v1.presentations[i];
-                    if (presentation.presentation_version == 1) {
-                        printf("%s    { \"presentation_channel_mask_v1\": %u }",
-                               separator,
-                               presentation.d.v1.presentation_channel_mask_v1);
+                    if (presentation.presentation_version == 1 || presentation.presentation_version == 2) {
+                        printf("%s    { ", separator);
+                        
+                        char presentation_type [64];
+                        char presentation_codec[64];
+                        char presentation_lang [64 + 1] = "un";
+                        AP4_FormatString(presentation_codec,
+                                         sizeof(presentation_codec),
+                                         "ac-4.%02x.%02x.%02x",
+                                         dsi.d.v1.bitstream_version,
+                                         presentation.presentation_version,
+                                         presentation.d.v1.mdcompat);
+                        for (int sg = 0; sg < presentation.d.v1.n_substream_groups; sg++){
+                            if ( presentation.d.v1.substream_groups[sg].d.v1.b_content_type &&
+                                (presentation.d.v1.substream_groups[sg].d.v1.content_classifier == 0 ||presentation.d.v1.substream_groups[sg].d.v1.content_classifier == 4) &&
+                                 presentation.d.v1.substream_groups[sg].d.v1.b_language_indicator){
+                                     memcpy(presentation_lang, presentation.d.v1.substream_groups[sg].d.v1.language_tag_bytes, presentation.d.v1.substream_groups[sg].d.v1.n_language_tag_bytes);
+                                     presentation_lang[presentation.d.v1.substream_groups[sg].d.v1.n_language_tag_bytes] = '\0';
+                            }
+                        }
+                        if (presentation.d.v1.b_multi_pid == 0) { self_contained ++; }
+                        if (presentation.d.v1.b_presentation_channel_coded == 1) {
+                            AP4_FormatString(presentation_type, sizeof(presentation_type), "Channel based");
+                            if (presentation.d.v1.dsi_presentation_ch_mode >= 11 && presentation.d.v1.dsi_presentation_ch_mode <= 15) {
+                                AP4_FormatString(presentation_type, sizeof(presentation_type), "Channel based immsersive");
+                            }
+                        } else {
+                            AP4_FormatString(presentation_type, sizeof(presentation_type), "Object based");
+                        }
+                        if (presentation.presentation_version == 2) {
+                            printf("\"Stream Type\": \"Immersive stereo\", ");
+                        } else {
+                            printf("\"Stream Type\": \"%s\", ", presentation_type);
+                        }
+                        printf("\"presentation_id\": %d, ", presentation.d.v1.b_presentation_id? presentation.d.v1.presentation_id : -1);
+                        printf("\"Codec String\": \"%s\", ", presentation_codec);
+                        printf("\"presentation_channel_mask_v1\": %u, ",presentation.d.v1.presentation_channel_mask_v1);
+                        printf("\"Dolby Atmos source\": \"%s\", ", presentation.d.v1.dolby_atmos_indicator? "Yes": "No");
+                        printf("\"Language\": \"%s\", ", presentation_lang);
+                        printf("\"Self Contained\": \"%s\"} ", presentation.d.v1.b_multi_pid? "No": "Yes");
                         separator = ",\n";
                     }
                 }
             }
             printf("\n  ],\n");
 
+            printf("  \"Self Contained\": \"%s\",\n", (self_contained == dsi.d.v1.n_presentations) ? "Yes": ((self_contained == 0)? "No": "Part"));
             printf("  \"dac4_payload\": \"");
             ShowData(dac4->GetRawBytes());
             printf("\"\n},\n");
@@ -851,8 +982,6 @@ ShowSampleDescription_Json(AP4_SampleDescription& description, bool verbose)
             sep = ", ";
         }
         printf("],\n");
-        printf("\"codecs_string\":\"");
-        AP4_String codec;
         avc_desc->GetCodecString(codec);
         printf("%s", codec.GetChars());
         printf("\"");
@@ -904,8 +1033,6 @@ ShowSampleDescription_Json(AP4_SampleDescription& description, bool verbose)
             seq_sep = ",\n";
         }
         printf("\n],\n");
-        printf("\"codecs_string\":\"");
-        AP4_String codec;
         hevc_desc->GetCodecString(codec);
         printf("%s", codec.GetChars());
         printf("\"");
@@ -935,7 +1062,49 @@ ShowSampleDescription_Json(AP4_SampleDescription& description, bool verbose)
     
     // Dolby Vision specifics
     AP4_DvccAtom* dvcc = AP4_DYNAMIC_CAST(AP4_DvccAtom, desc->GetDetails().GetChild(AP4_ATOM_TYPE_DVCC));
+    if(!dvcc) {
+        dvcc = AP4_DYNAMIC_CAST(AP4_DvccAtom, desc->GetDetails().GetChild(AP4_ATOM_TYPE_DVVC));
+    }
     if (dvcc) {
+        /* Codec String */
+        char workspace[64];
+        char coding[5];
+        strncpy(coding, codec.GetChars(), 4);
+        coding[4] = '\0';
+        
+        /* Non backward-compatible */
+        if (strcmp(coding, "dvav") == 0 || strcmp(coding, "dva1") == 0 ||
+            strcmp(coding, "dvhe") == 0 || strcmp(coding, "dvh1") == 0){
+            AP4_FormatString(workspace,
+                            sizeof(workspace),
+                            "%s.%02d.%02d",
+                            coding,
+                            dvcc->GetDvProfile(),
+                            dvcc->GetDvLevel());
+            codec = workspace;
+        } else {
+            if (strcmp(coding, "avc1") == 0){
+                strcpy(coding, "dva1");
+            }else if (strcmp(coding, "avc3") == 0){
+                strcpy(coding, "dvav");
+            }else if (strcmp(coding, "hev1") == 0){
+                strcpy(coding, "dvhe");
+            }else if (strcmp(coding, "hvc1") == 0){
+                strcpy(coding, "dvh1");
+            }
+            AP4_FormatString(workspace,
+                            sizeof(workspace),
+                            "%s,%s.%02d.%02d",
+                            codec.GetChars(),
+                            coding,
+                            dvcc->GetDvProfile(),
+                            dvcc->GetDvLevel());
+            codec = workspace;
+        }
+        printf("\"codecs_string\":\"");
+        printf("%s", codec.GetChars());
+        printf("\"");
+        /* Dolby Vision */
         printf(",\n");
         printf("\"dolby_vision\": {\n");
         printf("   \"version_major\": %d,\n", dvcc->GetDvVersionMajor());
@@ -946,8 +1115,13 @@ ShowSampleDescription_Json(AP4_SampleDescription& description, bool verbose)
         printf("   \"level\": %d,\n", dvcc->GetDvLevel());
         printf("   \"rpu_present\": %s,\n", dvcc->GetRpuPresentFlag()?"true":"false");
         printf("   \"el_present\": %s,\n", dvcc->GetElPresentFlag()?"true":"false");
-        printf("   \"bl_present\": %s\n", dvcc->GetBlPresentFlag()?"true":"false");
+        printf("   \"bl_present\": %s,\n", dvcc->GetBlPresentFlag()?"true":"false");
+        printf("   \"dv_bl_signal_compatibility_id\": %d\n", dvcc->GetDvBlSignalCompatibilityID());
         printf("}");
+    } else if (desc->GetType() == AP4_SampleDescription::TYPE_AVC || desc->GetType() == AP4_SampleDescription::TYPE_HEVC){
+        printf("\"codecs_string\":\"");
+        printf("%s", codec.GetChars());
+        printf("\"");
     }
 
     // VPx Specifics

@@ -148,14 +148,20 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\..\Source\C++\Codecs\Ap4Ac3Parser.cpp" />
+    <ClCompile Include="..\..\..\..\Source\C++\Codecs\Ap4Ac4Parser.cpp" />
     <ClCompile Include="..\..\..\..\Source\C++\Codecs\Ap4AvcParser.cpp" />
+    <ClCompile Include="..\..\..\..\Source\C++\Codecs\Ap4Eac3Parser.cpp" />
     <ClCompile Include="..\..\..\..\Source\C++\Codecs\Ap4HevcParser.cpp" />
     <ClCompile Include="..\..\..\..\Source\C++\Codecs\Ap4NalParser.cpp" />
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap48bdlAtom.cpp" />
     <ClCompile Include="..\..\..\..\Source\C++\Codecs\Ap4AdtsParser.cpp" />
+    <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4Ac4Utils.cpp" />
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4AinfAtom.cpp" />
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4BlocAtom.cpp" />
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4CommonEncryption.cpp" />
+    <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4VpccAtom.cpp" />
+    <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4Dac3Atom.cpp" />
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4Dac4Atom.cpp" />
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4Dec3Atom.cpp" />
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4DvccAtom.cpp" />
@@ -275,15 +281,21 @@
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4VmhdAtom.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\..\Source\C++\Codecs\Ap4Ac3Parser.h" />
+    <ClInclude Include="..\..\..\..\Source\C++\Codecs\Ap4Ac4Parser.h" />
     <ClInclude Include="..\..\..\..\Source\C++\Codecs\Ap4AvcParser.h" />
+    <ClInclude Include="..\..\..\..\Source\C++\Codecs\Ap4Eac3Parser.h" />
     <ClInclude Include="..\..\..\..\Source\C++\Codecs\Ap4HevcParser.h" />
     <ClInclude Include="..\..\..\..\Source\C++\Codecs\Ap4NalParser.h" />
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4.h" />
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap48bdlAtom.h" />
     <ClInclude Include="..\..\..\..\Source\C++\Codecs\Ap4AdtsParser.h" />
+    <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4Ac4Utils.h" />
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4AinfAtom.h" />
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4BlocAtom.h" />
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4CommonEncryption.h" />
+    <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4VpccAtom.h" />
+    <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4Dac3Atom.h" />
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4Dac4Atom.h" />
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4Dec3Atom.h" />
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4DvccAtom.h" />
