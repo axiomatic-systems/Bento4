@@ -78,8 +78,7 @@ AP4_StszAtom::AP4_StszAtom(AP4_UI32        size,
     }
 
     stream.ReadUI32(m_SampleSize);
-    AP4_UI32 sample_count;
-    stream.ReadUI32(sample_count);
+    stream.ReadUI32(m_SampleCount);
     if (m_SampleSize == 0) { // means that the samples have different sizes
         // check for overflow
         if (m_SampleCount > (size - AP4_FULL_ATOM_HEADER_SIZE - 8) / 4) {
@@ -87,16 +86,15 @@ AP4_StszAtom::AP4_StszAtom(AP4_UI32        size,
         }
         
         // read the entries
-        unsigned char* buffer = new unsigned char[sample_count * 4];
-        AP4_Result result = stream.Read(buffer, sample_count*4);
+        unsigned char* buffer = new unsigned char[m_SampleCount * 4];
+        AP4_Result result = stream.Read(buffer, m_SampleCount * 4);
         if (AP4_FAILED(result)) {
             delete[] buffer;
             return;
         }
-        m_SampleCount = sample_count;
-        m_Entries.SetItemCount((AP4_Cardinal)sample_count);
-        for (unsigned int i=0; i<sample_count; i++) {
-            m_Entries[i] = AP4_BytesToUInt32BE(&buffer[i*4]);
+        m_Entries.SetItemCount((AP4_Cardinal)m_SampleCount);
+        for (unsigned int i = 0; i < m_SampleCount; i++) {
+            m_Entries[i] = AP4_BytesToUInt32BE(&buffer[i * 4]);
         }
         delete[] buffer;
     }
