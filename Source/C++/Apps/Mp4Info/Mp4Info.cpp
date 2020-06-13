@@ -1074,7 +1074,8 @@ ShowSample_Text(AP4_Track&      track,
                 bool            show_sample_data,
                 AP4_AvcSampleDescription* avc_desc)
 {
-    printf("[%06d] size=%6d duration=%6d",
+    printf("[%02d.%06d] size=%6d duration=%6d",
+           track.GetId(),
            index+1, 
            (int)sample.GetSize(), 
            (int)sample.GetDuration());
@@ -1617,15 +1618,18 @@ ShowFragments_Text(AP4_Movie& movie, bool verbose, bool show_sample_data, AP4_By
     stream->Seek(0);
     AP4_LinearReader reader(movie, stream);
     AP4_List<AP4_Track>::Item* track_item = movie.GetTracks().FirstItem();
+    AP4_Array<unsigned int> counters;
     while (track_item) {
         reader.EnableTrack(track_item->GetData()->GetId());
         track_item = track_item->GetNext();
+        counters.Append(0);
     }
     
     AP4_Sample     sample;
     AP4_DataBuffer sample_data;
     AP4_UI32       prev_track_id = 0;
-    for(unsigned int i=0; ; i++) {
+    unsigned int*  counter = &counters[0];
+    for (;;) {
         AP4_UI32 track_id = 0;
         AP4_Result result = reader.ReadNextSample(sample, sample_data, track_id);
         if (AP4_SUCCEEDED(result)) {
@@ -1637,10 +1641,25 @@ ShowFragments_Text(AP4_Movie& movie, bool verbose, bool show_sample_data, AP4_By
             if (track_id != prev_track_id) {
                 printf("Track %d:\n", track_id);
                 prev_track_id = track_id;
+
+                // find the right counter for this track
+                unsigned int counter_index = 0;
+                for (AP4_List<AP4_Track>::Item* track_item = movie.GetTracks().FirstItem();
+                                                track_item;
+                                                track_item = track_item->GetNext(), ++counter_index) {
+                    if (track_item->GetData()->GetId() == track_id) {
+                        if (counter_index < counters.ItemCount()) {
+                            counter = &counters[counter_index];
+                        }
+                        break;
+                    }
+                }
             }
             
-            ShowSample_Text(*track, sample, sample_data, i, verbose, show_sample_data, avc_desc);
+            ShowSample_Text(*track, sample, sample_data, *counter, verbose, show_sample_data, avc_desc);
             printf("\n");
+
+            ++*counter;
         } else {
             break;
         }
