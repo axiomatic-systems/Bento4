@@ -570,16 +570,9 @@ class Mp4File:
                 default_sample_duration = tfhd.get('default sample duration', track.default_sample_duration)
                 for trun in FilterChildren(trafs[0], 'trun'):
                     track.sample_counts.append(trun['sample count'])
-                    for (name, value) in list(trun.items()):
-                        if name[0] in '0123456789':
-                            sample_duration = -1
-                            fields = value.split(',')
-                            for field in fields:
-                                if field.startswith('d:'):
-                                    sample_duration = int(field[2:])
-                            if sample_duration == -1:
-                                sample_duration = default_sample_duration
-                            segment_duration += sample_duration
+                    for entry in trun['entries']:
+                        sample_duration = int(entry.get('d', default_sample_duration))
+                        segment_duration += sample_duration
                 track.segment_scaled_durations.append(segment_duration)
                 segment_duration_sec = float(segment_duration) / float(track.timescale)
                 track.segment_durations.append(segment_duration_sec)

@@ -3465,27 +3465,31 @@ AP4_CencSampleEncryption::DoInspectFields(AP4_AtomInspector& inspector)
         }
     }
     inspector.AddField("IV Size (inferred)", iv_size);
-    
+
+    inspector.StartArray("sample info entries", m_SampleInfoCount);
     const AP4_UI08* info = m_SampleInfos.GetData();
     for (unsigned int i=0; i<m_SampleInfoCount; i++) {
-        char header[64];
-        AP4_FormatString(header, sizeof(header), "entry %04d", i);
-        inspector.AddField(header, info, iv_size);
+        inspector.StartObject(NULL);
+        inspector.AddField("info", info, iv_size);
         info += iv_size;
         if (m_Outer.GetFlags() & AP4_CENC_SAMPLE_ENCRYPTION_FLAG_USE_SUB_SAMPLE_ENCRYPTION) {
             unsigned int num_entries = AP4_BytesToInt16BE(info);
             info += 2;
+            inspector.StartArray("sub entries", num_entries);
             for (unsigned int j=0; j<num_entries; j++) {
+                inspector.StartObject(NULL, 2, true);
                 unsigned int bocd = AP4_BytesToUInt16BE(info);
-                AP4_FormatString(header, sizeof(header), "sub-entry %04d.%d bytes of clear data", i, j);
-                inspector.AddField(header, bocd);
+                inspector.AddField("bytes_of_clear_data", bocd);
                 unsigned int boed = AP4_BytesToUInt32BE(info+2);
-                AP4_FormatString(header, sizeof(header), "sub-entry %04d.%d bytes of encrypted data", i, j);
-                inspector.AddField(header, boed);
+                inspector.AddField("bytes_of_encrypted_data", boed);
                 info += 6;
+                inspector.EndObject();
             }
-        }        
+            inspector.EndArray();
+        }
+        inspector.EndObject();
     }
+    inspector.EndArray();
 
     return AP4_SUCCESS;
 }

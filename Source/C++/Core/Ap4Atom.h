@@ -79,9 +79,9 @@ class AP4_AtomInspector {
 public:
     // types
     typedef enum {
-        HINT_NONE       = 0,
-        HINT_HEX        = 1,
-        HINT_BOOLEAN    = 2
+        HINT_NONE    = 0,
+        HINT_HEX     = 1,
+        HINT_BOOLEAN = 2
     } FormatHint;
 
     // constructor and destructor
@@ -103,7 +103,11 @@ public:
                                  AP4_Size    /* header_size */,
                                  AP4_UI64    /*size         */) {}
     virtual void EndDescriptor() {}
-    virtual void AddField(const char* /* name */, 
+    virtual void StartArray(const char* /* name */, unsigned int element_count = 0) {}
+    virtual void EndArray() {}
+    virtual void StartObject(const char* /* name */, unsigned int field_count = 0, bool compact = false) {}
+    virtual void EndObject() {}
+    virtual void AddField(const char* /* name */,
                           AP4_UI64    /* value */, 
                           FormatHint  hint = HINT_NONE) {
         (void)hint; // gcc warning
@@ -148,15 +152,42 @@ public:
                          AP4_Size    header_size,
                          AP4_UI64    size);
     void EndDescriptor();
+    void StartArray(const char* name, unsigned int element_count);
+    void EndArray();
+    void StartObject(const char* name, unsigned int field_count, bool compact);
+    void EndObject();
     void AddField(const char* name, AP4_UI64 value, FormatHint hint);
     void AddFieldF(const char* name, float value, FormatHint hint);
     void AddField(const char* name, const char* value, FormatHint hint);
     void AddField(const char* name, const unsigned char* bytes, AP4_Size size, FormatHint hint);
 
 private:
+    // types
+    struct Context {
+        typedef enum {
+            TOP_LEVEL,
+            ATOM,
+            ARRAY,
+            OBJECT,
+            COMPACT_OBJECT
+        } Type;
+
+        Context(Type type) : m_Type(type), m_ArrayIndex(0) {}
+
+        Type         m_Type;
+        AP4_Cardinal m_ArrayIndex;
+     };
+
+    // methods
+    void     PushContext(Context::Type type);
+    void     PopContext();
+    Context& LastContext() { return m_Contexts[m_Contexts.ItemCount() - 1]; }
+    void     PrintPrefix();
+    void     PrintSuffix();
+
     // members
-    AP4_ByteStream* m_Stream;
-    AP4_Cardinal    m_Indent;
+    AP4_ByteStream*    m_Stream;
+    AP4_Array<Context> m_Contexts;
 };
 
 /*----------------------------------------------------------------------
@@ -178,19 +209,44 @@ public:
                          AP4_Size    header_size,
                          AP4_UI64    size);
     void EndDescriptor();
+    void StartArray(const char* name, unsigned int element_count);
+    void EndArray();
+    void StartObject(const char* name, unsigned int field_count, bool compact);
+    void EndObject();
     void AddField(const char* name, AP4_UI64 value, FormatHint hint);
     void AddFieldF(const char* name, float value, FormatHint hint);
     void AddField(const char* name, const char* value, FormatHint hint);
     void AddField(const char* name, const unsigned char* bytes, AP4_Size size, FormatHint hint);
 
 private:
+    // types
+    struct Context {
+        typedef enum {
+            TOP_LEVEL,
+            ATOM,
+            ARRAY,
+            OBJECT
+        } Type;
+
+        Context(Type type) : m_Type(type), m_FieldCount(0), m_ChildrenCount(0) {}
+
+        Type         m_Type;
+        AP4_Cardinal m_FieldCount;
+        AP4_Cardinal m_ChildrenCount; // to count atoms within atoms
+     };
+
     // methods
     static AP4_String EscapeString(const char* string);
+    void              PushContext(Context::Type type);
+    void              PopContext();
+    Context&          LastContext() { return m_Contexts[m_Contexts.ItemCount() - 1]; }
+    void              OnFieldAdded();
+    void              PrintFieldName(const char* name);
     
     // members
-    AP4_ByteStream*         m_Stream;
-    AP4_Cardinal            m_Depth;
-    AP4_Array<AP4_Cardinal> m_Items;
+    AP4_ByteStream*    m_Stream;
+    AP4_Array<Context> m_Contexts;
+    char               m_Prefix[256];
 };
 
 /*----------------------------------------------------------------------
@@ -427,6 +483,7 @@ const AP4_Atom::Type AP4_ATOM_TYPE_DVH1 = AP4_ATOM_TYPE('d','v','h','1');
 const AP4_Atom::Type AP4_ATOM_TYPE_VP08 = AP4_ATOM_TYPE('v','p','0','8');
 const AP4_Atom::Type AP4_ATOM_TYPE_VP09 = AP4_ATOM_TYPE('v','p','0','9');
 const AP4_Atom::Type AP4_ATOM_TYPE_VP10 = AP4_ATOM_TYPE('v','p','1','0');
+const AP4_Atom::Type AP4_ATOM_TYPE_AV01 = AP4_ATOM_TYPE('a','v','0','1');
 const AP4_Atom::Type AP4_ATOM_TYPE_ALAC = AP4_ATOM_TYPE('a','l','a','c');
 const AP4_Atom::Type AP4_ATOM_TYPE_ENCA = AP4_ATOM_TYPE('e','n','c','a');
 const AP4_Atom::Type AP4_ATOM_TYPE_ENCV = AP4_ATOM_TYPE('e','n','c','v');

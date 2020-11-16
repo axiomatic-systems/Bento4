@@ -138,13 +138,14 @@ AP4_SbgpAtom::InspectFields(AP4_AtomInspector& inspector)
     inspector.AddField("entry_count", m_Entries.ItemCount());
 
     if (inspector.GetVerbosity() >= 2) {
-        char header[32];
-        char value[128];
+        inspector.StartArray("entries", m_Entries.ItemCount());
         for (AP4_Ordinal i=0; i<m_Entries.ItemCount(); i++) {
-            AP4_FormatString(header, sizeof(header), "entry %02d", i);
-            AP4_FormatString(value, sizeof(value), "c:%u,g:%u", m_Entries[i].sample_count, m_Entries[i].group_description_index);
-            inspector.AddField(header, value);
+            inspector.StartObject(NULL, 2, true);
+            inspector.AddField("sample_count",            m_Entries[i].sample_count);
+            inspector.AddField("group_description_index", m_Entries[i].group_description_index);
+            inspector.EndObject();
         }
+        inspector.EndArray();
     }
 
     return AP4_SUCCESS;

@@ -230,80 +230,34 @@ AP4_TrunAtom::InspectFields(AP4_AtomInspector& inspector)
     if (m_Flags & AP4_TRUN_FLAG_FIRST_SAMPLE_FLAGS_PRESENT) {
         inspector.AddField("first sample flags", m_FirstSampleFlags, AP4_AtomInspector::HINT_HEX);
     }
-    if (inspector.GetVerbosity() == 1) {
+    if (inspector.GetVerbosity() > 0) {
+        inspector.StartArray("entries");
+
         AP4_UI32 sample_count = m_Entries.ItemCount();
-        for (unsigned int i=0; i<sample_count; i++) {
-            char header[32];
-            AP4_FormatString(header, sizeof(header), "%04d", i);
-            char v0[32];
-            char v1[32];
-            char v2[32];
-            char v3[64];
-            const char* s0 = "";
-            const char* s1 = "";
-            const char* s2 = "";
-            const char* s3 = "";
-            const char* sep = "";
+        for (unsigned int i = 0; i < sample_count; i++) {
+            inspector.StartObject(NULL, 0, true);
+
             if (m_Flags & AP4_TRUN_FLAG_SAMPLE_DURATION_PRESENT) {
-                AP4_FormatString(v0, sizeof(v0), "d:%u", m_Entries[i].sample_duration);
-                s0 = v0;
-                sep = ",";
+                inspector.AddField(inspector.GetVerbosity() >= 2 ? "sample_duration" : "d",
+                                   m_Entries[i].sample_duration);
             }
             if (m_Flags & AP4_TRUN_FLAG_SAMPLE_SIZE_PRESENT) {
-                AP4_FormatString(v1, sizeof(v1), "%ss:%u", sep, m_Entries[i].sample_size);
-                s1 = v1;
-                sep = ",";
+                inspector.AddField(inspector.GetVerbosity() >= 2 ? "sample_size" : "s",
+                                   m_Entries[i].sample_size);
             }
             if (m_Flags & AP4_TRUN_FLAG_SAMPLE_FLAGS_PRESENT) {
-                AP4_FormatString(v2, sizeof(v2), "%sf:%x", sep, m_Entries[i].sample_flags);
-                s2 = v2;
-                sep = ",";
+                inspector.AddField(inspector.GetVerbosity() >= 2 ? "sample_flags" : "f",
+                                   m_Entries[i].sample_flags);
             }
             if (m_Flags & AP4_TRUN_FLAG_SAMPLE_COMPOSITION_TIME_OFFSET_PRESENT) {
-                AP4_FormatString(v3, sizeof(v3), "%sc:%u", sep, m_Entries[i].sample_composition_time_offset);
-                s3 = v3;
+                inspector.AddField(inspector.GetVerbosity() >= 2 ? "sample_composition_time_offset" : "c",
+                                   m_Entries[i].sample_composition_time_offset);
             }
-            char value[256];
-            AP4_FormatString(value, sizeof(value), "%s%s%s%s", s0, s1, s2, s3);
-            inspector.AddField(header, value);
+
+            inspector.EndObject();
         }
-    } else if (inspector.GetVerbosity() >= 2) {
-        AP4_UI32 sample_count = m_Entries.ItemCount();
-        for (unsigned int i=0; i<sample_count; i++) {
-            char header[32];
-            AP4_FormatString(header, sizeof(header), "entry %04d", i);
-            char v0[32];
-            char v1[32];
-            char v2[32];
-            char v3[64];
-            const char* s0 = "";
-            const char* s1 = "";
-            const char* s2 = "";
-            const char* s3 = "";
-            const char* sep = "";
-            if (m_Flags & AP4_TRUN_FLAG_SAMPLE_DURATION_PRESENT) {
-                AP4_FormatString(v0, sizeof(v0), "sample_duration:%u", m_Entries[i].sample_duration);
-                s0 = v0;
-                sep = ", ";
-            }
-            if (m_Flags & AP4_TRUN_FLAG_SAMPLE_SIZE_PRESENT) {
-                AP4_FormatString(v1, sizeof(v1), "%ssample_size:%u", sep, m_Entries[i].sample_size);
-                s1 = v1;
-                sep = ", ";
-            }
-            if (m_Flags & AP4_TRUN_FLAG_SAMPLE_FLAGS_PRESENT) {
-                AP4_FormatString(v2, sizeof(v2), "%ssample_flags:%x", sep, m_Entries[i].sample_flags);
-                s2 = v2;
-                sep = ", ";
-            }
-            if (m_Flags & AP4_TRUN_FLAG_SAMPLE_COMPOSITION_TIME_OFFSET_PRESENT) {
-                AP4_FormatString(v3, sizeof(v3), "%ssample_composition_time_offset:%u", sep, m_Entries[i].sample_composition_time_offset);
-                s3 = v3;
-            }
-            char value[256];
-            AP4_FormatString(value, sizeof(value), "%s%s%s%s", s0, s1, s2, s3);
-            inspector.AddField(header, value);
-        }
+
+        inspector.EndArray();
     }
     
     return AP4_SUCCESS;

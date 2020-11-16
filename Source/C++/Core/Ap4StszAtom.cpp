@@ -212,14 +212,14 @@ AP4_Result
 AP4_StszAtom::InspectFields(AP4_AtomInspector& inspector)
 {
     inspector.AddField("sample_size", m_SampleSize);
-    inspector.AddField("sample_count", m_Entries.ItemCount());
+    inspector.AddField("sample_count", m_SampleCount);
 
     if (inspector.GetVerbosity() >= 2) {
-        char header[32];
+        inspector.StartArray("entries", m_Entries.ItemCount());
         for (AP4_Ordinal i=0; i<m_Entries.ItemCount(); i++) {
-            AP4_FormatString(header, sizeof(header), "entry %8d", i);
-            inspector.AddField(header, m_Entries[i]);
+            inspector.AddField(NULL, m_Entries[i]);
         }
+        inspector.EndArray();
     }
 
     return AP4_SUCCESS;

@@ -955,6 +955,8 @@ AP4_MpegAudioSampleDescription::GetMpeg4AudioObjectTypeString(Mpeg4AudioObjectTy
         case AP4_MPEG4_AUDIO_OBJECT_TYPE_ER_AAC_ELD:              return "Error Resilient AAC ELD";
         case AP4_MPEG4_AUDIO_OBJECT_TYPE_SMR_SIMPLE:              return "SMR Simple";
         case AP4_MPEG4_AUDIO_OBJECT_TYPE_SMR_MAIN:                return "SMR Main";
+        case AP4_MPEG4_AUDIO_OBJECT_TYPE_USAC:                    return "USAC";
+        case AP4_MPEG4_AUDIO_OBJECT_TYPE_SAOC:                    return "SAOC";
         default:                                                  return "UNKNOWN";
     }
 }

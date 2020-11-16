@@ -683,7 +683,9 @@ def ComputeHlsFairplayKeyLine(options):
 def OutputHlsCommon(options, track, all_tracks, media_subdir, playlist_name, media_file_name):
     hls_target_duration = math.ceil(max(track.segment_durations))
 
-    playlist_file = open(path.join(options.output_dir, media_subdir, playlist_name), 'w', newline='\r\n')
+    output_dir = path.join(options.output_dir, media_subdir)
+    os.makedirs(output_dir, exist_ok = True)
+    playlist_file = open(path.join(output_dir, playlist_name), 'w', newline='\r\n')
     playlist_file.write('#EXTM3U\n')
     playlist_file.write('# Created with Bento4 mp4-dash.py, VERSION=' + VERSION + '-' + SDK_REVISION+'\n')
     playlist_file.write('#\n')
@@ -739,7 +741,9 @@ def OutputHlsTrack(options, track, all_tracks, media_subdir, media_playlist_name
 #############################################
 def OutputHlsWebvttPlaylist(options, media_subdir, media_playlist_name, media_file_name, total_duration):
     # output a playlist with a single segment that covers the entire WebVTT file
-    playlist_file = open(path.join(options.output_dir, media_subdir, media_playlist_name), 'w', newline='\r\n')
+    output_dir = path.join(options.output_dir, media_subdir)
+    os.makedirs(output_dir, exist_ok = True)
+    playlist_file = open(path.join(output_dir, media_playlist_name), 'w', newline='\r\n')
     playlist_file.write('#EXTM3U\n')
     playlist_file.write('# Created with Bento4 mp4-dash.py, VERSION=' + VERSION + '-' + SDK_REVISION+'\n')
     playlist_file.write('#\n')
@@ -762,6 +766,7 @@ def OutputHlsIframeIndex(options, track, all_tracks, media_subdir, iframes_playl
     iframe_total_segment_duration = 0
     iframe_bitrate = 0
     iframe_max_bitrate = 0
+    iframe_average_segment_bitrate = 0
 
     if not options.split:
         # get the I-frame index for a single file
@@ -814,7 +819,8 @@ def OutputHlsIframeIndex(options, track, all_tracks, media_subdir, iframes_playl
 
     index_playlist_file.write('#EXT-X-ENDLIST\n')
 
-    iframe_average_segment_bitrate = 8.0*(iframe_total_segment_size/iframe_total_segment_duration)
+    if iframe_total_segment_duration:
+        iframe_average_segment_bitrate = 8.0*(iframe_total_segment_size/iframe_total_segment_duration)
 
     return (iframe_average_segment_bitrate, iframe_max_bitrate)
 

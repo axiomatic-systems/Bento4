@@ -680,6 +680,8 @@ const AP4_UI08 AP4_MPEG4_AUDIO_OBJECT_TYPE_SLS_NON_CORE          = 38; /**< SLS 
 const AP4_UI08 AP4_MPEG4_AUDIO_OBJECT_TYPE_ER_AAC_ELD            = 39; /**< Error Resilient AAC ELD                      */
 const AP4_UI08 AP4_MPEG4_AUDIO_OBJECT_TYPE_SMR_SIMPLE            = 40; /**< SMR Simple                                   */
 const AP4_UI08 AP4_MPEG4_AUDIO_OBJECT_TYPE_SMR_MAIN              = 41; /**< SMR Main                                     */
+const AP4_UI08 AP4_MPEG4_AUDIO_OBJECT_TYPE_USAC                  = 42; /**< USAC                                     */
+const AP4_UI08 AP4_MPEG4_AUDIO_OBJECT_TYPE_SAOC                  = 43; /**< SAOC                                     */
 
 #endif // _AP4_SAMPLE_DESCRIPTION_H_
 
