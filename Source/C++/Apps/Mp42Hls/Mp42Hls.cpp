@@ -979,8 +979,10 @@ ReadSample(SampleReader&   reader,
     AP4_Result result = reader.ReadSample(sample, sample_data);
     if (AP4_FAILED(result)) {
         if (result == AP4_ERROR_EOS) {
+	    duration = sample.GetDuration()/(double)track.GetMediaTimeScale();
             ts += duration;
             eos = true;
+	    rerurn AP4_SUCCESS;
         } else {
             return result;
         }
