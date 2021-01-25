@@ -982,7 +982,7 @@ ReadSample(SampleReader&   reader,
 	    duration = sample.GetDuration()/(double)track.GetMediaTimeScale();
             ts += duration;
             eos = true;
-	    rerurn AP4_SUCCESS;
+	    return AP4_SUCCESS;
         } else {
             return result;
         }
