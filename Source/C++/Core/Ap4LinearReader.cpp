@@ -237,13 +237,11 @@ AP4_LinearReader::SeekTo(AP4_UI32 time_ms, AP4_UI32* actual_time_ms)
             }
 
             // update our position
-            if (best_entry >= 0) {
-                if (actual_time_ms) {
-                    // report the actual time we found (in milliseconds)
-                    *actual_time_ms = (AP4_UI32)AP4_ConvertTime(entries[best_entry].m_Time, m_Trackers[t]->m_Track->GetMediaTimeScale(), 1000);
-                }
-                m_NextFragmentPosition = entries[best_entry].m_MoofOffset;
+            if (actual_time_ms) {
+                // report the actual time we found (in milliseconds)
+                *actual_time_ms = (AP4_UI32)AP4_ConvertTime(entries[best_entry].m_Time, m_Trackers[t]->m_Track->GetMediaTimeScale(), 1000);
             }
+            m_NextFragmentPosition = entries[best_entry].m_MoofOffset;
         }
     }
     
