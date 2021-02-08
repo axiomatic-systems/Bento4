@@ -7,7 +7,7 @@
 ##########################################################################
 all: libAP4.a
 
-CORE_SOURCES = 								\
+CORE_SOURCES =                              \
     Ap4Results.cpp                          \
     Ap4Atom.cpp                             \
     Ap4AtomFactory.cpp                      \
@@ -69,7 +69,7 @@ CORE_SOURCES = 								\
     Ap4StsdAtom.cpp                         \
     Ap4StssAtom.cpp                         \
     Ap4StszAtom.cpp                         \
-    Ap4Stz2Atom.cpp							\
+    Ap4Stz2Atom.cpp                         \
     Ap4SttsAtom.cpp                         \
     Ap4SyntheticSampleTable.cpp             \
     Ap4TimsAtom.cpp                         \
@@ -96,26 +96,27 @@ CORE_SOURCES = 								\
     Ap48bdlAtom.cpp                         \
     Ap4MehdAtom.cpp                         \
     Ap4TrexAtom.cpp                         \
-    Ap4LinearReader.cpp			            \
+    Ap4LinearReader.cpp                     \
     Ap4Mpeg2Ts.cpp                          \
     Ap4Hmac.cpp                             \
-    Ap4KeyWrap.cpp 							\
+    Ap4KeyWrap.cpp                          \
     Ap4MovieFragment.cpp                    \
     Ap4FragmentSampleTable.cpp              \
     Ap4Piff.cpp                             \
     Ap4TfraAtom.cpp                         \
-    Ap4MfroAtom.cpp							\
-    Ap4TfdtAtom.cpp							\
-    Ap4CommonEncryption.cpp					\
-    Ap4SaioAtom.cpp							\
-    Ap4SaizAtom.cpp							\
-    Ap4SencAtom.cpp							\
-    Ap4TencAtom.cpp							\
+    Ap4MfroAtom.cpp                         \
+    Ap4TfdtAtom.cpp                         \
+    Ap4CommonEncryption.cpp                 \
+    Ap4SaioAtom.cpp                         \
+    Ap4SaizAtom.cpp                         \
+    Ap4SencAtom.cpp                         \
+    Ap4TencAtom.cpp                         \
     Ap4TfdtAtom.cpp                         \
     Ap4PdinAtom.cpp                         \
+    Ap4Ac4Utils.cpp                         \
     Ap4AinfAtom.cpp                         \
     Ap4BlocAtom.cpp                         \
-    Ap4PsshAtom.cpp			                \
+    Ap4PsshAtom.cpp                         \
     Ap4Dec3Atom.cpp                         \
     Ap4Dac4Atom.cpp                         \
     Ap4Dac3Atom.cpp                         \
@@ -125,7 +126,10 @@ CORE_SOURCES = 								\
     Ap4SgpdAtom.cpp                         \
     Ap4SbgpAtom.cpp                         \
     Ap4NalParser.cpp                        \
+    Ap4Ac4Parser.cpp                        \
     Ap4AvcParser.cpp                        \
+    Ap4Ac3Parser.cpp                        \
+    Ap4Eac3Parser.cpp                       \
     Ap4HevcParser.cpp                       \
     Ap4SegmentBuilder.cpp                   \
 

@@ -27,7 +27,11 @@ from mp4utils import Base64Encode,\
                      LanguageNames,\
                      LanguageCodeMap,\
                      PrintErrorAndExit,\
-                     MakeNewDir
+                     MakeNewDir,\
+                     ContainDolbyVision,\
+                     ContainAtmosAndAC4,\
+                     PrintBlankLine,\
+                     GetDolbyDigitalPlusChannels
 
 # setup main options
 VERSION = "1.2.0"
@@ -57,6 +61,8 @@ def ComputeCodecName(codec_family):
         name = 'ac3'
     elif codec_family == 'ec-3':
         name = 'ec3'
+    elif codec_family == 'ac-4':
+        name = 'ac4'
     return name
 
 #############################################
@@ -152,6 +158,9 @@ def AnalyzeSources(options, media_sources):
                 media_source.has_video = True
             if track.type == 'audio':
                 media_source.has_audio = True
+            # 'ac-3' and 'ec-3' channels
+            if track.codec_family == 'ac-3' or track.codec_family == 'ec-3':
+                (track.channels, _channels) = GetDolbyDigitalPlusChannels(track)
 
         media_source.tracks = tracks
 
@@ -175,7 +184,15 @@ def SelectAudioTracks(options, media_sources):
 
         # process audio tracks
         for track in [t for t in media_source.tracks if t.type == 'audio']:
-            group_id = track.group_id
+            if track.codec_family == 'ec-3' and track.dolby_ddp_atmos == 'Yes':
+                complexity_idx = str(track.info['sample_descriptions'][0]['dolby_digital_info']['Dolby Atmos Complexity Index'])
+                group_id = track.group_id + '_' + complexity_idx  + '_JOC'
+                track.channels = complexity_idx + '/JOC'
+            elif track.codec_family == 'ac-4' and (track.dolby_ac4_ims == 'Yes' or track.dolby_ac4_cbi == 'Yes'):
+                group_id = track.group_id + '_' + str(track.channels) + '_IMS'
+                track.channels = str(track.channels) + '/IMS'
+            else:
+                group_id = track.group_id + '_' + str(track.channels) + 'ch'
             group = audio_tracks.get(group_id, [])
             audio_tracks[group_id] = group
             if len([x for x in group if x.language == track.language]):
@@ -345,6 +362,8 @@ def OutputHls(options, media_sources):
             }
             if options.audio_format == 'packed':
                 audio_track.media_info['file_extension'] = ComputeCodecName(audio_track.codec_family)
+            elif ContainAtmosAndAC4(audio_tracks.values()):
+                PrintErrorAndExit('ERROR: For DD+/Atmos and AC-4, the format of segment audio must be packed audio, please add "--audio-format packed"')
 
             # process the source
             out_dir = path.join(options.output_dir, 'audio', group_id, audio_track.language)
@@ -355,7 +374,8 @@ def OutputHls(options, media_sources):
     master_playlist = open(path.join(options.output_dir, options.master_playlist_name), 'w', newline='\r\n')
     master_playlist.write('#EXTM3U\n')
     master_playlist.write('# Created with Bento4 mp4-hls.py version '+VERSION+'r'+SDK_REVISION+'\n')
-
+    if ContainDolbyVision(main_media):
+        PrintErrorAndExit('ERROR: For Dolby Vision, the format of segment video must be fragemnted MP4, please use mp4-dash.py')
     if options.hls_version >= 4:
         master_playlist.write('\n')
         master_playlist.write('#EXT-X-VERSION:'+str(options.hls_version)+'\n')
@@ -409,10 +429,11 @@ def OutputHls(options, media_sources):
                 if default:
                     extra_info += 'DEFAULT=YES,'
                     default = False
-                master_playlist.write(('#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="%s",NAME="%s",LANGUAGE="%s",%sURI="%s"\n' % (
+                master_playlist.write(('#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="%s",NAME="%s",LANGUAGE="%s",CHANNELS="%s",%sURI="%s"\n' % (
                                       group_name,
                                       audio_track.media_info['language_name'],
                                       audio_track.media_info['language'],
+                                      str(audio_track.channels),
                                       extra_info,
                                       options.base_url+audio_track.media_info['dir']+'/'+options.media_playlist_name)))
             audio_groups.append({
@@ -421,6 +442,8 @@ def OutputHls(options, media_sources):
                 'avg_segment_bitrate': group_avg_segment_bitrate,
                 'max_segment_bitrate': group_max_segment_bitrate
             })
+            if PrintBlankLine(audio_tracks.values()):
+                master_playlist.write('\n')
 
         if options.debug:
             print('Audio Groups:')
@@ -470,6 +493,7 @@ def OutputHls(options, media_sources):
 
             master_playlist.write(ext_x_stream_inf+'\n')
             master_playlist.write(options.base_url+media['dir']+'/'+options.media_playlist_name+'\n')
+        master_playlist.write('\n')
 
     # write the I-FRAME playlist info
     if not audio_only and options.hls_version >= 4:

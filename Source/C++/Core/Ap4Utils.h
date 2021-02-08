@@ -67,6 +67,7 @@ double   AP4_BytesToDoubleBE(const unsigned char* bytes);
 AP4_UI64 AP4_BytesToUInt64BE(const unsigned char* bytes);
 void AP4_BytesFromDoubleBE(unsigned char* bytes, double value);
 void AP4_BytesFromUInt64BE(unsigned char* bytes, AP4_UI64 value);
+void AP4_ByteSwap(unsigned char* bytes, AP4_UI32 length);
 
 /*----------------------------------------------------------------------
 |   AP4_BytesToUInt32BE

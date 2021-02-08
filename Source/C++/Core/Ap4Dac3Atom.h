@@ -60,6 +60,10 @@ public:
     // class methods
     static AP4_Dac3Atom* Create(AP4_Size size, AP4_ByteStream& stream);
 
+    // constructors
+    AP4_Dac3Atom(const AP4_Dac3Atom& other);
+    AP4_Dac3Atom(const StreamInfo* StreamInfo);  // DSI vaiable initialize m_RawBytes (SpecificBoxInfo -> m_RawBytes)
+
     // methods
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
@@ -72,7 +76,7 @@ public:
 
 private:
     // methods
-    AP4_Dac3Atom(AP4_UI32 size, const AP4_UI08* payload);
+    AP4_Dac3Atom(AP4_UI32 size, const AP4_UI08* payload);  // box data initialize m_Dsi (m_RawBytes -> SpecificBoxInfo)
     
     // members
     unsigned int   m_DataRate;

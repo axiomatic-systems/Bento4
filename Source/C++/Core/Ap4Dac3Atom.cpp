@@ -59,6 +59,35 @@ AP4_Dac3Atom::Create(AP4_Size size, AP4_ByteStream& stream)
 /*----------------------------------------------------------------------
 |   AP4_Dac3Atom::AP4_Dac3Atom
 +---------------------------------------------------------------------*/
+AP4_Dac3Atom::AP4_Dac3Atom(const AP4_Dac3Atom& other):
+    AP4_Atom(AP4_ATOM_TYPE_DAC3, other.m_Size32),
+    m_DataRate(other.m_DataRate),
+    m_RawBytes(other.m_RawBytes),
+    m_StreamInfo(other.m_StreamInfo){
+}
+
+/*----------------------------------------------------------------------
+|   AP4_Dac3Atom::AP4_Dac3Atom
++---------------------------------------------------------------------*/
+AP4_Dac3Atom::AP4_Dac3Atom(const StreamInfo* m_StreamInfo):
+    AP4_Atom(AP4_ATOM_TYPE_DAC3, AP4_ATOM_HEADER_SIZE){
+    AP4_BitWriter bits(3);
+    
+    bits.Write(m_StreamInfo->fscod, 2);
+    bits.Write(m_StreamInfo->bsid, 5);
+    bits.Write(m_StreamInfo->bsmod, 3);
+    bits.Write(m_StreamInfo->acmod, 3);
+    bits.Write(m_StreamInfo->lfeon, 1);
+    bits.Write(m_StreamInfo->bit_rate_code, 5);
+    bits.Write(0, 5);  // reserved 
+    
+    m_RawBytes.SetData(bits.GetData(), bits.GetBitCount() / 8);
+    m_Size32 += m_RawBytes.GetDataSize();
+}
+
+/*----------------------------------------------------------------------
+|   AP4_Dac3Atom::AP4_Dac3Atom
++---------------------------------------------------------------------*/
 AP4_Dac3Atom::AP4_Dac3Atom(AP4_UI32 size, const AP4_UI08* payload) :
     AP4_Atom(AP4_ATOM_TYPE_DAC3, size),
     m_DataRate(0)
