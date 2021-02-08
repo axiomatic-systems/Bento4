@@ -70,6 +70,98 @@ static int fopen_s(FILE**      file,
 }
 #endif // defined(AP4_CONFIG_HAVE_FOPEN_S
 
+#if defined(_WIN32)
+
+#include <windows.h>
+#include <malloc.h>
+#include <limits.h>
+#include <assert.h>
+
+#define AP4_WIN32_USE_CHAR_CONVERSION \
+    int     _convert = 0;             \
+    LPCWSTR _lpw     = NULL;          \
+    LPCSTR  _lpa     = NULL
+
+/*----------------------------------------------------------------------
+|   A2WHelper
++---------------------------------------------------------------------*/
+static LPWSTR
+A2WHelper(LPWSTR lpw, LPCSTR lpa, int nChars, UINT acp)
+{
+    int ret;
+
+    assert(lpa != NULL);
+    assert(lpw != NULL);
+    if (lpw == NULL || lpa == NULL) return NULL;
+
+    lpw[0] = '\0';
+    ret    = MultiByteToWideChar(acp, 0, lpa, -1, lpw, nChars);
+    if (ret == 0) {
+        assert(0);
+        return NULL;
+    }
+    return lpw;
+}
+
+/*----------------------------------------------------------------------
+|   W2AHelper
++---------------------------------------------------------------------*/
+static LPSTR
+W2AHelper(LPSTR lpa, LPCWSTR lpw, int nChars, UINT acp)
+{
+    int ret;
+
+    assert(lpw != NULL);
+    assert(lpa != NULL);
+    if (lpa == NULL || lpw == NULL) return NULL;
+
+    lpa[0] = '\0';
+    ret    = WideCharToMultiByte(acp, 0, lpw, -1, lpa, nChars, NULL, NULL);
+    if (ret == 0) {
+        int error = GetLastError();
+        assert(error);
+        return NULL;
+    }
+    return lpa;
+}
+
+/*----------------------------------------------------------------------
+|   conversion macros
++---------------------------------------------------------------------*/
+#define AP4_WIN32_A2W(lpa)                                                            \
+    (((_lpa = lpa) == NULL) ?                                                         \
+    NULL :                                                                            \
+    (_convert = (int)(strlen(_lpa) + 1),                                              \
+        (INT_MAX / 2 < _convert) ?                                                    \
+        NULL :                                                                        \
+        A2WHelper((LPWSTR)alloca(_convert * sizeof(WCHAR)), _lpa, _convert, CP_UTF8)))
+
+/* +2 instead of +1 temporary fix for Chinese characters */
+#define AP4_WIN32_W2A(lpw)                                                                           \
+    (((_lpw = lpw) == NULL) ?                                                                        \
+    NULL :                                                                                           \
+    ((_convert = (lstrlenW(_lpw) + 2),                                                               \
+       (_convert > INT_MAX / 2) ?                                                                    \
+       NULL :                                                                                        \
+       W2AHelper((LPSTR)alloca(_convert * sizeof(WCHAR)), _lpw, _convert * sizeof(WCHAR), CP_UTF8))))
+
+/*----------------------------------------------------------------------
+|   AP4_fopen_s_utf8
++---------------------------------------------------------------------*/
+static errno_t
+AP4_fopen_s_utf8(FILE** file, const char* path, const char* mode)
+{
+    AP4_WIN32_USE_CHAR_CONVERSION;
+    return _wfopen_s(file, AP4_WIN32_A2W(path), AP4_WIN32_A2W(mode));
+}
+
+/*----------------------------------------------------------------------
+|   remap some functions
++---------------------------------------------------------------------*/
+#define fopen_s AP4_fopen_s_utf8
+
+#endif /* _WIN32 */
+
 /*----------------------------------------------------------------------
 |   AP4_StdcFileByteStream
 +---------------------------------------------------------------------*/
