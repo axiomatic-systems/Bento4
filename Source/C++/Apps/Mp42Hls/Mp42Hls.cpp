@@ -979,8 +979,10 @@ ReadSample(SampleReader&   reader,
     AP4_Result result = reader.ReadSample(sample, sample_data);
     if (AP4_FAILED(result)) {
         if (result == AP4_ERROR_EOS) {
+            // advance the timestamp by the last sample's duration
             ts += duration;
             eos = true;
+            return AP4_SUCCESS;
         } else {
             return result;
         }
