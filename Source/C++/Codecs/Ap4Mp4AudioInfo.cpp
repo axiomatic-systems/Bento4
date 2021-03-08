@@ -307,6 +307,7 @@ AP4_Mp4AudioDecoderConfig::Parse(const unsigned char* data,
         case AP4_MPEG4_AUDIO_OBJECT_TYPE_ER_AAC_LD:
         case AP4_MPEG4_AUDIO_OBJECT_TYPE_ER_TWINVQ:
         case AP4_MPEG4_AUDIO_OBJECT_TYPE_ER_BSAC:
+        case AP4_MPEG4_AUDIO_OBJECT_TYPE_USAC:
             result = ParseGASpecificInfo(bits);
             if (result == AP4_SUCCESS) {
                 if (m_Extension.m_ObjectType !=  AP4_MPEG4_AUDIO_OBJECT_TYPE_SBR &&
