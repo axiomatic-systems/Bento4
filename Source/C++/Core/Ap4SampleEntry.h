@@ -384,6 +384,29 @@ public:
 };
 
 /*----------------------------------------------------------------------
+|   AP4_Av1SampleEntry
++---------------------------------------------------------------------*/
+class AP4_Av1SampleEntry : public AP4_VisualSampleEntry
+{
+public:
+    // constructors
+    AP4_Av1SampleEntry(AP4_UI32         format, // av01
+                       AP4_Size         size,
+                       AP4_ByteStream&  stream,
+                       AP4_AtomFactory& atom_factory);
+    
+    AP4_Av1SampleEntry(AP4_UI32              format, // av01
+                       AP4_UI16              width,
+                       AP4_UI16              height,
+                       AP4_UI16              depth,
+                       const char*           compressor_name,
+                       const AP4_AtomParent* details);
+
+    // inherited from AP4_SampleEntry
+    virtual AP4_SampleDescription* ToSampleDescription();
+};
+
+/*----------------------------------------------------------------------
 |   AP4_RtpHintSampleEntry
 +---------------------------------------------------------------------*/
 class AP4_RtpHintSampleEntry : public AP4_SampleEntry

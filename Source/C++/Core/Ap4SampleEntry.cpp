@@ -996,7 +996,22 @@ AP4_AvcSampleEntry::AP4_AvcSampleEntry(AP4_UI32         format,
 }
 
 /*----------------------------------------------------------------------
-|   AP4_HevcSampleEntry::AP4_HevcSSampleEntry
+|   AP4_AvcSampleEntry::ToSampleDescription
++---------------------------------------------------------------------*/
+AP4_SampleDescription*
+AP4_AvcSampleEntry::ToSampleDescription()
+{
+    return new AP4_AvcSampleDescription(
+        m_Type,
+        m_Width,
+        m_Height,
+        m_Depth,
+        m_CompressorName.GetChars(),
+        this);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_HevcSampleEntry::AP4_HevcSampleEntry
 +---------------------------------------------------------------------*/
 AP4_HevcSampleEntry::AP4_HevcSampleEntry(AP4_UI32            format,
                                          AP4_UI16            width,
@@ -1011,21 +1026,6 @@ AP4_HevcSampleEntry::AP4_HevcSampleEntry(AP4_UI32            format,
                           compressor_name,
                           details)
 {
-}
-
-/*----------------------------------------------------------------------
-|   AP4_AvcSampleEntry::ToSampleDescription
-+---------------------------------------------------------------------*/
-AP4_SampleDescription*
-AP4_AvcSampleEntry::ToSampleDescription()
-{
-    return new AP4_AvcSampleDescription(
-        m_Type,
-        m_Width,
-        m_Height,
-        m_Depth,
-        m_CompressorName.GetChars(),
-        this);
 }
 
 /*----------------------------------------------------------------------
@@ -1046,6 +1046,50 @@ AP4_SampleDescription*
 AP4_HevcSampleEntry::ToSampleDescription()
 {
     return new AP4_HevcSampleDescription(
+        m_Type,
+        m_Width,
+        m_Height,
+        m_Depth,
+        m_CompressorName.GetChars(),
+        this);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_Av1SampleEntry::AP4_Av1SampleEntry
++---------------------------------------------------------------------*/
+AP4_Av1SampleEntry::AP4_Av1SampleEntry(AP4_UI32            format,
+                                       AP4_UI16            width,
+                                       AP4_UI16            height,
+                                       AP4_UI16            depth,
+                                       const char*         compressor_name,
+                                       const AP4_AtomParent* details) :
+    AP4_VisualSampleEntry(format,
+                          width,
+                          height,
+                          depth,
+                          compressor_name,
+                          details)
+{
+}
+
+/*----------------------------------------------------------------------
+|   AP4_Av1SampleEntry::AP4_Av1SampleEntry
++---------------------------------------------------------------------*/
+AP4_Av1SampleEntry::AP4_Av1SampleEntry(AP4_UI32         format,
+                                       AP4_Size         size,
+                                       AP4_ByteStream&  stream,
+                                       AP4_AtomFactory& atom_factory) :
+    AP4_VisualSampleEntry(format, size, stream, atom_factory)
+{
+}
+
+/*----------------------------------------------------------------------
+|   AP4_Av1SampleEntry::ToSampleDescription
++---------------------------------------------------------------------*/
+AP4_SampleDescription*
+AP4_Av1SampleEntry::ToSampleDescription()
+{
+    return new AP4_Av1SampleDescription(
         m_Type,
         m_Width,
         m_Height,

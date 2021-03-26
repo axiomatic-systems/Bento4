@@ -547,6 +547,7 @@ const AP4_Atom::Type AP4_ATOM_TYPE_DVCC = AP4_ATOM_TYPE('d','v','c','C');
 const AP4_Atom::Type AP4_ATOM_TYPE_VPCC = AP4_ATOM_TYPE('v','p','c','C');
 const AP4_Atom::Type AP4_ATOM_TYPE_HVCE = AP4_ATOM_TYPE('h','v','c','E');
 const AP4_Atom::Type AP4_ATOM_TYPE_AVCE = AP4_ATOM_TYPE('a','v','c','E');
+const AP4_Atom::Type AP4_ATOM_TYPE_AV1C = AP4_ATOM_TYPE('a','v','1','C');
 const AP4_Atom::Type AP4_ATOM_TYPE_WAVE = AP4_ATOM_TYPE('w','a','v','e');
 const AP4_Atom::Type AP4_ATOM_TYPE_WIDE = AP4_ATOM_TYPE('w','i','d','e');
 const AP4_Atom::Type AP4_ATOM_TYPE_UUID = AP4_ATOM_TYPE('u','u','i','d');

@@ -292,6 +292,7 @@
 #include "Ap4HvccAtom.h"
 #include "Ap4DvccAtom.h"
 #include "Ap4VpccAtom.h"
+#include "Ap4Av1cAtom.h"
 #include "Ap4Marlin.h"
 #include "Ap4GrpiAtom.h"
 #include "Ap48bdlAtom.h"

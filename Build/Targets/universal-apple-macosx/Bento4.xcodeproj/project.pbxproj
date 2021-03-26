@@ -364,6 +364,8 @@
 		CAA7E6E514ACD868008AA54E /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAA7E6C914ACD763008AA54E /* libBento4.a */; };
 		CAA88EBB10A2069900178BE3 /* Ap4NeptuneAdapters.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAA88EB910A2069900178BE3 /* Ap4NeptuneAdapters.cpp */; };
 		CAA88EBC10A2069900178BE3 /* Ap4NeptuneAdapters.h in Headers */ = {isa = PBXBuildFile; fileRef = CAA88EBA10A2069900178BE3 /* Ap4NeptuneAdapters.h */; };
+		CAAE667525F5F6F600198E64 /* Ap4Av1cAtom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAAE667325F5F6F600198E64 /* Ap4Av1cAtom.cpp */; };
+		CAAE667625F5F6F600198E64 /* Ap4Av1cAtom.h in Headers */ = {isa = PBXBuildFile; fileRef = CAAE667425F5F6F600198E64 /* Ap4Av1cAtom.h */; };
 		CAB3CB790FCB35EC007C4260 /* BufferedStreamTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAB3CB6C0FCB35A8007C4260 /* BufferedStreamTest.cpp */; };
 		CAB82A091859CD7000FC4944 /* Ap4Dec3Atom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAB82A071859CD7000FC4944 /* Ap4Dec3Atom.cpp */; };
 		CAB82A0A1859CD7000FC4944 /* Ap4Dec3Atom.h in Headers */ = {isa = PBXBuildFile; fileRef = CAB82A081859CD7000FC4944 /* Ap4Dec3Atom.h */; };
@@ -1313,6 +1315,8 @@
 		CAA88EA910A2064500178BE3 /* libBento4Neptune.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libBento4Neptune.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		CAA88EB910A2069900178BE3 /* Ap4NeptuneAdapters.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4NeptuneAdapters.cpp; sourceTree = "<group>"; };
 		CAA88EBA10A2069900178BE3 /* Ap4NeptuneAdapters.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4NeptuneAdapters.h; sourceTree = "<group>"; };
+		CAAE667325F5F6F600198E64 /* Ap4Av1cAtom.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4Av1cAtom.cpp; sourceTree = "<group>"; };
+		CAAE667425F5F6F600198E64 /* Ap4Av1cAtom.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ap4Av1cAtom.h; sourceTree = "<group>"; };
 		CAB3CB6C0FCB35A8007C4260 /* BufferedStreamTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BufferedStreamTest.cpp; sourceTree = "<group>"; };
 		CAB3CB710FCB35B8007C4260 /* BufferedStreamTest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = BufferedStreamTest; sourceTree = BUILT_PRODUCTS_DIR; };
 		CAB82A071859CD7000FC4944 /* Ap4Dec3Atom.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ap4Dec3Atom.cpp; sourceTree = "<group>"; };
@@ -2062,6 +2066,8 @@
 				CA9366150B437D030067D50B /* Ap4AtomFactory.h */,
 				CA9366160B437D030067D50B /* Ap4AtomSampleTable.cpp */,
 				CA9366170B437D030067D50B /* Ap4AtomSampleTable.h */,
+				CAAE667325F5F6F600198E64 /* Ap4Av1cAtom.cpp */,
+				CAAE667425F5F6F600198E64 /* Ap4Av1cAtom.h */,
 				F9B1F4F90B54AD91003F147E /* Ap4AvccAtom.cpp */,
 				F9B1F4FA0B54AD91003F147E /* Ap4AvccAtom.h */,
 				CAF0104715343D5D00CCD976 /* Ap4BlocAtom.cpp */,
@@ -2579,6 +2585,7 @@
 				CA9367130B437D040067D50B /* Ap4StsdAtom.h in Headers */,
 				CA9367150B437D040067D50B /* Ap4StssAtom.h in Headers */,
 				CA9367170B437D040067D50B /* Ap4StszAtom.h in Headers */,
+				CAAE667625F5F6F600198E64 /* Ap4Av1cAtom.h in Headers */,
 				CA9367190B437D040067D50B /* Ap4SttsAtom.h in Headers */,
 				CA93671B0B437D040067D50B /* Ap4SyntheticSampleTable.h in Headers */,
 				CA93671D0B437D040067D50B /* Ap4TimsAtom.h in Headers */,
@@ -3779,6 +3786,7 @@
 				CA9366CB0B437D040067D50B /* Ap4FtypAtom.cpp in Sources */,
 				CA9366CD0B437D040067D50B /* Ap4HdlrAtom.cpp in Sources */,
 				CA9366CF0B437D040067D50B /* Ap4HintTrackReader.cpp in Sources */,
+				CAAE667525F5F6F600198E64 /* Ap4Av1cAtom.cpp in Sources */,
 				CA9366D10B437D040067D50B /* Ap4HmhdAtom.cpp in Sources */,
 				CA9366D30B437D040067D50B /* Ap4IkmsAtom.cpp in Sources */,
 				CA9366D60B437D040067D50B /* Ap4IproAtom.cpp in Sources */,
