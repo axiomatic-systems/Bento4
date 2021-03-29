@@ -125,7 +125,7 @@ AP4_VpccAtom::AP4_VpccAtom(AP4_UI08        profile,
 /*----------------------------------------------------------------------
 |   AP4_VpccAtom::GetCodecString
 +---------------------------------------------------------------------*/
-void
+AP4_Result
 AP4_VpccAtom::GetCodecString(AP4_UI32 container_type, AP4_String& codec)
 {
     char type_name[5];
@@ -144,6 +144,8 @@ AP4_VpccAtom::GetCodecString(AP4_UI32 container_type, AP4_String& codec)
                      m_MatrixCoefficients,
                      m_VideoFullRangeFlag ? 1 : 0);
     codec = string;
+    
+    return AP4_SUCCESS;
 }
 
 /*----------------------------------------------------------------------

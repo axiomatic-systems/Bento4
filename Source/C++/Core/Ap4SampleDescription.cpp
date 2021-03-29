@@ -280,6 +280,21 @@ AP4_GenericAudioSampleDescription::ToAtom() const
 }
 
 /*----------------------------------------------------------------------
+|   AP4_GenericVideoSampleDescription::GetCodecString
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_GenericVideoSampleDescription::GetCodecString(AP4_String& codec)
+{
+    // VPx override
+    AP4_VpccAtom* vpcc = AP4_DYNAMIC_CAST(AP4_VpccAtom, m_Details.GetChild(AP4_ATOM_TYPE_VPCC));
+    if (vpcc) {
+        return vpcc->GetCodecString(GetFormat(), codec);
+    }
+
+    return AP4_SampleDescription::GetCodecString(codec);
+}
+
+/*----------------------------------------------------------------------
 |   AP4_GenericVideoSampleDescription
 +---------------------------------------------------------------------*/
 AP4_Atom*
@@ -381,6 +396,12 @@ AP4_AvcSampleDescription::AP4_AvcSampleDescription(AP4_UI32        format,
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_AvcSampleDescription::GetCodecString(AP4_String& codec) {
+    // Dolby Vision override
+    AP4_DvccAtom* dvcc = AP4_DYNAMIC_CAST(AP4_DvccAtom, m_Details.GetChild(AP4_ATOM_TYPE_DVCC));
+    if (dvcc) {
+        return dvcc->GetCodecString(this, codec);
+    }
+    
     char coding[5];
     AP4_FormatFourChars(coding, GetFormat());
     char workspace[64];
@@ -408,6 +429,57 @@ AP4_AvcSampleDescription::ToAtom() const
                                   m_Depth,
                                   m_CompressorName.GetChars(),
                                   &m_Details);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_AvcDoviSampleDescription::AP4_AvcDoviSampleDescription
++---------------------------------------------------------------------*/
+AP4_AvcDoviSampleDescription::AP4_AvcDoviSampleDescription(AP4_UI32                         format,
+                                                           AP4_UI16                         width,
+                                                           AP4_UI16                         height,
+                                                           AP4_UI16                         depth,
+                                                           const char*                      compressor_name,
+                                                           AP4_UI08                         profile,
+                                                           AP4_UI08                         level,
+                                                           AP4_UI08                         profile_compatibility,
+                                                           AP4_UI08                         length_size,
+                                                           const AP4_Array<AP4_DataBuffer>& sequence_parameters,
+                                                           const AP4_Array<AP4_DataBuffer>& picture_parameters,
+                                                           AP4_UI08                         chroma_format,
+                                                           AP4_UI08                         bit_depth_luma_minus8,
+                                                           AP4_UI08                         bit_depth_chroma_minus8,
+                                                           AP4_UI08                         dv_version_major,
+                                                           AP4_UI08                         dv_version_minor,
+                                                           AP4_UI08                         dv_profile,
+                                                           AP4_UI08                         dv_level,
+                                                           bool                             rpu_present_flag,
+                                                           bool                             el_present_flag,
+                                                           bool                             bl_present_flag,
+                                                           AP4_UI08                         dv_bl_signal_compatibility_id) :
+    AP4_AvcSampleDescription(format,
+                             width,
+                             height,
+                             depth,
+                             compressor_name,
+                             profile,
+                             level,
+                             profile_compatibility,
+                             length_size,
+                             chroma_format,
+                             bit_depth_luma_minus8,
+                             bit_depth_chroma_minus8,
+                             sequence_parameters,
+                             picture_parameters)
+{
+    m_DvccAtom = new AP4_DvccAtom(dv_version_major,
+                                  dv_version_minor,
+                                  dv_profile,
+                                  dv_level,
+                                  rpu_present_flag,
+                                  el_present_flag,
+                                  bl_present_flag,
+                                  dv_bl_signal_compatibility_id);
+    m_Details.AddChild(m_DvccAtom);
 }
 
 /*----------------------------------------------------------------------
@@ -453,59 +525,6 @@ AP4_HevcSampleDescription::AP4_HevcSampleDescription(AP4_UI32        format,
         m_Details.AddChild(m_HvccAtom);
     }
 }
-
-#if defined(AP4_HEVC_DOVI_EXTENSION)
-/*----------------------------------------------------------------------
-|   AP4_AvcDoviSampleDescription::AP4_AvcDoviSampleDescription
-+---------------------------------------------------------------------*/
-AP4_AvcDoviSampleDescription::AP4_AvcDoviSampleDescription(AP4_UI32                         format,
-                                                           AP4_UI16                         width,
-                                                           AP4_UI16                         height,
-                                                           AP4_UI16                         depth,
-                                                           const char*                      compressor_name,
-                                                           AP4_UI08                         profile,
-                                                           AP4_UI08                         level,
-                                                           AP4_UI08                         profile_compatibility,
-                                                           AP4_UI08                         length_size,
-                                                           const AP4_Array<AP4_DataBuffer>& sequence_parameters,
-                                                           const AP4_Array<AP4_DataBuffer>& picture_parameters,
-                                                           AP4_UI08                         chroma_format,
-                                                           AP4_UI08                         bit_depth_luma_minus8,
-                                                           AP4_UI08                         bit_depth_chroma_minus8,
-                                                           AP4_UI08                         dv_version_major,
-                                                           AP4_UI08                         dv_version_minor,
-                                                           AP4_UI08                         dv_profile,
-                                                           AP4_UI08                         dv_level,
-                                                           bool                             rpu_present_flag,
-                                                           bool                             el_present_flag,
-                                                           bool                             bl_present_flag,
-                                                           AP4_UI08                         dv_bl_signal_compatibility_id) :  
-    AP4_AvcSampleDescription(format,
-                             width,
-                             height,
-                             depth,
-                             compressor_name,
-                             profile,
-                             level,
-                             profile_compatibility,
-                             length_size,
-                             chroma_format,
-                             bit_depth_luma_minus8,
-                             bit_depth_chroma_minus8,
-                             sequence_parameters,
-                             picture_parameters)
-{
-    m_DvccAtom = new AP4_DvccAtom(dv_version_major,
-                                  dv_version_minor,
-                                  dv_profile,
-                                  dv_level,
-                                  rpu_present_flag,
-                                  el_present_flag,
-                                  bl_present_flag,
-                                  dv_bl_signal_compatibility_id);
-    m_Details.AddChild(m_DvccAtom);
-}
-#endif
 
 /*----------------------------------------------------------------------
 |   AP4_HevcSampleDescription::AP4_HevcSampleDescription
@@ -565,85 +584,6 @@ AP4_HevcSampleDescription::AP4_HevcSampleDescription(AP4_UI32                   
     m_Details.AddChild(m_HvccAtom);
 }
 
-#if defined(AP4_HEVC_DOVI_EXTENSION)
-/*----------------------------------------------------------------------
-|   AP4_HevcDoviSampleDescription::AP4_HevcDoviSampleDescription
-+---------------------------------------------------------------------*/
-AP4_HevcDoviSampleDescription::AP4_HevcDoviSampleDescription(AP4_UI32                         format,
-                                                             AP4_UI16                         width,
-                                                             AP4_UI16                         height,
-                                                             AP4_UI16                         depth,
-                                                             const char*                      compressor_name,
-                                                             AP4_UI08                         general_profile_space,
-                                                             AP4_UI08                         general_tier_flag,
-                                                             AP4_UI08                         general_profile,
-                                                             AP4_UI32                         general_profile_compatibility_flags,
-                                                             AP4_UI64                         general_constraint_indicator_flags,
-                                                             AP4_UI08                         general_level,
-                                                             AP4_UI32                         min_spatial_segmentation,
-                                                             AP4_UI08                         parallelism_type,
-                                                             AP4_UI08                         chroma_format,
-                                                             AP4_UI08                         luma_bit_depth,
-                                                             AP4_UI08                         chroma_bit_depth,
-                                                             AP4_UI16                         average_frame_rate,
-                                                             AP4_UI08                         constant_frame_rate,
-                                                             AP4_UI08                         num_temporal_layers,
-                                                             AP4_UI08                         temporal_id_nested,
-                                                             AP4_UI08                         nalu_length_size,
-                                                             const AP4_Array<AP4_DataBuffer>& video_parameters,
-                                                             AP4_UI08                         video_parameters_completeness,
-                                                             const AP4_Array<AP4_DataBuffer>& sequence_parameters,
-                                                             AP4_UI08                         sequence_parameters_completeness,
-                                                             const AP4_Array<AP4_DataBuffer>& picture_parameters,
-                                                             AP4_UI08                         picture_parameters_completeness,
-                                                             AP4_UI08 dv_version_major,
-                                                             AP4_UI08 dv_version_minor,
-                                                             AP4_UI08 dv_profile,
-                                                             AP4_UI08 dv_level,
-                                                             bool     rpu_present_flag,
-                                                             bool     el_present_flag,
-                                                             bool     bl_present_flag,
-                                                             AP4_UI08 dv_bl_signal_compatibility_id) :  
-    AP4_HevcSampleDescription(format,
-                              width,
-                              height,
-                              depth,
-                              compressor_name,
-                              general_profile_space,
-                              general_tier_flag,
-                              general_profile,
-                              general_profile_compatibility_flags,
-                              general_constraint_indicator_flags,
-                              general_level,
-                              min_spatial_segmentation,
-                              parallelism_type,
-                              chroma_format,
-                              luma_bit_depth,
-                              chroma_bit_depth,
-                              average_frame_rate,
-                              constant_frame_rate,
-                              num_temporal_layers,
-                              temporal_id_nested,
-                              nalu_length_size,
-                              video_parameters,
-                              video_parameters_completeness,
-                              sequence_parameters,
-                              sequence_parameters_completeness,
-                              picture_parameters,
-                              picture_parameters_completeness)
-{
-    m_DvccAtom = new AP4_DvccAtom(dv_version_major,
-                                  dv_version_minor,
-                                  dv_profile,
-                                  dv_level,
-                                  rpu_present_flag,
-                                  el_present_flag,
-                                  bl_present_flag,
-                                  dv_bl_signal_compatibility_id);
-    m_Details.AddChild(m_DvccAtom);
-}
-#endif
-
 /*----------------------------------------------------------------------
 |   ReverseBits
 +---------------------------------------------------------------------*/
@@ -666,6 +606,12 @@ ReverseBits(AP4_UI32 bits)
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_HevcSampleDescription::GetCodecString(AP4_String& codec) {
+    // Dolby Vision override
+    AP4_DvccAtom* dvcc = AP4_DYNAMIC_CAST(AP4_DvccAtom, m_Details.GetChild(AP4_ATOM_TYPE_DVCC));
+    if (dvcc) {
+        return dvcc->GetCodecString(this, codec);
+    }
+
     char coding[5];
     AP4_FormatFourChars(coding, GetFormat());
     char profile_space[2] = {0,0};
@@ -704,6 +650,83 @@ AP4_HevcSampleDescription::ToAtom() const
                                    m_Depth,
                                    m_CompressorName.GetChars(),
                                    &m_Details);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_HevcDoviSampleDescription::AP4_HevcDoviSampleDescription
++---------------------------------------------------------------------*/
+AP4_HevcDoviSampleDescription::AP4_HevcDoviSampleDescription(AP4_UI32                         format,
+                                                             AP4_UI16                         width,
+                                                             AP4_UI16                         height,
+                                                             AP4_UI16                         depth,
+                                                             const char*                      compressor_name,
+                                                             AP4_UI08                         general_profile_space,
+                                                             AP4_UI08                         general_tier_flag,
+                                                             AP4_UI08                         general_profile,
+                                                             AP4_UI32                         general_profile_compatibility_flags,
+                                                             AP4_UI64                         general_constraint_indicator_flags,
+                                                             AP4_UI08                         general_level,
+                                                             AP4_UI32                         min_spatial_segmentation,
+                                                             AP4_UI08                         parallelism_type,
+                                                             AP4_UI08                         chroma_format,
+                                                             AP4_UI08                         luma_bit_depth,
+                                                             AP4_UI08                         chroma_bit_depth,
+                                                             AP4_UI16                         average_frame_rate,
+                                                             AP4_UI08                         constant_frame_rate,
+                                                             AP4_UI08                         num_temporal_layers,
+                                                             AP4_UI08                         temporal_id_nested,
+                                                             AP4_UI08                         nalu_length_size,
+                                                             const AP4_Array<AP4_DataBuffer>& video_parameters,
+                                                             AP4_UI08                         video_parameters_completeness,
+                                                             const AP4_Array<AP4_DataBuffer>& sequence_parameters,
+                                                             AP4_UI08                         sequence_parameters_completeness,
+                                                             const AP4_Array<AP4_DataBuffer>& picture_parameters,
+                                                             AP4_UI08                         picture_parameters_completeness,
+                                                             AP4_UI08                         dv_version_major,
+                                                             AP4_UI08                         dv_version_minor,
+                                                             AP4_UI08                         dv_profile,
+                                                             AP4_UI08                         dv_level,
+                                                             bool                             rpu_present_flag,
+                                                             bool                             el_present_flag,
+                                                             bool                             bl_present_flag,
+                                                             AP4_UI08                         dv_bl_signal_compatibility_id) :
+    AP4_HevcSampleDescription(format,
+                              width,
+                              height,
+                              depth,
+                              compressor_name,
+                              general_profile_space,
+                              general_tier_flag,
+                              general_profile,
+                              general_profile_compatibility_flags,
+                              general_constraint_indicator_flags,
+                              general_level,
+                              min_spatial_segmentation,
+                              parallelism_type,
+                              chroma_format,
+                              luma_bit_depth,
+                              chroma_bit_depth,
+                              average_frame_rate,
+                              constant_frame_rate,
+                              num_temporal_layers,
+                              temporal_id_nested,
+                              nalu_length_size,
+                              video_parameters,
+                              video_parameters_completeness,
+                              sequence_parameters,
+                              sequence_parameters_completeness,
+                              picture_parameters,
+                              picture_parameters_completeness)
+{
+    m_DvccAtom = new AP4_DvccAtom(dv_version_major,
+                                  dv_version_minor,
+                                  dv_profile,
+                                  dv_level,
+                                  rpu_present_flag,
+                                  el_present_flag,
+                                  bl_present_flag,
+                                  dv_bl_signal_compatibility_id);
+    m_Details.AddChild(m_DvccAtom);
 }
 
 /*----------------------------------------------------------------------
@@ -807,7 +830,7 @@ AP4_Av1SampleDescription::GetCodecString(AP4_String& codec) {
     char workspace[64];
     AP4_FormatString(workspace,
                      sizeof(workspace),
-                     "%s.%d.%d%d.%c.%d.%d%d%d.%02d.%02d.%02d.%d",
+                     "%s.%d.%02d%c.%02d.%d.%d%d%d.%02d.%02d.%02d.%d",
                      coding,
                      this->GetSeqProfile(),
                      this->GetSeqLevelIdx0() >> 4,
@@ -1071,17 +1094,17 @@ AP4_MpegAudioSampleDescription::GetMpeg4AudioObjectType() const
 /*----------------------------------------------------------------------
  |   AP4_Ac3SampleDescription::AP4_Ac3SampleDescription
  +---------------------------------------------------------------------*/
-AP4_Ac3SampleDescription::AP4_Ac3SampleDescription(AP4_UI32             sample_rate,
-                                                   AP4_UI16             sample_size,
-                                                   AP4_UI16             channel_count,
-                                                   const AP4_Dac3Atom*  dac3Atom):
+AP4_Ac3SampleDescription::AP4_Ac3SampleDescription(AP4_UI32            sample_rate,
+                                                   AP4_UI16            sample_size,
+                                                   AP4_UI16            channel_count,
+                                                   const AP4_Dac3Atom* dac3):
     AP4_SampleDescription(TYPE_AC3, AP4_SAMPLE_FORMAT_AC_3, NULL),
     AP4_AudioSampleDescription(sample_rate, sample_size, channel_count)
 {
-    if (dac3Atom) {
-        m_Dac3Atom = new AP4_Dac3Atom(*dac3Atom);
+    if (dac3) {
+        m_Dac3Atom = new AP4_Dac3Atom(*dac3);
     } else {
-        // TODO: add default construtor, m_Dac3Atom = new AP4_Dac3Atom(). It shall never happen.
+        // TODO: add default construtor, m_Dac3Atom = new AP4_Dac3Atom() / should never happen
         m_Dac3Atom = NULL;
     }
     m_Details.AddChild(m_Dac3Atom);
@@ -1102,7 +1125,7 @@ m_Dac3Atom(NULL)
     if (ac3) {
         m_Dac3Atom = ac3;
     } else {
-        // TODO: add default construtor, m_Dac3Atom = new AP4_Dac3Atom(). It shall never happen.
+        // TODO: add default construtor, m_Dac3Atom = new AP4_Dac3Atom() / should never happen
         m_Dac3Atom = NULL;
         m_Details.AddChild(m_Dac3Atom);
     }
@@ -1112,15 +1135,15 @@ m_Dac3Atom(NULL)
  |   AP4_Ac3SampleDescription::AP4_Ac3SampleDescription
  +---------------------------------------------------------------------*/
 
-AP4_Ac3SampleDescription::AP4_Ac3SampleDescription(AP4_UI32                         sample_rate,
-                                                   AP4_UI16                         sample_size,
-                                                   AP4_UI16                         channel_count,
-                                                   AP4_UI32                         size,
-                                                   const AP4_Dac3Atom::StreamInfo*  m_Ac3StreamInfo):
+AP4_Ac3SampleDescription::AP4_Ac3SampleDescription(AP4_UI32                        sample_rate,
+                                                   AP4_UI16                        sample_size,
+                                                   AP4_UI16                        channel_count,
+                                                   AP4_UI32                        size,
+                                                   const AP4_Dac3Atom::StreamInfo* ac3_stream_info):
     AP4_SampleDescription(TYPE_AC3, AP4_SAMPLE_FORMAT_AC_3, NULL),
     AP4_AudioSampleDescription(sample_rate, sample_size, channel_count)
 {
-    m_Dac3Atom = new AP4_Dac3Atom(m_Ac3StreamInfo);
+    m_Dac3Atom = new AP4_Dac3Atom(ac3_stream_info);
     m_Details.AddChild(m_Dac3Atom);
 }
 
@@ -1154,12 +1177,12 @@ AP4_Eac3SampleDescription::AP4_Eac3SampleDescription():
 AP4_Eac3SampleDescription::AP4_Eac3SampleDescription(AP4_UI32            sample_rate, 
                                                      AP4_UI16            sample_size,
                                                      AP4_UI16            channel_count,
-                                                     const AP4_Dec3Atom* dec3Atom):
+                                                     const AP4_Dec3Atom* dec3):
     AP4_SampleDescription(TYPE_EAC3, AP4_SAMPLE_FORMAT_EC_3, NULL),
     AP4_AudioSampleDescription(sample_rate, sample_size, channel_count)
 {
-    if (dec3Atom) {
-        m_Dec3Atom = new AP4_Dec3Atom(*dec3Atom);
+    if (dec3) {
+        m_Dec3Atom = new AP4_Dec3Atom(*dec3);
     } else {
         // shoud never happen
         m_Dec3Atom = new AP4_Dec3Atom();
@@ -1225,14 +1248,15 @@ AP4_Eac3SampleDescription::ToAtom() const
 AP4_Ac4SampleDescription::AP4_Ac4SampleDescription(AP4_UI32            sample_rate, 
                                                    AP4_UI16            sample_size,
                                                    AP4_UI16            channel_count,
-                                                   const AP4_Dac4Atom* dac4Atom):
+                                                   const AP4_Dac4Atom* dac4):
     AP4_SampleDescription(TYPE_AC4, AP4_SAMPLE_FORMAT_AC_4, NULL),
     AP4_AudioSampleDescription(sample_rate, sample_size, channel_count)
 {
-    if (dac4Atom) {
-        m_Dac4Atom = new AP4_Dac4Atom(*dac4Atom);
+    if (dac4) {
+        m_Dac4Atom = dac4->CloneConst();
+;
     } else {
-        // TODO: add default construtor, m_Dac4Atom = new AP4_Dac4Atom(). It shall never happen.
+        // TODO: add default construtor, m_Dac4Atom = new AP4_Dac4Atom() / should never happen
         m_Dac4Atom = NULL;
     }
     m_Details.AddChild(m_Dac4Atom);
@@ -1253,7 +1277,7 @@ AP4_Ac4SampleDescription::AP4_Ac4SampleDescription(AP4_UI32        sample_rate,
     if (ac4) {
         m_Dac4Atom = ac4;
     } else {
-        // TODO: add default construtor, m_Dac4Atom = new AP4_Dac4Atom(). It shall never happen.
+        // TODO: add default construtor, m_Dac4Atom = new AP4_Dac4Atom() / should never happen
         m_Dac4Atom = NULL;
         m_Details.AddChild(m_Dac4Atom);
     }
@@ -1262,11 +1286,10 @@ AP4_Ac4SampleDescription::AP4_Ac4SampleDescription(AP4_UI32        sample_rate,
 /*----------------------------------------------------------------------
 |   AP4_Ac4SampleDescription::AP4_Ac4SampleDescription
 +---------------------------------------------------------------------*/
-
-AP4_Ac4SampleDescription::AP4_Ac4SampleDescription(AP4_UI32                       sample_rate, 
-                                                   AP4_UI16                       sample_size,
-                                                   AP4_UI16                       channel_count,
-                                                   AP4_UI32                       size,
+AP4_Ac4SampleDescription::AP4_Ac4SampleDescription(AP4_UI32                    sample_rate, 
+                                                   AP4_UI16                    sample_size,
+                                                   AP4_UI16                    channel_count,
+                                                   AP4_UI32                    size,
                                                    const AP4_Dac4Atom::Ac4Dsi* ac4Dsi):
     AP4_SampleDescription(TYPE_AC4, AP4_SAMPLE_FORMAT_AC_4, NULL),
     AP4_AudioSampleDescription(sample_rate, sample_size, channel_count)

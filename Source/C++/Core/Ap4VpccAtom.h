@@ -81,7 +81,7 @@ public:
     const AP4_DataBuffer& GetCodecInitializationData() { return m_CodecIntializationData;  }
 
     // helpers
-    void GetCodecString(AP4_UI32 container_type, AP4_String& codec);
+    AP4_Result GetCodecString(AP4_UI32 container_type, AP4_String& codec);
 
 private:
     // methods

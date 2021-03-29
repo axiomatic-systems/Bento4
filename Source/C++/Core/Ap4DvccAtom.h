@@ -36,6 +36,11 @@
 #include "Ap4Array.h"
 
 /*----------------------------------------------------------------------
+|   class references
++---------------------------------------------------------------------*/
+class AP4_SampleDescription;
+
+/*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
 const AP4_UI08 AP4_DV_PROFILE_DVAV_PER = 0;
@@ -85,6 +90,9 @@ public:
     bool     GetElPresentFlag()  { return m_ElPresentFlag  != 0; }
     bool     GetBlPresentFlag()  { return m_BlPresentFlag  != 0; }
     AP4_UI08 GetDvBlSignalCompatibilityID() { return m_DvBlSignalCompatibilityID; }
+
+    // helpers
+    AP4_Result GetCodecString(AP4_SampleDescription* parent, AP4_String& codec);
 
 private:
     // members

@@ -47,11 +47,6 @@
 #include "Ap4DvccAtom.h"
 
 /*----------------------------------------------------------------------
-|   Dolby Vision extension 
-+---------------------------------------------------------------------*/
-#define AP4_HEVC_DOVI_EXTENSION 1
-
-/*----------------------------------------------------------------------
 |   class references
 +---------------------------------------------------------------------*/
 class AP4_SampleEntry;
@@ -287,7 +282,8 @@ public:
         AP4_VideoSampleDescription(width, height, depth, compressor_name) {}
     
     // inherited from AP4_SampleDescription
-    virtual AP4_Atom* ToAtom() const;    
+    virtual AP4_Atom*  ToAtom() const;
+    virtual AP4_Result GetCodecString(AP4_String& codec);
 };
 
 /*----------------------------------------------------------------------
@@ -355,7 +351,6 @@ private:
     AP4_AvccAtom* m_AvccAtom;
 };
 
-#if defined(AP4_HEVC_DOVI_EXTENSION)
 /*----------------------------------------------------------------------
 |   AP4_AvcDoviSampleDescription
 +---------------------------------------------------------------------*/
@@ -387,7 +382,6 @@ public:
 private:
     AP4_DvccAtom* m_DvccAtom;
 };
-#endif
 
 /*----------------------------------------------------------------------
 |   AP4_HevcSampleDescription
@@ -475,7 +469,6 @@ private:
     AP4_HvccAtom* m_HvccAtom;
 };
 
-#if defined(AP4_HEVC_DOVI_EXTENSION)
 /*----------------------------------------------------------------------
 |   AP4_HevcDoviSampleDescription
 +---------------------------------------------------------------------*/
@@ -520,7 +513,6 @@ public:
 private:
     AP4_DvccAtom* m_DvccAtom;
 };
-#endif
 
 /*----------------------------------------------------------------------
 |   AP4_Av1SampleDescription
@@ -796,10 +788,10 @@ public:
                              AP4_UI16        channel_count,
                              AP4_AtomParent* details);
     
-    AP4_Ac4SampleDescription(AP4_UI32                     sample_rate, 
-                             AP4_UI16                     sample_size,
-                             AP4_UI16                     channel_count,
-                             AP4_UI32                     size, // DSI size
+    AP4_Ac4SampleDescription(AP4_UI32                    sample_rate,
+                             AP4_UI16                    sample_size,
+                             AP4_UI16                    channel_count,
+                             AP4_UI32                    size, // DSI size
                              const AP4_Dac4Atom::Ac4Dsi* ac4Dsi);
     
     // inherited from AP4_SampleDescription

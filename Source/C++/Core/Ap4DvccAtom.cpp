@@ -33,6 +33,7 @@
 #include "Ap4AtomFactory.h"
 #include "Ap4Utils.h"
 #include "Ap4Types.h"
+#include "Ap4SampleDescription.h"
 
 /*----------------------------------------------------------------------
 |   dynamic cast support
@@ -120,6 +121,65 @@ AP4_DvccAtom::AP4_DvccAtom(AP4_UI08 dv_version_major,
     m_BlPresentFlag(bl_present_flag),
     m_DvBlSignalCompatibilityID(dv_bl_signal_compatibility_id)
 {
+}
+
+/*----------------------------------------------------------------------
+|   AP4_DvccAtom::GetCodecString
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_DvccAtom::GetCodecString(AP4_SampleDescription* parent, AP4_String& codec)
+{
+    char workspace[64];
+    
+    AP4_UI32 format = parent->GetFormat();
+    if (format == AP4_ATOM_TYPE_DVAV ||
+        format == AP4_ATOM_TYPE_DVA1 ||
+        format == AP4_ATOM_TYPE_DVHE ||
+        format == AP4_ATOM_TYPE_DVH1) {
+        /* Non backward-compatible */
+        char coding[5];
+        AP4_FormatFourChars(coding, format);
+        AP4_FormatString(workspace,
+                         sizeof(workspace),
+                         "%s.%02d.%02d",
+                         coding,
+                         GetDvProfile(),
+                         GetDvLevel());
+        codec = workspace;
+    } else {
+        /* Backward-compatible */
+        switch (format) {
+          case AP4_ATOM_TYPE_AVC1:
+            format = AP4_ATOM_TYPE_DVA1;
+            break;
+
+          case AP4_ATOM_TYPE_AVC3:
+            format = AP4_ATOM_TYPE_DVAV;
+            break;
+
+          case AP4_ATOM_TYPE_HEV1:
+            format = AP4_ATOM_TYPE_DVHE;
+            break;
+
+          case AP4_ATOM_TYPE_HVC1:
+            format = AP4_ATOM_TYPE_DVH1;
+            break;
+        }
+        char coding[5];
+        AP4_FormatFourChars(coding, format);
+        AP4_String parent_codec;
+        parent->GetCodecString(parent_codec);
+        AP4_FormatString(workspace,
+                         sizeof(workspace),
+                         "%s,%s.%02d.%02d",
+                         parent_codec.GetChars(),
+                         coding,
+                         GetDvProfile(),
+                         GetDvLevel());
+        codec = workspace;
+    }
+    
+    return AP4_SUCCESS;
 }
 
 /*----------------------------------------------------------------------

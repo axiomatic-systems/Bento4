@@ -2300,7 +2300,7 @@ main(int argc, char** argv)
                     hasDovi = true;
                 }
             } else {
-            AddH264Track(*movie, input_name, parameters, brands, *sample_storage);
+                AddH264Track(*movie, input_name, parameters, brands, *sample_storage);
             }
         } else if (!strcmp(input_type, "h265")) {
             if (isDovi) {
@@ -2313,7 +2313,7 @@ main(int argc, char** argv)
                     hasDovi = true;
                 }
             } else {
-            AddH265Track(*movie, input_name, parameters, brands, *sample_storage);
+                AddH265Track(*movie, input_name, parameters, brands, *sample_storage);
             }
         } else if (!strcmp(input_type, "aac")) {
             AddAacTrack(*movie, input_name, parameters, *sample_storage);

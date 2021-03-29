@@ -57,14 +57,6 @@ AP4_Dac4Atom::Create(AP4_Size size, AP4_ByteStream& stream)
     const AP4_UI08* payload = payload_data.GetData();
     return new AP4_Dac4Atom(size, payload);
 }
-/*----------------------------------------------------------------------
-|   AP4_Dac4Atom::AP4_Dac4Atom
-+---------------------------------------------------------------------*/
-AP4_Dac4Atom::AP4_Dac4Atom(const AP4_Dac4Atom& other):
-    AP4_Atom(AP4_ATOM_TYPE_DAC4, other.m_Size32), 
-    m_RawBytes(other.m_RawBytes),
-    m_Dsi(other.m_Dsi){
-}
 
 /*----------------------------------------------------------------------
 |   AP4_Dac4Atom::AP4_Dac4Atom
@@ -423,10 +415,10 @@ AP4_Dac4Atom::~AP4_Dac4Atom()
     } else if (m_Dsi.ac4_dsi_version == 1) {
         for (int i = 0; i < m_Dsi.d.v1.n_presentations; i++) {
             for (int j = 0; j < m_Dsi.d.v1.presentations[i].d.v1.n_substream_groups; j++) {
-                    delete[] m_Dsi.d.v1.presentations[i].d.v1.substream_groups[j].d.v1.substreams;
-                }
-                delete[] m_Dsi.d.v1.presentations[i].d.v1.substream_groups;
+                delete[] m_Dsi.d.v1.presentations[i].d.v1.substream_groups[j].d.v1.substreams;
             }
+            delete[] m_Dsi.d.v1.presentations[i].d.v1.substream_groups;
+        }
         delete[] m_Dsi.d.v1.presentations;
     }
 }
@@ -460,7 +452,9 @@ AP4_Dac4Atom::GetCodecString(AP4_String& codec)
             } else if (presentation_version == 1 || presentation_version == 2) {
                 mdcompat = m_Dsi.d.v1.presentations[0].d.v1.mdcompat;
                 for (int idx = 0; idx < m_Dsi.d.v1.n_presentations; idx ++){
-                    if (mdcompat > m_Dsi.d.v1.presentations[idx].d.v1.mdcompat) { mdcompat = m_Dsi.d.v1.presentations[idx].d.v1.mdcompat;}
+                    if (mdcompat > m_Dsi.d.v1.presentations[idx].d.v1.mdcompat) {
+                        mdcompat = m_Dsi.d.v1.presentations[idx].d.v1.mdcompat;
+                    }
                 }   
             }
         }
@@ -1134,21 +1128,21 @@ AP4_Dac4Atom::Ac4Dsi::SubStream::GetChModeCore(unsigned char b_channel_coded)
 |   AP4_Dac4Atom::Ac4Dsi::SubStreamGroupV1::ParseSubstreamGroupInfo
 +---------------------------------------------------------------------*/
 AP4_Result 
-AP4_Dac4Atom::Ac4Dsi::SubStreamGroupV1::ParseSubstreamGroupInfo(AP4_BitReader &bits, 
-                                                                unsigned int bitstream_version,
-                                                                unsigned int presentation_version,
-                                                                unsigned char defalut_presentation_flag,
-                                                                unsigned int frame_rate_factor,
-                                                                unsigned int fs_idx,
-                                                                unsigned int &channel_count,
-                                                                unsigned int &speaker_index_mask,
-                                                                unsigned int &b_obj_or_Ajoc)
+AP4_Dac4Atom::Ac4Dsi::SubStreamGroupV1::ParseSubstreamGroupInfo(AP4_BitReader& bits,
+                                                                unsigned int   bitstream_version,
+                                                                unsigned int   presentation_version,
+                                                                unsigned char  defalut_presentation_flag,
+                                                                unsigned int   frame_rate_factor,
+                                                                unsigned int   fs_idx,
+                                                                unsigned int&  channel_count,
+                                                                unsigned int&  speaker_index_mask,
+                                                                unsigned int&  b_obj_or_Ajoc)
 {
     d.v1.b_substreams_present = bits.ReadBit();
     d.v1.b_hsf_ext = bits.ReadBit();
     if (bits.ReadBit()) {
         d.v1.n_substreams = 1;
-    }else{
+    } else{
         d.v1.n_substreams = bits.ReadBits(2) + 2;
         if (d.v1.n_substreams == 5) {
             d.v1.n_substreams += AP4_Ac4VariableBits(bits, 2);
@@ -1179,7 +1173,7 @@ AP4_Dac4Atom::Ac4Dsi::SubStreamGroupV1::ParseSubstreamGroupInfo(AP4_BitReader &b
                 ParseHsfExtSubstreamInfo(bits);
             }
         }
-    }else {     // b_channel_coded == 0
+    } else {     // b_channel_coded == 0
         b_obj_or_Ajoc = 1;
         if (bits.ReadBit()) {       // b_oamd_substream
                 //oamd_substream_info()

@@ -277,16 +277,16 @@ public:
     static AP4_Dac4Atom* Create(AP4_Size size, AP4_ByteStream& stream);
 
     // constructors
-    AP4_Dac4Atom(const AP4_Dac4Atom& other);
     AP4_Dac4Atom(AP4_UI32 size, const Ac4Dsi* ac4Dsi);  // DSI vaiable initialize m_RawBytes (m_Dsi -> m_RawBytes)
 
     // destructor
     ~AP4_Dac4Atom();
     
     // methods
-    virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
-    virtual AP4_Result WriteFields(AP4_ByteStream& stream);
-    virtual AP4_Atom*  Clone() { return new AP4_Dac4Atom(m_Size32, m_RawBytes.GetData()); }
+    virtual AP4_Result    InspectFields(AP4_AtomInspector& inspector);
+    virtual AP4_Result    WriteFields(AP4_ByteStream& stream);
+    virtual AP4_Atom*     Clone() { return new AP4_Dac4Atom(m_Size32, m_RawBytes.GetData()); }
+    virtual AP4_Dac4Atom* CloneConst() const { return new AP4_Dac4Atom(m_Size32, m_RawBytes.GetData()); }
 
     // accessors
     const AP4_DataBuffer& GetRawBytes() const { return m_RawBytes;   }
@@ -297,6 +297,7 @@ public:
     
 private:
     // methods
+    AP4_Dac4Atom(const AP4_Dac4Atom& other);
     AP4_Dac4Atom(AP4_UI32 size, const AP4_UI08* payload); // box data initialize m_Dsi (m_RawBytes -> m_Dsi)
     
     // members

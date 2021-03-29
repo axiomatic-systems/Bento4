@@ -330,10 +330,19 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
             atom = new AP4_Av1SampleEntry(type, size_32, stream, *this);
             break;
 
-          case AP4_ATOM_TYPE_ALAC:
           case AP4_ATOM_TYPE_AC_3:
+            atom = new AP4_Ac3SampleEntry(type, size_32, stream, *this);
+            break;
+
           case AP4_ATOM_TYPE_EC_3:
+            atom = new AP4_Eac3SampleEntry(type, size_32, stream, *this);
+            break;
+
           case AP4_ATOM_TYPE_AC_4:
+            atom = new AP4_Ac4SampleEntry(type, size_32, stream, *this);
+            break;
+
+          case AP4_ATOM_TYPE_ALAC:
           case AP4_ATOM_TYPE_DTSC:
           case AP4_ATOM_TYPE_DTSH:
           case AP4_ATOM_TYPE_DTSL:

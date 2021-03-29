@@ -698,6 +698,17 @@ AP4_Ac3SampleEntry::AP4_Ac3SampleEntry(AP4_UI32             format,
 }
 
 /*----------------------------------------------------------------------
+|   AP4_Ac3SampleEntry::AP4_Ac3SampleEntry
++---------------------------------------------------------------------*/
+AP4_Ac3SampleEntry::AP4_Ac3SampleEntry(AP4_UI32         type,
+                                       AP4_Size         size,
+                                       AP4_ByteStream&  stream,
+                                       AP4_AtomFactory& atom_factory) :
+    AP4_AudioSampleEntry(type, size, stream, atom_factory)
+{
+}
+
+/*----------------------------------------------------------------------
  |   AP4_Ac3SampleEntry::ToSampleDescription
  +---------------------------------------------------------------------*/
 AP4_SampleDescription*
@@ -732,6 +743,17 @@ AP4_Eac3SampleEntry::AP4_Eac3SampleEntry(AP4_UI32             format,
 }
 
 /*----------------------------------------------------------------------
+|   AP4_Eac3SampleEntry::AP4_Eac3SampleEntry
++---------------------------------------------------------------------*/
+AP4_Eac3SampleEntry::AP4_Eac3SampleEntry(AP4_UI32         type,
+                                         AP4_Size         size,
+                                         AP4_ByteStream&  stream,
+                                         AP4_AtomFactory& atom_factory) :
+    AP4_AudioSampleEntry(type, size, stream, atom_factory)
+{
+}
+
+/*----------------------------------------------------------------------
 |   AP4_Eac3SampleEntry::ToSampleDescription
 +---------------------------------------------------------------------*/
 AP4_SampleDescription*
@@ -753,10 +775,10 @@ AP4_Eac3SampleEntry::ToSampleDescription()
 /*----------------------------------------------------------------------
 |   AP4_Ac4SampleEntry::AP4_Ac4SampleEntry
 +---------------------------------------------------------------------*/
-AP4_Ac4SampleEntry::AP4_Ac4SampleEntry(AP4_UI32            format,
-                                       AP4_UI32            sample_rate,
-                                       AP4_UI16            sample_size,
-                                       AP4_UI16            channel_count,
+AP4_Ac4SampleEntry::AP4_Ac4SampleEntry(AP4_UI32              format,
+                                       AP4_UI32              sample_rate,
+                                       AP4_UI16              sample_size,
+                                       AP4_UI16              channel_count,
                                        const AP4_AtomParent* details): 
     AP4_AudioSampleEntry(format, sample_rate, sample_size, channel_count)
 {
@@ -770,6 +792,17 @@ AP4_Ac4SampleEntry::AP4_Ac4SampleEntry(AP4_UI32            format,
 }
 
 /*----------------------------------------------------------------------
+|   AP4_Ac4SampleEntry::AP4_Ac4SampleEntry
++---------------------------------------------------------------------*/
+AP4_Ac4SampleEntry::AP4_Ac4SampleEntry(AP4_UI32         type,
+                                       AP4_Size         size,
+                                       AP4_ByteStream&  stream,
+                                       AP4_AtomFactory& atom_factory) :
+    AP4_AudioSampleEntry(type, size, stream, atom_factory)
+{
+}
+
+/*----------------------------------------------------------------------
 |   AP4_Ac4SampleEntry::ToSampleDescription
 +---------------------------------------------------------------------*/
 AP4_SampleDescription*
@@ -779,7 +812,7 @@ AP4_Ac4SampleEntry::ToSampleDescription()
     AP4_Dac4Atom* dac4 = AP4_DYNAMIC_CAST(AP4_Dac4Atom, GetChild(AP4_ATOM_TYPE_DAC4));
     if (dac4 == NULL) {
         return NULL;
-    }else{
+    } else{
          return new AP4_Ac4SampleDescription(GetSampleRate(),
                                              GetSampleSize(),
                                              GetChannelCount(),

@@ -271,11 +271,15 @@ public:
 class AP4_Ac3SampleEntry : public AP4_AudioSampleEntry
 {
 public:
-    AP4_Ac3SampleEntry(AP4_UI32             format,
-                       AP4_UI32             sample_rate,
-                       AP4_UI16             sample_size,
-                       AP4_UI16             channel_count,
-                       const AP4_AtomParent *details);
+    AP4_Ac3SampleEntry(AP4_UI32              format,
+                       AP4_UI32              sample_rate,
+                       AP4_UI16              sample_size,
+                       AP4_UI16              channel_count,
+                       const AP4_AtomParent* details);
+    AP4_Ac3SampleEntry(AP4_UI32         type,
+                       AP4_Size         size,
+                       AP4_ByteStream&  stream,
+                       AP4_AtomFactory& atom_factory);
     
     // inherited from AP4_SampleEntry
     virtual AP4_SampleDescription* ToSampleDescription();
@@ -287,11 +291,15 @@ public:
 class AP4_Eac3SampleEntry : public AP4_AudioSampleEntry
 {
 public:    
-    AP4_Eac3SampleEntry(AP4_UI32             format,
-                        AP4_UI32             sample_rate,
-                        AP4_UI16             sample_size,
-                        AP4_UI16             channel_count,
-                        const AP4_AtomParent *details);
+    AP4_Eac3SampleEntry(AP4_UI32              format,
+                        AP4_UI32              sample_rate,
+                        AP4_UI16              sample_size,
+                        AP4_UI16              channel_count,
+                        const AP4_AtomParent* details);
+    AP4_Eac3SampleEntry(AP4_UI32         type,
+                        AP4_Size         size,
+                        AP4_ByteStream&  stream,
+                        AP4_AtomFactory& atom_factory);
                         
     // inherited from AP4_SampleEntry
     virtual AP4_SampleDescription* ToSampleDescription();
@@ -304,11 +312,15 @@ public:
 class AP4_Ac4SampleEntry : public AP4_AudioSampleEntry
 {
 public:    
-    AP4_Ac4SampleEntry(AP4_UI32            format,
-                       AP4_UI32            sample_rate,
-                       AP4_UI16            sample_size,
-                       AP4_UI16            channel_count,
+    AP4_Ac4SampleEntry(AP4_UI32              format,
+                       AP4_UI32              sample_rate,
+                       AP4_UI16              sample_size,
+                       AP4_UI16              channel_count,
                        const AP4_AtomParent* details);
+    AP4_Ac4SampleEntry(AP4_UI32         type,
+                       AP4_Size         size,
+                       AP4_ByteStream&  stream,
+                       AP4_AtomFactory& atom_factory);
                         
     // inherited from AP4_SampleEntry
     virtual AP4_SampleDescription* ToSampleDescription();

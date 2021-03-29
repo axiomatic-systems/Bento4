@@ -6,6 +6,7 @@ __copyright__ = 'Copyright 2011-2020 Axiomatic Systems, LLC.'
 
 import sys
 import os
+import copy
 import os.path as path
 from subprocess import check_output, CalledProcessError
 import json
@@ -429,6 +430,22 @@ class Mp4Track:
         if self.type == 'audio':
             self.sample_rate = sample_desc['sample_rate']
             self.channels = sample_desc['channels']
+            # Set the default values for Dolby audio codec flags
+            self.dolby_ddp_atmos = 'No'
+            self.dolby_ac4_ims   = 'No'
+            self.dolby_ac4_cbi   = 'No'
+            self.self_contained  = 'Yes'
+            if self.codec_family == 'ec-3' and 'dolby_digital_info' in sample_desc:
+                self.dolby_ddp_atmos = sample_desc['dolby_digital_info']['Dolby Digital Plus with Dolby Atmos']
+                if (self.dolby_ddp_atmos == 'Yes'):
+                    self.complexity_index = sample_desc['dolby_digital_info']['Dolby Atmos Complexity Index']
+            elif self.codec_family == 'ac-4' and 'dolby_ac4_info' in sample_desc:
+                stream_type = sample_desc['dolby_ac4_info']['presentations'][0]['Stream Type']
+                if stream_type == 'Immersive stereo':
+                    self.dolby_ac4_ims = 'Yes'
+                elif stream_type == 'Channel based immsersive':
+                    self.dolby_ac4_cbi = 'Yes'
+                self.self_contained = sample_desc['dolby_ac4_info']['Self Contained']
 
         self.language = info['language']
         self.language_name = LanguageNames.get(LanguageCodeMap.get(self.language, 'und'), '')
@@ -859,11 +876,14 @@ def GetDolbyDigitalPlusChannels(track):
     sample_desc = track.info['sample_descriptions'][0]
     if 'dolby_digital_info' not in sample_desc:
         return (track.channels, [])
-    dd_info = sample_desc['dolby_digital_info']['substreams'][0]
+    if 'substreams' in sample_desc['dolby_digital_info']:
+        dd_info = sample_desc['dolby_digital_info']['substreams'][0]
+    else:
+        dd_info = sample_desc['dolby_digital_info']['stream_info']
     channels = DolbyDigital_acmod[dd_info['acmod']][:]
     if dd_info['lfeon'] == 1:
         channels.append('LFE')
-    if dd_info['num_dep_sub'] and 'chan_loc' in dd_info:
+    if 'num_dep_sub' in dd_info and dd_info['num_dep_sub'] and 'chan_loc' in dd_info:
         chan_loc_value = dd_info['chan_loc']
         for i in range(9):
             if chan_loc_value & (1<<i):
@@ -904,6 +924,17 @@ def ComputeDolbyDigitalPlusAudioChannelConfig(track):
             config |= flags[channel]
     return hex(config).upper()[2:]
 
+# ETSI TS 102 366 V1.4.1 (2017-09) Table I.1.1
+def DolbyDigitalWithMPEGDASHScheme(mask):
+    available_mask_dict = {'4000': '1' , 'A000': '2' , 'E000': '3' , 'E100': '4' ,
+                           'F800': '5' , 'F801': '6' , 'F821': '7' , 'A100': '9' ,
+                           'B800': '10', 'E301': '11', 'FA01': '12', 'F811': '14',
+                           'F815': '16', 'F89D': '17', 'E255': '19'}
+    if mask in available_mask_dict:
+        return (True, available_mask_dict[mask])
+    else:
+        return (False, mask)
+
 def ComputeDolbyAc4AudioChannelConfig(track):
     sample_desc = track.info['sample_descriptions'][0]
     if 'dolby_ac4_info' in sample_desc:
@@ -911,15 +942,214 @@ def ComputeDolbyAc4AudioChannelConfig(track):
         if 'presentations' in dolby_ac4_info and dolby_ac4_info['presentations']:
             presentation = dolby_ac4_info['presentations'][0]
             if 'presentation_channel_mask_v1' in presentation:
-                return '%06x' % presentation['presentation_channel_mask_v1']
+                return ('%06x' % presentation['presentation_channel_mask_v1']).upper()
 
     return '000000'
+
+# ETSI TS 103 190-2 V1.2.1 (2018-02) Table G.1
+def DolbyAc4WithMPEGDASHScheme(mask):
+    available_mask_dict = {
+        '000002' : '1' , '000001' : '2' , '000003' : '3' , '008003' : '4' ,
+        '000007' : '5' , '000047' : '6' , '020047' : '7' , '008001' : '9' ,
+        '000005' : '10', '008047' : '11', '00004F' : '12', '02FF7F' : '13',
+        '06FF6F' : '13', '000057' : '14', '040047' : '14', '00145F' : '15',
+        '04144F' : '15', '000077' : '16', '040067' : '16', '000A77' : '17',
+        '040A67' : '17', '000A7F' : '18', '040A6F' : '18', '00007F' : '19',
+        '04006F' : '19', '01007F' : '20', '05006F' : '2'}
+    if mask in available_mask_dict:
+        return (True, available_mask_dict[mask])
+    else:
+        return (False, mask)
+
+def DolbyVisionProfile8DualEntry(video_sets, hevc_codec, dv_codec):
+    if ('video', hevc_codec) in video_sets:
+        duplicate_vdieo_sets = []
+        hevc_videos = video_sets[('video', hevc_codec)]
+        for item_video in hevc_videos:
+            codecs = item_video.codec.split(',')
+            remove_codec = ''
+            for item_codec in codecs:
+                if item_codec[0:7] == dv_codec+'.08':
+                    # duplicate the video track
+                    duplicate_video       = copy.deepcopy(item_video)
+                    duplicate_video.codec = item_codec
+                    duplicate_video.codec_family = item_codec[0:4]
+                    duplicate_vdieo_sets.append(duplicate_video)
+                    # record the removed codec
+                    remove_codec = item_codec
+                    bl_compatibility_id = item_video.info['sample_descriptions'][0]['dolby_vision']['dv_bl_signal_compatibility_id']
+                    if bl_compatibility_id in [1, 3, 4] :
+                        item_video.PQ = 'Yes'
+            # remove the Dolby codec string from the original video track
+            if remove_codec != '':
+                codecs.remove(remove_codec)
+                item_video.codec = ','.join(codecs)
+        if (duplicate_vdieo_sets):
+            new_codec = dv_codec
+            video_sets[('video', new_codec)] = []
+            for item in duplicate_vdieo_sets:
+                video_sets[('video', new_codec)].append(item)
+
+def GetVideoRangeValue(track):
+    if hasattr(track,'PQ') or track.codec_family == 'dvh1' or track.codec_family == 'dvhe':
+        return 'PQ'
+    else:
+        return 'SDR'
+
+def PickVideoTrack(video_sets, codec, len,  new_video_sets):
+    for item in video_sets:
+        if item[0].codec[0:len] == codec:
+            new_video_sets.append(item)
+            break
+
+# Handle duplicated video track for Dolby Vision profile 8 for video order, separate function in case for future changes
+def ReGroupVideoSetsHLS(video_sets):
+    new_video_sets = []
+    PickVideoTrack(video_sets, 'avc' , 3, new_video_sets)
+    PickVideoTrack(video_sets, 'hev1', 4, new_video_sets)
+    PickVideoTrack(video_sets, 'dvhe', 4, new_video_sets)
+    PickVideoTrack(video_sets, 'hvc1', 4, new_video_sets)
+    PickVideoTrack(video_sets, 'dvh1', 4, new_video_sets)
+    return  new_video_sets
+
+# Handle duplicated video track for Dolby Vision profile 8 for video order, separate function in case for future changes
+def ReGroupVideoSetsDASH(video_sets):
+    new_video_sets = []
+    PickVideoTrack(video_sets, 'avc' , 3, new_video_sets)
+    PickVideoTrack(video_sets, 'dvhe', 4, new_video_sets)
+    PickVideoTrack(video_sets, 'hev1', 4, new_video_sets)
+    PickVideoTrack(video_sets, 'dvh1', 4, new_video_sets)
+    PickVideoTrack(video_sets, 'hvc1', 4, new_video_sets)
+    return  new_video_sets       
+
+def NextExpectedOrderIndex(cur_idx, ordered_tracks):
+    expected_idx = cur_idx + 1
+    search = True
+    all_exiting_idxs = []
+    for tracks in ordered_tracks:
+        for item in tracks:
+            # there is no same input order
+            all_exiting_idxs.append(item.input_order)
+    while search:
+        if expected_idx in all_exiting_idxs:
+            expected_idx += 1
+        else:
+            break
+    return expected_idx
+
+def GetDuplicatedTrackIndex(media_tracks, search_input_order):
+    for tracks in media_tracks:
+        for item in tracks:
+            if (item.input_order == search_input_order):
+                return media_tracks.index(tracks)
+    return -1
+
+def ReOrderMediaTrack(media_tracks):
+    ordered_media_tracks = []
+    expected_order_idx   = 1
+    for _idx in range(len(media_tracks)):
+        for tracks in media_tracks:
+            if expected_order_idx == tracks[0].input_order:
+                ordered_media_tracks.append(tracks)
+                expected_order_idx  = NextExpectedOrderIndex(expected_order_idx, ordered_media_tracks)
+                break
+    # handle the duplicated video track for Dolby Vision profile 8
+    if len(media_tracks) != len(ordered_media_tracks):
+        for tracks in media_tracks:
+            if tracks not in ordered_media_tracks:
+                insert_idx = GetDuplicatedTrackIndex(ordered_media_tracks, tracks[0].input_order)
+                ordered_media_tracks.insert(insert_idx, tracks)
+
+    return ordered_media_tracks
+
+def ReGroupAC4Sets(audio_sets):
+    regroup_audio_sets    = {}
+    audio_adaptation_sets = {}
+    sc_index = 1
+    for name, audio_tracks in audio_sets.items():
+        if audio_tracks[0].codec_family == 'ac-4':
+            for track in audio_tracks:
+                adaptation_set_name = ('audio', track.language, track.codec_family, track.channels)
+                if track.self_contained != 'Yes':
+                    adaptation_set_name = adaptation_set_name + ('#sc' + str(sc_index),)
+                    sc_index += 1
+                adaptation_set = audio_adaptation_sets.get(adaptation_set_name, [])
+                audio_adaptation_sets[adaptation_set_name] = adaptation_set
+                adaptation_set.append(track) 
+        else:
+            regroup_audio_sets[name] = audio_tracks
+
+    for name, ac4_tracks in audio_adaptation_sets.items():
+        regroup_audio_sets[name] = ac4_tracks
+
+    return regroup_audio_sets
+
+def ReGroupAudioSets(audio_sets):
+    audio_group_sets = {}
+    for audio_tracks in audio_sets.values():
+        for track in audio_tracks:
+            if track.codec_family == 'ec-3' or track.codec_family == 'ac-3':
+                track.channels = GetDolbyDigitalPlusChannels(track)[0]
+                if track.dolby_ddp_atmos == 'Yes':
+                    track.channels =  str(track.info['sample_descriptions'][0]['dolby_digital_info']['Dolby Atmos Complexity Index']) + '/JOC'
+            if track.codec_family == 'ac-4' and (track.dolby_ac4_ims == 'Yes' or track.dolby_ac4_cbi == 'Yes'):
+                track.channels = str(track.channels) + '/IMS'
+            group_set_name  = ('audio', track.codec_family, track.channels)
+            group_set_value = audio_group_sets.get(group_set_name, [])
+            audio_group_sets[group_set_name] = group_set_value
+            group_set_value.append(track)
+    return audio_group_sets
+
+def GenVideoSets(video_tracks):
+    video_sets = {}
+    for track in video_tracks:
+        sets_name  = ('video', track.codec_family)
+        sets_value = video_sets.get(sets_name, [])
+        video_sets[sets_name] = sets_value
+        sets_value.append(track)
+    return video_sets
+
+def OrderedByInputOrder(track):
+    return track.input_order
+
+def ReOrderAudioSetsInternally(audio_sets):
+    for tracks in audio_sets.values():
+        tracks.sort(key = OrderedByInputOrder)
+    return audio_sets
+
+def PrintBlankLine(group_tracks):
+    for tracks in group_tracks:
+        if len(tracks) > 1:
+            return True
+    return False
+
+def FindAudioGroups(expected_order_idx, audio_groups):
+    for name, value in audio_groups.items():
+        if value['group_order'] == expected_order_idx:
+            return name
+    return 'no_audio_group'
+
+def ContainDolbyVision(video_tracks):
+    for track in video_tracks:
+        codecs = track['info']['video']['codec'].split(',')
+        for codec in codecs:
+            if codec.split('.')[0] in ['dvh1', 'dvhe']:
+                return True
+    return False
+
+def ContainAtmosAndAC4(audio_sets):
+    for audio_tracks in audio_sets:
+        if audio_tracks[0].codec_family in ['ac-4']:
+            return  True
+        if audio_tracks[0].codec_family in ['ec-3'] and audio_tracks[0].dolby_ddp_atmos == 'Yes':
+            return True
+    return False
 
 def ComputeDolbyDigitalPlusAudioChannelMask(track):
     masks = {
         'L':       0x1,             # SPEAKER_FRONT_LEFT
         'R':       0x2,             # SPEAKER_FRONT_RIGHT
-        'C':	   0x4,             # SPEAKER_FRONT_CENTER
+        'C':       0x4,             # SPEAKER_FRONT_CENTER
         'LFE':     0x8,             # SPEAKER_LOW_FREQUENCY
         'Ls':      0x10,            # SPEAKER_BACK_LEFT
         'Rs':      0x20,            # SPEAKER_BACK_RIGHT
@@ -953,7 +1183,8 @@ def ComputeDolbyDigitalPlusSmoothStreamingInfo(track):
     mask_hex_be = "{0:0{1}x}".format(channel_mask, 4)
     info += mask_hex_be[2:4]+mask_hex_be[0:2]+'0000'
     info += "af87fba7022dfb42a4d405cd93843bdd"
-    info += track.info['sample_descriptions'][0]['dolby_digital_info']['dec3_payload']
+    if 'dolby_digital_info' in track.info['sample_descriptions'][0]:
+        info += track.info['sample_descriptions'][0]['dolby_digital_info']['dec3_payload']
     return (channel_count, info.lower())
 
 def ComputeMarlinPssh(options):

@@ -39,11 +39,6 @@
 #include "Ap4Array.h"
 
 /*----------------------------------------------------------------------
-|   Dolby Vision extension 
-+---------------------------------------------------------------------*/
-#define AP4_HEVC_DOVI_EXTENSION 1
-
-/*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
 const unsigned int AP4_AVC_NAL_UNIT_TYPE_UNSPECIFIED                       = 0;
@@ -64,11 +59,8 @@ const unsigned int AP4_AVC_NAL_UNIT_TYPE_PREFIX                            = 14;
 const unsigned int AP4_AVC_NAL_UNIT_TYPE_SUBSET_SPS                        = 15;
 const unsigned int AP4_AVC_NAL_UNIT_TYPE_CODED_SLICE_OF_AUXILIARY_PICTURE  = 19;
 const unsigned int AP4_AVC_NAL_UNIT_TYPE_CODED_SLICE_IN_SCALABLE_EXTENSION = 20;
-
-#if defined(AP4_HEVC_DOVI_EXTENSION)
 const unsigned int AP4_AVC_NAL_UNIT_TYPE_UNSPECIFIED28                     = 28;
 const unsigned int AP4_AVC_NAL_UNIT_TYPE_UNSPECIFIED30                     = 30;
-#endif
 
 const unsigned int AP4_AVC_SLICE_TYPE_P                                    = 0;
 const unsigned int AP4_AVC_SLICE_TYPE_B                                    = 1;
