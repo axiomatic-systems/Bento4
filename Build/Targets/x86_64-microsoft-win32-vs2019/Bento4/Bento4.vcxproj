@@ -73,7 +73,8 @@
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>..\..\..\..\Source\C++\Config;..\..\..\..\Source\C++\Core;..\..\..\..\Source\C++\Codecs;..\..\..\..\Source\C++\MetaData;..\..\..\..\Source\C++\Crypto;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;AP4_DEBUG;_LIB;AP4_PLATFORM_BYTE_ORDER=AP4_PLATFORM_BYTE_ORDER_LITTLE_ENDIAN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <MinimalRebuild>true</MinimalRebuild>
+      <MinimalRebuild>
+      </MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <PrecompiledHeader>
@@ -101,6 +102,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <DisableSpecificWarnings>4345;4355</DisableSpecificWarnings>
+      <MinimalRebuild />
     </ClCompile>
     <Lib>
       <OutputFile>$(OutDir)Bento4.lib</OutputFile>
@@ -118,6 +120,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <DisableSpecificWarnings>4345;4355</DisableSpecificWarnings>
+      <MinimalRebuild />
     </ClCompile>
     <ProjectReference>
       <LinkLibraryDependencies>true</LinkLibraryDependencies>
@@ -138,6 +141,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <DisableSpecificWarnings>4345;4355</DisableSpecificWarnings>
+      <MinimalRebuild />
     </ClCompile>
     <ProjectReference>
       <LinkLibraryDependencies>true</LinkLibraryDependencies>
@@ -154,6 +158,7 @@
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap48bdlAtom.cpp" />
     <ClCompile Include="..\..\..\..\Source\C++\Codecs\Ap4AdtsParser.cpp" />
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4AinfAtom.cpp" />
+    <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4Av1cAtom.cpp" />
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4BlocAtom.cpp" />
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4CommonEncryption.cpp" />
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4Dac3Atom.cpp" />
@@ -284,6 +289,7 @@
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap48bdlAtom.h" />
     <ClInclude Include="..\..\..\..\Source\C++\Codecs\Ap4AdtsParser.h" />
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4AinfAtom.h" />
+    <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4Av1cAtom.h" />
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4BlocAtom.h" />
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4CommonEncryption.h" />
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4Dac3Atom.h" />
