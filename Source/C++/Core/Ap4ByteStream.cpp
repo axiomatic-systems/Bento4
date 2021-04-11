@@ -363,7 +363,9 @@ AP4_ByteStream::ReadNullTerminatedString(AP4_String& string)
         ++size;
     } while (c);
 
-    string.Assign((const char*)buffer.GetData(), size);
+    AP4_ASSERT(size);
+    string.Assign((const char*)buffer.GetData(), size - 1);
+    
     return AP4_SUCCESS;
 }
 
