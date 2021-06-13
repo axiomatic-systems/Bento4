@@ -79,7 +79,7 @@ public:
     AP4_UI08 m_Addbsi[65];      // (addbsil + 1)* 8
 
     // class methods
-    static bool MatchFixed(AP4_Eac3Header frame, AP4_Eac3Header next_frame);
+    static bool MatchFixed(AP4_Eac3Header& frame, AP4_Eac3Header& next_frame);
 };
 
 typedef struct {

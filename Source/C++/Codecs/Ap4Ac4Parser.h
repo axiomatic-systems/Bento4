@@ -88,7 +88,8 @@ public:
     // AC-4 Presentation Information
     AP4_Dac4Atom::Ac4Dsi::PresentationV1 *m_PresentationV1;
     // class methods
-    static bool MatchFixed(AP4_Ac4Header frame, AP4_Ac4Header next_frame);
+    static bool MatchFixed(AP4_Ac4Header& frame, AP4_Ac4Header& next_frame);
+    
 private:
     AP4_Result GetPresentationVersionBySGIndex(unsigned int substream_group_index);
     AP4_Result GetPresentationIndexBySGIndex  (unsigned int substream_group_index);

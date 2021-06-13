@@ -886,7 +886,7 @@ AddAc4Track(AP4_Movie&            movie,
                     ac4Dsi);                        // AC-4 DSI
                 sample_description_index = sample_table->GetSampleDescriptionCount();
                 sample_table->AddSampleDescription(sample_description);
-                /* sample_rate = */frame.m_Info.m_Ac4Dsi.d.v1.fs;
+                /* sample_rate = frame.m_Info.m_Ac4Dsi.d.v1.fs */;
                 sample_duration  = frame.m_Info.m_SampleDuration;
                 media_time_scale = frame.m_Info.m_MediaTimeScale;
 

@@ -185,7 +185,7 @@ AP4_Ac4Header::AP4_Ac4Header(const AP4_UI08* bytes, unsigned int size)
 |
 +----------------------------------------------------------------------*/
 bool
-AP4_Ac4Header::MatchFixed(AP4_Ac4Header frame, AP4_Ac4Header next_frame)
+AP4_Ac4Header::MatchFixed(AP4_Ac4Header& frame, AP4_Ac4Header& next_frame)
 {
     // Some parameter shall be const which defined in AC-4 in ISO-BMFF specs
     // TODO: More constraints will be added

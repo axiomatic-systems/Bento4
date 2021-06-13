@@ -111,7 +111,7 @@ AP4_Ac3Header::AP4_Ac3Header(const AP4_UI08* bytes)
  |
  +----------------------------------------------------------------------*/
 bool
-AP4_Ac3Header::MatchFixed(AP4_Ac3Header frame, AP4_Ac3Header next_frame)
+AP4_Ac3Header::MatchFixed(AP4_Ac3Header& frame, AP4_Ac3Header& next_frame)
 {
     return true;
 }

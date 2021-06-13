@@ -309,7 +309,7 @@ AP4_Eac3Header::AP4_Eac3Header(const AP4_UI08* bytes)
 |
 +----------------------------------------------------------------------*/
 bool
-AP4_Eac3Header::MatchFixed(AP4_Eac3Header frame, AP4_Eac3Header next_frame)
+AP4_Eac3Header::MatchFixed(AP4_Eac3Header& frame, AP4_Eac3Header& next_frame)
 {
     if (frame.m_Acmod ==  next_frame.m_Acmod &&
         frame.m_Bsid  ==  next_frame.m_Bsid  &&

@@ -1,8 +1,8 @@
 Welcome to Bento4
 ======================
 
-Bento4 MP4, DASH/HLS/CMAF Class Library, SDK and Tools
-------------------------------------------------------
+Bento4 MP4, DASH, HLS, CMAF SDK and Tools
+-----------------------------------------
 
 A fast, modern, open source C++ toolkit for all your MP4 and DASH/HLS/CMAF media format needs.  
 

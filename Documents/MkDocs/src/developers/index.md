@@ -18,7 +18,7 @@ In the SDK directory, you will find the following subdirectories:
 Source Code
 -----------
 
-The code is hosted on GitHub: https://github.com/axiomatic-systems/Bento4 You can browse the source code directly through the GitHub interface, or download a copy of the source tree using the GitHub download link or a git client from the command line:
+The code is hosted on GitHub: [https://github.com/axiomatic-systems/Bento4](https://github.com/axiomatic-systems/Bento4) You can browse the source code directly through the GitHub interface, or download a copy of the source tree using the GitHub download link or a git client from the command line:
 
 ```
 git clone https://github.com/axiomatic-systems/Bento4.git
