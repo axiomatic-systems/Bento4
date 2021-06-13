@@ -62,10 +62,11 @@ AP4_Dec3Atom::Create(AP4_Size size, AP4_ByteStream& stream)
 AP4_Dec3Atom::AP4_Dec3Atom(const AP4_Dec3Atom& other):
     AP4_Atom(AP4_ATOM_TYPE_DEC3, other.m_Size32), 
     m_DataRate(other.m_DataRate),
-    m_RawBytes(other.m_RawBytes),
-    m_SubStreams(other.m_SubStreams),
     m_FlagEC3ExtensionTypeA(other.m_FlagEC3ExtensionTypeA),
-    m_ComplexityIndexTypeA(other.m_ComplexityIndexTypeA){
+    m_ComplexityIndexTypeA(other.m_ComplexityIndexTypeA),
+    m_SubStreams(other.m_SubStreams),
+    m_RawBytes(other.m_RawBytes)
+{
 }
 
 /*----------------------------------------------------------------------
@@ -74,7 +75,6 @@ AP4_Dec3Atom::AP4_Dec3Atom(const AP4_Dec3Atom& other):
 AP4_Dec3Atom::AP4_Dec3Atom():
     AP4_Atom(AP4_ATOM_TYPE_DEC3, AP4_ATOM_HEADER_SIZE), 
     m_DataRate(0),
-    m_RawBytes(0),
     m_FlagEC3ExtensionTypeA(0),
     m_ComplexityIndexTypeA(0)
 {

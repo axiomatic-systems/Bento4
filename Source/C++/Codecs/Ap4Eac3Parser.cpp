@@ -72,9 +72,9 @@ AP4_Eac3Header::AP4_Eac3Header(const AP4_UI08* bytes)
     }
 
     /* unsigned char dialnorm = */ bits.ReadBits(5);  // dialnorm
-    unsigned char compr;
+    // unsigned char compr;
     if (bits.ReadBit()) {                       // compre
-        compr = bits.ReadBits(8);
+        /* compr = */ bits.ReadBits(8);
     }
     
     if (m_Acmod == 0x0){                        // if 1+1 mode (dual mono, so some items need a second value)
@@ -98,28 +98,28 @@ AP4_Eac3Header::AP4_Eac3Header(const AP4_UI08* bytes)
     }
     
     // Extract mixing metadata 
-    unsigned char dmixmod, ltrtcmixlev, lorocmixlev, ltrtsurmixlev, lorosurmixlev, lfemixlevcod;
+    // unsigned char dmixmod, ltrtcmixlev, lorocmixlev, ltrtsurmixlev, lorosurmixlev, lfemixlevcod;
     if (bits.ReadBit()){                        // mixmdate
         if (m_Acmod  > 0x2) {
-            dmixmod = bits.ReadBits(2);
+            /* dmixmod = */ bits.ReadBits(2);
         }
         if ((m_Acmod & 0x1) && (m_Acmod > 0x2)) {
-            ltrtcmixlev = bits.ReadBits(3);
-            lorocmixlev = bits.ReadBits(3);
+            /* ltrtcmixlev = */ bits.ReadBits(3);
+            /* lorocmixlev = */ bits.ReadBits(3);
         }
         if (m_Acmod & 0x4) {
-            ltrtsurmixlev = bits.ReadBits(3);
-            lorosurmixlev = bits.ReadBits(3);
+            /* ltrtsurmixlev = */ bits.ReadBits(3);
+            /* lorosurmixlev = */ bits.ReadBits(3);
         }
         if (m_Lfeon) { 
             if (bits.ReadBit()) {               // lfemixlevcode
-                lfemixlevcod = bits.ReadBits(5);
+                /* lfemixlevcod = */ bits.ReadBits(5);
             }
         } 
         if (m_Strmtyp == 0x0) {                 // if independent stream
-            unsigned char pgmscl, extpgmscl;
+            // unsigned char pgmscl, extpgmscl;
             if (bits.ReadBit()) {               // pgmscle
-                pgmscl = bits.ReadBits(6);
+                /* pgmscl = */ bits.ReadBits(6);
             }
 
             if (m_Acmod == 0x0){                // if 1+1 mode (dual mono, so some items need a second value)
@@ -129,7 +129,7 @@ AP4_Eac3Header::AP4_Eac3Header(const AP4_UI08* bytes)
             }
 
             if(bits.ReadBit()) {                // extpgmscle
-                extpgmscl = bits.ReadBits(6);
+                /* extpgmscl = */ bits.ReadBits(6);
             }
 
             char mixdef = bits.ReadBits(2);
@@ -249,15 +249,15 @@ AP4_Eac3Header::AP4_Eac3Header(const AP4_UI08* bytes)
     m_Infomdate = bits.ReadBit();
     if (m_Infomdate){
         m_Bsmod = bits.ReadBits(3);
-        unsigned char copyrightb, origbs, dsurexmod;
-        copyrightb = bits.ReadBits(1);
-        origbs     = bits.ReadBits(1);
+        // unsigned char copyrightb, origbs, dsurexmod;
+        /* copyrightb = */ bits.ReadBits(1);
+        /* origbs     = */ bits.ReadBits(1);
 
         if (m_Acmod == 0x2) {                               // if in 2/0 mode
             bits.SkipBits(4);                               // dsurmod, dheadphonmod
         }
         if (m_Acmod >= 0x6) {                               // if both surround channels exist
-            dsurexmod = bits.ReadBits(2);
+            /* dsurexmod = */ bits.ReadBits(2);
         }
         if(bits.ReadBit()){                                 // audprodie
             bits.SkipBits(8);                               // mixlevel, roomtyp, adconvtyp

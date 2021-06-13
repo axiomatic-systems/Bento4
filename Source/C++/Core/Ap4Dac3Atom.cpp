@@ -62,8 +62,9 @@ AP4_Dac3Atom::Create(AP4_Size size, AP4_ByteStream& stream)
 AP4_Dac3Atom::AP4_Dac3Atom(const AP4_Dac3Atom& other):
     AP4_Atom(AP4_ATOM_TYPE_DAC3, other.m_Size32),
     m_DataRate(other.m_DataRate),
-    m_RawBytes(other.m_RawBytes),
-    m_StreamInfo(other.m_StreamInfo){
+    m_StreamInfo(other.m_StreamInfo),
+    m_RawBytes(other.m_RawBytes)
+{
 }
 
 /*----------------------------------------------------------------------
