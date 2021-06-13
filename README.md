@@ -142,6 +142,18 @@ For Release builds:
 Release Notes
 -------------
 
+### 1.6.0-638
+  * support multi-bitrate audio
+  * new docs using MkDocs
+  * add av1 files and remove deprecated option from vs2019 build
+  * add AV1 support
+  * better handling of USAC signaling
+  * add UTF-8 support on Windows
+  * fix LGTM warnings
+  * account for last sample when at EOS
+  * new inspector API
+  * bug fixes
+
 ### 1.6.0-636
 Dolby Vision encryption now properly encrypts in a NAL-unit-aware mode
 
