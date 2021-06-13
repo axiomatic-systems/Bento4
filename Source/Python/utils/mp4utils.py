@@ -249,6 +249,11 @@ def XmlDuration(d):
         xsd += ('%.3fS' % (s))
     return xsd
 
+def BooleanFromString(string):
+    if string is None:
+        return False
+    return string.lower() in ['yes', 'true', 'on', '1']
+
 def Base64Encode(x):
     return base64.b64encode(x).decode('ascii')
 

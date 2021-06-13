@@ -30,31 +30,34 @@ import operator
 import struct
 from functools import reduce
 from subtitles import SubtitlesFile
-from mp4utils import MakePsshBox,\
-                     MakePsshBoxV1,\
-                     Base64Encode,\
-                     Base64Decode,\
-                     ComputeWidevineHeader,\
-                     ComputePlayReadyHeader,\
-                     ComputePrimetimeMetaData,\
-                     ComputeDolbyAc4AudioChannelConfig,\
-                     ComputeDolbyDigitalPlusAudioChannelConfig,\
-                     ComputeDolbyDigitalPlusSmoothStreamingInfo,\
-                     ComputeMarlinPssh,\
-                     Mp4IframeIndex,\
-                     Mp4File,\
-                     Mp4Encrypt,\
-                     Mp4Fragment,\
-                     Mp4Split,\
-                     MediaSource,\
-                     WalkAtoms,\
-                     GetEncryptionKey,\
-                     DerivePlayReadyKey,\
-                     LanguageNames,\
-                     LanguageCodeMap,\
-                     XmlDuration,\
-                     PrintErrorAndExit,\
-                     MakeNewDir
+from mp4utils import (
+    MakePsshBox,
+    MakePsshBoxV1,
+    Base64Encode,
+    Base64Decode,
+    ComputeWidevineHeader,
+    ComputePlayReadyHeader,
+    ComputePrimetimeMetaData,
+    ComputeDolbyAc4AudioChannelConfig,
+    ComputeDolbyDigitalPlusAudioChannelConfig,
+    ComputeDolbyDigitalPlusSmoothStreamingInfo,
+    ComputeMarlinPssh,
+    Mp4IframeIndex,
+    Mp4File,
+    Mp4Encrypt,
+    Mp4Fragment,
+    Mp4Split,
+    MediaSource,
+    WalkAtoms,
+    GetEncryptionKey,
+    DerivePlayReadyKey,
+    LanguageNames,
+    LanguageCodeMap,
+    XmlDuration,
+    PrintErrorAndExit,
+    MakeNewDir,
+    BooleanFromString
+)
 
 # setup main options
 VERSION = "2.0.0"
@@ -128,9 +131,10 @@ HIPPO_MEDIA_SEGMENT_GROUPS_DEFAULT = '["time"]'
 HIPPO_MEDIA_SEGMENT_REGEXP_SMOOTH  = 'QualityLevels\\\\(%d\\\\)/Fragments\\\\(%s=(\\\\d+)\\\\)'
 HIPPO_MEDIA_SEGMENT_GROUPS_SMOOTH  = '["time"]'
 
-MPEG_DASH_AUDIO_CHANNEL_CONFIGURATION_SCHEME_ID_URI     = 'urn:mpeg:dash:23003:3:audio_channel_configuration:2011'
-DOLBY_DIGITAL_AUDIO_CHANNEL_CONFIGURATION_SCHEME_ID_URI = 'tag:dolby.com,2014:dash:audio_channel_configuration:2011'
-DOLBY_AC4_AUDIO_CHANNEL_CONFIGURATION_SCHEME_ID_URI     = 'tag:dolby.com,2015:dash:audio_channel_configuration:2015'
+MPEG_DASH_AUDIO_CHANNEL_CONFIGURATION_SCHEME_ID_URI       = 'urn:mpeg:dash:23003:3:audio_channel_configuration:2011'
+ISO_IEC_23001_8_AUDIO_CHANNEL_CONFIGURATION_SCHEME_ID_URI = 'urn:mpeg:mpegB:cicp:ChannelConfiguration'
+DOLBY_DIGITAL_AUDIO_CHANNEL_CONFIGURATION_SCHEME_ID_URI   = 'tag:dolby.com,2014:dash:audio_channel_configuration:2011'
+DOLBY_AC4_AUDIO_CHANNEL_CONFIGURATION_SCHEME_ID_URI       = 'tag:dolby.com,2015:dash:audio_channel_configuration:2015'
 
 ISOFF_MAIN_PROFILE          = 'urn:mpeg:dash:profile:isoff-main:2011'
 ISOFF_LIVE_PROFILE          = 'urn:mpeg:dash:profile:isoff-live:2011'
@@ -548,7 +552,7 @@ def OutputDash(options, set_attributes, audio_sets, video_sets, subtitles_sets, 
                         audio_channel_config_value = str(sample_description['mpeg_4_audio_decoder_config']['channels'])
                     else:
                         audio_channel_config_value = str(audio_track.channels)
-                    scheme_id_uri = MPEG_DASH_AUDIO_CHANNEL_CONFIGURATION_SCHEME_ID_URI
+                    scheme_id_uri = MPEG_DASH_AUDIO_CHANNEL_CONFIGURATION_SCHEME_ID_URI if options.use_legacy_audio_channel_config_uri else ISO_IEC_23001_8_AUDIO_CHANNEL_CONFIGURATION_SCHEME_ID_URI
                 xml.SubElement(representation,
                                'AudioChannelConfiguration',
                                schemeIdUri=scheme_id_uri,
@@ -840,31 +844,46 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
 
     master_playlist_file.write('\n')
     master_playlist_file.write('# Audio\n')
-    audio_groups = {}
-    for adaptation_set_name, audio_tracks in list(audio_sets.items()):
-        language = audio_tracks[0].language
-        language_name = audio_tracks[0].language_name
 
-        audio_group_name = adaptation_set_name[0]+'/'+adaptation_set_name[2]
-        audio_groups[audio_group_name] = {
-            'codec': '',
+    # group tracks that don't have an explicit '+hls_group' specifier
+    ungrouped_audio_tracks = [track for track in all_audio_tracks if not track.hls_group]
+    if len(set([track.language for track in ungrouped_audio_tracks])) == 1:
+        # all the tracks have the same language, put them each in a separate group
+        for index, audio_track in enumerate(ungrouped_audio_tracks, start=1):
+            audio_track.hls_group = f'audio/{index}' if len(ungrouped_audio_tracks) > 1 else 'audio'
+    else:
+        # group tracks by codec
+        codec_groups = {}
+        for audio_track in ungrouped_audio_tracks:
+            codec_groups.setdefault(audio_track.codec, []).append(audio_track)
+        for codec, audio_tracks in codec_groups.items():
+            for audio_track in audio_tracks:
+                audio_track.hls_group = f'audio/{codec}'
+
+    # categorize the audio tracks by group
+    audio_groups = {}
+    for audio_track in all_audio_tracks:
+        audio_group_name = audio_track.hls_group
+        audio_group = audio_groups.setdefault(audio_group_name, {
+            'tracks': [],
+            'codecs': set(),
             'average_segment_bitrate': 0,
             'max_segment_bitrate': 0
-        }
-        select_as_default = True
-        for audio_track in audio_tracks:
-            # update the avergage and max bitrates
-            if audio_track.average_segment_bitrate > audio_groups[audio_group_name]['average_segment_bitrate']:
-                audio_groups[audio_group_name]['average_segment_bitrate'] = audio_track.average_segment_bitrate
-            if audio_track.max_segment_bitrate > audio_groups[audio_group_name]['max_segment_bitrate']:
-                audio_groups[audio_group_name]['max_segment_bitrate'] = audio_track.max_segment_bitrate
+        })
+        audio_group['tracks'].append(audio_track)
 
-            # update/check the codec
-            if audio_groups[audio_group_name]['codec'] == '':
-                audio_groups[audio_group_name]['codec'] = audio_track.codec
-            else:
-                if audio_groups[audio_group_name]['codec'] != audio_track.codec:
-                    print('WARNING: audio codecs not all the same:', audio_groups[audio_group_name]['codec'], audio_track.codec)
+    for audio_group_name, audio_group in audio_groups.items():
+        default_selected = False
+        media_names = []  # used to keep track of all media names used and detect duplicates
+        for audio_track in audio_group['tracks']:
+            # update the average and max bitrates
+            if audio_track.average_segment_bitrate > audio_group['average_segment_bitrate']:
+                audio_group['average_segment_bitrate'] = audio_track.average_segment_bitrate
+            if audio_track.max_segment_bitrate > audio_group['max_segment_bitrate']:
+                audio_group['max_segment_bitrate'] = audio_track.max_segment_bitrate
+
+            # update the codecs
+            audio_group['codecs'].add(audio_track.codec)
 
             if options.on_demand or not options.split:
                 media_subdir        = ''
@@ -877,29 +896,45 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
                 media_playlist_name = options.hls_media_playlist_name
                 media_playlist_path = media_subdir+'/'+media_playlist_name
 
-            group_name = audio_track.label if audio_track.label != '' else language_name
-            master_playlist_file.write('#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="{}",LANGUAGE="{}",NAME="{}",AUTOSELECT=YES,DEFAULT={},URI="{}"\n'.format(
+            # compute a media name that is unique in the group
+            media_name = audio_track.label if audio_track.label else audio_track.language_name
+            if media_name in media_names:
+                duplicate = media_name
+                for suffix in range(1, len(media_names) + 1):
+                    media_name = f'{duplicate}-{suffix}'
+                    if media_name not in media_names:
+                        break
+            media_names.append(media_name)
+
+            default = audio_track.hls_default
+            if default is None:
+                default = not default_selected
+            if default:
+                default_selected = True
+            master_playlist_file.write('#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="{}",LANGUAGE="{}",NAME="{}",AUTOSELECT={},DEFAULT={},CHANNELS="{}",URI="{}"\n'.format(
                                        audio_group_name,
-                                       language,
-                                       group_name,
-                                       'YES' if select_as_default else 'NO',
+                                       audio_track.language,
+                                       media_name,
+                                       'YES' if audio_track.hls_autoselect else 'NO',
+                                       'YES' if default else 'NO',
+                                       audio_track.channels,
                                        media_playlist_path))
-            select_as_default = False
             OutputHlsTrack(options, audio_track, all_audio_tracks + all_video_tracks, media_subdir, media_playlist_name, media_file_name)
 
-            # Add an audio stream entry for audio-only presentations
-            if not all_video_tracks:
+            # Add an audio stream entry for audio-only presentations or if the track specifiers include a '-' entry
+            # for the group match spec ('+hls_group_match' is equal to or includes the special name '-')
+            if not all_video_tracks or '-' in audio_track.hls_group_match:
                 master_playlist_file.write('#EXT-X-STREAM-INF:AUDIO="{}",AVERAGE-BANDWIDTH={:.0f},BANDWIDTH={:.0f},CODECS="{}"\n'.format(
                                             audio_group_name,
                                             audio_track.average_segment_bitrate,
                                             audio_track.max_segment_bitrate,
-                                            audio_track.codec))
+                                            ','.join(audio_group['codecs'])))
                 master_playlist_file.write(media_playlist_path+'\n')
 
     master_playlist_file.write('\n')
     master_playlist_file.write('# Video\n')
     iframe_playlist_lines = []
-    subtitles_group = 'SUBTITLES="subtitles",' if subtitles_files else ''
+    subtitles_group = 'SUBTITLES="subtitles",' if (subtitles_files or all_subtitles_tracks) else ''
     for video_track in all_video_tracks:
         if options.on_demand or not options.split:
             media_subdir          = ''
@@ -917,15 +952,17 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
             iframes_playlist_path = media_subdir+'/'+iframes_playlist_name
 
         if audio_groups:
-            # one entry per audio group
+            # one entry per matching audio group
             for audio_group_name in audio_groups:
-                audio_codec = audio_groups[audio_group_name]['codec']
+                if '*' not in video_track.hls_group_match and audio_group_name not in video_track.hls_group_match:
+                    continue
+                audio_codecs = ','.join(audio_groups[audio_group_name]['codecs'])
                 master_playlist_file.write('#EXT-X-STREAM-INF:{}AUDIO="{}",AVERAGE-BANDWIDTH={:.0f},BANDWIDTH={:.0f},CODECS="{}",RESOLUTION={:.0f}x{:.0f},FRAME-RATE={:.3f}\n'.format(
                                            subtitles_group,
                                            audio_group_name,
                                            video_track.average_segment_bitrate + audio_groups[audio_group_name]['average_segment_bitrate'],
                                            video_track.max_segment_bitrate + audio_groups[audio_group_name]['max_segment_bitrate'],
-                                           video_track.codec+','+audio_codec,
+                                           video_track.codec+','+audio_codecs,
                                            video_track.width,
                                            video_track.height,
                                            video_track.frame_rate))
@@ -960,7 +997,7 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
     # IMSC1 subtitles
     if all_subtitles_tracks:
         master_playlist_file.write('\n# Subtitles (IMSC1)\n')
-        select_as_default = True
+        default_selected = False
         for subtitles_track in all_subtitles_tracks:
             if subtitles_track.codec != 'stpp':
                 # only accept IMSC1 tracks
@@ -979,28 +1016,36 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
                 media_playlist_name = options.hls_media_playlist_name
                 media_playlist_path = media_subdir+'/'+media_playlist_name
 
-            master_playlist_file.write('#EXT-X-MEDIA:TYPE=SUBTITLES,GROUP-ID="subtitles",NAME="{}",DEFAULT={},AUTOSELECT=YES,LANGUAGE="{}",URI="{}"\n'.format(
+            default = subtitles_track.hls_default and not default_selected
+            if default is None:
+                default = not default_selected
+            if default:
+                default_selected = True
+            master_playlist_file.write('#EXT-X-MEDIA:TYPE=SUBTITLES,GROUP-ID="subtitles",NAME="{}",AUTOSELECT={},DEFAULT={},LANGUAGE="{}",URI="{}"\n'.format(
                                        language_name,
-                                       'YES' if select_as_default else 'NO',
+                                       'YES' if subtitles_track.hls_autoselect else 'NO',
+                                       'YES' if default else 'NO',
                                        language,
                                        media_playlist_path))
-            select_as_default = False
 
     # WebVTT subtitles
     if subtitles_files:
         master_playlist_file.write('\n# Subtitles (WebVTT)\n')
         presentation_duration = math.ceil(max([track.total_duration for track in all_video_tracks + all_audio_tracks]))
-        select_as_default = True
+        default_selected = False
         for subtitles_file in subtitles_files:
             media_subdir = 'subtitles/{}'.format(subtitles_file.language)
             media_playlist_name = options.hls_media_playlist_name
-            master_playlist_file.write('#EXT-X-MEDIA:TYPE=SUBTITLES,GROUP-ID="subtitles",NAME="{}",DEFAULT={},AUTOSELECT=YES,LANGUAGE="{}",URI="{}/{}"\n'.format(
+            default = audio_track.hls_default and not default_selected
+            if default:
+                default_selected = True
+            master_playlist_file.write('#EXT-X-MEDIA:TYPE=SUBTITLES,GROUP-ID="subtitles",NAME="{}",AUTOSELECT={},DEFAULT={},LANGUAGE="{}",URI="{}/{}"\n'.format(
                                        language_name,
-                                       'YES' if select_as_default else 'NO',
+                                       'YES' if subtitles_file.hls_autoselect else 'NO',
+                                       'YES' if default else 'NO',
                                        subtitles_file.language,
                                        media_subdir,
                                        media_playlist_name))
-            select_as_default = False
             OutputHlsWebvttPlaylist(options, media_subdir, media_playlist_name, subtitles_file.media_name, presentation_duration)
 
 #############################################
@@ -1322,6 +1367,14 @@ def SelectTracks(options, media_sources):
             # label
             track.label = media_source.spec.get('+label', '')
 
+            # HLS options
+            track.hls_default = media_source.spec.get('+hls_default', None)  # None means: unspecified
+            if track.hls_default is not None:
+                track.hls_default = BooleanFromString(track.hls_default)
+            track.hls_autoselect = BooleanFromString(media_source.spec.get('+hls_autoselect', 'YES'))
+            track.hls_group = media_source.spec.get('+hls_group')
+            track.hls_group_match = media_source.spec.get('+hls_group_match', '*').split('&')
+
         # update label indexes (so that we can use numbers instead of strings for labels)
         for track in tracks:
             if track.label not in label_indexes:
@@ -1329,7 +1382,7 @@ def SelectTracks(options, media_sources):
 
         # process audio tracks
         for track in [t for t in tracks if t.type == 'audio']:
-            adaptation_set_name = ('audio', track.language, track.codec_family)
+            adaptation_set_name = ('audio', track.language, track.codec)
 
             # add the label index
             adaptation_set_name += (str(label_indexes[track.label]),)
@@ -1714,6 +1767,8 @@ def main():
                       help="Hippo Media Server Manifest file name", metavar="<filename>", default='stream.msm')
     parser.add_option('', "--use-compat-namespace", dest="use_compat_namespace", action="store_true", default=False,
                       help="Use the original DASH MPD namespace as it was specified in the first published specification")
+    parser.add_option('', "--use-legacy-audio-channel-config-uri", dest="use_legacy_audio_channel_config_uri", action="store_true", default=False,
+                      help="Use the legacy DASH namespace URI for the AudioChannelConfiguration descriptor")
     parser.add_option('', "--encryption-key", dest="encryption_key", metavar='<key-spec>', default=None,
                       help="Encrypt some or all tracks with MPEG CENC (AES-128), where <key-spec> specifies the KID(s) and Key(s) to use, using one of the following forms: " +
                            "(1) <KID>:<key> or <KID>:<key>:<IV> with <KID> (and <IV> if specififed) as a 32-character hex string and <key> either a 32-character hex string or the character '#' followed by a base64-encoded key seed; or " +
@@ -2138,8 +2193,8 @@ def main():
         OutputHippo(options, audio_tracks, video_tracks)
 
 ###########################
-if sys.version_info[0] != 3 or sys.version_info[1] < 5:
-    sys.stderr.write("ERROR: This tool must be run with Python 3.5 or above\n")
+if sys.version_info < (3,7,0):
+    sys.stderr.write("ERROR: This tool must be run with Python 3.7 or above\n")
     sys.stderr.write("You are running Python version: "+sys.version+"\n")
     exit(1)
 
