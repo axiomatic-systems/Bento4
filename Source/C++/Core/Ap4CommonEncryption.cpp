@@ -2329,7 +2329,7 @@ AP4_CencFragmentDecrypter::ProcessSample(AP4_DataBuffer& data_in,
 /*----------------------------------------------------------------------
 |   AP4_CencDecryptingProcessor::AP4_CencDecryptingProcessor
 +---------------------------------------------------------------------*/
-AP4_CencDecryptingProcessor::AP4_CencDecryptingProcessor(const AP4_ProtectionKeyMap* key_map, 
+AP4_CencDecryptingProcessor::AP4_CencDecryptingProcessor(AP4_ProtectionKeyMap* key_map,
                                                          AP4_BlockCipherFactory*     block_cipher_factory) :
     m_KeyMap(key_map)
 {
@@ -2402,6 +2402,20 @@ AP4_CencDecryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
                 protected_desc->GetSchemeType() == AP4_PROTECTION_SCHEME_TYPE_CBCS) {
                 sample_descs.Append(protected_desc);
                 sample_entries.Append(sample_entry);
+            }
+
+            AP4_ContainerAtom* schi = protected_desc->GetSchemeInfo()->GetSchiAtom();
+            if (schi != NULL) {
+                AP4_CencTrackEncryption* tenc;
+                if (protected_desc->GetSchemeType() == AP4_PROTECTION_SCHEME_TYPE_PIFF) {
+                    tenc = AP4_DYNAMIC_CAST(AP4_CencTrackEncryption, schi->GetChild(AP4_ATOM_TYPE_UUID));
+                } else {
+                    tenc = AP4_DYNAMIC_CAST(AP4_CencTrackEncryption, schi->GetChild(AP4_ATOM_TYPE_TENC));
+                }
+                if (tenc != NULL) {
+                    const AP4_DataBuffer* key = m_KeyMap->GetKeyByKid(tenc->GetDefaultKid());
+                    if (key != NULL) m_KeyMap->SetKey(trak->GetId(), key->GetData(), 16);
+                }
             }
         }
     }

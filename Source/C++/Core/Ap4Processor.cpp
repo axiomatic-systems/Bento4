@@ -143,6 +143,7 @@ AP4_Processor::ProcessFragments(AP4_MoovAtom*              moov,
                                 AP4_ContainerAtom*         mfra,
                                 AP4_SidxAtom*              sidx,
                                 AP4_Position               sidx_position,
+                                ProgressListener*          listener,
                                 AP4_ByteStream&            input, 
                                 AP4_ByteStream&            output)
 {
@@ -379,6 +380,11 @@ AP4_Processor::ProcessFragments(AP4_MoovAtom*              moov,
         }
         for (unsigned int i=0; i<sample_tables.ItemCount(); i++) {
             delete sample_tables[i];
+        }
+
+        // notify the progress listener
+        if (listener) {
+            listener->OnProgress(fragment_index+1, atoms.ItemCount());
         }
     }
     
@@ -702,7 +708,7 @@ AP4_Processor::Process(AP4_ByteStream&   input,
             AP4_ASSERT(after-before == mdat_payload_size);
 #endif
         }
-        
+
         // find the position of the sidx atom
         AP4_Position sidx_position = 0;
         if (sidx) {
@@ -718,7 +724,7 @@ AP4_Processor::Process(AP4_ByteStream&   input,
         }
         
         // process the fragments, if any
-        result = ProcessFragments(moov, frags, mfra, sidx, sidx_position, fragments?*fragments:input, output);
+        result = ProcessFragments(moov, frags, mfra, sidx, sidx_position, listener, fragments?*fragments:input, output);
         if (AP4_FAILED(result)) return result;
         
         // update and re-write the sidx if we have one
@@ -755,7 +761,7 @@ AP4_Processor::Process(AP4_ByteStream&   input,
         // so we need to delete it here
         delete moov;
     }
-    
+
     return AP4_SUCCESS;
 }
 
