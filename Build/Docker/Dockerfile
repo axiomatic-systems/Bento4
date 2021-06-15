@@ -10,7 +10,7 @@ RUN apk update && apk add --no-cache ca-certificates bash python3 make cmake gcc
 COPY ./ /tmp/bento4
 
 # Build
-RUN rm -rf /tmp/bento4/cmakebuild && mkdir -p /tmp/bento4/cmakebuild && cd /tmp/bento4/cmakebuild && cmake -DCMAKE_BUILD_TYPE=Release .. && make
+RUN rm -rf /tmp/bento4/cmakebuild && mkdir -p /tmp/bento4/cmakebuild/x86_64-unknown-linux && cd /tmp/bento4/cmakebuild/x86_64-unknown-linux && cmake -DCMAKE_BUILD_TYPE=Release ../.. && make
 
 # Install
 RUN cd /tmp/bento4 && python3 Scripts/SdkPackager.py x86_64-unknown-linux . cmake && mkdir /opt/bento4 && mv /tmp/bento4/SDK/Bento4-SDK-*.x86_64-unknown-linux/* /opt/bento4
