@@ -540,7 +540,7 @@ Fragment(AP4_File&                input_file,
             target_dts = AP4_ConvertTime(anchor_cursor->m_Sample.GetDts(),
                                          anchor_cursor->m_Track->GetMediaTimeScale(),
                                          cursor->m_Track->GetMediaTimeScale());
-            if (target_dts <= cursor->m_Sample.GetDts()) {
+            if (anchor_cursor->m_Eos || target_dts <= cursor->m_Sample.GetDts()) {
                 // we must be at the end, past the last anchor sample, just use the target duration
                 target_dts = AP4_ConvertTime((AP4_UI64)fragment_duration*(cursor->m_FragmentIndex+1),
                                             1000,
