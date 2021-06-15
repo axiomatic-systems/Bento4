@@ -1,7 +1,6 @@
 """Tasks to build the Bento4 documentation"""
 
 import os
-import sys
 import shutil
 from invoke import task, Collection
 
