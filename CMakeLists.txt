@@ -7,7 +7,14 @@ else()
   cmake_minimum_required(VERSION 3.10)
 endif()
 
-project(bento4)
+function(GET_BENTO4_VERSION)
+  file(STRINGS "Source/C++/Core/Ap4Version.h" _temp REGEX "AP4_VERSION_STRING")
+  string(REGEX MATCH "\"([^\"]+)\"" _temp "${_temp}")
+  set(BENTO4_VERSION "${CMAKE_MATCH_1}" PARENT_SCOPE)
+endfunction()
+
+get_bento4_version()
+project(bento4 VERSION "${BENTO4_VERSION}")
 
 # Variables
 set(SOURCE_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/Source/C++)
@@ -51,14 +58,22 @@ endif()
 
 # Includes
 set(AP4_INCLUDE_DIRS
-  ${SOURCE_CORE}
-  ${SOURCE_CODECS}
-  ${SOURCE_CRYPTO}
-  ${SOURCE_METADATA}
+  $<BUILD_INTERFACE:${SOURCE_CORE}>
+  $<BUILD_INTERFACE:${SOURCE_CODECS}>
+  $<BUILD_INTERFACE:${SOURCE_CRYPTO}>
+  $<BUILD_INTERFACE:${SOURCE_METADATA}>
+)
+file(GLOB AP4_HEADERS
+  ${SOURCE_CORE}/*.h
+  ${SOURCE_CODECS}/*.h
+  ${SOURCE_CRYPTO}/*.h
+  ${SOURCE_METADATA}/*.h
 )
 
 add_library(ap4 STATIC ${AP4_SOURCES})
-target_include_directories(ap4 PUBLIC ${AP4_INCLUDE_DIRS})
+target_include_directories(ap4 PUBLIC
+  ${AP4_INCLUDE_DIRS}
+)
 
 # Use the statically linked C runtime library
 if(MSVC)
@@ -72,6 +87,7 @@ if(BUILD_APPS)
 file(GLOB BENTO4_APPS RELATIVE ${SOURCE_ROOT}/Apps ${SOURCE_ROOT}/Apps/*)
 foreach(app ${BENTO4_APPS})
   string(TOLOWER ${app} binary_name)
+  list(APPEND BENTO4_APPS_LOWERCASE ${binary_name})
   add_executable(${binary_name} ${SOURCE_ROOT}/Apps/${app}/${app}.cpp)
   target_link_libraries(${binary_name} ap4)
 
@@ -81,3 +97,48 @@ foreach(app ${BENTO4_APPS})
   endif()
 endforeach()
 endif(BUILD_APPS)
+
+# Install
+include(GNUInstallDirs)
+set(config_install_dir "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}")
+set(generated_dir "${CMAKE_CURRENT_BINARY_DIR}/generated")
+set(version_config "${generated_dir}/${PROJECT_NAME}ConfigVersion.cmake")
+set(project_config "${generated_dir}/${PROJECT_NAME}Config.cmake")
+set(TARGETS_EXPORT_NAME "${PROJECT_NAME}Targets")
+set(namespace "${PROJECT_NAME}::")
+
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+    "${version_config}" COMPATIBILITY SameMajorVersion
+)
+
+configure_package_config_file(
+    "Build/cmake/Config.cmake.in"
+    "${project_config}"
+    INSTALL_DESTINATION "${config_install_dir}"
+)
+
+install(
+    TARGETS ap4 ${BENTO4_APPS_LOWERCASE}
+    EXPORT "${TARGETS_EXPORT_NAME}"
+    LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+    ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+    RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+    INCLUDES DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+)
+
+install(
+    FILES ${AP4_HEADERS}
+    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/bento4"
+)
+
+install(
+    FILES "${project_config}" "${version_config}"
+    DESTINATION "${config_install_dir}"
+)
+
+install(
+    EXPORT "${TARGETS_EXPORT_NAME}"
+    NAMESPACE "${namespace}"
+    DESTINATION "${config_install_dir}"
+)
