@@ -5,7 +5,10 @@ The most common use of MPEG DASH is for delivering adaptive streaming presentati
 
 For audio, however, it is typical to only have one bitrate. Offering multiple audio variants is often limited to offering a choice of stereo and multi-channel audio, where the stereo stream is usually encoded with AAC, and the multi-channel stream(s) with Dolby Digital or similar. The main reason for only having a single bitrate is the fact that with AAC and other codecs, seamless transition between audio streams encoded at different bitrates isn't easy or often not even possible. A second reason is that the audio bitrate is usually much lower than the video bitrate, so varrying the audio bitrate doesn't offer much of a difference in terms of the absolute total bitrate that the player has to receive.
 
-With new generations of codecs, like xHE-AAC ("Extended High Efficiency AAC"), which combines the MPEG-D USAC standard (ISO/IEC 23003-3) and appropriate parts of the MPEG-D DRC Loudness Control Profile or Dynamic Range Control Profile, it is now possible to offer audio encoded at different bitrates, and allow the player to seamlessly switch between the different bitrates on the fly.
+With new generations of codecs, like xHE-AAC, which combines the "Extended High Efficiency AAC" profile of the  MPEG-D USAC standard (ISO/IEC 23003-3) and appropriate parts of the MPEG-D DRC Loudness Control Profile or Dynamic Range Control Profile, it is now possible to offer audio encoded at different bitrates, and allow the player to seamlessly switch between the different bitrates on the fly
+
+
+To learn more about the xHE-AAC audio codec, please visit Fraunhofer's [www.xhe-aac.com](https://www.xhe-aac.com) website
 
 The `mp4dash` tool supports input audio files that are encoded with xHE-AAC.
 

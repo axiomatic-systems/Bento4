@@ -89,7 +89,7 @@ AP4_TrunAtom::AP4_TrunAtom(AP4_UI32 flags,
     m_DataOffset(data_offset),
     m_FirstSampleFlags(first_sample_flags)
 {
-    m_Size32 += 4*ComputeOptionalFieldsCount(flags);
+    m_Size32 += 4 * ComputeOptionalFieldsCount(flags);
 }
 
 /*----------------------------------------------------------------------
@@ -149,6 +149,16 @@ AP4_TrunAtom::AP4_TrunAtom(AP4_UI32        size,
             stream.ReadUI32(discard);
         }
     }
+}
+
+/*----------------------------------------------------------------------
+|   AP4_TrunAtom::UpdateFlags
++---------------------------------------------------------------------*/
+void
+AP4_TrunAtom::UpdateFlags(AP4_UI32 flags)
+{
+    m_Flags  = flags;
+    m_Size32 = AP4_FULL_ATOM_HEADER_SIZE + 4 + 4 * ComputeOptionalFieldsCount(flags);
 }
 
 /*----------------------------------------------------------------------

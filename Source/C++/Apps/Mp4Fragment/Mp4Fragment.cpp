@@ -615,9 +615,18 @@ Fragment(AP4_File&                input_file,
         // index of the first sample in the group, which may not be correct. This
         // should be fixed later)
         unsigned int sample_desc_index = cursor->m_Sample.GetDescriptionIndex();
-        unsigned int tfhd_flags = AP4_TFHD_FLAG_DEFAULT_BASE_IS_MOOF | AP4_TFHD_FLAG_SAMPLE_DESCRIPTION_INDEX_PRESENT;
-        if (cursor->m_Track->GetType() == AP4_Track::TYPE_VIDEO) {
-            tfhd_flags |= AP4_TFHD_FLAG_DEFAULT_SAMPLE_FLAGS_PRESENT;
+
+        // set initial flag values
+        AP4_UI32 tfhd_flags = AP4_TFHD_FLAG_DEFAULT_BASE_IS_MOOF | AP4_TFHD_FLAG_SAMPLE_DESCRIPTION_INDEX_PRESENT;
+        AP4_UI32 trun_flags = AP4_TRUN_FLAG_DATA_OFFSET_PRESENT |
+                              AP4_TRUN_FLAG_SAMPLE_SIZE_PRESENT;
+        AP4_UI32 sync_sample_flags = 0;
+        AP4_UI32 non_sync_sample_flags = 0x10000; // 0x10000 -> sample_is_non_sync
+        if (cursor->m_Track->GetType() == AP4_Track::TYPE_VIDEO ||
+            (cursor->m_Track->GetSampleDescriptionCount() > 0 &&
+             cursor->m_Track->GetSampleDescription(0)->GetFormat() == AP4_SAMPLE_FORMAT_AC_4)) {
+            non_sync_sample_flags |= 0x1000000; // sample_depends_on=1 (not I frame)
+            sync_sample_flags     |= 0x2000000; // sample_depends_on=2 (I frame)
         }
         
         // setup the moof structure
@@ -632,31 +641,19 @@ Fragment(AP4_File&                input_file,
                                               0,
                                               0,
                                               0);
-        if (tfhd_flags & AP4_TFHD_FLAG_DEFAULT_SAMPLE_FLAGS_PRESENT) {
-            tfhd->SetDefaultSampleFlags(0x1010000); // sample_is_non_sync_sample=1, sample_depends_on=1 (not I frame)
-        }
-        
         traf->AddChild(tfhd);
         if (!Options.no_tfdt) {
             AP4_TfdtAtom* tfdt = new AP4_TfdtAtom(1, cursor->m_Timestamp + (AP4_UI64)(Options.tfdt_start * (double)cursor->m_Track->GetMediaTimeScale()));
             traf->AddChild(tfdt);
         }
-        AP4_UI32 trun_flags = AP4_TRUN_FLAG_DATA_OFFSET_PRESENT |
-                              AP4_TRUN_FLAG_SAMPLE_SIZE_PRESENT;
-        AP4_UI32 first_sample_flags = 0;
-        if ( (cursor->m_Track->GetType() == AP4_Track::TYPE_VIDEO) ||
-             (cursor->m_Track->GetSampleDescriptionCount() >= 1 && cursor->m_Track->GetSampleDescription(0)->GetFormat() == AP4_SAMPLE_FORMAT_AC_4) ) {
-            trun_flags |= AP4_TRUN_FLAG_FIRST_SAMPLE_FLAGS_PRESENT;
-            first_sample_flags = 0x2000000; // sample_depends_on=2 (I frame)
-        }
-        AP4_TrunAtom* trun = new AP4_TrunAtom(trun_flags, 0, first_sample_flags);
-        
+                                              
+        // create the `trun` and `traf` atoms
+        AP4_TrunAtom* trun = new AP4_TrunAtom(trun_flags, 0, 0);
         unsigned int initial_offset = 0;
-        if(trun_version_one) {
+        if (trun_version_one) {
             trun->SetVersion(1);
             initial_offset = cursor->m_Sample.GetCtsDelta();
         }
-
         traf->AddChild(trun);
         moof->AddChild(traf);
         
@@ -670,10 +667,12 @@ Fragment(AP4_File&                input_file,
         fragment->m_MdatSize = AP4_ATOM_HEADER_SIZE;
         AP4_UI32 constant_sample_duration = 0;
         bool all_sample_durations_equal = true;
+        bool all_samples_are_sync = true;
+        bool only_first_sample_is_sync = true;
         for (;;) {
             // if we have one non-zero CTS delta, we'll need to express it
             if (cursor->m_Sample.GetCtsDelta()) {
-                trun->SetFlags(trun->GetFlags() | AP4_TRUN_FLAG_SAMPLE_COMPOSITION_TIME_OFFSET_PRESENT);
+                trun_flags |= AP4_TRUN_FLAG_SAMPLE_COMPOSITION_TIME_OFFSET_PRESENT;
             }
             
             // add one sample
@@ -687,6 +686,7 @@ Fragment(AP4_File&                input_file,
                                                next_unscaled_timestamp;
             trun_entry.sample_duration                = (AP4_UI32)(next_scaled_timestamp-cursor->m_Timestamp);
             trun_entry.sample_size                    = cursor->m_Sample.GetSize();
+            trun_entry.sample_flags                   = cursor->m_Sample.IsSync() ? sync_sample_flags : non_sync_sample_flags;
             trun_entry.sample_composition_time_offset = timescale?
                                                         (AP4_UI32)AP4_ConvertTime(cursor->m_Sample.GetCtsDelta(),
                                                                                   cursor->m_Track->GetMediaTimeScale(),
@@ -710,6 +710,15 @@ Fragment(AP4_File&                input_file,
                         all_sample_durations_equal = false;
                     }
                 }
+            }
+            
+            // update flag metadata
+            if (cursor->m_Sample.IsSync()) {
+                if (sample_count) {
+                    only_first_sample_is_sync = false;
+                }
+            } else {
+                all_samples_are_sync = false;
             }
             
             // next sample
@@ -736,13 +745,30 @@ Fragment(AP4_File&                input_file,
             printf(" constant sample duration: %s\n", all_sample_durations_equal?"yes":"no");
         }
         
-        // update the 'trun' flags if needed
-        if (all_sample_durations_equal) {
-            tfhd->SetDefaultSampleDuration(constant_sample_duration);
-            tfhd->UpdateFlags(tfhd->GetFlags() | AP4_TFHD_FLAG_DEFAULT_SAMPLE_DURATION_PRESENT);
+        // update the flags
+        if (only_first_sample_is_sync) {
+            trun_flags |= AP4_TRUN_FLAG_FIRST_SAMPLE_FLAGS_PRESENT;
+            trun->SetFirstSampleFlags(sync_sample_flags);
+            tfhd_flags |= AP4_TFHD_FLAG_DEFAULT_SAMPLE_FLAGS_PRESENT;
+            tfhd->SetDefaultSampleFlags(non_sync_sample_flags);
         } else {
-            trun->SetFlags(trun->GetFlags() | AP4_TRUN_FLAG_SAMPLE_DURATION_PRESENT);
+            if (all_samples_are_sync) {
+                tfhd_flags |= AP4_TFHD_FLAG_DEFAULT_SAMPLE_FLAGS_PRESENT;
+                tfhd->SetDefaultSampleFlags(0);
+            } else {
+                trun_flags |= AP4_TRUN_FLAG_SAMPLE_FLAGS_PRESENT;
+            }
         }
+
+        if (all_sample_durations_equal) {
+            tfhd_flags |= AP4_TFHD_FLAG_DEFAULT_SAMPLE_DURATION_PRESENT;
+            tfhd->SetDefaultSampleDuration(constant_sample_duration);
+        } else {
+            trun_flags |= AP4_TRUN_FLAG_SAMPLE_DURATION_PRESENT;
+        }
+        
+        tfhd->UpdateFlags(tfhd_flags);
+        trun->UpdateFlags(trun_flags);
         
         // update moof and children
         trun->SetEntries(trun_entries);
