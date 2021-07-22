@@ -1,7 +1,7 @@
 FROM alpine:latest
 
 # Setup environment variables
-ENV BENTO4_VERSION 1.6.0-638
+ENV BENTO4_VERSION 1.6.0-639
 
 # Install Dependencies
 RUN apk update && apk add --no-cache ca-certificates bash python3 make cmake gcc g++ git
