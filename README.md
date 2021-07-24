@@ -93,7 +93,7 @@ CMake can generate Makefiles, Xcode project files, or Visual Studios project fil
 
 	mkdir cmakebuild
 	cd cmakebuild
-	cmake -G Xcode
+	cmake -G Xcode ..
     cmake --build . --config Release
 
 #### CMake/Visual Studio
