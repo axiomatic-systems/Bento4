@@ -57,6 +57,9 @@ AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_AvcSampleDescription)
 AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_HevcSampleDescription)
 AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_Av1SampleDescription)
 AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_SubtitleSampleDescription)
+AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_Ac3SampleDescription)
+AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_Eac3SampleDescription)
+AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_Ac4SampleDescription)
 
 /*----------------------------------------------------------------------
 |  AP4_GetFormatName
