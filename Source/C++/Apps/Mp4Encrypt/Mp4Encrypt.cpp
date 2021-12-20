@@ -702,7 +702,7 @@ main(int argc, char** argv)
         }
     }
     
-    // process/decrypt the file
+    // process/encrypt the file
     ProgressListener listener;
     if (fragments_info) {
         if (multi) {
@@ -737,17 +737,22 @@ main(int argc, char** argv)
                 bool check = CheckWarning(*fragments_info, key_map, method);
                 if (strict && check) return 1;
                 processor = CreateProcessor(method, kms_uri, key_map, property_map, pssh_atoms);
-                if (processor) {
-                    result = processor->Process(*input, *output, *fragments_info, show_progress?&listener:NULL);
-                    if (AP4_FAILED(result)) {
-                        fprintf(stderr, "ERROR: failed to process the file (%d)\n", result);
-                    }
+                if (!processor) {
+                    fprintf(stderr, "ERROR: failed to create decryptor\n");
+                    return 1;
+                }
+                result = processor->Process(*input, *output, *fragments_info, show_progress?&listener:NULL);
+                if (AP4_FAILED(result)) {
+                    fprintf(stderr, "ERROR: failed to process the file (%d)\n", result);
                 }
                 delete processor;
                 
                 // close the streams
                 input->Release();
                 output->Release();
+                
+                // rewind the fragments info stream so we can reuse it
+                fragments_info->Seek(0);
             }
             input = NULL;
             output = NULL;
