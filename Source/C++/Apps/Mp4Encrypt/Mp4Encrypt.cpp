@@ -709,7 +709,11 @@ main(int argc, char** argv)
             for (AP4_Ordinal i = 0; i < input_fragments.ItemCount(); i++) {
                 // create the input stream
                 char fragment_input_filename[MP4_ENCRYPT_MAX_FILENAME_LENGTH + 1];
-                strncpy(fragment_input_filename, input_fragments[i], sizeof(fragment_input_filename));
+                if (strlen(input_fragments[i]) > MP4_ENCRYPT_MAX_FILENAME_LENGTH) {
+                    fprintf(stderr, "ERROR: input filename too long (%s)\n", input_fragments[i]);
+                    return 1;
+                }
+                strcpy(fragment_input_filename, input_fragments[i]);
                 char* last_dot = strrchr(fragment_input_filename, '.');
                 if (last_dot) {
                     *last_dot = '\0';
