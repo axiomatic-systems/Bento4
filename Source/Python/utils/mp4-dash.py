@@ -685,7 +685,7 @@ def ComputeHlsFairplayKeyLine(options):
 
 #############################################
 def OutputHlsCommon(options, track, all_tracks, media_subdir, playlist_name, media_file_name):
-    hls_target_duration = math.ceil(max(track.segment_durations))
+    hls_target_duration = round(max(track.segment_durations))
 
     output_dir = path.join(options.output_dir, media_subdir)
     os.makedirs(output_dir, exist_ok = True)
@@ -772,6 +772,8 @@ def OutputHlsIframeIndex(options, track, all_tracks, media_subdir, iframes_playl
     iframe_max_bitrate = 0
     iframe_average_segment_bitrate = 0
 
+    # When using segment durations to determine max iframe bitrate, skip the last segment since it can be
+    # very short (even 1 frame), which results in an invalid iframe_max_bitrate calculation.
     if not options.split:
         # get the I-frame index for a single file
         json_index = Mp4IframeIndex(options, path.join(options.output_dir, media_file_name))
@@ -785,11 +787,12 @@ def OutputHlsIframeIndex(options, track, all_tracks, media_subdir, iframes_playl
                 iframe_offset     = int(index_entry['offset'])
                 iframe_size       = int(index_entry['size'])
 
-                iframe_total_segment_size += iframe_size
-                iframe_total_segment_duration += iframe_segment_duration
-                iframe_bitrate = 8.0*(iframe_size/iframe_segment_duration)
-                if iframe_bitrate > iframe_max_bitrate:
-                    iframe_max_bitrate = iframe_bitrate
+                if i < len(track.segment_durations)-1:
+                    iframe_total_segment_size += iframe_size
+                    iframe_total_segment_duration += iframe_segment_duration
+                    iframe_bitrate = 8.0*(iframe_size/iframe_segment_duration)
+                    if iframe_bitrate > iframe_max_bitrate:
+                        iframe_max_bitrate = iframe_bitrate
 
                 iframe_range_size = iframe_size + (iframe_offset-fragment_start)
                 index_playlist_file.write('#EXT-X-BYTERANGE:{}@{}\n'.format(iframe_range_size, fragment_start))
@@ -814,12 +817,12 @@ def OutputHlsIframeIndex(options, track, all_tracks, media_subdir, iframes_playl
             index_playlist_file.write('#EXT-X-BYTERANGE:{}@0\n'.format(iframe_range_size))
             index_playlist_file.write(fragment_basename+'\n')
 
-            iframe_total_segment_size += iframe_size
-            iframe_total_segment_duration += iframe_segment_duration
-
-            iframe_bitrate = 8.0*(iframe_size/iframe_segment_duration)
-            if iframe_bitrate > iframe_max_bitrate:
-                iframe_max_bitrate = iframe_bitrate
+            if i < len(track.segment_durations)-1:
+                iframe_total_segment_size += iframe_size
+                iframe_total_segment_duration += iframe_segment_duration
+                iframe_bitrate = 8.0*(iframe_size/iframe_segment_duration)
+                if iframe_bitrate > iframe_max_bitrate:
+                    iframe_max_bitrate = iframe_bitrate
 
     index_playlist_file.write('#EXT-X-ENDLIST\n')
 
@@ -911,13 +914,20 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
                 default = not default_selected
             if default:
                 default_selected = True
+
+            sample_description = audio_track.info['sample_descriptions'][0]
+            if 'mpeg_4_audio_decoder_config' in sample_description:
+                audio_channel_config_value = str(sample_description['mpeg_4_audio_decoder_config']['channels'])
+            else:
+                audio_channel_config_value = str(audio_track.channels)
+
             master_playlist_file.write('#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="{}",LANGUAGE="{}",NAME="{}",AUTOSELECT={},DEFAULT={},CHANNELS="{}",URI="{}"\n'.format(
                                        audio_group_name,
                                        audio_track.language,
                                        media_name,
                                        'YES' if audio_track.hls_autoselect else 'NO',
                                        'YES' if default else 'NO',
-                                       audio_track.channels,
+                                       audio_channel_config_value,
                                        media_playlist_path))
             OutputHlsTrack(options, audio_track, all_audio_tracks + all_video_tracks, media_subdir, media_playlist_name, media_file_name)
 
@@ -1959,29 +1969,6 @@ def main():
 
     # parse media sources syntax
     media_sources = [MediaSource(options, source) for source in args]
-
-    # for on-demand, we need to first extract tracks into individual media files
-    if options.on_demand:
-        (audio_sets, video_sets, subtitles_sets, mp4_files) = SelectTracks(options, media_sources)
-        media_sources = [x for x in media_sources if x.format == "webvtt"] # Keep subtitles
-        for track in sum(list(audio_sets.values()) + list(video_sets.values()), []):
-            print('Extracting track', track.id, 'from', GetMappedFileName(track.parent.media_source.filename))
-            track_file = tempfile.NamedTemporaryFile(dir=options.output_dir, delete=False)
-            TempFiles.append(track_file.name)
-            track_file.close() # necessary on Windows
-            MapFileName(track_file.name, path.basename(track_file.name) + ' = Extracted[track '+str(track.id) + ' from '+GetMappedFileName(track.parent.media_source.filename)+']')
-
-            Mp4Fragment(options,
-                        track.parent.media_source.filename,
-                        track_file.name,
-                        track = str(track.id),
-                        index = True,
-                        copy_udta = True,
-                        quiet = True)
-
-            media_source = MediaSource(options, track_file.name)
-            media_source.spec = track.parent.media_source.spec
-            media_sources.append(media_source)
 
     # compute the KID(s) and encryption key(s)
     if options.encryption_key:
