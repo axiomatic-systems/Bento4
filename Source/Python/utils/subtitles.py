@@ -3,7 +3,7 @@ __copyright__ = 'Copyright 2011-2020 Axiomatic Systems, LLC.'
 
 import xml.etree.ElementTree as ET
 import os.path as path
-from mp4utils import LanguageCodeMap, LanguageNames
+from mp4utils import LanguageCodeMap, LanguageNames, BooleanFromString
 
 TTML_XML_NAMESPACE = 'http://www.w3.org/ns/ttml'
 XML_NAMESPACE      = 'http://www.w3.org/XML/1998/namespace'
@@ -38,6 +38,14 @@ class SubtitlesFile:
 
         if '+media' in media_source.spec:
             self.media_name = media_source.spec['+media']
+
+        # HLS options
+        self.hls_default = media_source.spec.get('+hls_default', None)  # None means: unspecified
+        if self.hls_default is not None:
+            self.hls_default = BooleanFromString(self.hls_default)
+        self.hls_autoselect = BooleanFromString(media_source.spec.get('+hls_autoselect', 'YES'))
+        self.hls_group = media_source.spec.get('+hls_group')
+        self.hls_group_match = media_source.spec.get('+hls_group_match', '*').split('&')
 
     def parse_ttml(self, options):
         self.format    = 'ttml'

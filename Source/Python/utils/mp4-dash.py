@@ -1039,11 +1039,13 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
             default = audio_track.hls_default and not default_selected
             if default:
                 default_selected = True
+            language = subtitles_file.language
+            language_name = subtitles_file.language_name
             master_playlist_file.write('#EXT-X-MEDIA:TYPE=SUBTITLES,GROUP-ID="subtitles",NAME="{}",AUTOSELECT={},DEFAULT={},LANGUAGE="{}",URI="{}/{}"\n'.format(
                                        language_name,
                                        'YES' if subtitles_file.hls_autoselect else 'NO',
                                        'YES' if default else 'NO',
-                                       subtitles_file.language,
+                                       language,
                                        media_subdir,
                                        media_playlist_name))
             OutputHlsWebvttPlaylist(options, media_subdir, media_playlist_name, subtitles_file.media_name, presentation_duration)
