@@ -127,6 +127,9 @@ AP4_DescriptorFactory::CreateDescriptorFromStream(AP4_ByteStream&  stream,
             descriptor = new AP4_UnknownDescriptor(stream, tag, header_size, payload_size);
             break;
         }
+    } else {
+        stream.Seek(offset);
+        return AP4_ERROR_INVALID_FORMAT;
     }
     
     // skip to the end of the descriptor
