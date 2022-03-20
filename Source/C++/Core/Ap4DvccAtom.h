@@ -92,7 +92,9 @@ public:
     AP4_UI08 GetDvBlSignalCompatibilityID() { return m_DvBlSignalCompatibilityID; }
 
     // helpers
-    AP4_Result GetCodecString(AP4_SampleDescription* parent, AP4_String& codec);
+    AP4_Result GetCodecString(const char* parent_codec_string,
+                              AP4_UI32    parent_format,
+                              AP4_String& codec);
 
 private:
     // members

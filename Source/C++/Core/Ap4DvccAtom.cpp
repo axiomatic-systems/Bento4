@@ -127,18 +127,19 @@ AP4_DvccAtom::AP4_DvccAtom(AP4_UI08 dv_version_major,
 |   AP4_DvccAtom::GetCodecString
 +---------------------------------------------------------------------*/
 AP4_Result
-AP4_DvccAtom::GetCodecString(AP4_SampleDescription* parent, AP4_String& codec)
+AP4_DvccAtom::GetCodecString(const char* parent_codec_string,
+                             AP4_UI32    parent_format,
+                             AP4_String& codec)
 {
     char workspace[64];
     
-    AP4_UI32 format = parent->GetFormat();
-    if (format == AP4_ATOM_TYPE_DVAV ||
-        format == AP4_ATOM_TYPE_DVA1 ||
-        format == AP4_ATOM_TYPE_DVHE ||
-        format == AP4_ATOM_TYPE_DVH1) {
+    if (parent_format == AP4_ATOM_TYPE_DVAV ||
+        parent_format == AP4_ATOM_TYPE_DVA1 ||
+        parent_format == AP4_ATOM_TYPE_DVHE ||
+        parent_format == AP4_ATOM_TYPE_DVH1) {
         /* Non backward-compatible */
         char coding[5];
-        AP4_FormatFourChars(coding, format);
+        AP4_FormatFourChars(coding, parent_format);
         AP4_FormatString(workspace,
                          sizeof(workspace),
                          "%s.%02d.%02d",
@@ -148,7 +149,8 @@ AP4_DvccAtom::GetCodecString(AP4_SampleDescription* parent, AP4_String& codec)
         codec = workspace;
     } else {
         /* Backward-compatible */
-        switch (format) {
+        AP4_UI32 format = parent_format;
+        switch (parent_format) {
           case AP4_ATOM_TYPE_AVC1:
             format = AP4_ATOM_TYPE_DVA1;
             break;
@@ -167,12 +169,10 @@ AP4_DvccAtom::GetCodecString(AP4_SampleDescription* parent, AP4_String& codec)
         }
         char coding[5];
         AP4_FormatFourChars(coding, format);
-        AP4_String parent_codec;
-        parent->GetCodecString(parent_codec);
         AP4_FormatString(workspace,
                          sizeof(workspace),
                          "%s,%s.%02d.%02d",
-                         parent_codec.GetChars(),
+                         parent_codec_string,
                          coding,
                          GetDvProfile(),
                          GetDvLevel());

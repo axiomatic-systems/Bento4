@@ -399,12 +399,6 @@ AP4_AvcSampleDescription::AP4_AvcSampleDescription(AP4_UI32        format,
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_AvcSampleDescription::GetCodecString(AP4_String& codec) {
-    // Dolby Vision override
-    AP4_DvccAtom* dvcc = AP4_DYNAMIC_CAST(AP4_DvccAtom, m_Details.GetChild(AP4_ATOM_TYPE_DVCC));
-    if (dvcc) {
-        return dvcc->GetCodecString(this, codec);
-    }
-    
     char coding[5];
     AP4_FormatFourChars(coding, GetFormat());
     char workspace[64];
@@ -415,8 +409,15 @@ AP4_AvcSampleDescription::GetCodecString(AP4_String& codec) {
                      GetProfile(),
                      GetProfileCompatibility(),
                      GetLevel());
-    codec = workspace;
     
+    // Dolby Vision override
+    AP4_DvccAtom* dvcc = AP4_DYNAMIC_CAST(AP4_DvccAtom, m_Details.GetChild(AP4_ATOM_TYPE_DVCC));
+    if (dvcc) {
+        return dvcc->GetCodecString(workspace, GetFormat(), codec);
+    }
+
+    codec = workspace;
+
     return AP4_SUCCESS;
 }
 
@@ -609,12 +610,6 @@ ReverseBits(AP4_UI32 bits)
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_HevcSampleDescription::GetCodecString(AP4_String& codec) {
-    // Dolby Vision override
-    AP4_DvccAtom* dvcc = AP4_DYNAMIC_CAST(AP4_DvccAtom, m_Details.GetChild(AP4_ATOM_TYPE_DVCC));
-    if (dvcc) {
-        return dvcc->GetCodecString(this, codec);
-    }
-
     char coding[5];
     AP4_FormatFourChars(coding, GetFormat());
     char profile_space[2] = {0,0};
@@ -636,6 +631,13 @@ AP4_HevcSampleDescription::GetCodecString(AP4_String& codec) {
                      GetGeneralTierFlag()?'H':'L',
                      GetGeneralLevel(),
                      constraints);
+
+    // Dolby Vision override
+    AP4_DvccAtom* dvcc = AP4_DYNAMIC_CAST(AP4_DvccAtom, m_Details.GetChild(AP4_ATOM_TYPE_DVCC));
+    if (dvcc) {
+        return dvcc->GetCodecString(workspace, GetFormat(), codec);
+    }
+
     codec = workspace;
     
     return AP4_SUCCESS;
