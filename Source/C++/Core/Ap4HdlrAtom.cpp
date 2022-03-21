@@ -121,23 +121,22 @@ AP4_HdlrAtom::WriteFields(AP4_ByteStream& stream)
     result = stream.WriteUI32(m_Reserved[2]);
     if (AP4_FAILED(result)) return result;
     AP4_UI08 name_size = (AP4_UI08)m_HandlerName.GetLength();
-    if (m_QuickTimeMode) {
-        name_size += 1;
-        if (AP4_FULL_ATOM_HEADER_SIZE + 20 + name_size > m_Size32) {
-            name_size = (AP4_UI08)(m_Size32 - (AP4_FULL_ATOM_HEADER_SIZE + 20));
-        }
-        if (name_size) {
+    if (name_size) {
+        if (m_QuickTimeMode) {
+            name_size += 1;
+            if (AP4_FULL_ATOM_HEADER_SIZE + 20 + name_size > m_Size32) {
+                name_size = (AP4_UI08)(m_Size32 - (AP4_FULL_ATOM_HEADER_SIZE + 20));
+            }
             result = stream.WriteUI08(name_size - 1);
             if (AP4_FAILED(result)) return result;
 
             result = stream.Write(m_HandlerName.GetChars(), name_size - 1);
             if (AP4_FAILED(result)) return result;
         }
-    } else {
-        if (AP4_FULL_ATOM_HEADER_SIZE + 20 + name_size > m_Size32) {
-            name_size = (AP4_UI08)(m_Size32 - (AP4_FULL_ATOM_HEADER_SIZE + 20));
-        }
-        if (name_size) {
+        else {
+            if (AP4_FULL_ATOM_HEADER_SIZE + 20 + name_size > m_Size32) {
+                name_size = (AP4_UI08)(m_Size32 - (AP4_FULL_ATOM_HEADER_SIZE + 20));
+            }
             result = stream.Write(m_HandlerName.GetChars(), name_size);
             if (AP4_FAILED(result)) return result;
         }
