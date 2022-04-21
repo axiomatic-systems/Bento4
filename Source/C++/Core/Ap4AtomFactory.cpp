@@ -356,6 +356,19 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
             atom = new AP4_AudioSampleEntry(type, size_32, stream, *this);
             break;
             
+          // ProRes
+          case AP4_ATOM_TYPE_AP4H:
+          case AP4_ATOM_TYPE_AP4X:
+          case AP4_ATOM_TYPE_APCH:
+          case AP4_ATOM_TYPE_APCN:
+          case AP4_ATOM_TYPE_APCS:
+          case AP4_ATOM_TYPE_APCO:
+          // mjpeg
+          case AP4_ATOM_TYPE_JPEG:
+          // Avid DNxHD / DNxHR
+          case AP4_ATOM_TYPE_AVDN:
+          case AP4_ATOM_TYPE_AVDH:
+          // VP8/9/10
           case AP4_ATOM_TYPE_VP08:
           case AP4_ATOM_TYPE_VP09:
           case AP4_ATOM_TYPE_VP10:
