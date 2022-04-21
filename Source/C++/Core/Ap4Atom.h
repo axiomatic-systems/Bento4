@@ -588,6 +588,10 @@ const AP4_Atom::Type AP4_ATOM_TYPE_SIDX = AP4_ATOM_TYPE('s','i','d','x');
 const AP4_Atom::Type AP4_ATOM_TYPE_SSIX = AP4_ATOM_TYPE('s','s','i','x');
 const AP4_Atom::Type AP4_ATOM_TYPE_SBGP = AP4_ATOM_TYPE('s','b','g','p');
 const AP4_Atom::Type AP4_ATOM_TYPE_SGPD = AP4_ATOM_TYPE('s','g','p','d');
+const AP4_Atom::Type AP4_ATOM_TYPE_COLR = AP4_ATOM_TYPE('c','o','l','r');
+const AP4_Atom::Type AP4_ATOM_TYPE_GAMA = AP4_ATOM_TYPE('g','a','m','a');
+const AP4_Atom::Type AP4_ATOM_TYPE_PASP = AP4_ATOM_TYPE('p','a','s','p');
+const AP4_Atom::Type AP4_ATOM_TYPE_FIEL = AP4_ATOM_TYPE('f','i','e','l');
 
 /*----------------------------------------------------------------------
 |   AP4_AtomListInspector
