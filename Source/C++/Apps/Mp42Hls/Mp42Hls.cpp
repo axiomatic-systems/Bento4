@@ -82,6 +82,7 @@ static struct _Options {
     const char*           segment_url_template;
     unsigned int          segment_duration;
     unsigned int          segment_duration_threshold;
+    bool                  allow_cache;
     const char*           encryption_key_hex;
     AP4_UI08              encryption_key[16];
     AP4_UI08              encryption_iv[16];
@@ -1028,7 +1029,8 @@ WriteSamples(AP4_Mpeg2TsWriter*               ts_writer,
              SampleReader*                    video_reader, 
              AP4_Mpeg2TsWriter::SampleStream* video_stream,
              unsigned int                     segment_duration_threshold,
-             AP4_UI08                         nalu_length_size)
+             AP4_UI08                         nalu_length_size,
+             bool                             allow_cache)
 {
     AP4_Sample              audio_sample;
     AP4_DataBuffer          audio_sample_data;
@@ -1358,6 +1360,9 @@ WriteSamples(AP4_Mpeg2TsWriter*               ts_writer,
     if (video_track) {
         playlist->WriteString("#EXT-X-INDEPENDENT-SEGMENTS\r\n");
     }
+    if (allow_cache) {
+        playlist->WriteString("#EXT-X-ALLOW-CACHE:YES\r\n");
+    }
     playlist->WriteString("#EXT-X-TARGETDURATION:");
     sprintf(string_buffer, "%d\r\n", target_duration);
     playlist->WriteString(string_buffer);
@@ -1580,6 +1585,7 @@ main(int argc, char** argv)
     Options.segment_url_template           = NULL;
     Options.segment_duration               = 6;
     Options.segment_duration_threshold     = DefaultSegmentDurationThreshold;
+    Options.allow_cache                    = false;
     Options.encryption_key_hex             = NULL;
     Options.encryption_mode                = ENCRYPTION_MODE_NONE;
     Options.encryption_iv_mode             = ENCRYPTION_IV_MODE_NONE;
@@ -1619,6 +1625,8 @@ main(int argc, char** argv)
                 return 1;
             }
             Options.segment_duration_threshold = (unsigned int)strtoul(*args++, NULL, 10);
+        } else if (!strcmp(arg, "--allow-cache")) {
+            Options.allow_cache = true;
         } else if (!strcmp(arg, "--segment-filename-template")) {
             if (*args == NULL) {
                 fprintf(stderr, "ERROR: --segment-filename-template requires an argument\n");
@@ -2174,7 +2182,8 @@ main(int argc, char** argv)
                           audio_track, audio_reader, audio_stream,
                           video_track, video_reader, video_stream,
                           Options.segment_duration_threshold,
-                          nalu_length_size);
+                          nalu_length_size,
+                          Options.allow_cache);
     if (AP4_FAILED(result)) {
         fprintf(stderr, "ERROR: failed to write samples (%d)\n", result);
     }
