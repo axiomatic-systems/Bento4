@@ -50,7 +50,7 @@ AP4_FielAtom::Create(AP4_Size size, AP4_ByteStream& stream)
 |   AP4_FielAtom::AP4_FielAtom
 +---------------------------------------------------------------------*/
 AP4_FielAtom::AP4_FielAtom(AP4_UI08 fields, AP4_UI08 detail) :
-    AP4_Atom(AP4_ATOM_TYPE_FIEL, AP4_FULL_ATOM_HEADER_SIZE),
+    AP4_Atom(AP4_ATOM_TYPE_FIEL, AP4_ATOM_HEADER_SIZE + 2),
     m_Fields(fields),
     m_Detail(detail)
 {
@@ -60,7 +60,7 @@ AP4_FielAtom::AP4_FielAtom(AP4_UI08 fields, AP4_UI08 detail) :
 |   AP4_FielAtom::AP4_FielAtom
 +---------------------------------------------------------------------*/
 AP4_FielAtom::AP4_FielAtom() :
-    AP4_Atom(AP4_ATOM_TYPE_FIEL, AP4_FULL_ATOM_HEADER_SIZE),
+    AP4_Atom(AP4_ATOM_TYPE_FIEL, AP4_ATOM_HEADER_SIZE + 2),
     m_Fields(1),
     m_Detail(0)
 {

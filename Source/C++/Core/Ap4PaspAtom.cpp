@@ -50,7 +50,7 @@ AP4_PaspAtom::Create(AP4_Size size, AP4_ByteStream& stream)
 |   AP4_PaspAtom::AP4_PaspAtom
 +---------------------------------------------------------------------*/
 AP4_PaspAtom::AP4_PaspAtom(AP4_UI32 hspacing, AP4_UI32 vspacing) :
-    AP4_Atom(AP4_ATOM_TYPE_PASP, AP4_FULL_ATOM_HEADER_SIZE),
+    AP4_Atom(AP4_ATOM_TYPE_PASP, AP4_ATOM_HEADER_SIZE + 8),
     m_HSpacing(hspacing),
     m_VSpacing(vspacing)
 {
@@ -60,7 +60,7 @@ AP4_PaspAtom::AP4_PaspAtom(AP4_UI32 hspacing, AP4_UI32 vspacing) :
 |   AP4_PaspAtom::AP4_PaspAtom
 +---------------------------------------------------------------------*/
 AP4_PaspAtom::AP4_PaspAtom() :
-    AP4_Atom(AP4_ATOM_TYPE_PASP, AP4_FULL_ATOM_HEADER_SIZE),
+    AP4_Atom(AP4_ATOM_TYPE_PASP, AP4_ATOM_HEADER_SIZE + 8),
     m_HSpacing(1),
     m_VSpacing(1)
 {

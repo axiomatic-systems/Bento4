@@ -53,7 +53,7 @@ AP4_ColrAtom::AP4_ColrAtom(AP4_UI32 type,
                            AP4_UI16 primaries,
                            AP4_UI16 transfer_function,
                            AP4_UI16 matrix_index) :
-    AP4_Atom(AP4_ATOM_TYPE_COLR, AP4_FULL_ATOM_HEADER_SIZE),
+    AP4_Atom(AP4_ATOM_TYPE_COLR, AP4_ATOM_HEADER_SIZE + 10),
     m_Type(type),
     m_Primaries(primaries),
     m_TransferFunction(transfer_function),
@@ -65,7 +65,7 @@ AP4_ColrAtom::AP4_ColrAtom(AP4_UI32 type,
 |   AP4_ColrAtom::AP4_ColrAtom
 +---------------------------------------------------------------------*/
 AP4_ColrAtom::AP4_ColrAtom() :
-    AP4_Atom(AP4_ATOM_TYPE_COLR, AP4_FULL_ATOM_HEADER_SIZE),
+    AP4_Atom(AP4_ATOM_TYPE_COLR, AP4_ATOM_HEADER_SIZE + 10),
     m_Type(AP4_COLR_TYPE_NCLC),
     m_Primaries(AP4_COLR_PRIMARIES_BT709),
     m_TransferFunction(AP4_COLR_TRANSFER_FUNCTION_BT709),

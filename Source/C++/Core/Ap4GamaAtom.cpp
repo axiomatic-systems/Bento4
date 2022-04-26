@@ -50,7 +50,7 @@ AP4_GamaAtom::Create(AP4_Size size, AP4_ByteStream& stream)
 |   AP4_GamaAtom::AP4_GamaAtom
 +---------------------------------------------------------------------*/
 AP4_GamaAtom::AP4_GamaAtom(AP4_UI32 gamma) :
-    AP4_Atom(AP4_ATOM_TYPE_GAMA, AP4_FULL_ATOM_HEADER_SIZE),
+    AP4_Atom(AP4_ATOM_TYPE_GAMA, AP4_ATOM_HEADER_SIZE + 4),
     m_Gamma(gamma)
 {
 }
@@ -59,7 +59,7 @@ AP4_GamaAtom::AP4_GamaAtom(AP4_UI32 gamma) :
 |   AP4_GamaAtom::AP4_GamaAtom
 +---------------------------------------------------------------------*/
 AP4_GamaAtom::AP4_GamaAtom() :
-    AP4_Atom(AP4_ATOM_TYPE_GAMA, AP4_FULL_ATOM_HEADER_SIZE),
+    AP4_Atom(AP4_ATOM_TYPE_GAMA, AP4_ATOM_HEADER_SIZE + 4),
     m_Gamma(1)
 {
 }
