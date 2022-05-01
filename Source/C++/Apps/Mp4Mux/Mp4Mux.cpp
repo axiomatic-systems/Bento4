@@ -181,7 +181,7 @@ ComputeDoviLevel(AP4_UI32 video_width, AP4_UI32 video_height, double frame_rate,
     } else if (level <= 3840*2160*60) {
         dv_level = 9;
     } else if (level <= 3840*2160*120) {
-        if(video_width == 7680) {
+        if (video_width == 7680) {
             dv_level = 11;
         } else {
             dv_level = 10;
@@ -261,7 +261,7 @@ CheckDoviInputParameters(AP4_Array<Parameter>& parameters)
     }
 
     if (format) {
-        if(profile == 5) {
+        if (profile == 5) {
             if ((format != AP4_SAMPLE_FORMAT_DVHE) && (format != AP4_SAMPLE_FORMAT_DVH1)) {
                 fprintf(stderr, "ERROR: sample entry name is not correct for profile 5\n");
                 return AP4_ERROR_INVALID_PARAMETERS;
@@ -656,12 +656,12 @@ AddAc3Track(AP4_Movie&             movie,
                                      0, 0);
 
     // add an edit list with MediaTime==0 to ac3 track defautly.
-    if(1) {
+    if (1) {
         // create an 'edts' container
         AP4_ContainerAtom* new_edts = new AP4_ContainerAtom(AP4_ATOM_TYPE_EDTS);
         AP4_ElstAtom* new_elst = new AP4_ElstAtom();
         AP4_UI64 duration = 0;
-        if(!movie.GetTimeScale()) {
+        if (!movie.GetTimeScale()) {
             duration = sample_count * 1536;
         } else {
             duration = AP4_ConvertTime(1000*sample_table->GetSampleCount(), sample_rate, movie.GetTimeScale());
@@ -803,12 +803,12 @@ AddEac3Track(AP4_Movie&             movie,
                                      0, 0);               // width, height
 
     // add an edit list with MediaTime==0 to ec3 track defautly.
-    if(1) {
+    if (1) {
         // create an 'edts' container
         AP4_ContainerAtom* new_edts = new AP4_ContainerAtom(AP4_ATOM_TYPE_EDTS);
         AP4_ElstAtom* new_elst = new AP4_ElstAtom();
         AP4_UI64 duration = 0;
-        if(!movie.GetTimeScale()) {
+        if (!movie.GetTimeScale()) {
             duration = sample_count * 1536;
         } else {
             duration = AP4_ConvertTime(1000*sample_table->GetSampleCount(), sample_rate, movie.GetTimeScale());
@@ -951,12 +951,12 @@ AddAc4Track(AP4_Movie&            movie,
                                      0, 0);                                    // width, height
 
     // add an edit list with MediaTime==0 to ac4 track defautly.
-    if(1) {
+    if (1) {
         // create an 'edts' container
         AP4_ContainerAtom* new_edts = new AP4_ContainerAtom(AP4_ATOM_TYPE_EDTS);
         AP4_ElstAtom* new_elst = new AP4_ElstAtom();
         AP4_UI64 duration = 0;
-        if(!movie.GetTimeScale()) {
+        if (!movie.GetTimeScale()) {
             duration = AP4_UI64(sample_count) * sample_duration;
         } else {
             duration = AP4_ConvertTime(1000*sample_table->GetSampleCount(), media_time_scale, movie.GetTimeScale());
@@ -1175,7 +1175,7 @@ AddH264Track(AP4_Movie&            movie,
                                      0,                    // auto-select track id
                                      movie_timescale,      // movie time scale
                                      video_track_duration, // track duration
-                                     video_frame_rate,     // media time scale
+                                     media_timescale,      // media time scale
                                      video_media_duration, // media duration
                                      language,             // language
                                      video_width<<16,      // width
@@ -1187,7 +1187,7 @@ AddH264Track(AP4_Movie&            movie,
         AP4_ContainerAtom* new_edts = new AP4_ContainerAtom(AP4_ATOM_TYPE_EDTS);
         AP4_ElstAtom* new_elst = new AP4_ElstAtom();
         AP4_UI64 duration = 0;
-        if(!movie.GetTimeScale()) {
+        if (!movie.GetTimeScale()) {
             duration = video_media_duration;
         } else {
             duration = AP4_ConvertTime(1000*sample_table->GetSampleCount(), media_timescale, movie.GetTimeScale());
@@ -1258,7 +1258,7 @@ AddH264DoviTrack(AP4_Movie&            movie,
     }
 
     //set default frame rate value
-    if(frame_rate == 0.0) {
+    if (frame_rate == 0.0) {
         frame_rate = 24.0;
     }
 
@@ -1403,30 +1403,30 @@ AddH264DoviTrack(AP4_Movie&            movie,
     // setup the video the sample descripton
     AP4_AvcDoviSampleDescription* sample_description =
         new AP4_AvcDoviSampleDescription(AP4_SAMPLE_FORMAT_AVC1,
-                                     video_width,
-                                     video_height,
-                                     24,
-                                     "DOVI Coding",
-                                     sps->profile_idc,
-                                     sps->level_idc,
-                                     sps->constraint_set0_flag<<7 |
-                                     sps->constraint_set1_flag<<6 |
-                                     sps->constraint_set2_flag<<5 |
-                                     sps->constraint_set3_flag<<4,
-                                     4,
-                                     sps_array,
-                                     pps_array,
-                                     sps->chroma_format_idc,
-                                     sps->bit_depth_luma_minus8,
-                                     sps->bit_depth_chroma_minus8,
-                                     dv_major_version,
-                                     dv_minor_version,
-                                     dv_profile,
-                                     dv_level,
-                                     dv_rpu_flag,
-                                     dv_el_flag,
-                                     dv_bl_flag,
-                                     dv_bl_signal_comp_id);
+                                         video_width,
+                                         video_height,
+                                         24,
+                                         "DOVI Coding",
+                                         sps->profile_idc,
+                                         sps->level_idc,
+                                         sps->constraint_set0_flag<<7 |
+                                         sps->constraint_set1_flag<<6 |
+                                         sps->constraint_set2_flag<<5 |
+                                         sps->constraint_set3_flag<<4,
+                                         4,
+                                         sps_array,
+                                         pps_array,
+                                         sps->chroma_format_idc,
+                                         sps->bit_depth_luma_minus8,
+                                         sps->bit_depth_chroma_minus8,
+                                         dv_major_version,
+                                         dv_minor_version,
+                                         dv_profile,
+                                         dv_level,
+                                         dv_rpu_flag,
+                                         dv_el_flag,
+                                         dv_bl_flag,
+                                         dv_bl_signal_comp_id);
     sample_table->AddSampleDescription(sample_description);
 
     AP4_UI32 movie_timescale      = 1000;
@@ -1440,19 +1440,19 @@ AddH264DoviTrack(AP4_Movie&            movie,
                                      0,                    // auto-select track id
                                      movie_timescale,      // movie time scale
                                      video_track_duration, // track duration
-                                     video_frame_rate,     // media time scale
+                                     media_timescale,      // media time scale
                                      video_media_duration, // media duration
-                                     language,              // language
+                                     language,             // language
                                      video_width<<16,      // width
                                      video_height<<16      // height
                                      );
     // Using edit list to compensate the inital cts offset
-    if(max_delta) {
+    if (max_delta) {
         // create an 'edts' container
         AP4_ContainerAtom* new_edts = new AP4_ContainerAtom(AP4_ATOM_TYPE_EDTS);
         AP4_ElstAtom* new_elst = new AP4_ElstAtom();
         AP4_UI64 duration = 0;
-        if(!movie.GetTimeScale()) {
+        if (!movie.GetTimeScale()) {
             duration = video_media_duration;
         } else {
             duration = AP4_ConvertTime(1000*sample_table->GetSampleCount(), media_timescale, movie.GetTimeScale());
@@ -1717,7 +1717,7 @@ AddH265Track(AP4_Movie&            movie,
                                      0,                    // auto-select track id
                                      movie_timescale,      // movie time scale
                                      video_track_duration, // track duration
-                                     video_frame_rate,     // media time scale
+                                     media_timescale,      // media time scale
                                      video_media_duration, // media duration
                                      language,             // language
                                      video_width<<16,      // width
@@ -1730,7 +1730,7 @@ AddH265Track(AP4_Movie&            movie,
         AP4_ContainerAtom* new_edts = new AP4_ContainerAtom(AP4_ATOM_TYPE_EDTS);
         AP4_ElstAtom* new_elst = new AP4_ElstAtom();
         AP4_UI64 duration = 0;
-        if(!movie.GetTimeScale()) {
+        if (!movie.GetTimeScale()) {
             duration = video_media_duration;
         } else {
             duration = AP4_ConvertTime(1000*sample_table->GetSampleCount(), media_timescale, movie.GetTimeScale());
@@ -1753,31 +1753,28 @@ AddH265Track(AP4_Movie&            movie,
 |   AddH265DoviTrack
 +---------------------------------------------------------------------*/
 static void
-AddH265DoviTrack(AP4_Movie&        movie,
-             const char*           input_name,
-             AP4_Array<Parameter>& parameters,
-             AP4_Array<AP4_UI32>&  brands,
-             SampleFileStorage&    sample_storage)
+AddH265DoviTrack(AP4_Movie&           movie,
+                const char*           input_name,
+                AP4_Array<Parameter>& parameters,
+                AP4_Array<AP4_UI32>&  brands,
+                SampleFileStorage&    sample_storage)
 {
     AP4_UI32 video_width = 0;
     AP4_UI32 video_height = 0;
-
-    AP4_UI32 time_scale = 0;
-    AP4_UI32 num_units = 0;
-    double frame_rate = 0.0;
+    double   frame_rate = 0.0;
 
     //based on the Dovi iso spec, set the following values to const 
     const AP4_UI32 dv_major_version = 1;
     const AP4_UI32 dv_minor_version = 0;
-    const bool         dv_rpu_flag = 1;
-    const bool         dv_el_flag = 0;
-    const bool         dv_bl_flag = 1;
+    const bool     dv_rpu_flag = 1;
+    const bool     dv_el_flag = 0;
+    const bool     dv_bl_flag = 1;
 
     AP4_UI32 dv_profile = 0;
     AP4_UI32 dv_bl_signal_comp_id = 0;
     AP4_UI32 dv_level = 0;
 
-    AP4_UI32     format = 0;
+    AP4_UI32 format = 0;
     
     AP4_ByteStream* input;
     AP4_Result result = AP4_FileByteStream::Create(input_name, AP4_FileByteStream::STREAM_MODE_READ, input);
@@ -1988,60 +1985,61 @@ AddH265DoviTrack(AP4_Movie&        movie,
         }
     }
 
+    // get the frame rate from the VPS
     AP4_HevcVideoParameterSet* vps = parser.GetVideoParameterSets()[0];
-    vps->GetInfo(time_scale, num_units);
-
-    if(num_units)
-    {
-        frame_rate = time_scale/num_units;
+    unsigned int vps_time_scale = 0;
+    unsigned int vps_num_units = 0;
+    vps->GetInfo(vps_time_scale, vps_num_units);
+    if (vps_num_units) {
+        frame_rate = vps_time_scale/vps_num_units;
     }
 
-    //set dolby vision level
+    // set dolby vision level
     ComputeDoviLevel(video_width, video_height, frame_rate, dv_level);
 
     // setup the video the sample descripton
     AP4_UI08 parameters_completeness = ((format == AP4_SAMPLE_FORMAT_HVC1 || format == AP4_SAMPLE_FORMAT_DVH1) ? 1 : 0);
     AP4_HevcDoviSampleDescription* sample_description =
         new AP4_HevcDoviSampleDescription(format,
-                                      video_width,
-                                      video_height,
-                                      24,
-                                      "DOVI Coding",
-                                      general_profile_space,
-                                      general_tier_flag,
-                                      general_profile,
-                                      general_profile_compatibility_flags,
-                                      general_constraint_indicator_flags,
-                                      general_level,
-                                      min_spatial_segmentation,
-                                      parallelism_type,
-                                      chroma_format,
-                                      luma_bit_depth,
-                                      chroma_bit_depth,
-                                      average_frame_rate,
-                                      constant_frame_rate,
-                                      num_temporal_layers,
-                                      temporal_id_nested,
-                                      nalu_length_size,
-                                      vps_array,
-                                      parameters_completeness,
-                                      sps_array,
-                                      parameters_completeness,
-                                      pps_array,
-                                      parameters_completeness,
-                                      dv_major_version,
-                                      dv_minor_version,
-                                      dv_profile,
-                                      dv_level,
-                                      dv_rpu_flag,
-                                      dv_el_flag,
-                                      dv_bl_flag,
-                                      dv_bl_signal_comp_id);
+                                          video_width,
+                                          video_height,
+                                          24,
+                                          "DOVI Coding",
+                                          general_profile_space,
+                                          general_tier_flag,
+                                          general_profile,
+                                          general_profile_compatibility_flags,
+                                          general_constraint_indicator_flags,
+                                          general_level,
+                                          min_spatial_segmentation,
+                                          parallelism_type,
+                                          chroma_format,
+                                          luma_bit_depth,
+                                          chroma_bit_depth,
+                                          average_frame_rate,
+                                          constant_frame_rate,
+                                          num_temporal_layers,
+                                          temporal_id_nested,
+                                          nalu_length_size,
+                                          vps_array,
+                                          parameters_completeness,
+                                          sps_array,
+                                          parameters_completeness,
+                                          pps_array,
+                                          parameters_completeness,
+                                          dv_major_version,
+                                          dv_minor_version,
+                                          dv_profile,
+                                          dv_level,
+                                          dv_rpu_flag,
+                                          dv_el_flag,
+                                          dv_bl_flag,
+                                          dv_bl_signal_comp_id);
     
     sample_table->AddSampleDescription(sample_description);
 
-    AP4_UI32 movie_timescale      = (num_units != 0) ? num_units : 1000;
-    AP4_UI32 media_timescale      = (time_scale != 0) ? num_units : video_frame_rate;
+    AP4_UI32 movie_timescale      = 1000;
+    AP4_UI32 media_timescale      = video_frame_rate;
     AP4_UI64 video_track_duration = AP4_ConvertTime(1000*sample_table->GetSampleCount(), media_timescale, movie_timescale);
     AP4_UI64 video_media_duration = 1000*sample_table->GetSampleCount();
 
@@ -2051,19 +2049,19 @@ AddH265DoviTrack(AP4_Movie&        movie,
                                      0,                    // auto-select track id
                                      movie_timescale,      // movie time scale
                                      video_track_duration, // track duration
-                                     video_frame_rate,     // media time scale
+                                     media_timescale,      // media time scale
                                      video_media_duration, // media duration
                                      language,             // language
                                      video_width<<16,      // width
                                      video_height<<16      // height
                                      );
     // Using edit list to compensate the inital cts offset
-    if(max_delta) {
+    if (max_delta) {
         // create an 'edts' container
         AP4_ContainerAtom* new_edts = new AP4_ContainerAtom(AP4_ATOM_TYPE_EDTS);
         AP4_ElstAtom* new_elst = new AP4_ElstAtom();
         AP4_UI64 duration = 0;
-        if(!movie.GetTimeScale()) {
+        if (!movie.GetTimeScale()) {
             duration = video_media_duration;
         } else {
             duration = AP4_ConvertTime(1000*sample_table->GetSampleCount(), media_timescale, movie.GetTimeScale());

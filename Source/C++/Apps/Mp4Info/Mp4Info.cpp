@@ -1490,7 +1490,7 @@ ShowMovieInfo(AP4_Movie& movie)
     switch (Options.format) {
         case TEXT_FORMAT:
             printf("Movie:\n");
-            printf("  duration:   %lld (media timescale units)\n", movie.GetDuration());
+            printf("  duration:   %lld (movie timescale units)\n", movie.GetDuration());
             printf("  duration:   %d (ms)\n", movie.GetDurationMs());
             printf("  time scale: %d\n", movie.GetTimeScale());
             printf("  fragments:  %s\n", movie.HasFragments()?"yes":"no");
