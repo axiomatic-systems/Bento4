@@ -122,7 +122,7 @@ main(int argc, char** argv)
                        (int)nalu->GetDataSize(),
                        nalu_type,
                        nalu_type_name);
-                if (nalu_type == AP4_HEVC_NALU_TYPE_AUD_NUT) {
+                if (nalu_type == AP4_HEVC_NALU_TYPE_AUD_NUT && nalu->GetDataSize() > 1) {
                     // Access Unit Delimiter
                     unsigned int pic_type = (nalu_payload[1]>>5);
                     const char*  pic_type_name = AP4_HevcNalParser::PicTypeName(pic_type);
