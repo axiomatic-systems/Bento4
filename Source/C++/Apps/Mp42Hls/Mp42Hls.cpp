@@ -82,6 +82,7 @@ static struct _Options {
     const char*           segment_url_template;
     unsigned int          segment_duration;
     unsigned int          segment_duration_threshold;
+    const char*           allow_cache;
     const char*           encryption_key_hex;
     AP4_UI08              encryption_key[16];
     AP4_UI08              encryption_iv[16];
@@ -148,6 +149,8 @@ PrintUsageAndExit()
             "  --pcr-offset <offset> in units of 90kHz (default 10000)\n"
             "  --index-filename <filename>\n"
             "    Filename to use for the playlist/index (default: stream.m3u8)\n"
+            "  --allow-cache <YES|NO>\n"
+            "    set #EXT-X-ALLOW-CACHE to YES or NO\n"
             "  --segment-filename-template <pattern>\n"
             "    Filename pattern to use for the segments. Use a printf-style pattern with\n"
             "    one number field for the segment number, unless using single file mode\n"
@@ -1358,6 +1361,11 @@ WriteSamples(AP4_Mpeg2TsWriter*               ts_writer,
     if (video_track) {
         playlist->WriteString("#EXT-X-INDEPENDENT-SEGMENTS\r\n");
     }
+    if (Options.allow_cache) {
+        playlist->WriteString("#EXT-X-ALLOW-CACHE:");
+        playlist->WriteString(Options.allow_cache);
+        playlist->WriteString("\r\n");
+    }
     playlist->WriteString("#EXT-X-TARGETDURATION:");
     sprintf(string_buffer, "%d\r\n", target_duration);
     playlist->WriteString(string_buffer);
@@ -1580,6 +1588,7 @@ main(int argc, char** argv)
     Options.segment_url_template           = NULL;
     Options.segment_duration               = 6;
     Options.segment_duration_threshold     = DefaultSegmentDurationThreshold;
+    Options.allow_cache                    = NULL;
     Options.encryption_key_hex             = NULL;
     Options.encryption_mode                = ENCRYPTION_MODE_NONE;
     Options.encryption_iv_mode             = ENCRYPTION_IV_MODE_NONE;
@@ -1631,6 +1640,12 @@ main(int argc, char** argv)
                 return 1;
             }
             Options.segment_url_template = *args++;
+        } else if (!strcmp(arg, "--allow-cache")) {
+            if (*args == NULL || (strcmp(*args, "NO") && strcmp(*args, "YES"))) {
+                fprintf(stderr, "ERROR: --allow-cache requires a YES or NO argument\n");
+                return 1;
+            }
+            Options.allow_cache = *args++;
         } else if (!strcmp(arg, "--pmt-pid")) {
             if (*args == NULL) {
                 fprintf(stderr, "ERROR: --pmt-pid requires a number\n");
