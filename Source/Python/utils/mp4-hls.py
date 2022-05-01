@@ -330,6 +330,11 @@ def OutputHls(options, media_sources):
     # process audio tracks
     if len(audio_tracks):
         MakeNewDir(path.join(options.output_dir, 'audio'))
+    if options.audio_format == 'ts':
+        for audios in audio_tracks.values():
+            for audio in audios:
+                if audio.codec_family in ['ec-3'] and audio.dolby_ddp_atmos == 'Yes':
+                    PrintErrorAndExit('ERROR: For Dolby Digital Plus with Dolby Atmos, the format of segment audio cannot be MPEG2TS, please add "--audio-format packed"')
     for group_id in audio_tracks:
         group = audio_tracks[group_id]
         MakeNewDir(path.join(options.output_dir, 'audio', group_id))
@@ -409,10 +414,11 @@ def OutputHls(options, media_sources):
                 if default:
                     extra_info += 'DEFAULT=YES,'
                     default = False
-                master_playlist.write(('#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="%s",NAME="%s",LANGUAGE="%s",%sURI="%s"\n' % (
+                master_playlist.write(('#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="%s",NAME="%s",LANGUAGE="%s",CHANNELS="%s",%sURI="%s"\n' % (
                                       group_name,
                                       audio_track.media_info['language_name'],
                                       audio_track.media_info['language'],
+                                      str(audio_track.channels),
                                       extra_info,
                                       options.base_url+audio_track.media_info['dir']+'/'+options.media_playlist_name)))
             audio_groups.append({

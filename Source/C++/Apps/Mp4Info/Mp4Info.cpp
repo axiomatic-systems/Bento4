@@ -893,16 +893,16 @@ ShowSampleDescription_Json(AP4_SampleDescription& description, bool verbose)
         AP4_Dec3Atom* dec3 = AP4_DYNAMIC_CAST(AP4_Dec3Atom, desc->GetDetails().GetChild(AP4_ATOM_TYPE('d', 'e', 'c', '3')));
         if (dec3) {
             printf(",\n");
-            printf("\"dolby_digital_info\": {\n");
+            printf("\"dolby_digital_plus_info\": {\n");
             printf("  \"dec3_payload\": \"");
             ShowData(dec3->GetRawBytes());
             printf("\",\n");
             printf("  \"data_rate\": %d,\n", dec3->GetDataRate());
             if (dec3->GetFlagEC3ExtensionTypeA()){
-                printf("  \"Dolby Digital Plus with Dolby Atmos\": \"Yes\",\n");
-                printf("  \"Dolby Atmos Complexity Index\": %d,\n", dec3->GetComplexityIndexTypeA());
+                printf("  \"Dolby_Atmos\": \"Yes\",\n");
+                printf("  \"complexity_index\": %d,\n", dec3->GetComplexityIndexTypeA());
             } else {
-                printf("  \"Dolby Digital Plus with Dolby Atmos\": \"No\",\n");
+                printf("  \"Dolby_Atmos\": \"No\",\n");
             }
             printf("  \"substreams\": [\n");
             const char* sep = "";
