@@ -1865,7 +1865,7 @@ main(int argc, char** argv)
     }
     
     if (Options.encryption_iv_mode == ENCRYPTION_IV_MODE_FPS) {
-        if (AP4_StringLength(Options.encryption_key_hex) != 64) {
+        if (Options.encryption_key_hex == NULL || AP4_StringLength(Options.encryption_key_hex) != 64) {
             fprintf(stderr, "ERROR: 'fps' IV mode requires a 32 byte key value (64 characters in hex)\n");
             return 1;
         }
