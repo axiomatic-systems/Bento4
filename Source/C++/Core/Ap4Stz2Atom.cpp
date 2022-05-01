@@ -94,7 +94,6 @@ AP4_Stz2Atom::AP4_Stz2Atom(AP4_UI32        size,
     stream.ReadUI32(sample_count);
 
     m_FieldSize   = field_size;
-    m_SampleCount = sample_count;
     unsigned int table_size = (sample_count * field_size + 7) / 8;
     if (table_size > size - AP4_FULL_ATOM_HEADER_SIZE - 8) {
         return;
@@ -105,6 +104,7 @@ AP4_Stz2Atom::AP4_Stz2Atom(AP4_UI32        size,
         delete[] buffer;
         return;
     }
+    m_SampleCount = sample_count;
     m_Entries.SetItemCount((AP4_Cardinal)sample_count);
     switch (m_FieldSize) {
         case 4:
