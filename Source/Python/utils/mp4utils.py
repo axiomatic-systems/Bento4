@@ -434,6 +434,14 @@ class Mp4Track:
         if self.type == 'audio':
             self.sample_rate = sample_desc['sample_rate']
             self.channels = sample_desc['channels']
+            # Set the default values for Dolby audio codec flags
+            self.dolby_ddp_atmos = 'No'
+            if self.codec_family == 'ec-3' and 'dolby_digital_plus_info' in sample_desc:
+                self.channels = GetDolbyDigitalPlusChannels(self)[0]
+                self.dolby_ddp_atmos = sample_desc['dolby_digital_plus_info']['Dolby_Atmos']
+                if (self.dolby_ddp_atmos == 'Yes'):
+                    self.complexity_index = sample_desc['dolby_digital_plus_info']['complexity_index']
+                    self.channels =  str(self.info['sample_descriptions'][0]['dolby_digital_plus_info']['complexity_index']) + '/JOC'
 
         self.language = info['language']
         self.language_name = LanguageNames.get(LanguageCodeMap.get(self.language, 'und'), '')
@@ -862,14 +870,20 @@ DolbyDigital_acmod = {
 
 def GetDolbyDigitalPlusChannels(track):
     sample_desc = track.info['sample_descriptions'][0]
-    if 'dolby_digital_info' not in sample_desc:
+    if 'dolby_digital_plus_info' not in sample_desc and 'dolby_digital_info' not in sample_desc:
         return (track.channels, [])
-    dd_info = sample_desc['dolby_digital_info']['substreams'][0]
-    channels = DolbyDigital_acmod[dd_info['acmod']][:]
-    if dd_info['lfeon'] == 1:
+    elif 'dolby_digital_plus_info' in sample_desc:
+        if 'substreams' in sample_desc['dolby_digital_plus_info']:
+            ddp_or_dd_info = sample_desc['dolby_digital_plus_info']['substreams'][0]
+    elif 'dolby_digital_info' in sample_desc:
+        if 'stream_info' in sample_desc['dolby_digital_info']:
+            ddp_or_dd_info = sample_desc['dolby_digital_info']['stream_info']
+
+    channels = DolbyDigital_acmod[ddp_or_dd_info['acmod']][:]
+    if ddp_or_dd_info['lfeon'] == 1:
         channels.append('LFE')
-    if dd_info['num_dep_sub'] and 'chan_loc' in dd_info:
-        chan_loc_value = dd_info['chan_loc']
+    if 'num_dep_sub' in ddp_or_dd_info and ddp_or_dd_info['num_dep_sub'] and 'chan_loc' in ddp_or_dd_info:
+        chan_loc_value = ddp_or_dd_info['chan_loc']
         for i in range(9):
             if chan_loc_value & (1<<i):
                 channels.append(DolbyDigital_chan_loc[i])

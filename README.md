@@ -27,7 +27,7 @@ A number of formats and features based on the ISO-MP4 format and related technol
  * The UltraViolet (DECE) CFF (Common File Format).
  * Parsing and multiplexing of H.264 (AVC) video and AAC audio elementary streams
  * Support for multiple DRM systems that are compatible with MP4-formatted content (usually leveraging CENC Common Encryption), such as Marlin, PlayReady and Widevine.
- * Support for a wide range of codecs, including H.264 (AVC), H.265 (HEVC), AAC, AC3 and eAC3 (Dolby Digital), DTS, ALAC, and many more.
+ * Support for a wide range of codecs, including H.264 (AVC), H.265 (HEVC), AAC, AC-3, EC-3 (Dolby Digital Plus), AC-4, Dolby ATMOS, DTS, ALAC, and many more.
 
 Design
 ------
