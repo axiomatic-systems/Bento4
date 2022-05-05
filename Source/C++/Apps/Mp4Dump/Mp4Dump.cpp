@@ -100,14 +100,14 @@ CreateTrackDumpByteStream(const char* mp4_filename,
 |   DumpSamples
 +---------------------------------------------------------------------*/
 static void
-DumpSamples(AP4_Track* track, AP4_ByteStream* dump)
+DumpSamples(AP4_Ordinal track_id, AP4_LinearReader* reader, AP4_ByteStream* dump)
 {
     // write the data
     AP4_Sample sample;
     AP4_DataBuffer sample_data;
     AP4_Ordinal index = 0;
 
-    while (AP4_SUCCEEDED(track->ReadSample(index, sample, sample_data))) {
+    while (AP4_SUCCEEDED(reader->ReadNextSample(track_id, sample, sample_data))) {
         // write the sample size
         dump->WriteUI32(sample_data.GetDataSize());
         
@@ -125,7 +125,8 @@ DumpSamples(AP4_Track* track, AP4_ByteStream* dump)
 |   DecryptAndDumpSamples
 +---------------------------------------------------------------------*/
 static void
-DecryptAndDumpSamples(AP4_Track*             track, 
+DecryptAndDumpSamples(AP4_Ordinal            track_id,
+                      AP4_LinearReader*      reader,
                       AP4_SampleDescription* sample_desc,
                       const AP4_UI08*        key,
                       AP4_Size               key_size,
@@ -149,7 +150,7 @@ DecryptAndDumpSamples(AP4_Track*             track,
     AP4_DataBuffer encrypted_data;
     AP4_DataBuffer decrypted_data;
     AP4_Ordinal    index = 0;
-    while (AP4_SUCCEEDED(track->ReadSample(index, sample, encrypted_data))) {
+    while (AP4_SUCCEEDED(reader->ReadNextSample(track_id, sample, encrypted_data))) {
         if (AP4_FAILED(decrypter->DecryptSampleData(encrypted_data, decrypted_data))) {
             fprintf(stderr, "ERROR: failed to decrypt sample\n");
             return;
@@ -171,19 +172,37 @@ DecryptAndDumpSamples(AP4_Track*             track,
 +---------------------------------------------------------------------*/
 void
 DumpTrackData(const char*                   mp4_filename, 
-              AP4_File&                     mp4_file, 
+              AP4_ByteStream*               mp4_stream,
               const AP4_Array<AP4_Ordinal>& tracks_to_dump,
               const AP4_ProtectionKeyMap&   key_map)
 {
+    AP4_Position original_pos;
+    mp4_stream->Tell(original_pos);
+
+    mp4_stream->Seek(0);
+    AP4_File mp4_file(*mp4_stream);
+
+    mp4_stream->Seek(0);
+    AP4_LinearReader reader(*mp4_file.GetMovie(), mp4_stream);
+
     // dump all the tracks that need to be dumped
     AP4_Cardinal tracks_to_dump_count = tracks_to_dump.ItemCount();
+    for (AP4_Ordinal i=0; i<tracks_to_dump_count; i++) {
+        AP4_Ordinal track_id = tracks_to_dump[i];
+
+        if (reader.EnableTrack(track_id) != AP4_SUCCESS) {
+            fprintf(stderr, "track not found (id = %d)", track_id);
+            break;
+        }
+    }
+
     for (AP4_Ordinal i=0; i<tracks_to_dump_count; i++) {
         // get the track
         AP4_Ordinal track_id = tracks_to_dump[i];
         AP4_Track* track = mp4_file.GetMovie()->GetTrack(track_id);
         if (track == NULL) {
             fprintf(stderr, "track not found (id = %d)", track_id);
-            return;
+            break;
         }
 
         // get the sample description
@@ -194,7 +213,7 @@ DumpTrackData(const char*                   mp4_filename,
 
         // get the dump data byte stream
         AP4_ByteStream* dump = CreateTrackDumpByteStream(mp4_filename, track_id);
-        if (dump == NULL) return;
+        if (dump == NULL) break;
 
         printf("\nDumping data for track %d:\n", track_id);
         switch(sample_description ?
@@ -204,22 +223,23 @@ DumpTrackData(const char*                   mp4_filename,
                 {
                     const AP4_DataBuffer* key = key_map.GetKey(track_id);
                     if (key == NULL) {
-                        fprintf(stderr, 
+                        fprintf(stderr,
                                 "WARNING: No key found for encrypted track %d... "
                                 "dumping encrypted samples\n",
                                 track_id);
-                        DumpSamples(track, dump);
+                        DumpSamples(track_id, &reader, dump);
                     } else {
-                        DecryptAndDumpSamples(track, sample_description, key->GetData(), key->GetDataSize(), dump);
+                        DecryptAndDumpSamples(track_id, &reader, sample_description, key->GetData(), key->GetDataSize(), dump);
                     }
                 }
                 break;
             default:
-                DumpSamples(track, dump);
-        
+                DumpSamples(track_id, &reader, dump);
+
         }
         dump->Release();
     }
+    mp4_stream->Seek(original_pos);
 }
 
 /*----------------------------------------------------------------------
@@ -359,12 +379,7 @@ main(int argc, char** argv)
 
     // inspect the track data if needed
     if (tracks_to_dump.ItemCount() != 0) {
-    	// rewind
-    	input->Seek(0);
-    	
-    	// dump the track data
-    	AP4_File file(*input);
-        DumpTrackData(filename, file, tracks_to_dump, key_map);
+        DumpTrackData(filename, input, tracks_to_dump, key_map);
     }
 
     if (input) input->Release();
