@@ -56,7 +56,9 @@ from mp4utils import (
     XmlDuration,
     PrintErrorAndExit,
     MakeNewDir,
-    BooleanFromString
+    BooleanFromString,
+    ReGroupEC3Sets,
+    DolbyDigitalWithMPEGDASHScheme
 )
 
 # setup main options
@@ -500,6 +502,7 @@ def OutputDash(options, set_attributes, audio_sets, video_sets, subtitles_sets, 
     # process the audio tracks
     if audio_sets:
         period.append(xml.Comment(' Audio '))
+        audio_sets = ReGroupEC3Sets(audio_sets)
         for _, audio_tracks in list(audio_sets.items()):
             args = [period, 'AdaptationSet']
             kwargs = {'mimeType': AUDIO_MIMETYPE, 'startWithSAP': '1', 'segmentAlignment': 'true'}
@@ -539,9 +542,13 @@ def OutputDash(options, set_attributes, audio_sets, video_sets, subtitles_sets, 
                                                 codecs=audio_track.codec,
                                                 bandwidth=str(audio_track.bandwidth),
                                                 audioSamplingRate=str(audio_track.sample_rate))
-                if audio_track.codec == 'ec-3':
+                if audio_track.codec == 'ec-3' or audio_track.codec == 'ac-3':
                     audio_channel_config_value = ComputeDolbyDigitalPlusAudioChannelConfig(audio_track)
-                    scheme_id_uri = DOLBY_DIGITAL_AUDIO_CHANNEL_CONFIGURATION_SCHEME_ID_URI
+                    (mpeg_scheme, audio_channel_config_value) = DolbyDigitalWithMPEGDASHScheme(audio_channel_config_value)
+                    if (mpeg_scheme):
+                        scheme_id_uri = ISO_IEC_23001_8_AUDIO_CHANNEL_CONFIGURATION_SCHEME_ID_URI
+                    else:
+                        scheme_id_uri = DOLBY_DIGITAL_AUDIO_CHANNEL_CONFIGURATION_SCHEME_ID_URI
                 elif audio_track.codec.startswith('ac-4'):
                     audio_channel_config_value = ComputeDolbyAc4AudioChannelConfig(audio_track)
                     scheme_id_uri = DOLBY_AC4_AUDIO_CHANNEL_CONFIGURATION_SCHEME_ID_URI
@@ -557,6 +564,16 @@ def OutputDash(options, set_attributes, audio_sets, video_sets, subtitles_sets, 
                                'AudioChannelConfiguration',
                                schemeIdUri=scheme_id_uri,
                                value=audio_channel_config_value)
+                # DD+ Atmos SupplementalProperty
+                if audio_track.codec_family == 'ec-3' and audio_track.dolby_ddp_atmos == 'Yes':
+                    xml.SubElement(representation,
+                                   'SupplementalProperty',
+                                   schemeIdUri='tag:dolby.com,2018:dash:EC3_ExtensionType:2018',
+                                   value='JOC')
+                    xml.SubElement(representation,
+                                   'SupplementalProperty',
+                                   schemeIdUri='tag:dolby.com,2018:dash:EC3_ExtensionComplexityIndex:2018',
+                                   value=str(audio_track.complexity_index))
 
                 if options.on_demand:
                     base_url = xml.SubElement(representation, 'BaseURL')

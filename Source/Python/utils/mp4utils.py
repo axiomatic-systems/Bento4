@@ -923,6 +923,17 @@ def ComputeDolbyDigitalPlusAudioChannelConfig(track):
             config |= flags[channel]
     return hex(config).upper()[2:]
 
+# ETSI TS 102 366 V1.4.1 (2017-09) Table I.1.1
+def DolbyDigitalWithMPEGDASHScheme(mask):
+    available_mask_dict = {'4000': '1' , 'A000': '2' , 'E000': '3' , 'E100': '4' ,
+                           'F800': '5' , 'F801': '6' , 'F821': '7' , 'A100': '9' ,
+                           'B800': '10', 'E301': '11', 'FA01': '12', 'F811': '14',
+                           'F815': '16', 'F89D': '17', 'E255': '19'}
+    if mask in available_mask_dict:
+        return (True, available_mask_dict[mask])
+    else:
+        return (False, mask)
+
 def ComputeDolbyAc4AudioChannelConfig(track):
     sample_desc = track.info['sample_descriptions'][0]
     if 'dolby_ac4_info' in sample_desc:
@@ -933,6 +944,30 @@ def ComputeDolbyAc4AudioChannelConfig(track):
                 return '%06x' % presentation['presentation_channel_mask_v1']
 
     return '000000'
+def ReGroupEC3Sets(audio_sets):
+    regroup_audio_sets    = {}
+    audio_adaptation_sets = {}
+    sc_index = 1
+    for name, audio_tracks in audio_sets.items():
+        if audio_tracks[0].codec_family == 'ec-3':
+            for track in audio_tracks:
+                if track.info['sample_descriptions'][0]['dolby_digital_plus_info']['atmos'] == 'Yes':
+                    adaptation_set_name = ('audio', track.language, track.codec_family, track.channels, 'ATMOS')
+                else:
+                    adaptation_set_name = ('audio', track.language, track.codec_family, track.channels)
+                if track.self_contained != 'Yes':
+                    adaptation_set_name = adaptation_set_name + ('#sc' + str(sc_index),)
+                    sc_index += 1
+                adaptation_set = audio_adaptation_sets.get(adaptation_set_name, [])
+                audio_adaptation_sets[adaptation_set_name] = adaptation_set
+                adaptation_set.append(track)
+        else:
+            regroup_audio_sets[name] = audio_tracks
+
+    for name, tracks in audio_adaptation_sets.items():
+        regroup_audio_sets[name] = tracks
+
+    return regroup_audio_sets
 
 def ComputeDolbyDigitalPlusAudioChannelMask(track):
     masks = {
