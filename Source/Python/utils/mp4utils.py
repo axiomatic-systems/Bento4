@@ -975,7 +975,6 @@ def DolbyAc4WithMPEGDASHScheme(mask):
 def ReGroupEC3Sets(audio_sets):
     regroup_audio_sets    = {}
     audio_adaptation_sets = {}
-    sc_index = 1
     for name, audio_tracks in audio_sets.items():
         if audio_tracks[0].codec_family == 'ec-3':
             for track in audio_tracks:
