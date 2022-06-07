@@ -454,7 +454,6 @@ class Mp4Track:
                         if stream_type == 'Immersive stereo':
                             self.dolby_ac4_ims = 'Yes'
                         self.channels = str(self.channels)
-                    self.self_contained = sample_desc['dolby_ac4_info']['Self Contained']
 
         self.language = info['language']
         self.language_name = LanguageNames.get(LanguageCodeMap.get(self.language, 'und'), '')
@@ -984,9 +983,6 @@ def ReGroupEC3Sets(audio_sets):
                     adaptation_set_name = ('audio', track.language, track.codec_family, track.channels, 'ATMOS')
                 else:
                     adaptation_set_name = ('audio', track.language, track.codec_family, track.channels)
-                if track.self_contained != 'Yes':
-                    adaptation_set_name = adaptation_set_name + ('#sc' + str(sc_index),)
-                    sc_index += 1
                 adaptation_set = audio_adaptation_sets.get(adaptation_set_name, [])
                 audio_adaptation_sets[adaptation_set_name] = adaptation_set
                 adaptation_set.append(track)
