@@ -787,7 +787,7 @@ def OutputHlsIframeIndex(options, track, all_tracks, media_subdir, iframes_playl
                 iframe_offset     = int(index_entry['offset'])
                 iframe_size       = int(index_entry['size'])
 
-                if i < len(track.segment_durations)-1:
+                if i < len(track.segment_durations)-1 or len(track.segment_durations) == 1:
                     iframe_total_segment_size += iframe_size
                     iframe_total_segment_duration += iframe_segment_duration
                     iframe_bitrate = 8.0*(iframe_size/iframe_segment_duration)
@@ -817,7 +817,7 @@ def OutputHlsIframeIndex(options, track, all_tracks, media_subdir, iframes_playl
             index_playlist_file.write('#EXT-X-BYTERANGE:{}@0\n'.format(iframe_range_size))
             index_playlist_file.write(fragment_basename+'\n')
 
-            if i < len(track.segment_durations)-1:
+            if i < len(track.segment_durations)-1 or len(track.segment_durations) == 1:
                 iframe_total_segment_size += iframe_size
                 iframe_total_segment_duration += iframe_segment_duration
                 iframe_bitrate = 8.0*(iframe_size/iframe_segment_duration)
