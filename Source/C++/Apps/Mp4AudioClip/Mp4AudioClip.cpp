@@ -140,7 +140,12 @@ main(int argc, char** argv)
     // (in almost all cases, there will only be one sample description)
     // NOTE: we don't transfer the ownership of the object
     for (unsigned int i=0; i<input_track->GetSampleDescriptionCount(); i++) {
-        sample_table->AddSampleDescription(input_track->GetSampleDescription(i), false);
+        AP4_SampleDescription* sample_description = input_track->GetSampleDescription(i);
+        if (!sample_description) {
+            fprintf(stderr, "ERROR: invalid/unsupported sample description\n");
+            return 1;
+        }
+        sample_table->AddSampleDescription(sample_description, false);
     }
     
     // the first output timestamp is 0
