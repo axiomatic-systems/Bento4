@@ -436,12 +436,24 @@ class Mp4Track:
             self.channels = sample_desc['channels']
             # Set the default values for Dolby audio codec flags
             self.dolby_ddp_atmos = 'No'
+            self.dolby_ac4_ims   = 'No'
             if self.codec_family == 'ec-3' and 'dolby_digital_plus_info' in sample_desc:
                 self.channels = GetDolbyDigitalPlusChannels(self)[0]
                 self.dolby_ddp_atmos = sample_desc['dolby_digital_plus_info']['Dolby_Atmos']
                 if (self.dolby_ddp_atmos == 'Yes'):
                     self.complexity_index = sample_desc['dolby_digital_plus_info']['complexity_index']
                     self.channels =  str(self.info['sample_descriptions'][0]['dolby_digital_plus_info']['complexity_index']) + '/JOC'
+            elif self.codec_family == 'ac-4' and 'dolby_ac4_info' in sample_desc:
+                if sample_desc['dolby_ac4_info']['dsi version'] == 0:
+                    raise Exception("AC4 dsi version 0 is deprecated.")
+                elif sample_desc['dolby_ac4_info']['dsi version'] == 1:
+                    if sample_desc['dolby_ac4_info']['bitstream version'] == 0:
+                        raise Exception("AC4 bitstream version 0 is deprecated.")
+                    if len(sample_desc['dolby_ac4_info']['presentations']):
+                        stream_type = sample_desc['dolby_ac4_info']['presentations'][0]['Stream Type']
+                        if stream_type == 'Immersive stereo':
+                            self.dolby_ac4_ims = 'Yes'
+                        self.channels = str(self.channels)
 
         self.language = info['language']
         self.language_name = LanguageNames.get(LanguageCodeMap.get(self.language, 'und'), '')
@@ -944,10 +956,25 @@ def ComputeDolbyAc4AudioChannelConfig(track):
                 return '%06x' % presentation['presentation_channel_mask_v1']
 
     return '000000'
+
+# ETSI TS 103 190-2 V1.2.1 (2018-02) Table G.1
+def DolbyAc4WithMPEGDASHScheme(mask):
+    available_mask_dict = {
+        '000002' : '1' , '000001' : '2' , '000003' : '3' , '008003' : '4' ,
+        '000007' : '5' , '000047' : '6' , '020047' : '7' , '008001' : '9' ,
+        '000005' : '10', '008047' : '11', '00004F' : '12', '02FF7F' : '13',
+        '06FF6F' : '13', '000057' : '14', '040047' : '14', '00145F' : '15',
+        '04144F' : '15', '000077' : '16', '040067' : '16', '000A77' : '17',
+        '040A67' : '17', '000A7F' : '18', '040A6F' : '18', '00007F' : '19',
+        '04006F' : '19', '01007F' : '20', '05006F' : '2'}
+    if mask in available_mask_dict:
+        return (True, available_mask_dict[mask])
+    else:
+        return (False, mask)
+
 def ReGroupEC3Sets(audio_sets):
     regroup_audio_sets    = {}
     audio_adaptation_sets = {}
-    sc_index = 1
     for name, audio_tracks in audio_sets.items():
         if audio_tracks[0].codec_family == 'ec-3':
             for track in audio_tracks:
@@ -955,9 +982,6 @@ def ReGroupEC3Sets(audio_sets):
                     adaptation_set_name = ('audio', track.language, track.codec_family, track.channels, 'ATMOS')
                 else:
                     adaptation_set_name = ('audio', track.language, track.codec_family, track.channels)
-                if track.self_contained != 'Yes':
-                    adaptation_set_name = adaptation_set_name + ('#sc' + str(sc_index),)
-                    sc_index += 1
                 adaptation_set = audio_adaptation_sets.get(adaptation_set_name, [])
                 audio_adaptation_sets[adaptation_set_name] = adaptation_set
                 adaptation_set.append(track)

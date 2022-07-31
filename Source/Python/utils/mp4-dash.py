@@ -58,7 +58,8 @@ from mp4utils import (
     MakeNewDir,
     BooleanFromString,
     ReGroupEC3Sets,
-    DolbyDigitalWithMPEGDASHScheme
+    DolbyDigitalWithMPEGDASHScheme,
+    DolbyAc4WithMPEGDASHScheme
 )
 
 # setup main options
@@ -551,7 +552,11 @@ def OutputDash(options, set_attributes, audio_sets, video_sets, subtitles_sets, 
                         scheme_id_uri = DOLBY_DIGITAL_AUDIO_CHANNEL_CONFIGURATION_SCHEME_ID_URI
                 elif audio_track.codec.startswith('ac-4'):
                     audio_channel_config_value = ComputeDolbyAc4AudioChannelConfig(audio_track)
-                    scheme_id_uri = DOLBY_AC4_AUDIO_CHANNEL_CONFIGURATION_SCHEME_ID_URI
+                    (mpeg_scheme, audio_channel_config_value) = DolbyAc4WithMPEGDASHScheme(audio_channel_config_value)
+                    if (mpeg_scheme):
+                        scheme_id_uri = ISO_IEC_23001_8_AUDIO_CHANNEL_CONFIGURATION_SCHEME_ID_URI
+                    else:
+                        scheme_id_uri = DOLBY_AC4_AUDIO_CHANNEL_CONFIGURATION_SCHEME_ID_URI
                 else:
                     # detect the actual number of channels
                     sample_description = audio_track.info['sample_descriptions'][0]
@@ -574,6 +579,12 @@ def OutputDash(options, set_attributes, audio_sets, video_sets, subtitles_sets, 
                                    'SupplementalProperty',
                                    schemeIdUri='tag:dolby.com,2018:dash:EC3_ExtensionComplexityIndex:2018',
                                    value=str(audio_track.complexity_index))
+                # AC-4 IMS SupplementalProperty
+                if audio_track.codec_family == 'ac-4' and audio_track.dolby_ac4_ims == 'Yes':
+                    xml.SubElement(representation,
+                                   'SupplementalProperty',
+                                   schemeIdUri='tag:dolby.com,2016:dash:virtualized_content:2016',
+                                   value='1')
 
                 if options.on_demand:
                     base_url = xml.SubElement(representation, 'BaseURL')
