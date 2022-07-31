@@ -481,6 +481,8 @@ AP4_Track::ReadSample(AP4_Ordinal     index,
 AP4_Result  
 AP4_Track::GetSampleIndexForTimeStampMs(AP4_UI32 ts_ms, AP4_Ordinal& index)
 {
+    if (m_SampleTable == NULL) return AP4_ERROR_INVALID_STATE;
+
     // convert the ts in the timescale of the track's media
     AP4_UI64 ts = AP4_ConvertTime(ts_ms, 1000, GetMediaTimeScale());
 

@@ -100,6 +100,16 @@ main(int argc, char** argv)
         }
     }
 
+    // check arguments
+    if (!input_filename) {
+        fprintf(stderr, "ERROR: missing input file name argument\n");
+        return 1;
+    }
+    if (!output_filename) {
+        fprintf(stderr, "ERROR: missing output file name argument\n");
+        return 1;
+    }
+
     // create the input stream
     AP4_ByteStream* input = NULL;
     result = AP4_FileByteStream::Create(input_filename, AP4_FileByteStream::STREAM_MODE_READ, input);
