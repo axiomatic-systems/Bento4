@@ -173,7 +173,7 @@ AP4_AvccAtom::AP4_AvccAtom(AP4_UI32 size, const AP4_UI08* payload) :
             cursor += 2;
             if (cursor + param_length <= payload_size) {
                 m_PictureParameters.Append(AP4_DataBuffer());
-                m_PictureParameters[i].SetData(&payload[cursor], param_length);
+                m_PictureParameters[m_PictureParameters.ItemCount()-1].SetData(&payload[cursor], param_length);
                 cursor += param_length;
             }
         }
