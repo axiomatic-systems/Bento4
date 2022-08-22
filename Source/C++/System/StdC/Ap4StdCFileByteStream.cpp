@@ -131,19 +131,18 @@ W2AHelper(LPSTR lpa, LPCWSTR lpw, int nChars, UINT acp)
 #define AP4_WIN32_A2W(lpa)                                                            \
     (((_lpa = lpa) == NULL) ?                                                         \
     NULL :                                                                            \
-    (_convert = (int)(strlen(_lpa) + 1),                                              \
+    (_convert = MultiByteToWideChar(CP_UTF8, 0, lpa, -1, NULL, 0),                    \
         (INT_MAX / 2 < _convert) ?                                                    \
         NULL :                                                                        \
         A2WHelper((LPWSTR)alloca(_convert * sizeof(WCHAR)), _lpa, _convert, CP_UTF8)))
 
-/* +2 instead of +1 temporary fix for Chinese characters */
-#define AP4_WIN32_W2A(lpw)                                                                           \
-    (((_lpw = lpw) == NULL) ?                                                                        \
-    NULL :                                                                                           \
-    ((_convert = (lstrlenW(_lpw) + 2),                                                               \
-       (_convert > INT_MAX / 2) ?                                                                    \
-       NULL :                                                                                        \
-       W2AHelper((LPSTR)alloca(_convert * sizeof(WCHAR)), _lpw, _convert * sizeof(WCHAR), CP_UTF8))))
+#define AP4_WIN32_W2A(lpw)                                                      \
+    (((_lpw = lpw) == NULL) ?                                                   \
+    NULL :                                                                      \
+    ((_convert = WideCharToMultiByte(CP_UTF8, 0, lpw, -1, NULL, 0, NULL, NULL), \
+       (_convert > INT_MAX / 2) ?                                               \
+       NULL :                                                                   \
+       W2AHelper((LPSTR)alloca(_convert), _lpw, _convert, CP_UTF8))))
 
 /*----------------------------------------------------------------------
 |   AP4_fopen_s_utf8
