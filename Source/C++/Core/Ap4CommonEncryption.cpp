@@ -2815,7 +2815,13 @@ AP4_CencSampleInfoTable::Create(AP4_ProtectedSampleDescription* sample_descripti
                                        aux_info_data,
                                        aux_info_data_offset, 
                                        sample_info_table);
-            if (AP4_FAILED(result)) return result;
+            // only abort the processing if the error is not due to an invalid
+            // format: some files have an invalid saio/saiz based construction,
+            // but may still have a valid `senc`, which we can try to parse
+            // below
+            if (!AP4_SUCCEEDED(result) && result != AP4_ERROR_INVALID_FORMAT) {
+                return result;
+            }
         }
     }
     
@@ -2923,18 +2929,25 @@ AP4_CencSampleInfoTable::Create(AP4_UI08                  flags,
 
                 const AP4_UI08* info_data = info.GetData();
                 if (per_sample_iv_size) {
+                    if (per_sample_iv_size > info_size) {
+                        result = AP4_ERROR_INVALID_FORMAT;
+                        goto end;
+                    }
                     table->SetIv(saiz_index, info_data);
                 } else {
                     table->SetIv(saiz_index, constant_iv);
                 }
-                if (info_size > per_sample_iv_size+2) {
-                    AP4_UI16 subsample_count = AP4_BytesToUInt16BE(info_data+per_sample_iv_size);
-                    if (info_size < per_sample_iv_size+2+subsample_count*6) {
-                        // not enough data
-                        goto end;
-                    }
-                    table->AddSubSampleData(subsample_count, info_data+per_sample_iv_size+2);
+                if (info_size < per_sample_iv_size+2) {
+                    result = AP4_ERROR_INVALID_FORMAT;
+                    goto end;
                 }
+                AP4_UI16 subsample_count = AP4_BytesToUInt16BE(info_data+per_sample_iv_size);
+                if (info_size < per_sample_iv_size+2+subsample_count*6) {
+                    // not enough data
+                    result = AP4_ERROR_INVALID_FORMAT;
+                    goto end;
+                }
+                table->AddSubSampleData(subsample_count, info_data+per_sample_iv_size+2);
                 saiz_index++;
             }
         }
