@@ -252,7 +252,7 @@ AP4_HvccAtom::AP4_HvccAtom(AP4_UI32 size, const AP4_UI08* payload) :
     unsigned int payload_size = size-AP4_ATOM_HEADER_SIZE;
 
     // keep a raw copy
-    if (payload_size < 22) return;
+    if (payload_size < 23) return;
     m_RawBytes.SetData(payload, payload_size);
 
     // parse the payload

@@ -141,6 +141,10 @@ AP4_AvccAtom::AP4_AvccAtom(const AP4_AvccAtom& other) :
 AP4_AvccAtom::AP4_AvccAtom(AP4_UI32 size, const AP4_UI08* payload) :
     AP4_Atom(AP4_ATOM_TYPE_AVCC, size)
 {
+    if (size < AP4_ATOM_HEADER_SIZE + 7) {
+        return;
+    }
+    
     // make a copy of our configuration bytes
     unsigned int payload_size = size-AP4_ATOM_HEADER_SIZE;
     m_RawBytes.SetData(payload, payload_size);
@@ -160,10 +164,14 @@ AP4_AvccAtom::AP4_AvccAtom(AP4_UI32 size, const AP4_UI08* payload) :
             cursor += 2;
             if (cursor + param_length <= payload_size) {
                 m_SequenceParameters.Append(AP4_DataBuffer());
-                m_SequenceParameters[i].SetData(&payload[cursor], param_length);
+                m_SequenceParameters[m_SequenceParameters.ItemCount()-1].SetData(&payload[cursor], param_length);
                 cursor += param_length;
             }
         }
+    }
+    
+    if (cursor >= payload_size) {
+        return;
     }
     AP4_UI08 num_pic_params = payload[cursor++];
     m_PictureParameters.EnsureCapacity(num_pic_params);
