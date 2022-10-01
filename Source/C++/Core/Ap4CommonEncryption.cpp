@@ -2990,9 +2990,9 @@ AP4_CencSampleInfoTable::Create(const AP4_UI08*           serialized,
         return AP4_ERROR_INVALID_FORMAT;
     }
     AP4_CencSampleInfoTable* table = new AP4_CencSampleInfoTable(flags, crypt_byte_block, skip_byte_block, sample_count, (AP4_UI08)iv_size);
-    table->m_IvData.SetData(serialized, sample_count*iv_size);
-    serialized      += sample_count*iv_size;
-    serialized_size -= sample_count*iv_size;
+    table->m_IvData.SetData(serialized, sample_count?sample_count*iv_size:iv_size);
+    serialized      += sample_count?sample_count*iv_size:iv_size;
+    serialized_size -= sample_count?sample_count*iv_size:iv_size;
     
     if (serialized_size < 4) {
         delete table;
@@ -3061,6 +3061,11 @@ AP4_CencSampleInfoTable::AP4_CencSampleInfoTable(AP4_UI08 flags,
     m_SkipByteBlock(skip_byte_block),
     m_IvSize(iv_size)
 {
+    if (sample_count == 0) {
+        // All samples encrypted with a constant IV, reserve some space to
+        // store the constant IV
+        sample_count = 1;
+    }
     m_IvData.SetDataSize(m_IvSize*sample_count);
     AP4_SetMemory(m_IvData.UseData(), 0, m_IvSize*sample_count);
 }
@@ -3073,7 +3078,7 @@ AP4_CencSampleInfoTable::Serialize(AP4_DataBuffer& buffer)
 {
     unsigned int size = 4 +
                         4 +
-                        m_SampleCount*m_IvSize +
+                        (m_SampleCount ? m_SampleCount*m_IvSize : m_IvSize) +
                         4 +
                         m_BytesOfCleartextData.ItemCount()*2 +
                         m_BytesOfEncryptedData.ItemCount()*4 +
@@ -3101,7 +3106,12 @@ AP4_CencSampleInfoTable::Serialize(AP4_DataBuffer& buffer)
     *data++ = m_CryptByteBlock;
     *data++ = m_SkipByteBlock;
     *data++ = m_IvSize;
-    AP4_CopyMemory(data, m_IvData.GetData(), m_SampleCount*m_IvSize); data += m_SampleCount*m_IvSize;
+    if (m_SampleCount) {
+        AP4_CopyMemory(data, m_IvData.GetData(), m_SampleCount*m_IvSize); data += m_SampleCount*m_IvSize;
+    } else {
+        // All samples encrypted, no per-sample IV, create one entry for the default IV
+        AP4_CopyMemory(data, m_IvData.GetData(), m_IvSize); data += m_IvSize;
+    }
     AP4_BytesFromUInt32BE(data, m_BytesOfCleartextData.ItemCount());  data += 4;
     for (unsigned int i=0; i<m_BytesOfCleartextData.ItemCount(); i++) {
         AP4_BytesFromUInt16BE(data, m_BytesOfCleartextData[i]); data += 2;
@@ -3127,7 +3137,12 @@ AP4_CencSampleInfoTable::Serialize(AP4_DataBuffer& buffer)
 AP4_Result 
 AP4_CencSampleInfoTable::SetIv(AP4_Ordinal sample_index, const AP4_UI08* iv)
 {
-    if (sample_index >= m_SampleCount) return AP4_ERROR_OUT_OF_RANGE;
+    if (m_SampleCount == 0) {
+        if (sample_index != 0) return AP4_ERROR_OUT_OF_RANGE;
+    } else {
+        if (sample_index >= m_SampleCount) return AP4_ERROR_OUT_OF_RANGE;
+    }
+    AP4_ASSERT(m_IvData.GetDataSize() >= m_IvSize*(sample_index+1));
     AP4_UI08* dst = m_IvData.UseData()+(m_IvSize*sample_index);
     AP4_CopyMemory(dst, iv, m_IvSize);
     
@@ -3140,8 +3155,12 @@ AP4_CencSampleInfoTable::SetIv(AP4_Ordinal sample_index, const AP4_UI08* iv)
 const AP4_UI08* 
 AP4_CencSampleInfoTable::GetIv(AP4_Ordinal sample_index)
 {
-    if (sample_index >= m_SampleCount) return NULL;
-    return m_IvData.GetData()+(m_IvSize*sample_index);
+    if (m_SampleCount == 0) {
+        return m_IvData.GetData();
+    } else {
+        if (sample_index >= m_SampleCount) return NULL;
+        return m_IvData.GetData()+(m_IvSize*sample_index);
+    }
 }
 
 /*----------------------------------------------------------------------
@@ -3177,6 +3196,13 @@ AP4_CencSampleInfoTable::GetSampleInfo(AP4_Cardinal     sample_index,
                                        const AP4_UI16*& bytes_of_cleartext_data,
                                        const AP4_UI32*& bytes_of_encrypted_data)
 {
+    if (m_SampleCount == 0) {
+        // all samples encrypted entirely, no subsamples
+        subsample_count         = 0;
+        bytes_of_cleartext_data = NULL;
+        bytes_of_encrypted_data = NULL;
+        return AP4_SUCCESS;
+    }
     
     if (sample_index >= m_SampleCount) {
         return AP4_ERROR_OUT_OF_RANGE;
@@ -3372,7 +3398,7 @@ AP4_CencSampleEncryption::CreateSampleInfoTable(AP4_UI08                  flags,
     }
     
     // check some of the parameters
-    if (per_sample_iv_size == 0) {
+    if (per_sample_iv_size == 0 || m_SampleInfoCount == 0) {
         if (default_constant_iv_size == 0 || default_constant_iv == NULL) {
             return AP4_ERROR_INVALID_PARAMETERS;
         }
@@ -3385,32 +3411,41 @@ AP4_CencSampleEncryption::CreateSampleInfoTable(AP4_UI08                  flags,
                                         default_skip_byte_block,
                                         m_SampleInfoCount,
                                         per_sample_iv_size?per_sample_iv_size:default_constant_iv_size);
-    const AP4_UI08* data      = m_SampleInfos.GetData();
-    AP4_UI32        data_size = m_SampleInfos.GetDataSize();
-    for (unsigned int i=0; i<m_SampleInfoCount; i++) {
-        if (per_sample_iv_size) {
-            if (data_size < per_sample_iv_size) goto end;
-            table->SetIv(i, data);
-            data      += per_sample_iv_size;
-            data_size -= per_sample_iv_size;
-        } else {
-            table->SetIv(i, default_constant_iv);
-        }
-        if (has_subsamples) {
-            if (data_size < 2) goto end;
-            AP4_UI16 subsample_count = AP4_BytesToUInt16BE(data);
-            data      += 2;
-            data_size -= 2;
-            
-            if (data_size < subsample_count*(unsigned int)6) goto end;
-            
-            result = table->AddSubSampleData(subsample_count, data);
-            if (AP4_FAILED(result)) goto end;
-            
-            data      += 6*subsample_count;
-            data_size -= 6*subsample_count;
+                                        
+    // fill the table
+    if (m_SampleInfoCount == 0) {
+        // special case, this means all samples are encrypted with the same IV
+        table->SetIv(0, default_constant_iv);
+    } else {
+        const AP4_UI08* data      = m_SampleInfos.GetData();
+        AP4_UI32        data_size = m_SampleInfos.GetDataSize();
+        for (unsigned int i=0; i<m_SampleInfoCount; i++) {
+            if (per_sample_iv_size) {
+                if (data_size < per_sample_iv_size) goto end;
+                table->SetIv(i, data);
+                data      += per_sample_iv_size;
+                data_size -= per_sample_iv_size;
+            } else {
+                table->SetIv(i, default_constant_iv);
+            }
+            if (has_subsamples) {
+                if (data_size < 2) goto end;
+                AP4_UI16 subsample_count = AP4_BytesToUInt16BE(data);
+                data      += 2;
+                data_size -= 2;
+                
+                if (data_size < subsample_count*(unsigned int)6) goto end;
+                
+                result = table->AddSubSampleData(subsample_count, data);
+                if (AP4_FAILED(result)) goto end;
+                
+                data      += 6*subsample_count;
+                data_size -= 6*subsample_count;
+            }
         }
     }
+    
+    // done
     result = AP4_SUCCESS;
     
 end:
