@@ -139,6 +139,18 @@ For Debug builds:
 For Release builds:
 ```make AP4_BUILD_CONFIG=Release```
 
+## Installing Bento4 (vcpkg)
+
+Alternatively, you can build and install Bento4 using [vcpkg](https://github.com/Microsoft/vcpkg/) dependency manager:
+
+    git clone https://github.com/Microsoft/vcpkg.git
+    cd vcpkg
+    ./bootstrap-vcpkg.sh
+    ./vcpkg integrate install
+    ./vcpkg install bento4
+
+The Bento4 port in vcpkg is kept up to date by Microsoft team members and community contributors. If the version is out of date, please [create an issue or pull request](https://github.com/Microsoft/vcpkg) on the vcpkg repository.
+
 Release Notes
 -------------
 
