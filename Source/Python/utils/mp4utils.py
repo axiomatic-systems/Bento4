@@ -997,7 +997,7 @@ def ReGroupEC3Sets(audio_sets):
     for name, audio_tracks in audio_sets.items():
         if audio_tracks[0].codec_family == 'ec-3':
             for track in audio_tracks:
-                if track.info['sample_descriptions'][0]['dolby_digital_plus_info']['atmos'] == 'Yes':
+                if track.info['sample_descriptions'][0]['dolby_digital_plus_info']['Dolby_Atmos'] == 'Yes':
                     adaptation_set_name = ('audio', track.language, track.codec_family, track.channels, 'ATMOS')
                 else:
                     adaptation_set_name = ('audio', track.language, track.codec_family, track.channels)
