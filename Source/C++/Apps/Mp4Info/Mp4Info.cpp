@@ -588,9 +588,17 @@ ShowSampleDescription_Text(AP4_SampleDescription& description, bool verbose)
         // Dolby AC-4 specifics
         AP4_Dac4Atom* dac4 = AP4_DYNAMIC_CAST(AP4_Dac4Atom, desc->GetDetails().GetChild(AP4_ATOM_TYPE_DAC4));
         if (dac4) {
+            printf("    Codecs String: ");
+            AP4_String codec;
+            dac4->GetCodecString(codec);
+            printf("%s", codec.GetChars());
+            printf("\n");
+
             const AP4_Dac4Atom::Ac4Dsi& dsi = dac4->GetDsi();
+            printf("    AC-4 dsi version: %d\n", dsi.ac4_dsi_version);
             unsigned short self_contained = 0;
             if (dsi.ac4_dsi_version == 1) {
+                printf("    AC-4 bitstream version: %d\n", dsi.d.v1.bitstream_version);
                 for (unsigned int i = 0; i < dsi.d.v1.n_presentations; i++) {
                     AP4_Dac4Atom::Ac4Dsi::PresentationV1& presentation = dsi.d.v1.presentations[i];
                     if (presentation.presentation_version == 1 || presentation.presentation_version == 2) {
@@ -929,11 +937,12 @@ ShowSampleDescription_Json(AP4_SampleDescription& description, bool verbose)
         if (dac4) {
             printf(",\n");
             printf("\"dolby_ac4_info\": {\n");
-
-            printf("  \"presentations\": [\n");
             const AP4_Dac4Atom::Ac4Dsi& dsi = dac4->GetDsi();
+            printf("  \"dsi version\": %d,\n", dsi.ac4_dsi_version);
             unsigned short self_contained = 0;
             if (dsi.ac4_dsi_version == 1) {
+                printf("  \"bitstream version\": %d,\n", dsi.d.v1.bitstream_version);
+                printf("  \"presentations\": [\n");
                 const char* separator = "";
                 for (unsigned int i = 0; i < dsi.d.v1.n_presentations; i++) {
                     AP4_Dac4Atom::Ac4Dsi::PresentationV1& presentation = dsi.d.v1.presentations[i];
