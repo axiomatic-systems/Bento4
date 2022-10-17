@@ -427,24 +427,17 @@ class Mp4Track:
                         brand = 'db1p'
                         if brand in self.parent.info['file']['compatible_brands']:
                             self.dv_brand = brand
-                        else:
-                            print('WARNING: missing brand "db1p" in MP4 file for Dolby Vision Profile 8.1.')
                     elif bl_compatibility_id == 2:
                         self.video_range = 'SDR'
                         brand = 'db2g'
                         if brand in self.parent.info['file']['compatible_brands']:
                             self.dv_brand = brand
-                        else:
-                            print('WARNING: missing brand "db2g" in MP4 file for Dolby Vision Profile x.2.')
                     elif bl_compatibility_id == 4:
                         self.video_range = 'HLG'
-                        self.dv_brand='db4h'
                         if 'db4g' in self.parent.info['file']['compatible_brands']:
                             self.dv_brand = 'db4g'
                         elif 'db4h' in self.parent.info['file']['compatible_brands']:
                             self.dv_brand = 'db4h'
-                        else:
-                            print('WARNING: missing brand "db4g" or "db4h" in MP4 file for Dolby Vision Profile 8.4. Will use "db4h" as default.')
                     else:
                         PrintErrorAndExit('ERROR: unsupported ccid for Dolby Vision profile 8/9.')
                 else:
