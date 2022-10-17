@@ -1023,7 +1023,48 @@ ShowSampleDescription_Json(AP4_SampleDescription& description, bool verbose)
         
     // Dolby Vision specifics
     AP4_DvccAtom* dvcc = AP4_DYNAMIC_CAST(AP4_DvccAtom, desc->GetDetails().GetChild(AP4_ATOM_TYPE_DVCC));
+    if(!dvcc) {
+        dvcc = AP4_DYNAMIC_CAST(AP4_DvccAtom, desc->GetDetails().GetChild(AP4_ATOM_TYPE_DVVC));
+    }
     if (dvcc) {
+        /* Codec String */
+        char workspace[64];
+        char coding[5];
+        strncpy(coding, codec.GetChars(), 4);
+        coding[4] = '\0';
+        /* Non back-compatible */
+        if (strcmp(coding, "dvav") == 0 || strcmp(coding, "dva1") == 0 ||
+            strcmp(coding, "dvhe") == 0 || strcmp(coding, "dvh1") == 0){
+            AP4_FormatString(workspace,
+                            sizeof(workspace),
+                            "%s.%02d.%02d",
+                            coding,
+                            dvcc->GetDvProfile(),
+                            dvcc->GetDvLevel());
+            codec = workspace;
+        } else {
+            if (strcmp(coding, "avc1") == 0){
+                strcpy(coding, "dva1");
+            }else if (strcmp(coding, "avc3") == 0){
+                strcpy(coding, "dvav");
+            }else if (strcmp(coding, "hev1") == 0){
+                strcpy(coding, "dvhe");
+            }else if (strcmp(coding, "hvc1") == 0){
+                strcpy(coding, "dvh1");
+            }
+            AP4_FormatString(workspace,
+                            sizeof(workspace),
+                            "%s,%s.%02d.%02d",
+                            codec.GetChars(),
+                            coding,
+                            dvcc->GetDvProfile(),
+                            dvcc->GetDvLevel());
+            codec = workspace;
+        }
+        printf(",\n");
+        printf("\"dv_codecs_string\":\"");
+        printf("%s", codec.GetChars());
+        printf("\"");
         /* Dolby Vision */
         printf(",\n");
         printf("\"dolby_vision\": {\n");
