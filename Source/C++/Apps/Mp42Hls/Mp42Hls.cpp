@@ -1856,11 +1856,7 @@ main(int argc, char** argv)
             }
         }
         if (Options.segment_url_template == NULL) {
-            if (Options.output_single_file) {
-                Options.segment_url_template = "stream.ts";
-            } else {
-                Options.segment_url_template = "segment-%d.ts";
-            }
+            Options.segment_url_template = Options.segment_filename_template;
         }
     }
     
