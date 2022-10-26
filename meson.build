@@ -296,7 +296,7 @@ ap4_headers = [
   'Source/C++/Crypto/Ap4Hmac.h',
   'Source/C++/Crypto/Ap4KeyWrap.h',
   'Source/C++/Crypto/Ap4StreamCipher.h',
-  'Source/C++/Metadata/Ap4MetaData.h'
+  'Source/C++/MetaData/Ap4MetaData.h'
 ]
 
 ap4_include = [
