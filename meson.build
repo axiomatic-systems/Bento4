@@ -306,12 +306,8 @@ ap4_include = [
   include_directories('Source/C++/MetaData')
 ]
 
-if get_option('default_library') == 'both'
-  error('default library cannot be set to both, it can be either static or shared')
-endif
-
-if meson.get_compiler('cpp').get_id() == 'msvc' and get_option('default_library') == 'shared'
-  warning('building shared library with msvc doesn\'t export any symbols')
+if meson.get_compiler('cpp').get_id() == 'msvc' and get_option('default_library') != 'static'
+  warning('building ap4 shared library with msvc doesn\'t export any symbols')
 endif
 
 ap4_lib = library(
@@ -332,7 +328,8 @@ install_headers(
     'Source/C++/Adapters/Ap4AtomixAdapters.h',
     'Source/C++/Adapters/Ap4NeptuneAdapters.h',
     'Source/C++/CApi/Bento4C.h'
-  ]
+  ],
+  subdir: 'bento4'
 )
 
 pkg_mod = import('pkgconfig')
@@ -340,6 +337,7 @@ pkg_mod.generate(
   name: meson.project_name(),
   filebase: meson.project_name(),
   description: 'Full-featured MP4 format, MPEG DASH, HLS, CMAF SDK and tools',
+  subdirs: meson.project_name(),
   libraries: ap4_lib,
 )
 
