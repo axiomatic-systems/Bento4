@@ -1,0 +1,29 @@
+option(
+    'build-apps',
+    type: 'boolean',
+    value: true,
+    description: 'build applications'
+)
+
+option(
+    'test-apps',
+    type: 'combo',
+    value: 'auto',
+    choices: ['auto', 'true', 'false'],
+    description: 'test applications'
+)
+
+option(
+    'python-scripts',
+    type: 'combo',
+    value: 'auto',
+    choices: ['auto', 'false'],
+    description: 'install python scripts'
+)
+
+option(
+    'docs',
+    type: 'boolean',
+    value: true,
+    description: 'install documentation'
+)
