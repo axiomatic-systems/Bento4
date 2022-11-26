@@ -407,6 +407,7 @@ class Mp4Track:
         if self.type == 'video':
             # set the scan type (hardcoded for now)
             self.scan_type = 'progressive'
+            self.video_range = 'SDR'
 
             # set the width and height
             self.width  = sample_desc['width']
@@ -415,21 +416,32 @@ class Mp4Track:
             # add dolby vision signaling if present
             if 'dolby_vision' in sample_desc:
                 dv_info = sample_desc['dolby_vision']
-                if sample_desc['coding'] in ['dvav', 'dva1', 'dvhe', 'dvh1']:
-                    # non-backward-compatible
-                    self.codec = sample_desc['coding'] + ('.%02d.%02d' % (dv_info['profile'], dv_info['level']))
+                if dv_info['profile'] == 5:
+                    self.video_range = 'PQ'
+                elif dv_info['profile'] in [8, 9]:
+                    self.supplemental_codec = sample_desc['dv_codecs_string'].split(",")[1].split(".")[0] + \
+                        "." + sample_desc['dv_codecs_string'].split(",")[1].split(".")[1] + str('.%02d' % dv_info['level'])
+                    bl_compatibility_id = dv_info['dv_bl_signal_compatibility_id']
+                    if bl_compatibility_id == 1:
+                        self.video_range = 'PQ'
+                        brand = 'db1p'
+                        if brand in self.parent.info['file']['compatible_brands']:
+                            self.dv_brand = brand
+                    elif bl_compatibility_id == 2:
+                        self.video_range = 'SDR'
+                        brand = 'db2g'
+                        if brand in self.parent.info['file']['compatible_brands']:
+                            self.dv_brand = brand
+                    elif bl_compatibility_id == 4:
+                        self.video_range = 'HLG'
+                        if 'db4g' in self.parent.info['file']['compatible_brands']:
+                            self.dv_brand = 'db4g'
+                        elif 'db4h' in self.parent.info['file']['compatible_brands']:
+                            self.dv_brand = 'db4h'
+                    else:
+                        PrintErrorAndExit('ERROR: unsupported ccid for Dolby Vision profile 8/9.')
                 else:
-                    # backward-compatible
-                    coding_map = {
-                        'avc1': 'dva1',
-                        'avc3': 'dvav',
-                        'hev1': 'dvhe',
-                        'hvc1': 'dvh1'
-                    }
-                    dv_coding = coding_map.get(sample_desc['coding'])
-                    if dv_coding:
-                        dv_string = dv_coding + ('.%02d.%02d' % (dv_info['profile'], dv_info['level']))
-                        self.codec += ','+dv_string
+                    PrintErrorAndExit('ERROR: unsupported Dolby Vision profile.')
 
         if self.type == 'audio':
             self.sample_rate = sample_desc['sample_rate']
@@ -978,7 +990,7 @@ def ReGroupEC3Sets(audio_sets):
     for name, audio_tracks in audio_sets.items():
         if audio_tracks[0].codec_family == 'ec-3':
             for track in audio_tracks:
-                if track.info['sample_descriptions'][0]['dolby_digital_plus_info']['atmos'] == 'Yes':
+                if track.info['sample_descriptions'][0]['dolby_digital_plus_info']['Dolby_Atmos'] == 'Yes':
                     adaptation_set_name = ('audio', track.language, track.codec_family, track.channels, 'ATMOS')
                 else:
                     adaptation_set_name = ('audio', track.language, track.codec_family, track.channels)

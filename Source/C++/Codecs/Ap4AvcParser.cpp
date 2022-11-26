@@ -144,7 +144,8 @@ AP4_AvcFrameParser::AP4_AvcFrameParser() :
     m_PrevFrameNum(0),
     m_PrevFrameNumOffset(0),
     m_PrevPicOrderCntMsb(0),
-    m_PrevPicOrderCntLsb(0)
+    m_PrevPicOrderCntLsb(0),
+    m_keepParameterSets(true)
 {
     for (unsigned int i=0; i<256; i++) {
         m_PPS[i] = NULL;

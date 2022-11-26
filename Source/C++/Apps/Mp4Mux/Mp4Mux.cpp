@@ -91,10 +91,15 @@ PrintUsageAndExit()
             "\n"
             "Supported types:\n"
             "  h264: H264/AVC NAL units\n"
+            "    optional params:\n"
+            "      dv_profile: integer number for Dolby vision profile ID (valid value: 9)\n"
+            "      dv_bc: integer number for Dolby vision BL signal cross-compatibility ID (must be 2 if dv_profile is set to 9)\n"
+            "      frame_rate: floating point number in frames per second (default=24.0)\n"
+            "      format: avc1 (default) or avc3  for AVC tracks and Dolby Vision back-compatible tracks\n"
             "  h265: H265/HEVC NAL units\n"
             "    optional params:\n"
-            "      dv_profile: integer number for Dolby vision profile ID (valid value: 5,8,9)\n"
-            "      dv_bc: integer number for Dolby vision BL signal cross-compatibility ID (mandatory if dv_profile is set to 8/9)\n"
+            "      dv_profile: integer number for Dolby vision profile ID (valid value: 5,8)\n"
+            "      dv_bc: integer number for Dolby vision BL signal cross-compatibility ID (mandatory if dv_profile is set to 8)\n"
             "      frame_rate: floating point number in frames per second (default=24.0)\n"
             "      format: hev1 or hvc1 (default) for HEVC tracks and Dolby Vision backward-compatible tracks\n"
             "              dvhe or dvh1 (default) for Dolby vision tracks\n"
@@ -237,42 +242,40 @@ CheckDoviInputParameters(AP4_Array<Parameter>& parameters)
                 format = AP4_SAMPLE_FORMAT_DVH1;
             } else if (parameters[i].m_Value == "dvhe") {
                 format = AP4_SAMPLE_FORMAT_DVHE;
+            } else if (parameters[i].m_Value == "avc1") {
+                format = AP4_SAMPLE_FORMAT_AVC1;
+            } else if (parameters[i].m_Value == "avc3") {
+                format = AP4_SAMPLE_FORMAT_AVC3;
             } else if (parameters[i].m_Value == "dvav") {
                 format = AP4_SAMPLE_FORMAT_DVAV;
             } else if (parameters[i].m_Value == "dva1") {
                 format = AP4_SAMPLE_FORMAT_DVA1;
+            } else {
+                fprintf(stderr, "ERROR: format name is invalid\n");
+                return AP4_ERROR_INVALID_PARAMETERS;
             }
         }
     }
 
     //check: sample entry box name is set correctly
-    if (format) {
-        if ((format == AP4_SAMPLE_FORMAT_DVAV) || (format == AP4_SAMPLE_FORMAT_DVA1)) {
-            if (profile != 9) {
-                fprintf(stderr, "ERROR: sample entry name is mismatch with profile\n");
-                return AP4_ERROR_INVALID_PARAMETERS;
-            }
-        } else {
-            if ((profile != 8) && (profile != 5)) {
-                fprintf(stderr, "ERROR: sample entry name is mismatch with profile\n");
-                return AP4_ERROR_INVALID_PARAMETERS;
-            }
-        }
-    }
 
     if (format) {
         if (profile == 5) {
+            // profile 5 does not compatible with other profile, only use dvhe or dvh1
             if ((format != AP4_SAMPLE_FORMAT_DVHE) && (format != AP4_SAMPLE_FORMAT_DVH1)) {
                 fprintf(stderr, "ERROR: sample entry name is not correct for profile 5\n");
                 return AP4_ERROR_INVALID_PARAMETERS;
             }
         } else if (profile == 8) {
+            // profile 8 has CCID with 1, 2, 4, may be compatible with HDR10, SDR or HLG, should
+            // not use dvhe or dvh1
             if ((format != AP4_SAMPLE_FORMAT_HVC1) && (format != AP4_SAMPLE_FORMAT_HEV1)) {
                 fprintf(stderr, "ERROR: sample entry name is not correct for profile 8\n");
                 return AP4_ERROR_INVALID_PARAMETERS;
             }
         } else if (profile == 9) {
-            if (format != AP4_SAMPLE_FORMAT_AVC1) {
+            // profile 9 only has CCID with 2, which is SDR compliant, should not use dvav or dva1
+            if ((format != AP4_SAMPLE_FORMAT_AVC1) && (format != AP4_SAMPLE_FORMAT_AVC3)) {
                 fprintf(stderr, "ERROR: sample entry name is not correct for profile 9\n");
                 return AP4_ERROR_INVALID_PARAMETERS;
             }
@@ -1228,6 +1231,8 @@ AddH264DoviTrack(AP4_Movie&            movie,
     AP4_UI32 dv_bl_signal_comp_id = 0;
     AP4_UI32 dv_level = 0;
 
+    AP4_UI32 format = 0;
+
     AP4_ByteStream* input;
     AP4_Result result = AP4_FileByteStream::Create(input_name, AP4_FileByteStream::STREAM_MODE_READ, input);
     if (AP4_FAILED(result)) {
@@ -1250,6 +1255,16 @@ AddH264DoviTrack(AP4_Movie&            movie,
                 return;
             }
             video_frame_rate = (unsigned int)(1000.0*frame_rate);
+        } else if (parameters[i].m_Name == "format") {
+            if (parameters[i].m_Value == "avc1") {
+                format = AP4_SAMPLE_FORMAT_AVC1;
+            } else if (parameters[i].m_Value == "avc3") {
+                format = AP4_SAMPLE_FORMAT_AVC3;
+            } else if (parameters[i].m_Value == "dva1") {
+                format = AP4_SAMPLE_FORMAT_DVA1;
+            } else if (parameters[i].m_Value == "dvav") {
+                format = AP4_SAMPLE_FORMAT_DVAV;
+            }
         } else if (parameters[i].m_Name == "dv_profile") {
             dv_profile = atoi(parameters[i].m_Value.GetChars());
         } else if (parameters[i].m_Name == "dv_bc") {
@@ -1270,6 +1285,13 @@ AddH264DoviTrack(AP4_Movie&            movie,
 
     // parse the input
     AP4_AvcFrameParser parser;
+
+    if (format == AP4_SAMPLE_FORMAT_AVC3 || format == AP4_SAMPLE_FORMAT_DVAV) {
+        parser.SetParameterControl(true);
+    } else if (format == AP4_SAMPLE_FORMAT_AVC1 || format == AP4_SAMPLE_FORMAT_DVA1) {
+        parser.SetParameterControl(false);
+    }
+
     for (;;) {
         bool eos;
         unsigned char input_buffer[AP4_MUX_READ_BUFFER_SIZE];
@@ -1402,7 +1424,7 @@ AddH264DoviTrack(AP4_Movie&            movie,
 
     // setup the video the sample descripton
     AP4_AvcDoviSampleDescription* sample_description =
-        new AP4_AvcDoviSampleDescription(AP4_SAMPLE_FORMAT_AVC1,
+        new AP4_AvcDoviSampleDescription(format,
                                          video_width,
                                          video_height,
                                          24,
@@ -1463,7 +1485,7 @@ AddH264DoviTrack(AP4_Movie&            movie,
         track->UseTrakAtom()->AddChild(new_edts, 1);
     }
     // update the brands list
-    brands.Append(AP4_FILE_BRAND_AVC1);
+    brands.Append(format);
 
     // cleanup
     input->Release();
@@ -1836,6 +1858,11 @@ AddH265DoviTrack(AP4_Movie&           movie,
     
     // parse the input
     AP4_HevcFrameParser parser;
+    if (format == AP4_SAMPLE_FORMAT_HEV1 || format == AP4_SAMPLE_FORMAT_DVHE) {
+        parser.SetParameterControl(true);
+    } else if (format == AP4_SAMPLE_FORMAT_HVC1 || format == AP4_SAMPLE_FORMAT_DVH1) {
+        parser.SetParameterControl(false);
+    }
     for (;;) {
         bool eos;
         unsigned char input_buffer[AP4_MUX_READ_BUFFER_SIZE];
@@ -1959,6 +1986,7 @@ AddH265DoviTrack(AP4_Movie&           movie,
     AP4_UI08 num_temporal_layers =                 0; // unknown
     AP4_UI08 temporal_id_nested =                  0; // unknown
     AP4_UI08 nalu_length_size =                    4;
+    AP4_UI08 transfer_characteristics =            sps->vui_parameters.transfer_characteristics;
 
     sps->GetInfo(video_width, video_height);
     if (Options.verbose) {
@@ -2073,6 +2101,13 @@ AddH265DoviTrack(AP4_Movie&           movie,
     }
     // update the brands list
     brands.Append(format);
+    if (dv_profile == 8 && dv_bl_signal_comp_id == 4) {
+        if (transfer_characteristics == 18) {
+            brands.Append(AP4_FILE_BRAND_DB4H);
+        } else if (transfer_characteristics == 14) {
+            brands.Append(AP4_FILE_BRAND_DB4G);
+        }
+    }
 
     // cleanup
     input->Release();
@@ -2227,6 +2262,7 @@ main(int argc, char** argv)
     
     // add all the tracks
     bool hasDovi = false;
+    AP4_UI08 dolby_vision_ccid = 0;
     for (unsigned int i=0; i<input_names.ItemCount(); i++) {
         char*       input_name = input_names[i];
         const char* input_type = NULL;
@@ -2285,6 +2321,15 @@ main(int argc, char** argv)
             if (parameters[i].m_Name == "dv_profile") {
                 isDovi = true;
             }
+            if (parameters[i].m_Name == "dv_bc") {
+                if (parameters[i].m_Value == "1") {
+                    dolby_vision_ccid |= 0x1;
+                } else if (parameters[i].m_Value == "2") {
+                    dolby_vision_ccid |= 0x2;
+                } else if (parameters[i].m_Value == "4") {
+                    dolby_vision_ccid |= 0x4;
+                }
+            }
         }
 
         if (!strcmp(input_type, "h264")) {
@@ -2333,6 +2378,13 @@ main(int argc, char** argv)
     // for Dolby Vision, add the 'dby1' brand
     if (hasDovi) {
         brands.Append(AP4_FILE_BRAND_DBY1);
+    }
+    // brand of Dolby Vision with CCID == 4 needs transfer characteristic to be decided later
+    if (dolby_vision_ccid & 0x1) {
+        brands.Append(AP4_FILE_BRAND_DB1P);
+    }
+    if (dolby_vision_ccid & 0x2) {
+        brands.Append(AP4_FILE_BRAND_DB2G);
     }
 
     movie->GetMvhdAtom()->SetNextTrackId(movie->GetTracks().ItemCount() + 1);

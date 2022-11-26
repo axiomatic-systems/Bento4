@@ -293,6 +293,8 @@ public:
                                 unsigned int                  nal_ref_idc,
                                 AP4_AvcSliceHeader&           slice_header);
 
+    void SetParameterControl(bool isKeep) { m_keepParameterSets = isKeep; }
+
 private:
     // methods
     bool SameFrame(unsigned int nal_unit_type_1, unsigned int nal_ref_idc_1, AP4_AvcSliceHeader& sh1,
@@ -322,6 +324,9 @@ private:
     unsigned int                 m_PrevFrameNumOffset;
     int                          m_PrevPicOrderCntMsb;
     unsigned int                 m_PrevPicOrderCntLsb;
+
+    // control if the parameter sets(SPS, PPS) need to be stored in stream('mdat')
+    bool                       m_keepParameterSets;
 };
 
 #endif // _AP4_AVC_PARSER_H_
