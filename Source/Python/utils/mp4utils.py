@@ -427,17 +427,34 @@ class Mp4Track:
                         brand = 'db1p'
                         if brand in self.parent.info['file']['compatible_brands']:
                             self.dv_brand = brand
+                        else:
+                            print('WARNING: missing brand "db1p" in MP4 file for Dolby Vision Profile 8.1.')
+                        self.supplemental_profile = brand
+                        self.transfer_characteristics = '16'
+                        self.matrix_coefficients = '9'
+                        self.colour_primaries = '9'
                     elif bl_compatibility_id == 2:
                         self.video_range = 'SDR'
                         brand = 'db2g'
                         if brand in self.parent.info['file']['compatible_brands']:
                             self.dv_brand = brand
+                        self.supplemental_profile = brand
                     elif bl_compatibility_id == 4:
                         self.video_range = 'HLG'
+                        self.matrix_coefficients = '9'
+                        self.colour_primaries = '9'
                         if 'db4g' in self.parent.info['file']['compatible_brands']:
-                            self.dv_brand = 'db4g'
-                        elif 'db4h' in self.parent.info['file']['compatible_brands']:
-                            self.dv_brand = 'db4h'
+                            brand = 'db4g'
+                            self.dv_brand = brand
+                            self.supplemental_profile = brand
+                            self.transfer_characteristics = '14'
+                        else:
+                            brand = 'db4h'
+                            self.dv_brand = brand
+                            self.supplemental_profile = brand
+                            self.transfer_characteristics = '18'
+                            if 'db4h' not in self.parent.info['file']['compatible_brands']:
+                                print('WARNING: missing brand "db4g" or "db4h" in MP4 file for Dolby Vision Profile 8.4. Will use "db4h" as default.')
                     else:
                         PrintErrorAndExit('ERROR: unsupported ccid for Dolby Vision profile 8/9.')
                 else:
