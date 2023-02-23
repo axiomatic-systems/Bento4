@@ -418,6 +418,7 @@ AP4_Dac4Atom::~AP4_Dac4Atom()
                 delete[] m_Dsi.d.v1.presentations[i].d.v1.substream_groups[j].d.v1.substreams;
             }
             delete[] m_Dsi.d.v1.presentations[i].d.v1.substream_groups;
+            delete[] m_Dsi.d.v1.presentations[i].d.v1.substream_group_indexs;
         }
         delete[] m_Dsi.d.v1.presentations;
     }
