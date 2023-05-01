@@ -1,4 +1,4 @@
-Bento4
+Bento4 - VFrag
 =====
 ![CI](https://github.com/axiomatic-systems/Bento4/workflows/CI/badge.svg?branch=master)
 [![Build Status](https://travis-ci.org/axiomatic-systems/Bento4.svg?branch=master)](https://travis-ci.org/axiomatic-systems/Bento4.svg?branch=master)
@@ -10,6 +10,15 @@ This format is defined in international specifications ISO/IEC 14496-12, 14496-1
 The format is a derivative of the Apple Quicktime file format, so Bento4 can be used to read and write most Quicktime files as well.
 
 Visit [www.bento4.com](http://www.bento4.com) for details
+
+About This Fork
+--------
+This is the Virtual Fragmentation fork of Bento4, by the VTG - MediaCore team.   We do expect to submit these enhancements to Axiomatic.
+
+Virtual Fragmentation is the creating of a sidx atom file and a JSON to track all data needed for the fragments (effectively the traf atom with children tfhd and trun; trun
+lists the samples) *and* their locations in the original MP4 file, so that the fragment can be assembled on-the-fly per-request at full speed.
+
+The changes are in Mp4Fragment.cpp and in the new Go code.  Check the README.md in Source/C++/Apps/Mp4Fragment for more.
 
 Features
 --------
