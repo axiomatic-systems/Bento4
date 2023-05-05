@@ -32,6 +32,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <list>
 
 #include "Ap4.h"
 
@@ -67,6 +68,7 @@ struct _Options {
     unsigned int  sequence_number_start;
     ForceSyncMode force_i_frame_sync;
     bool          no_zero_elst;
+    bool          vfrag;
 } Options;
 
 /*----------------------------------------------------------------------
@@ -95,6 +97,7 @@ PrintUsageAndExit()
             "  --copy-udta copy the moov/udta atom from input to output\n"
             "  --no-zero-elst don't set the last edit list entry to 0 duration\n"
             "  --trun-version-zero set the 'trun' box version to zero (default version: 1)\n"
+            "  --vfrag virtually fragment - output sample offsets (video only)"
             );
     exit(1);
 }
@@ -161,6 +164,113 @@ protected:
     AP4_Cardinal m_SampleCount;
     bool*        m_ForcedSync;
 };
+
+/*----------------------------------------------------------------------
+|   vfrag - virtual fragmenter - chunk tracker struct and code.
++---------------------------------------------------------------------*/
+typedef struct _Chunk {
+    AP4_Offset place;
+    AP4_Size size;
+} Chunk;
+
+
+
+// List for vfrag of contiguous blocks of segments.
+// This is not the same as a sample list, as there may be many samples in a contiguous block.
+class FragmentSegmentList {
+public:
+    AP4_List<Chunk> m_FragmentRanges;
+    AP4_Offset m_DestinationOffset = 0; // Where in the output file this was (would have been) written.
+    AP4_Offset m_FirstOffset = 0;    // First sample location.
+    AP4_Offset m_LastOffset = 0;    // Start of the current block.
+    AP4_Size   m_CurrentSize = 0;   //  Amount in the current block.
+    int        m_SampleCount = 0;
+    AP4_Size   m_FragmentSize = 0;
+    AP4_UI32   m_FragmentDuration = 0;
+    AP4_Track::Type  m_TrackType;
+    int m_TrackId = 0;
+    char* m_laststring = 0;
+    
+    // Add a sample to the fragment list.  If it adjoins the previous sample, they form an extended chunk 
+    // for performance purposes.  Otherwise it starts another chunk for the same fragment.
+    // (In a real fMP4, they would be put together.)
+    AP4_Result AddSegment(AP4_Offset start, AP4_Size size) {
+        if (start == 0) {
+            return AP4_ERROR_OUT_OF_RANGE;
+        }
+        if (m_FirstOffset == 0) {
+            m_FirstOffset = start;
+        }
+        m_FragmentSize += size;
+        m_SampleCount++;
+        if (start == m_LastOffset + m_CurrentSize) {
+            // Add this chunk to the current chunk.
+            m_CurrentSize += size;
+        } else {
+            // Close off this chunk and start a new one.
+            FinishList();
+            m_LastOffset = start;
+            m_CurrentSize = size;
+        }
+        return AP4_SUCCESS;
+    }
+    // Add the in-progress chunk to the official list.
+    AP4_Result FinishList() {
+        if ((m_LastOffset == 0) && (m_CurrentSize == 0)) {
+            return AP4_SUCCESS;
+        }
+        Chunk* pchunk = (Chunk*)calloc(sizeof(Chunk), 1);
+        pchunk->place = m_LastOffset;
+        pchunk->size = m_CurrentSize;
+        m_FragmentRanges.Add(pchunk);
+        m_LastOffset = 0;
+        m_CurrentSize = 0;
+        return AP4_SUCCESS;
+    }
+
+    void ClearList() {
+        AP4_List<Chunk>::Item* fragment_chunk = m_FragmentRanges.FirstItem();
+        while (fragment_chunk) {
+            Chunk* fchunk = fragment_chunk->GetData();
+            free(fchunk);
+            fragment_chunk = fragment_chunk->GetNext();
+        }
+        free(m_laststring);
+        m_laststring = NULL;
+    }
+
+    // Warning: Caller must free this result!
+    // Returns the fragment ranges as a string.
+    char* ToJSON(char* atomhex) {
+        int max_line_len = 600 + strlen(atomhex);
+        if (m_laststring) {
+            delete(m_laststring);
+        }
+        int buffer_length =m_FragmentRanges.ItemCount() * 60 +  max_line_len;
+        m_laststring = (char*)calloc(buffer_length, 1);
+        char line_buffer[max_line_len];
+        snprintf(m_laststring, max_line_len, "{\n   \"TrackID\":%d,\n   \"DestinationOffset\":%llu,\n   \"Duration\":%llu,\n   \"TrackType\":%s,\n   \"FragmentSize\":%llu,\n   \"Traf\":\"%s\",\n   \"SampleCount\":%d,\n   \"Chunks\":[\n",
+            m_TrackId, m_DestinationOffset, m_FragmentDuration, 
+            (m_TrackType == AP4_Track::TYPE_VIDEO ? "\"Video\"":"\"Audio\""),
+            m_FragmentSize, atomhex, m_SampleCount);
+        
+        int i = 0;
+        // Output chunk maps, one per line.
+        AP4_List<Chunk>::Item* fragment_chunk = m_FragmentRanges.FirstItem();
+        i = 1;
+        while (fragment_chunk) {
+            Chunk* fchunk = fragment_chunk->GetData();
+            snprintf(line_buffer, max_line_len, "        {\"Offset\":%llu,\"Size\":%u}%s", fchunk->place, fchunk->size, (i < m_FragmentRanges.ItemCount()? ",\n": "\n"));
+            strcat(m_laststring, line_buffer);
+            fragment_chunk = fragment_chunk->GetNext();
+            i++;
+        }
+        strcat(m_laststring, "   ]\n}\n");
+        return m_laststring;
+    }
+    
+};
+
 
 /*----------------------------------------------------------------------
 |   CachedSampleArray
@@ -311,7 +421,10 @@ Fragment(AP4_File&                input_file,
          AP4_UI32                 timescale,
          bool                     create_segment_index,
          bool                     copy_udta,
-         bool                     trun_version_one)
+         bool                     trun_version_one,
+         AP4_ByteStream&          sidx_stream,      //  Only used for vfrag
+         AP4_ByteStream&          vfrag_stream      //  Only used for vfrag
+         )
 {
     AP4_List<FragmentInfo>       fragments;
     AP4_List<IndexedSegmentInfo> indexed_segments;
@@ -486,6 +599,10 @@ Fragment(AP4_File&                input_file,
     
     // compute all the fragments
     unsigned int sequence_number = Options.sequence_number_start;
+    AP4_Position sample_start = 0;
+    AP4_UI64 sample_dtsstart = 0;
+    int fragment_index = 0;
+
     for(;;) {
         TrackCursor* cursor = NULL;
 
@@ -521,6 +638,11 @@ Fragment(AP4_File&                input_file,
             cursor = anchor_cursor;
         }
         if (cursor == NULL) break; // all done
+
+        if ((Options.vfrag) && ( (cursor->m_Track->GetType() == AP4_Track::TYPE_VIDEO) ||  (cursor->m_Track->GetType() == AP4_Track::TYPE_AUDIO) )) {
+            sample_start = cursor->m_Sample.GetOffset();
+            sample_dtsstart = cursor->m_Sample.GetDts();
+        }
         
         // decide how many samples go into this fragment
         AP4_UI64 target_dts;
@@ -605,6 +727,12 @@ Fragment(AP4_File&                input_file,
                    cursor->m_Track->GetSampleCount());
         }
         
+        if ((Options.vfrag) && ( (cursor->m_Track->GetType() == AP4_Track::TYPE_VIDEO) ||  (cursor->m_Track->GetType() == AP4_Track::TYPE_AUDIO) ) && (Options.verbosity > 0)) {
+            printf(" Track %d - Fragment starts %d, dts %lld. Sample Count: %d\n", 
+                cursor->m_Track->GetId(), sample_start, sample_dtsstart,
+                end_sample_index - cursor->m_SampleIndex);
+        }
+
         // emit a fragment for the selected track
         if (Options.verbosity > 1) {
             printf("fragment: track ID %d\n", cursor->m_Track->GetId());
@@ -656,7 +784,7 @@ Fragment(AP4_File&                input_file,
         }
         traf->AddChild(trun);
         moof->AddChild(traf);
-        
+
         // create a new FragmentInfo object to store the fragment details
         FragmentInfo* fragment = new FragmentInfo(cursor->m_Samples, cursor->m_Tfra, cursor->m_Timestamp, moof);
         fragments.Add(fragment);
@@ -669,6 +797,7 @@ Fragment(AP4_File&                input_file,
         bool all_sample_durations_equal = true;
         bool all_samples_are_sync = true;
         bool only_first_sample_is_sync = true;
+
         for (;;) {
             // if we have one non-zero CTS delta, we'll need to express it
             if (cursor->m_Sample.GetCtsDelta()) {
@@ -784,13 +913,14 @@ Fragment(AP4_File&                input_file,
         if (current_indexed_segment) {
             current_indexed_segment->m_Size += (AP4_UI32)(fragment->m_Moof->GetSize()+fragment->m_MdatSize);
         }
-        
+
         // advance the cursor's fragment index
         ++cursor->m_FragmentIndex;
     }
-    
+
     // write the ftyp atom
     AP4_FtypAtom* ftyp = input_file.GetFileType();
+
     if (ftyp) {
         // keep the existing brand and compatible brands
         AP4_Array<AP4_UI32> compatible_brands;
@@ -811,6 +941,10 @@ Fragment(AP4_File&                input_file,
                                                   compatible_brands.ItemCount());
         ftyp = new_ftyp;
     } else {
+        if (Options.verbosity > 0) {
+            printf("adding ftyp atom\n");
+        }
+
         AP4_UI32 compat[2] = {
             AP4_FILE_BRAND_ISOM,
             AP4_FILE_BRAND_ISO5
@@ -839,7 +973,12 @@ Fragment(AP4_File&                input_file,
         sidx->Write(output_stream);
     }
     
+    bool is_firstFragment = true;
+    if (Options.vfrag) {
+        vfrag_stream.Write("[\n",2);
+    }
     // write all fragments
+    fragment_index = 0;
     for (AP4_List<FragmentInfo>::Item* item = fragments.FirstItem();
                                        item;
                                        item = item->GetNext()) {
@@ -851,12 +990,21 @@ Fragment(AP4_File&                input_file,
         
         // write the moof
         fragment->m_Moof->Write(output_stream);
-        
         // write mdat
         output_stream.WriteUI32(fragment->m_MdatSize);
         output_stream.WriteUI32(AP4_ATOM_TYPE_MDAT);
         AP4_DataBuffer sample_data;
         AP4_Sample     sample;
+
+        // Start tracking vfrag fragment sections
+        FragmentSegmentList fragmentranges;
+        fragmentranges.m_TrackId = indexed_cursor->m_Track->GetId();
+        fragmentranges.m_TrackType = indexed_cursor->m_Track->GetType();
+        
+        AP4_Position output_offset; 
+        output_stream.Tell(output_offset);
+        fragmentranges.m_DestinationOffset = output_offset;
+
         for (unsigned int i=0; i<fragment->m_SampleIndexes.ItemCount(); i++) {
             // get the sample
             result = fragment->m_Samples->GetSample(fragment->m_SampleIndexes[i], sample);
@@ -864,14 +1012,16 @@ Fragment(AP4_File&                input_file,
                 fprintf(stderr, "ERROR: failed to get sample %d (%d)\n", fragment->m_SampleIndexes[i], result);
                 return;
             }
+            // vfrag - determine if this is contiguous.
+            fragmentranges.AddSegment(sample.GetOffset(), sample.GetSize());
 
             // read the sample data
             result = sample.ReadData(sample_data);
+
             if (AP4_FAILED(result)) {
                 fprintf(stderr, "ERROR: failed to read sample data for sample %d (%d)\n", fragment->m_SampleIndexes[i], result);
                 return;
             }
-            
             // write the sample data
             result = output_stream.Write(sample_data.GetData(), sample_data.GetDataSize());
             if (AP4_FAILED(result)) {
@@ -879,7 +1029,51 @@ Fragment(AP4_File&                input_file,
                 return;
             }
         }
+        if (Options.vfrag) {
+            fragmentranges.FinishList();
+
+            AP4_ContainerAtom* traf = AP4_DYNAMIC_CAST(AP4_ContainerAtom, fragment->m_Moof->GetChild(AP4_ATOM_TYPE_TRAF, 0));
+            int rough_size_guess = fragment->m_SampleIndexes.ItemCount() * 8 + 100;  // For hex output. 4 bytes per sample, two bytes per byte.
+
+            AP4_LargeSize atom_dump_size = 0;   // This can be pretty large with all the sample sizes included.
+            AP4_DataBuffer buffer;
+            AP4_MemoryByteStream* atomDump = new AP4_MemoryByteStream(buffer);
+            if (traf == NULL) {
+                printf("ERROR: NULL TRAF\n");
+            }
+            else {
+                traf->Write(*atomDump);
+            }
+            atomDump->GetSize(atom_dump_size);
+            int buffersize = 200 + 2 * atom_dump_size;
+            char                    string_buffer[buffersize]; // Typically tiny.
+            for (unsigned int i=0; i< atom_dump_size; i++) {
+                snprintf(&(string_buffer[i*2]), buffersize - (i*2), "%02x", (unsigned char)atomDump->GetData()[i]);
+            }
+            atomDump->Release();
+
+            fragmentranges.m_FragmentDuration = fragment->m_Duration;
+            AP4_Sample firstSample;
+            fragment->m_Samples->GetSample(0, firstSample);
+            
+            char* json = fragmentranges.ToJSON(string_buffer);
+            if (is_firstFragment) {
+                is_firstFragment = false;
+            } else {
+                // Add comma to the list.
+                vfrag_stream.Write(",\n", 2);
+            }
+            // Output the json to the file.
+            vfrag_stream.Write(json, strlen(json));
+            fragmentranges.ClearList();
+            fragment_index++;
+        }
+
     }
+    if (Options.vfrag) {
+        vfrag_stream.Write("\n]\n", 3);
+    }
+
 
     // update the index and re-write it if needed
     if (create_segment_index) {
@@ -902,6 +1096,9 @@ Fragment(AP4_File&                input_file,
         output_stream.Seek(sidx_position);
         sidx->Write(output_stream);
         output_stream.Seek(here);
+        if (Options.vfrag) {
+            sidx->Write(sidx_stream);
+        }
         delete sidx;
     }
     
@@ -1144,6 +1341,7 @@ main(int argc, char** argv)
     Options.debug                 = false;
     Options.trim                  = false;
     Options.no_tfdt               = false;
+    Options.vfrag                 = false;
     Options.tfdt_start            = 0.0;
     Options.sequence_number_start = 1;
     Options.force_i_frame_sync    = AP4_FRAGMENTER_FORCE_SYNC_MODE_NONE;
@@ -1224,6 +1422,9 @@ main(int argc, char** argv)
             copy_udta = true;
         } else if (!strcmp(arg, "--no-zero-elst")) {
             Options.no_zero_elst = true;
+        } else if (!strcmp(arg, "--vfrag")) {
+            Options.vfrag = true;
+            create_segment_index = true;    //  Necessary for our use case.
         } else {
             if (input_filename == NULL) {
                 input_filename = arg;
@@ -1262,6 +1463,25 @@ main(int argc, char** argv)
     if (AP4_FAILED(result)) {
         fprintf(stderr, "ERROR: cannot create/open output (%d)\n", result);
         return 1;
+    }
+
+    AP4_ByteStream* sidx_stream = NULL;
+    AP4_ByteStream* vfrag_stream = NULL;
+    if (Options.vfrag) { // Create sidx and json outputs here also.
+        int extended_filename_len = strlen(output_filename) + 9;
+        char fname[extended_filename_len];
+        snprintf(fname, extended_filename_len, "%s.sidx", output_filename);
+        result = AP4_FileByteStream::Create(fname, AP4_FileByteStream::STREAM_MODE_WRITE, sidx_stream);
+        if (AP4_FAILED(result)) {
+            fprintf(stderr, "ERROR: cannot create/open output (%d)\n", result);
+            return 1;
+        }
+        snprintf(fname, extended_filename_len, "%s.json", output_filename);
+        result = AP4_FileByteStream::Create(fname, AP4_FileByteStream::STREAM_MODE_WRITE, vfrag_stream);
+        if (AP4_FAILED(result)) {
+            fprintf(stderr, "ERROR: cannot create/open output (%d)\n", result);
+            return 1;
+        }
     }
     
     // parse the input MP4 file (moov only)
@@ -1472,11 +1692,13 @@ main(int argc, char** argv)
     } else {
         tracks_to_fragment = cursors;
     }
-    Fragment(input_file, *output_stream, tracks_to_fragment, fragment_duration, timescale, create_segment_index, copy_udta, trun_version_one);
+    Fragment(input_file, *output_stream, tracks_to_fragment, fragment_duration, timescale, create_segment_index, copy_udta, trun_version_one, *sidx_stream, *vfrag_stream);
     
     // cleanup and exit
     if (input_stream)  input_stream->Release();
     if (output_stream) output_stream->Release();
+    if (sidx_stream) sidx_stream->Release();
+    if (vfrag_stream) vfrag_stream->Release();
 
     return 0;
 }
