@@ -51,6 +51,8 @@ class AP4_Ac4Header {
 public:
     // constructor
     AP4_Ac4Header(const AP4_UI08* bytes, unsigned int size);
+    // destructor
+    ~AP4_Ac4Header();
     
     // methods
     AP4_Result Check();
