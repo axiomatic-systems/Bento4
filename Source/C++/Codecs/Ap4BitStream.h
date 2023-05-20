@@ -75,7 +75,6 @@ public:
     AP4_Result   WriteBytes(const AP4_UI08* bytes, AP4_Size byte_count);
     AP4_Size     GetContiguousBytesAvailable();
     AP4_Size     GetBytesAvailable();
-    AP4_UI08     ReadByte();
     AP4_Result   ReadBytes(AP4_UI08* bytes, AP4_Size byte_count);
     AP4_UI08     PeekByte();
     AP4_Result   PeekBytes(AP4_UI08* bytes, AP4_Size byte_count);
@@ -280,16 +279,6 @@ AP4_BitStream::SkipBit()
    } else {
       --m_BitsCached;
    }
-}
-
-/*----------------------------------------------------------------------
-|   AP4_BitStream::ReadByte
-+---------------------------------------------------------------------*/
-inline AP4_UI08
-AP4_BitStream::ReadByte()
-{
-   SkipBits(m_BitsCached & 7);
-   return (AP4_UI08)ReadBits(8);
 }
 
 /*----------------------------------------------------------------------
