@@ -112,7 +112,7 @@ public:
     AP4_Size   GetBytesFree();
     AP4_Size   GetBytesAvailable();
 
-private:
+protected:
     // methods
     AP4_Result FindHeader(AP4_UI08* header, AP4_Size& skip_size);
 
