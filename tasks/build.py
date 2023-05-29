@@ -37,4 +37,4 @@ def rebuild(ctx, clean = False):
 
 @task(rebuild)
 def sdk(ctx):
-    ctx.run("python Scripts/SdkPackager.py")
+    ctx.run("python3 Scripts/SdkPackager.py")
