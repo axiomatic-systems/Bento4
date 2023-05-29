@@ -462,7 +462,7 @@ def OutputDash(options, set_attributes, audio_sets, video_sets, subtitles_sets, 
             AddDescriptor(adaptation_set, set_attributes, 'video', None)
 
             # setup content protection
-            if options.encryption_key or options.marlin or options.playready or options.widevine:
+            if options.encryption_key or options.eme_signaling or options.marlin or options.playready or options.widevine or options.clearkey or options.primetime:
                 AddContentProtection(options, adaptation_set, video_tracks, all_audio_tracks + all_video_tracks)
 
             if options.on_demand:
@@ -519,7 +519,7 @@ def OutputDash(options, set_attributes, audio_sets, video_sets, subtitles_sets, 
             AddDescriptor(adaptation_set, set_attributes, 'audio/' + language, 'audio')
 
             # setup content protection
-            if options.encryption_key or options.marlin or options.playready or options.widevine:
+            if options.encryption_key or options.eme_signaling or options.marlin or options.playready or options.widevine or options.clearkey or options.primetime:
                 AddContentProtection(options, adaptation_set, audio_tracks, all_audio_tracks + all_video_tracks)
 
             if options.on_demand:
