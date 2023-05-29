@@ -466,6 +466,8 @@ class Mp4Track:
                         if stream_type == 'Immersive stereo':
                             self.dolby_ac4_ims = 'Yes'
                         self.channels = str(self.channels)
+            elif 'mpeg_4_audio_decoder_config' in sample_desc:
+                self.channels = sample_desc['mpeg_4_audio_decoder_config']['channels']
 
         self.language = info['language']
         self.language_name = LanguageNames.get(LanguageCodeMap.get(self.language, 'und'), '')
