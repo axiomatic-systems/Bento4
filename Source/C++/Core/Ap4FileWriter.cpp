@@ -72,10 +72,34 @@ AP4_FileWriter::Write(AP4_File& file, AP4_ByteStream& stream, Interleaving /* in
     AP4_Position position;
     stream.Tell(position);
     
+    // compute the total size of all the samples
+    AP4_UI64 total_sample_size = 0;
+    for (AP4_List<AP4_Track>::Item* track_item = movie->GetTracks().FirstItem();
+                                    track_item;
+                                    track_item = track_item->GetNext()) {
+        AP4_Track*   track = track_item->GetData();
+        AP4_Cardinal sample_count = track->GetSampleCount();
+        AP4_Sample   sample;
+        for (AP4_Ordinal i=0; i<sample_count; i++) {
+            track->GetSample(i, sample);
+            total_sample_size += sample.GetSize();
+        }
+    }
+
+    // decide if we need a 32-bit or 64-bit mdat header
+    AP4_UI64 mdat_size;
+    bool mdat_is_large;
+    if (total_sample_size <= 0xFFFFFFFF - AP4_ATOM_HEADER_SIZE) {
+        mdat_size = AP4_ATOM_HEADER_SIZE;
+        mdat_is_large = false;
+    } else {
+        mdat_size = 16;
+        mdat_is_large = true;
+    }
+    
     // backup and recompute all the chunk offsets
     unsigned int t=0;
     AP4_Result result = AP4_SUCCESS;
-    AP4_UI64   mdat_size = AP4_ATOM_HEADER_SIZE;
     AP4_UI64   mdat_position = position+movie->GetMoovAtom()->GetSize();
     AP4_Array<AP4_Array<AP4_UI64>*> trak_chunk_offsets_backup;
     AP4_Array<AP4_UI64>             chunk_offsets;
@@ -117,9 +141,14 @@ AP4_FileWriter::Write(AP4_File& file, AP4_ByteStream& stream, Interleaving /* in
     movie->GetMoovAtom()->Write(stream);
     
     // create and write the media data (mdat)
-    // TODO: this only supports 32-bit mdat size
-    stream.WriteUI32((AP4_UI32)mdat_size);
-    stream.WriteUI32(AP4_ATOM_TYPE_MDAT);
+    if (mdat_is_large) {
+        stream.WriteUI32(1);
+        stream.WriteUI32(AP4_ATOM_TYPE_MDAT);
+        stream.WriteUI64(mdat_size);
+    } else {
+        stream.WriteUI32((AP4_UI32)mdat_size);
+        stream.WriteUI32(AP4_ATOM_TYPE_MDAT);
+    }
     
     // write all tracks and restore the chunk offsets to their backed-up values
     for (AP4_List<AP4_Track>::Item* track_item = movie->GetTracks().FirstItem();
