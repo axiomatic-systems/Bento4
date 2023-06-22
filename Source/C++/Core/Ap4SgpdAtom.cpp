@@ -165,16 +165,14 @@ AP4_SgpdAtom::InspectFields(AP4_AtomInspector& inspector)
     inspector.AddField("entry_count", m_Entries.ItemCount());
     
     // inspect entries
-    char header[32];
-    unsigned int i=0;
+    inspector.StartArray("entries");
     for (AP4_List<AP4_DataBuffer>::Item* item = m_Entries.FirstItem();
                                          item;
                                          item = item->GetNext()) {
         AP4_DataBuffer* entry = item->GetData();
-        AP4_FormatString(header, sizeof(header), "entry %02d", i);
-        ++i;
-        inspector.AddField(header, entry->GetData(), entry->GetDataSize());
+        inspector.AddField(NULL, entry->GetData(), entry->GetDataSize());
     }
+    inspector.EndArray();
 
     return AP4_SUCCESS;
 }

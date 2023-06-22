@@ -78,55 +78,60 @@ AP4_DescriptorFactory::CreateDescriptorFromStream(AP4_ByteStream&  stream,
     } while (--max && (ext&0x80));
 
     // create the descriptor
-    switch (tag) {
-      case AP4_DESCRIPTOR_TAG_OD:
-      case AP4_DESCRIPTOR_TAG_MP4_OD:
-        descriptor = new AP4_ObjectDescriptor(stream, tag, header_size, payload_size);
-        break;
+    if (payload_size) {
+        switch (tag) {
+          case AP4_DESCRIPTOR_TAG_OD:
+          case AP4_DESCRIPTOR_TAG_MP4_OD:
+            descriptor = new AP4_ObjectDescriptor(stream, tag, header_size, payload_size);
+            break;
 
-      case AP4_DESCRIPTOR_TAG_IOD:
-      case AP4_DESCRIPTOR_TAG_MP4_IOD:
-        descriptor = new AP4_InitialObjectDescriptor(stream, tag, header_size, payload_size);
-        break;
+          case AP4_DESCRIPTOR_TAG_IOD:
+          case AP4_DESCRIPTOR_TAG_MP4_IOD:
+            descriptor = new AP4_InitialObjectDescriptor(stream, tag, header_size, payload_size);
+            break;
 
-      case AP4_DESCRIPTOR_TAG_ES_ID_INC:
-        descriptor = new AP4_EsIdIncDescriptor(stream, header_size, payload_size);
-        break;
+          case AP4_DESCRIPTOR_TAG_ES_ID_INC:
+            descriptor = new AP4_EsIdIncDescriptor(stream, header_size, payload_size);
+            break;
 
-      case AP4_DESCRIPTOR_TAG_ES_ID_REF:
-        descriptor = new AP4_EsIdRefDescriptor(stream, header_size, payload_size);
-        break;
-        
-      case AP4_DESCRIPTOR_TAG_ES:
-        descriptor = new AP4_EsDescriptor(stream, header_size, payload_size);
-        break;
+          case AP4_DESCRIPTOR_TAG_ES_ID_REF:
+            descriptor = new AP4_EsIdRefDescriptor(stream, header_size, payload_size);
+            break;
 
-      case AP4_DESCRIPTOR_TAG_DECODER_CONFIG:
-        descriptor = new AP4_DecoderConfigDescriptor(stream, header_size, payload_size);
-        break;
+          case AP4_DESCRIPTOR_TAG_ES:
+            descriptor = new AP4_EsDescriptor(stream, header_size, payload_size);
+            break;
 
-	  case AP4_DESCRIPTOR_TAG_DECODER_SPECIFIC_INFO:
-	    descriptor = new AP4_DecoderSpecificInfoDescriptor(stream, header_size, payload_size);
-		break;
-          
-      case AP4_DESCRIPTOR_TAG_SL_CONFIG:
-        if (payload_size != 1) return AP4_ERROR_INVALID_FORMAT;
-        descriptor = new AP4_SLConfigDescriptor(header_size);
-        break;
+          case AP4_DESCRIPTOR_TAG_DECODER_CONFIG:
+            descriptor = new AP4_DecoderConfigDescriptor(stream, header_size, payload_size);
+            break;
 
-      case AP4_DESCRIPTOR_TAG_IPMP_DESCRIPTOR_POINTER:
-        descriptor = new AP4_IpmpDescriptorPointer(stream, header_size, payload_size);
-        break;
-        
-      case AP4_DESCRIPTOR_TAG_IPMP_DESCRIPTOR:
-        descriptor = new AP4_IpmpDescriptor(stream, header_size, payload_size);
-        break;
+          case AP4_DESCRIPTOR_TAG_DECODER_SPECIFIC_INFO:
+            descriptor = new AP4_DecoderSpecificInfoDescriptor(stream, header_size, payload_size);
+            break;
 
-      default:
-        descriptor = new AP4_UnknownDescriptor(stream, tag, header_size, payload_size);
-        break;
+          case AP4_DESCRIPTOR_TAG_SL_CONFIG:
+            if (payload_size != 1) return AP4_ERROR_INVALID_FORMAT;
+            descriptor = new AP4_SLConfigDescriptor(header_size);
+            break;
+
+          case AP4_DESCRIPTOR_TAG_IPMP_DESCRIPTOR_POINTER:
+            descriptor = new AP4_IpmpDescriptorPointer(stream, header_size, payload_size);
+            break;
+
+          case AP4_DESCRIPTOR_TAG_IPMP_DESCRIPTOR:
+            descriptor = new AP4_IpmpDescriptor(stream, header_size, payload_size);
+            break;
+
+          default:
+            descriptor = new AP4_UnknownDescriptor(stream, tag, header_size, payload_size);
+            break;
+        }
+    } else {
+        stream.Seek(offset);
+        return AP4_ERROR_INVALID_FORMAT;
     }
-
+    
     // skip to the end of the descriptor
     stream.Seek(offset+header_size+payload_size);
 

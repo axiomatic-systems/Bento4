@@ -72,29 +72,40 @@ AP4_Stz2Atom::AP4_Stz2Atom(AP4_UI32        size,
                            AP4_UI08        version,
                            AP4_UI32        flags,
                            AP4_ByteStream& stream) :
-    AP4_Atom(AP4_ATOM_TYPE_STZ2, size, version, flags)
+    AP4_Atom(AP4_ATOM_TYPE_STZ2, size, version, flags),
+    m_FieldSize(0),
+    m_SampleCount(0)
 {
+    if (size < AP4_FULL_ATOM_HEADER_SIZE + 8) {
+        return;
+    }
+
     AP4_UI08 reserved;
     stream.ReadUI08(reserved);
     stream.ReadUI08(reserved);
     stream.ReadUI08(reserved);
-    stream.ReadUI08(m_FieldSize);
-    stream.ReadUI32(m_SampleCount);
-    if (m_FieldSize != 4 && m_FieldSize != 8 && m_FieldSize != 16) {
-        // illegale field size
+    AP4_UI08 field_size;
+    stream.ReadUI08(field_size);
+    if (field_size != 4 && field_size != 8 && field_size != 16) {
+        // illegal field size
         return;
     }
+    AP4_UI32 sample_count;
+    stream.ReadUI32(sample_count);
 
-    AP4_Cardinal sample_count = m_SampleCount;
-    m_Entries.SetItemCount(sample_count);
-    unsigned int table_size = (sample_count*m_FieldSize+7)/8;
-    if ((table_size+8) > size) return;
+    m_FieldSize   = field_size;
+    unsigned int table_size = (sample_count * field_size + 7) / 8;
+    if (table_size > size - AP4_FULL_ATOM_HEADER_SIZE - 8) {
+        return;
+    }
     unsigned char* buffer = new unsigned char[table_size];
     AP4_Result result = stream.Read(buffer, table_size);
     if (AP4_FAILED(result)) {
         delete[] buffer;
         return;
     }
+    m_SampleCount = sample_count;
+    m_Entries.SetItemCount((AP4_Cardinal)sample_count);
     switch (m_FieldSize) {
         case 4:
             for (unsigned int i=0; i<sample_count; i++) {
@@ -243,11 +254,11 @@ AP4_Stz2Atom::InspectFields(AP4_AtomInspector& inspector)
     inspector.AddField("sample_count", m_Entries.ItemCount());
 
     if (inspector.GetVerbosity() >= 2) {
-        char header[32];
+        inspector.StartArray("entries");
         for (AP4_Ordinal i=0; i<m_Entries.ItemCount(); i++) {
-            AP4_FormatString(header, sizeof(header), "entry %8d", i);
-            inspector.AddField(header, m_Entries[i]);
+            inspector.AddField(NULL, m_Entries[i]);
         }
+        inspector.EndArray();
     }
 
     return AP4_SUCCESS;

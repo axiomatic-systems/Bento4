@@ -74,8 +74,20 @@ AP4_CttsAtom::AP4_CttsAtom(AP4_UI32        size,
     m_LookupCache.sample      = 0;
     m_LookupCache.entry_index = 0;
 
+    if (size < AP4_FULL_ATOM_HEADER_SIZE + 4) {
+        return;
+    }
+
+    // read the number of entries
     AP4_UI32 entry_count;
     stream.ReadUI32(entry_count);
+
+    // check that there's enough data
+    if (((size - AP4_FULL_ATOM_HEADER_SIZE - 4) / 8) < entry_count) {
+        return;
+    }
+
+    // read the entries
     m_Entries.SetItemCount(entry_count);
     unsigned char* buffer = new unsigned char[entry_count*8];
     AP4_Result result = stream.Read(buffer, entry_count*8);
@@ -197,15 +209,14 @@ AP4_CttsAtom::InspectFields(AP4_AtomInspector& inspector)
     inspector.AddField("entry_count", m_Entries.ItemCount());
 
     if (inspector.GetVerbosity() >= 2) {
-        char header[32];
-        char value[64];
+        inspector.StartArray("entries", m_Entries.ItemCount());
         for (AP4_Ordinal i=0; i<m_Entries.ItemCount(); i++) {
-            AP4_FormatString(header, sizeof(header), "entry %8d", i);
-            AP4_FormatString(value, sizeof(value), "count=%d, offset=%d", 
-                             m_Entries[i].m_SampleCount, 
-                             m_Entries[i].m_SampleOffset);
-            inspector.AddField(header, value);
+            inspector.StartObject(NULL, 2, true);
+            inspector.AddField("count",  m_Entries[i].m_SampleCount);
+            inspector.AddField("offset", m_Entries[i].m_SampleOffset);
+            inspector.EndObject();
         }
+        inspector.EndArray();
     }
 
     return AP4_SUCCESS;

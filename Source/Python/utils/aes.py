@@ -1,14 +1,6 @@
 # Based on the public domain code from tlslite (Trevor Perrin, http://trevp.net/tlslite/)
 
 import copy
-import string
-
-
-
-import exceptions
-if hasattr(exceptions, "FutureWarning"):
-    import warnings
-    warnings.filterwarnings("ignore", category=FutureWarning, append=1)
 
 shifts = [[[0, 0], [1, 3], [2, 2], [3, 1]],
           [[0, 0], [1, 5], [2, 4], [3, 3]],
@@ -29,14 +21,14 @@ A = [[1, 1, 1, 1, 1, 0, 0, 0],
 # produce log and alog tables, needed for multiplying in the
 # field GF(2^m) (generator = 3)
 alog = [1]
-for i in xrange(255):
+for i in range(255):
     j = (alog[-1] << 1) ^ alog[-1]
     if j & 0x100 != 0:
         j ^= 0x11B
     alog.append(j)
 
 log = [0] * 256
-for i in xrange(1, 255):
+for i in range(1, 255):
     log[alog[i]] = i
 
 # multiply two elements of GF(2^m)
@@ -46,29 +38,29 @@ def mul(a, b):
     return alog[(log[a & 0xFF] + log[b & 0xFF]) % 255]
 
 # substitution box based on F^{-1}(x)
-box = [[0] * 8 for i in xrange(256)]
+box = [[0] * 8 for i in range(256)]
 box[1][7] = 1
-for i in xrange(2, 256):
+for i in range(2, 256):
     j = alog[255 - log[i]]
-    for t in xrange(8):
+    for t in range(8):
         box[i][t] = (j >> (7 - t)) & 0x01
 
 B = [0, 1, 1, 0, 0, 0, 1, 1]
 
 # affine transform:  box[i] <- B + A*box[i]
-cox = [[0] * 8 for i in xrange(256)]
-for i in xrange(256):
-    for t in xrange(8):
+cox = [[0] * 8 for i in range(256)]
+for i in range(256):
+    for t in range(8):
         cox[i][t] = B[t]
-        for j in xrange(8):
+        for j in range(8):
             cox[i][t] ^= A[t][j] * box[i][j]
 
 # S-boxes and inverse S-boxes
 S =  [0] * 256
 Si = [0] * 256
-for i in xrange(256):
+for i in range(256):
     S[i] = cox[i][0] << 7
-    for t in xrange(1, 8):
+    for t in range(1, 8):
         S[i] ^= cox[i][t] << (7-t)
     Si[S[i] & 0xFF] = i
 
@@ -78,36 +70,36 @@ G = [[2, 1, 1, 3],
     [1, 3, 2, 1],
     [1, 1, 3, 2]]
 
-AA = [[0] * 8 for i in xrange(4)]
+AA = [[0] * 8 for i in range(4)]
 
-for i in xrange(4):
-    for j in xrange(4):
+for i in range(4):
+    for j in range(4):
         AA[i][j] = G[i][j]
         AA[i][i+4] = 1
 
-for i in xrange(4):
+for i in range(4):
     pivot = AA[i][i]
     if pivot == 0:
         t = i + 1
         while AA[t][i] == 0 and t < 4:
             t += 1
             assert t != 4, 'G matrix must be invertible'
-            for j in xrange(8):
+            for j in range(8):
                 AA[i][j], AA[t][j] = AA[t][j], AA[i][j]
             pivot = AA[i][i]
-    for j in xrange(8):
+    for j in range(8):
         if AA[i][j] != 0:
             AA[i][j] = alog[(255 + log[AA[i][j] & 0xFF] - log[pivot & 0xFF]) % 255]
-    for t in xrange(4):
+    for t in range(4):
         if i != t:
-            for j in xrange(i+1, 8):
+            for j in range(i+1, 8):
                 AA[t][j] ^= mul(AA[i][j], AA[t][i])
             AA[t][i] = 0
 
-iG = [[0] * 4 for i in xrange(4)]
+iG = [[0] * 4 for i in range(4)]
 
-for i in xrange(4):
-    for j in xrange(4):
+for i in range(4):
+    for j in range(4):
         iG[i][j] = AA[i][j + 4]
 
 def mul4(a, bs):
@@ -133,7 +125,7 @@ U2 = []
 U3 = []
 U4 = []
 
-for t in xrange(256):
+for t in range(256):
     s = S[t]
     T1.append(mul4(s, G[0]))
     T2.append(mul4(s, G[1]))
@@ -154,7 +146,7 @@ for t in xrange(256):
 # round constants
 rcon = [1]
 r = 1
-for t in xrange(1, 30):
+for t in range(1, 30):
     r = mul(2, r)
     rcon.append(r)
 
@@ -185,26 +177,26 @@ class rijndael:
         self.block_size = block_size
 
         ROUNDS = num_rounds[len(key)][block_size]
-        BC = block_size / 4
+        BC = block_size // 4
         # encryption round keys
-        Ke = [[0] * BC for i in xrange(ROUNDS + 1)]
+        Ke = [[0] * BC for i in range(ROUNDS + 1)]
         # decryption round keys
-        Kd = [[0] * BC for i in xrange(ROUNDS + 1)]
+        Kd = [[0] * BC for i in range(ROUNDS + 1)]
         ROUND_KEY_COUNT = (ROUNDS + 1) * BC
         KC = len(key) // 4
 
         # copy user material bytes into temporary ints
         tk = []
-        for i in xrange(0, KC):
-            tk.append((ord(key[i * 4]) << 24) | (ord(key[i * 4 + 1]) << 16) |
-                (ord(key[i * 4 + 2]) << 8) | ord(key[i * 4 + 3]))
+        for i in range(0, KC):
+            tk.append((key[i * 4] << 24) | (key[i * 4 + 1] << 16) |
+                (key[i * 4 + 2] << 8) | key[i * 4 + 3])
 
         # copy values into round key arrays
         t = 0
         j = 0
         while j < KC and t < ROUND_KEY_COUNT:
-            Ke[t / BC][t % BC] = tk[j]
-            Kd[ROUNDS - (t / BC)][t % BC] = tk[j]
+            Ke[t // BC][t % BC] = tk[j]
+            Kd[ROUNDS - (t // BC)][t % BC] = tk[j]
             j += 1
             t += 1
         tt = 0
@@ -219,28 +211,28 @@ class rijndael:
                      (rcon[rconpointer]    & 0xFF) << 24
             rconpointer += 1
             if KC != 8:
-                for i in xrange(1, KC):
+                for i in range(1, KC):
                     tk[i] ^= tk[i-1]
             else:
-                for i in xrange(1, KC / 2):
+                for i in range(1, KC // 2):
                     tk[i] ^= tk[i-1]
-                tt = tk[KC / 2 - 1]
-                tk[KC / 2] ^= (S[ tt        & 0xFF] & 0xFF)       ^ \
+                tt = tk[KC // 2 - 1]
+                tk[KC // 2] ^= (S[ tt        & 0xFF] & 0xFF)       ^ \
                               (S[(tt >>  8) & 0xFF] & 0xFF) <<  8 ^ \
                               (S[(tt >> 16) & 0xFF] & 0xFF) << 16 ^ \
                               (S[(tt >> 24) & 0xFF] & 0xFF) << 24
-                for i in xrange(KC / 2 + 1, KC):
+                for i in range(KC // 2 + 1, KC):
                     tk[i] ^= tk[i-1]
             # copy values into round key arrays
             j = 0
             while j < KC and t < ROUND_KEY_COUNT:
-                Ke[t / BC][t % BC] = tk[j]
-                Kd[ROUNDS - (t / BC)][t % BC] = tk[j]
+                Ke[t // BC][t % BC] = tk[j]
+                Kd[ROUNDS - (t // BC)][t % BC] = tk[j]
                 j += 1
                 t += 1
         # inverse MixColumn where needed
-        for r in xrange(1, ROUNDS):
-            for j in xrange(BC):
+        for r in range(1, ROUNDS):
+            for j in range(BC):
                 tt = Kd[r][j]
                 Kd[r][j] = U1[(tt >> 24) & 0xFF] ^ \
                            U2[(tt >> 16) & 0xFF] ^ \
@@ -254,7 +246,7 @@ class rijndael:
             raise ValueError('wrong block length, expected ' + str(self.block_size) + ' got ' + str(len(plaintext)))
         Ke = self.Ke
 
-        BC = self.block_size / 4
+        BC = self.block_size // 4
         ROUNDS = len(Ke) - 1
         if BC == 4:
             SC = 0
@@ -269,14 +261,14 @@ class rijndael:
         # temporary work array
         t = []
         # plaintext to ints + key
-        for i in xrange(BC):
-            t.append((ord(plaintext[i * 4    ]) << 24 |
-                      ord(plaintext[i * 4 + 1]) << 16 |
-                      ord(plaintext[i * 4 + 2]) <<  8 |
-                      ord(plaintext[i * 4 + 3])        ) ^ Ke[0][i])
+        for i in range(BC):
+            t.append((plaintext[i * 4    ] << 24 |
+                      plaintext[i * 4 + 1] << 16 |
+                      plaintext[i * 4 + 2] <<  8 |
+                      plaintext[i * 4 + 3]        ) ^ Ke[0][i])
         # apply round transforms
-        for r in xrange(1, ROUNDS):
-            for i in xrange(BC):
+        for r in range(1, ROUNDS):
+            for i in range(BC):
                 a[i] = (T1[(t[ i           ] >> 24) & 0xFF] ^
                         T2[(t[(i + s1) % BC] >> 16) & 0xFF] ^
                         T3[(t[(i + s2) % BC] >>  8) & 0xFF] ^
@@ -284,20 +276,20 @@ class rijndael:
             t = copy.copy(a)
         # last round is special
         result = []
-        for i in xrange(BC):
+        for i in range(BC):
             tt = Ke[ROUNDS][i]
             result.append((S[(t[ i           ] >> 24) & 0xFF] ^ (tt >> 24)) & 0xFF)
             result.append((S[(t[(i + s1) % BC] >> 16) & 0xFF] ^ (tt >> 16)) & 0xFF)
             result.append((S[(t[(i + s2) % BC] >>  8) & 0xFF] ^ (tt >>  8)) & 0xFF)
             result.append((S[ t[(i + s3) % BC]        & 0xFF] ^  tt       ) & 0xFF)
-        return string.join(map(chr, result), '')
+        return bytes(result)
 
     def decrypt(self, ciphertext):
         if len(ciphertext) != self.block_size:
             raise ValueError('wrong block length, expected ' + str(self.block_size) + ' got ' + str(len(ciphertext)))
         Kd = self.Kd
 
-        BC = self.block_size / 4
+        BC = self.block_size // 4
         ROUNDS = len(Kd) - 1
         if BC == 4:
             SC = 0
@@ -312,14 +304,14 @@ class rijndael:
         # temporary work array
         t = [0] * BC
         # ciphertext to ints + key
-        for i in xrange(BC):
-            t[i] = (ord(ciphertext[i * 4    ]) << 24 |
-                    ord(ciphertext[i * 4 + 1]) << 16 |
-                    ord(ciphertext[i * 4 + 2]) <<  8 |
-                    ord(ciphertext[i * 4 + 3])        ) ^ Kd[0][i]
+        for i in range(BC):
+            t[i] = (ciphertext[i * 4    ] << 24 |
+                    ciphertext[i * 4 + 1] << 16 |
+                    ciphertext[i * 4 + 2] <<  8 |
+                    ciphertext[i * 4 + 3]        ) ^ Kd[0][i]
         # apply round transforms
-        for r in xrange(1, ROUNDS):
-            for i in xrange(BC):
+        for r in range(1, ROUNDS):
+            for i in range(BC):
                 a[i] = (T5[(t[ i           ] >> 24) & 0xFF] ^
                         T6[(t[(i + s1) % BC] >> 16) & 0xFF] ^
                         T7[(t[(i + s2) % BC] >>  8) & 0xFF] ^
@@ -327,29 +319,29 @@ class rijndael:
             t = copy.copy(a)
         # last round is special
         result = []
-        for i in xrange(BC):
+        for i in range(BC):
             tt = Kd[ROUNDS][i]
             result.append((Si[(t[ i           ] >> 24) & 0xFF] ^ (tt >> 24)) & 0xFF)
             result.append((Si[(t[(i + s1) % BC] >> 16) & 0xFF] ^ (tt >> 16)) & 0xFF)
             result.append((Si[(t[(i + s2) % BC] >>  8) & 0xFF] ^ (tt >>  8)) & 0xFF)
             result.append((Si[ t[(i + s3) % BC]        & 0xFF] ^  tt       ) & 0xFF)
-        return string.join(map(chr, result), '')
+        return bytes(result)
 
 def cbc_encrypt(plaintext, key, IV):
     # padding
-    padding_size = 16-(len(plaintext) % 16)
-    plaintext += chr(padding_size)*padding_size
+    padding_size = 16 - (len(plaintext) % 16)
+    plaintext += bytes([padding_size]) * padding_size
 
     # init
     chainBytes = IV
     cipher = rijndael(key)
-    ciphertext = ''
+    ciphertext = b''
 
     # CBC Mode: For each block...
     for x in range(len(plaintext)//16):
 
         # XOR with the chaining block
-        block = ''.join([chr(ord(plaintext[x*16+y]) ^ ord(chainBytes[y])) for y in range(16)])
+        block = bytes([plaintext[x*16+y] ^ chainBytes[y] for y in range(16)])
 
         # Encrypt and chain
         chainBytes = cipher.encrypt(block)
@@ -360,7 +352,7 @@ def cbc_encrypt(plaintext, key, IV):
 def cbc_decrypt(ciphertext, key, IV):
     chainBytes = IV
     cipher = rijndael(key)
-    plaintext = ''
+    plaintext = b''
 
     # sanity check
     if len(ciphertext)%16: raise ValueError('ciphertext not an integral number of blocks')
@@ -373,13 +365,13 @@ def cbc_decrypt(ciphertext, key, IV):
         decrypted = cipher.decrypt(block)
 
         # XOR with the chaining block and add to plaintext
-        plaintext += ''.join([chr(ord(decrypted[y]) ^ ord(chainBytes[y])) for y in range(16)])
+        plaintext += bytes([decrypted[y] ^ chainBytes[y] for y in range(16)])
 
         # Set the next chaining block
         chainBytes = block
 
     # padding
-    padding_size = ord(plaintext[-1:])
+    padding_size = plaintext[-1]
     if padding_size > 16: raise ValueError('invalid padding')
 
     return plaintext[:-padding_size]

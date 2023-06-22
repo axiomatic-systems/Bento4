@@ -82,6 +82,7 @@ static struct _Options {
     const char*           segment_url_template;
     unsigned int          segment_duration;
     unsigned int          segment_duration_threshold;
+    const char*           allow_cache;
     const char*           encryption_key_hex;
     AP4_UI08              encryption_key[16];
     AP4_UI08              encryption_iv[16];
@@ -127,6 +128,7 @@ PrintUsageAndExit()
             "\n\nusage: mp42hls [options] <input>\n"
             "Options:\n"
             "  --verbose\n"
+            "  --show-info\n"
             "  --hls-version <n> (default: 3)\n"
             "  --pmt-pid <pid>\n"
             "    PID to use for the PMT (default: 0x100)\n"
@@ -147,6 +149,8 @@ PrintUsageAndExit()
             "  --pcr-offset <offset> in units of 90kHz (default 10000)\n"
             "  --index-filename <filename>\n"
             "    Filename to use for the playlist/index (default: stream.m3u8)\n"
+            "  --allow-cache <YES|NO>\n"
+            "    set #EXT-X-ALLOW-CACHE to YES or NO\n"
             "  --segment-filename-template <pattern>\n"
             "    Filename pattern to use for the segments. Use a printf-style pattern with\n"
             "    one number field for the segment number, unless using single file mode\n"
@@ -288,7 +292,7 @@ PreventStartCodeEmulation(const AP4_UI08* payload, AP4_Size payload_size, AP4_Da
 			++zero_counter;
 		} else {
 			zero_counter = 0;
-		}		
+        }
 	}
 
     output.SetDataSize(output_size);
@@ -666,6 +670,26 @@ WriteAdtsHeader(AP4_ByteStream& output,
 }
 
 /*----------------------------------------------------------------------
+|   WriteAc4Header
++---------------------------------------------------------------------*/
+static AP4_Result
+WriteAc4Header(AP4_ByteStream& output,
+                unsigned int    frame_size)
+{
+    unsigned char bits[7];
+
+    bits[0] = 0xac;
+    bits[1] = 0x40;
+    bits[2] = 0xff;
+    bits[3] = 0xff;
+    bits[4] = (frame_size>>16)&0xFF;
+    bits[5] = (frame_size>>8 )&0xFF;
+    bits[6] = (frame_size    )&0xFF;
+
+    return output.Write(bits, 7);
+}
+
+/*----------------------------------------------------------------------
 |   MakeAudioSetupData
 +---------------------------------------------------------------------*/
 static AP4_Result
@@ -959,6 +983,8 @@ PackedAudioWriter::WriteSample(AP4_Sample&            sample,
         unsigned int channel_configuration    = channel_count;
 
         WriteAdtsHeader(output, sample.GetSize(), sampling_frequency_index, channel_configuration);
+    } else if (sample_description->GetFormat() == AP4_SAMPLE_FORMAT_AC_4) {
+        WriteAc4Header(output, sample.GetSize());
     }
     return output.Write(sample_data.GetData(), sample_data.GetDataSize());
 }
@@ -978,8 +1004,10 @@ ReadSample(SampleReader&   reader,
     AP4_Result result = reader.ReadSample(sample, sample_data);
     if (AP4_FAILED(result)) {
         if (result == AP4_ERROR_EOS) {
+            // advance the timestamp by the last sample's duration
             ts += duration;
             eos = true;
+            return AP4_SUCCESS;
         } else {
             return result;
         }
@@ -1052,7 +1080,15 @@ WriteSamples(AP4_Mpeg2TsWriter*               ts_writer,
         AP4_Track* chosen_track= NULL;
         if (audio_track && !audio_eos) {
             chosen_track = audio_track;
-            if (video_track == NULL) sync_sample = true;
+            if (video_track == NULL) {
+                if (audio_track->GetSampleDescription(0)->GetFormat() == AP4_SAMPLE_FORMAT_AC_4) {
+                    if (audio_sample.IsSync()) {
+                        sync_sample = true;
+                    }
+                } else {
+                    sync_sample = true;
+                }
+            }
         }
         if (video_track && !video_eos) {
             if (audio_track) {
@@ -1325,6 +1361,11 @@ WriteSamples(AP4_Mpeg2TsWriter*               ts_writer,
     if (video_track) {
         playlist->WriteString("#EXT-X-INDEPENDENT-SEGMENTS\r\n");
     }
+    if (Options.allow_cache) {
+        playlist->WriteString("#EXT-X-ALLOW-CACHE:");
+        playlist->WriteString(Options.allow_cache);
+        playlist->WriteString("\r\n");
+    }
     playlist->WriteString("#EXT-X-TARGETDURATION:");
     sprintf(string_buffer, "%d\r\n", target_duration);
     playlist->WriteString(string_buffer);
@@ -1547,6 +1588,7 @@ main(int argc, char** argv)
     Options.segment_url_template           = NULL;
     Options.segment_duration               = 6;
     Options.segment_duration_threshold     = DefaultSegmentDurationThreshold;
+    Options.allow_cache                    = NULL;
     Options.encryption_key_hex             = NULL;
     Options.encryption_mode                = ENCRYPTION_MODE_NONE;
     Options.encryption_iv_mode             = ENCRYPTION_IV_MODE_NONE;
@@ -1598,6 +1640,12 @@ main(int argc, char** argv)
                 return 1;
             }
             Options.segment_url_template = *args++;
+        } else if (!strcmp(arg, "--allow-cache")) {
+            if (*args == NULL || (strcmp(*args, "NO") && strcmp(*args, "YES"))) {
+                fprintf(stderr, "ERROR: --allow-cache requires a YES or NO argument\n");
+                return 1;
+            }
+            Options.allow_cache = *args++;
         } else if (!strcmp(arg, "--pmt-pid")) {
             if (*args == NULL) {
                 fprintf(stderr, "ERROR: --pmt-pid requires a number\n");
@@ -1817,7 +1865,7 @@ main(int argc, char** argv)
     }
     
     if (Options.encryption_iv_mode == ENCRYPTION_IV_MODE_FPS) {
-        if (AP4_StringLength(Options.encryption_key_hex) != 64) {
+        if (Options.encryption_key_hex == NULL || AP4_StringLength(Options.encryption_key_hex) != 64) {
             fprintf(stderr, "ERROR: 'fps' IV mode requires a 32 byte key value (64 characters in hex)\n");
             return 1;
         }
@@ -1959,6 +2007,9 @@ main(int argc, char** argv)
             } else if (sample_description->GetFormat() == AP4_SAMPLE_FORMAT_EC_3) {
                 default_stream_name    = "stream.ec3";
                 default_stream_pattern = "segment-%d.ec3";
+            } else if (sample_description->GetFormat() == AP4_SAMPLE_FORMAT_AC_4) {
+                default_stream_name    = "stream.ac4";
+                default_stream_pattern = "segment-%d.ac4";
             }
 
             // override the segment names
@@ -2016,7 +2067,50 @@ main(int argc, char** argv)
                 fprintf(stderr, "ERROR: audio codec not supported\n");
                 return 1;
             }
-
+            if (stream_type == AP4_MPEG2_STREAM_TYPE_ATSC_EAC3) {
+                // E-AC-3 descriptor
+                unsigned int number_of_channels = 0;
+                AP4_String track_language;
+                AP4_Dec3Atom* dec3 = AP4_DYNAMIC_CAST(AP4_Dec3Atom, sample_description->GetDetails().GetChild(AP4_ATOM_TYPE_DEC3));
+                AP4_BitWriter bits(8);
+                bits.Write(0xCC, 8);
+                bits.Write(0x06, 8);    // fixed value
+                bits.Write(0xC0, 8);    // reserved, bsid_flag, mainid_flag, asvc_flag, mixinfoexists, substream1_flag, substream2_flag and substream3_flag 
+                bits.Write(24, 5);      // reserved, full_service_flag and service_type
+                if (dec3->GetSubStreams()[0].acmod == 0) {
+                    number_of_channels = 1;
+                } else if (dec3->GetSubStreams()[0].acmod == 1) {
+                    number_of_channels = 0;
+                } else if (dec3->GetSubStreams()[0].acmod == 2) {
+                    number_of_channels = 2;
+                } else {
+                    number_of_channels = 4;
+                }
+                if (dec3->GetSubStreams()[0].num_dep_sub > 0) {
+                    number_of_channels = 5;
+                }
+                bits.Write(number_of_channels, 3);              // number_of_channels
+                bits.Write(4, 3);                               // language_flag, language_flag_2, reserved
+                bits.Write(dec3->GetSubStreams()[0].bsid, 5);   // bsid
+                track_language = audio_track->GetTrackLanguage();
+                if (track_language.GetLength() == 3) {
+                    bits.Write(track_language.GetChars()[0], 8);
+                    bits.Write(track_language.GetChars()[1], 8);
+                    bits.Write(track_language.GetChars()[2], 8);
+                } else {
+                    bits.Write(0x75, 8);
+                    bits.Write(0x6E, 8);
+                    bits.Write(0x64, 8);
+                }
+                 // setup the audio stream
+                result = ts_writer->SetAudioStream(audio_track->GetMediaTimeScale(),
+                                                   stream_type,
+                                                   stream_id,
+                                                   audio_stream,
+                                                   Options.audio_pid,
+                                                   bits.GetData(), 8,
+                                                   Options.pcr_offset);
+            } else {
             // setup the audio stream
             result = ts_writer->SetAudioStream(audio_track->GetMediaTimeScale(),
                                                stream_type,
@@ -2025,6 +2119,7 @@ main(int argc, char** argv)
                                                Options.audio_pid,
                                                NULL, 0,
                                                Options.pcr_offset);
+            }
             if (AP4_FAILED(result)) {
                 fprintf(stderr, "could not create audio stream (%d)\n", result);
                 goto end;
@@ -2108,6 +2203,17 @@ main(int argc, char** argv)
         if (Stats.segments_total_duration != 0.0) {
             average_iframe_bitrate = 8.0*(double)Stats.iframes_total_size/Stats.segments_total_duration;
         }
+
+        double frame_rate = 0.0;
+        if (video_track && (Stats.segments_total_duration != 0.0)) {
+            double sample_count = (double)video_track->GetSampleCount();
+            double media_duration = (double)video_track->GetMediaDuration();
+            double timescale = (double)video_track->GetMediaTimeScale();
+            if (media_duration > 0.0) {
+                frame_rate = sample_count/(media_duration/timescale);
+            }
+        }
+
         printf(
             "{\n"
         );
@@ -2117,13 +2223,15 @@ main(int argc, char** argv)
             "    \"avg_segment_bitrate\": %f,\n"
             "    \"max_segment_bitrate\": %f,\n"
             "    \"avg_iframe_bitrate\": %f,\n"
-            "    \"max_iframe_bitrate\": %f\n"
+            "    \"max_iframe_bitrate\": %f,\n"
+            "    \"frame_rate\": %f\n"
             "  }",
             (double)movie->GetDurationMs()/1000.0,
             average_segment_bitrate,
             Stats.max_segment_bitrate,
             average_iframe_bitrate,
-            Stats.max_iframe_bitrate
+            Stats.max_iframe_bitrate,
+            frame_rate
         );
         if (audio_track) {
             AP4_String codec;

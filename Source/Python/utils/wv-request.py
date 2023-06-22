@@ -1,9 +1,11 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 
 import sys
 import json
 import aes
 import hashlib
+import base64
+import struct
 from optparse import OptionParser
 
 WV_DEFAULT_SERVER_URL  = 'https://license.uat.widevine.com/cenc/getcontentkey'
@@ -16,9 +18,8 @@ try:
 except:
 	raise Exception('"Requests" python module not installed. Please install it (use "pip install requests" or "easy_install requests" in a command shell, or consult the "Requests" documentation at http://docs.python-requests.org/en/latest/)')
 
-def base64_encode(str):
-	return str.encode('base64').replace('\n', '')
-
+def base64_encode(x):
+    return base64.b64encode(x).decode('ascii')
 
 ### Main
 parser = OptionParser(usage="%prog [options]",
@@ -41,18 +42,23 @@ parser.add_option('-t', '--track-types', dest="track_types", default='SD,HD,AUDI
                   help="List of track types, separated by ','")
 parser.add_option('-l', '--policy', dest="policy", default='',
                   help="Policy")
+parser.add_option('-s', '--protection-scheme', dest="protection_scheme", default='',
+                  help="Protection Scheme ('cenc', 'cbc1', 'cens', 'cbcs'), defaults to 'cenc'")
 
 (options, args) = parser.parse_args()
 if not options.content_id:
-    print 'ERROR: missing --content-id option'
+    print('ERROR: missing --content-id option')
     parser.print_help()
     sys.exit(1)
 
 rq_payload = {
-	'content_id': base64_encode(options.content_id.decode('hex')),
+	'content_id': base64_encode(bytes.fromhex(options.content_id)),
 	'drm_types':  ['WIDEVINE'],
 	'policy':      options.policy
 }
+
+if options.protection_scheme:
+    rq_payload['protection_scheme'] = struct.unpack('>I',options.protection_scheme.encode("ascii"))[0]
 
 if options.track_types:
 	rq_payload['tracks'] = [{'type': track_type} for track_type in options.track_types.split(',')]
@@ -61,41 +67,41 @@ else:
 
 rq_payload_json = json.dumps(rq_payload)
 if options.debug:
-	print 'Request Payload', rq_payload_json
+	print('Request Payload', rq_payload_json)
 
 sha1_hasher = hashlib.sha1()
-sha1_hasher.update(rq_payload_json)
-rq_payload_signature = aes.cbc_encrypt(sha1_hasher.digest(), options.aes_signing_key.decode('hex'), options.aes_signing_iv.decode('hex'))
+sha1_hasher.update(rq_payload_json.encode('ascii'))
+rq_payload_signature = aes.cbc_encrypt(sha1_hasher.digest(), bytes.fromhex(options.aes_signing_key), bytes.fromhex(options.aes_signing_iv))
 
 post_body = {
-	"request":base64_encode(rq_payload_json),
-	"signature":base64_encode(rq_payload_signature),
-	"signer": options.provider
+	"request":   base64_encode(rq_payload_json.encode('ascii')),
+	"signature": base64_encode(rq_payload_signature),
+	"signer":    options.provider
 }
 
 if options.debug:
-	print 'POST Body:'
-	print post_body
+	print('POST Body:')
+	print(post_body)
 
 post_url = options.server_url+'/'+options.provider
 http_response = requests.post(post_url, data=json.dumps(post_body))
 
 if options.debug:
-	print 'Response:', http_response.text
+	print('Response:', http_response.text)
 
 parsed_response = json.loads(http_response.text)
-parsed_payload = json.loads(parsed_response['response'].decode('base64'))
+parsed_payload = json.loads(base64.b64decode(parsed_response['response']))
 
 if options.debug:
-	print 'JSON Payload:'
-	print json.dumps(parsed_payload, indent=4)
+	print('JSON Payload:')
+	print(json.dumps(parsed_payload, indent=4))
 
 if parsed_payload['status'] == 'OK':
 	for track in parsed_payload['tracks']:
-		print 'Track:'
-		print '  Type =', track['type']
-		print '  Key  =', track['key'].decode('base64').encode('hex')
-		print '  KID  =', track['key_id'].decode('base64').encode('hex')
-		print '  PSSH =', track['pssh'][0]['data'], '['+track['pssh'][0]['data'].decode('base64').encode('hex')+']'
+		print('Track:')
+		print('  Type =', track['type'])
+		print('  Key  =', base64.b64decode(track['key']).hex())
+		print('  KID  =', base64.b64decode(track['key_id']).hex())
+		print('  PSSH =', track['pssh'][0]['data'], '[' + base64.b64decode(track['pssh'][0]['data']).hex()+']')
 else:
-	print 'ERROR:', parsed_payload['status']
+	print('ERROR:', parsed_payload['status'])

@@ -120,6 +120,12 @@ AP4_HdlrAtom::WriteFields(AP4_ByteStream& stream)
     if (AP4_FAILED(result)) return result;
     result = stream.WriteUI32(m_Reserved[2]);
     if (AP4_FAILED(result)) return result;
+    
+    // sanity check
+    if (m_Size32 < AP4_FULL_ATOM_HEADER_SIZE + 20) {
+        return AP4_ERROR_INVALID_FORMAT;
+    }
+    
     AP4_UI08 name_size = (AP4_UI08)m_HandlerName.GetLength();
     if (m_QuickTimeMode) {
         name_size += 1;
@@ -144,8 +150,10 @@ AP4_HdlrAtom::WriteFields(AP4_ByteStream& stream)
     }
 
     // pad with zeros if necessary
-    AP4_Size padding = m_Size32 - (AP4_FULL_ATOM_HEADER_SIZE + 20 + name_size);
-    while (padding--) stream.WriteUI08(0);
+    if (m_Size32 > AP4_FULL_ATOM_HEADER_SIZE + 20 + name_size) {
+        AP4_Size padding = m_Size32 - (AP4_FULL_ATOM_HEADER_SIZE + 20 + name_size);
+        while (padding--) stream.WriteUI08(0);
+    }
 
     return AP4_SUCCESS;
 }

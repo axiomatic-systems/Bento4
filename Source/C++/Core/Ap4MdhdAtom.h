@@ -53,8 +53,8 @@ public:
     static AP4_MdhdAtom* Create(AP4_Size size, AP4_ByteStream& stream);
 
     // methods
-    AP4_MdhdAtom(AP4_UI32    creation_time,
-                 AP4_UI32    modification_time,
+    AP4_MdhdAtom(AP4_UI64    creation_time,
+                 AP4_UI64    modification_time,
                  AP4_UI32    time_scale,
                  AP4_UI64    duration,
                  const char* language);
@@ -67,6 +67,7 @@ public:
     AP4_UI32          GetTimeScale() { return m_TimeScale; }
     void              SetTimeScale(AP4_UI32 timescale) { m_TimeScale = timescale; }
     const AP4_String& GetLanguage()  { return m_Language;  }
+    AP4_Result        SetLanguage(const char* language);
 
 private:
     // methods

@@ -59,6 +59,8 @@ const unsigned int AP4_AVC_NAL_UNIT_TYPE_PREFIX                            = 14;
 const unsigned int AP4_AVC_NAL_UNIT_TYPE_SUBSET_SPS                        = 15;
 const unsigned int AP4_AVC_NAL_UNIT_TYPE_CODED_SLICE_OF_AUXILIARY_PICTURE  = 19;
 const unsigned int AP4_AVC_NAL_UNIT_TYPE_CODED_SLICE_IN_SCALABLE_EXTENSION = 20;
+const unsigned int AP4_AVC_NAL_UNIT_TYPE_UNSPECIFIED28                     = 28;
+const unsigned int AP4_AVC_NAL_UNIT_TYPE_UNSPECIFIED30                     = 30;
 
 const unsigned int AP4_AVC_SLICE_TYPE_P                                    = 0;
 const unsigned int AP4_AVC_SLICE_TYPE_B                                    = 1;
@@ -291,6 +293,8 @@ public:
                                 unsigned int                  nal_ref_idc,
                                 AP4_AvcSliceHeader&           slice_header);
 
+    void SetParameterControl(bool isKeep) { m_keepParameterSets = isKeep; }
+
 private:
     // methods
     bool SameFrame(unsigned int nal_unit_type_1, unsigned int nal_ref_idc_1, AP4_AvcSliceHeader& sh1,
@@ -320,6 +324,9 @@ private:
     unsigned int                 m_PrevFrameNumOffset;
     int                          m_PrevPicOrderCntMsb;
     unsigned int                 m_PrevPicOrderCntLsb;
+
+    // control if the parameter sets(SPS, PPS) need to be stored in stream('mdat')
+    bool                       m_keepParameterSets;
 };
 
 #endif // _AP4_AVC_PARSER_H_

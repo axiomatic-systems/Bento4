@@ -37,9 +37,9 @@
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-#define BANNER "MP4 Encrypter - Version 1.6\n"\
+#define BANNER "MP4 Encrypter - Version 1.7\n"\
                "(Bento4 Version " AP4_VERSION_STRING ")\n"\
-               "(c) 2002-2016 Axiomatic Systems, LLC"
+               "(c) 2002-2021 Axiomatic Systems, LLC"
 
 /*----------------------------------------------------------------------
 |   PrintUsageAndExit
@@ -52,7 +52,7 @@ PrintUsageAndExit()
         "\n\n"
         "usage: mp4encrypt --method <method> [options] <input> <output>\n"
         "     <method> is OMA-PDCF-CBC, OMA-PDCF-CTR, MARLIN-IPMP-ACBC,\n"
-        "     MARLIN-IPMP-ACGK, ISMA-IAEC, PIFF-CBC, PIFF-CTR, ,MPEG-CENC,\n"
+        "     MARLIN-IPMP-ACGK, ISMA-IAEC, PIFF-CBC, PIFF-CTR, MPEG-CENC,\n"
         "     MPEG-CBC1, MPEG-CENS, MPEG-CBCS\n"
         "  Options:\n"
         "  --show-progress\n"
@@ -60,6 +60,11 @@ PrintUsageAndExit()
         "  --fragments-info <filename>\n"
         "      Encrypt the fragments read from <input>, with track info read\n"
         "      from <filename>\n"
+        " --multi\n"
+        "      Encrypt multiple individual fragment files. With this option,\n"
+        "      <input> is a list of fragment input files, and <output> is a\n"
+        "      printf-style filename pattern where the first %%s is replaced with\n"
+        "      the name of the corresponding input file, with the suffix omitted\n"
         "  --key <n>:<k>:<iv>\n"   
         "      Specifies the key to use for a track (or group key).\n"
         "      <n> is a track ID, <k> a 128-bit key in hex (32 characters)\n"
@@ -139,6 +144,8 @@ enum Method {
     METHOD_ISMA_AES
 }; 
 
+const unsigned int MP4_ENCRYPT_MAX_FILENAME_LENGTH = 2048;
+
 /*----------------------------------------------------------------------
 |   ProgressListener
 +---------------------------------------------------------------------*/
@@ -210,6 +217,114 @@ CheckWarning(AP4_ByteStream& stream, AP4_ProtectionKeyMap& key_map, Method metho
 }
 
 /*----------------------------------------------------------------------
+|   CreateProcessor
++---------------------------------------------------------------------*/
+static AP4_Processor*
+CreateProcessor(enum Method               method,
+                const char*               kms_uri,
+                AP4_ProtectionKeyMap&     key_map,
+                AP4_TrackPropertyMap&     property_map,
+                AP4_Array<AP4_PsshAtom*>& pssh_atoms)
+{
+    if (method == METHOD_ISMA_AES) {
+        if (kms_uri == NULL) {
+            fprintf(stderr, "ERROR: method ISMA-IAEC requires --kms-uri\n");
+            return NULL;
+        }
+        AP4_IsmaEncryptingProcessor* isma_processor = new AP4_IsmaEncryptingProcessor(kms_uri);
+        isma_processor->GetKeyMap().SetKeys(key_map);
+        return isma_processor;
+    } else if (method == METHOD_MARLIN_IPMP_ACBC ||
+               method == METHOD_MARLIN_IPMP_ACGK) {
+        bool use_group_key = (method == METHOD_MARLIN_IPMP_ACGK);
+        if (use_group_key) {
+            // check that the group key is set
+            if (key_map.GetKey(0) == NULL) {
+                fprintf(stderr, "ERROR: method MARLIN-IPMP-ACGK requires a group key\n");
+                return NULL;
+            }
+        }
+        AP4_MarlinIpmpEncryptingProcessor* marlin_processor =
+            new AP4_MarlinIpmpEncryptingProcessor(use_group_key);
+        marlin_processor->GetKeyMap().SetKeys(key_map);
+        marlin_processor->GetPropertyMap().SetProperties(property_map);
+        return marlin_processor;
+    } else if (method == METHOD_OMA_PDCF_CTR ||
+               method == METHOD_OMA_PDCF_CBC) {
+        AP4_OmaDcfEncryptingProcessor* oma_processor =
+            new AP4_OmaDcfEncryptingProcessor(method == METHOD_OMA_PDCF_CTR?
+                                              AP4_OMA_DCF_CIPHER_MODE_CTR :
+                                              AP4_OMA_DCF_CIPHER_MODE_CBC);
+        oma_processor->GetKeyMap().SetKeys(key_map);
+        oma_processor->GetPropertyMap().SetProperties(property_map);
+        return oma_processor;
+    } else if (method == METHOD_PIFF_CTR  ||
+               method == METHOD_PIFF_CBC  ||
+               method == METHOD_MPEG_CENC ||
+               method == METHOD_MPEG_CBC1 ||
+               method == METHOD_MPEG_CENS ||
+               method == METHOD_MPEG_CBCS) {
+        AP4_CencVariant variant = AP4_CENC_VARIANT_MPEG_CENC;
+        AP4_UI32        options = 0;
+        
+        // init local options based on global options
+        if (AP4_GlobalOptions::GetBool("mpeg-cenc.eme-pssh")) {
+            options |= AP4_CencEncryptingProcessor::OPTION_EME_PSSH;
+        }
+        if (AP4_GlobalOptions::GetBool("mpeg-cenc.piff-compatible")) {
+            options |= AP4_CencEncryptingProcessor::OPTION_PIFF_COMPATIBILITY;
+        }
+        if (AP4_GlobalOptions::GetBool("mpeg-cenc.piff-iv-size-16")) {
+            options |= AP4_CencEncryptingProcessor::OPTION_PIFF_IV_SIZE_16;
+        }
+        if (AP4_GlobalOptions::GetBool("mpeg-cenc.iv-size-8")) {
+            options |= AP4_CencEncryptingProcessor::OPTION_IV_SIZE_8;
+        }
+        if (AP4_GlobalOptions::GetBool("mpeg-cenc.no-senc")) {
+            options |= AP4_CencEncryptingProcessor::OPTION_NO_SENC;
+        }
+
+        switch (method) {
+            case METHOD_PIFF_CBC:
+                variant = AP4_CENC_VARIANT_PIFF_CBC;
+                break;
+                
+            case METHOD_PIFF_CTR:
+                variant = AP4_CENC_VARIANT_PIFF_CTR;
+                break;
+                
+            case METHOD_MPEG_CENC:
+                variant = AP4_CENC_VARIANT_MPEG_CENC;
+                break;
+                
+            case METHOD_MPEG_CBC1:
+                variant = AP4_CENC_VARIANT_MPEG_CBC1;
+                break;
+
+            case METHOD_MPEG_CENS:
+                variant = AP4_CENC_VARIANT_MPEG_CENS;
+                break;
+
+            case METHOD_MPEG_CBCS:
+                variant = AP4_CENC_VARIANT_MPEG_CBCS;
+                break;
+
+            default:
+                break;
+        }
+        AP4_CencEncryptingProcessor* cenc_processor = new AP4_CencEncryptingProcessor(variant, options);
+        cenc_processor->GetKeyMap().SetKeys(key_map);
+        cenc_processor->GetPropertyMap().SetProperties(property_map);
+        for (unsigned int i=0; i<pssh_atoms.ItemCount(); i++) {
+            cenc_processor->GetPsshAtoms().Append(pssh_atoms[i]);
+        }
+        return cenc_processor;
+    }
+    
+    return NULL;
+}
+
+/*----------------------------------------------------------------------
 |   main
 +---------------------------------------------------------------------*/
 int
@@ -223,6 +338,8 @@ main(int argc, char** argv)
     const char*              input_filename = NULL;
     const char*              output_filename = NULL;
     const char*              fragments_info_filename = NULL;
+    bool                     multi = false;
+    AP4_Array<const char*>   input_fragments;
     AP4_ProtectionKeyMap     key_map;
     AP4_TrackPropertyMap     property_map;
     bool                     show_progress = false;
@@ -274,6 +391,8 @@ main(int argc, char** argv)
                 return 1;
             }
             fragments_info_filename = arg;
+        } else if (!strcmp(arg, "--multi")) {
+            multi = true;
         } else if (!strcmp(arg, "--pssh") || !strcmp(arg, "--pssh-v1")) {
             bool v1 = (strcmp(arg, "--pssh-v1") == 0);
             arg = *++argv;
@@ -495,6 +614,12 @@ main(int argc, char** argv)
                 return 1;
             }
             AP4_GlobalOptions::SetString(name, value);
+        } else if (multi) {
+            if (argv[1]) {
+                input_fragments.Append(arg);
+            } else {
+                output_filename = arg;
+            }
         } else if (input_filename == NULL) {
             input_filename = arg;
         } else if (output_filename == NULL) {
@@ -510,128 +635,63 @@ main(int argc, char** argv)
         fprintf(stderr, "ERROR: missing --method argument\n");
         return 1;
     }
-    if (input_filename == NULL) {
-        fprintf(stderr, "ERROR: missing input filename\n");
-        return 1;
-    }
-    if (output_filename == NULL) {
-        fprintf(stderr, "ERROR: missing output filename\n");
-        return 1;
-    }
-
-    // create an encrypting processor
-    AP4_Processor* processor = NULL;
-    if (method == METHOD_ISMA_AES) {
-        if (kms_uri == NULL) {
-            fprintf(stderr, "ERROR: method ISMA-IAEC requires --kms-uri\n");
+    if (multi) {
+        if (fragments_info_filename == NULL) {
+            fprintf(stderr, "ERROR: --multi requires --fragments-info\n");
             return 1;
         }
-        AP4_IsmaEncryptingProcessor* isma_processor = new AP4_IsmaEncryptingProcessor(kms_uri);
-        isma_processor->GetKeyMap().SetKeys(key_map);
-        processor = isma_processor;
-    } else if (method == METHOD_MARLIN_IPMP_ACBC ||
-               method == METHOD_MARLIN_IPMP_ACGK) {
-        bool use_group_key = (method == METHOD_MARLIN_IPMP_ACGK);
-        if (use_group_key) {
-            // check that the group key is set
-            if (key_map.GetKey(0) == NULL) {
-                fprintf(stderr, "ERROR: method MARLIN-IPMP-ACGK requires a group key\n");
-                return 1;
-            }
+        if (input_fragments.ItemCount() == 0) {
+            fprintf(stderr, "ERROR: at least one input fragment is required\n");
+            return 1;
         }
-        AP4_MarlinIpmpEncryptingProcessor* marlin_processor = 
-            new AP4_MarlinIpmpEncryptingProcessor(use_group_key);
-        marlin_processor->GetKeyMap().SetKeys(key_map);
-        marlin_processor->GetPropertyMap().SetProperties(property_map);
-        processor = marlin_processor;
-    } else if (method == METHOD_OMA_PDCF_CTR ||
-               method == METHOD_OMA_PDCF_CBC) {
-        AP4_OmaDcfEncryptingProcessor* oma_processor = 
-            new AP4_OmaDcfEncryptingProcessor(method == METHOD_OMA_PDCF_CTR?
-                                              AP4_OMA_DCF_CIPHER_MODE_CTR :
-                                              AP4_OMA_DCF_CIPHER_MODE_CBC);
-        oma_processor->GetKeyMap().SetKeys(key_map);
-        oma_processor->GetPropertyMap().SetProperties(property_map);
-        processor = oma_processor;
-    } else if (method == METHOD_PIFF_CTR  ||
-               method == METHOD_PIFF_CBC  ||
-               method == METHOD_MPEG_CENC ||
-               method == METHOD_MPEG_CBC1 ||
-               method == METHOD_MPEG_CENS ||
-               method == METHOD_MPEG_CBCS) {
-        AP4_CencVariant variant = AP4_CENC_VARIANT_MPEG_CENC;
-        AP4_UI32        options = 0;
-        
-        // init local options based on global options
-        if (AP4_GlobalOptions::GetBool("mpeg-cenc.eme-pssh")) {
-            options |= AP4_CencEncryptingProcessor::OPTION_EME_PSSH;
+        if (output_filename == NULL) {
+            fprintf(stderr, "ERROR: missing output filename\n");
+            return 1;
         }
-        if (AP4_GlobalOptions::GetBool("mpeg-cenc.piff-compatible")) {
-            options |= AP4_CencEncryptingProcessor::OPTION_PIFF_COMPATIBILITY;
+        if (strstr(output_filename, "%s") == NULL) {
+            fprintf(stderr, "ERROR: the output patter must contain a %%s placeholder\n");
+            return 1;
         }
-        if (AP4_GlobalOptions::GetBool("mpeg-cenc.piff-iv-size-16")) {
-            options |= AP4_CencEncryptingProcessor::OPTION_PIFF_IV_SIZE_16;
+    } else {
+        if (input_filename == NULL) {
+            fprintf(stderr, "ERROR: missing input filename\n");
+            return 1;
         }
-        if (AP4_GlobalOptions::GetBool("mpeg-cenc.iv-size-8")) {
-            options |= AP4_CencEncryptingProcessor::OPTION_IV_SIZE_8;
+        if (output_filename == NULL) {
+            fprintf(stderr, "ERROR: missing output filename\n");
+            return 1;
         }
-        if (AP4_GlobalOptions::GetBool("mpeg-cenc.no-senc")) {
-            options |= AP4_CencEncryptingProcessor::OPTION_NO_SENC;
+    }
+    
+    // create an encrypting processor
+    AP4_Processor* processor = NULL;
+    if (!multi) {
+        processor = CreateProcessor(method, kms_uri, key_map, property_map, pssh_atoms);
+        if (!processor) {
+            return 1;
         }
-
-        switch (method) {
-            case METHOD_PIFF_CBC:
-                variant = AP4_CENC_VARIANT_PIFF_CBC;
-                break;
-                
-            case METHOD_PIFF_CTR:
-                variant = AP4_CENC_VARIANT_PIFF_CTR;
-                break;
-                
-            case METHOD_MPEG_CENC:
-                variant = AP4_CENC_VARIANT_MPEG_CENC;
-                break;
-                
-            case METHOD_MPEG_CBC1:
-                variant = AP4_CENC_VARIANT_MPEG_CBC1;
-                break;
-
-            case METHOD_MPEG_CENS:
-                variant = AP4_CENC_VARIANT_MPEG_CENS;
-                break;
-
-            case METHOD_MPEG_CBCS:
-                variant = AP4_CENC_VARIANT_MPEG_CBCS;
-                break;
-
-            default:
-                break;
-        }
-        AP4_CencEncryptingProcessor* cenc_processor = new AP4_CencEncryptingProcessor(variant, options);
-        cenc_processor->GetKeyMap().SetKeys(key_map);
-        cenc_processor->GetPropertyMap().SetProperties(property_map);
-        for (unsigned int i=0; i<pssh_atoms.ItemCount(); i++) {
-            cenc_processor->GetPsshAtoms().Append(pssh_atoms[i]);
-        }
-        processor = cenc_processor;
     }
     
     // create the input stream
     AP4_ByteStream* input = NULL;
-    result = AP4_FileByteStream::Create(input_filename, AP4_FileByteStream::STREAM_MODE_READ, input);
-    if (AP4_FAILED(result)) {
-        fprintf(stderr, "ERROR: cannot open input file (%s)\n", input_filename);
-        return 1;
+    if (!multi) {
+        result = AP4_FileByteStream::Create(input_filename, AP4_FileByteStream::STREAM_MODE_READ, input);
+        if (AP4_FAILED(result)) {
+            fprintf(stderr, "ERROR: cannot open input file (%s)\n", input_filename);
+            return 1;
+        }
     }
-
+    
     // create the output stream
     AP4_ByteStream* output = NULL;
-    result = AP4_FileByteStream::Create(output_filename, AP4_FileByteStream::STREAM_MODE_WRITE, output);
-    if (AP4_FAILED(result)) {
-        fprintf(stderr, "ERROR: cannot open output file (%s)\n", output_filename);
-        return 1;
+    if (!multi) {
+        result = AP4_FileByteStream::Create(output_filename, AP4_FileByteStream::STREAM_MODE_WRITE, output);
+        if (AP4_FAILED(result)) {
+            fprintf(stderr, "ERROR: cannot open output file (%s)\n", output_filename);
+            return 1;
+        }
     }
-
+    
     // create the fragments info stream if needed
     AP4_ByteStream* fragments_info = NULL;
     if (fragments_info_filename) {
@@ -642,12 +702,70 @@ main(int argc, char** argv)
         }
     }
     
-    // process/decrypt the file
+    // process/encrypt the file
     ProgressListener listener;
     if (fragments_info) {
-        bool check = CheckWarning(*fragments_info, key_map, method);
-        if (strict && check) return 1;
-        result = processor->Process(*input, *output, *fragments_info, show_progress?&listener:NULL);
+        if (multi) {
+            for (AP4_Ordinal i = 0; i < input_fragments.ItemCount(); i++) {
+                // create the input stream
+                char fragment_input_filename[MP4_ENCRYPT_MAX_FILENAME_LENGTH + 1];
+                if (strlen(input_fragments[i]) > MP4_ENCRYPT_MAX_FILENAME_LENGTH) {
+                    fprintf(stderr, "ERROR: input filename too long (%s)\n", input_fragments[i]);
+                    return 1;
+                }
+                strcpy(fragment_input_filename, input_fragments[i]);
+                char* last_dot = strrchr(fragment_input_filename, '.');
+                if (last_dot) {
+                    *last_dot = '\0';
+                }
+                result = AP4_FileByteStream::Create(input_fragments[i],
+                                                    AP4_FileByteStream::STREAM_MODE_READ,
+                                                    input);
+                if (AP4_FAILED(result)) {
+                    fprintf(stderr, "ERROR: cannot open input file (%s)\n", input_fragments[i]);
+                    return 1;
+                }
+                
+                // create the output stream
+                char fragment_output_filename[MP4_ENCRYPT_MAX_FILENAME_LENGTH + 1];
+                snprintf(fragment_output_filename, sizeof(fragment_output_filename), output_filename, fragment_input_filename);
+                result = AP4_FileByteStream::Create(fragment_output_filename,
+                                                    AP4_FileByteStream::STREAM_MODE_WRITE,
+                                                    output);
+                if (AP4_FAILED(result)) {
+                    fprintf(stderr, "ERROR: cannot open output file (%s)\n", fragment_output_filename);
+                    return 1;
+                }
+                
+                // encrypt the fragment
+                bool check = CheckWarning(*fragments_info, key_map, method);
+                if (strict && check) return 1;
+                processor = CreateProcessor(method, kms_uri, key_map, property_map, pssh_atoms);
+                if (!processor) {
+                    fprintf(stderr, "ERROR: failed to create decryptor\n");
+                    return 1;
+                }
+                result = processor->Process(*input, *output, *fragments_info, show_progress?&listener:NULL);
+                if (AP4_FAILED(result)) {
+                    fprintf(stderr, "ERROR: failed to process the file (%d)\n", result);
+                }
+                delete processor;
+                
+                // close the streams
+                input->Release();
+                output->Release();
+                
+                // rewind the fragments info stream so we can reuse it
+                fragments_info->Seek(0);
+            }
+            input = NULL;
+            output = NULL;
+            processor = NULL;
+        } else {
+            bool check = CheckWarning(*fragments_info, key_map, method);
+            if (strict && check) return 1;
+            result = processor->Process(*input, *output, *fragments_info, show_progress?&listener:NULL);
+        }
     } else {
         bool check = CheckWarning(*input, key_map, method);
         if (strict && check) return 1;
@@ -659,8 +777,8 @@ main(int argc, char** argv)
 
     // cleanup
     delete processor;
-    input->Release();
-    output->Release();
+    if (input) input->Release();
+    if (output) output->Release();
     if (fragments_info) fragments_info->Release();
     for (unsigned int i=0; i<pssh_atoms.ItemCount(); i++) {
         delete pssh_atoms[i];

@@ -105,6 +105,8 @@ AP4_HevcNalParser::NaluTypeName(unsigned int nalu_type)
         case 38: return "FD_NUT - Filler data";
         case 39: return "PREFIX_SEI_NUT - Supplemental enhancement information";
         case 40: return "SUFFIX_SEI_NUT - Supplemental enhancement information";
+        case 62: return "Dolby Vision RPU NAL units";
+        case 63: return "Dolby Vision EL NAL units";
         default: return NULL;
     }
 }
@@ -197,7 +199,7 @@ static void
 scaling_list_data(AP4_BitReader& bits)
 {
     for (unsigned int sizeId = 0; sizeId < 4; sizeId++) {
-        for (unsigned int matrixId = 0; matrixId < ((sizeId == 3)?2:6); matrixId++) {
+        for (unsigned int matrixId = 0; matrixId < (unsigned int)((sizeId == 3)?2:6); matrixId++) {
             unsigned int flag = bits.ReadBit(); // scaling_list_pred_mode_flag[ sizeId ][ matrixId ]
             if (!flag) {
                 ReadGolomb(bits); // scaling_list_pred_matrix_id_delta[ sizeId ][ matrixId ]
@@ -243,11 +245,15 @@ parse_st_ref_pic_set(AP4_HevcShortTermRefPicSet*         rps,
         /* abs_delta_rps_minus1 = */ ReadGolomb(bits);
         if (delta_idx_minus1+1 > stRpsIdx) return AP4_ERROR_INVALID_FORMAT; // should not happen
         unsigned int RefRpsIdx = stRpsIdx - (delta_idx_minus1 + 1);
-        unsigned int NumDeltaPocs = sps->short_term_ref_pic_sets[RefRpsIdx].num_negative_pics + sps->short_term_ref_pic_sets[RefRpsIdx].num_positive_pics;
+        unsigned int NumDeltaPocs = sps->short_term_ref_pic_sets[RefRpsIdx].num_delta_pocs;
         for (unsigned j=0; j<=NumDeltaPocs; j++) {
             unsigned int used_by_curr_pic_flag /*[j]*/ = bits.ReadBit();
+            unsigned int use_delta_flag /*[j]*/ = 1;
             if (!used_by_curr_pic_flag /*[j]*/) {
-                /* use_delta_flag[j] = */ bits.ReadBit();
+                use_delta_flag /*[j]*/ = bits.ReadBit();
+            }
+            if (used_by_curr_pic_flag /*[j]*/ || use_delta_flag /*[j]*/) {
+                rps->num_delta_pocs++;
             }
         }
     } else {
@@ -256,6 +262,7 @@ parse_st_ref_pic_set(AP4_HevcShortTermRefPicSet*         rps,
         if (rps->num_negative_pics > 16 || rps->num_positive_pics > 16) {
             return AP4_ERROR_INVALID_FORMAT;
         }
+        rps->num_delta_pocs = rps->num_negative_pics + rps->num_positive_pics;
         for (unsigned int i=0; i<rps->num_negative_pics; i++) {
             rps->delta_poc_s0_minus1[i] = ReadGolomb(bits);
             rps->used_by_curr_pic_s0_flag[i] = bits.ReadBit();
@@ -658,6 +665,57 @@ AP4_HevcProfileTierLevel::Parse(AP4_BitReader& bits, unsigned int max_num_sub_la
 }
 
 /*----------------------------------------------------------------------
+|   AP4_HevcVuiParameters::AP4_HevcVuiParameters
++---------------------------------------------------------------------*/
+AP4_HevcVuiParameters::AP4_HevcVuiParameters() :
+    aspect_ratio_info_present_flag(0),
+    aspect_ratio_idc(0),
+    sar_width(0),
+    sar_height(0),
+    overscan_info_present_flag(0),
+    overscan_appropriate_flag(0),
+    video_signal_type_present_flag(0),
+    video_format(0),
+    video_full_range_flag(0),
+    colour_description_present_flag(0),
+    colour_primaries(0),
+    transfer_characteristics(0),
+    matrix_coeffs(0)
+{
+}
+
+/*----------------------------------------------------------------------
+|   AP4_HevcVuiParameters::Parse
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_HevcVuiParameters::Parse(AP4_BitReader& bits, unsigned int& transfer_characteristics)
+{
+    // vui_parameters
+    aspect_ratio_info_present_flag = bits.ReadBit();
+    if (aspect_ratio_info_present_flag) {
+        aspect_ratio_idc = bits.ReadBits(8);
+        if (aspect_ratio_idc == 255) {
+            sar_width  = bits.ReadBits(16);
+            sar_height = bits.ReadBits(16);
+        }
+    }
+    overscan_info_present_flag = bits.ReadBit();
+    if (overscan_info_present_flag) overscan_appropriate_flag = bits.ReadBit();
+    video_signal_type_present_flag = bits.ReadBit();
+    if (video_signal_type_present_flag) {
+        video_format                    = bits.ReadBits(3);
+        video_full_range_flag           = bits.ReadBit();
+        colour_description_present_flag = bits.ReadBit();
+        if (colour_description_present_flag) {
+            colour_primaries         = bits.ReadBits(8);
+            transfer_characteristics = bits.ReadBits(8);
+            matrix_coeffs            = bits.ReadBits(8);
+        }
+    }
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
 |   AP4_HevcPictureParameterSet::AP4_HevcPictureParameterSet
 +---------------------------------------------------------------------*/
 AP4_HevcPictureParameterSet::AP4_HevcPictureParameterSet() :
@@ -820,9 +878,11 @@ AP4_HevcSequenceParameterSet::AP4_HevcSequenceParameterSet() :
     long_term_ref_pics_present_flag(0),
     num_long_term_ref_pics_sps(0),
     sps_temporal_mvp_enabled_flag(0),
-    strong_intra_smoothing_enabled_flag(0)
+    strong_intra_smoothing_enabled_flag(0),
+    vui_parameters_present_flag(0)
 {
     AP4_SetMemory(&profile_tier_level, 0, sizeof(profile_tier_level));
+    AP4_SetMemory(&vui_parameters, 0, sizeof(vui_parameters));
     for (unsigned int i=0; i<8; i++) {
         sps_max_dec_pic_buffering_minus1[i] = 0;
         sps_max_num_reorder_pics[i]         = 0;
@@ -915,7 +975,7 @@ AP4_HevcSequenceParameterSet::Parse(const unsigned char* data, unsigned int data
         return AP4_ERROR_INVALID_FORMAT;
     }
     for (unsigned int i=0; i<num_short_term_ref_pic_sets; i++) {
-        AP4_Result result = parse_st_ref_pic_set(&short_term_ref_pic_sets[i], this, i, num_short_term_ref_pic_sets, bits);
+        result = parse_st_ref_pic_set(&short_term_ref_pic_sets[i], this, i, num_short_term_ref_pic_sets, bits);
         if (AP4_FAILED(result)) return result;
     }
     long_term_ref_pics_present_flag = bits.ReadBit();
@@ -928,6 +988,13 @@ AP4_HevcSequenceParameterSet::Parse(const unsigned char* data, unsigned int data
     }
     sps_temporal_mvp_enabled_flag  = bits.ReadBit();
     strong_intra_smoothing_enabled_flag = bits.ReadBit();
+    vui_parameters_present_flag = bits.ReadBit();
+    if (vui_parameters_present_flag) {
+      AP4_Result result = vui_parameters.Parse(bits, vui_parameters.transfer_characteristics);
+      if (AP4_FAILED(result)) {
+        return result;
+      }
+    }
 
     return AP4_SUCCESS;
 }
@@ -965,6 +1032,16 @@ AP4_HevcVideoParameterSet::AP4_HevcVideoParameterSet() :
         vps_max_num_reorder_pics[i]         = 0;
         vps_max_latency_increase_plus1[i]   = 0;
     }
+}
+
+/*----------------------------------------------------------------------
+|   AP4_HevcVideoParameterSet::GetInfo
++---------------------------------------------------------------------*/
+void
+AP4_HevcVideoParameterSet::GetInfo(unsigned int& time_scale, unsigned int& num_units)
+{
+    time_scale = vps_time_scale;
+    num_units  = vps_num_units_in_tick;
 }
 
 /*----------------------------------------------------------------------
@@ -1028,7 +1105,8 @@ AP4_HevcFrameParser::AP4_HevcFrameParser() :
     m_AccessUnitFlags(0),
     m_VclNalUnitsInAccessUnit(0),
     m_PrevTid0Pic_PicOrderCntMsb(0),
-    m_PrevTid0Pic_PicOrderCntLsb(0)
+    m_PrevTid0Pic_PicOrderCntLsb(0),
+    m_keepParameterSets(true)
 {
     for (unsigned int i=0; i<=AP4_HEVC_PPS_MAX_ID; i++) {
         m_PPS[i] = NULL;
@@ -1319,6 +1397,10 @@ AP4_HevcFrameParser::Feed(const AP4_UI08* nal_unit,
             CheckIfAccessUnitIsCompleted(access_unit_info);
             AppendNalUnitData(nal_unit, nal_unit_size);
         } else if (nal_unit_type == AP4_HEVC_NALU_TYPE_SUFFIX_SEI_NUT){
+            AppendNalUnitData(nal_unit, nal_unit_size);
+        } else if (nal_unit_type == AP4_HEVC_NALU_TYPE_UNSPEC62) {
+            AppendNalUnitData(nal_unit, nal_unit_size);
+        } else if (nal_unit_type == AP4_HEVC_NALU_TYPE_UNSPEC63) {
             AppendNalUnitData(nal_unit, nal_unit_size);
         }
         DBG_PRINTF_0("\n");

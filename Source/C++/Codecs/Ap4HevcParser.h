@@ -90,6 +90,8 @@ const unsigned int AP4_HEVC_NALU_TYPE_RSV_NVCL44     = 44;
 const unsigned int AP4_HEVC_NALU_TYPE_RSV_NVCL45     = 45;
 const unsigned int AP4_HEVC_NALU_TYPE_RSV_NVCL46     = 46;
 const unsigned int AP4_HEVC_NALU_TYPE_RSV_NVCL47     = 47;
+const unsigned int AP4_HEVC_NALU_TYPE_UNSPEC62       = 62;
+const unsigned int AP4_HEVC_NALU_TYPE_UNSPEC63       = 63;
 
 const unsigned int AP4_HEVC_PPS_MAX_ID               = 63;
 const unsigned int AP4_HEVC_SPS_MAX_ID               = 15;
@@ -152,6 +154,59 @@ struct AP4_HevcProfileTierLevel {
 };
 
 /*----------------------------------------------------------------------
+|   AP4_HevcVuiParameters
++---------------------------------------------------------------------*/
+struct AP4_HevcVuiParameters {
+  AP4_HevcVuiParameters();
+
+  // methods
+  AP4_Result Parse(AP4_BitReader& bits, unsigned int &transfer_characteristics);
+
+  unsigned int aspect_ratio_info_present_flag;
+  unsigned int aspect_ratio_idc;
+  unsigned int sar_width;
+  unsigned int sar_height;
+  unsigned int overscan_info_present_flag;
+  unsigned int overscan_appropriate_flag;
+  unsigned int video_signal_type_present_flag;
+  unsigned int video_format;
+  unsigned int video_full_range_flag;
+  unsigned int colour_description_present_flag;
+  unsigned int colour_primaries;
+  unsigned int transfer_characteristics;
+  unsigned int matrix_coeffs;
+  //unsigned int chroma_loc_info_present_flag;
+  //unsigned int chroma_sample_loc_type_top_field;
+  //unsigned int chroma_sample_loc_type_bottom_field;
+  //unsigned int neutral_chroma_indication_flag;
+  //unsigned int field_seq_flag;
+  //unsigned int frame_field_info_present_flag;
+  //unsigned int default_display_window_flag;
+  //unsigned int def_disp_win_left_offset;
+  //unsigned int def_disp_win_right_offset;
+  //unsigned int def_disp_win_top_offset;
+  //unsigned int def_disp_win_bottom_offset;
+  //unsigned int vui_timing_info_present_flag;
+  //unsigned int vui_num_units_in_tick;
+  //unsigned int vui_time_scale;
+  //unsigned int vui_poc_proportional_to_timing_flag;
+  //unsigned int vui_num_ticks_poc_diff_one_minus1;
+  //unsigned int vui_hrd_parameters_present_flag;
+
+  //// skip hrd_parameters
+  //unsigned int bitstream_restriction_flag;
+  //unsigned int tiles_fixed_structure_flag;
+  //unsigned int motion_vectors_over_pic_boundaries_flag;
+  //unsigned int restricted_ref_pic_lists_flag;
+  //unsigned int min_spatial_segmentation_idc;
+  //unsigned int max_bytes_per_pic_denom;
+  //unsigned int max_bits_per_min_cu_denom;
+  //unsigned int log2_max_mv_length_horizontal;
+  //unsigned int log2_max_mv_length_vertical;
+};
+
+
+/*----------------------------------------------------------------------
 |   AP4_HevcShortTermRefPicSet
 +---------------------------------------------------------------------*/
 typedef struct {
@@ -161,6 +216,7 @@ typedef struct {
     unsigned int used_by_curr_pic_s1_flag[16];
     unsigned int num_negative_pics;
     unsigned int num_positive_pics;
+    unsigned int num_delta_pocs;
 } AP4_HevcShortTermRefPicSet;
 
 /*----------------------------------------------------------------------
@@ -265,7 +321,8 @@ struct AP4_HevcSequenceParameterSet {
     unsigned int             num_long_term_ref_pics_sps;
     unsigned int             sps_temporal_mvp_enabled_flag;
     unsigned int             strong_intra_smoothing_enabled_flag;
-    
+    unsigned int             vui_parameters_present_flag;
+    AP4_HevcVuiParameters    vui_parameters;
     AP4_HevcShortTermRefPicSet short_term_ref_pic_sets[AP4_HEVC_SPS_MAX_RPS];
 };
 
@@ -277,6 +334,7 @@ struct AP4_HevcVideoParameterSet {
     
     // methods
     AP4_Result Parse(const unsigned char* data, unsigned int data_size);
+    void GetInfo(unsigned int& time_scale, unsigned int& num_units);
 
     AP4_DataBuffer           raw_bytes;
     unsigned int             vps_video_parameter_set_id;
@@ -412,6 +470,8 @@ public:
     AP4_HevcVideoParameterSet**    GetVideoParameterSets()    { return &m_VPS[0]; }
     AP4_HevcSequenceParameterSet** GetSequenceParameterSets() { return &m_SPS[0]; }
     AP4_HevcPictureParameterSet**  GetPictureParameterSets()  { return &m_PPS[0]; }
+
+    void SetParameterControl(bool isKeep) { m_keepParameterSets = isKeep; }
     
 private:
     // methods
@@ -437,6 +497,9 @@ private:
     // picture order counting
     unsigned int               m_PrevTid0Pic_PicOrderCntMsb;
     unsigned int               m_PrevTid0Pic_PicOrderCntLsb;
+
+    // control if the parameter sets(VPS, SPS, PPS) need to be stored in stream('mdat')
+    bool                       m_keepParameterSets;
 };
 
 #endif // _AP4_HEVC_PARSER_H_

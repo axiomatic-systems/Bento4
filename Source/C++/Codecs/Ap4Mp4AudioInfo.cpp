@@ -133,6 +133,7 @@ AP4_Mp4AudioDecoderConfig::ParseExtension(AP4_Mp4AudioDsiParser& parser)
         AP4_Result result = ParseAudioObjectType(parser, m_Extension.m_ObjectType);
         if (AP4_FAILED(result)) return result;
         if (m_Extension.m_ObjectType == AP4_MPEG4_AUDIO_OBJECT_TYPE_SBR) {
+            if (parser.BitsLeft() < 1) return AP4_ERROR_INVALID_FORMAT;
             m_Extension.m_SbrPresent = (parser.ReadBits(1) == 1);
             if (m_Extension.m_SbrPresent) {
                 result = ParseSamplingFrequency(parser, 
@@ -147,6 +148,7 @@ AP4_Mp4AudioDecoderConfig::ParseExtension(AP4_Mp4AudioDsiParser& parser)
                 }
             }
         } else if (m_Extension.m_ObjectType == AP4_MPEG4_AUDIO_OBJECT_TYPE_ER_BSAC) {
+            if (parser.BitsLeft() < 1+4) return AP4_ERROR_INVALID_FORMAT;
             m_Extension.m_SbrPresent = (parser.ReadBits(1) == 1);
             if (m_Extension.m_SbrPresent) {
                 result = ParseSamplingFrequency(parser, 
@@ -307,6 +309,7 @@ AP4_Mp4AudioDecoderConfig::Parse(const unsigned char* data,
         case AP4_MPEG4_AUDIO_OBJECT_TYPE_ER_AAC_LD:
         case AP4_MPEG4_AUDIO_OBJECT_TYPE_ER_TWINVQ:
         case AP4_MPEG4_AUDIO_OBJECT_TYPE_ER_BSAC:
+        case AP4_MPEG4_AUDIO_OBJECT_TYPE_USAC:
             result = ParseGASpecificInfo(bits);
             if (result == AP4_SUCCESS) {
                 if (m_Extension.m_ObjectType !=  AP4_MPEG4_AUDIO_OBJECT_TYPE_SBR &&

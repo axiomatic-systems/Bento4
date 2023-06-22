@@ -270,7 +270,7 @@ public:
     AP4_Result Serialize(AP4_DataBuffer& buffer);
     
 private:
-    AP4_UI32                m_SampleCount;
+    AP4_UI32                m_SampleCount; // If 0, all samples are fully encrypted, and there's a single constant IV in m_IvData
     AP4_UI08                m_Flags;
     AP4_UI08                m_CryptByteBlock;
     AP4_UI08                m_SkipByteBlock;
@@ -303,7 +303,7 @@ private:
 |   | 1 byte        | 8-bit integer  | iv_size                            |
 |   +---------------+----------------+------------------------------------+
 |
-|   repeat sample_count times:
+|   repeat sample_count times, or once if sample_count is 0:
 |   +---------------+----------------+------------------------------------+
 |   | iv_size bytes | byte array     | IV[i]                              |
 |   +---------------+----------------+------------------------------------+
@@ -664,7 +664,10 @@ public:
                                                                   AP4_ByteStream&    moof_data,
                                                                   AP4_Position       moof_offset);
     
-protected:    
+protected:
+    // methods
+    const AP4_DataBuffer* GetKeyForTrak(AP4_UI32 track_id, AP4_ProtectedSampleDescription* sample_description);
+
     // members
     AP4_BlockCipherFactory*     m_BlockCipherFactory;
     AP4_ProtectionKeyMap* m_KeyMap;

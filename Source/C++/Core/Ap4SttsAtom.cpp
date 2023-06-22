@@ -222,16 +222,14 @@ AP4_SttsAtom::InspectFields(AP4_AtomInspector& inspector)
     inspector.AddField("entry_count", m_Entries.ItemCount());
 
     if (inspector.GetVerbosity() >= 1) {
-        char header[32];
-        char value[256];
+        inspector.StartArray("entries", m_Entries.ItemCount());
         for (AP4_Ordinal i=0; i<m_Entries.ItemCount(); i++) {
-            AP4_FormatString(header, sizeof(header), "entry %8d", i);
-            AP4_FormatString(value, sizeof(value), 
-                             "sample_count=%d, sample_duration=%d", 
-                            m_Entries[i].m_SampleCount,
-                            m_Entries[i].m_SampleDuration);
-            inspector.AddField(header, value);
+            inspector.StartObject(NULL, 2, true);
+            inspector.AddField("sample_count",    m_Entries[i].m_SampleCount);
+            inspector.AddField("sample_duration", m_Entries[i].m_SampleDuration);
+            inspector.EndObject();
         }
+        inspector.EndArray();
     }
 
     return AP4_SUCCESS;

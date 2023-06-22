@@ -1,4 +1,4 @@
-#! /usr/bin/python
+#! /usr/bin/env python3
 
 ########################################################################
 #
@@ -37,24 +37,29 @@ def GetVersion():
 def GetSdkRevision():
     cmd = 'git status --porcelain -b'
     lines = os.popen(cmd).readlines()
+    branch = ''
+    suffix = ''
     if not lines[0].startswith('## master'):
-        print 'ERROR: not on master branch'
-        return None
+        print('WARNING: not on master branch')
+        branch = '+' + lines[0][3:].strip()
     if len(lines) > 1:
-        print 'ERROR: git status not empty'
-        print ''.join(lines)
-        return None
+        print('WARNING: git status not empty')
+        print(''.join(lines))
+        suffix = '*'
 
     cmd = 'git tag --contains HEAD'
     tags = os.popen(cmd).readlines()
+    if not tags:
+        # no tags, use the commit hash
+        return os.popen('git rev-parse --short HEAD').readlines()[0].strip() + suffix
     if len(tags) != 1:
-        print 'ERROR: expected exactly one tag for HEAD, found', len(tags), ':', tags
+        print('ERROR: expected exactly one tag for HEAD, found', len(tags), ':', tags)
         return None
     version = tags[0].strip()
     sep = version.find('-')
     if sep < 0:
-        print 'ERROR: unrecognized version string format:', version
-    return version[sep+1:]
+        print('ERROR: unrecognized version string format:', version)
+    return version[sep+1:] + branch + suffix
 
 #############################################################
 # File Copy
@@ -69,11 +74,11 @@ def CopyFiles(file_patterns, configs=[''], rename_map={}):
                 if not os.path.exists(dest_dir):
                     os.makedirs(dest_dir)
                 filename = os.path.basename(file)
-                if rename_map.has_key(filename):
+                if filename in rename_map:
                     dest_name = dest_dir+'/'+rename_map[filename]
                 else:
                     dest_name = dest_dir
-                print 'COPY: '+file+' -> '+dest_name
+                print('COPY: '+file+' -> '+dest_name)
                 shutil.copy2(file, dest_name)
 
 #############################################################
@@ -94,7 +99,7 @@ def ZipDir(top, archive, dir) :
 def ZipIt(basename, dir) :
     path = basename+'/'+dir
     zip_filename = path+'.zip'
-    print 'ZIP: '+path+' -> '+zip_filename
+    print('ZIP: '+path+' -> '+zip_filename)
 
     if os.path.exists(zip_filename):
         os.remove(zip_filename)
@@ -116,17 +121,17 @@ else:
     SDK_TARGET = None
 
 if len(sys.argv) > 2:
-    BENTO4_HOME = sys.argv[1]
+    BENTO4_HOME = sys.argv[2]
 else:
     script_dir  = os.path.abspath(os.path.dirname(__file__))
     BENTO4_HOME = os.path.join(script_dir,'..')
 
 # ensure that BENTO4_HOME has been set and exists
 if not os.path.exists(BENTO4_HOME) :
-    print 'ERROR: BENTO4_HOME ('+BENTO4_HOME+') does not exist'
+    print('ERROR: BENTO4_HOME ('+BENTO4_HOME+') does not exist')
     sys.exit(1)
 else :
-    print 'BENTO4_HOME = ' + BENTO4_HOME
+    print('BENTO4_HOME = ' + BENTO4_HOME)
 
 # compute the target if it is not specified
 if SDK_TARGET is None:
@@ -149,17 +154,17 @@ if SDK_TARGET is None:
         'linux-i386'  : 'x86-unknown-linux',
         'linux-x86_64': 'x86_64-unknown-linux',
         'linux2'      : 'x86-unknown-linux',
-        'win32'       : 'x86-microsoft-win32-vs2010',
+        'win32'       : 'x86_64-microsoft-win32',
         'darwin'      : 'universal-apple-macosx'
     }
 
-    if platform_to_target_map.has_key(platform_id):
+    if platform_id in platform_to_target_map:
         SDK_TARGET = platform_to_target_map[platform_id]
     else:
-        print 'ERROR: SDK_TARGET is not set and cannot be detected'
+        print('ERROR: SDK_TARGET is not set and cannot be detected')
         sys.exit(1)
 
-print "TARGET = " + SDK_TARGET
+print("TARGET = " + SDK_TARGET)
 
 BENTO4_VERSION = GetVersion()
 
@@ -167,17 +172,21 @@ BENTO4_VERSION = GetVersion()
 SDK_REVISION = GetSdkRevision()
 if SDK_REVISION is None:
     sys.exit(1)
-SDK_NAME='Bento4-SDK-'+BENTO4_VERSION+'-'+SDK_REVISION+'.'+SDK_TARGET
-SDK_BUILD_ROOT=BENTO4_HOME+'/SDK'
-SDK_ROOT=SDK_BUILD_ROOT+'/'+SDK_NAME
-SDK_TARGET_DIR='Build/Targets/'+SDK_TARGET
-SDK_TARGET_ROOT=BENTO4_HOME+'/'+SDK_TARGET_DIR
+SDK_NAME=f'Bento4-SDK-{BENTO4_VERSION}-{SDK_REVISION}.{SDK_TARGET}'
+SDK_BUILD_ROOT=f'{BENTO4_HOME}/SDK'
+SDK_ROOT=f'{SDK_BUILD_ROOT}/{SDK_NAME}'
+SDK_TARGET_DIR=f'Build/Targets/{SDK_TARGET}'
+SDK_TARGET_ROOT=f'{BENTO4_HOME}/{SDK_TARGET_DIR}'
 
-# special case for Xcode builds
-if SDK_TARGET == 'universal-apple-macosx':
-    SDK_TARGET_DIR='Build/Targets/universal-apple-macosx/build'
+# Different platforms have different build dirs
+SDK_BUILD_OUTPUT_SUBDIRS = {
+    'x86_64-microsoft-win32': '/Release',
+    'universal-apple-macosx': '/Release'
+}
+SDK_BUILD_OUTPUT_SUBDIR = SDK_BUILD_OUTPUT_SUBDIRS.get(SDK_TARGET, '')
+SDK_BUILD_OUTPUT_DIR = f'cmakebuild/{SDK_TARGET}{SDK_BUILD_OUTPUT_SUBDIR}'
 
-print SDK_NAME
+print(SDK_NAME)
 
 # remove any previous SDK directory
 if os.path.exists(SDK_ROOT):
@@ -212,7 +221,7 @@ else:
     script_bin_dir = None
 
 # binaries
-bin_in = SDK_TARGET_DIR+'/Release'
+bin_in = SDK_BUILD_OUTPUT_DIR
 bin_files = [
     (bin_in,'mp4*.exe','bin'),
     (bin_in,'aac2mp4.exe','bin'),

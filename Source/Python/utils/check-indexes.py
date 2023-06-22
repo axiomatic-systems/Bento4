@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 
 import mp4utils
 import sys
@@ -23,7 +23,7 @@ options.exec_dir = path.join(SCRIPT_PATH, 'bin', platform)
 
 class Sidx(object): pass
 
-mp4_file = mp4utils.Mp4File(options, mp4utils.MediaSource(sys.argv[1]))
+mp4_file = mp4utils.Mp4File(options, mp4utils.MediaSource(options, sys.argv[1]))
 moof_offsets = []
 sidx_anchors = []
 for atom in mp4_file.atoms:
@@ -32,8 +32,8 @@ for atom in mp4_file.atoms:
 	elif atom.type == 'sidx':
 		sidx_anchors.append(atom.position+atom.size)
 
-print 'sidx anchors:', sidx_anchors
-print len(moof_offsets), 'moof boxes found:', moof_offsets
+print('sidx anchors:', sidx_anchors)
+print(len(moof_offsets), 'moof boxes found:', moof_offsets)
 
 sidx = None
 sidx_index = 0
@@ -45,7 +45,7 @@ for atom in mp4_file.tree:
 		sidx.timescale = int(atom['timescale'])
 		sidx.earliest_presentation_time = int(atom['earliest_presentation_time'])
 		sidx.first_offset = int(atom['first_offset'])
-		for (name, value) in atom.items():
+		for (name, value) in list(atom.items()):
 			if name.startswith('entry '):
 				entry = {}
 				for field in value.split(', '):
@@ -60,21 +60,21 @@ for atom in mp4_file.tree:
 			if entry['reference_type'] == 0:
 				#print sidx_anchors[sidx_index]+offset
 				if sidx_anchors[sidx_index]+offset not in moof_offsets:
-					print 'sidx offset', sidx_anchors[sidx_index], '+', offset, 'does not point to a moof box'
+					print('sidx offset', sidx_anchors[sidx_index], '+', offset, 'does not point to a moof box')
 			offset += entry['referenced_size']
 		sidx_index += 1
-		print 'sidx OK'
+		print('sidx OK')
 	elif atom['name'] == 'mfra':
 		for child in atom['children']:
 			if child['name'] == 'tfra':
-				for (name, value) in child.items():
+				for (name, value) in list(child.items()):
 					if name.startswith('entry'):
 						entry = {}
 						for field in value.split(', '):
 							(field_name, field_value) = field.split('=')
 							entry[field_name] = int(field_value)
 						if entry['moof_offset'] not in moof_offsets:
-							print 'tfra offset', moof_offset, 'does not point to a moof box'
-		print 'mfra OK'
+							print('tfra offset', entry['moof_offset'], 'does not point to a moof box')
+		print('mfra OK')
 
-print '=== Done ==='
+print('=== Done ===')

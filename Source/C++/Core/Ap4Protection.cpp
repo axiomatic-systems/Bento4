@@ -254,6 +254,15 @@ AP4_EncvSampleEntry::ToTargetSampleDescription(AP4_UI32 format)
                 m_CompressorName.GetChars(),
                 this);
 
+        case AP4_SAMPLE_FORMAT_AV01:
+            return new AP4_Av1SampleDescription(
+                format,
+                m_Width,
+                m_Height,
+                m_Depth,
+                m_CompressorName.GetChars(),
+                this);
+
         case AP4_ATOM_TYPE_MP4V:
             return new AP4_MpegVideoSampleDescription(
                 m_Width,

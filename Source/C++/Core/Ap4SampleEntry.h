@@ -266,6 +266,67 @@ public:
 };
 
 /*----------------------------------------------------------------------
+ |   AP4_Ac3SampleEntry
+ +---------------------------------------------------------------------*/
+class AP4_Ac3SampleEntry : public AP4_AudioSampleEntry
+{
+public:
+    AP4_Ac3SampleEntry(AP4_UI32              format,
+                       AP4_UI32              sample_rate,
+                       AP4_UI16              sample_size,
+                       AP4_UI16              channel_count,
+                       const AP4_AtomParent* details);
+    AP4_Ac3SampleEntry(AP4_UI32         type,
+                       AP4_Size         size,
+                       AP4_ByteStream&  stream,
+                       AP4_AtomFactory& atom_factory);
+    
+    // inherited from AP4_SampleEntry
+    virtual AP4_SampleDescription* ToSampleDescription();
+};
+
+/*----------------------------------------------------------------------
+|   AP4_Eac3SampleEntry
++---------------------------------------------------------------------*/
+class AP4_Eac3SampleEntry : public AP4_AudioSampleEntry
+{
+public:    
+    AP4_Eac3SampleEntry(AP4_UI32              format,
+                        AP4_UI32              sample_rate,
+                        AP4_UI16              sample_size,
+                        AP4_UI16              channel_count,
+                        const AP4_AtomParent* details);
+    AP4_Eac3SampleEntry(AP4_UI32         type,
+                        AP4_Size         size,
+                        AP4_ByteStream&  stream,
+                        AP4_AtomFactory& atom_factory);
+                        
+    // inherited from AP4_SampleEntry
+    virtual AP4_SampleDescription* ToSampleDescription();
+};
+
+
+/*----------------------------------------------------------------------
+|   AP4_Ac4SampleEntry
++---------------------------------------------------------------------*/
+class AP4_Ac4SampleEntry : public AP4_AudioSampleEntry
+{
+public:    
+    AP4_Ac4SampleEntry(AP4_UI32              format,
+                       AP4_UI32              sample_rate,
+                       AP4_UI16              sample_size,
+                       AP4_UI16              channel_count,
+                       const AP4_AtomParent* details);
+    AP4_Ac4SampleEntry(AP4_UI32         type,
+                       AP4_Size         size,
+                       AP4_ByteStream&  stream,
+                       AP4_AtomFactory& atom_factory);
+                        
+    // inherited from AP4_SampleEntry
+    virtual AP4_SampleDescription* ToSampleDescription();
+};
+
+/*----------------------------------------------------------------------
 |   AP4_MpegVideoSampleEntry
 +---------------------------------------------------------------------*/
 class AP4_MpegVideoSampleEntry : public AP4_VisualSampleEntry
@@ -378,6 +439,29 @@ public:
                         AP4_UI16            depth,
                         const char*         compressor_name,
                         const AP4_AtomParent* details);
+
+    // inherited from AP4_SampleEntry
+    virtual AP4_SampleDescription* ToSampleDescription();
+};
+
+/*----------------------------------------------------------------------
+|   AP4_Av1SampleEntry
++---------------------------------------------------------------------*/
+class AP4_Av1SampleEntry : public AP4_VisualSampleEntry
+{
+public:
+    // constructors
+    AP4_Av1SampleEntry(AP4_UI32         format, // av01
+                       AP4_Size         size,
+                       AP4_ByteStream&  stream,
+                       AP4_AtomFactory& atom_factory);
+    
+    AP4_Av1SampleEntry(AP4_UI32              format, // av01
+                       AP4_UI16              width,
+                       AP4_UI16              height,
+                       AP4_UI16              depth,
+                       const char*           compressor_name,
+                       const AP4_AtomParent* details);
 
     // inherited from AP4_SampleEntry
     virtual AP4_SampleDescription* ToSampleDescription();

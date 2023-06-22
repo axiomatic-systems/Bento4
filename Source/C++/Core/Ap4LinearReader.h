@@ -50,14 +50,12 @@ class AP4_MovieFragment;
 const unsigned int AP4_LINEAR_READER_INITIALIZED = 1;
 const unsigned int AP4_LINEAR_READER_FLAG_EOS    = 2;
 
-const unsigned int AP4_LINEAR_READER_DEFAULT_BUFFER_SIZE = 16*1024*1024;
-
 /*----------------------------------------------------------------------
 |   AP4_LinearReader
 +---------------------------------------------------------------------*/
 class AP4_LinearReader {
 public:
-    AP4_LinearReader(AP4_Movie& movie, AP4_ByteStream* fragment_stream = NULL, AP4_Size max_buffer=AP4_LINEAR_READER_DEFAULT_BUFFER_SIZE);
+    AP4_LinearReader(AP4_Movie& movie, AP4_ByteStream* fragment_stream = NULL);
     virtual ~AP4_LinearReader();
     
     AP4_Result EnableTrack(AP4_UI32 track_id);
@@ -184,7 +182,6 @@ protected:
     AP4_Array<Tracker*> m_Trackers;
     AP4_Size            m_BufferFullness;
     AP4_Size            m_BufferFullnessPeak;
-    AP4_Size            m_MaxBufferFullness;
     AP4_ContainerAtom*  m_Mfra;
 };
 

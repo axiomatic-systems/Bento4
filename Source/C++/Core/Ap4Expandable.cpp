@@ -40,9 +40,13 @@
 AP4_Size
 AP4_Expandable::MinHeaderSize(AP4_Size payload_size)
 {
-    // compute how many bytes are needed to encode the payload size
-    // plus tag
-    return 2+(payload_size/128);
+    // compute how many bytes are needed to encode the payload size plus tag
+    AP4_Size min_header_size = 2;
+    while (payload_size > 128) {
+        ++min_header_size;
+        payload_size /= 128;
+    }
+    return min_header_size;
 }
 
 /*----------------------------------------------------------------------

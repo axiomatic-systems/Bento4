@@ -71,15 +71,17 @@ public:
     AP4_TrunAtom(AP4_UI32 flags, 
                  AP4_SI32 data_offset,
                  AP4_UI32 first_sample_flags);
+    void UpdateFlags(AP4_UI32 flags);
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
 
     // accessors
-    AP4_SI32                GetDataOffset()                { return m_DataOffset;       }
-    void                    SetDataOffset(AP4_SI32 offset) { m_DataOffset = offset;     }
-    AP4_UI32                GetFirstSampleFlags()          { return m_FirstSampleFlags; }
-    const AP4_Array<Entry>& GetEntries()                   { return m_Entries;          }
-    AP4_Array<Entry>&       UseEntries()                   { return m_Entries;          }
+    AP4_SI32                GetDataOffset()                     { return m_DataOffset;        }
+    void                    SetDataOffset(AP4_SI32 offset)      { m_DataOffset = offset;      }
+    AP4_UI32                GetFirstSampleFlags()               { return m_FirstSampleFlags;  }
+    void                    SetFirstSampleFlags(AP4_UI32 flags) { m_FirstSampleFlags = flags; }
+    const AP4_Array<Entry>& GetEntries()                        { return m_Entries;           }
+    AP4_Array<Entry>&       UseEntries()                        { return m_Entries;           }
     AP4_Result              SetEntries(const AP4_Array<Entry>& entries);
                                      
 private:

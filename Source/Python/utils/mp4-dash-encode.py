@@ -1,10 +1,14 @@
+#! /usr/bin/env python3
+
 from optparse import OptionParser
-from mp4utils import *
 from subprocess import check_output, CalledProcessError
 from pipes import quote
+import sys
 import os
+import os.path as path
 import json
 import math
+from mp4utils import MakeNewDir, PrintErrorAndExit
 
 # setup main options
 VERSION = "1.0.0"
@@ -17,8 +21,8 @@ RESOLUTION_ROUNDING_H = 16
 RESOLUTION_ROUNDING_V = 2
 
 def scale_resolution(pixels, aspect_ratio):
-    x = RESOLUTION_ROUNDING_H*((int(math.ceil(math.sqrt(pixels*aspect_ratio)))+RESOLUTION_ROUNDING_H-1)/RESOLUTION_ROUNDING_H)
-    y = RESOLUTION_ROUNDING_V*((int(math.ceil(x/aspect_ratio))+RESOLUTION_ROUNDING_V-1)/RESOLUTION_ROUNDING_V)
+    x = RESOLUTION_ROUNDING_H*((int(math.ceil(math.sqrt(pixels*aspect_ratio)))+RESOLUTION_ROUNDING_H-1) // RESOLUTION_ROUNDING_H)
+    y = RESOLUTION_ROUNDING_V*((int(math.ceil(x/aspect_ratio))+RESOLUTION_ROUNDING_V-1) // RESOLUTION_ROUNDING_V)
     return (x,y)
 
 def compute_bitrates_and_resolutions(options):
@@ -34,19 +38,19 @@ def compute_bitrates_and_resolutions(options):
     bits_per_pixel = [1000.0*bitrates[i]/(24*pixels[i]) for i in range(len(pixels))]
 
     if options.debug:
-        print 'BITRATES:', bitrates
-        print 'PIXELS: ', pixels
-        print 'RESOLUTIONS: ', resolutions
-        print 'BITS PER PIXEL:', bits_per_pixel
+        print('BITRATES:', bitrates)
+        print('PIXELS: ', pixels)
+        print('RESOLUTIONS: ', resolutions)
+        print('BITS PER PIXEL:', bits_per_pixel)
 
     return (bitrates, resolutions)
 
 def run_command(options, cmd):
     if options.debug:
-        print 'COMMAND: ', cmd
+        print('COMMAND: ', cmd)
     try:
         return check_output(cmd, shell=True)
-    except CalledProcessError, e:
+    except CalledProcessError as e:
         message = "binary tool failed with error %d" % e.returncode
         if options.verbose:
             message += " - " + str(cmd)
@@ -144,13 +148,13 @@ def main():
         MakeNewDir(dir=options.output_dir, exit_if_exists = not (options.force_output), severity='ERROR')
 
     if options.verbose:
-        print 'Encoding', options.bitrates, 'bitrates, min bitrate =', options.min_bitrate, 'max bitrate =', options.max_bitrate
+        print('Encoding', options.bitrates, 'bitrates, min bitrate =', options.min_bitrate, 'max bitrate =', options.max_bitrate)
 
     media_source = MediaSource(options, args[0])
     if not options.resolution:
         options.resolution = [media_source.width, media_source.height]
     if options.verbose:
-        print 'Media Source:', media_source
+        print('Media Source:', media_source)
 
     if not options.segment_size:
         options.segment_size = 3*int(media_source.frame_rate+0.5)
@@ -161,7 +165,7 @@ def main():
     (bitrates, resolutions) = compute_bitrates_and_resolutions(options)
 
     for i in range(options.bitrates):
-        output_filename = os.path.join(options.output_dir, 'video_%05d.mp4' % int(bitrates[i]))
+        output_filename = path.join(options.output_dir, 'video_%05d.mp4' % int(bitrates[i]))
         temp_filename = output_filename+'_'
         base_cmd  = 'ffmpeg -i %s -strict experimental -codec:a %s -ac 2 -ab %dk -preset slow -map_metadata -1 -codec:v %s' % (quote(args[0]), options.audio_codec, options.audio_bitrate, options.video_codec)
         if options.video_codec == 'libx264':
@@ -169,11 +173,11 @@ def main():
         if options.text_overlay:
             if not options.text_overlay_font:
                 font_file = "/Library/Fonts/Courier New.ttf"
-                if os.path.exists(font_file):
-                    options.text_overlay_font = font_file;
+                if path.exists(font_file):
+                    options.text_overlay_font = font_file
                 else:
                     raise Exception('ERROR: no default font file, please use the --text-overlay-font option')
-            if not os.path.exists(options.text_overlay_font):
+            if not path.exists(options.text_overlay_font):
                 raise Exception('ERROR: font file "'+options.text_overlay_font+'" does not exist')
             base_cmd += ' -vf "drawtext=fontfile='+options.text_overlay_font+': text='+str(int(bitrates[i]))+'kbps '+str(resolutions[i][0])+'*'+str(resolutions[i][1])+': fontsize=50:  x=(w)/8: y=h-(2*lh): fontcolor=white:"'
         if options.select_streams:
@@ -199,7 +203,7 @@ def main():
             video_opts += ' ' + options.encoder_params
         cmd = base_cmd+' '+video_opts+' -s '+str(resolutions[i][0])+'x'+str(resolutions[i][1])+' -f mp4 '+temp_filename
         if options.verbose:
-            print 'ENCODING bitrate: %d, resolution: %dx%d' % (int(bitrates[i]), resolutions[i][0], resolutions[i][1])
+            print('ENCODING bitrate: %d, resolution: %dx%d' % (int(bitrates[i]), resolutions[i][0], resolutions[i][1]))
         run_command(options, cmd)
 
         cmd = 'mp4fragment "%s" "%s"' % (temp_filename, output_filename)
@@ -213,8 +217,8 @@ if __name__ == '__main__':
     Options = None # global
     try:
         main()
-    except Exception, err:
-        if Options is None or Options.debug:
+    except Exception as err:
+        if Options and Options.debug:
             raise
         else:
             PrintErrorAndExit('ERROR: %s\n' % str(err))

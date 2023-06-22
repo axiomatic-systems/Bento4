@@ -39,7 +39,10 @@
 #include <errno.h>
 #include <sys/stat.h>
 #endif
-
+#if defined(_WIN32)
+#include <io.h>
+#include <fcntl.h>
+#endif
 #include "Ap4FileByteStream.h"
 
 /*----------------------------------------------------------------------
@@ -66,6 +69,97 @@ static int fopen_s(FILE**      file,
     return 0;
 }
 #endif // defined(AP4_CONFIG_HAVE_FOPEN_S
+
+#if defined(_WIN32)
+
+#include <windows.h>
+#include <malloc.h>
+#include <limits.h>
+#include <assert.h>
+
+#define AP4_WIN32_USE_CHAR_CONVERSION \
+    int     _convert = 0;             \
+    LPCWSTR _lpw     = NULL;          \
+    LPCSTR  _lpa     = NULL
+
+/*----------------------------------------------------------------------
+|   A2WHelper
++---------------------------------------------------------------------*/
+static LPWSTR
+A2WHelper(LPWSTR lpw, LPCSTR lpa, int nChars, UINT acp)
+{
+    int ret;
+
+    assert(lpa != NULL);
+    assert(lpw != NULL);
+    if (lpw == NULL || lpa == NULL) return NULL;
+
+    lpw[0] = '\0';
+    ret    = MultiByteToWideChar(acp, 0, lpa, -1, lpw, nChars);
+    if (ret == 0) {
+        assert(0);
+        return NULL;
+    }
+    return lpw;
+}
+
+/*----------------------------------------------------------------------
+|   W2AHelper
++---------------------------------------------------------------------*/
+static LPSTR
+W2AHelper(LPSTR lpa, LPCWSTR lpw, int nChars, UINT acp)
+{
+    int ret;
+
+    assert(lpw != NULL);
+    assert(lpa != NULL);
+    if (lpa == NULL || lpw == NULL) return NULL;
+
+    lpa[0] = '\0';
+    ret    = WideCharToMultiByte(acp, 0, lpw, -1, lpa, nChars, NULL, NULL);
+    if (ret == 0) {
+        int error = GetLastError();
+        assert(error);
+        return NULL;
+    }
+    return lpa;
+}
+
+/*----------------------------------------------------------------------
+|   conversion macros
++---------------------------------------------------------------------*/
+#define AP4_WIN32_A2W(lpa)                                                            \
+    (((_lpa = lpa) == NULL) ?                                                         \
+    NULL :                                                                            \
+    (_convert = MultiByteToWideChar(CP_UTF8, 0, lpa, -1, NULL, 0),                    \
+        (INT_MAX / 2 < _convert) ?                                                    \
+        NULL :                                                                        \
+        A2WHelper((LPWSTR)alloca(_convert * sizeof(WCHAR)), _lpa, _convert, CP_UTF8)))
+
+#define AP4_WIN32_W2A(lpw)                                                      \
+    (((_lpw = lpw) == NULL) ?                                                   \
+    NULL :                                                                      \
+    ((_convert = WideCharToMultiByte(CP_UTF8, 0, lpw, -1, NULL, 0, NULL, NULL), \
+       (_convert > INT_MAX / 2) ?                                               \
+       NULL :                                                                   \
+       W2AHelper((LPSTR)alloca(_convert), _lpw, _convert, CP_UTF8))))
+
+/*----------------------------------------------------------------------
+|   AP4_fopen_s_utf8
++---------------------------------------------------------------------*/
+static errno_t
+AP4_fopen_s_utf8(FILE** file, const char* path, const char* mode)
+{
+    AP4_WIN32_USE_CHAR_CONVERSION;
+    return _wfopen_s(file, AP4_WIN32_A2W(path), AP4_WIN32_A2W(mode));
+}
+
+/*----------------------------------------------------------------------
+|   remap some functions
++---------------------------------------------------------------------*/
+#define fopen_s AP4_fopen_s_utf8
+
+#endif /* _WIN32 */
 
 /*----------------------------------------------------------------------
 |   AP4_StdcFileByteStream
@@ -129,10 +223,20 @@ AP4_StdcFileByteStream::Create(AP4_FileByteStream*      delegator,
     // open the file
     FILE* file = NULL;
     AP4_Position size = 0;
-    if (!strcmp(name, "-stdin")) {
+    if (!strcmp(name, "-stdin") || !strcmp(name, "-stdin#")) {
         file = stdin;
-    } else if (!strcmp(name, "-stdout")) {
+#if defined(_WIN32)
+        if (name[6] == '#') {
+            _setmode(fileno(stdin), O_BINARY);
+        }
+#endif
+    } else if (!strcmp(name, "-stdout") || !strcmp(name, "-stdout#")) {
         file = stdout;
+#if defined(_WIN32)
+        if (name[7] == '#') {
+            _setmode(fileno(stdout), O_BINARY);
+        }
+#endif
     } else if (!strcmp(name, "-stderr")) {
         file = stderr;
     } else {

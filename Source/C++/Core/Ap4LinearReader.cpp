@@ -41,8 +41,7 @@
 |   AP4_LinearReader::AP4_LinearReader
 +---------------------------------------------------------------------*/
 AP4_LinearReader::AP4_LinearReader(AP4_Movie&      movie, 
-                                   AP4_ByteStream* fragment_stream,
-                                   AP4_Size        max_buffer) :
+                                   AP4_ByteStream* fragment_stream) :
     m_Movie(movie),
     m_Fragment(NULL),
     m_FragmentStream(fragment_stream),
@@ -50,7 +49,6 @@ AP4_LinearReader::AP4_LinearReader(AP4_Movie&      movie,
     m_NextFragmentPosition(0),
     m_BufferFullness(0),
     m_BufferFullnessPeak(0),
-    m_MaxBufferFullness(max_buffer),
     m_Mfra(NULL)
 {
     m_HasFragments = movie.HasFragments();
@@ -239,13 +237,11 @@ AP4_LinearReader::SeekTo(AP4_UI32 time_ms, AP4_UI32* actual_time_ms)
             }
 
             // update our position
-            if (best_entry >= 0) {
-                if (actual_time_ms) {
-                    // report the actual time we found (in milliseconds)
-                    *actual_time_ms = (AP4_UI32)AP4_ConvertTime(entries[best_entry].m_Time, m_Trackers[t]->m_Track->GetMediaTimeScale(), 1000);
-                }
-                m_NextFragmentPosition = entries[best_entry].m_MoofOffset;
+            if (actual_time_ms) {
+                // report the actual time we found (in milliseconds)
+                *actual_time_ms = (AP4_UI32)AP4_ConvertTime(entries[best_entry].m_Time, m_Trackers[t]->m_Track->GetMediaTimeScale(), 1000);
             }
+            m_NextFragmentPosition = entries[best_entry].m_MoofOffset;
         }
     }
     
@@ -404,11 +400,7 @@ AP4_LinearReader::AdvanceFragment()
 AP4_Result
 AP4_LinearReader::Advance(bool read_data)
 {
-    // first, check if we have space to advance
-    if (m_BufferFullness >= m_MaxBufferFullness) {
-        return AP4_ERROR_NOT_ENOUGH_SPACE;
-    }
-    
+
     AP4_UI64 min_offset = (AP4_UI64)(-1);
     Tracker* next_tracker = NULL;
     for (;;) {

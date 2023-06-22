@@ -30,6 +30,7 @@
 |   includes
 +---------------------------------------------------------------------*/
 #include "Ap4Utils.h"
+#include "Ap4Debug.h"
 
 /*----------------------------------------------------------------------
 |   AP4_GlobalOptions::g_Entry
@@ -50,7 +51,7 @@ AP4_GlobalOptions::GetEntry(const char* name, bool autocreate)
                                 item = item->GetNext()) {
         if (item->GetData()->m_Name == name) return item->GetData();
     }
-    
+
     if (autocreate) {
         Entry* new_entry = new Entry();
         new_entry->m_Name = name;
@@ -118,7 +119,7 @@ AP4_BytesToDoubleBE(const unsigned char* bytes)
     AP4_UI64 i_value = AP4_BytesToUInt64BE(bytes);
     void*    v_value = reinterpret_cast<void*>(&i_value);
     double*  d_value = reinterpret_cast<double*>(v_value);
-    
+
     return *d_value;
 }
 
@@ -128,7 +129,7 @@ AP4_BytesToDoubleBE(const unsigned char* bytes)
 AP4_UI64
 AP4_BytesToUInt64BE(const unsigned char* bytes)
 {
-    return 
+    return
         ( ((AP4_UI64)bytes[0])<<56 ) |
         ( ((AP4_UI64)bytes[1])<<48 ) |
         ( ((AP4_UI64)bytes[2])<<40 ) |
@@ -136,7 +137,7 @@ AP4_BytesToUInt64BE(const unsigned char* bytes)
         ( ((AP4_UI64)bytes[4])<<24 ) |
         ( ((AP4_UI64)bytes[5])<<16 ) |
         ( ((AP4_UI64)bytes[6])<<8  ) |
-        ( ((AP4_UI64)bytes[7])     );    
+        ( ((AP4_UI64)bytes[7])     );
 }
 
 /*----------------------------------------------------------------------
@@ -147,7 +148,7 @@ AP4_BytesFromDoubleBE(unsigned char* bytes, double value)
 {
     void*     v_value = reinterpret_cast<void*>(&value);
     AP4_UI64* i_value = reinterpret_cast<AP4_UI64*>(v_value);
-    
+
     AP4_BytesFromUInt64BE(bytes, *i_value);
 }
 
@@ -168,6 +169,21 @@ AP4_BytesFromUInt64BE(unsigned char* bytes, AP4_UI64 value)
 }
 
 /*----------------------------------------------------------------------
+|   AP4_ByteSwap16
++---------------------------------------------------------------------*/
+void
+AP4_ByteSwap16(unsigned char* bytes, unsigned int count) {
+    AP4_ASSERT((count & 1) == 0);
+
+    for (unsigned int i = 0; i < count / 2; i++) {
+        unsigned char tmp = bytes[0];
+        bytes[0] = bytes[1];
+        bytes[1] = tmp;
+        bytes += 2;
+    }
+}
+
+/*----------------------------------------------------------------------
 |   AP4_DurationMsFromUnits
 +---------------------------------------------------------------------*/
 AP4_UI32
@@ -180,7 +196,7 @@ AP4_DurationMsFromUnits(AP4_UI64 units, AP4_UI32 units_per_second)
 /*----------------------------------------------------------------------
 |   AP4_ConvertTime
 +---------------------------------------------------------------------*/
-AP4_UI64 
+AP4_UI64
 AP4_ConvertTime(AP4_UI64 time_value,
                 AP4_UI32 from_time_scale,
                 AP4_UI32 to_time_scale)
@@ -277,7 +293,7 @@ AP4_HexNibble(char c)
 |   AP4_NibbleHex
 +---------------------------------------------------------------------*/
 char
-AP4_NibbleHex(unsigned int nibble) 
+AP4_NibbleHex(unsigned int nibble)
 {
     if (nibble < 10) {
         return (char)('0'+nibble);
@@ -311,14 +327,14 @@ AP4_FormatHex(const AP4_UI08* data, unsigned int data_size, char* hex)
         *hex++ = AP4_NibbleHex(data[i]>>4);
         *hex++ = AP4_NibbleHex(data[i]&0x0F);
     }
-    
+
     return AP4_SUCCESS;
 }
 
 /*----------------------------------------------------------------------
 |   AP4_BitWriter::Write
 +---------------------------------------------------------------------*/
-void 
+void
 AP4_BitWriter::Write(AP4_UI32 bits, unsigned int bit_count)
 {
     unsigned char* data = m_Data;
@@ -358,7 +374,7 @@ AP4_ParseIntegerU(const char* str)
             value = 10*value + (c-'0');
         } else {
             return 0;
-        } 
+        }
     }
 
     return value;

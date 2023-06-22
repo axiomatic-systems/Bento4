@@ -85,7 +85,7 @@ AP4_SaizAtom::AP4_SaizAtom(AP4_UI32        size,
     stream.ReadUI32(m_SampleCount);
     remains -= 5;
     if (m_DefaultSampleInfoSize == 0) { 
-        // means that the sample info entries  have different sizes
+        // means that the sample info entries have different sizes
         if (m_SampleCount > remains) m_SampleCount = remains; // sanity check
         AP4_Cardinal sample_count = m_SampleCount;
         m_Entries.SetItemCount(sample_count);
@@ -149,8 +149,10 @@ AP4_SaizAtom::GetSampleInfoSize(AP4_Ordinal sample, AP4_UI08& sample_info_size)
     } else {
         // check the sample index
         if (sample >= m_SampleCount) {
+            // just return a 0 size, not an error, because of the possibility
+            // that we have a degenerate case where sample_count is 0 and
+            // the default_sample_info_size is also 0
             sample_info_size = 0;
-            return AP4_ERROR_OUT_OF_RANGE;
         } else {
             sample_info_size = m_Entries[sample];
         }
@@ -222,11 +224,11 @@ AP4_SaizAtom::InspectFields(AP4_AtomInspector& inspector)
     inspector.AddField("sample count", m_SampleCount);
 
     if (inspector.GetVerbosity() >= 2) {
-        char header[32];
+        inspector.StartArray("entries", m_Entries.ItemCount());
         for (AP4_Ordinal i=0; i<m_Entries.ItemCount(); i++) {
-            AP4_FormatString(header, sizeof(header), "entry %8d", i);
-            inspector.AddField(header, m_Entries[i]);
+            inspector.AddField(NULL, m_Entries[i]);
         }
+        inspector.EndArray();
     }
 
     return AP4_SUCCESS;

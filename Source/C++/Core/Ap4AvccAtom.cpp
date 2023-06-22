@@ -104,7 +104,10 @@ AP4_AvccAtom::AP4_AvccAtom() :
     m_Profile(0),
     m_Level(0),
     m_ProfileCompatibility(0),
-    m_NaluLengthSize(0)
+    m_NaluLengthSize(0),
+    m_ChromaFormat(0),
+    m_BitDepthLumaMinus8(0),
+    m_BitDepthChromaMinus8(0)
 {
     UpdateRawBytes();
     m_Size32 += m_RawBytes.GetDataSize();
@@ -138,6 +141,10 @@ AP4_AvccAtom::AP4_AvccAtom(const AP4_AvccAtom& other) :
 AP4_AvccAtom::AP4_AvccAtom(AP4_UI32 size, const AP4_UI08* payload) :
     AP4_Atom(AP4_ATOM_TYPE_AVCC, size)
 {
+    if (size < AP4_ATOM_HEADER_SIZE + 7) {
+        return;
+    }
+    
     // make a copy of our configuration bytes
     unsigned int payload_size = size-AP4_ATOM_HEADER_SIZE;
     m_RawBytes.SetData(payload, payload_size);
@@ -157,10 +164,14 @@ AP4_AvccAtom::AP4_AvccAtom(AP4_UI32 size, const AP4_UI08* payload) :
             cursor += 2;
             if (cursor + param_length <= payload_size) {
                 m_SequenceParameters.Append(AP4_DataBuffer());
-                m_SequenceParameters[i].SetData(&payload[cursor], param_length);
+                m_SequenceParameters[m_SequenceParameters.ItemCount()-1].SetData(&payload[cursor], param_length);
                 cursor += param_length;
             }
         }
+    }
+    
+    if (cursor >= payload_size) {
+        return;
     }
     AP4_UI08 num_pic_params = payload[cursor++];
     m_PictureParameters.EnsureCapacity(num_pic_params);
@@ -170,7 +181,7 @@ AP4_AvccAtom::AP4_AvccAtom(AP4_UI32 size, const AP4_UI08* payload) :
             cursor += 2;
             if (cursor + param_length <= payload_size) {
                 m_PictureParameters.Append(AP4_DataBuffer());
-                m_PictureParameters[i].SetData(&payload[cursor], param_length);
+                m_PictureParameters[m_PictureParameters.ItemCount()-1].SetData(&payload[cursor], param_length);
                 cursor += param_length;
             }
         }
@@ -184,7 +195,10 @@ AP4_AvccAtom::AP4_AvccAtom(AP4_UI32 size, const AP4_UI08* payload) :
 AP4_AvccAtom::AP4_AvccAtom(AP4_UI08                         profile, 
                            AP4_UI08                         level, 
                            AP4_UI08                         profile_compatibility, 
-                           AP4_UI08                         length_size, 
+                           AP4_UI08                         length_size,
+                           AP4_UI08                         chroma_format,
+                           AP4_UI08                         bit_depth_luma_minus8,
+                           AP4_UI08                         bit_depth_chroma_minus8,
                            const AP4_Array<AP4_DataBuffer>& sequence_parameters, 
                            const AP4_Array<AP4_DataBuffer>& picture_parameters) :
     AP4_Atom(AP4_ATOM_TYPE_AVCC, AP4_ATOM_HEADER_SIZE),
@@ -192,7 +206,10 @@ AP4_AvccAtom::AP4_AvccAtom(AP4_UI08                         profile,
     m_Profile(profile),
     m_Level(level),
     m_ProfileCompatibility(profile_compatibility),
-    m_NaluLengthSize(length_size)
+    m_NaluLengthSize(length_size),
+    m_ChromaFormat(chroma_format),
+    m_BitDepthLumaMinus8(bit_depth_luma_minus8),
+    m_BitDepthChromaMinus8(bit_depth_chroma_minus8)
 {
     // deep copy of the parameters
     unsigned int i = 0;
@@ -225,6 +242,12 @@ AP4_AvccAtom::UpdateRawBytes()
     for (unsigned int i=0; i<m_PictureParameters.ItemCount(); i++) {
         payload_size += 2+m_PictureParameters[i].GetDataSize();
     }
+
+    if ((m_Profile == AP4_AVC_PROFILE_HIGH) || (m_Profile == AP4_AVC_PROFILE_HIGH_10) || 
+        (m_Profile == AP4_AVC_PROFILE_HIGH_422) || (m_Profile == AP4_AVC_PROFILE_HIGH_444)) {
+            payload_size += 4;
+    }
+
     m_RawBytes.SetDataSize(payload_size);
     AP4_UI08* payload = m_RawBytes.UseData();
 
@@ -249,6 +272,13 @@ AP4_AvccAtom::UpdateRawBytes()
         cursor += 2;
         AP4_CopyMemory(&payload[cursor], m_PictureParameters[i].GetData(), param_length);
         cursor += param_length;
+    }
+    if ((m_Profile == AP4_AVC_PROFILE_HIGH) || (m_Profile == AP4_AVC_PROFILE_HIGH_10) || 
+        (m_Profile == AP4_AVC_PROFILE_HIGH_422) || (m_Profile == AP4_AVC_PROFILE_HIGH_444)) {
+        payload[cursor++] = 0xfc | (0x03 & m_ChromaFormat);
+        payload[cursor++] = 0xf8 | (0x07 & m_BitDepthLumaMinus8);
+        payload[cursor++] = 0xf8 | (0x07 & m_BitDepthChromaMinus8);
+        payload[cursor] = 0;
     }
 }
 

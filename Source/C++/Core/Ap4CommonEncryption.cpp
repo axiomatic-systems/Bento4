@@ -1455,8 +1455,12 @@ AP4_CencEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
         case AP4_ATOM_TYPE_AVC2:
         case AP4_ATOM_TYPE_AVC3:
         case AP4_ATOM_TYPE_AVC4:
+        case AP4_ATOM_TYPE_DVAV:
+        case AP4_ATOM_TYPE_DVA1:
         case AP4_ATOM_TYPE_HEV1:
         case AP4_ATOM_TYPE_HVC1:
+        case AP4_ATOM_TYPE_DVHE:
+        case AP4_ATOM_TYPE_DVH1:
             enc_format = AP4_ATOM_TYPE_ENCV;
             break;
             
@@ -1629,13 +1633,17 @@ AP4_CencEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
     if (format == AP4_ATOM_TYPE_AVC1 ||
         format == AP4_ATOM_TYPE_AVC2 ||
         format == AP4_ATOM_TYPE_AVC3 ||
-        format == AP4_ATOM_TYPE_AVC4) {
+        format == AP4_ATOM_TYPE_AVC4 ||
+        format == AP4_ATOM_TYPE_DVAV ||
+        format == AP4_ATOM_TYPE_DVA1) {
         AP4_AvccAtom* avcc = AP4_DYNAMIC_CAST(AP4_AvccAtom, entries[0]->GetChild(AP4_ATOM_TYPE_AVCC));
         if (avcc) {
             nalu_length_size = avcc->GetNaluLengthSize();
         }
     } else if (format == AP4_ATOM_TYPE_HEV1 ||
-               format == AP4_ATOM_TYPE_HVC1) {
+               format == AP4_ATOM_TYPE_HVC1 ||
+               format == AP4_ATOM_TYPE_DVHE ||
+               format == AP4_ATOM_TYPE_DVH1) {
         AP4_HvccAtom* hvcc = AP4_DYNAMIC_CAST(AP4_HvccAtom, entries[0]->GetChild(AP4_ATOM_TYPE_HVCC));
         if (hvcc) {
             nalu_length_size = hvcc->GetNaluLengthSize();
@@ -1913,6 +1921,12 @@ AP4_CencSingleSampleDecrypter::DecryptSampleData(AP4_DataBuffer& data_in,
             in  += cleartext_size+encrypted_size;
             out += cleartext_size+encrypted_size;
         }
+
+        // copy any leftover partial block
+        unsigned int partial = (unsigned int)(in_end-in);
+        if (partial) {
+            AP4_CopyMemory(out, in, partial);
+        }
     } else {
         if (m_FullBlocksOnly) {
             unsigned int block_count = data_in.GetDataSize()/16;
@@ -1933,7 +1947,7 @@ AP4_CencSingleSampleDecrypter::DecryptSampleData(AP4_DataBuffer& data_in,
         } else {
             // process the entire sample data at once
             AP4_Size encrypted_size = data_in.GetDataSize();
-            AP4_Result result = m_Cipher->ProcessBuffer(in, encrypted_size, out, &encrypted_size, false);
+            AP4_Result result = m_Cipher->ProcessBuffer(in, encrypted_size, out, &encrypted_size, true);
             if (AP4_FAILED(result)) return result;
         }
     }
@@ -2327,6 +2341,36 @@ AP4_CencDecryptingProcessor::AP4_CencDecryptingProcessor(AP4_ProtectionKeyMap* k
 }
 
 /*----------------------------------------------------------------------
+|   AP4_CencDecryptingProcessor:GetKeyForTrak
++---------------------------------------------------------------------*/
+const AP4_DataBuffer*
+AP4_CencDecryptingProcessor::GetKeyForTrak(AP4_UI32 track_id, AP4_ProtectedSampleDescription* sample_description)
+{
+    // look for the key by track ID
+    const AP4_DataBuffer* key = m_KeyMap->GetKey(track_id);
+    if (!key) {
+        // no key found by track ID, look for a key by KID
+        if (sample_description) {
+            AP4_ProtectionSchemeInfo* scheme_info = sample_description->GetSchemeInfo();
+            if (scheme_info) {
+                AP4_ContainerAtom* schi = scheme_info->GetSchiAtom();
+                if (schi) {
+                    AP4_TencAtom* tenc = AP4_DYNAMIC_CAST(AP4_TencAtom, schi->FindChild("tenc"));
+                    if (tenc) {
+                        const AP4_UI08* kid = tenc->GetDefaultKid();
+                        if (kid) {
+                            key = m_KeyMap->GetKeyByKid(kid);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return key;
+}
+
+/*----------------------------------------------------------------------
 |   AP4_CencDecryptingProcessor:CreateTrackHandler
 +---------------------------------------------------------------------*/
 AP4_Processor::TrackHandler* 
@@ -2377,8 +2421,8 @@ AP4_CencDecryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
     }
     if (sample_entries.ItemCount() == 0) return NULL;
     
-    // look for the key by track ID
-    const AP4_DataBuffer* key = m_KeyMap->GetKey(trak->GetId());
+    // get the key for this track
+    const AP4_DataBuffer* key = GetKeyForTrak(trak->GetId(), sample_descs.ItemCount() ? sample_descs[0] : NULL);
 
     // create a decrypter with this key
     if (key) {
@@ -2399,7 +2443,7 @@ AP4_CencDecryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
 |   AP4_CencDecryptingProcessor::CreateFragmentHandler
 +---------------------------------------------------------------------*/
 AP4_Processor::FragmentHandler* 
-AP4_CencDecryptingProcessor::CreateFragmentHandler(AP4_TrakAtom*    /*trak*/,
+AP4_CencDecryptingProcessor::CreateFragmentHandler(AP4_TrakAtom*      trak,
                                                    AP4_TrexAtom*      trex,
                                                    AP4_ContainerAtom* traf,
                                                    AP4_ByteStream&    moof_data,
@@ -2424,10 +2468,10 @@ AP4_CencDecryptingProcessor::CreateFragmentHandler(AP4_TrakAtom*    /*trak*/,
                     sample_description = track_decrypter->GetSampleDescription(index-1);
                 }
                 if (sample_description == NULL) return NULL;
+
+                // get the key for this track
+                key = GetKeyForTrak(tfhd->GetTrackId(), sample_description);
             }
-            
-            // get the matching key by track ID
-            key = m_KeyMap->GetKey(tfhd->GetTrackId());
             
             break;
         }
@@ -2755,20 +2799,8 @@ AP4_CencSampleInfoTable::Create(AP4_ProtectedSampleDescription* sample_descripti
         }
     }
 
-    // try to create a sample info table from senc
-    if (sample_info_table == NULL && sample_encryption_atom) {
-        AP4_Result result = sample_encryption_atom->CreateSampleInfoTable(0,
-                                                                          crypt_byte_block,
-                                                                          skip_byte_block,
-                                                                          per_sample_iv_size,
-                                                                          constant_iv_size,
-                                                                          constant_iv,
-                                                                          sample_info_table);
-        if (AP4_FAILED(result)) return result;
-    }
-
     // try to create a sample info table from saio/saiz
-    if (traf) {
+    if (sample_info_table == NULL && traf) {
         for (AP4_List<AP4_Atom>::Item* child = traf->GetChildren().FirstItem();
                                        child;
                                        child = child->GetNext()) {
@@ -2784,7 +2816,7 @@ AP4_CencSampleInfoTable::Create(AP4_ProtectedSampleDescription* sample_descripti
                 }
             }
         }
-        if (sample_info_table == NULL && saio && saiz) {
+        if (saio && saiz) {
             AP4_Result result = Create(0,
                                        crypt_byte_block,
                                        skip_byte_block,
@@ -2797,10 +2829,28 @@ AP4_CencSampleInfoTable::Create(AP4_ProtectedSampleDescription* sample_descripti
                                        aux_info_data,
                                        aux_info_data_offset, 
                                        sample_info_table);
-            if (AP4_FAILED(result)) return result;
+            // only abort the processing if the error is not due to an invalid
+            // format: some files have an invalid saio/saiz based construction,
+            // but may still have a valid `senc`, which we can try to parse
+            // below
+            if (!AP4_SUCCEEDED(result) && result != AP4_ERROR_INVALID_FORMAT) {
+                return result;
+            }
         }
     }
     
+    // try to create a sample info table from senc
+    if (sample_info_table == NULL && sample_encryption_atom) {
+        AP4_Result result = sample_encryption_atom->CreateSampleInfoTable(0,
+                                                                          crypt_byte_block,
+                                                                          skip_byte_block,
+                                                                          per_sample_iv_size,
+                                                                          constant_iv_size,
+                                                                          constant_iv,
+                                                                          sample_info_table);
+        if (AP4_FAILED(result)) return result;
+    }
+
     if (sample_info_table == NULL) {
         return AP4_ERROR_INVALID_FORMAT;
     }
@@ -2893,18 +2943,25 @@ AP4_CencSampleInfoTable::Create(AP4_UI08                  flags,
 
                 const AP4_UI08* info_data = info.GetData();
                 if (per_sample_iv_size) {
+                    if (per_sample_iv_size > info_size) {
+                        result = AP4_ERROR_INVALID_FORMAT;
+                        goto end;
+                    }
                     table->SetIv(saiz_index, info_data);
                 } else {
                     table->SetIv(saiz_index, constant_iv);
                 }
-                if (info_size > per_sample_iv_size+2) {
-                    AP4_UI16 subsample_count = AP4_BytesToUInt16BE(info_data+per_sample_iv_size);
-                    if (info_size < per_sample_iv_size+2+subsample_count*6) {
-                        // not enough data
-                        goto end;
-                    }
-                    table->AddSubSampleData(subsample_count, info_data+per_sample_iv_size+2);
+                if (info_size < per_sample_iv_size+2) {
+                    result = AP4_ERROR_INVALID_FORMAT;
+                    goto end;
                 }
+                AP4_UI16 subsample_count = AP4_BytesToUInt16BE(info_data+per_sample_iv_size);
+                if (info_size < per_sample_iv_size+2+subsample_count*6) {
+                    // not enough data
+                    result = AP4_ERROR_INVALID_FORMAT;
+                    goto end;
+                }
+                table->AddSubSampleData(subsample_count, info_data+per_sample_iv_size+2);
                 saiz_index++;
             }
         }
@@ -2947,9 +3004,9 @@ AP4_CencSampleInfoTable::Create(const AP4_UI08*           serialized,
         return AP4_ERROR_INVALID_FORMAT;
     }
     AP4_CencSampleInfoTable* table = new AP4_CencSampleInfoTable(flags, crypt_byte_block, skip_byte_block, sample_count, (AP4_UI08)iv_size);
-    table->m_IvData.SetData(serialized, sample_count*iv_size);
-    serialized      += sample_count*iv_size;
-    serialized_size -= sample_count*iv_size;
+    table->m_IvData.SetData(serialized, sample_count?sample_count*iv_size:iv_size);
+    serialized      += sample_count?sample_count*iv_size:iv_size;
+    serialized_size -= sample_count?sample_count*iv_size:iv_size;
     
     if (serialized_size < 4) {
         delete table;
@@ -3018,6 +3075,11 @@ AP4_CencSampleInfoTable::AP4_CencSampleInfoTable(AP4_UI08 flags,
     m_SkipByteBlock(skip_byte_block),
     m_IvSize(iv_size)
 {
+    if (sample_count == 0) {
+        // All samples encrypted with a constant IV, reserve some space to
+        // store the constant IV
+        sample_count = 1;
+    }
     m_IvData.SetDataSize(m_IvSize*sample_count);
     AP4_SetMemory(m_IvData.UseData(), 0, m_IvSize*sample_count);
 }
@@ -3030,7 +3092,7 @@ AP4_CencSampleInfoTable::Serialize(AP4_DataBuffer& buffer)
 {
     unsigned int size = 4 +
                         4 +
-                        m_SampleCount*m_IvSize +
+                        (m_SampleCount ? m_SampleCount*m_IvSize : m_IvSize) +
                         4 +
                         m_BytesOfCleartextData.ItemCount()*2 +
                         m_BytesOfEncryptedData.ItemCount()*4 +
@@ -3058,7 +3120,12 @@ AP4_CencSampleInfoTable::Serialize(AP4_DataBuffer& buffer)
     *data++ = m_CryptByteBlock;
     *data++ = m_SkipByteBlock;
     *data++ = m_IvSize;
-    AP4_CopyMemory(data, m_IvData.GetData(), m_SampleCount*m_IvSize); data += m_SampleCount*m_IvSize;
+    if (m_SampleCount) {
+        AP4_CopyMemory(data, m_IvData.GetData(), m_SampleCount*m_IvSize); data += m_SampleCount*m_IvSize;
+    } else {
+        // All samples encrypted, no per-sample IV, create one entry for the default IV
+        AP4_CopyMemory(data, m_IvData.GetData(), m_IvSize); data += m_IvSize;
+    }
     AP4_BytesFromUInt32BE(data, m_BytesOfCleartextData.ItemCount());  data += 4;
     for (unsigned int i=0; i<m_BytesOfCleartextData.ItemCount(); i++) {
         AP4_BytesFromUInt16BE(data, m_BytesOfCleartextData[i]); data += 2;
@@ -3084,7 +3151,12 @@ AP4_CencSampleInfoTable::Serialize(AP4_DataBuffer& buffer)
 AP4_Result 
 AP4_CencSampleInfoTable::SetIv(AP4_Ordinal sample_index, const AP4_UI08* iv)
 {
-    if (sample_index >= m_SampleCount) return AP4_ERROR_OUT_OF_RANGE;
+    if (m_SampleCount == 0) {
+        if (sample_index != 0) return AP4_ERROR_OUT_OF_RANGE;
+    } else {
+        if (sample_index >= m_SampleCount) return AP4_ERROR_OUT_OF_RANGE;
+    }
+    AP4_ASSERT(m_IvData.GetDataSize() >= m_IvSize*(sample_index+1));
     AP4_UI08* dst = m_IvData.UseData()+(m_IvSize*sample_index);
     AP4_CopyMemory(dst, iv, m_IvSize);
     
@@ -3097,8 +3169,12 @@ AP4_CencSampleInfoTable::SetIv(AP4_Ordinal sample_index, const AP4_UI08* iv)
 const AP4_UI08* 
 AP4_CencSampleInfoTable::GetIv(AP4_Ordinal sample_index)
 {
-    if (sample_index >= m_SampleCount) return NULL;
-    return m_IvData.GetData()+(m_IvSize*sample_index);
+    if (m_SampleCount == 0) {
+        return m_IvData.GetData();
+    } else {
+        if (sample_index >= m_SampleCount) return NULL;
+        return m_IvData.GetData()+(m_IvSize*sample_index);
+    }
 }
 
 /*----------------------------------------------------------------------
@@ -3134,6 +3210,13 @@ AP4_CencSampleInfoTable::GetSampleInfo(AP4_Cardinal     sample_index,
                                        const AP4_UI16*& bytes_of_cleartext_data,
                                        const AP4_UI32*& bytes_of_encrypted_data)
 {
+    if (m_SampleCount == 0) {
+        // all samples encrypted entirely, no subsamples
+        subsample_count         = 0;
+        bytes_of_cleartext_data = NULL;
+        bytes_of_encrypted_data = NULL;
+        return AP4_SUCCESS;
+    }
     
     if (sample_index >= m_SampleCount) {
         return AP4_ERROR_OUT_OF_RANGE;
@@ -3329,7 +3412,7 @@ AP4_CencSampleEncryption::CreateSampleInfoTable(AP4_UI08                  flags,
     }
     
     // check some of the parameters
-    if (per_sample_iv_size == 0) {
+    if (per_sample_iv_size == 0 || m_SampleInfoCount == 0) {
         if (default_constant_iv_size == 0 || default_constant_iv == NULL) {
             return AP4_ERROR_INVALID_PARAMETERS;
         }
@@ -3342,32 +3425,41 @@ AP4_CencSampleEncryption::CreateSampleInfoTable(AP4_UI08                  flags,
                                         default_skip_byte_block,
                                         m_SampleInfoCount,
                                         per_sample_iv_size?per_sample_iv_size:default_constant_iv_size);
-    const AP4_UI08* data      = m_SampleInfos.GetData();
-    AP4_UI32        data_size = m_SampleInfos.GetDataSize();
-    for (unsigned int i=0; i<m_SampleInfoCount; i++) {
-        if (per_sample_iv_size) {
-            if (data_size < per_sample_iv_size) goto end;
-            table->SetIv(i, data);
-            data      += per_sample_iv_size;
-            data_size -= per_sample_iv_size;
-        } else {
-            table->SetIv(i, default_constant_iv);
-        }
-        if (has_subsamples) {
-            if (data_size < 2) goto end;
-            AP4_UI16 subsample_count = AP4_BytesToUInt16BE(data);
-            data      += 2;
-            data_size -= 2;
-            
-            if (data_size < subsample_count*(unsigned int)6) goto end;
-            
-            result = table->AddSubSampleData(subsample_count, data);
-            if (AP4_FAILED(result)) goto end;
-            
-            data      += 6*subsample_count;
-            data_size -= 6*subsample_count;
+                                        
+    // fill the table
+    if (m_SampleInfoCount == 0) {
+        // special case, this means all samples are encrypted with the same IV
+        table->SetIv(0, default_constant_iv);
+    } else {
+        const AP4_UI08* data      = m_SampleInfos.GetData();
+        AP4_UI32        data_size = m_SampleInfos.GetDataSize();
+        for (unsigned int i=0; i<m_SampleInfoCount; i++) {
+            if (per_sample_iv_size) {
+                if (data_size < per_sample_iv_size) goto end;
+                table->SetIv(i, data);
+                data      += per_sample_iv_size;
+                data_size -= per_sample_iv_size;
+            } else {
+                table->SetIv(i, default_constant_iv);
+            }
+            if (has_subsamples) {
+                if (data_size < 2) goto end;
+                AP4_UI16 subsample_count = AP4_BytesToUInt16BE(data);
+                data      += 2;
+                data_size -= 2;
+                
+                if (data_size < subsample_count*(unsigned int)6) goto end;
+                
+                result = table->AddSubSampleData(subsample_count, data);
+                if (AP4_FAILED(result)) goto end;
+                
+                data      += 6*subsample_count;
+                data_size -= 6*subsample_count;
+            }
         }
     }
+    
+    // done
     result = AP4_SUCCESS;
     
 end:
@@ -3435,27 +3527,31 @@ AP4_CencSampleEncryption::DoInspectFields(AP4_AtomInspector& inspector)
         }
     }
     inspector.AddField("IV Size (inferred)", iv_size);
-    
+
+    inspector.StartArray("sample info entries", m_SampleInfoCount);
     const AP4_UI08* info = m_SampleInfos.GetData();
     for (unsigned int i=0; i<m_SampleInfoCount; i++) {
-        char header[64];
-        AP4_FormatString(header, sizeof(header), "entry %04d", i);
-        inspector.AddField(header, info, iv_size);
+        inspector.StartObject(NULL);
+        inspector.AddField("info", info, iv_size);
         info += iv_size;
         if (m_Outer.GetFlags() & AP4_CENC_SAMPLE_ENCRYPTION_FLAG_USE_SUB_SAMPLE_ENCRYPTION) {
             unsigned int num_entries = AP4_BytesToInt16BE(info);
             info += 2;
+            inspector.StartArray("sub entries", num_entries);
             for (unsigned int j=0; j<num_entries; j++) {
+                inspector.StartObject(NULL, 2, true);
                 unsigned int bocd = AP4_BytesToUInt16BE(info);
-                AP4_FormatString(header, sizeof(header), "sub-entry %04d.%d bytes of clear data", i, j);
-                inspector.AddField(header, bocd);
+                inspector.AddField("bytes_of_clear_data", bocd);
                 unsigned int boed = AP4_BytesToUInt32BE(info+2);
-                AP4_FormatString(header, sizeof(header), "sub-entry %04d.%d bytes of encrypted data", i, j);
-                inspector.AddField(header, boed);
+                inspector.AddField("bytes_of_encrypted_data", boed);
                 info += 6;
+                inspector.EndObject();
             }
-        }        
+            inspector.EndArray();
+        }
+        inspector.EndObject();
     }
+    inspector.EndArray();
 
     return AP4_SUCCESS;
 }

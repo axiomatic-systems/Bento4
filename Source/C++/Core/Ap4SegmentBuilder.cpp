@@ -483,6 +483,9 @@ AP4_AvcSegmentBuilder::WriteInitSegment(AP4_ByteStream& stream)
                                                 sps->constraint_set2_flag<<5 |
                                                 sps->constraint_set3_flag<<4),
                                      4,
+                                     sps->chroma_format_idc,
+                                     sps->bit_depth_luma_minus8,
+                                     sps->bit_depth_chroma_minus8,
                                      sps_array,
                                      pps_array);
 
