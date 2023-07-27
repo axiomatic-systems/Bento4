@@ -515,6 +515,8 @@ main(int argc, char** argv)
     AP4_Movie* movie = input_file->GetMovie();
     if (movie == NULL) {
         fprintf(stderr, "ERROR: no movie in file\n");
+        delete input;
+        delete input_file;
         return 1;
     }
 
