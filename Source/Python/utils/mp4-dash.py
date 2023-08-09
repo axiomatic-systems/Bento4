@@ -934,7 +934,8 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
                 default = not default_selected
             if default:
                 default_selected = True
-            master_playlist_file.write('#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="{}",LANGUAGE="{}",NAME="{}",AUTOSELECT={},DEFAULT={},CHANNELS="{}",URI="{}"\n'.format(
+            
+            master_playlist_file.write('#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="{}",LANGUAGE="{}",NAME="{}",AUTOSELECT={},DEFAULT={},CHANNELS="{}",URI="{}"'.format(
                                        audio_group_name,
                                        audio_track.language,
                                        media_name,
@@ -942,6 +943,13 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
                                        'YES' if default else 'NO',
                                        audio_track.channels,
                                        media_playlist_path))
+            
+            hls_characteristic = audio_track.hls_characteristic
+            if hls_characteristic != None:
+                master_playlist_file.write(',CHARACTERISTIC="{}"'.format(hls_characteristic))
+
+            master_playlist_file.write("\n")
+
             OutputHlsTrack(options, audio_track, all_audio_tracks + all_video_tracks, media_subdir, media_playlist_name, media_file_name)
 
             # Add an audio stream entry for audio-only presentations or if the track specifiers include a '-' entry
@@ -987,7 +995,7 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
                 if '*' not in video_track.hls_group_match and audio_group_name not in video_track.hls_group_match:
                     continue
                 audio_codecs = ','.join(audio_groups[audio_group_name]['codecs'])
-                master_playlist_file.write('#EXT-X-STREAM-INF:{}AUDIO="{}",AVERAGE-BANDWIDTH={:.0f},BANDWIDTH={:.0f},VIDEO-RANGE={},CODECS="{}",RESOLUTION={:.0f}x{:.0f},FRAME-RATE={:.3f}\n'.format(
+                master_playlist_file.write('#EXT-X-STREAM-INF:{}AUDIO="{}",AVERAGE-BANDWIDTH={:.0f},BANDWIDTH={:.0f},VIDEO-RANGE={},CODECS="{}",RESOLUTION={:.0f}x{:.0f},FRAME-RATE={:.3f}'.format(
                                            subtitles_group,
                                            audio_group_name,
                                            video_track.average_segment_bitrate + audio_groups[audio_group_name]['average_segment_bitrate'],
@@ -998,11 +1006,12 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
                                            video_track.height,
                                            video_track.frame_rate))
                 if supplemental_codec_string != '':
-                    master_playlist_file.write(',SUPPLEMENTAL-CODECS="{}"\n'.format(supplemental_codec_string))
+                    master_playlist_file.write(',SUPPLEMENTAL-CODECS="{}"'.format(supplemental_codec_string))
+                master_playlist_file.write('\n')
                 master_playlist_file.write(media_playlist_path+'\n')
         else:
             # no audio
-            master_playlist_file.write('#EXT-X-STREAM-INF:{}AVERAGE-BANDWIDTH={:.0f},BANDWIDTH={:.0f},VIDEO-RANGE={},CODECS="{}",RESOLUTION={:.0f}x{:.0f},FRAME-RATE={:.3f}\n'.format(
+            master_playlist_file.write('#EXT-X-STREAM-INF:{}AVERAGE-BANDWIDTH={:.0f},BANDWIDTH={:.0f},VIDEO-RANGE={},CODECS="{}",RESOLUTION={:.0f}x{:.0f},FRAME-RATE={:.3f}'.format(
                                        subtitles_group,
                                        video_track.average_segment_bitrate,
                                        video_track.max_segment_bitrate,
@@ -1012,14 +1021,15 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
                                        video_track.height,
                                        video_track.frame_rate))
             if supplemental_codec_string != '':
-                master_playlist_file.write(',SUPPLEMENTAL-CODECS="{}"\n'.format(supplemental_codec_string))
+                master_playlist_file.write(',SUPPLEMENTAL-CODECS="{}"'.format(supplemental_codec_string))
+            master_playlist_file.write('\n')
             master_playlist_file.write(media_playlist_path+'\n')
 
         OutputHlsTrack(options, video_track, all_audio_tracks + all_video_tracks, media_subdir, media_playlist_name, media_file_name)
         iframe_average_segment_bitrate,iframe_max_bitrate = OutputHlsIframeIndex(options, video_track, all_audio_tracks + all_video_tracks, media_subdir, iframes_playlist_name, media_file_name)
 
         # this will be written later
-        iframe_playlist_lines.append('#EXT-X-I-FRAME-STREAM-INF:AVERAGE-BANDWIDTH={:.0f},BANDWIDTH={:.0f},VIDEO-RANGE={},CODECS="{}",RESOLUTION={:.0f}x{:.0f},URI="{}"\n'.format(
+        iframe_playlist_lines.append('#EXT-X-I-FRAME-STREAM-INF:AVERAGE-BANDWIDTH={:.0f},BANDWIDTH={:.0f},VIDEO-RANGE={},CODECS="{}",RESOLUTION={:.0f}x{:.0f},URI="{}"'.format(
                                      iframe_average_segment_bitrate,
                                      iframe_max_bitrate,
                                      video_track.video_range,
@@ -1027,8 +1037,10 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
                                      video_track.width,
                                      video_track.height,
                                      iframes_playlist_path))
+
         if supplemental_codec_string != '':
-            iframe_playlist_lines.append(',SUPPLEMENTAL-CODECS="{}"\n'.format(supplemental_codec_string))
+            iframe_playlist_lines.append(',SUPPLEMENTAL-CODECS="{}"'.format(supplemental_codec_string))
+        iframe_playlist_lines.append('\n')
 
     master_playlist_file.write('\n# I-Frame Playlists\n')
     master_playlist_file.write(''.join(iframe_playlist_lines))
@@ -1415,6 +1427,7 @@ def SelectTracks(options, media_sources):
             track.hls_autoselect = BooleanFromString(media_source.spec.get('+hls_autoselect', 'YES'))
             track.hls_group = media_source.spec.get('+hls_group')
             track.hls_group_match = media_source.spec.get('+hls_group_match', '*').split('&')
+            track.hls_characteristic = media_source.spec.get('+hls_characteristic')
 
         # update label indexes (so that we can use numbers instead of strings for labels)
         for track in tracks:
