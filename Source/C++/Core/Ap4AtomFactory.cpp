@@ -108,6 +108,7 @@
 #include "Ap4SidxAtom.h"
 #include "Ap4SbgpAtom.h"
 #include "Ap4SgpdAtom.h"
+#include "Ap4XMLAtom.h"
 
 /*----------------------------------------------------------------------
 |   AP4_AtomFactory::~AP4_AtomFactory
@@ -835,6 +836,9 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
           case AP4_ATOM_TYPE_MDAT:
             // generic atoms
             break;
+          case AP4_ATOM_TYPE_XML:
+              atom = AP4_XMLAtom::Create(size_32, stream);
+              break;
             
           default: {
             // try all the external type handlers
