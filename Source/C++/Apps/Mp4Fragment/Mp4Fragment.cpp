@@ -35,6 +35,7 @@
 #include <list>
 
 #include "Ap4.h"
+#include <vector>
 
 /*----------------------------------------------------------------------
 |   constants
@@ -248,7 +249,7 @@ public:
         }
         int buffer_length =m_FragmentRanges.ItemCount() * 60 +  max_line_len;
         m_laststring = (char*)calloc(buffer_length, 1);
-        char line_buffer[max_line_len];
+        char* line_buffer = new char[max_line_len];
         snprintf(m_laststring, max_line_len, "{\n   \"TrackID\":%d,\n   \"DestinationOffset\":%llu,\n   \"Duration\":%llu,\n   \"TrackType\":%s,\n   \"FragmentSize\":%llu,\n   \"Traf\":\"%s\",\n   \"SampleCount\":%d,\n   \"Chunks\":[\n",
             m_TrackId, m_DestinationOffset, m_FragmentDuration, 
             (m_TrackType == AP4_Track::TYPE_VIDEO ? "\"Video\"":"\"Audio\""),
@@ -266,6 +267,7 @@ public:
             i++;
         }
         strcat(m_laststring, "   ]\n}\n");
+        delete[] line_buffer;
         return m_laststring;
     }
     
@@ -1046,7 +1048,7 @@ Fragment(AP4_File&                input_file,
             }
             atomDump->GetSize(atom_dump_size);
             int buffersize = 200 + 2 * atom_dump_size;
-            char                    string_buffer[buffersize]; // Typically tiny.
+            char* string_buffer = new char[buffersize]; // Typically tiny.
             for (unsigned int i=0; i< atom_dump_size; i++) {
                 snprintf(&(string_buffer[i*2]), buffersize - (i*2), "%02x", (unsigned char)atomDump->GetData()[i]);
             }
@@ -1067,6 +1069,7 @@ Fragment(AP4_File&                input_file,
             vfrag_stream.Write(json, strlen(json));
             fragmentranges.ClearList();
             fragment_index++;
+            delete[] string_buffer;
         }
 
     }
@@ -1469,15 +1472,17 @@ main(int argc, char** argv)
     AP4_ByteStream* vfrag_stream = NULL;
     if (Options.vfrag) { // Create sidx and json outputs here also.
         int extended_filename_len = strlen(output_filename) + 9;
-        char fname[extended_filename_len];
-        snprintf(fname, extended_filename_len, "%s.sidx", output_filename);
-        result = AP4_FileByteStream::Create(fname, AP4_FileByteStream::STREAM_MODE_WRITE, sidx_stream);
+        // char fname[extended_filename_len];
+        std::vector<char> fname(extended_filename_len);
+
+        snprintf(fname.data(), extended_filename_len, "%s.sidx", output_filename);
+        result = AP4_FileByteStream::Create(fname.data(), AP4_FileByteStream::STREAM_MODE_WRITE, sidx_stream);
         if (AP4_FAILED(result)) {
             fprintf(stderr, "ERROR: cannot create/open output (%d)\n", result);
             return 1;
         }
-        snprintf(fname, extended_filename_len, "%s.json", output_filename);
-        result = AP4_FileByteStream::Create(fname, AP4_FileByteStream::STREAM_MODE_WRITE, vfrag_stream);
+        snprintf(fname.data(), extended_filename_len, "%s.json", output_filename);
+        result = AP4_FileByteStream::Create(fname.data(), AP4_FileByteStream::STREAM_MODE_WRITE, vfrag_stream);
         if (AP4_FAILED(result)) {
             fprintf(stderr, "ERROR: cannot create/open output (%d)\n", result);
             return 1;
