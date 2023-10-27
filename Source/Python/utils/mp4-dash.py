@@ -606,7 +606,7 @@ def OutputDash(options, set_attributes, audio_sets, video_sets, subtitles_sets, 
                 xml.SubElement(adaptation_set, 'Role', schemeIdUri='urn:mpeg:dash:role:2011', value='subtitle')
 
                 # see if we have other descriptors
-                AddDescriptor(adaptation_set, set_attributes, 'subtitles/' + subtitles_track.language, 'subtitles')
+                AddDescriptor(adaptation_set, set_attributes, 'subtitles/' + subtitles_track.representation_id, 'subtitles')
 
                 representation = xml.SubElement(adaptation_set,
                                                 'Representation',
@@ -650,7 +650,7 @@ def OutputDash(options, set_attributes, audio_sets, video_sets, subtitles_sets, 
             xml.SubElement(adaptation_set, 'Role', schemeIdUri='urn:mpeg:dash:role:2011', value='subtitle')
 
             # see if we have other descriptors
-            AddDescriptor(adaptation_set, set_attributes, 'subtitles/' + subtitles_file.language, 'subtitles')
+            AddDescriptor(adaptation_set, set_attributes, 'subtitles/' + subtitles_file.representation_id, 'subtitles')
 
             # estimate the bandwidth
             bandwidth = 1024 # default
@@ -659,10 +659,10 @@ def OutputDash(options, set_attributes, audio_sets, video_sets, subtitles_sets, 
 
             representation = xml.SubElement(adaptation_set,
                                             'Representation',
-                                            id='subtitles/'+subtitles_file.language,
+                                            id='subtitles/'+subtitles_file.representation_id,
                                             bandwidth=str(bandwidth))
             base_url = xml.SubElement(representation, 'BaseURL')
-            base_url.text = 'subtitles/'+subtitles_file.language+'/'+subtitles_file.media_name
+            base_url.text = 'subtitles/'+subtitles_file.representation_id+'/'+subtitles_file.media_name
 
     # save the MPD
     if options.mpd_filename:
@@ -1085,7 +1085,7 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
         presentation_duration = math.ceil(max([track.total_duration for track in all_video_tracks + all_audio_tracks]))
         default_selected = False
         for subtitles_file in subtitles_files:
-            media_subdir = 'subtitles/{}'.format(subtitles_file.language)
+            media_subdir = 'subtitles/{}'.format(subtitles_file.representation_id)
             media_playlist_name = options.hls_media_playlist_name
             default = audio_track.hls_default and not default_selected
             if default:

@@ -31,6 +31,8 @@ class SubtitlesFile:
         language_name = LanguageNames.get(self.language, self.language_name)
         self.language_name = media_source.spec.get('+language_name', language_name)
 
+        self.representation_id = media_source.spec.get('+representation_id', self.language)
+
         if media_source.format == 'ttml':
             self.parse_ttml(options)
         elif media_source.format == 'webvtt':
