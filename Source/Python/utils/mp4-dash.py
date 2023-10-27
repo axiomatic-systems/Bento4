@@ -2226,7 +2226,7 @@ def main():
             MakeNewDir(path.join(options.output_dir, 'subtitles'))
             for subtitles_file in subtitles_files:
                 print('Processing and Copying subtitles file', GetMappedFileName(subtitles_file.media_source.filename))
-                out_dir = path.join(options.output_dir, 'subtitles', subtitles_file.language)
+                out_dir = path.join(options.output_dir, 'subtitles', subtitles_file.representation_id)
                 MakeNewDir(out_dir)
                 media_filename = path.join(out_dir, subtitles_file.media_name)
                 shutil.copyfile(subtitles_file.media_source.filename, media_filename)
