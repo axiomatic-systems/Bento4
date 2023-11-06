@@ -449,6 +449,7 @@ class Mp4Track:
             # Set the default values for Dolby audio codec flags
             self.dolby_ddp_atmos = 'No'
             self.dolby_ac4_ims   = 'No'
+            self.dolby_ac4_cbi   = 'No'
             if self.codec_family == 'ec-3' and 'dolby_digital_plus_info' in sample_desc:
                 self.channels = GetDolbyDigitalPlusChannels(self)[0]
                 self.dolby_ddp_atmos = sample_desc['dolby_digital_plus_info']['Dolby_Atmos']
@@ -456,6 +457,7 @@ class Mp4Track:
                     self.complexity_index = sample_desc['dolby_digital_plus_info']['complexity_index']
                     self.channels =  str(self.info['sample_descriptions'][0]['dolby_digital_plus_info']['complexity_index']) + '/JOC'
             elif self.codec_family == 'ac-4' and 'dolby_ac4_info' in sample_desc:
+                self.channels = str(self.channels)
                 if sample_desc['dolby_ac4_info']['dsi version'] == 0:
                     raise Exception("AC4 dsi version 0 is deprecated.")
                 elif sample_desc['dolby_ac4_info']['dsi version'] == 1:
@@ -465,7 +467,10 @@ class Mp4Track:
                         stream_type = sample_desc['dolby_ac4_info']['presentations'][0]['Stream Type']
                         if stream_type == 'Immersive stereo':
                             self.dolby_ac4_ims = 'Yes'
-                        self.channels = str(self.channels)
+                            self.channels = '2/IMSA'
+                        elif stream_type == 'Channel based immsersive':
+                            self.dolby_ac4_cbi = 'Yes'
+                            self.channels = self.channels + '/IMSA'
             elif 'mpeg_4_audio_decoder_config' in sample_desc:
                 self.channels = sample_desc['mpeg_4_audio_decoder_config']['channels']
 
