@@ -31,7 +31,7 @@ from mp4utils import Base64Encode,\
 
 # setup main options
 VERSION = "1.2.0"
-SDK_REVISION = '640'
+SDK_REVISION = '641'
 SCRIPT_PATH = path.abspath(path.dirname(__file__))
 sys.path += [SCRIPT_PATH]
 
