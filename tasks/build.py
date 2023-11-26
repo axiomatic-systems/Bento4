@@ -37,4 +37,8 @@ def rebuild(ctx, clean = False):
 
 @task(rebuild)
 def sdk(ctx):
-    ctx.run("python3 Scripts/SdkPackager.py")
+    if sys.platform == "win32":
+        python = "python"
+    else:
+        python = "python3"
+    ctx.run(f"{python} Scripts/SdkPackager.py")
