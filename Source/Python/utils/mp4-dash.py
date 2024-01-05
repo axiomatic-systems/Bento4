@@ -1200,10 +1200,11 @@ def OutputSmooth(options, audio_tracks, video_tracks):
             xml.SubElement(stream_index, "c", d=str(duration))
 
     if options.playready:
+        key_info = None
         if video_tracks:
             key_info = video_tracks[0].key_info
-            if not key_info and len(audio_tracks):
-                key_info = audio_tracks[0].key_info
+        if not key_info and len(audio_tracks):
+            key_info = audio_tracks[0].key_info
 
         if not key_info:
             return
