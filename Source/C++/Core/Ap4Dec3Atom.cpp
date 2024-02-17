@@ -141,7 +141,7 @@ AP4_Dec3Atom::AP4_Dec3Atom(AP4_UI32 size, const AP4_UI08* payload) :
     payload_size -= 2;
     m_SubStreams.SetItemCount(substream_count);
     for (unsigned int i=0; i<substream_count; i++) {
-        if (payload_size < 3) {
+        if (payload_size < 4) {
             m_SubStreams[i].fscod       = 0;
             m_SubStreams[i].bsid        = 0;
             m_SubStreams[i].bsmod       = 0;
