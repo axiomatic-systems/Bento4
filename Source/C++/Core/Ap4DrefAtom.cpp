@@ -73,12 +73,17 @@ AP4_DrefAtom::AP4_DrefAtom(AP4_UI32         size,
                            AP4_AtomFactory& atom_factory) :
     AP4_ContainerAtom(AP4_ATOM_TYPE_DREF, size, false, version, flags)
 {
+    if (size <= AP4_FULL_ATOM_HEADER_SIZE + 4) {
+        return;
+    }
+    
     // read the number of entries
     AP4_UI32 entry_count;
-    stream.ReadUI32(entry_count);
+    AP4_Result result = stream.ReadUI32(entry_count);
+    if (AP4_FAILED(result)) return;
 
     // read children
-    AP4_LargeSize bytes_available = size-AP4_FULL_ATOM_HEADER_SIZE-4;
+    AP4_LargeSize bytes_available = size - (AP4_FULL_ATOM_HEADER_SIZE + 4);
     while (entry_count--) {
         AP4_Atom* atom; 
         while (AP4_SUCCEEDED(atom_factory.CreateAtomFromStream(stream, 
@@ -95,10 +100,8 @@ AP4_DrefAtom::AP4_DrefAtom(AP4_UI32         size,
 AP4_Result
 AP4_DrefAtom::WriteFields(AP4_ByteStream& stream)
 {
-    AP4_Result result;
-
     // write the number of entries
-    result = stream.WriteUI32(m_Children.ItemCount());
+    AP4_Result result = stream.WriteUI32(m_Children.ItemCount());
     if (AP4_FAILED(result)) return result;
 
     // write the children
