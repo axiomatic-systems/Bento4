@@ -76,6 +76,9 @@ AP4_EsdsAtom::AP4_EsdsAtom(AP4_UI32        size,
     if (AP4_DescriptorFactory::CreateDescriptorFromStream(stream, descriptor) 
         == AP4_SUCCESS) {
         m_EsDescriptor = AP4_DYNAMIC_CAST(AP4_EsDescriptor, descriptor);
+        if (!m_EsDescriptor) {
+            delete descriptor;
+        }
     } else {
         m_EsDescriptor = NULL;
     }
