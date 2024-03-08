@@ -147,8 +147,13 @@ AP4_ElstAtom::InspectFields(AP4_AtomInspector& inspector)
 {
     inspector.AddField("entry_count", m_Entries.ItemCount());
     for (AP4_Ordinal i=0; i<m_Entries.ItemCount(); i++) {
-        inspector.AddField("entry/segment duration", (AP4_UI32)m_Entries[i].m_SegmentDuration);
-        inspector.AddField("entry/media time", (AP4_SI32)m_Entries[i].m_MediaTime);
+        if (1 == m_Version) {
+            inspector.AddField("entry/segment duration", (AP4_UI64)m_Entries[i].m_SegmentDuration);
+            inspector.AddField("entry/media time", (AP4_SI64)m_Entries[i].m_MediaTime);
+        } else {
+            inspector.AddField("entry/segment duration", (AP4_UI32)m_Entries[i].m_SegmentDuration);
+            inspector.AddField("entry/media time", (AP4_SI32)m_Entries[i].m_MediaTime);
+        }
         inspector.AddField("entry/media rate", (AP4_UI16)m_Entries[i].m_MediaRate);
     }
 
