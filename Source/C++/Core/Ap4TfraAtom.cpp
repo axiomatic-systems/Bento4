@@ -78,13 +78,83 @@ AP4_TfraAtom::AP4_TfraAtom(AP4_UI32        size,
     AP4_Atom(AP4_ATOM_TYPE_TFRA, size, version, flags)
 {
     stream.ReadUI32(m_TrackId);
+    
     AP4_UI32 fields = 0;
     stream.ReadUI32(fields);
     m_LengthSizeOfTrafNumber   = (fields>>4)&3;
     m_LengthSizeOfTrunNumber   = (fields>>2)&3;
     m_LengthSizeOfSampleNumber = (fields   )&3;
+    
     AP4_UI32 entry_count = 0;
     stream.ReadUI32(entry_count);
+    
+    // Compute the size of each entry
+    unsigned int entry_size;
+    if (version == 1) {
+        entry_size = 16;
+    } else {
+        entry_size = 8;
+    }
+    switch (m_LengthSizeOfTrafNumber) {
+        case 0:
+            entry_size += 1;
+            break;
+
+        case 1:
+            entry_size += 2;
+            break;
+
+        case 2:
+            entry_size += 3;
+            break;
+
+        case 3:
+            entry_size += 4;
+            break;
+    }
+    
+    switch (m_LengthSizeOfTrunNumber) {
+        case 0:
+            entry_size += 1;
+            break;
+
+        case 1:
+            entry_size += 2;
+            break;
+
+        case 2:
+            entry_size += 3;
+            break;
+
+        case 3:
+            entry_size += 4;
+            break;
+    }
+    
+    switch (m_LengthSizeOfSampleNumber) {
+        case 0:
+            entry_size += 1;
+            break;
+
+        case 1:
+            entry_size += 2;
+            break;
+
+        case 2:
+            entry_size += 3;
+            break;
+
+        case 3:
+            entry_size += 4;
+            break;
+    }
+        
+    // Check that it all fits
+    if (((size - (AP4_FULL_ATOM_HEADER_SIZE+4+4+4)) / entry_count) < entry_size) {
+        return;
+    }
+    
+    // Read the entries
     m_Entries.SetItemCount(entry_count);
     for (unsigned int i=0; i<entry_count; i++) {
         if (version == 1) {
