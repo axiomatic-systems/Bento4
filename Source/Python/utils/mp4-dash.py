@@ -1142,7 +1142,7 @@ def OutputSmooth(options, audio_tracks, video_tracks):
             audio_tag = '65534'
             fourcc = 'EC-3'
             channels = str(channels)
-            data_rate = int(audio_track.info['sample_descriptions'][0]['dolby_digital_info']['data_rate'])
+            data_rate = int(audio_track.info['sample_descriptions'][0]['dolby_digital_plus_info']['data_rate'])
             packet_size = str(4*data_rate)
         else:
             # assume AAC
