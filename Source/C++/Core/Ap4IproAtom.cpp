@@ -62,6 +62,10 @@ AP4_IproAtom::AP4_IproAtom(AP4_UI32         size,
                            AP4_AtomFactory& atom_factory) :
     AP4_ContainerAtom(AP4_ATOM_TYPE_IPRO, size, false, version, flags)
 {
+    if (size < AP4_FULL_ATOM_HEADER_SIZE + 2) {
+        return;
+    }
+
     // read the number of entries
     AP4_UI16 entry_count;
     stream.ReadUI16(entry_count);
