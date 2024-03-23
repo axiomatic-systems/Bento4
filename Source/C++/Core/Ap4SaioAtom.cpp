@@ -97,12 +97,14 @@ AP4_SaioAtom::AP4_SaioAtom(AP4_UI32        size,
     m_AuxInfoType(0),
     m_AuxInfoTypeParameter(0)
 {
-    AP4_UI32 remains = size-GetHeaderSize();
+    AP4_SI32 remains = size-AP4_FULL_ATOM_HEADER_SIZE;
     if (flags & 1) {
+        if (remains < 8) return;
         stream.ReadUI32(m_AuxInfoType);
         stream.ReadUI32(m_AuxInfoTypeParameter);
         remains -= 8;
     }
+    if (remains < 4) return;
     AP4_UI32 entry_count = 0;
     AP4_Result result = stream.ReadUI32(entry_count);
     if (AP4_FAILED(result)) return;
