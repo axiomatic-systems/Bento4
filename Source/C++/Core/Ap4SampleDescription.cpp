@@ -825,7 +825,7 @@ AP4_Av1SampleDescription::AP4_Av1SampleDescription(AP4_UI32        format,
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_Av1SampleDescription::GetCodecString(AP4_String& codec) {
-    AP4_UI08 bit_depth = 10;
+    AP4_UI08 bit_depth = (this->GetHighBitDepth() == 0) ? 8: (this->GetTwelveBit() == 0 ? 10 : 12);
     AP4_UI08 color_primaries = 1;
     AP4_UI08 transfer_characteristics = 1;
     AP4_UI08 matrix_coefficients = 1;
@@ -838,7 +838,7 @@ AP4_Av1SampleDescription::GetCodecString(AP4_String& codec) {
                      "%s.%d.%02d%c.%02d.%d.%d%d%d.%02d.%02d.%02d.%d",
                      coding,
                      this->GetSeqProfile(),
-                     this->GetSeqLevelIdx0() >> 4,
+                     this->GetSeqLevelIdx0(),
                      this->GetSeqTier0() == 0 ? 'M' : 'H',
                      bit_depth,
                      this->GetMonochrome(),
