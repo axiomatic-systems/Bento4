@@ -87,7 +87,7 @@ AP4_SbgpAtom::AP4_SbgpAtom(AP4_UI32        size,
     AP4_Result result = stream.ReadUI32(entry_count);
     if (AP4_FAILED(result)) return;
     remains -= 4;
-    if (remains < entry_count*8) {
+    if (remains < (AP4_UI64)entry_count*8) {
         return;
     }
     m_Entries.SetItemCount(entry_count);
