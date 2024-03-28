@@ -64,9 +64,11 @@ AP4_OdheAtom::AP4_OdheAtom(AP4_UI32         size,
                            AP4_AtomFactory& atom_factory) :
     AP4_ContainerAtom(AP4_ATOM_TYPE_ODHE, size, false, version, flags)
 {
+    if (size < AP4_FULL_ATOM_HEADER_SIZE+1) return;
     // read the content type
     AP4_UI08 content_type_length;
     stream.ReadUI08(content_type_length);
+    if (size < AP4_FULL_ATOM_HEADER_SIZE+1+content_type_length) return;
     char content_type[256];
     stream.Read(content_type, content_type_length);
     m_ContentType.Assign(content_type, content_type_length);

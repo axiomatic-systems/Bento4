@@ -136,6 +136,7 @@ AP4_ContainerAtom::AP4_ContainerAtom(Type             type,
                                      AP4_AtomFactory& atom_factory) :
     AP4_Atom(type, size, force_64)
 {
+    if (size < GetHeaderSize()) return;
     ReadChildren(atom_factory, stream, size-GetHeaderSize());
 }
 
@@ -151,6 +152,7 @@ AP4_ContainerAtom::AP4_ContainerAtom(Type             type,
                                      AP4_AtomFactory& atom_factory) :
     AP4_Atom(type, size, force_64, version, flags)
 {
+    if (size < GetHeaderSize()) return;
     ReadChildren(atom_factory, stream, size-GetHeaderSize());
 }
 
