@@ -104,6 +104,7 @@ AP4_Stz2Atom::AP4_Stz2Atom(AP4_UI32        size,
         delete[] buffer;
         return;
     }
+    if (2 * sample_count > sizeof(buffer)) return;
     m_SampleCount = sample_count;
     m_Entries.SetItemCount((AP4_Cardinal)sample_count);
     switch (m_FieldSize) {
