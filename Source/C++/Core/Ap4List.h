@@ -43,16 +43,16 @@ template <typename T> class AP4_List;
 /*----------------------------------------------------------------------
 |   AP4_List
 +---------------------------------------------------------------------*/
-template <typename T> 
-class AP4_List 
+template <typename T>
+class AP4_List
 {
 public:
     // types
-    class Item 
+    class Item
     {
     public:
         // types
-        class Operator 
+        class Operator
         {
         public:
             // methods
@@ -60,7 +60,7 @@ public:
             virtual AP4_Result Action(T* data) const = 0;
         };
 
-        class Finder 
+        class Finder
         {
         public:
             // methods
@@ -86,8 +86,8 @@ public:
     };
 
     // methods
-                 AP4_List<T>(): m_ItemCount(0), m_Head(0), m_Tail(0) {}
-    virtual     ~AP4_List<T>();
+                 AP4_List(): m_ItemCount(0), m_Head(0), m_Tail(0) {}
+    virtual     ~AP4_List();
     AP4_Result   Clear();
     AP4_Result   Add(T* data);
     AP4_Result   Add(Item* item);
@@ -106,17 +106,17 @@ public:
     AP4_Cardinal ItemCount() const { return m_ItemCount; }
     Item*        FirstItem() const { return m_Head; }
     Item*        LastItem()  const { return m_Tail; }
- 
+
 protected:
     // members
     AP4_Cardinal m_ItemCount;
     Item*        m_Head;
     Item*        m_Tail;
-    
+
 private:
 	// these cannot be used
-    AP4_List<T>(const AP4_List<T>&);
-	AP4_List<T>& operator=(const AP4_List<T>&);
+    AP4_List(const AP4_List&);
+	AP4_List& operator=(const AP4_List&);
 };
 
 /*----------------------------------------------------------------------
@@ -137,7 +137,7 @@ AP4_Result
 AP4_List<T>::Clear()
 {
     Item* item = m_Head;
- 
+
     while (item) {
         Item* next = item->m_Next;
         delete item;
@@ -145,10 +145,10 @@ AP4_List<T>::Clear()
     }
     m_ItemCount = 0;
     m_Head = m_Tail = NULL;
-    
+
     return AP4_SUCCESS;
 }
- 
+
 /*----------------------------------------------------------------------
 |   AP4_List<T>::Add
 +---------------------------------------------------------------------*/
@@ -182,7 +182,7 @@ AP4_List<T>::Add(Item* item)
 
     // one more item in the list now
     m_ItemCount++;
- 
+
     return AP4_SUCCESS;
 }
 
@@ -241,7 +241,7 @@ AP4_List<T>::Remove(T* data)
         }
         item = item->m_Next;
     }
- 
+
     return AP4_ERROR_NO_SUCH_ITEM;
 }
 
@@ -335,7 +335,7 @@ AP4_List<T>::PopHead(T*& data)
 
     // one less item in the list now
     m_ItemCount--;
- 
+
     return AP4_SUCCESS;
 }
 
@@ -343,12 +343,12 @@ AP4_List<T>::PopHead(T*& data)
 |   AP4_List<T>::Apply
 +---------------------------------------------------------------------*/
 template <typename T>
-inline 
+inline
 AP4_Result
 AP4_List<T>::Apply(const typename Item::Operator& op) const
 {
     Item* item = m_Head;
- 
+
     while (item) {
         op.Action(item->m_Data);
         item = item->m_Next;
@@ -361,12 +361,12 @@ AP4_List<T>::Apply(const typename Item::Operator& op) const
 |   AP4_List<T>::ApplyUntilFailure
 +---------------------------------------------------------------------*/
 template <typename T>
-inline 
+inline
 AP4_Result
 AP4_List<T>::ApplyUntilFailure(const typename Item::Operator& op) const
 {
     Item* item = m_Head;
- 
+
     while (item) {
         AP4_Result result;
         result = op.Action(item->m_Data);
@@ -381,12 +381,12 @@ AP4_List<T>::ApplyUntilFailure(const typename Item::Operator& op) const
 |   AP4_List<T>::ApplyUntilSuccess
 +---------------------------------------------------------------------*/
 template <typename T>
-inline 
+inline
 AP4_Result
 AP4_List<T>::ApplyUntilSuccess(const typename Item::Operator& op) const
 {
     Item* item = m_Head;
- 
+
     while (item) {
         AP4_Result result;
         result = op.Action(item->m_Data);
@@ -401,12 +401,12 @@ AP4_List<T>::ApplyUntilSuccess(const typename Item::Operator& op) const
 |   AP4_List<T>::ReverseApply
 +---------------------------------------------------------------------*/
 template <typename T>
-inline 
+inline
 AP4_Result
 AP4_List<T>::ReverseApply(const typename Item::Operator& op) const
 {
     Item* item = m_Tail;
- 
+
     while (item) {
         if (op.Action(item->m_Data) != AP4_SUCCESS) {
             return AP4_ERROR_LIST_OPERATION_ABORTED;
@@ -421,12 +421,12 @@ AP4_List<T>::ReverseApply(const typename Item::Operator& op) const
 |   AP4_List<T>::Find
 +---------------------------------------------------------------------*/
 template <typename T>
-inline 
+inline
 AP4_Result
 AP4_List<T>::Find(const typename Item::Finder& finder, T*& data) const
 {
     Item* item = m_Head;
- 
+
     while (item) {
         if (finder.Test(item->m_Data) == AP4_SUCCESS) {
             data = item->m_Data;
@@ -443,12 +443,12 @@ AP4_List<T>::Find(const typename Item::Finder& finder, T*& data) const
 |   AP4_List<T>::ReverseFind
 +---------------------------------------------------------------------*/
 template <typename T>
-inline 
+inline
 AP4_Result
 AP4_List<T>::ReverseFind(const typename Item::Finder& finder, T*& data) const
 {
     Item* item = m_Tail;
- 
+
     while (item) {
         if (finder.Test(item->m_Data) == AP4_SUCCESS) {
             data = item->m_Data;
@@ -465,12 +465,12 @@ AP4_List<T>::ReverseFind(const typename Item::Finder& finder, T*& data) const
 |   AP4_List<T>::DeleteReferences
 +---------------------------------------------------------------------*/
 template <typename T>
-inline 
+inline
 AP4_Result
 AP4_List<T>::DeleteReferences()
 {
     Item* item = m_Head;
- 
+
     while (item) {
         Item* next = item->m_Next;
         delete item->m_Data;
