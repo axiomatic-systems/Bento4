@@ -71,7 +71,12 @@ file(GLOB AP4_HEADERS
   ${SOURCE_METADATA}/*.h
 )
 
-add_library(ap4 STATIC ${AP4_SOURCES})
+option(BUILD_SHARED_LIBRARY "Build as a shared library" OFF)
+if(BUILD_SHARED_LIBRARY)
+  add_library(ap4 SHARED ${AP4_SOURCES})
+else()
+  add_library(ap4 STATIC ${AP4_SOURCES})
+endif()
 target_include_directories(ap4 PUBLIC
   ${AP4_INCLUDE_DIRS}
 )
