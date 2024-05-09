@@ -124,6 +124,12 @@ configure_package_config_file(
     INSTALL_DESTINATION "${config_install_dir}"
 )
 
+configure_file(
+    "Build/pkgconfig/bento4.pc.in"
+    "${generated_dir}/bento4.pc"
+    @ONLY
+)
+
 install(
     TARGETS ap4 ${BENTO4_APPS_LOWERCASE}
     EXPORT "${TARGETS_EXPORT_NAME}"
@@ -141,6 +147,11 @@ install(
 install(
     FILES "${project_config}" "${version_config}"
     DESTINATION "${config_install_dir}"
+)
+
+install(
+    FILES "${generated_dir}/bento4.pc"
+    DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig"
 )
 
 install(
