@@ -1119,11 +1119,7 @@ def OutputSmooth(options, audio_tracks, video_tracks):
 
     # process the audio tracks
     for audio_track in audio_tracks:
-        stream_name = audio_track.label
-        if stream_name == '':
-            stream_name = audio_track.language_name
-        if stream_name == '' or stream_name == 'Unknown':
-            stream_name = "audio_"+audio_track.language
+        stream_name = "audio_"+audio_track.language
         audio_url_pattern="QualityLevels({bitrate})/Fragments(%s={start time})" % (stream_name)
         stream_index = xml.SubElement(client_manifest,
                                       'StreamIndex',
@@ -1142,7 +1138,7 @@ def OutputSmooth(options, audio_tracks, video_tracks):
             audio_tag = '65534'
             fourcc = 'EC-3'
             channels = str(channels)
-            data_rate = int(audio_track.info['sample_descriptions'][0]['dolby_digital_info']['data_rate'])
+            data_rate = int(audio_track.info['sample_descriptions'][0]['dolby_digital_plus_info']['data_rate'])
             packet_size = str(4*data_rate)
         else:
             # assume AAC

@@ -1116,10 +1116,11 @@ AP4_MkidAtom::AP4_MkidAtom(AP4_Size        size,
                            AP4_ByteStream& stream) :
     AP4_Atom(AP4_ATOM_TYPE_MKID, size, version, flags)
 {
+    if (size < AP4_FULL_ATOM_HEADER_SIZE+4) return;
     AP4_Size available = size-(AP4_FULL_ATOM_HEADER_SIZE+4);
     AP4_UI32 entry_count = 0;
     stream.ReadUI32(entry_count);
-    if (available < entry_count*(16+4)) return;
+    if (available < (AP4_UI64)entry_count*(16+4)) return;
     m_Entries.SetItemCount(entry_count);
     for (unsigned int i=0; i<entry_count && available >= 16+4; i++) {
         AP4_UI32 entry_size;

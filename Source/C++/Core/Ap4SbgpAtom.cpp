@@ -73,18 +73,21 @@ AP4_SbgpAtom::AP4_SbgpAtom(AP4_UI32        size,
     m_GroupingType(0),
     m_GroupingTypeParameter(0)
 {
-    AP4_UI32 remains = size-GetHeaderSize();
+    if (size < AP4_FULL_ATOM_HEADER_SIZE + 4) return;
+    AP4_UI32 remains = size-AP4_FULL_ATOM_HEADER_SIZE;
     stream.ReadUI32(m_GroupingType);
     remains -= 4;
     if (version >= 1) {
+        if (remains < 4) return;
         stream.ReadUI32(m_GroupingTypeParameter);
         remains -= 4;
     }
+    if (remains < 4) return;
     AP4_UI32 entry_count = 0;
     AP4_Result result = stream.ReadUI32(entry_count);
     if (AP4_FAILED(result)) return;
     remains -= 4;
-    if (remains < entry_count*8) {
+    if (remains < (AP4_UI64)entry_count*8) {
         return;
     }
     m_Entries.SetItemCount(entry_count);

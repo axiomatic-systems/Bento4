@@ -1050,7 +1050,7 @@ def ComputeDolbyDigitalPlusSmoothStreamingInfo(track):
     mask_hex_be = "{0:0{1}x}".format(channel_mask, 4)
     info += mask_hex_be[2:4]+mask_hex_be[0:2]+'0000'
     info += "af87fba7022dfb42a4d405cd93843bdd"
-    info += track.info['sample_descriptions'][0]['dolby_digital_info']['dec3_payload']
+    info += track.info['sample_descriptions'][0]['dolby_digital_plus_info']['dec3_payload']
     return (channel_count, info.lower())
 
 def ComputeMarlinPssh(options):

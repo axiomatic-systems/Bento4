@@ -91,19 +91,21 @@ AP4_Stz2Atom::AP4_Stz2Atom(AP4_UI32        size,
         return;
     }
     AP4_UI32 sample_count;
-    stream.ReadUI32(sample_count);
+    if (AP4_FAILED(stream.ReadUI32(sample_count))) {
+        return;
+    }
 
-    m_FieldSize   = field_size;
-    unsigned int table_size = (sample_count * field_size + 7) / 8;
+    AP4_UI64 table_size = ((AP4_UI64)sample_count * (AP4_UI64)field_size + 7) / 8;
     if (table_size > size - AP4_FULL_ATOM_HEADER_SIZE - 8) {
         return;
     }
     unsigned char* buffer = new unsigned char[table_size];
-    AP4_Result result = stream.Read(buffer, table_size);
+    AP4_Result result = stream.Read(buffer, (AP4_Size)table_size);
     if (AP4_FAILED(result)) {
         delete[] buffer;
         return;
     }
+    m_FieldSize = field_size;
     m_SampleCount = sample_count;
     m_Entries.SetItemCount((AP4_Cardinal)sample_count);
     switch (m_FieldSize) {
