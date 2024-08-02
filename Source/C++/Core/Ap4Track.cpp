@@ -56,7 +56,9 @@ AP4_Track::AP4_Track(Type             type,
                      AP4_UI64         media_duration,
                      const char*      language,
                      AP4_UI32         width,
-                     AP4_UI32         height) :
+                     AP4_UI32         height,
+                     AP4_UI64         creation_time,
+                     AP4_UI64         modification_time) :
     m_TrakAtomIsOwned(true),
     m_Type(type),
     m_SampleTable(sample_table),
@@ -108,9 +110,9 @@ AP4_Track::AP4_Track(Type             type,
     m_TrakAtom = new AP4_TrakAtom(sample_table,
                                   hdlr_type, 
                                   hdlr_name,
-                                  track_id, 
-                                  0, 
-                                  0, 
+                                  track_id,
+                                  creation_time,
+                                  modification_time,
                                   track_duration,
                                   media_time_scale,
                                   media_duration,
@@ -182,8 +184,8 @@ AP4_Track::AP4_Track(AP4_SampleTable* sample_table,
                                   hdlr_type, 
                                   hdlr_name,
                                   track_id, 
-                                  0, 
-                                  0, 
+                                  tkhd?tkhd->GetCreationTime():0,
+                                  tkhd?tkhd->GetModificationTime():0, 
                                   track_duration,
                                   media_time_scale,
                                   media_duration,
@@ -479,6 +481,8 @@ AP4_Track::ReadSample(AP4_Ordinal     index,
 AP4_Result  
 AP4_Track::GetSampleIndexForTimeStampMs(AP4_UI32 ts_ms, AP4_Ordinal& index)
 {
+    if (m_SampleTable == NULL) return AP4_ERROR_INVALID_STATE;
+
     // convert the ts in the timescale of the track's media
     AP4_UI64 ts = AP4_ConvertTime(ts_ms, 1000, GetMediaTimeScale());
 
@@ -555,4 +559,20 @@ AP4_Track::GetTrackLanguage() const
         return mdhd->GetLanguage().GetChars();
     }
     return NULL;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_Track::SetTrackLanguage
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_Track::SetTrackLanguage(const char* language)
+{
+    if (strlen(language) != 3) {
+        return AP4_ERROR_INVALID_PARAMETERS;
+    }
+
+    if (AP4_MdhdAtom* mdhd = AP4_DYNAMIC_CAST(AP4_MdhdAtom, m_TrakAtom->FindChild("mdia/mdhd"))) {
+        return mdhd->SetLanguage(language);
+    }
+    return AP4_ERROR_INVALID_STATE;
 }

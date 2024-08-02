@@ -167,7 +167,8 @@ main(int argc, char** argv)
                     const char*  primary_pic_type_name = AP4_AvcNalParser::PrimaryPicTypeName(primary_pic_type);
                     if (primary_pic_type_name == NULL) primary_pic_type_name = "UNKNOWN";
                     printf(" [%d:%s]\n", primary_pic_type, primary_pic_type_name);
-                } else if (nalu_type == 1 || nalu_type == 2 || nalu_type == 5 || nalu_type == 19) {
+                } else if ((nalu_type == 1 || nalu_type == 2 || nalu_type == 5 || nalu_type == 19)
+                    && nalu->GetDataSize() > 1) {
                     PrintSliceInfo(&nalu_payload[1]);
                     printf("\n");
                 } else {

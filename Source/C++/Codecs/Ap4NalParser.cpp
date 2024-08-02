@@ -54,17 +54,55 @@ AP4_NalParser::Unescape(AP4_DataBuffer &data)
     AP4_Size  in_size  = data.GetDataSize();
     
     for (unsigned int i=0; i<in_size; i++) {
-        if (zero_count >= 2 && in[i] == 3 && i+1 < in_size && in[i+1] <= 3) {
+        if (zero_count == 2 && in[i] == 3 && i+1 < in_size && in[i+1] <= 3) {
             ++bytes_removed;
             zero_count = 0;
         } else {
             out[i-bytes_removed] = in[i];
             if (in[i] == 0) {
                 ++zero_count;
+            } else {
+                zero_count = 0;
             }
         }
     }
     data.SetDataSize(in_size-bytes_removed);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_NalParser::CountEmulationPreventionBytes
++---------------------------------------------------------------------*/
+unsigned int
+AP4_NalParser::CountEmulationPreventionBytes(const AP4_UI08* data,
+                                             unsigned int    data_size,
+                                             unsigned int    unescaped_size)
+{
+    unsigned int zero_count = 0;
+    unsigned int bytes_produced = 0;
+    unsigned int emulation_prevention_bytes = 0;
+    
+    // shortcut
+    if (data_size <= 2) {
+        // no escaping possible in just 2 bytes
+        return 0;
+    }
+    
+    for (unsigned int i=0; i<data_size; i++) {
+        if (zero_count == 2 && data[i] == 3 && i+1 < data_size && data[i+1] <= 3) {
+            ++emulation_prevention_bytes;
+            zero_count = 0;
+        } else {
+            if (++bytes_produced >= unescaped_size) {
+                break;
+            }
+            if (data[i] == 0) {
+                ++zero_count;
+            } else {
+                zero_count = 0;
+            }
+        }
+    }
+    return emulation_prevention_bytes;
 }
 
 /*----------------------------------------------------------------------

@@ -62,6 +62,11 @@ public:
     // class methods
     static AP4_Dec3Atom* Create(AP4_Size size, AP4_ByteStream& stream);
 
+    // constructors
+    AP4_Dec3Atom();
+    AP4_Dec3Atom(const AP4_Dec3Atom& other);
+    AP4_Dec3Atom(AP4_UI32 au_size, const SubStream* substream, const unsigned int complexity_index_type_a);  // DSI vaiable initialize m_RawBytes (substream -> m_RawBytes)
+
     // methods
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
@@ -71,13 +76,17 @@ public:
     const AP4_DataBuffer&       GetRawBytes()   const { return m_RawBytes;   }
     unsigned int                GetDataRate()   const { return m_DataRate;   }
     const AP4_Array<SubStream>& GetSubStreams() const { return m_SubStreams; }
+    unsigned int                GetFlagEC3ExtensionTypeA() const { return m_FlagEC3ExtensionTypeA; }
+    unsigned int                GetComplexityIndexTypeA()  const { return m_ComplexityIndexTypeA; }
     
 private:
     // methods
-    AP4_Dec3Atom(AP4_UI32 size, const AP4_UI08* payload);
+    AP4_Dec3Atom(AP4_UI32 size, const AP4_UI08* payload);  // box data initialize m_Dsi (m_RawBytes -> substream)
     
     // members
     unsigned int              m_DataRate;
+    unsigned int              m_FlagEC3ExtensionTypeA;
+    unsigned int              m_ComplexityIndexTypeA;
     AP4_Array<SubStream>      m_SubStreams;
     AP4_DataBuffer            m_RawBytes;
 };

@@ -44,7 +44,7 @@ int
 main(int argc, char** argv)
 {
     if (argc != 8) {
-        printf("usage: fragmentcreatortest audio|video <media-input-filename> <track-id> <frames-per-segment>|<segment-duration> <frames-per-second>|0 <output-media-segment-filename-pattern> <output-init-segment-filename>\n");
+        printf("usage: fragmentcreatortest h265|h264|aac <media-input-filename> <track-id> <frames-per-segment>|<segment-duration> <frames-per-second>|0 <output-media-segment-filename-pattern> <output-init-segment-filename>\n");
         return 1;
     }
 
@@ -67,78 +67,71 @@ main(int argc, char** argv)
     }
     
     // instantiate a video segment builder or an audio sergment builder
-    AP4_AvcSegmentBuilder* video_builder = NULL;
+    AP4_VideoSegmentBuilder* video_builder = NULL;
     AP4_AacSegmentBuilder* audio_builder = NULL;
     AP4_FeedSegmentBuilder* feed_builder = NULL;
-    if (!strcmp(argv[1], "video")) {
+    if (!strcmp(argv[1], "h265")) {
+        video_builder = new AP4_HevcSegmentBuilder(track_id, frames_per_second);
+        feed_builder = video_builder;
+    } else if (!strcmp(argv[1], "h264")) {
         video_builder = new AP4_AvcSegmentBuilder(track_id, frames_per_second);
         feed_builder = video_builder;
-    } else {
+    } else if (!strcmp(argv[1], "aac")) {
         audio_builder = new AP4_AacSegmentBuilder(track_id);
         feed_builder = audio_builder;
+    } else {
+        fprintf(stderr, "ERROR: unsupported media type\n");
+        return 1;
     }
+    
+    // create a feeder to read from the input and feed the builder
+    AP4_StreamFeeder stream_feeder(input_stream, *feed_builder);
     
     // parse the input until the end of the stream
     unsigned int segment_count = 0;
-    for (;;) {
-        bool eos;
-        unsigned char input_buffer[4096];
-        AP4_Size bytes_in_buffer = 0;
-        result = input_stream->ReadPartial(input_buffer, sizeof(input_buffer), bytes_in_buffer);
-        if (AP4_SUCCEEDED(result)) {
-            eos = false;
-        } else if (result == AP4_ERROR_EOS) {
-            eos = true;
-        } else {
-            fprintf(stderr, "ERROR: failed to read from input file\n");
-            break;
-        }
-        AP4_Size offset = 0;
-        do {
-            AP4_Size bytes_consumed = 0;
-            result = feed_builder->Feed(eos?NULL:&input_buffer[offset],
-                                        bytes_in_buffer,
-                                        bytes_consumed);
-            if (result < 0) {
-                fprintf(stderr, "ERROR: Feed() failed (%d)\n", result);
+    bool eos = false;
+    while (!eos) {
+        result = stream_feeder.Feed();
+        if (AP4_FAILED(result)) {
+            if (result != AP4_ERROR_EOS) {
+                fprintf(stderr, "ERROR: failed to read from stream (%d)\n", result);
                 break;
             }
-        
-            offset += bytes_consumed;
-            bytes_in_buffer -= bytes_consumed;
+            eos = true;
+        }
+
+        bool flush = false;
+        if (video_builder) {
+            if (video_builder->GetSamples().ItemCount() >= (unsigned int)segment_duration ||
+                (eos && video_builder->GetSamples().ItemCount() != 0)) {
+                flush = true;
+            }
+        } else {
+            double target_time = (segment_count+1)*segment_duration;
+            double elapsed_time = (double)(audio_builder->GetMediaDuration()+audio_builder->GetMediaStartTime())/(double)audio_builder->GetTimescale();
+            if (elapsed_time >= target_time ||
+                (eos && audio_builder->GetSamples().ItemCount() != 0)) {
+                flush = true;
+            }
+        }
+        if (flush) {
+            unsigned int max_name_size = (unsigned int)strlen(output_media_segment_filename_pattern)+256;
+            char* media_segment_filename = new char[max_name_size+1];
+            snprintf(media_segment_filename, max_name_size, output_media_segment_filename_pattern, segment_count);
+            AP4_ByteStream* media_segment_stream = NULL;
             
-            bool flush = false;
-            if (video_builder) {
-                if (video_builder->GetSamples().ItemCount() >= (unsigned int)segment_duration) {
-                    flush = true;
-                }
-            } else {
-                double target_time = (segment_count+1)*segment_duration;
-                double elapsed_time = (double)(audio_builder->GetMediaDuration()+audio_builder->GetMediaStartTime())/(double)audio_builder->GetTimescale();
-                if (elapsed_time >= target_time) {
-                    flush = true;
-                }
+            result = AP4_FileByteStream::Create(media_segment_filename, AP4_FileByteStream::STREAM_MODE_WRITE, media_segment_stream);
+            if (AP4_FAILED(result)) {
+                fprintf(stderr, "ERROR: cannot create media segment file (%d)\n", result);
+                return 1;
             }
-            if (flush) {
-                unsigned int max_name_size = (unsigned int)strlen(output_media_segment_filename_pattern)+256;
-                char* media_segment_filename = new char[max_name_size+1];
-                snprintf(media_segment_filename, max_name_size, output_media_segment_filename_pattern, segment_count);
-                AP4_ByteStream* media_segment_stream = NULL;
-                
-                result = AP4_FileByteStream::Create(media_segment_filename, AP4_FileByteStream::STREAM_MODE_WRITE, media_segment_stream);
-                if (AP4_FAILED(result)) {
-                    fprintf(stderr, "ERROR: cannot create media segment file (%d)\n", result);
-                    return 1;
-                }
-                
-                feed_builder->WriteMediaSegment(*media_segment_stream, segment_count);
-                
-                delete[] media_segment_filename;
-                media_segment_stream->Release();
-                ++segment_count;
-            }
-        } while (bytes_in_buffer || result > 0);
-        if (eos) break;
+            
+            feed_builder->WriteMediaSegment(*media_segment_stream, segment_count);
+            
+            delete[] media_segment_filename;
+            media_segment_stream->Release();
+            ++segment_count;
+        }
     }
 
     AP4_ByteStream* init_segment_stream = NULL;

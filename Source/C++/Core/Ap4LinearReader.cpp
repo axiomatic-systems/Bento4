@@ -41,21 +41,21 @@
 |   AP4_LinearReader::AP4_LinearReader
 +---------------------------------------------------------------------*/
 AP4_LinearReader::AP4_LinearReader(AP4_Movie&      movie, 
-                                   AP4_ByteStream* fragment_stream,
-                                   AP4_Size        max_buffer) :
+                                   AP4_ByteStream* fragment_stream) :
     m_Movie(movie),
     m_Fragment(NULL),
     m_FragmentStream(fragment_stream),
+    m_CurrentFragmentPosition(0),
     m_NextFragmentPosition(0),
     m_BufferFullness(0),
     m_BufferFullnessPeak(0),
-    m_MaxBufferFullness(max_buffer),
     m_Mfra(NULL)
 {
     m_HasFragments = movie.HasFragments();
     if (fragment_stream) {
         fragment_stream->AddReference();
-        fragment_stream->Tell(m_NextFragmentPosition);
+        fragment_stream->Tell(m_CurrentFragmentPosition);
+        m_NextFragmentPosition = m_CurrentFragmentPosition;
     }
 }
 
@@ -237,13 +237,11 @@ AP4_LinearReader::SeekTo(AP4_UI32 time_ms, AP4_UI32* actual_time_ms)
             }
 
             // update our position
-            if (best_entry >= 0) {
-                if (actual_time_ms) {
-                    // report the actual time we found (in milliseconds)
-                    *actual_time_ms = (AP4_UI32)AP4_ConvertTime(entries[best_entry].m_Time, m_Trackers[t]->m_Track->GetMediaTimeScale(), 1000);
-                }
-                m_NextFragmentPosition = entries[best_entry].m_MoofOffset;
+            if (actual_time_ms) {
+                // report the actual time we found (in milliseconds)
+                *actual_time_ms = (AP4_UI32)AP4_ConvertTime(entries[best_entry].m_Time, m_Trackers[t]->m_Track->GetMediaTimeScale(), 1000);
             }
+            m_NextFragmentPosition = entries[best_entry].m_MoofOffset;
         }
     }
     
@@ -339,6 +337,7 @@ AP4_LinearReader::AdvanceFragment()
     // go the the start of the next fragment
     result = m_FragmentStream->Seek(m_NextFragmentPosition);
     if (AP4_FAILED(result)) return result;
+    m_CurrentFragmentPosition = m_NextFragmentPosition;
 
     // read atoms until we find a moof
     assert(m_HasFragments);
@@ -346,11 +345,16 @@ AP4_LinearReader::AdvanceFragment()
     AP4_DefaultAtomFactory atom_factory;
     do {
         AP4_Atom* atom = NULL;
+        AP4_Position last_position = 0;
+        m_FragmentStream->Tell(last_position);
         result = atom_factory.CreateAtomFromStream(*m_FragmentStream, atom);
         if (AP4_SUCCEEDED(result)) {
             if (atom->GetType() == AP4_ATOM_TYPE_MOOF) {
                 AP4_ContainerAtom* moof = AP4_DYNAMIC_CAST(AP4_ContainerAtom, atom);
                 if (moof) {
+                    // remember where the moof started
+                    m_CurrentFragmentPosition = last_position;
+
                     // remember where we are in the stream
                     AP4_Position position = 0;
                     m_FragmentStream->Tell(position);
@@ -396,11 +400,7 @@ AP4_LinearReader::AdvanceFragment()
 AP4_Result
 AP4_LinearReader::Advance(bool read_data)
 {
-    // first, check if we have space to advance
-    if (m_BufferFullness >= m_MaxBufferFullness) {
-        return AP4_ERROR_NOT_ENOUGH_SPACE;
-    }
-    
+
     AP4_UI64 min_offset = (AP4_UI64)(-1);
     Tracker* next_tracker = NULL;
     for (;;) {

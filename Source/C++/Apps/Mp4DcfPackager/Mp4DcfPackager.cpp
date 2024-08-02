@@ -146,7 +146,7 @@ main(int argc, char** argv)
             if (!encryption_method_is_set) {
                 fprintf(stderr, "ERROR: --method argument must appear before --key\n");
                 return 1;
-            } else if (encryption_method_is_set == AP4_OMA_DCF_ENCRYPTION_METHOD_NULL) {
+            } else if (encryption_method == AP4_OMA_DCF_ENCRYPTION_METHOD_NULL) {
                 fprintf(stderr, "ERROR: --key cannot be used with --method NULL\n");
                 return 1;
             }

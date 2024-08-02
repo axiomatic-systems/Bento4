@@ -87,6 +87,11 @@ AP4_AtomSampleTable::GetSample(AP4_Ordinal index,
 {
     AP4_Result result;
 
+    // check that we have an stsc atom
+    if (!m_StscAtom) {
+        return AP4_ERROR_INVALID_FORMAT;
+    }
+    
     // check that we have a chunk offset table
     if (m_StcoAtom == NULL && m_Co64Atom == NULL) {
         return AP4_ERROR_INVALID_FORMAT;
@@ -135,8 +140,10 @@ AP4_AtomSampleTable::GetSample(AP4_Ordinal index,
     AP4_UI32 cts_offset = 0;
     AP4_UI64 dts        = 0;
     AP4_UI32 duration   = 0;
-    result = m_SttsAtom->GetDts(index, dts, &duration);
-    if (AP4_FAILED(result)) return result;
+    if (m_SttsAtom) {
+        result = m_SttsAtom->GetDts(index, dts, &duration);
+        if (AP4_FAILED(result)) return result;
+    }
     sample.SetDuration(duration);
     sample.SetDts(dts);
     if (m_CttsAtom == NULL) {

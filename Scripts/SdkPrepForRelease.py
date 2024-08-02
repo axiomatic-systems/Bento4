@@ -1,4 +1,4 @@
-#! /usr/bin/python
+#! /usr/bin/env python3
 
 ########################################################################
 #
@@ -12,15 +12,13 @@
 
 import sys
 import os
-import shutil
-import platform
 
 #############################################################
 # Main
 #############################################################
 # parse the command line
 if len(sys.argv) < 2:
-    print 'ERROR: SDK revision # expected as first argument'
+    print('ERROR: SDK revision # expected as first argument')
     sys.exit(1)
 
 SDK_REVISION = sys.argv[1]
@@ -33,26 +31,35 @@ else:
 
 # ensure that BENTO4_HOME has been set and exists
 if not os.path.exists(BENTO4_HOME) :
-    print 'ERROR: BENTO4_HOME ('+BENTO4_HOME+') does not exist'
+    print('ERROR: BENTO4_HOME ('+BENTO4_HOME+') does not exist')
     sys.exit(1)
 else :
-    print 'BENTO4_HOME = ' + BENTO4_HOME
+    print('BENTO4_HOME = ' + BENTO4_HOME)
 
 # patch files
 filename = os.path.join(BENTO4_HOME, "Source", "Python", "utils", "mp4-dash.py")
-print "Patching", filename
+print("Patching", filename)
 file_lines = open(filename).readlines()
-file_out = open(filename, "wb")
+file_out = open(filename, "w")
 for line in file_lines:
     if line.startswith("SDK_REVISION = "):
         line = "SDK_REVISION = '"+SDK_REVISION+"'\n"
     file_out.write(line)
 
 filename = os.path.join(BENTO4_HOME, "Source", "Python", "utils", "mp4-hls.py")
-print "Patching", filename
+print("Patching", filename)
 file_lines = open(filename).readlines()
-file_out = open(filename, "wb")
+file_out = open(filename, "w")
 for line in file_lines:
     if line.startswith("SDK_REVISION = "):
         line = "SDK_REVISION = '"+SDK_REVISION+"'\n"
+    file_out.write(line)
+
+filename = os.path.join(BENTO4_HOME, "Build", "Docker", "Dockerfile")
+print("Patching", filename)
+file_lines = open(filename).readlines()
+file_out = open(filename, "w")
+for line in file_lines:
+    if line.startswith("ENV BENTO4_VERSION 1.6.0-"):
+        line = "ENV BENTO4_VERSION 1.6.0-"+SDK_REVISION+"\n"
     file_out.write(line)

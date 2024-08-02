@@ -276,15 +276,21 @@ AP4_Processor::ProcessFragments(AP4_MoovAtom*              moov,
                 AP4_Atom* child_atom = child_item->GetData();
                 if (child_atom->GetType() == AP4_ATOM_TYPE_TRUN) {
                     AP4_TrunAtom* trun = AP4_DYNAMIC_CAST(AP4_TrunAtom, child_atom);
-                    truns.Append(trun);
+                    if (trun) {
+                        truns.Append(trun);
+                    }
                 }
-            }    
+            }
+            if (!truns.ItemCount()) {
+                continue;
+            }
             AP4_Ordinal   trun_index        = 0;
             AP4_Ordinal   trun_sample_index = 0;
             AP4_TrunAtom* trun = truns[0];
             trun->SetDataOffset((AP4_SI32)((mdat_out_start+mdat_size)-base_data_offset));
             
             // write the mdat
+            AP4_UI32 default_sample_size = 0;
             for (unsigned int j=0; j<sample_tables[i]->GetSampleCount(); j++, trun_sample_index++) {
                 // advance the trun index if necessary
                 if (trun_sample_index >= trun->GetEntries().ItemCount()) {
@@ -312,6 +318,13 @@ AP4_Processor::ProcessFragments(AP4_MoovAtom*              moov,
                     
                     // update the trun entry
                     trun->UseEntries()[trun_sample_index].sample_size = sample_data_out.GetDataSize();
+
+                    // if this entry uses the default sample size, adjust the default accordingly
+                    // (NOTE: there's only one default, so this assumes, of course, that all sample
+                    // sizes change the same way, if they change at all)
+                    if (default_sample_size == 0 && (trun->GetFlags() & AP4_TRUN_FLAG_SAMPLE_SIZE_PRESENT) == 0) {
+                        default_sample_size = sample_data_out.GetDataSize();
+                    }
                 } else {
                     // write the sample data (unmodified)
                     result = output.Write(sample_data_in.GetData(), sample_data_in.GetDataSize());
@@ -328,7 +341,9 @@ AP4_Processor::ProcessFragments(AP4_MoovAtom*              moov,
                     tfhd->SetBaseDataOffset(mdat_out_start+AP4_ATOM_HEADER_SIZE);
                 }
                 if (tfhd->GetFlags() & AP4_TFHD_FLAG_DEFAULT_SAMPLE_SIZE_PRESENT) {
-                    tfhd->SetDefaultSampleSize(trun->GetEntries()[0].sample_size);
+                    if (default_sample_size) {
+                        tfhd->SetDefaultSampleSize(default_sample_size);
+                    }
                 }
                 
                 // give the handler a chance to update the atoms
@@ -554,6 +569,7 @@ AP4_Processor::Process(AP4_ByteStream&   input,
             int cursor = -1;
             for (unsigned int i=0; i<track_count; i++) {
                 if (!cursors[i].m_EndReached &&
+                    cursors[i].m_Locator.m_SampleTable &&
                     cursors[i].m_Locator.m_Sample.GetOffset() <= min_offset) {
                     min_offset = cursors[i].m_Locator.m_Sample.GetOffset();
                     cursor = i;
@@ -739,6 +755,11 @@ AP4_Processor::Process(AP4_ByteStream&   input,
     // cleanup
     frags.DeleteReferences();
     delete mfra;
+    if (fragments) {
+        // with a fragments stream, `moov` isn't inclued in `top_level`
+        // so we need to delete it here
+        delete moov;
+    }
     
     return AP4_SUCCESS;
 }

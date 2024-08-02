@@ -55,6 +55,7 @@ AP4_PiffTrackEncryptionAtom::Create(AP4_Size size, AP4_ByteStream& stream)
 {
     AP4_UI08 version = 0;
     AP4_UI32 flags   = 0;
+    if (size < AP4_FULL_ATOM_HEADER_SIZE) return NULL;
     AP4_Result result = ReadFullHeader(stream, version, flags);
     if (AP4_FAILED(result)) return NULL;
     if (version != 0) return NULL;
@@ -88,7 +89,8 @@ AP4_PiffTrackEncryptionAtom::AP4_PiffTrackEncryptionAtom(AP4_UI32        default
                                                          AP4_UI08        default_iv_size,
                                                          const AP4_UI08* default_kid) :
     AP4_UuidAtom(AP4_FULL_UUID_ATOM_HEADER_SIZE+20, AP4_UUID_PIFF_TRACK_ENCRYPTION_ATOM, 0, 0),
-    AP4_CencTrackEncryption(default_algorithm_id,
+    AP4_CencTrackEncryption(0,
+                            default_algorithm_id,
                             default_iv_size,
                             default_kid)
 {
@@ -125,6 +127,7 @@ AP4_PiffSampleEncryptionAtom::Create(AP4_Size size, AP4_ByteStream& stream)
 {
     AP4_UI08 version = 0;
     AP4_UI32 flags   = 0;
+    if (size < AP4_FULL_ATOM_HEADER_SIZE) return NULL;
     AP4_Result result = ReadFullHeader(stream, version, flags);
     if (AP4_FAILED(result)) return NULL;
     if (version != 0) return NULL;

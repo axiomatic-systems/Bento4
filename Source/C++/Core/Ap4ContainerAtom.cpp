@@ -54,6 +54,7 @@ AP4_ContainerAtom::Create(Type             type,
     if (is_full) {
         AP4_UI08 version;
         AP4_UI32 flags;
+        if (size < AP4_FULL_ATOM_HEADER_SIZE) return NULL;
         if (AP4_FAILED(AP4_Atom::ReadFullHeader(stream, version, flags))) return NULL;
         
         // special case for 'meta' atoms, because Apple sometimes creates them as
@@ -135,6 +136,7 @@ AP4_ContainerAtom::AP4_ContainerAtom(Type             type,
                                      AP4_AtomFactory& atom_factory) :
     AP4_Atom(type, size, force_64)
 {
+    if (size < GetHeaderSize()) return;
     ReadChildren(atom_factory, stream, size-GetHeaderSize());
 }
 
@@ -150,6 +152,7 @@ AP4_ContainerAtom::AP4_ContainerAtom(Type             type,
                                      AP4_AtomFactory& atom_factory) :
     AP4_Atom(type, size, force_64, version, flags)
 {
+    if (size < GetHeaderSize()) return;
     ReadChildren(atom_factory, stream, size-GetHeaderSize());
 }
 

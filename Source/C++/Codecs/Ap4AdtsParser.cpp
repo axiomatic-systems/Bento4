@@ -191,7 +191,7 @@ AP4_AdtsParser::FindHeader(AP4_UI08* header)
             
            return AP4_SUCCESS;
         } else {
-            m_Bits.ReadByte(); // skip
+            m_Bits.SkipBytes(1); // skip
         }
     }
 

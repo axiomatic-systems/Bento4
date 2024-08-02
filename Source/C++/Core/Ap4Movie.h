@@ -51,7 +51,10 @@ class AP4_MetaData;
 class AP4_Movie {
 public:
     // methods
-    AP4_Movie(AP4_UI32 time_scale = 0, AP4_UI64 duration = 0);
+    AP4_Movie(AP4_UI32 time_scale = 0,
+              AP4_UI64 duration = 0,
+              AP4_UI64 creation_time = 0,
+              AP4_UI64 modification_time = 0);
     AP4_Movie(AP4_MoovAtom* moov, AP4_ByteStream& sample_stream, bool transfer_moov_ownership = true);
     virtual ~AP4_Movie();
     AP4_Result Inspect(AP4_AtomInspector& inspector);

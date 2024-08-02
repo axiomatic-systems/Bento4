@@ -47,8 +47,8 @@ public:
     static AP4_MvhdAtom* Create(AP4_Size size, AP4_ByteStream& stream);
 
     // methods
-    AP4_MvhdAtom(AP4_UI32 creation_time,
-                 AP4_UI32 modification_time,
+    AP4_MvhdAtom(AP4_UI64 creation_time,
+                 AP4_UI64 modification_time,
                  AP4_UI32 time_scale,
                  AP4_UI64 duration,
                  AP4_UI32 rate,
@@ -61,6 +61,10 @@ public:
     AP4_UI32           GetTimeScale() { return m_TimeScale; }
     AP4_Result         SetTimeScale(AP4_UI32 time_scale) {
         m_TimeScale = time_scale;
+        return AP4_SUCCESS;
+    }
+    AP4_Result         SetNextTrackId(AP4_UI32 next_track_id){
+        m_NextTrackId = next_track_id;
         return AP4_SUCCESS;
     }
 

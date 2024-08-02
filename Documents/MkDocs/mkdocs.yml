@@ -1,0 +1,72 @@
+site_name: Bento4
+
+use_directory_urls: true
+
+nav:
+  - Home: index.md
+  - Documentation:
+    - Overview: documentation/index.md
+    - MPEG DASH: 
+      - Getting Started: developers/dash/index.md
+      - Encryption & DRM: developers/dash/encryption_and_drm.md
+      - Multi Bitrate Audio: developers/dash/multi_bitrate_audio.md
+      - Codecs: developers/dash/codecs.md
+      - Subtitles: developers/dash/subtitles.md
+      - Sample Content: developers/dash/sample_content.md
+    - HLS: developers/hls/index.md
+    - CMAF: developers/cmaf/index.md
+    - Tools:
+      - mp4info: documentation/mp4info.md
+      - mp4dump: documentation/mp4dump.md
+      - mp4edit: documentation/mp4edit.md
+      - mp4extract: documentation/mp4extract.md
+      - mp4encrypt: documentation/mp4encrypt.md
+      - mp4decrypt: documentation/mp4decrypt.md
+      - mp4dcfpackager: documentation/mp4dcfpackager.md
+      - mp4compact: documentation/mp4compact.md
+      - mp4fragment: documentation/mp4fragment.md
+      - mp4split: documentation/mp4split.md
+      - mp4tag: documentation/mp4tag.md
+      - mp4mux: documentation/mp4mux.md
+      - mp42aac: documentation/mp42aac.md
+      - mp42avc: documentation/mp42avc.md
+      - mp42hevc: documentation/mp42hevc.md
+      - mp42hls: documentation/mp42hls.md
+      - mp42ts: documentation/mp42ts.md
+      - mp4dash: documentation/mp4dash.md
+      - mp4dashclone: documentation/mp4dashclone.md
+      - mp4hls: documentation/mp4hls.md
+  - Developers: developers/index.md
+  - Downloads: downloads.md
+  - Support: support.md
+  - About: about.md
+
+copyright: © 2020 Axiomatic Systems, LLC. All rights reserved.
+
+theme:
+  name: 'material'
+  logo: 'images/bento4-small.jpg'
+  favicon: 'images/favicon.png'
+  custom_dir: 'theme'
+
+docs_dir: 'src'
+
+edit_uri: ''
+
+# Repo info
+repo_name: axiomatic-systems/Bento4
+repo_url: https://github.com/axiomatic-systems/Bento4
+
+# Extensions
+markdown_extensions:
+  - admonition
+  - attr_list
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.emoji:
+      emoji_index: !!python/name:materialx.emoji.twemoji
+      emoji_generator: !!python/name:materialx.emoji.to_svg
+  - codehilite:
+      guess_lang: false
+  - toc:
+      permalink: true

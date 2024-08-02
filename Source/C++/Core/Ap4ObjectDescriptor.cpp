@@ -71,20 +71,23 @@ AP4_ObjectDescriptor::AP4_ObjectDescriptor(AP4_ByteStream& stream,
                                            AP4_Size        payload_size) :
     AP4_Descriptor(tag, header_size, payload_size)
 {
-    AP4_Position start;
-    stream.Tell(start);
-
     // read descriptor fields
     unsigned short bits;
+    if (payload_size < 2) return;
     stream.ReadUI16(bits);
+    payload_size -= 2;
     m_ObjectDescriptorId = (bits>>6);
     m_UrlFlag = ((bits&(1<<5))!=0);
   
     if (m_UrlFlag) {
         unsigned char url_length;
+        if (payload_size < 1) return;
         stream.ReadUI08(url_length);
+        --payload_size;
         char url[256];
+        if (payload_size < url_length) return;
         stream.Read(url, url_length);
+        payload_size -= url_length;
         url[url_length] = '\0';
         m_Url = url;
     }
@@ -92,8 +95,7 @@ AP4_ObjectDescriptor::AP4_ObjectDescriptor(AP4_ByteStream& stream,
     // read other descriptors
     AP4_Position offset;
     stream.Tell(offset);
-    AP4_SubStream* substream = new AP4_SubStream(stream, offset, 
-                                                 payload_size-AP4_Size(offset-start));
+    AP4_SubStream* substream = new AP4_SubStream(stream, offset, payload_size);
     AP4_Descriptor* descriptor = NULL;
     while (AP4_DescriptorFactory::CreateDescriptorFromStream(*substream, 
                                                              descriptor) 
@@ -223,36 +225,40 @@ AP4_InitialObjectDescriptor::AP4_InitialObjectDescriptor(AP4_ByteStream& stream,
     m_VisualProfileLevelIndication(0),
     m_GraphicsProfileLevelIndication(0)
 {
-    AP4_Position start;
-    stream.Tell(start);
-
     // read descriptor fields
     unsigned short bits;
+    if (payload_size < 2) return;
     stream.ReadUI16(bits);
+    payload_size -= 2;
     m_ObjectDescriptorId = (bits>>6);
     m_UrlFlag = ((bits&(1<<5))!=0);
     m_IncludeInlineProfileLevelFlag = ((bits&(1<<4))!=0);
-    
+
     if (m_UrlFlag) {
         unsigned char url_length;
+        if (payload_size < 1) return;
         stream.ReadUI08(url_length);
+        --payload_size;
         char url[256];
+        if (payload_size < url_length) return;
         stream.Read(url, url_length);
+        payload_size -= url_length;
         url[url_length] = '\0';
         m_Url = url;
     } else {
+        if (payload_size < 5) return;
         stream.ReadUI08(m_OdProfileLevelIndication); 
         stream.ReadUI08(m_SceneProfileLevelIndication); 
         stream.ReadUI08(m_AudioProfileLevelIndication); 
         stream.ReadUI08(m_VisualProfileLevelIndication); 
-        stream.ReadUI08(m_GraphicsProfileLevelIndication); 
+        stream.ReadUI08(m_GraphicsProfileLevelIndication);
+        payload_size -= 5;
     }
     
     // read other descriptors
     AP4_Position offset;
     stream.Tell(offset);
-    AP4_SubStream* substream = new AP4_SubStream(stream, offset, 
-                                                 payload_size-AP4_Size(offset-start));
+    AP4_SubStream* substream = new AP4_SubStream(stream, offset, payload_size);
     AP4_Descriptor* descriptor = NULL;
     while (AP4_DescriptorFactory::CreateDescriptorFromStream(*substream, 
                                                              descriptor) 

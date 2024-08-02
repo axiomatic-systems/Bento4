@@ -45,6 +45,7 @@ AP4_TencAtom::Create(AP4_Size size, AP4_ByteStream& stream)
 {
     AP4_UI08 version;
     AP4_UI32 flags;
+    if (size < AP4_FULL_ATOM_HEADER_SIZE) return NULL;
     if (AP4_FAILED(ReadFullHeader(stream, version, flags))) return NULL;
     if (version > 1) return NULL;
     AP4_TencAtom* tenc = new AP4_TencAtom(size, version, flags);
@@ -65,7 +66,8 @@ AP4_TencAtom::AP4_TencAtom(AP4_UI32        default_is_protected,
                            AP4_UI08        default_per_sample_iv_size,
                            const AP4_UI08* default_kid) :
     AP4_Atom(AP4_ATOM_TYPE_TENC, AP4_FULL_ATOM_HEADER_SIZE+20, 0, 0),
-    AP4_CencTrackEncryption(default_is_protected,
+    AP4_CencTrackEncryption(0,
+                            default_is_protected,
                             default_per_sample_iv_size,
                             default_kid)
 {
@@ -82,7 +84,8 @@ AP4_TencAtom::AP4_TencAtom(AP4_UI32        default_is_protected,
                            AP4_UI08        default_crypt_byte_block,
                            AP4_UI08        default_skip_byte_block) :
     AP4_Atom(AP4_ATOM_TYPE_TENC, AP4_FULL_ATOM_HEADER_SIZE+20+(default_per_sample_iv_size?0:1+default_constant_iv_size), 1, 0),
-    AP4_CencTrackEncryption(default_is_protected,
+    AP4_CencTrackEncryption(1,
+                            default_is_protected,
                             default_per_sample_iv_size,
                             default_kid,
                             default_constant_iv_size,

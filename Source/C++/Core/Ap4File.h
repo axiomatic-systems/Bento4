@@ -72,6 +72,11 @@ const AP4_UI32 AP4_FILE_BRAND_ODCF = AP4_ATOM_TYPE('o','d','c','f');
 const AP4_UI32 AP4_FILE_BRAND_OPF2 = AP4_ATOM_TYPE('o','p','f','2');
 const AP4_UI32 AP4_FILE_BRAND_AVC1 = AP4_ATOM_TYPE('a','v','c','1');
 const AP4_UI32 AP4_FILE_BRAND_HVC1 = AP4_ATOM_TYPE('h','v','c','1');
+const AP4_UI32 AP4_FILE_BRAND_DBY1 = AP4_ATOM_TYPE('d','b','y','1');
+const AP4_UI32 AP4_FILE_BRAND_DB1P = AP4_ATOM_TYPE('d','b','1','p');
+const AP4_UI32 AP4_FILE_BRAND_DB2G = AP4_ATOM_TYPE('d','b','2','g');
+const AP4_UI32 AP4_FILE_BRAND_DB4H = AP4_ATOM_TYPE('d','b','4','h');
+const AP4_UI32 AP4_FILE_BRAND_DB4G = AP4_ATOM_TYPE('d','b','4','g');
 
 /*----------------------------------------------------------------------
 |   AP4_File
@@ -93,7 +98,7 @@ public:
     /**
      * Constructs an AP4_File from a stream
      * @param stream the stream containing the data of the file
-     * @param factory the atom factory that will be used to parse the stream
+     * @param atom_factory the atom factory that will be used to parse the stream
      * @param moov_only indicates whether parsing of the atoms should stop
      * when the moov atom is found or if all atoms should be parsed until the
      * end of the file. 

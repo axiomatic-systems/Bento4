@@ -100,6 +100,16 @@ main(int argc, char** argv)
         }
     }
 
+    // check arguments
+    if (!input_filename) {
+        fprintf(stderr, "ERROR: missing input file name argument\n");
+        return 1;
+    }
+    if (!output_filename) {
+        fprintf(stderr, "ERROR: missing output file name argument\n");
+        return 1;
+    }
+
     // create the input stream
     AP4_ByteStream* input = NULL;
     result = AP4_FileByteStream::Create(input_filename, AP4_FileByteStream::STREAM_MODE_READ, input);
@@ -130,7 +140,12 @@ main(int argc, char** argv)
     // (in almost all cases, there will only be one sample description)
     // NOTE: we don't transfer the ownership of the object
     for (unsigned int i=0; i<input_track->GetSampleDescriptionCount(); i++) {
-        sample_table->AddSampleDescription(input_track->GetSampleDescription(i), false);
+        AP4_SampleDescription* sample_description = input_track->GetSampleDescription(i);
+        if (!sample_description) {
+            fprintf(stderr, "ERROR: invalid/unsupported sample description\n");
+            return 1;
+        }
+        sample_table->AddSampleDescription(sample_description, false);
     }
     
     // the first output timestamp is 0

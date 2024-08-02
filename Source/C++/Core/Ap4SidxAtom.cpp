@@ -46,6 +46,7 @@ AP4_SidxAtom::Create(AP4_Size size, AP4_ByteStream& stream)
 {
     AP4_UI08 version;
     AP4_UI32 flags;
+    if (size < AP4_FULL_ATOM_HEADER_SIZE) return NULL;
     if (AP4_FAILED(AP4_Atom::ReadFullHeader(stream, version, flags))) return NULL;
     if (version > 1) return NULL;
     return new AP4_SidxAtom(size, version, flags, stream);
@@ -156,19 +157,18 @@ AP4_SidxAtom::InspectFields(AP4_AtomInspector& inspector)
 
     if (inspector.GetVerbosity() >= 1) {
         AP4_UI32 reference_count = m_References.ItemCount();
+        inspector.StartArray("entries", reference_count);
         for (unsigned int i=0; i<reference_count; i++) {
-            char header[32];
-            AP4_FormatString(header, sizeof(header), "entry %04d", i);
-            char value[256];
-            AP4_FormatString(value, sizeof(value), "reference_type=%d, referenced_size=%u, subsegment_duration=%u, starts_with_SAP=%d, SAP_type=%d, SAP_delta_time=%d",
-                             m_References[i].m_ReferenceType,
-                             m_References[i].m_ReferencedSize,
-                             m_References[i].m_SubsegmentDuration,
-                             m_References[i].m_StartsWithSap,
-                             m_References[i].m_SapType,
-                             m_References[i].m_SapDeltaTime);
-            inspector.AddField(header, value);
+            inspector.StartObject(NULL, 6, true);
+            inspector.AddField("reference_type",      m_References[i].m_ReferenceType);
+            inspector.AddField("referenced_size",     m_References[i].m_ReferencedSize);
+            inspector.AddField("subsegment_duration", m_References[i].m_SubsegmentDuration);
+            inspector.AddField("starts_with_SAP",     m_References[i].m_StartsWithSap);
+            inspector.AddField("SAP_type",            m_References[i].m_SapType);
+            inspector.AddField("SAP_delta_time",      m_References[i].m_SapDeltaTime);
+            inspector.EndObject();
         }
+        inspector.EndArray();
     }
     
     return AP4_SUCCESS;

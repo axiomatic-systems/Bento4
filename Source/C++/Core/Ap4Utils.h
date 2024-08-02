@@ -50,7 +50,7 @@ public:
     static void        SetBool(const char* name, bool value);
     static const char* GetString(const char* name);
     static void        SetString(const char* name, const char* value);
-    
+
 private:
     struct Entry {
         AP4_String m_Name;
@@ -67,6 +67,7 @@ double   AP4_BytesToDoubleBE(const unsigned char* bytes);
 AP4_UI64 AP4_BytesToUInt64BE(const unsigned char* bytes);
 void AP4_BytesFromDoubleBE(unsigned char* bytes, double value);
 void AP4_BytesFromUInt64BE(unsigned char* bytes, AP4_UI64 value);
+void AP4_ByteSwap16(unsigned char* bytes, unsigned int count);
 
 /*----------------------------------------------------------------------
 |   AP4_BytesToUInt32BE
@@ -74,11 +75,11 @@ void AP4_BytesFromUInt64BE(unsigned char* bytes, AP4_UI64 value);
 inline AP4_UI32
 AP4_BytesToUInt32BE(const unsigned char* bytes)
 {
-    return 
+    return
         ( ((AP4_UI32)bytes[0])<<24 ) |
         ( ((AP4_UI32)bytes[1])<<16 ) |
         ( ((AP4_UI32)bytes[2])<<8  ) |
-        ( ((AP4_UI32)bytes[3])     );    
+        ( ((AP4_UI32)bytes[3])     );
 }
 
 /*----------------------------------------------------------------------
@@ -96,10 +97,10 @@ AP4_BytesToInt32BE(const unsigned char* bytes)
 inline AP4_UI32
 AP4_BytesToUInt24BE(const unsigned char* bytes)
 {
-    return 
+    return
         ( ((AP4_UI32)bytes[0])<<16 ) |
         ( ((AP4_UI32)bytes[1])<<8  ) |
-        ( ((AP4_UI32)bytes[2])     );    
+        ( ((AP4_UI32)bytes[2])     );
 }
 
 /*----------------------------------------------------------------------
@@ -108,9 +109,9 @@ AP4_BytesToUInt24BE(const unsigned char* bytes)
 inline AP4_UI16
 AP4_BytesToUInt16BE(const unsigned char* bytes)
 {
-    return 
+    return
         ( ((AP4_UI16)bytes[0])<<8  ) |
-        ( ((AP4_UI16)bytes[1])     );    
+        ( ((AP4_UI16)bytes[1])     );
 }
 
 /*----------------------------------------------------------------------
@@ -227,12 +228,12 @@ public:
         }
     }
     ~AP4_BitWriter() { delete[] m_Data; }
-    
+
     void Write(AP4_UI32 bits, unsigned int bit_count);
-    
+
     unsigned int GetBitCount()     { return m_BitCount; }
     const unsigned char* GetData() { return m_Data;     }
-    
+
 private:
     unsigned char* m_Data;
     unsigned int   m_DataSize;
@@ -262,6 +263,8 @@ public:
     void         SkipBit();
     void         SkipBits(unsigned int bit_count);
 
+    unsigned int GetBitsRead();
+
 private:
     // methods
     BitsWord ReadCache() const;
@@ -272,5 +275,5 @@ private:
     BitsWord       m_Cache;
     unsigned int   m_BitsCached;
 };
-    
+
 #endif // _AP4_UTILS_H_
