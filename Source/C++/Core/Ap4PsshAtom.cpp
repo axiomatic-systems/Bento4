@@ -52,6 +52,7 @@ AP4_PsshAtom::Create(AP4_Size size, AP4_ByteStream& stream)
 {
     AP4_UI08 version;
     AP4_UI32 flags;
+    if (size < AP4_FULL_ATOM_HEADER_SIZE) return NULL;
     if (AP4_FAILED(AP4_Atom::ReadFullHeader(stream, version, flags))) return NULL;
     if (version > 1) return NULL;
     return new AP4_PsshAtom(size, version, flags, stream);
@@ -82,10 +83,16 @@ AP4_PsshAtom::AP4_PsshAtom(AP4_UI32        size,
     AP4_Atom(AP4_ATOM_TYPE_PSSH, size, version, flags),
     m_KidCount(0)
 {
+    if (size < AP4_FULL_ATOM_HEADER_SIZE + 20) {
+        return;
+    }
     stream.Read(m_SystemId, 16);
     if (m_Version > 0) {
         stream.ReadUI32(m_KidCount);
-        if (m_KidCount > size) return;
+        if (m_KidCount > (size - (AP4_FULL_ATOM_HEADER_SIZE + 20))/16) {
+            m_KidCount = 0;
+            return;
+        }
         m_Kids.SetDataSize(m_KidCount*16);
         stream.Read(m_Kids.UseData(), m_KidCount*16);
     }

@@ -37,9 +37,9 @@
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-#define BANNER "MP4 To MPEG2-TS File Converter - Version 1.2\n"\
+#define BANNER "MP4 To MPEG2-TS File Converter - Version 1.3\n"\
                "(Bento4 Version " AP4_VERSION_STRING ")\n"\
-               "(c) 2002-2014 Axiomatic Systems, LLC"
+               "(c) 2002-2018 Axiomatic Systems, LLC"
  
 /*----------------------------------------------------------------------
 |   options
@@ -55,6 +55,7 @@ struct _Options {
     const char*  output;
     unsigned int segment_duration;
     unsigned int segment_duration_threshold;
+    unsigned int pcr_offset;
 } Options;
 
 /*----------------------------------------------------------------------
@@ -80,6 +81,7 @@ PrintUsageAndExit()
             "     like \"seg-%cd.ts\"]\n"
             "  --segment-duration-threshold in ms (default = 50)\n"
             "    [only used with the --segment option]\n"
+            "  --pcr-offset <offset> in units of 90kHz (default 10000)\n"
             "  --verbose\n"
             "  --playlist <filename>\n"
             "  --playlist-hls-version <n> (default=3)\n"
@@ -183,6 +185,9 @@ ReadSample(SampleReader&   reader,
         } else {
             return result;
         }
+    }
+    if (sample_data.GetDataSize() == 0) {
+        return AP4_ERROR_INVALID_FORMAT;
     }
     ts = (double)sample.GetDts()/(double)track.GetMediaTimeScale();
     
@@ -347,7 +352,7 @@ WriteSamples(AP4_Mpeg2TsWriter&               writer,
         unsigned int target_duration = 0;
         for (unsigned int i=0; i<segment_durations.ItemCount(); i++) {
             if ((unsigned int)(segment_durations[i]+0.5) > target_duration) {
-                target_duration = segment_durations[i];
+                target_duration = (unsigned int)segment_durations[i];
             }
         }
 
@@ -414,6 +419,7 @@ main(int argc, char** argv)
     Options.input                      = NULL;
     Options.output                     = NULL;
     Options.segment_duration_threshold = DefaultSegmentDurationThreshold;
+    Options.pcr_offset                 = AP4_MPEG2_TS_DEFAULT_PCR_OFFSET;
     
     // parse command line
     AP4_Result result;
@@ -451,6 +457,12 @@ main(int argc, char** argv)
                 return 1;
             }
             Options.video_pid = (unsigned int)strtoul(*args++, NULL, 10);
+        } else if (!strcmp(arg, "--pcr-offset")) {
+            if (*args == NULL) {
+                fprintf(stderr, "ERROR: --pcr-offset requires a number\n");
+                return 1;
+            }
+            Options.pcr_offset = (unsigned int)strtoul(*args++, NULL, 10);
         } else if (!strcmp(arg, "--playlist")) {
             if (*args == NULL) {
                 fprintf(stderr, "ERROR: --playlist requires a filename\n");
@@ -503,6 +515,8 @@ main(int argc, char** argv)
     AP4_Movie* movie = input_file->GetMovie();
     if (movie == NULL) {
         fprintf(stderr, "ERROR: no movie in file\n");
+        delete input;
+        delete input_file;
         return 1;
     }
 
@@ -559,9 +573,11 @@ main(int argc, char** argv)
         if (sample_description->GetFormat() == AP4_SAMPLE_FORMAT_MP4A) {
             stream_type = AP4_MPEG2_STREAM_TYPE_ISO_IEC_13818_7;
             stream_id   = AP4_MPEG2_TS_DEFAULT_STREAM_ID_AUDIO;
-        } else if (sample_description->GetFormat() == AP4_SAMPLE_FORMAT_AC_3 ||
-                   sample_description->GetFormat() == AP4_SAMPLE_FORMAT_EC_3) {
+        } else if (sample_description->GetFormat() == AP4_SAMPLE_FORMAT_AC_3) {
             stream_type = AP4_MPEG2_STREAM_TYPE_ATSC_AC3;
+            stream_id   = AP4_MPEG2_TS_STREAM_ID_PRIVATE_STREAM_1;
+        } else if ( sample_description->GetFormat() == AP4_SAMPLE_FORMAT_EC_3) {
+            stream_type = AP4_MPEG2_STREAM_TYPE_ATSC_EAC3;
             stream_id   = AP4_MPEG2_TS_STREAM_ID_PRIVATE_STREAM_1;
         } else {
             fprintf(stderr, "ERROR: audio codec not supported\n");
@@ -572,7 +588,9 @@ main(int argc, char** argv)
                                        stream_type,
                                        stream_id,
                                        audio_stream,
-                                       Options.audio_pid);
+                                       Options.audio_pid,
+                                       NULL, 0,
+                                       Options.pcr_offset);
         if (AP4_FAILED(result)) {
             fprintf(stderr, "could not create audio stream (%d)\n", result);
             goto end;
@@ -593,10 +611,14 @@ main(int argc, char** argv)
         if (sample_description->GetFormat() == AP4_SAMPLE_FORMAT_AVC1 ||
             sample_description->GetFormat() == AP4_SAMPLE_FORMAT_AVC2 ||
             sample_description->GetFormat() == AP4_SAMPLE_FORMAT_AVC3 ||
-            sample_description->GetFormat() == AP4_SAMPLE_FORMAT_AVC4) {
+            sample_description->GetFormat() == AP4_SAMPLE_FORMAT_AVC4 ||
+            sample_description->GetFormat() == AP4_SAMPLE_FORMAT_DVAV ||
+            sample_description->GetFormat() == AP4_SAMPLE_FORMAT_DVA1) {
             stream_type = AP4_MPEG2_STREAM_TYPE_AVC;
         } else if (sample_description->GetFormat() == AP4_SAMPLE_FORMAT_HEV1 ||
-                   sample_description->GetFormat() == AP4_SAMPLE_FORMAT_HVC1) {
+                   sample_description->GetFormat() == AP4_SAMPLE_FORMAT_HVC1 ||
+                   sample_description->GetFormat() == AP4_SAMPLE_FORMAT_DVHE ||
+                   sample_description->GetFormat() == AP4_SAMPLE_FORMAT_DVH1) {
             stream_type = AP4_MPEG2_STREAM_TYPE_HEVC;
         } else {
             fprintf(stderr, "ERROR: video codec not supported\n");
@@ -606,7 +628,9 @@ main(int argc, char** argv)
                                        stream_type,
                                        stream_id,
                                        video_stream,
-                                       Options.video_pid);
+                                       Options.video_pid,
+                                       NULL, 0,
+                                       Options.pcr_offset);
         if (AP4_FAILED(result)) {
             fprintf(stderr, "could not create video stream (%d)\n", result);
             goto end;

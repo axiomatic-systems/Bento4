@@ -45,6 +45,7 @@ AP4_SencAtom::Create(AP4_Size size, AP4_ByteStream& stream)
 {
     AP4_UI08 version;
     AP4_UI32 flags;
+    if (size < AP4_FULL_ATOM_HEADER_SIZE) return NULL;
     if (AP4_FAILED(ReadFullHeader(stream, version, flags))) return NULL;
     if (version != 0) return NULL;
     return new AP4_SencAtom(size, version, flags, stream);
@@ -81,6 +82,24 @@ AP4_SencAtom::AP4_SencAtom(AP4_UI32        algorithm_id,
     AP4_Atom(AP4_ATOM_TYPE_SENC, AP4_FULL_ATOM_HEADER_SIZE+20+4, 0, 
              AP4_CENC_SAMPLE_ENCRYPTION_FLAG_OVERRIDE_TRACK_ENCRYPTION_DEFAULTS),
     AP4_CencSampleEncryption(*this, algorithm_id, iv_size, kid)
+{
+}
+
+/*----------------------------------------------------------------------
+|   AP4_SencAtom::AP4_SencAtom
++---------------------------------------------------------------------*/
+AP4_SencAtom::AP4_SencAtom(AP4_UI08        per_sample_iv_size,
+                           AP4_UI08        constant_iv_size,
+                           const AP4_UI08* constant_iv,
+                           AP4_UI08        crypt_byte_block,
+                           AP4_UI08        skip_byte_block):
+    AP4_Atom(AP4_ATOM_TYPE_SENC, AP4_FULL_ATOM_HEADER_SIZE+4, 0, 0),
+    AP4_CencSampleEncryption(*this,
+                             per_sample_iv_size,
+                             constant_iv_size,
+                             constant_iv,
+                             crypt_byte_block,
+                             skip_byte_block)
 {
 }
 

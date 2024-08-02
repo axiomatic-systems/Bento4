@@ -79,9 +79,9 @@ class AP4_AtomInspector {
 public:
     // types
     typedef enum {
-        HINT_NONE       = 0,
-        HINT_HEX        = 1,
-        HINT_BOOLEAN    = 2
+        HINT_NONE    = 0,
+        HINT_HEX     = 1,
+        HINT_BOOLEAN = 2
     } FormatHint;
 
     // constructor and destructor
@@ -103,7 +103,11 @@ public:
                                  AP4_Size    /* header_size */,
                                  AP4_UI64    /*size         */) {}
     virtual void EndDescriptor() {}
-    virtual void AddField(const char* /* name */, 
+    virtual void StartArray(const char* /* name */, unsigned int element_count = 0) {}
+    virtual void EndArray() {}
+    virtual void StartObject(const char* /* name */, unsigned int field_count = 0, bool compact = false) {}
+    virtual void EndObject() {}
+    virtual void AddField(const char* /* name */,
                           AP4_UI64    /* value */, 
                           FormatHint  hint = HINT_NONE) {
         (void)hint; // gcc warning
@@ -148,15 +152,42 @@ public:
                          AP4_Size    header_size,
                          AP4_UI64    size);
     void EndDescriptor();
+    void StartArray(const char* name, unsigned int element_count);
+    void EndArray();
+    void StartObject(const char* name, unsigned int field_count, bool compact);
+    void EndObject();
     void AddField(const char* name, AP4_UI64 value, FormatHint hint);
     void AddFieldF(const char* name, float value, FormatHint hint);
     void AddField(const char* name, const char* value, FormatHint hint);
     void AddField(const char* name, const unsigned char* bytes, AP4_Size size, FormatHint hint);
 
 private:
+    // types
+    struct Context {
+        typedef enum {
+            TOP_LEVEL,
+            ATOM,
+            ARRAY,
+            OBJECT,
+            COMPACT_OBJECT
+        } Type;
+
+        Context(Type type) : m_Type(type), m_ArrayIndex(0) {}
+
+        Type         m_Type;
+        AP4_Cardinal m_ArrayIndex;
+     };
+
+    // methods
+    void     PushContext(Context::Type type);
+    void     PopContext();
+    Context& LastContext() { return m_Contexts[m_Contexts.ItemCount() - 1]; }
+    void     PrintPrefix();
+    void     PrintSuffix();
+
     // members
-    AP4_ByteStream* m_Stream;
-    AP4_Cardinal    m_Indent;
+    AP4_ByteStream*    m_Stream;
+    AP4_Array<Context> m_Contexts;
 };
 
 /*----------------------------------------------------------------------
@@ -178,16 +209,44 @@ public:
                          AP4_Size    header_size,
                          AP4_UI64    size);
     void EndDescriptor();
+    void StartArray(const char* name, unsigned int element_count);
+    void EndArray();
+    void StartObject(const char* name, unsigned int field_count, bool compact);
+    void EndObject();
     void AddField(const char* name, AP4_UI64 value, FormatHint hint);
     void AddFieldF(const char* name, float value, FormatHint hint);
     void AddField(const char* name, const char* value, FormatHint hint);
     void AddField(const char* name, const unsigned char* bytes, AP4_Size size, FormatHint hint);
 
 private:
+    // types
+    struct Context {
+        typedef enum {
+            TOP_LEVEL,
+            ATOM,
+            ARRAY,
+            OBJECT
+        } Type;
+
+        Context(Type type) : m_Type(type), m_FieldCount(0), m_ChildrenCount(0) {}
+
+        Type         m_Type;
+        AP4_Cardinal m_FieldCount;
+        AP4_Cardinal m_ChildrenCount; // to count atoms within atoms
+     };
+
+    // methods
+    static AP4_String EscapeString(const char* string);
+    void              PushContext(Context::Type type);
+    void              PopContext();
+    Context&          LastContext() { return m_Contexts[m_Contexts.ItemCount() - 1]; }
+    void              OnFieldAdded();
+    void              PrintFieldName(const char* name);
+    
     // members
-    AP4_ByteStream*         m_Stream;
-    AP4_Cardinal            m_Depth;
-    AP4_Array<AP4_Cardinal> m_Items;
+    AP4_ByteStream*    m_Stream;
+    AP4_Array<Context> m_Contexts;
+    char               m_Prefix[256];
 };
 
 /*----------------------------------------------------------------------
@@ -243,6 +302,8 @@ public:
     // methods
     AP4_UI32           GetFlags() const { return m_Flags; }
     void               SetFlags(AP4_UI32 flags) { m_Flags = flags; }
+    AP4_UI08           GetVersion() const {return m_Version;}
+    void               SetVersion(AP4_UI08 version) { m_Version = version; }
     Type               GetType() const { return m_Type; }
     void               SetType(Type type) { m_Type = type; }
     virtual AP4_Size   GetHeaderSize() const;
@@ -421,6 +482,10 @@ const AP4_Atom::Type AP4_ATOM_TYPE_HEV1 = AP4_ATOM_TYPE('h','e','v','1');
 const AP4_Atom::Type AP4_ATOM_TYPE_HVC1 = AP4_ATOM_TYPE('h','v','c','1');
 const AP4_Atom::Type AP4_ATOM_TYPE_DVHE = AP4_ATOM_TYPE('d','v','h','e');
 const AP4_Atom::Type AP4_ATOM_TYPE_DVH1 = AP4_ATOM_TYPE('d','v','h','1');
+const AP4_Atom::Type AP4_ATOM_TYPE_VP08 = AP4_ATOM_TYPE('v','p','0','8');
+const AP4_Atom::Type AP4_ATOM_TYPE_VP09 = AP4_ATOM_TYPE('v','p','0','9');
+const AP4_Atom::Type AP4_ATOM_TYPE_VP10 = AP4_ATOM_TYPE('v','p','1','0');
+const AP4_Atom::Type AP4_ATOM_TYPE_AV01 = AP4_ATOM_TYPE('a','v','0','1');
 const AP4_Atom::Type AP4_ATOM_TYPE_ALAC = AP4_ATOM_TYPE('a','l','a','c');
 const AP4_Atom::Type AP4_ATOM_TYPE_ENCA = AP4_ATOM_TYPE('e','n','c','a');
 const AP4_Atom::Type AP4_ATOM_TYPE_ENCV = AP4_ATOM_TYPE('e','n','c','v');
@@ -481,8 +546,11 @@ const AP4_Atom::Type AP4_ATOM_TYPE_MDRI = AP4_ATOM_TYPE('m','d','r','i');
 const AP4_Atom::Type AP4_ATOM_TYPE_AVCC = AP4_ATOM_TYPE('a','v','c','C');
 const AP4_Atom::Type AP4_ATOM_TYPE_HVCC = AP4_ATOM_TYPE('h','v','c','C');
 const AP4_Atom::Type AP4_ATOM_TYPE_DVCC = AP4_ATOM_TYPE('d','v','c','C');
+const AP4_Atom::Type AP4_ATOM_TYPE_VPCC = AP4_ATOM_TYPE('v','p','c','C');
+const AP4_Atom::Type AP4_ATOM_TYPE_DVVC = AP4_ATOM_TYPE('d','v','v','C');
 const AP4_Atom::Type AP4_ATOM_TYPE_HVCE = AP4_ATOM_TYPE('h','v','c','E');
 const AP4_Atom::Type AP4_ATOM_TYPE_AVCE = AP4_ATOM_TYPE('a','v','c','E');
+const AP4_Atom::Type AP4_ATOM_TYPE_AV1C = AP4_ATOM_TYPE('a','v','1','C');
 const AP4_Atom::Type AP4_ATOM_TYPE_WAVE = AP4_ATOM_TYPE('w','a','v','e');
 const AP4_Atom::Type AP4_ATOM_TYPE_WIDE = AP4_ATOM_TYPE('w','i','d','e');
 const AP4_Atom::Type AP4_ATOM_TYPE_UUID = AP4_ATOM_TYPE('u','u','i','d');
@@ -490,10 +558,13 @@ const AP4_Atom::Type AP4_ATOM_TYPE_8ID_ = AP4_ATOM_TYPE('8','i','d',' ');
 const AP4_Atom::Type AP4_ATOM_TYPE_8BDL = AP4_ATOM_TYPE('8','b','d','l');
 const AP4_Atom::Type AP4_ATOM_TYPE_AC_3 = AP4_ATOM_TYPE('a','c','-','3');
 const AP4_Atom::Type AP4_ATOM_TYPE_EC_3 = AP4_ATOM_TYPE('e','c','-','3');
+const AP4_Atom::Type AP4_ATOM_TYPE_AC_4 = AP4_ATOM_TYPE('a','c','-','4');
 const AP4_Atom::Type AP4_ATOM_TYPE_DTSC = AP4_ATOM_TYPE('d','t','s','c');
 const AP4_Atom::Type AP4_ATOM_TYPE_DTSH = AP4_ATOM_TYPE('d','t','s','h');
 const AP4_Atom::Type AP4_ATOM_TYPE_DTSL = AP4_ATOM_TYPE('d','t','s','l');
 const AP4_Atom::Type AP4_ATOM_TYPE_DTSE = AP4_ATOM_TYPE('d','t','s','e');
+const AP4_Atom::Type AP4_ATOM_TYPE_FLAC = AP4_ATOM_TYPE('f','L','a','C');
+const AP4_Atom::Type AP4_ATOM_TYPE_OPUS = AP4_ATOM_TYPE('O','p','u','s');
 const AP4_Atom::Type AP4_ATOM_TYPE_MFRA = AP4_ATOM_TYPE('m','f','r','a');
 const AP4_Atom::Type AP4_ATOM_TYPE_TFRA = AP4_ATOM_TYPE('t','f','r','a');
 const AP4_Atom::Type AP4_ATOM_TYPE_MFRO = AP4_ATOM_TYPE('m','f','r','o');
@@ -510,7 +581,9 @@ const AP4_Atom::Type AP4_ATOM_TYPE_MARL = AP4_ATOM_TYPE('m','a','r','l');
 const AP4_Atom::Type AP4_ATOM_TYPE_MKID = AP4_ATOM_TYPE('m','k','i','d');
 const AP4_Atom::Type AP4_ATOM_TYPE_PRFT = AP4_ATOM_TYPE('p','r','f','t');
 const AP4_Atom::Type AP4_ATOM_TYPE_STPP = AP4_ATOM_TYPE('s','t','p','p');
+const AP4_Atom::Type AP4_ATOM_TYPE_DAC3 = AP4_ATOM_TYPE('d','a','c','3');
 const AP4_Atom::Type AP4_ATOM_TYPE_DEC3 = AP4_ATOM_TYPE('d','e','c','3');
+const AP4_Atom::Type AP4_ATOM_TYPE_DAC4 = AP4_ATOM_TYPE('d','a','c','4');
 const AP4_Atom::Type AP4_ATOM_TYPE_SIDX = AP4_ATOM_TYPE('s','i','d','x');
 const AP4_Atom::Type AP4_ATOM_TYPE_SSIX = AP4_ATOM_TYPE('s','s','i','x');
 const AP4_Atom::Type AP4_ATOM_TYPE_SBGP = AP4_ATOM_TYPE('s','b','g','p');

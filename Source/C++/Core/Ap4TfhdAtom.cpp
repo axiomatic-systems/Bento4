@@ -45,6 +45,7 @@ AP4_TfhdAtom::Create(AP4_Size size, AP4_ByteStream& stream)
 {
     AP4_UI08 version;
     AP4_UI32 flags;
+    if (size < AP4_FULL_ATOM_HEADER_SIZE) return NULL;
     if (AP4_FAILED(AP4_Atom::ReadFullHeader(stream, version, flags))) return NULL;
     if (version > 0) return NULL;
     if (size < ComputeSize(flags)) return NULL;
@@ -121,6 +122,16 @@ AP4_TfhdAtom::AP4_TfhdAtom(AP4_UI32        size,
     } else {
         m_DefaultSampleFlags = 0;
     }
+}
+
+/*----------------------------------------------------------------------
+|   AP4_TfhdAtom::UpdateFlags
++---------------------------------------------------------------------*/
+void
+AP4_TfhdAtom::UpdateFlags(AP4_UI32 flags)
+{
+    m_Flags  = flags;
+    m_Size32 = ComputeSize(flags);
 }
 
 /*----------------------------------------------------------------------

@@ -1,18 +1,18 @@
 import aes
-import urllib2
 import os
 import hashlib
 import json
+import urllib.request, urllib.parse, urllib.error
 
-KEKID_CONSTANT_1 = "KEKID_1"
+KEKID_CONSTANT_1 = b"KEKID_1"
 
 def WrapKey(key, kek):
     if len(key) > 16:
         # assume hex
-        key = key.decode('hex')
+        key = bytes.fromhex(key)
     if len(kek) > 16:
         # assume hex
-        kek = kek.decode('hex')
+        kek = bytes.fromhex(kek)
 
     if (len(key)% 8) or (len(kek) % 8):
         raise Exception('key and kek must be a multiple of 64 bits')
@@ -23,8 +23,8 @@ def WrapKey(key, kek):
     # Inputs:      Plaintext, n 64-bit values {P1, P2, ..., Pn}, and
     # Key, K (the KEK).
     # Outputs:     Ciphertext, (n+1) 64-bit values {C0, C1, ..., Cn}.
-    n = len(key)/8;
-    if n < 1: 
+    n = len(key) // 8
+    if n < 1:
         raise Exception('key too short')
 
     # 1) Initialize variables.
@@ -32,7 +32,7 @@ def WrapKey(key, kek):
     #    Set A = IV, an initial value (see 2.2.3)
     #      For i = 1 to n
     #      R[i] = P[i]
-    A = 'A6A6A6A6A6A6A6A6'.decode('hex');
+    A = bytes.fromhex('A6A6A6A6A6A6A6A6')
     R = [key[i*8:(i+1)*8] for i in range(n)]
 
     # 2) Calculate intermediate values.
@@ -45,7 +45,7 @@ def WrapKey(key, kek):
     for j in range(6):
         for i in range(n):
             B = cipher.encrypt(A+R[i])
-            A = B[0:7]+chr(ord(B[7]) ^ ((n*j)+i+1))
+            A = B[0:7] + bytes([B[7] ^ ((n*j)+i+1)])
             R[i] = B[8:16]
 
     # 3) Output the results.
@@ -53,15 +53,15 @@ def WrapKey(key, kek):
     #    Set C[0] = A
     #    For i = 1 to n
     #      C[i] = R[i]
-    return ''.join([A]+R)
+    return b''.join([A]+R)
 
 def UnwrapKey(key, kek):
     if len(key) > 32:
         # assume hex
-        key = key.decode('hex')
+        key = bytes.fromhex(key)
     if len(kek) > 16:
         # assume hex
-        kek = kek.decode('hex')
+        kek = bytes.fromhex(kek)
 
     if (len(key)% 8) or (len(kek) % 8):
         raise Exception('key and kek must be a multiple of 64 bits')
@@ -72,9 +72,9 @@ def UnwrapKey(key, kek):
     # Inputs:  Ciphertext, (n+1) 64-bit values {C0, C1, ..., Cn}, and
     # Key, K (the KEK).
     # Outputs: Plaintext, n 64-bit values {P0, P1, K, Pn}.
-    n = len(key)/8 - 1;
+    n = len(key) // 8 - 1
     if n < 1:
-        raise Exception('wrapped key too short');
+        raise Exception('wrapped key too short')
 
     # 1) Initialize variables.
     #
@@ -93,7 +93,7 @@ def UnwrapKey(key, kek):
     #       R[i] = LSB(64, B)
     for j in range(5, -1, -1):
         for i in range(n-1, -1, -1):
-            B = decipher.decrypt(A[0:7] + chr(ord(A[7])^((n*j)+i+1))+R[i])
+            B = decipher.decrypt(A[0:7] + bytes([A[7]^((n*j)+i+1)])) + R[i:i+1]
             A = B[0:8]
             R[i] = B[8:16]
 
@@ -106,17 +106,17 @@ def UnwrapKey(key, kek):
     #    Else
     #      Return an error
     for i in range(8):
-        if ord(A[i]) != 0xA6:
+        if A[i] != 0xA6:
             raise Exception('invalid/corrupted wrapped key or wrong kek')
-    return ''.join(R)
+    return b''.join(R)
 
 def ComputeKekId(kek):
     if len(kek) > 16:
-        kek = kek.decode('hex')
+        kek = bytes.fromhex(kek)
     sha1 = hashlib.sha1()
     sha1.update(KEKID_CONSTANT_1)
     sha1.update(kek)
-    return '#1.'+sha1.digest()[0:16].encode('hex')
+    return '#1.'+sha1.digest()[0:16].hex()
 
 def ResolveKey(options, spec):
     if '#' in spec:
@@ -142,7 +142,7 @@ def ResolveKey(options, spec):
         raise Exception('"Requests" python module not installed. Please install it (use "pip install requests" or "easy_install requests" in a command shell, or consult the "Requests" documentation at http://docs.python-requests.org/en/latest/)')
 
     if options.debug:
-        print 'Key Object Input:', key_object
+        print('Key Object Input:', key_object)
 
     if skm_mode == 'get':
         if 'kid' not in spec_params:
@@ -150,7 +150,7 @@ def ResolveKey(options, spec):
         kid = spec_params['kid']
         if '?' in base_url:
             (base_url_path, base_url_query) = tuple(base_url.split('?', 1))
-            base_url_query = '?'+base_url_query
+            base_url_query = '?'+urllib.parse.unquote(base_url_query).decode('utf8')
         else:
             base_url_path = base_url
             base_url_query = ''
@@ -159,22 +159,22 @@ def ResolveKey(options, spec):
         base_url = base_url_path+'/'+kid+base_url_query
 
         if options.debug:
-            print 'Request:', base_url
+            print('Request:', base_url)
 
         response = requests.get(base_url)
     elif skm_mode == 'auto':
         if skm_kek:
             # generate a key locally and wrap it
             key = os.urandom(16)
-            key_object['ek'] = WrapKey(key, skm_kek).encode('hex')
+            key_object['ek'] = WrapKey(key, skm_kek).hex()
             if 'kekId' not in key_object:
                 key_object['kekId'] = ComputeKekId(skm_kek)
             if options.verbose:
-                print 'Generating key locally'
+                print('Generating key locally')
 
         if options.debug:
-            print 'Request:', base_url, json.dumps(key_object)
-            
+            print('Request:', base_url, json.dumps(key_object))
+
         response = requests.post(base_url, headers={'content-type': 'application/json'}, data=json.dumps(key_object))
     else:
         raise Exception('Unsupported SKM query mode')
@@ -183,20 +183,20 @@ def ResolveKey(options, spec):
         raise Exception('HTTP error while getting key: '+str(response.status_code)+', '+response.text)
 
     if options.debug:
-        print 'Response:', response.text
+        print('Response:', response.text)
     response_json = json.loads(response.text)
     kid = response_json['kid']
     if skm_kek and ('ek' in response_json):
         received_key = UnwrapKey(response_json['ek'], skm_kek)
         if options.verbose:
             if key and (key != received_key):
-                print 'Locally generated key was ignored because a key with the same KID already existed on the server'
+                print('Locally generated key was ignored because a key with the same KID already existed on the server')
         key = received_key
 
     if not key:
         key = response_json['k']
     else:
-        key = key.encode('hex')
+        key = key.hex()
 
     return (kid, key)
 

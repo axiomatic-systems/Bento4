@@ -46,6 +46,7 @@ AP4_SttsAtom::Create(AP4_Size size, AP4_ByteStream& stream)
 {
     AP4_UI08 version;
     AP4_UI32 flags;
+    if (size < AP4_FULL_ATOM_HEADER_SIZE) return NULL;
     if (AP4_FAILED(AP4_Atom::ReadFullHeader(stream, version, flags))) return NULL;
     if (version != 0) return NULL;
     return new AP4_SttsAtom(size, version, flags, stream);
@@ -133,7 +134,7 @@ AP4_SttsAtom::GetDts(AP4_Ordinal sample, AP4_UI64& dts, AP4_UI32* duration)
  
         // update the sample and dts bases
         sample_start += entry.m_SampleCount;
-        dts_start    += entry.m_SampleCount*entry.m_SampleDuration;
+        dts_start    += (AP4_UI64)entry.m_SampleCount * (AP4_UI64)entry.m_SampleDuration;
     }
 
     // sample is greater than the number of samples
@@ -221,16 +222,14 @@ AP4_SttsAtom::InspectFields(AP4_AtomInspector& inspector)
     inspector.AddField("entry_count", m_Entries.ItemCount());
 
     if (inspector.GetVerbosity() >= 1) {
-        char header[32];
-        char value[256];
+        inspector.StartArray("entries", m_Entries.ItemCount());
         for (AP4_Ordinal i=0; i<m_Entries.ItemCount(); i++) {
-            AP4_FormatString(header, sizeof(header), "entry %8d", i);
-            AP4_FormatString(value, sizeof(value), 
-                             "sample_count=%d, sample_duration=%d", 
-                            m_Entries[i].m_SampleCount,
-                            m_Entries[i].m_SampleDuration);
-            inspector.AddField(header, value);
+            inspector.StartObject(NULL, 2, true);
+            inspector.AddField("sample_count",    m_Entries[i].m_SampleCount);
+            inspector.AddField("sample_duration", m_Entries[i].m_SampleDuration);
+            inspector.EndObject();
         }
+        inspector.EndArray();
     }
 
     return AP4_SUCCESS;

@@ -226,9 +226,11 @@ public:
         AP4_Result         AddToFile(AP4_File& file, AP4_Ordinal index = 0);
         AP4_Result         AddToFileIlst(AP4_File& file, AP4_Ordinal index = 0);
         AP4_Result         AddToFileDcf(AP4_File& file, AP4_Ordinal index = 0);
+        AP4_Result         AddToFileUdta(AP4_File& file, AP4_Ordinal index = 0);
         AP4_Result         RemoveFromFile(AP4_File& file, AP4_Ordinal index);
         AP4_Result         RemoveFromFileIlst(AP4_File& file, AP4_Ordinal index);
         AP4_Result         RemoveFromFileDcf(AP4_File& file, AP4_Ordinal index);
+        AP4_Result         RemoveFromFileUdta(AP4_File& file, AP4_Ordinal index);
         AP4_ContainerAtom* FindInIlst(AP4_ContainerAtom* ilst) const;
         AP4_Result         ToAtom(AP4_Atom*& atom) const;
 

@@ -59,9 +59,73 @@ AP4_Dec3Atom::Create(AP4_Size size, AP4_ByteStream& stream)
 /*----------------------------------------------------------------------
 |   AP4_Dec3Atom::AP4_Dec3Atom
 +---------------------------------------------------------------------*/
+AP4_Dec3Atom::AP4_Dec3Atom(const AP4_Dec3Atom& other):
+    AP4_Atom(AP4_ATOM_TYPE_DEC3, other.m_Size32), 
+    m_DataRate(other.m_DataRate),
+    m_FlagEC3ExtensionTypeA(other.m_FlagEC3ExtensionTypeA),
+    m_ComplexityIndexTypeA(other.m_ComplexityIndexTypeA),
+    m_SubStreams(other.m_SubStreams),
+    m_RawBytes(other.m_RawBytes)
+{
+}
+
+/*----------------------------------------------------------------------
+|   AP4_Dec3Atom::AP4_Dec3Atom
++---------------------------------------------------------------------*/
+AP4_Dec3Atom::AP4_Dec3Atom():
+    AP4_Atom(AP4_ATOM_TYPE_DEC3, AP4_ATOM_HEADER_SIZE), 
+    m_DataRate(0),
+    m_FlagEC3ExtensionTypeA(0),
+    m_ComplexityIndexTypeA(0)
+{
+    m_SubStreams.Append(SubStream());
+}
+
+/*----------------------------------------------------------------------
+|   AP4_Dec3Atom::AP4_Dec3Atom
++---------------------------------------------------------------------*/
+AP4_Dec3Atom::AP4_Dec3Atom(AP4_UI32 au_size, const SubStream* substream, const unsigned int complexity_index_type_a):
+    AP4_Atom(AP4_ATOM_TYPE_DEC3, AP4_ATOM_HEADER_SIZE)
+{
+    AP4_BitWriter bits(7);                  // I0 + D0 or 5.1 DD+ JOC is the most complicated stream
+
+    unsigned int date_rate   = au_size / 4;
+    unsigned int num_ind_sub = 0;           // num_ind_sub is set to 0 which is ensured by E-AC-3 parser.
+
+    bits.Write(date_rate, 13);
+    bits.Write(num_ind_sub, 3);  
+    for (unsigned int idx = 0; idx < num_ind_sub + 1; idx ++) {
+        bits.Write(substream->fscod, 2); 
+        bits.Write(substream->bsid , 5); 
+        bits.Write(0, 1);                   // reserved
+        bits.Write(0, 1);                   // asvc is always 0
+        bits.Write(substream->bsmod, 3); 
+        bits.Write(substream->acmod, 3); 
+        bits.Write(substream->lfeon, 1); 
+        bits.Write(0, 3);                   // reserved
+        bits.Write(substream->num_dep_sub, 4);
+        if (substream->num_dep_sub > 0) {
+            bits.Write(substream->chan_loc, 9);
+        }else{
+            bits.Write(0, 1);               // reserved
+        }
+    }
+    if (complexity_index_type_a) {
+        bits.Write(1, 8);
+        bits.Write(complexity_index_type_a, 8);
+    }
+    m_RawBytes.SetData(bits.GetData(), bits.GetBitCount() / 8);
+    m_Size32 += m_RawBytes.GetDataSize();
+}
+
+/*----------------------------------------------------------------------
+|   AP4_Dec3Atom::AP4_Dec3Atom
++---------------------------------------------------------------------*/
 AP4_Dec3Atom::AP4_Dec3Atom(AP4_UI32 size, const AP4_UI08* payload) :
     AP4_Atom(AP4_ATOM_TYPE_DEC3, size),
-    m_DataRate(0)
+    m_DataRate(0), 
+    m_FlagEC3ExtensionTypeA(0), 
+    m_ComplexityIndexTypeA(0)
 {
     // make a copy of our configuration bytes
     unsigned int payload_size = size-AP4_ATOM_HEADER_SIZE;
@@ -77,7 +141,7 @@ AP4_Dec3Atom::AP4_Dec3Atom(AP4_UI32 size, const AP4_UI08* payload) :
     payload_size -= 2;
     m_SubStreams.SetItemCount(substream_count);
     for (unsigned int i=0; i<substream_count; i++) {
-        if (payload_size < 3) {
+        if (payload_size < 4) {
             m_SubStreams[i].fscod       = 0;
             m_SubStreams[i].bsid        = 0;
             m_SubStreams[i].bsmod       = 0;
@@ -103,6 +167,13 @@ AP4_Dec3Atom::AP4_Dec3Atom(AP4_UI32 size, const AP4_UI08* payload) :
             payload_size -= 3;
         }
     }
+    // DD+/Atmos 
+    if (payload_size >= 2) {
+        m_FlagEC3ExtensionTypeA = payload[0] & 0x1;
+        m_ComplexityIndexTypeA  = payload[1];
+        payload      += 2;
+        payload_size -= 2;
+    }
 }
 
 /*----------------------------------------------------------------------
@@ -121,6 +192,7 @@ AP4_Result
 AP4_Dec3Atom::InspectFields(AP4_AtomInspector& inspector)
 {
     inspector.AddField("data_rate", m_DataRate);
+    inspector.AddField("complexity_index_type_a", m_ComplexityIndexTypeA);
     for (unsigned int i=0; i<m_SubStreams.ItemCount(); i++) {
         char name[16];
         char value[256];

@@ -46,6 +46,7 @@ AP4_TfraAtom::Create(AP4_Size size, AP4_ByteStream& stream)
 {
     AP4_UI08 version = 0;
     AP4_UI32 flags   = 0;
+    if (size < AP4_FULL_ATOM_HEADER_SIZE) return NULL;
     AP4_Result result = ReadFullHeader(stream, version, flags);
     if (AP4_FAILED(result)) return NULL;
     if (version > 1) return NULL;
@@ -77,13 +78,83 @@ AP4_TfraAtom::AP4_TfraAtom(AP4_UI32        size,
     AP4_Atom(AP4_ATOM_TYPE_TFRA, size, version, flags)
 {
     stream.ReadUI32(m_TrackId);
+    
     AP4_UI32 fields = 0;
     stream.ReadUI32(fields);
     m_LengthSizeOfTrafNumber   = (fields>>4)&3;
     m_LengthSizeOfTrunNumber   = (fields>>2)&3;
     m_LengthSizeOfSampleNumber = (fields   )&3;
+    
     AP4_UI32 entry_count = 0;
     stream.ReadUI32(entry_count);
+    
+    // Compute the size of each entry
+    unsigned int entry_size;
+    if (version == 1) {
+        entry_size = 16;
+    } else {
+        entry_size = 8;
+    }
+    switch (m_LengthSizeOfTrafNumber) {
+        case 0:
+            entry_size += 1;
+            break;
+
+        case 1:
+            entry_size += 2;
+            break;
+
+        case 2:
+            entry_size += 3;
+            break;
+
+        case 3:
+            entry_size += 4;
+            break;
+    }
+    
+    switch (m_LengthSizeOfTrunNumber) {
+        case 0:
+            entry_size += 1;
+            break;
+
+        case 1:
+            entry_size += 2;
+            break;
+
+        case 2:
+            entry_size += 3;
+            break;
+
+        case 3:
+            entry_size += 4;
+            break;
+    }
+    
+    switch (m_LengthSizeOfSampleNumber) {
+        case 0:
+            entry_size += 1;
+            break;
+
+        case 1:
+            entry_size += 2;
+            break;
+
+        case 2:
+            entry_size += 3;
+            break;
+
+        case 3:
+            entry_size += 4;
+            break;
+    }
+        
+    // Check that it all fits
+    if (((size - (AP4_FULL_ATOM_HEADER_SIZE+4+4+4)) / entry_count) < entry_size) {
+        return;
+    }
+    
+    // Read the entries
     m_Entries.SetItemCount(entry_count);
     for (unsigned int i=0; i<entry_count; i++) {
         if (version == 1) {
@@ -314,19 +385,17 @@ AP4_TfraAtom::InspectFields(AP4_AtomInspector& inspector)
     inspector.AddField("length_size_of_trun_num",   m_LengthSizeOfTrunNumber);
     inspector.AddField("length_size_of_sample_num", m_LengthSizeOfSampleNumber);
     if (inspector.GetVerbosity() >= 1) {
+        inspector.StartArray("entries", m_Entries.ItemCount());
         for (unsigned int i=0; i<m_Entries.ItemCount(); i++) {
-            char name[16];
-            char value[256];
-            AP4_FormatString(name, sizeof(name), "entry %04d", i);
-            AP4_FormatString(value, sizeof(value), 
-                             "time=%lld, moof_offset=%lld, traf_number=%d, trun_number=%d, sample_number=%d",
-                             m_Entries[i].m_Time,
-                             m_Entries[i].m_MoofOffset,
-                             m_Entries[i].m_TrafNumber,
-                             m_Entries[i].m_TrunNumber,
-                             m_Entries[i].m_SampleNumber);
-            inspector.AddField(name, value);
+            inspector.StartObject(NULL, 5, true);
+            inspector.AddField("time",          m_Entries[i].m_Time);
+            inspector.AddField("moof_offset",   m_Entries[i].m_MoofOffset);
+            inspector.AddField("traf_number",   m_Entries[i].m_TrafNumber);
+            inspector.AddField("trun_number",   m_Entries[i].m_TrunNumber);
+            inspector.AddField("sample_number", m_Entries[i].m_SampleNumber);
+            inspector.EndObject();
         }
+        inspector.EndArray();
     }
     
     return AP4_SUCCESS;

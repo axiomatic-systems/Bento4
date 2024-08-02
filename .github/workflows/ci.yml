@@ -1,0 +1,57 @@
+# CI Workflow for Bento4
+name: CI
+
+# Controls when the action will run. Triggers the workflow on push or pull request
+# events but only for the master branch
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    name: Bento4 Build ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: ['ubuntu-latest', 'macos-latest', 'windows-latest']
+        include:
+          - os: ubuntu-latest
+            CMAKE_OPTIONS: -DCMAKE_BUILD_TYPE=Release
+            CMAKE_OUTPUT_SUBDIR: x86_64-unknown-linux
+            PYTHON3_COMMAND: python3  
+          - os: macos-latest
+            CMAKE_OPTIONS: -G Xcode
+            CMAKE_OUTPUT_SUBDIR: universal-apple-macosx
+            PYTHON3_COMMAND: python3  
+          - os: windows-latest
+            CMAKE_OPTIONS: -DCMAKE_BUILD_TYPE=Release
+            CMAKE_OUTPUT_SUBDIR: x86_64-microsoft-win32
+            PYTHON3_COMMAND: py  
+
+    steps:
+      # Check out the repository under $GITHUB_WORKSPACE, so that the jobs can access it
+      - uses: actions/checkout@v2
+
+      # CMake Build
+      - name: Release Build with CMake
+        run: |
+          mkdir cmakebuild
+          cd cmakebuild
+          mkdir ${{matrix.CMAKE_OUTPUT_SUBDIR}}
+          cd ${{matrix.CMAKE_OUTPUT_SUBDIR}}
+          cmake ${{matrix.CMAKE_OPTIONS}} ../..
+          cmake --build . --config Release
+
+      # Create SDK
+      - name: Create SDK
+        if: github.event_name == 'push'
+        run: ${{matrix.PYTHON3_COMMAND}} Scripts/SdkPackager.py
+        
+      # Upload the SDK
+      - name: Upload SDK
+        if: github.event_name == 'push'
+        uses: actions/upload-artifact@v2
+        with:
+          path: SDK/*.zip

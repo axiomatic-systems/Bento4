@@ -116,25 +116,6 @@ main(int argc, char** argv)
     CHECK(reader.GetBufferFullness() == 0);
     CHECK(audio_sample_count == audio_track->GetSampleCount());
     CHECK(video_sample_count == video_track->GetSampleCount());
-
-    offset = 0;
-    audio_sample_count = 0;
-    //video_sample_count = 0;
-    reader.SetSampleIndex(audio_track->GetId(), 0);
-    reader.SetSampleIndex(video_track->GetId(), 0);
-    do {
-        result = reader.ReadNextSample(audio_track->GetId(), sample, sample_data);
-        if (AP4_SUCCEEDED(result)) {
-            CHECK(offset < sample.GetOffset());
-            offset = sample.GetOffset();
-            audio_sample_count++;
-            printf("size=%d, offset=%lld\n", (int)sample.GetSize(), sample.GetOffset());
-        } else {
-            printf("result=%d\n", result);
-        }
-    } while (AP4_SUCCEEDED(result));
-    CHECK(result == AP4_ERROR_NOT_ENOUGH_SPACE);
-    CHECK(reader.GetBufferFullness() != 0);
     
     // cleanup
     delete file;

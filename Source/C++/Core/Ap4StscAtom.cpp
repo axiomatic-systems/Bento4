@@ -46,6 +46,7 @@ AP4_StscAtom::Create(AP4_Size size, AP4_ByteStream& stream)
 {
     AP4_UI08 version;
     AP4_UI32 flags;
+    if (size < AP4_FULL_ATOM_HEADER_SIZE) return NULL;
     if (AP4_FAILED(AP4_Atom::ReadFullHeader(stream, version, flags))) return NULL;
     if (version != 0) return NULL;
     return new AP4_StscAtom(size, version, flags, stream);
@@ -72,7 +73,11 @@ AP4_StscAtom::AP4_StscAtom(AP4_UI32        size,
 {
     AP4_UI32 first_sample = 1;
     AP4_UI32 entry_count;
+    if (size - AP4_ATOM_HEADER_SIZE < 4) return;
     stream.ReadUI32(entry_count);
+    if ((size - AP4_ATOM_HEADER_SIZE - 4)/12 < entry_count) {
+        return;
+    }
     m_Entries.SetItemCount(entry_count);
     unsigned char* buffer = new unsigned char[entry_count*12];
     AP4_Result result = stream.Read(buffer, entry_count*12);
@@ -232,19 +237,17 @@ AP4_StscAtom::InspectFields(AP4_AtomInspector& inspector)
 
     // dump table entries
     if (inspector.GetVerbosity() >= 1) {
-        char header[32];
-        char value[256];
+        inspector.StartArray("entries", m_Entries.ItemCount());
         for (unsigned int i=0; i<m_Entries.ItemCount(); i++) {
-            AP4_FormatString(header, sizeof(header), "entry %8d", i);  
-            AP4_FormatString(value, sizeof(value), 
-                    "first_chunk=%d, first_sample=%d, chunk_count=%d, samples_per_chunk=%d, sample_desc_index=%d", 
-                    m_Entries[i].m_FirstChunk,
-                    m_Entries[i].m_FirstSample,
-                    m_Entries[i].m_ChunkCount,
-                    m_Entries[i].m_SamplesPerChunk,
-                    m_Entries[i].m_SampleDescriptionIndex);
-            inspector.AddField(header, value);
+            inspector.StartObject(NULL, 5, true);
+            inspector.AddField("first_chunk",       m_Entries[i].m_FirstChunk);
+            inspector.AddField("first_sample",      m_Entries[i].m_FirstSample);
+            inspector.AddField("chunk_count",       m_Entries[i].m_ChunkCount);
+            inspector.AddField("samples_per_chunk", m_Entries[i].m_SamplesPerChunk);
+            inspector.AddField("sample_desc_index", m_Entries[i].m_SampleDescriptionIndex);
+            inspector.EndObject();
         }
+        inspector.EndArray();
     }
     
     return AP4_SUCCESS;

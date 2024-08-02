@@ -1,0 +1,15 @@
+### on x86_64, we need to build all the objects as PIC
+picLibBuilder = Builder(action = Action('$ARCOM'),
+                        emitter = '$LIBEMITTER',
+                        prefix = '$LIBPREFIX',
+                        suffix = '$LIBSUFFIX',
+                        src_suffix = '$OBJSUFFIX',
+                        src_builder = 'SharedObject')
+env['BUILDERS']['StaticLibrary'] = picLibBuilder
+env['BUILDERS']['Library'] = picLibBuilder
+
+### Load common tool settings
+LoadTool('gcc-generic', env)
+
+env.AppendUnique(CPPDEFINES = [('AP4_PLATFORM_BYTE_ORDER', 'AP4_PLATFORM_BYTE_ORDER_LITTLE_ENDIAN')])
+

@@ -46,6 +46,7 @@ AP4_StcoAtom::Create(AP4_Size size, AP4_ByteStream& stream)
 {
     AP4_UI08 version;
     AP4_UI32 flags;
+    if (size < AP4_FULL_ATOM_HEADER_SIZE) return NULL;
     if (AP4_FAILED(AP4_Atom::ReadFullHeader(stream, version, flags))) return NULL;
     if (version != 0) return NULL;
     return new AP4_StcoAtom(size, version, flags, stream);
@@ -71,8 +72,13 @@ AP4_StcoAtom::AP4_StcoAtom(AP4_UI32        size,
                            AP4_UI08        version,
                            AP4_UI32        flags,
                            AP4_ByteStream& stream) :
-    AP4_Atom(AP4_ATOM_TYPE_STCO, size, version, flags)
+    AP4_Atom(AP4_ATOM_TYPE_STCO, size, version, flags),
+    m_Entries(NULL),
+    m_EntryCount(0)
 {
+    if (size < AP4_FULL_ATOM_HEADER_SIZE + 4) {
+        return;
+    }
     stream.ReadUI32(m_EntryCount);
     if (m_EntryCount > (size-AP4_FULL_ATOM_HEADER_SIZE-4)/4) {
         m_EntryCount = (size-AP4_FULL_ATOM_HEADER_SIZE-4)/4;
@@ -174,11 +180,11 @@ AP4_StcoAtom::InspectFields(AP4_AtomInspector& inspector)
 {
     inspector.AddField("entry_count", m_EntryCount);
     if (inspector.GetVerbosity() >= 1) {
-        char header[32];
+        inspector.StartArray("entries", m_EntryCount);
         for (AP4_Ordinal i=0; i<m_EntryCount; i++) {
-            AP4_FormatString(header, sizeof(header), "entry %8d", i);
-            inspector.AddField(header, m_Entries[i]);
+            inspector.AddField(NULL, m_Entries[i]);
         }
+        inspector.EndArray();
     }
     
     return AP4_SUCCESS;

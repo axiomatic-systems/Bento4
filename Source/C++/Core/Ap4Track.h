@@ -77,16 +77,18 @@ class AP4_Track {
     // methods
     AP4_Track(Type             type,
               AP4_SampleTable* sample_table,     // ownership is transfered to the AP4_Track object
-              AP4_UI32         track_id, 
+              AP4_UI32         track_id,
               AP4_UI32         movie_time_scale, // 0 = use default
               AP4_UI64         track_duration,   // in the movie timescale
               AP4_UI32         media_time_scale,
               AP4_UI64         media_duration,   // in the media timescale
               const char*      language,
               AP4_UI32         width,            // in 16.16 fixed point
-              AP4_UI32         height);          // in 16.16 fixed point
-    AP4_Track(AP4_SampleTable* sample_table,     // ownership is transfered to the AP4_Track object
-              AP4_UI32         track_id, 
+              AP4_UI32         height,           // in 16.16 fixed point
+              AP4_UI64         creation_time = 0,
+              AP4_UI64         modification_time = 0);
+    AP4_Track(AP4_SampleTable* sample_table,     // ownership is transferred to the AP4_Track object
+              AP4_UI32         track_id,
               AP4_UI32         movie_time_scale, // 0 = use default
               AP4_UI64         track_duration,   // in the movie timescale
               AP4_UI32         media_time_scale,
@@ -96,14 +98,14 @@ class AP4_Track {
               AP4_ByteStream& sample_stream,
               AP4_UI32        movie_time_scale);
     virtual ~AP4_Track();
-    
-    /** 
-     * Clone a track. This is useful if you want to create a track from 
-     * a non-synthetic track (parsed from a file for example) and 
+
+    /**
+     * Clone a track. This is useful if you want to create a track from
+     * a non-synthetic track (parsed from a file for example) and
      * write it out
      */
     AP4_Track* Clone(AP4_Result* result = NULL);
-    
+
     AP4_UI32     GetFlags() const;
     AP4_Result   SetFlags(AP4_UI32 flags);
     AP4_Track::Type GetType() const { return m_Type; }
@@ -114,10 +116,10 @@ class AP4_Track {
     AP4_UI32     GetHeight() const;     // in 16.16 fixed point
     AP4_Cardinal GetSampleCount() const;
     AP4_Result   GetSample(AP4_Ordinal index, AP4_Sample& sample);
-    AP4_Result   ReadSample(AP4_Ordinal     index, 
+    AP4_Result   ReadSample(AP4_Ordinal     index,
                             AP4_Sample&     sample,
                             AP4_DataBuffer& data);
-    AP4_Result   GetSampleIndexForTimeStampMs(AP4_UI32     ts_ms, 
+    AP4_Result   GetSampleIndexForTimeStampMs(AP4_UI32     ts_ms,
                                               AP4_Ordinal& index);
     AP4_Ordinal  GetNearestSyncSampleIndex(AP4_Ordinal index, bool before=true);
     AP4_SampleDescription* GetSampleDescription(AP4_Ordinal index);
@@ -133,6 +135,7 @@ class AP4_Track {
     AP4_UI64      GetMediaDuration() const; // in the timescale of the media
     const char*   GetTrackName() const;
     const char*   GetTrackLanguage() const;
+    AP4_Result    SetTrackLanguage(const char* language);
     AP4_Result    Attach(AP4_MoovAtom* moov);
 
  protected:

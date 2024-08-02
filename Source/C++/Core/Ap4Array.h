@@ -26,7 +26,7 @@
 |
  ****************************************************************/
 /**
- * @file 
+ * @file
  * @brief Arrays
  */
 
@@ -51,15 +51,15 @@ const int AP4_ARRAY_INITIAL_COUNT = 64;
 /*----------------------------------------------------------------------
 |   AP4_Array
 +---------------------------------------------------------------------*/
-template <typename T> 
-class AP4_Array 
+template <typename T>
+class AP4_Array
 {
 public:
     // methods
              AP4_Array(): m_AllocatedCount(0), m_ItemCount(0), m_Items(0) {}
              AP4_Array(const T* items, AP4_Size count);
-    AP4_Array<T>(const AP4_Array<T>& copy);
-    AP4_Array<T>& operator=(const AP4_Array<T>& copy);
+    AP4_Array(const AP4_Array<T>& copy);
+    AP4_Array& operator=(const AP4_Array& copy);
     virtual ~AP4_Array();
     AP4_Cardinal ItemCount() const { return m_ItemCount; }
     AP4_Result   Append(const T& item);
@@ -190,12 +190,12 @@ AP4_Array<T>::EnsureCapacity(AP4_Cardinal count)
 |   AP4_Array<T>::SetItemCount
 +---------------------------------------------------------------------*/
 template <typename T>
-AP4_Result 
+AP4_Result
 AP4_Array<T>::SetItemCount(AP4_Cardinal item_count)
 {
     // shortcut
     if (item_count == m_ItemCount) return AP4_SUCCESS;
-    
+
     // check for a reduction in the number of items
     if (item_count < m_ItemCount) {
         // destruct the items that are no longer needed
@@ -205,11 +205,11 @@ AP4_Array<T>::SetItemCount(AP4_Cardinal item_count)
         m_ItemCount = item_count;
         return AP4_SUCCESS;
     }
-    
+
     // grow the list
     AP4_Result result = EnsureCapacity(item_count);
     if (AP4_FAILED(result)) return result;
-    
+
     // construct the new items
     for (unsigned int i=m_ItemCount; i<item_count; i++) {
         new ((void*)&m_Items[i]) T();
@@ -247,12 +247,12 @@ AP4_Array<T>::Append(const T& item)
 
         // if that's still not enough, just ask for what we need
         if (new_count < m_ItemCount+1) new_count = m_ItemCount+1;
-    
+
         // reserve the space
         AP4_Result result = EnsureCapacity(new_count);
         if (result != AP4_SUCCESS) return result;
     }
-    
+
     // store the item
     new ((void*)&m_Items[m_ItemCount++]) T(item);
 

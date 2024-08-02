@@ -519,3 +519,129 @@ AP4_CbcStreamCipher::ProcessBuffer(const AP4_UI08* in,
         return DecryptBuffer(in, in_size, out, out_size, is_last_buffer);
     }
 }
+
+/*----------------------------------------------------------------------
+|   AP4_PatternStreamCipher
++---------------------------------------------------------------------*/
+AP4_PatternStreamCipher::AP4_PatternStreamCipher(AP4_StreamCipher* cipher,
+                                                 AP4_UI08          crypt_byte_block,
+                                                 AP4_UI08 skip_byte_block) :
+    m_Cipher(cipher),
+    m_CryptByteBlock(crypt_byte_block),
+    m_SkipByteBlock(skip_byte_block),
+    m_StreamOffset(0)
+{
+}
+
+/*----------------------------------------------------------------------
+|   AP4_PatternStreamCipher::~AP4_PatternStreamCipher
++---------------------------------------------------------------------*/
+AP4_PatternStreamCipher::~AP4_PatternStreamCipher()
+{
+    delete m_Cipher;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_PatternStreamCipher::SetStreamOffset
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_PatternStreamCipher::SetStreamOffset(AP4_UI64      /*offset*/,
+                                         AP4_Cardinal* /*preroll*/)
+{
+    return AP4_ERROR_NOT_SUPPORTED;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_PatternStreamCipher
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_PatternStreamCipher::ProcessBuffer(const AP4_UI08* in,
+                                       AP4_Size        in_size,
+                                       AP4_UI08*       out,
+                                       AP4_Size*       out_size,
+                                       bool            /* is_last_buffer */)
+{
+    // set default return values
+    *out_size = 0;
+    
+    // check that the range is block-aligned (required by the spec for pattern encryption)
+    if (m_StreamOffset % 16) return AP4_ERROR_INVALID_FORMAT;
+    
+    // compute where we are in the pattern
+    unsigned int pattern_span     = m_CryptByteBlock+m_SkipByteBlock;
+    unsigned int block_position   = (unsigned int)(m_StreamOffset/16);
+    unsigned int pattern_position = block_position % pattern_span;
+
+    // process the range
+    while (*out_size < in_size) {
+        unsigned int crypt_size = 0;
+        unsigned int skip_size  = m_SkipByteBlock*16;
+        if (pattern_position < m_CryptByteBlock) {
+            // in the encrypted part
+            crypt_size = (m_CryptByteBlock-pattern_position)*16;
+        } else {
+            // in the skipped part
+            skip_size = (pattern_span-pattern_position)*16;
+        }
+        
+        // clip
+        AP4_Size remain = in_size-*out_size;
+        if (crypt_size > remain) {
+            crypt_size = 16*(remain/16);
+            skip_size  = remain-crypt_size;
+        }
+        if (crypt_size+skip_size > remain) {
+            skip_size = remain-crypt_size;
+        }
+        
+        // encrypted part
+        if (crypt_size) {
+            AP4_Size in_chunk_size  = crypt_size;
+            AP4_Size out_chunk_size = crypt_size;
+            
+            AP4_Result result = m_Cipher->ProcessBuffer(in, in_chunk_size, out, &out_chunk_size);
+            if (AP4_FAILED(result)) return result;
+            // check that we got back what we expectected
+            if (out_chunk_size != in_chunk_size) {
+                return AP4_ERROR_INTERNAL;
+            }
+            in             += crypt_size;
+            out            += crypt_size;
+            *out_size      += crypt_size;
+            m_StreamOffset += crypt_size;
+        }
+        
+        // skipped part
+        if (skip_size) {
+            AP4_CopyMemory(out, in, skip_size);
+            in             += skip_size;
+            out            += skip_size;
+            *out_size      += skip_size;
+            m_StreamOffset += skip_size;
+        }
+        
+        // we're now at the start of a new pattern
+        pattern_position = 0;
+    }
+
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_PatternStreamCipher
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_PatternStreamCipher::SetIV(const AP4_UI08* iv)
+{
+    m_StreamOffset = 0;
+    return m_Cipher->SetIV(iv);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_PatternStreamCipher
++---------------------------------------------------------------------*/
+const AP4_UI08*
+AP4_PatternStreamCipher::GetIV()
+{
+    return m_Cipher->GetIV();
+}

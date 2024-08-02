@@ -2,7 +2,7 @@
 |
 |    AP4 - Segment Builder
 |
-|    Copyright 2002-2014 Axiomatic Systems, LLC
+|    Copyright 2002-2019 Axiomatic Systems, LLC
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -29,7 +29,6 @@
 /*----------------------------------------------------------------------
 |   includes
 +---------------------------------------------------------------------*/
-#include <stdio.h> // FIXME: testing
 #include "Ap4SegmentBuilder.h"
 #include "Ap4Results.h"
 #include "Ap4ByteStream.h"
@@ -47,7 +46,8 @@
 /*----------------------------------------------------------------------
 |   constants
 +---------------------------------------------------------------------*/
-const AP4_UI32 AP4_SEGMENT_BUILDER_DEFAULT_TIMESCALE = 1000;
+const AP4_UI32     AP4_SEGMENT_BUILDER_DEFAULT_TIMESCALE = 1000;
+const unsigned int AP4_STREAM_FEEDER_DEFAULT_BUFFER_SIZE = 65536;
 
 /*----------------------------------------------------------------------
 |   AP4_SegmentBuilder::AP4_SegmentBuilder
@@ -88,28 +88,6 @@ AP4_SegmentBuilder::AddSample(AP4_Sample& sample)
 }
 
 /*----------------------------------------------------------------------
-|   AP4_FeedSegmentBuilder::AP4_FeedSegmentBuilder
-+---------------------------------------------------------------------*/
-AP4_FeedSegmentBuilder::AP4_FeedSegmentBuilder(AP4_Track::Type track_type,
-                                               AP4_UI32        track_id,
-                                               AP4_UI64        media_time_origin) :
-    AP4_SegmentBuilder(track_type, track_id, media_time_origin)
-{
-}
-
-/*----------------------------------------------------------------------
-|   AP4_AvcSegmentBuilder::AP4_AvcSegmentBuilder
-+---------------------------------------------------------------------*/
-AP4_AvcSegmentBuilder::AP4_AvcSegmentBuilder(AP4_UI32 track_id,
-                                             double   frames_per_second,
-                                             AP4_UI64 media_time_origin) :
-    AP4_FeedSegmentBuilder(AP4_Track::TYPE_VIDEO, track_id, media_time_origin),
-    m_FramesPerSecond(frames_per_second)
-{
-    m_Timescale = (unsigned int)(frames_per_second*1000.0);
-}
-
-/*----------------------------------------------------------------------
 |   AP4_SegmentBuilder::WriteMediaSegment
 +---------------------------------------------------------------------*/
 AP4_Result
@@ -119,7 +97,7 @@ AP4_SegmentBuilder::WriteMediaSegment(AP4_ByteStream& stream, unsigned int seque
     if (m_TrackType == AP4_Track::TYPE_VIDEO) {
         tfhd_flags |= AP4_TFHD_FLAG_DEFAULT_SAMPLE_FLAGS_PRESENT;
     }
-        
+    
     // setup the moof structure
     AP4_ContainerAtom* moof = new AP4_ContainerAtom(AP4_ATOM_TYPE_MOOF);
     AP4_MfhdAtom* mfhd = new AP4_MfhdAtom(sequence_number);
@@ -168,7 +146,7 @@ AP4_SegmentBuilder::WriteMediaSegment(AP4_ByteStream& stream, unsigned int seque
         trun_entry.sample_duration                = m_Samples[i].GetDuration();
         trun_entry.sample_size                    = m_Samples[i].GetSize();
         trun_entry.sample_composition_time_offset = m_Samples[i].GetCtsDelta();
-                    
+        
         mdat_size += trun_entry.sample_size;
     }
     
@@ -209,6 +187,192 @@ AP4_SegmentBuilder::WriteMediaSegment(AP4_ByteStream& stream, unsigned int seque
     m_Samples.Clear();
 
     return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_FeedSegmentBuilder::AP4_FeedSegmentBuilder
++---------------------------------------------------------------------*/
+AP4_FeedSegmentBuilder::AP4_FeedSegmentBuilder(AP4_Track::Type track_type,
+                                               AP4_UI32        track_id,
+                                               AP4_UI64        media_time_origin) :
+    AP4_SegmentBuilder(track_type, track_id, media_time_origin)
+{
+}
+
+/*----------------------------------------------------------------------
+|   AP4_VideoSegmentBuilder::AP4_VideoSegmentBuilder
++---------------------------------------------------------------------*/
+AP4_VideoSegmentBuilder::AP4_VideoSegmentBuilder(AP4_UI32 track_id,
+                                                 double   frames_per_second,
+                                                 AP4_UI64 media_time_origin) :
+    AP4_FeedSegmentBuilder(AP4_Track::TYPE_VIDEO, track_id, media_time_origin),
+    m_FramesPerSecond(frames_per_second)
+{
+    m_Timescale = (unsigned int)(frames_per_second*1000.0);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_VideoSegmentBuilder::SortSamples
++---------------------------------------------------------------------*/
+void
+AP4_VideoSegmentBuilder::SortSamples(SampleOrder* array, unsigned int n)
+{
+    if (n < 2) {
+        return;
+    }
+    SampleOrder pivot = array[n / 2];
+    SampleOrder* left  = array;
+    SampleOrder* right = array + n - 1;
+    while (left <= right) {
+        if (left->m_DisplayOrder < pivot.m_DisplayOrder) {
+            ++left;
+            continue;
+        }
+        if (right->m_DisplayOrder > pivot.m_DisplayOrder) {
+            --right;
+            continue;
+        }
+        SampleOrder temp = *left;
+        *left++ = *right;
+        *right-- = temp;
+    }
+    SortSamples(array, (unsigned int)(right - array + 1));
+    SortSamples(left, (unsigned int)(array + n - left));
+}
+
+/*----------------------------------------------------------------------
+|   AP4_VideoSegmentBuilder::WriteVideoInitSegment
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_VideoSegmentBuilder::WriteVideoInitSegment(AP4_ByteStream&        stream,
+                                               AP4_SampleDescription* sample_description,
+                                               unsigned int           width,
+                                               unsigned int           height,
+                                               AP4_UI32               brand)
+{
+    // create the output file object
+    AP4_Movie* output_movie = new AP4_Movie(AP4_SEGMENT_BUILDER_DEFAULT_TIMESCALE);
+
+    // create an mvex container
+    AP4_ContainerAtom* mvex = new AP4_ContainerAtom(AP4_ATOM_TYPE_MVEX);
+    AP4_MehdAtom* mehd = new AP4_MehdAtom(0);
+    mvex->AddChild(mehd);
+
+    // create a sample table (with no samples) to hold the sample description
+    AP4_SyntheticSampleTable* sample_table = new AP4_SyntheticSampleTable();
+    sample_table->AddSampleDescription(sample_description, true);
+
+    // create the track
+    AP4_Track* output_track = new AP4_Track(AP4_Track::TYPE_VIDEO,
+                                            sample_table,
+                                            m_TrackId,
+                                            AP4_SEGMENT_BUILDER_DEFAULT_TIMESCALE,
+                                            0,
+                                            m_Timescale,
+                                            0,
+                                            m_TrackLanguage.GetChars(),
+                                            width << 16,
+                                            height << 16);
+    output_movie->AddTrack(output_track);
+
+    // add a trex entry to the mvex container
+    AP4_TrexAtom* trex = new AP4_TrexAtom(m_TrackId,
+                                          1,
+                                          0,
+                                          0,
+                                          0);
+    mvex->AddChild(trex);
+
+    // update the mehd duration
+    // TBD mehd->SetDuration(0);
+
+    // the mvex container to the moov container
+    output_movie->GetMoovAtom()->AddChild(mvex);
+
+    // write the ftyp atom
+    AP4_Array<AP4_UI32> brands;
+    brands.Append(AP4_FILE_BRAND_ISOM);
+    brands.Append(AP4_FILE_BRAND_MP42);
+    brands.Append(AP4_FILE_BRAND_MP41);
+    brands.Append(brand);
+
+    AP4_FtypAtom* ftyp = new AP4_FtypAtom(AP4_FILE_BRAND_MP42, 1, &brands[0], brands.ItemCount());
+    ftyp->Write(stream);
+    delete ftyp;
+
+    // write the moov atom
+    AP4_Result result = output_movie->GetMoovAtom()->Write(stream);
+    if (AP4_FAILED(result)) {
+        return result;
+    }
+
+    // cleanup
+    delete output_movie;
+    
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_VideoSegmentBuilder::WriteMediaSegment
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_VideoSegmentBuilder::WriteMediaSegment(AP4_ByteStream& stream, unsigned int sequence_number)
+{
+    if (m_SampleOrders.ItemCount() > 1) {
+        // rebase the decode order
+        AP4_UI32 decode_order_base = m_SampleOrders[0].m_DecodeOrder;
+        for (unsigned int i=0; i<m_SampleOrders.ItemCount(); i++) {
+            if (m_SampleOrders[i].m_DecodeOrder >= decode_order_base) {
+                m_SampleOrders[i].m_DecodeOrder -= decode_order_base;
+            }
+        }
+    
+        // adjust the sample CTS/DTS offsets based on the sample orders
+        unsigned int start = 0;
+        for (unsigned int i=1; i<=m_SampleOrders.ItemCount(); i++) {
+            if (i == m_SampleOrders.ItemCount() || m_SampleOrders[i].m_DisplayOrder == 0) {
+                // we got to the end of the GOP, sort it by display order
+                SortSamples(&m_SampleOrders[start], i-start);
+                start = i;
+            }
+        }
+
+        // compute the max CTS delta
+        unsigned int max_delta = 0;
+        for (unsigned int i=0; i<m_SampleOrders.ItemCount(); i++) {
+            if (m_SampleOrders[i].m_DecodeOrder > i) {
+                unsigned int delta =m_SampleOrders[i].m_DecodeOrder-i;
+                if (delta > max_delta) {
+                    max_delta = delta;
+                }
+            }
+        }
+
+        // set the CTS for all samples
+        for (unsigned int i=0; i<m_SampleOrders.ItemCount(); i++) {
+            AP4_UI64 dts = m_Samples[i].GetDts();
+            if (m_Timescale) {
+                dts = (AP4_UI64)((double)m_Timescale/m_FramesPerSecond*(double)(i+max_delta));
+            }
+            if (m_SampleOrders[i].m_DecodeOrder < m_Samples.ItemCount()) {
+                m_Samples[m_SampleOrders[i].m_DecodeOrder].SetCts(dts);
+            }
+        }
+    
+        m_SampleOrders.Clear();
+    }
+    
+    return AP4_SegmentBuilder::WriteMediaSegment(stream, sequence_number);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_AvcSegmentBuilder::AP4_AvcSegmentBuilder
++---------------------------------------------------------------------*/
+AP4_AvcSegmentBuilder::AP4_AvcSegmentBuilder(AP4_UI32 track_id,
+                                             double   frames_per_second,
+                                             AP4_UI64 media_time_origin) :
+    AP4_VideoSegmentBuilder(track_id, frames_per_second, media_time_origin)
+{
 }
 
 /*----------------------------------------------------------------------
@@ -271,95 +435,11 @@ AP4_AvcSegmentBuilder::Feed(const void* data,
 }
 
 /*----------------------------------------------------------------------
-|   AP4_AvcSegmentBuilder::SortSamples
-+---------------------------------------------------------------------*/
-void
-AP4_AvcSegmentBuilder::SortSamples(SampleOrder* array, unsigned int n)
-{
-    if (n < 2) {
-        return;
-    }
-    SampleOrder pivot = array[n / 2];
-    SampleOrder* left  = array;
-    SampleOrder* right = array + n - 1;
-    while (left <= right) {
-        if (left->m_DisplayOrder < pivot.m_DisplayOrder) {
-            ++left;
-            continue;
-        }
-        if (right->m_DisplayOrder > pivot.m_DisplayOrder) {
-            --right;
-            continue;
-        }
-        SampleOrder temp = *left;
-        *left++ = *right;
-        *right-- = temp;
-    }
-    SortSamples(array, (unsigned int)(right - array + 1));
-    SortSamples(left, (unsigned int)(array + n - left));
-}
-
-/*----------------------------------------------------------------------
-|   AP4_AvcSegmentBuilder::WriteMediaSegment
-+---------------------------------------------------------------------*/
-AP4_Result
-AP4_AvcSegmentBuilder::WriteMediaSegment(AP4_ByteStream& stream, unsigned int sequence_number)
-{
-    if (m_SampleOrders.ItemCount() > 1) {
-        // rebase the decode order
-        AP4_UI32 decode_order_base = m_SampleOrders[0].m_DecodeOrder;
-        for (unsigned int i=0; i<m_SampleOrders.ItemCount(); i++) {
-            if (m_SampleOrders[i].m_DecodeOrder >= decode_order_base) {
-                m_SampleOrders[i].m_DecodeOrder -= decode_order_base;
-            }
-        }
-    
-        // adjust the sample CTS/DTS offsets based on the sample orders
-        unsigned int start = 0;
-        for (unsigned int i=1; i<=m_SampleOrders.ItemCount(); i++) {
-            if (i == m_SampleOrders.ItemCount() || m_SampleOrders[i].m_DisplayOrder == 0) {
-                // we got to the end of the GOP, sort it by display order
-                SortSamples(&m_SampleOrders[start], i-start);
-                start = i;
-            }
-        }
-
-        // compute the max CTS delta
-        unsigned int max_delta = 0;
-        for (unsigned int i=0; i<m_SampleOrders.ItemCount(); i++) {
-            if (m_SampleOrders[i].m_DecodeOrder > i) {
-                unsigned int delta =m_SampleOrders[i].m_DecodeOrder-i;
-                if (delta > max_delta) {
-                    max_delta = delta;
-                }
-            }
-        }
-
-        // set the CTS for all samples
-        for (unsigned int i=0; i<m_SampleOrders.ItemCount(); i++) {
-            AP4_UI64 dts = m_Samples[i].GetDts();
-            if (m_Timescale) {
-                dts = (AP4_UI64)((double)m_Timescale/m_FramesPerSecond*(double)(i+max_delta));
-            }
-            if (m_SampleOrders[i].m_DecodeOrder < m_Samples.ItemCount()) {
-                m_Samples[m_SampleOrders[i].m_DecodeOrder].SetCts(dts);
-            }
-        }
-    
-        m_SampleOrders.Clear();
-    }
-    
-    return AP4_SegmentBuilder::WriteMediaSegment(stream, sequence_number);
-}
-
-/*----------------------------------------------------------------------
 |   AP4_AvcSegmentBuilder::WriteInitSegment
 +---------------------------------------------------------------------*/
 AP4_Result
 AP4_AvcSegmentBuilder::WriteInitSegment(AP4_ByteStream& stream)
 {
-    AP4_Result result;
-    
     // compute the track parameters
     AP4_AvcSequenceParameterSet* sps = NULL;
     for (unsigned int i=0; i<=AP4_AVC_SPS_MAX_ID; i++) {
@@ -403,68 +483,186 @@ AP4_AvcSegmentBuilder::WriteInitSegment(AP4_ByteStream& stream)
                                                 sps->constraint_set2_flag<<5 |
                                                 sps->constraint_set3_flag<<4),
                                      4,
+                                     sps->chroma_format_idc,
+                                     sps->bit_depth_luma_minus8,
+                                     sps->bit_depth_chroma_minus8,
                                      sps_array,
                                      pps_array);
+
+    // let the base class finish the work
+    return AP4_VideoSegmentBuilder::WriteVideoInitSegment(stream,
+                                                          sample_description,
+                                                          video_width,
+                                                          video_height,
+                                                          AP4_FILE_BRAND_AVC1);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_HevcSegmentBuilder::AP4_HevcSegmentBuilder
++---------------------------------------------------------------------*/
+AP4_HevcSegmentBuilder::AP4_HevcSegmentBuilder(AP4_UI32 track_id,
+                                               double   frames_per_second,
+                                               AP4_UI32 video_format,
+                                               AP4_UI64 media_time_origin) :
+    AP4_VideoSegmentBuilder(track_id, frames_per_second, media_time_origin),
+    m_VideoFormat(video_format)
+{
+}
+
+/*----------------------------------------------------------------------
+|   AP4_HevcSegmentBuilder::Feed
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_HevcSegmentBuilder::Feed(const void* data,
+                             AP4_Size    data_size,
+                             AP4_Size&   bytes_consumed)
+{
+    AP4_Result result;
     
-    // create the output file object
-    AP4_Movie* output_movie = new AP4_Movie(AP4_SEGMENT_BUILDER_DEFAULT_TIMESCALE);
+    AP4_HevcFrameParser::AccessUnitInfo access_unit_info;
+    result = m_FrameParser.Feed(data, data_size, bytes_consumed, access_unit_info, data == NULL);
+    if (AP4_FAILED(result)) return result;
     
-    // create an mvex container
-    AP4_ContainerAtom* mvex = new AP4_ContainerAtom(AP4_ATOM_TYPE_MVEX);
-    AP4_MehdAtom* mehd = new AP4_MehdAtom(0);
-    mvex->AddChild(mehd);
-    
-    // create a sample table (with no samples) to hold the sample description
-    AP4_SyntheticSampleTable* sample_table = new AP4_SyntheticSampleTable();
-    sample_table->AddSampleDescription(sample_description, true);
-    
-    // create the track
-    AP4_Track* output_track = new AP4_Track(AP4_Track::TYPE_VIDEO,
-                                            sample_table,
-                                            m_TrackId,
-                                            AP4_SEGMENT_BUILDER_DEFAULT_TIMESCALE,
-                                            0,
-                                            m_Timescale,
-                                            0,
-                                            m_TrackLanguage.GetChars(),
-                                            video_width << 16,
-                                            video_height << 16);
-    output_movie->AddTrack(output_track);
-    
-    // add a trex entry to the mvex container
-    AP4_TrexAtom* trex = new AP4_TrexAtom(m_TrackId,
-                                          1,
-                                          0,
-                                          0,
-                                          0);
-    mvex->AddChild(trex);
-    
-    // update the mehd duration
-    // TBD mehd->SetDuration(0);
-    
-    // the mvex container to the moov container
-    output_movie->GetMoovAtom()->AddChild(mvex);
-    
-    // write the ftyp atom
-    AP4_Array<AP4_UI32> brands;
-    brands.Append(AP4_FILE_BRAND_ISOM);
-    brands.Append(AP4_FILE_BRAND_MP42);
-    brands.Append(AP4_FILE_BRAND_MP41);
-    
-    AP4_FtypAtom* ftyp = new AP4_FtypAtom(AP4_FILE_BRAND_MP42, 1, &brands[0], brands.ItemCount());
-    ftyp->Write(stream);
-    delete ftyp;
-    
-    // write the moov atom
-    result = output_movie->GetMoovAtom()->Write(stream);
-    if (AP4_FAILED(result)) {
-        return result;
+    // check if we have an access unit
+    if (access_unit_info.nal_units.ItemCount()) {
+        // compute the total size of the sample data
+        unsigned int sample_data_size = 0;
+        for (unsigned int i=0; i<access_unit_info.nal_units.ItemCount(); i++) {
+            sample_data_size += 4+access_unit_info.nal_units[i]->GetDataSize();
+        }
+        
+        // format the sample data
+        AP4_MemoryByteStream* sample_data = new AP4_MemoryByteStream(sample_data_size);
+        for (unsigned int i=0; i<access_unit_info.nal_units.ItemCount(); i++) {
+            sample_data->WriteUI32(access_unit_info.nal_units[i]->GetDataSize());
+            sample_data->Write(access_unit_info.nal_units[i]->GetData(), access_unit_info.nal_units[i]->GetDataSize());
+        }
+        
+        // compute the timestamp in a drift-less manner
+        AP4_UI32 duration = 0;
+        AP4_UI64 dts      = 0;
+        if (m_Timescale !=0 && m_FramesPerSecond != 0.0) {
+            AP4_UI64 this_sample_time = m_MediaStartTime+m_MediaDuration;
+            AP4_UI64 next_sample_time = (AP4_UI64)((double)m_Timescale*(double)(m_SampleStartNumber+m_Samples.ItemCount()+1)/m_FramesPerSecond);
+            duration = (AP4_UI32)(next_sample_time-this_sample_time);
+            dts      = (AP4_UI64)((double)m_Timescale/m_FramesPerSecond*(double)m_Samples.ItemCount());
+        }
+
+        // create a new sample and add it to the list
+        AP4_Sample sample(*sample_data, 0, sample_data_size, duration, 0, dts, 0, access_unit_info.is_random_access);
+        AddSample(sample);
+        sample_data->Release();
+        
+        // remember the sample order
+        m_SampleOrders.Append(SampleOrder(access_unit_info.decode_order, access_unit_info.display_order));
+        
+        // free the memory buffers
+        for (unsigned int i=0; i<access_unit_info.nal_units.ItemCount(); i++) {
+            delete access_unit_info.nal_units[i];
+        }
+        access_unit_info.nal_units.Clear();
+        
+        return 1; // one access unit returned
     }
     
-    // cleanup
-    delete output_movie;
-    
     return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_HevcSegmentBuilder::WriteInitSegment
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_HevcSegmentBuilder::WriteInitSegment(AP4_ByteStream& stream)
+{
+    // check that we have at least one SPS
+    AP4_HevcSequenceParameterSet* sps = NULL;
+    for (unsigned int i=0; i<=AP4_HEVC_SPS_MAX_ID; i++) {
+        sps = m_FrameParser.GetSequenceParameterSets()[i];
+        if (sps) break;
+    }
+    if (sps == NULL) {
+        return AP4_ERROR_INVALID_FORMAT;
+    }
+    unsigned int video_width = 0;
+    unsigned int video_height = 0;
+    sps->GetInfo(video_width, video_height);
+
+    // collect parameters from the first SPS entry
+    // TODO: synthesize from multiple SPS entries if we have more than one
+    AP4_UI08 general_profile_space =               sps->profile_tier_level.general_profile_space;
+    AP4_UI08 general_tier_flag =                   sps->profile_tier_level.general_tier_flag;
+    AP4_UI08 general_profile =                     sps->profile_tier_level.general_profile_idc;
+    AP4_UI32 general_profile_compatibility_flags = sps->profile_tier_level.general_profile_compatibility_flags;
+    AP4_UI64 general_constraint_indicator_flags =  sps->profile_tier_level.general_constraint_indicator_flags;
+    AP4_UI08 general_level =                       sps->profile_tier_level.general_level_idc;
+    AP4_UI32 min_spatial_segmentation =            0; // TBD (should read from VUI if present)
+    AP4_UI08 parallelism_type =                    0; // unknown
+    AP4_UI08 chroma_format =                       sps->chroma_format_idc;
+    AP4_UI08 luma_bit_depth =                      8; // hardcoded temporarily, should be read from the bitstream
+    AP4_UI08 chroma_bit_depth =                    8; // hardcoded temporarily, should be read from the bitstream
+    AP4_UI16 average_frame_rate =                  0; // unknown
+    AP4_UI08 constant_frame_rate =                 0; // unknown
+    AP4_UI08 num_temporal_layers =                 0; // unknown
+    AP4_UI08 temporal_id_nested =                  0; // unknown
+    AP4_UI08 nalu_length_size =                    4;
+
+    // collect the VPS, SPS and PPS into arrays
+    AP4_Array<AP4_DataBuffer> vps_array;
+    for (unsigned int i=0; i<=AP4_HEVC_VPS_MAX_ID; i++) {
+        if (m_FrameParser.GetVideoParameterSets()[i]) {
+            vps_array.Append(m_FrameParser.GetVideoParameterSets()[i]->raw_bytes);
+        }
+    }
+    AP4_Array<AP4_DataBuffer> sps_array;
+    for (unsigned int i=0; i<=AP4_HEVC_SPS_MAX_ID; i++) {
+        if (m_FrameParser.GetSequenceParameterSets()[i]) {
+            sps_array.Append(m_FrameParser.GetSequenceParameterSets()[i]->raw_bytes);
+        }
+    }
+    AP4_Array<AP4_DataBuffer> pps_array;
+    for (unsigned int i=0; i<=AP4_HEVC_PPS_MAX_ID; i++) {
+        if (m_FrameParser.GetPictureParameterSets()[i]) {
+            pps_array.Append(m_FrameParser.GetPictureParameterSets()[i]->raw_bytes);
+        }
+    }
+
+    // setup the video the sample descripton
+    AP4_UI08 parameters_completeness = (m_VideoFormat == AP4_SAMPLE_FORMAT_HVC1 ? 1 : 0);
+    AP4_HevcSampleDescription* sample_description =
+        new AP4_HevcSampleDescription(m_VideoFormat,
+                                      video_width,
+                                      video_height,
+                                      24,
+                                      "HEVC Coding",
+                                      general_profile_space,
+                                      general_tier_flag,
+                                      general_profile,
+                                      general_profile_compatibility_flags,
+                                      general_constraint_indicator_flags,
+                                      general_level,
+                                      min_spatial_segmentation,
+                                      parallelism_type,
+                                      chroma_format,
+                                      luma_bit_depth,
+                                      chroma_bit_depth,
+                                      average_frame_rate,
+                                      constant_frame_rate,
+                                      num_temporal_layers,
+                                      temporal_id_nested,
+                                      nalu_length_size,
+                                      vps_array,
+                                      parameters_completeness,
+                                      sps_array,
+                                      parameters_completeness,
+                                      pps_array,
+                                      parameters_completeness);
+
+    // let the base class finish the work
+    return AP4_VideoSegmentBuilder::WriteVideoInitSegment(stream,
+                                                          sample_description,
+                                                          video_width,
+                                                          video_height,
+                                                          AP4_FILE_BRAND_HVC1);
 }
 
 /*----------------------------------------------------------------------
@@ -551,7 +749,6 @@ AP4_AacSegmentBuilder::Feed(const void* data,
             bytes_consumed += can_feed;
         }
     }
-    
     return AP4_SUCCESS;
 }
 
@@ -621,4 +818,63 @@ AP4_AacSegmentBuilder::WriteInitSegment(AP4_ByteStream& stream)
     delete output_movie;
     
     return result;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_StreamFeeder::AP4_StreamFeeder
++---------------------------------------------------------------------*/
+AP4_StreamFeeder::AP4_StreamFeeder(AP4_ByteStream* source, AP4_FeedSegmentBuilder& builder) :
+    m_Source(source),
+    m_Builder(builder),
+    m_FeedBuffer(NULL),
+    m_FeedBufferSize(0),
+    m_FeedBytesPending(0),
+    m_FeedBytesParsed(0)
+{
+    AP4_ASSERT(source);
+    source->AddReference();
+    m_FeedBuffer = new AP4_UI08[AP4_STREAM_FEEDER_DEFAULT_BUFFER_SIZE];
+    if (m_FeedBuffer) {
+        m_FeedBufferSize = AP4_STREAM_FEEDER_DEFAULT_BUFFER_SIZE;
+    }
+}
+
+/*----------------------------------------------------------------------
+|   AP4_StreamFeeder::~AP4_StreamFeeder
++---------------------------------------------------------------------*/
+AP4_StreamFeeder::~AP4_StreamFeeder()
+{
+    m_Source->Release();
+    delete[] m_FeedBuffer;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_StreamFeeder::Feed
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_StreamFeeder::Feed()
+{
+    // read more data if the buffer is empty
+    if (m_FeedBytesPending == 0) {
+        m_FeedBytesParsed = 0;
+        if (!m_FeedBufferSize) return AP4_ERROR_INTERNAL;
+        AP4_Result result = m_Source->ReadPartial(m_FeedBuffer, m_FeedBufferSize, m_FeedBytesPending);
+        if (AP4_FAILED(result)) {
+            return result;
+        }
+        if (m_FeedBytesPending == 0) {
+            return AP4_ERROR_EOS;
+        }
+    }
+
+    // feed the builder
+    AP4_Size bytes_consumed = 0;
+    AP4_Result result = m_Builder.Feed(&m_FeedBuffer[m_FeedBytesParsed], m_FeedBytesPending, bytes_consumed);
+    if (result < 0) return result;
+
+    // update counters
+    m_FeedBytesParsed  += bytes_consumed;
+    m_FeedBytesPending -= bytes_consumed;
+    
+    return AP4_SUCCESS;
 }

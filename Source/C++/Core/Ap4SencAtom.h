@@ -49,9 +49,14 @@ public:
     // constructors
     AP4_SencAtom(AP4_UI08 iv_size = 16);
     AP4_SencAtom(AP4_UI32        algorithm_id,
-                 AP4_UI08        iv_size,
+                 AP4_UI08        per_sample_iv_size,
                  const AP4_UI08* kid);
-                 
+    AP4_SencAtom(AP4_UI08        per_sample_iv_size,
+                 AP4_UI08        constant_iv_size,
+                 const AP4_UI08* constant_iv,
+                 AP4_UI08        crypt_byte_block,
+                 AP4_UI08        skip_byte_block);
+    
     // methods  
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);
