@@ -2794,12 +2794,12 @@ AP4_CencSampleInfoTable::Create(AP4_ProtectedSampleDescription* sample_descripti
                                        child = child->GetNext()) {
             if (child->GetData()->GetType() == AP4_ATOM_TYPE_SAIO) {
                 saio = AP4_DYNAMIC_CAST(AP4_SaioAtom, child->GetData());
-                if (saio->GetAuxInfoType() != 0 && saio->GetAuxInfoType() != AP4_PROTECTION_SCHEME_TYPE_CENC) {
+                if (saio != NULL && saio->GetAuxInfoType() != 0 && saio->GetAuxInfoType() != AP4_PROTECTION_SCHEME_TYPE_CENC) {
                     saio = NULL;
                 }
             } else if (child->GetData()->GetType() == AP4_ATOM_TYPE_SAIZ) {
                 saiz = AP4_DYNAMIC_CAST(AP4_SaizAtom, child->GetData());
-                if (saiz->GetAuxInfoType() != 0 && saiz->GetAuxInfoType() != AP4_PROTECTION_SCHEME_TYPE_CENC) {
+                if (saiz != NULL && saiz->GetAuxInfoType() != 0 && saiz->GetAuxInfoType() != AP4_PROTECTION_SCHEME_TYPE_CENC) {
                     saiz = NULL;
                 }
             }
