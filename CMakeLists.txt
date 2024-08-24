@@ -14,7 +14,13 @@ function(get_bento4_version)
 endfunction()
 
 get_bento4_version()
-set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "")
+
+option(USE_DEFAULT_OSX_ARCHITECTURES "Build bento4 by default for arm64, x86_64 OSX architectures" ON)
+
+if(USE_DEFAULT_OSX_ARCHITECTURES)
+  set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "")
+endif()
+
 project(bento4 VERSION "${BENTO4_VERSION}")
 
 # Variables
