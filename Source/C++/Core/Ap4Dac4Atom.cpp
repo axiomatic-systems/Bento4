@@ -664,11 +664,12 @@ AP4_Dac4Atom::Ac4Dsi::SubStream::ParseSubStreamInfoAjoc(AP4_BitReader &bits,
         // oamd_common_data()
         ParseOamdCommonData(bits);
     }
-    n_umx_objects_minus1 = bits.ReadBits(4);
-    int nFullbandUpmixSignals = n_umx_objects_minus1 + 1;
+    int nFullbandUpmixSignalsMinus = bits.ReadBits(4);
+    int nFullbandUpmixSignals = nFullbandUpmixSignalsMinus + 1;
     if (nFullbandUpmixSignals == 16) {
         nFullbandUpmixSignals += AP4_Ac4VariableBits(bits, 3);
     }
+    n_umx_objects_minus1 = nFullbandUpmixSignals - 1;
 
     BedDynObjAssignment(bits, nFullbandUpmixSignals, true);
     ParseDsiSfMutiplier(bits, fs_idx);
