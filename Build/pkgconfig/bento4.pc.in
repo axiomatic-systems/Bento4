@@ -1,0 +1,9 @@
+prefix=@CMAKE_INSTALL_PREFIX@
+includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
+libdir=${prefix}/@CMAKE_INSTALL_LIBDIR@
+
+Name: @PROJECT_NAME@
+Description: Full-featured MP4 format, MPEG DASH, HLS, CMAF SDK and tools
+Version: @BENTO4_VERSION@
+Libs: -L${libdir} -lap4
+Cflags: -I${includedir}/bento4
