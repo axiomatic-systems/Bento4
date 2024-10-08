@@ -164,6 +164,7 @@ AP4_Processor::ProcessFragments(AP4_MoovAtom*              moov,
         // if this is not a moof atom, just write it back and continue
         if (atom->GetType() != AP4_ATOM_TYPE_MOOF) {
             result = atom->Write(output);
+            delete atom;
             if (AP4_FAILED(result)) return result;
             continue;
         }
