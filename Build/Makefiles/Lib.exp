@@ -10,4 +10,4 @@
 # exports
 ##########################################################################
 TARGET_LIBRARIES += AP4
-INCLUDES_CPP     += -I$(SOURCE_ROOT)/Core -I$(SOURCE_ROOT)/Config -I$(SOURCE_ROOT)/MetaData -I$(SOURCE_ROOT)/System/StdC -I$(SOURCE_ROOT)/Crypto -I$(SOURCE_ROOT)/Codecs
+INCLUDES_CPP     += -I$(SOURCE_ROOT)/Core -I$(SOURCE_ROOT)/Config -I$(SOURCE_ROOT)/MetaData -I$(SOURCE_ROOT)/System/StdC -I$(SOURCE_ROOT)/Crypto -I$(SOURCE_ROOT)/Codecs -I$(SOURCE_ROOT)/XML/src

@@ -71,7 +71,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\..\..\Source\C++\Config;..\..\..\..\Source\C++\Core;..\..\..\..\Source\C++\Codecs;..\..\..\..\Source\C++\MetaData;..\..\..\..\Source\C++\Crypto;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\Source\C++\Config;..\..\..\..\Source\C++\Core;..\..\..\..\Source\C++\Codecs;..\..\..\..\Source\C++\MetaData;..\..\..\..\Source\C++\Crypto;..\..\..\..\Source\C++\XML\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;AP4_DEBUG;_LIB;AP4_PLATFORM_BYTE_ORDER=AP4_PLATFORM_BYTE_ORDER_LITTLE_ENDIAN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>
       </MinimalRebuild>
@@ -92,7 +92,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\..\..\Source\C++\Config;..\..\..\..\Source\C++\Core;..\..\..\..\Source\C++\Codecs;..\..\..\..\Source\C++\MetaData;..\..\..\..\Source\C++\Crypto;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\Source\C++\Config;..\..\..\..\Source\C++\Core;..\..\..\..\Source\C++\Codecs;..\..\..\..\Source\C++\MetaData;..\..\..\..\Source\C++\Crypto;..\..\..\..\Source\C++\XML\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;AP4_DEBUG;_LIB;AP4_PLATFORM_BYTE_ORDER=AP4_PLATFORM_BYTE_ORDER_LITTLE_ENDIAN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -111,7 +111,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\..\..\..\Source\C++\Config;..\..\..\..\Source\C++\Core;..\..\..\..\Source\C++\Codecs;..\..\..\..\Source\C++\MetaData;..\..\..\..\Source\C++\Crypto;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\Source\C++\Config;..\..\..\..\Source\C++\Core;..\..\..\..\Source\C++\Codecs;..\..\..\..\Source\C++\MetaData;..\..\..\..\Source\C++\Crypto;..\..\..\..\Source\C++\XML\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;AP4_PLATFORM_BYTE_ORDER=AP4_PLATFORM_BYTE_ORDER_LITTLE_ENDIAN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader>
@@ -132,7 +132,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\..\..\..\Source\C++\Config;..\..\..\..\Source\C++\Core;..\..\..\..\Source\C++\Codecs;..\..\..\..\Source\C++\MetaData;..\..\..\..\Source\C++\Crypto;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\Source\C++\Config;..\..\..\..\Source\C++\Core;..\..\..\..\Source\C++\Codecs;..\..\..\..\Source\C++\MetaData;..\..\..\..\Source\C++\Crypto;..\..\..\..\Source\C++\XML\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;AP4_PLATFORM_BYTE_ORDER=AP4_PLATFORM_BYTE_ORDER_LITTLE_ENDIAN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader>
@@ -182,6 +182,7 @@
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4TencAtom.cpp" />
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4TfdtAtom.cpp" />
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4VpccAtom.cpp" />
+    <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4XMLAtom.cpp" />
     <ClCompile Include="..\..\..\..\Source\C++\Crypto\Ap4AesBlockCipher.cpp" />
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4Atom.cpp" />
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4AtomFactory.cpp" />
@@ -284,6 +285,7 @@
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4Utils.cpp" />
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4UuidAtom.cpp" />
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4VmhdAtom.cpp" />
+    <ClCompile Include="..\..\..\..\Source\C++\XML\src\pugixml.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\Source\C++\Codecs\Ap4Ac3Parser.h" />
@@ -316,6 +318,7 @@
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4TencAtom.h" />
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4TfdtAtom.h" />
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4VpccAtom.h" />
+    <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4XMLAtom.h" />
     <ClInclude Include="..\..\..\..\Source\C++\Crypto\Ap4AesBlockCipher.h" />
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4Array.h" />
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4Atom.h" />
