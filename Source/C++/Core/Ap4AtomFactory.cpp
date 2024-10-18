@@ -108,6 +108,10 @@
 #include "Ap4SidxAtom.h"
 #include "Ap4SbgpAtom.h"
 #include "Ap4SgpdAtom.h"
+#include "Ap4ColrAtom.h"
+#include "Ap4GamaAtom.h"
+#include "Ap4PaspAtom.h"
+#include "Ap4FielAtom.h"
 
 /*----------------------------------------------------------------------
 |   AP4_AtomFactory::~AP4_AtomFactory
@@ -352,6 +356,19 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
             atom = new AP4_AudioSampleEntry(type, size_32, stream, *this);
             break;
             
+          // ProRes
+          case AP4_ATOM_TYPE_AP4H:
+          case AP4_ATOM_TYPE_AP4X:
+          case AP4_ATOM_TYPE_APCH:
+          case AP4_ATOM_TYPE_APCN:
+          case AP4_ATOM_TYPE_APCS:
+          case AP4_ATOM_TYPE_APCO:
+          // mjpeg
+          case AP4_ATOM_TYPE_JPEG:
+          // Avid DNxHD / DNxHR
+          case AP4_ATOM_TYPE_AVDN:
+          case AP4_ATOM_TYPE_AVDH:
+          // VP8/9/10
           case AP4_ATOM_TYPE_VP08:
           case AP4_ATOM_TYPE_VP09:
           case AP4_ATOM_TYPE_VP10:
@@ -775,6 +792,26 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
             if (GetContext() == AP4_ATOM_TYPE_AC_4 || GetContext() == AP4_ATOM_TYPE_ENCA) {
                 atom = AP4_Dac4Atom::Create(size_32, stream);
             }
+            break;
+
+          case AP4_ATOM_TYPE_COLR:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_ColrAtom::Create(size_32, stream);
+            break;
+
+          case AP4_ATOM_TYPE_GAMA:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_GamaAtom::Create(size_32, stream);
+            break;
+
+          case AP4_ATOM_TYPE_PASP:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_PaspAtom::Create(size_32, stream);
+            break;
+
+          case AP4_ATOM_TYPE_FIEL:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_FielAtom::Create(size_32, stream);
             break;
 
           // track ref types
