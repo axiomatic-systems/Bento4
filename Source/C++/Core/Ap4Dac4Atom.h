@@ -81,7 +81,6 @@ public:
             AP4_UI08 b_substream_contains_bed_objects;
             AP4_UI08 b_substream_contains_dynamic_objects;
             AP4_UI08 b_substream_contains_ISF_objects;
-            AP4_UI08 ss_idx;
 
             // methods
             AP4_Result ParseSubstreamInfoChan(AP4_BitReader &bits, 
