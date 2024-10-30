@@ -181,11 +181,17 @@ AP4_Ac4Header::AP4_Ac4Header(const AP4_UI08* bytes, unsigned int size)
 AP4_Ac4Header::~AP4_Ac4Header()
 {
     if (m_PresentationV1) {
+        bool removed_ss[32];
+        AP4_SetMemory(removed_ss, false, sizeof(removed_ss));
         assert(m_PresentationV1 != NULL);
         for (unsigned int pres_idx = 0; pres_idx < m_NPresentations; pres_idx++) {
             assert(m_PresentationV1[pres_idx].d.v1.substream_groups != NULL);
             for (int j = 0; j < m_PresentationV1[pres_idx].d.v1.n_substream_groups; j++)
-                delete[] m_PresentationV1[pres_idx].d.v1.substream_groups[j].d.v1.substreams;
+                if (removed_ss[m_PresentationV1[pres_idx].d.v1.substream_groups[j].d.v1.substreams->ss_idx]) break;
+                else{
+                    removed_ss[m_PresentationV1[pres_idx].d.v1.substream_groups[j].d.v1.substreams->ss_idx] = true;
+                    delete[] m_PresentationV1[pres_idx].d.v1.substream_groups[j].d.v1.substreams;
+                }
             delete[] m_PresentationV1[pres_idx].d.v1.substream_groups;
             delete[] m_PresentationV1[pres_idx].d.v1.substream_group_indexs;
         }
