@@ -1296,9 +1296,6 @@ def ComputeWidevineHeader(header_spec, encryption_scheme, kid_hex):
     if 'policy' in fields:
         protobuf_fields.append((6, fields['policy']))
 
-    if encryption_scheme == 'cenc':
-        protobuf_fields.append((1, 1))
-
     four_cc = struct.unpack('>I', encryption_scheme.encode('ascii'))[0]
     protobuf_fields.append((9, four_cc))
 
