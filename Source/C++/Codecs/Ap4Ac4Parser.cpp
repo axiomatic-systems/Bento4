@@ -181,11 +181,17 @@ AP4_Ac4Header::AP4_Ac4Header(const AP4_UI08* bytes, unsigned int size)
 AP4_Ac4Header::~AP4_Ac4Header()
 {
     if (m_PresentationV1) {
+        bool removed_ss[32];
+        AP4_SetMemory(removed_ss, false, sizeof(removed_ss));
         assert(m_PresentationV1 != NULL);
         for (unsigned int pres_idx = 0; pres_idx < m_NPresentations; pres_idx++) {
             assert(m_PresentationV1[pres_idx].d.v1.substream_groups != NULL);
             for (int j = 0; j < m_PresentationV1[pres_idx].d.v1.n_substream_groups; j++)
-                delete[] m_PresentationV1[pres_idx].d.v1.substream_groups[j].d.v1.substreams;
+                if (removed_ss[m_PresentationV1[pres_idx].d.v1.substream_groups[j].d.v1.substreams->ss_idx]) break;
+                else{
+                    removed_ss[m_PresentationV1[pres_idx].d.v1.substream_groups[j].d.v1.substreams->ss_idx] = true;
+                    delete[] m_PresentationV1[pres_idx].d.v1.substream_groups[j].d.v1.substreams;
+                }
             delete[] m_PresentationV1[pres_idx].d.v1.substream_groups;
             delete[] m_PresentationV1[pres_idx].d.v1.substream_group_indexs;
         }
@@ -494,7 +500,35 @@ AP4_Ac4Parser::FindFrame(AP4_Ac4Frame& frame)
     frame.m_Info.m_Ac4Dsi.d.v1.ac4_bitrate_dsi.bit_rate = 0;                    // unknown, fixed value now
     frame.m_Info.m_Ac4Dsi.d.v1.ac4_bitrate_dsi.bit_rate_precision = 0xffffffff; // unknown, fixed value now
     frame.m_Info.m_Ac4Dsi.d.v1.n_presentations = ac4_header.m_NPresentations;
-    frame.m_Info.m_Ac4Dsi.d.v1.presentations   = ac4_header.m_PresentationV1;
+
+    if (ac4_header.m_PresentationV1) {
+        assert(ac4_header.m_PresentationV1 != NULL);
+        frame.m_Info.m_Ac4Dsi.d.v1.presentations = new AP4_Dac4Atom::Ac4Dsi::PresentationV1[ac4_header.m_NPresentations];
+        AP4_CopyMemory(frame.m_Info.m_Ac4Dsi.d.v1.presentations,
+                       ac4_header.m_PresentationV1,
+                       sizeof(AP4_Dac4Atom::Ac4Dsi::PresentationV1) * ac4_header.m_NPresentations);
+        for (unsigned int pres_idx = 0; pres_idx < ac4_header.m_NPresentations; pres_idx++) {
+            assert(ac4_header.m_PresentationV1[pres_idx].d.v1.substream_groups != NULL);
+            int n_substream_group = ac4_header.m_PresentationV1[pres_idx].d.v1.n_substream_groups;
+            frame.m_Info.m_Ac4Dsi.d.v1.presentations[pres_idx].d.v1.substream_groups = new AP4_Dac4Atom::Ac4Dsi::SubStreamGroupV1[n_substream_group];
+            frame.m_Info.m_Ac4Dsi.d.v1.presentations[pres_idx].d.v1.substream_group_indexs = new AP4_UI32[n_substream_group];
+            AP4_CopyMemory(frame.m_Info.m_Ac4Dsi.d.v1.presentations[pres_idx].d.v1.substream_group_indexs,
+                           ac4_header.m_PresentationV1[pres_idx].d.v1.substream_group_indexs,
+                           sizeof(AP4_UI32)*n_substream_group);
+            AP4_CopyMemory(frame.m_Info.m_Ac4Dsi.d.v1.presentations[pres_idx].d.v1.substream_groups,
+                           ac4_header.m_PresentationV1[pres_idx].d.v1.substream_groups,
+                           sizeof(AP4_Dac4Atom::Ac4Dsi::SubStreamGroupV1)*n_substream_group);
+            for (unsigned int sg_idx = 0; sg_idx < n_substream_group; sg_idx++) {
+                assert(ac4_header.m_PresentationV1[pres_idx].d.v1.substream_groups[sg_idx].d.v1.substreams != NULL);
+                int n_substreams = ac4_header.m_PresentationV1[pres_idx].d.v1.substream_groups[sg_idx].d.v1.n_substreams;
+                frame.m_Info.m_Ac4Dsi.d.v1.presentations[pres_idx].d.v1.substream_groups[sg_idx].d.v1.substreams
+                    = new AP4_Dac4Atom::Ac4Dsi::SubStream[n_substreams];
+                AP4_CopyMemory(frame.m_Info.m_Ac4Dsi.d.v1.presentations[pres_idx].d.v1.substream_groups[sg_idx].d.v1.substreams,
+                               ac4_header.m_PresentationV1[pres_idx].d.v1.substream_groups[sg_idx].d.v1.substreams,
+                               sizeof(AP4_Dac4Atom::Ac4Dsi::SubStream) * n_substreams);
+            }
+        }
+    }
 
     /* set the frame source */
     frame.m_Source = &m_Bits;
