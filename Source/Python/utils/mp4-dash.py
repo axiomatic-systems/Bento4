@@ -2087,13 +2087,13 @@ def main():
                     sys.stderr.write('WARNING: video duration mismatch between "'+str(track)+'" and "'+str(prev_track)+'"\n')
             prev_track = track
 
-    # check that the video segments match for all video tracks in the same adaptation set
-    for tracks in list(video_sets.values()):
-        if len(tracks) > 1:
-            anchor = tracks[0]
-            for track in tracks[1:]:
-                if track.segment_scaled_durations[:-1] != anchor.segment_scaled_durations[:-1]:
-                    PrintErrorAndExit('ERROR: video tracks are not aligned ("'+str(track)+'" differs from '+str(anchor)+')')
+    # # check that the video segments match for all video tracks in the same adaptation set
+    # for tracks in list(video_sets.values()):
+    #     if len(tracks) > 1:
+    #         anchor = tracks[0]
+    #         for track in tracks[1:]:
+    #             if track.segment_scaled_durations[:-1] != anchor.segment_scaled_durations[:-1]:
+    #                 PrintErrorAndExit('ERROR: video tracks are not aligned ("'+str(track)+'" differs from '+str(anchor)+')')
 
     # check that the video segment durations are almost all equal
     if not options.use_segment_timeline:
