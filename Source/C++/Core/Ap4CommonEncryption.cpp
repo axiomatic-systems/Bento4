@@ -1709,9 +1709,11 @@ AP4_CencEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
     AP4_UI32 clear_fragments = 0;
     if (clear_lead) {
         clear_fragments = AP4_ParseIntegerU(clear_lead);
-        unsigned int sample_description_count = stsd->GetSampleDescriptionCount();
-        for (unsigned int i=0; i<sample_description_count; i++) {
-            stsd->AddChild(stsd->GetSampleEntry(i)->Clone());
+        if (clear_fragments != 0) {
+            unsigned int sample_description_count = stsd->GetSampleDescriptionCount();
+            for (unsigned int i=0; i<sample_description_count; i++) {
+                stsd->AddChild(stsd->GetSampleEntry(i)->Clone());
+            }
         }
     }
     
