@@ -52,6 +52,8 @@
 #if !defined(AP4_PLATFORM_BYTE_ORDER)
 #if defined(__ppc__) || defined(__powerpc__) || defined(__PPC__) || defined(__PPC)
 #define AP4_PLATFORM_BYTE_ORDER AP4_PLATFORM_BYTE_ORDER_BIG_ENDIAN
+#elif defined(__s390__)
+#define AP4_PLATFORM_BYTE_ORDER AP4_PLATFORM_BYTE_ORDER_BIG_ENDIAN
 #elif defined(_MSC_VER)
 #if defined(_M_IX86) || defined(_M_X64) || defined(_M_ARM) || defined(_M_ARM64)
 #define AP4_PLATFORM_BYTE_ORDER AP4_PLATFORM_BYTE_ORDER_LITTLE_ENDIAN
