@@ -66,7 +66,7 @@ AP4_MdhdAtom::AP4_MdhdAtom(AP4_UI64    creation_time,
     m_TimeScale(time_scale),
     m_Duration(duration)
 {
-    if (language!=0 && strlen(language) == 3) {
+    if (language != 0 && strlen(language) == 3) {
         m_Language.Assign(language, 3);
     } else {
         m_Language = "und";
