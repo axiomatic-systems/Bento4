@@ -3277,7 +3277,11 @@ AP4_CencSampleEncryption::AP4_CencSampleEncryption(AP4_Atom&       outer,
     
     stream.ReadUI32(m_SampleInfoCount);
 
-    AP4_Size payload_size = size-m_Outer.GetHeaderSize()-4;
+    /* Prevent the payload_size from becoming negative to avoid overflow */
+    AP4_Size payload_size = 0;
+    if(size > (m_Outer.GetHeaderSize() + 4))
+	payload_size = size - m_Outer.GetHeaderSize() - 4;
+    
     m_SampleInfos.SetDataSize(payload_size);
     stream.Read(m_SampleInfos.UseData(), payload_size);
 }
