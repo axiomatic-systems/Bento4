@@ -588,6 +588,7 @@ const AP4_Atom::Type AP4_ATOM_TYPE_SIDX = AP4_ATOM_TYPE('s','i','d','x');
 const AP4_Atom::Type AP4_ATOM_TYPE_SSIX = AP4_ATOM_TYPE('s','s','i','x');
 const AP4_Atom::Type AP4_ATOM_TYPE_SBGP = AP4_ATOM_TYPE('s','b','g','p');
 const AP4_Atom::Type AP4_ATOM_TYPE_SGPD = AP4_ATOM_TYPE('s','g','p','d');
+const AP4_Atom::Type AP4_ATOM_TYPE_XML  = AP4_ATOM_TYPE('x','m','l',' ');
 
 /*----------------------------------------------------------------------
 |   AP4_AtomListInspector
