@@ -1964,6 +1964,150 @@ AP4_AesCtrBlockCipher::Process(const AP4_UI08* input,
     return AP4_SUCCESS;
 }
 
+#if AP4_AES_BLOCK_SIZE == 16 && AP4_AES_KEY_LENGTH == 16 && defined(__AES__) && defined(__SSE4_2__)
+#define AP4_ENABLE_AESNI
+
+#include <immintrin.h>
+
+#define cpuid(func,ax,bx,cx,dx)\
+  __asm__ __volatile__ ("cpuid":\
+  "=a" (ax), "=b" (bx), "=c" (cx), "=d" (dx) : "a" (func));
+
+static bool g_SupportAesNI = false;
+__attribute__((constructor)) static void detect_aesni()
+{
+  unsigned int a,b,c,d;
+  cpuid(1, a,b,c,d);
+  g_SupportAesNI = c & 0x2000000;
+}
+
+#endif
+
+#ifdef AP4_ENABLE_AESNI
+template <AP4_Size NB>
+static void aesni_process_NB_blocks(AP4_UI08* Out, AP4_UI08 const* In, __m128i& CB, AP4_UI08 const* Keys)
+{
+  __m128i CBs[NB];
+  const __m128i CB_ = CB;
+#pragma unroll
+  for (AP4_Size i = 0; i < NB; ++i) {
+    CBs[i] = _mm_add_epi64(CB_, _mm_set_epi32(0,i+1,0,0));
+  }
+  CB = CBs[NB-1];
+  const __m128i Bswap64 = _mm_set_epi8(8,9,10,11,12,13,14,15,7,6,5,4,3,2,1,0); 
+#pragma unroll
+  for (AP4_Size i = 0; i < NB; ++i) {
+    CBs[i] = _mm_shuffle_epi8(CBs[i], Bswap64);
+  }
+
+  __m128i EncrCBs[NB];
+  const __m128i Key0 = _mm_loadu_si128((const __m128i*)Keys);
+#pragma unroll
+  for (AP4_Size i = 0; i < NB; ++i) {
+    EncrCBs[i] = _mm_xor_si128(CBs[i], Key0);
+  }
+#pragma unroll
+  for (AP4_Size R = 1; R < 10; R++) {
+    const __m128i Key = _mm_loadu_si128((const __m128i*)&Keys[R*AP4_AES_KEY_LENGTH]);
+#pragma unroll
+    for (AP4_Size i = 0; i < NB; ++i) {
+      EncrCBs[i] = _mm_aesenc_si128(EncrCBs[i], Key);
+    }
+  }
+
+  const __m128i KeyLast = _mm_loadu_si128((const __m128i*)&Keys[10*AP4_AES_KEY_LENGTH]);
+#pragma unroll
+  for (AP4_Size i = 0; i < NB; ++i) {
+    EncrCBs[i] = _mm_aesenclast_si128(EncrCBs[i],
+      _mm_xor_si128(KeyLast, _mm_loadu_si128((const __m128i*)&In[i*AP4_AES_BLOCK_SIZE])));
+  }
+
+#pragma unroll
+  for (AP4_Size i = 0; i < NB; ++i) {
+    _mm_storeu_si128((__m128i*)&Out[i*AP4_AES_BLOCK_SIZE], EncrCBs[i]);
+  }
+}
+
+static void process(AP4_UI08* output, AP4_UI08 const* input, AP4_Size input_size, const AP4_UI08* iv, const AP4_UI08* Keys)
+{
+  union {
+    AP4_UI08 B[AP4_AES_BLOCK_SIZE];
+    __m128i V;
+  } Counter;
+
+  if (iv) {
+    memcpy(&Counter.B[0], iv, AP4_AES_BLOCK_SIZE);
+    Counter.V = _mm_shuffle_epi8(Counter.V, _mm_set_epi8(8,9,10,11,12,13,14,15,7,6,5,4,3,2,1,0));
+    Counter.V = _mm_sub_epi64(Counter.V, _mm_set_epi32(0,1,0,0));
+  } else {
+    memset(&Counter.B[0], 0, AP4_AES_BLOCK_SIZE);
+  }
+
+  // First, process blocks eight by eight (Intel recommandation)
+  const AP4_Size Size8B = 8*AP4_AES_BLOCK_SIZE;
+  const AP4_Size End8B = (input_size/Size8B)*Size8B;
+  for (AP4_Size i = 0; i < End8B; i += Size8B) {
+    aesni_process_NB_blocks<8>(&output[i], &input[i], Counter.V, Keys);
+  }
+  // Process the remaining blocks!
+  const AP4_Size RemBlocks = (input_size-End8B)/AP4_AES_BLOCK_SIZE;
+  AP4_Size CurIdx = End8B;
+  switch (RemBlocks) {
+#define FINAL_BLOCKS(N)\
+    case N:\
+      aesni_process_NB_blocks<N>(&output[CurIdx], &input[CurIdx], Counter.V, Keys);\
+      CurIdx += N*AP4_AES_BLOCK_SIZE;\
+      break;
+
+    FINAL_BLOCKS(7)
+    FINAL_BLOCKS(6)
+    FINAL_BLOCKS(5)
+    FINAL_BLOCKS(4)
+    FINAL_BLOCKS(3)
+    FINAL_BLOCKS(2)
+    FINAL_BLOCKS(1)
+#undef FINAL_BLOCKS
+  }
+  const AP4_Size Rem = input_size-CurIdx;
+  assert(Rem < 16 && "too many remaining bytes!");
+  if (Rem > 0) {
+    // Last block
+    AP4_UI08 LastBlock[AP4_AES_BLOCK_SIZE];
+    memcpy(&LastBlock[0], &input[CurIdx], Rem);
+    aesni_process_NB_blocks<1>(&LastBlock[0], &LastBlock[0], Counter.V, Keys);
+    memcpy(&output[CurIdx], &LastBlock[0], Rem);
+  }
+}
+
+class AP4_AesNICtrBlockCipher : public AP4_AesBlockCipher
+{
+public:
+    AP4_AesNICtrBlockCipher(CipherDirection direction,
+                          unsigned int    counter_size,
+                          aes_ctx*        context) :
+        AP4_AesBlockCipher(direction, CTR, context)
+  {
+    assert(counter_size == 8 && "counter size must be 8 bytes!");
+  }
+        
+  // AP4_BlockCipher methods
+  virtual AP4_Result Process(const AP4_UI08* input, 
+                             AP4_Size        input_size,
+                             AP4_UI08*       output,
+                             const AP4_UI08* iv);
+};
+
+AP4_Result AP4_AesNICtrBlockCipher::Process(const AP4_UI08* input, 
+                             AP4_Size        input_size,
+                             AP4_UI08*       output,
+                             const AP4_UI08* iv)
+{
+  assert(m_Context->n_rnd == 10 && "this only works for AES128!");
+  process(output, input, input_size, iv, (const AP4_UI08*) &m_Context->k_sch[0]);
+  return AP4_SUCCESS;
+}
+#endif // AP4_ENABLE_AESNI
+
 /*----------------------------------------------------------------------
 |   AP4_AesBlockCipher::Create
 +---------------------------------------------------------------------*/
@@ -1995,7 +2139,16 @@ AP4_AesBlockCipher::Create(const AP4_UI08*      key,
             if (ctr_params) {
                 counter_size = ctr_params->counter_size;
             }
-            cipher = new AP4_AesCtrBlockCipher(direction, counter_size, context);
+#ifdef AP4_ENABLE_AESNI
+            if (g_SupportAesNI && (counter_size == 8)) {
+              cipher = new AP4_AesNICtrBlockCipher(direction, counter_size, context);
+            }
+            else {
+#endif
+              cipher = new AP4_AesCtrBlockCipher(direction, counter_size, context);
+#ifdef AP4_ENABLE_AESNI
+            }
+#endif
             break;
         }
 
