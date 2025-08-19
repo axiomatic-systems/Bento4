@@ -608,6 +608,19 @@ def OutputDash(options, set_attributes, audio_sets, video_sets, subtitles_sets, 
                 # see if we have other descriptors
                 AddDescriptor(adaptation_set, set_attributes, 'subtitles/' + subtitles_track.language, 'subtitles')
 
+                if not options.on_demand:
+                    if options.split:
+                        init_segment_url                  = '$RepresentationID$/' + SPLIT_INIT_SEGMENT_NAME
+                        media_segment_url_template_prefix = '$RepresentationID$/'
+                    else:
+                        init_segment_url                  = NOSPLIT_INIT_FILE_PATTERN % ('$RepresentationID$')
+                        media_segment_url_template_prefix = ''
+
+                    stream_name = 'subtitles_' + subtitles_track.language
+                    AddSegmentTemplate(options, adaptation_set, init_segment_url, media_segment_url_template_prefix, subtitles_track, stream_name)
+                    AddSegments(options, representation, subtitles_track)
+
+
                 representation = xml.SubElement(adaptation_set,
                                                 'Representation',
                                                 id=subtitles_track.representation_id,
@@ -621,17 +634,6 @@ def OutputDash(options, set_attributes, audio_sets, video_sets, subtitles_sets, 
                     init_range = (0, subtitles_track.moov_atom.position+subtitles_track.moov_atom.size-1)
                     segment_base = xml.SubElement(representation, 'SegmentBase', indexRange=str(sidx_range[0])+'-'+str(sidx_range[1]))
                     xml.SubElement(segment_base, 'Initialization', range=str(init_range[0])+'-'+str(init_range[1]))
-                else:
-                    if options.split:
-                        init_segment_url                  = '$RepresentationID$/' + SPLIT_INIT_SEGMENT_NAME
-                        media_segment_url_template_prefix = '$RepresentationID$/'
-                    else:
-                        init_segment_url                  = NOSPLIT_INIT_FILE_PATTERN % ('$RepresentationID$')
-                        media_segment_url_template_prefix = ''
-
-                    stream_name = 'subtitles_' + subtitles_track.language
-                    AddSegmentTemplate(options, adaptation_set, init_segment_url, media_segment_url_template_prefix, subtitles_track, stream_name)
-                    AddSegments(options, representation, subtitles_track)
 
     # process all the subtitles files
     if subtitles_files:
