@@ -373,7 +373,7 @@ def AddContentProtection(options, container, tracks, all_tracks):
     # FairPlay
     if options.fairplay:
         container.append(xml.Comment(' FairPlay '))
-        cp = xml.SubElement(container, 'ContentProtection', schemeIdUri=FAIRPLAY_SCHEME_ID_URI)
+        xml.SubElement(container, 'ContentProtection', schemeIdUri=FAIRPLAY_SCHEME_ID_URI)
 
 #############################################
 def AddDescriptor(adaptation_set, set_attributes, set_name, category_name):
