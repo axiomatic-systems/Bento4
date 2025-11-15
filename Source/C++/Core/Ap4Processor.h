@@ -263,6 +263,7 @@ protected:
                                 AP4_ContainerAtom*         mfra,
                                 AP4_SidxAtom*              sidx,
                                 AP4_Position               sidx_position,
+                                ProgressListener*          listener,
                                 AP4_ByteStream&            input, 
                                 AP4_ByteStream&            output);
     

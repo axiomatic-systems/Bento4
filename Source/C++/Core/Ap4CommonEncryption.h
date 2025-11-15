@@ -653,7 +653,7 @@ class AP4_CencDecryptingProcessor : public AP4_Processor
 {
 public:
     // constructor
-    AP4_CencDecryptingProcessor(const AP4_ProtectionKeyMap* key_map, 
+    AP4_CencDecryptingProcessor(AP4_ProtectionKeyMap* key_map,
                                 AP4_BlockCipherFactory*     block_cipher_factory = NULL);
 
     // AP4_Processor methods
@@ -670,7 +670,7 @@ protected:
 
     // members
     AP4_BlockCipherFactory*     m_BlockCipherFactory;
-    const AP4_ProtectionKeyMap* m_KeyMap;
+    AP4_ProtectionKeyMap* m_KeyMap;
 };
 
 /*----------------------------------------------------------------------
