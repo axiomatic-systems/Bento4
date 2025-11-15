@@ -72,6 +72,8 @@ AP4_StsdAtom::AP4_StsdAtom(AP4_SampleTable* sample_table) :
 
         // create an entry for the description
         AP4_SampleDescription* sample_description = sample_table->GetSampleDescription(i);
+        if (sample_description == 0)
+            continue;
         AP4_Atom* entry = sample_description->ToAtom();
         AddChild(entry);
     }
