@@ -2,8 +2,11 @@
 
 from optparse import OptionParser
 from subprocess import check_output, CalledProcessError
-from pipes import quote
 import sys
+if not sys.version_info < (3, 13):
+    from shlex import quote
+else:
+    from pipes import quote
 import os
 import os.path as path
 import json
