@@ -71,7 +71,12 @@ file(GLOB AP4_HEADERS
   ${SOURCE_METADATA}/*.h
 )
 
-add_library(ap4 STATIC ${AP4_SOURCES})
+option(BUILD_SHARED_LIBRARY "Build as a shared library" OFF)
+if(BUILD_SHARED_LIBRARY)
+  add_library(ap4 SHARED ${AP4_SOURCES})
+else()
+  add_library(ap4 STATIC ${AP4_SOURCES})
+endif()
 target_include_directories(ap4 PUBLIC
   ${AP4_INCLUDE_DIRS}
 )
@@ -119,6 +124,12 @@ configure_package_config_file(
     INSTALL_DESTINATION "${config_install_dir}"
 )
 
+configure_file(
+    "Build/pkgconfig/bento4.pc.in"
+    "${generated_dir}/bento4.pc"
+    @ONLY
+)
+
 install(
     TARGETS ap4 ${BENTO4_APPS_LOWERCASE}
     EXPORT "${TARGETS_EXPORT_NAME}"
@@ -136,6 +147,11 @@ install(
 install(
     FILES "${project_config}" "${version_config}"
     DESTINATION "${config_install_dir}"
+)
+
+install(
+    FILES "${generated_dir}/bento4.pc"
+    DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig"
 )
 
 install(
