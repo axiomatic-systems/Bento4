@@ -2,8 +2,11 @@
 
 from optparse import OptionParser
 from subprocess import check_output, CalledProcessError
-from pipes import quote
 import sys
+if not sys.version_info < (3, 13):
+    from shlex import quote
+else:
+    from pipes import quote
 import os
 import os.path as path
 import json
@@ -193,7 +196,7 @@ def main():
 
         #x264_opts = "-x264opts keyint=%d:min-keyint=%d:scenecut=0:rc-lookahead=%d" % (options.segment_size, options.segment_size, options.segment_size)
         #video_opts = "-g %d" % (options.segment_size)
-        video_opts = "-force_key_frames 'expr:eq(mod(n,%d),0)'" % (options.segment_size)
+        video_opts = '-force_key_frames "expr:eq(mod(n,%d),0)"' % (options.segment_size)
         video_opts += " -bufsize %dk -maxrate %dk" % (bitrates[i], int(bitrates[i]*1.5))
         if options.video_codec == 'libx264':
             video_opts += " -x264opts rc-lookahead=%d" % (options.segment_size)

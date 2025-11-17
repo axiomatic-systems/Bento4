@@ -623,7 +623,7 @@ Fragment(AP4_File&                input_file,
         AP4_UI32 sync_sample_flags = 0;
         AP4_UI32 non_sync_sample_flags = 0x10000; // 0x10000 -> sample_is_non_sync
         if (cursor->m_Track->GetType() == AP4_Track::TYPE_VIDEO ||
-            (cursor->m_Track->GetSampleDescriptionCount() > 0 &&
+            (cursor->m_Track->GetSampleDescriptionCount() > 0 && cursor->m_Track->GetSampleDescription(0) &&
              cursor->m_Track->GetSampleDescription(0)->GetFormat() == AP4_SAMPLE_FORMAT_AC_4)) {
             non_sync_sample_flags |= 0x1000000; // sample_depends_on=1 (not I frame)
             sync_sample_flags     |= 0x2000000; // sample_depends_on=2 (I frame)

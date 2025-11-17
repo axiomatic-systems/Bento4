@@ -962,7 +962,7 @@ AddAc4Track(AP4_Movie&            movie,
         if (!movie.GetTimeScale()) {
             duration = AP4_UI64(sample_count) * sample_duration;
         } else {
-            duration = AP4_ConvertTime(AP4_UI64(sample_count)*sample_table->GetSampleCount(), media_time_scale, movie.GetTimeScale());
+            duration = AP4_ConvertTime(AP4_UI64(sample_duration)*sample_table->GetSampleCount(), media_time_scale, movie.GetTimeScale());
         }
         AP4_ElstEntry new_elst_entry = AP4_ElstEntry(duration, 0, 1);
         new_elst->AddEntry(new_elst_entry);

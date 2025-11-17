@@ -53,6 +53,7 @@
 #include "Ap4PsshAtom.h"
 #include "Ap4AvcParser.h"
 #include "Ap4HevcParser.h"
+#include "Ap4Ac4Parser.h"
 
 /*----------------------------------------------------------------------
 |   constants
@@ -107,7 +108,16 @@ AP4_CencBasicSubSampleMapper::GetSubSampleMap(AP4_DataBuffer&      sample_data,
     
     // process the sample data, one NALU at a time
     const AP4_UI08* in_end = sample_data.GetData()+sample_data.GetDataSize();
-    while ((AP4_Size)(in_end-in) > 1+m_NaluLengthSize) {
+    if (m_Format == AP4_SAMPLE_FORMAT_AC_4) {
+        AP4_Ac4Header ac4_header(in, (AP4_Size)(in_end - in), false);
+        // BytesOfProtectedData shall be adjusted to a multiple of 16 bytes for 'cbc1'
+        AP4_Size encrypted_size = ((AP4_Size)(in_end - in) - ac4_header.m_TocSize)/16*16;
+        AP4_Size cleartext_size = (AP4_Size)(in_end - in) - encrypted_size;
+        bytes_of_cleartext_data.Append(cleartext_size);
+        bytes_of_encrypted_data.Append(encrypted_size);
+        return AP4_SUCCESS;
+    }
+    while ((AP4_Size)(in_end-in) > m_NaluLengthSize) {
         unsigned int nalu_length;
         switch (m_NaluLengthSize) {
             case 1:
@@ -159,6 +169,18 @@ AP4_CencAdvancedSubSampleMapper::GetSubSampleMap(AP4_DataBuffer&      sample_dat
     
     // process the sample data, one NALU at a time
     const AP4_UI08* in_end = sample_data.GetData()+sample_data.GetDataSize();
+    if (m_Format == AP4_SAMPLE_FORMAT_AC_4) {
+        // According to ISO/IEC 23001-7 2023-8, BytesOfProtectedData shall be adjusted to a multiple of 16 bytes for 'cens' and 'cenc' mode.
+        AP4_Ac4Header ac4_header(in, (AP4_Size)(in_end - in), false);
+        AP4_Size total = static_cast<AP4_Size>(in_end - in);
+        AP4_Size header_size = ac4_header.m_TocSize;
+        AP4_Size encrypt_size = total - header_size;
+
+        AP4_Size tail = encrypt_size & 0xF;   
+        bytes_of_cleartext_data.Append(header_size + tail);
+        bytes_of_encrypted_data.Append(encrypt_size - tail);
+        return AP4_SUCCESS;
+    }
     while ((AP4_Size)(in_end-in) > 1+m_NaluLengthSize) {
         unsigned int nalu_length;
         switch (m_NaluLengthSize) {
@@ -363,6 +385,21 @@ AP4_CencCbcsSubSampleMapper::GetSubSampleMap(AP4_DataBuffer&      sample_data,
     
     // process the sample data, one NALU at a time
     const AP4_UI08* in_end = sample_data.GetData()+sample_data.GetDataSize();
+    if (m_Format == AP4_SAMPLE_FORMAT_AC_4) {
+        AP4_Ac4Header ac4_header(in, (AP4_Size)(in_end - in), false);
+        // BytesOfProtectedData is not adjusted to a multiple of 16 bytes for 'cbcs' according
+        // to ISO/IEC 23001-7 2023-8, however decryption model doesn't support in Bento4, need
+        // to revisit this code in future.
+        // bytes_of_cleartext_data.Append(ac4_header.m_TocSize);
+        // bytes_of_encrypted_data.Append((AP4_Size)(in_end - in) - ac4_header.m_TocSize);
+        // BytesOfProtectedData shall be adjusted to a multiple of 16 bytes for 'cbc1'
+        AP4_Size encrypted_size = ((AP4_Size)(in_end - in) - ac4_header.m_TocSize) / 16 * 16;
+        AP4_Size cleartext_size = (AP4_Size)(in_end - in) - encrypted_size;
+        bytes_of_cleartext_data.Append(cleartext_size);
+        bytes_of_encrypted_data.Append(encrypted_size);
+        return AP4_SUCCESS;
+    }
+
     while ((AP4_Size)(in_end-in) > 1+m_NaluLengthSize) {
         unsigned int nalu_length;
         switch (m_NaluLengthSize) {
@@ -1562,7 +1599,7 @@ AP4_CencEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
             if (m_Options & OPTION_IV_SIZE_8) {
                 cipher_iv_size = 8;
             }
-            if (enc_format == AP4_ATOM_TYPE_ENCV) {
+            if (enc_format == AP4_ATOM_TYPE_ENCV || (enc_format == AP4_ATOM_TYPE_ENCA && format == AP4_ATOM_TYPE_AC_4)) {
                 crypt_byte_block = 1;
                 skip_byte_block  = 9;
             }
@@ -1594,7 +1631,7 @@ AP4_CencEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
 
         case AP4_CENC_VARIANT_MPEG_CBCS:
             cipher_mode = AP4_BlockCipher::CBC;
-            if (enc_format == AP4_ATOM_TYPE_ENCV) {
+            if (enc_format == AP4_ATOM_TYPE_ENCV || (enc_format == AP4_ATOM_TYPE_ENCA && format == AP4_ATOM_TYPE_AC_4)) {
                 crypt_byte_block = 1;
                 skip_byte_block  = 9;
             }
@@ -1632,24 +1669,38 @@ AP4_CencEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
     
     // compute the size of NAL units
     unsigned int nalu_length_size = 0;
-    if (format == AP4_ATOM_TYPE_AVC1 ||
-        format == AP4_ATOM_TYPE_AVC2 ||
-        format == AP4_ATOM_TYPE_AVC3 ||
-        format == AP4_ATOM_TYPE_AVC4 ||
-        format == AP4_ATOM_TYPE_DVAV ||
-        format == AP4_ATOM_TYPE_DVA1) {
-        AP4_AvccAtom* avcc = AP4_DYNAMIC_CAST(AP4_AvccAtom, entries[0]->GetChild(AP4_ATOM_TYPE_AVCC));
-        if (avcc) {
-            nalu_length_size = avcc->GetNaluLengthSize();
+    bool use_subsample_encryption = false;
+    switch (format) {
+        case AP4_ATOM_TYPE_AVC1:
+        case AP4_ATOM_TYPE_AVC2:
+        case AP4_ATOM_TYPE_AVC3:
+        case AP4_ATOM_TYPE_AVC4:
+        case AP4_ATOM_TYPE_DVAV:
+        case AP4_ATOM_TYPE_DVA1: {
+            AP4_AvccAtom* avcc = AP4_DYNAMIC_CAST(AP4_AvccAtom, entries[0]->GetChild(AP4_ATOM_TYPE_AVCC));
+            if (avcc) {
+                nalu_length_size = avcc->GetNaluLengthSize();
+                use_subsample_encryption = (nalu_length_size > 0);
+            }
+            break;
         }
-    } else if (format == AP4_ATOM_TYPE_HEV1 ||
-               format == AP4_ATOM_TYPE_HVC1 ||
-               format == AP4_ATOM_TYPE_DVHE ||
-               format == AP4_ATOM_TYPE_DVH1) {
-        AP4_HvccAtom* hvcc = AP4_DYNAMIC_CAST(AP4_HvccAtom, entries[0]->GetChild(AP4_ATOM_TYPE_HVCC));
-        if (hvcc) {
-            nalu_length_size = hvcc->GetNaluLengthSize();
+        case AP4_ATOM_TYPE_HEV1:
+        case AP4_ATOM_TYPE_HVC1:
+        case AP4_ATOM_TYPE_DVHE:
+        case AP4_ATOM_TYPE_DVH1: {
+            AP4_HvccAtom* hvcc = AP4_DYNAMIC_CAST(AP4_HvccAtom, entries[0]->GetChild(AP4_ATOM_TYPE_HVCC));
+            if (hvcc) {
+                nalu_length_size = hvcc->GetNaluLengthSize();
+                use_subsample_encryption = (nalu_length_size > 0);
+            }
+            break;
         }
+        case AP4_ATOM_TYPE_AC_4:
+            use_subsample_encryption = true;
+            break;
+        default:
+            use_subsample_encryption = false;
+            break;
     }
 
     // add a new cipher state for this track
@@ -1662,7 +1713,7 @@ AP4_CencEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
                 stream_cipher = new AP4_PatternStreamCipher(stream_cipher, crypt_byte_block, skip_byte_block);
             }
 
-            if (nalu_length_size) {
+            if (use_subsample_encryption) {
                 AP4_CencSubSampleMapper* subsample_mapper = NULL;
                 if (m_Variant == AP4_CENC_VARIANT_MPEG_CBCS) {
                     subsample_mapper = new AP4_CencCbcsSubSampleMapper(nalu_length_size, format, trak);
@@ -1684,7 +1735,7 @@ AP4_CencEncryptingProcessor::CreateTrackHandler(AP4_TrakAtom* trak)
             if (crypt_byte_block && skip_byte_block) {
                 stream_cipher = new AP4_PatternStreamCipher(stream_cipher, crypt_byte_block, skip_byte_block);
             }
-            if (nalu_length_size) {
+            if (use_subsample_encryption) {
                 AP4_CencSubSampleMapper* subsample_mapper = new AP4_CencAdvancedSubSampleMapper(nalu_length_size, format);
                 sample_encrypter = new AP4_CencCtrSubSampleEncrypter(stream_cipher,
                                                                      constant_iv,
@@ -3277,7 +3328,11 @@ AP4_CencSampleEncryption::AP4_CencSampleEncryption(AP4_Atom&       outer,
     
     stream.ReadUI32(m_SampleInfoCount);
 
-    AP4_Size payload_size = size-m_Outer.GetHeaderSize()-4;
+    /* Prevent the payload_size from becoming negative to avoid overflow */
+    AP4_Size payload_size = 0;
+    if(size > (m_Outer.GetHeaderSize() + 4))
+	payload_size = size - m_Outer.GetHeaderSize() - 4;
+    
     m_SampleInfos.SetDataSize(payload_size);
     stream.Read(m_SampleInfos.UseData(), payload_size);
 }

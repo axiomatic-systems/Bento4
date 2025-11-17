@@ -460,6 +460,7 @@ AP4_LinearReader::Advance(bool read_data)
             }
             if (AP4_FAILED(result)) {
                 delete buffer;
+                next_tracker->m_NextSample = NULL;
                 return result;
             }
 

@@ -150,7 +150,7 @@ AP4_TfraAtom::AP4_TfraAtom(AP4_UI32        size,
     }
         
     // Check that it all fits
-    if (((size - (AP4_FULL_ATOM_HEADER_SIZE+4+4+4)) / entry_count) < entry_size) {
+    if (entry_count <= 0 || ((size - (AP4_FULL_ATOM_HEADER_SIZE+4+4+4)) / entry_count) < entry_size) {
         return;
     }
     

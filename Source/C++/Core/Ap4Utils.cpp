@@ -581,4 +581,13 @@ AP4_BitReader::SkipBit()
    }
 }
 
+/*----------------------------------------------------------------------
+|   AP4_BitReader::GetPosition
++---------------------------------------------------------------------*/
+unsigned int
+AP4_BitReader::GetBitsPosition()
+{
+    return m_Position * 8 - m_BitsCached;
+}
+
 
