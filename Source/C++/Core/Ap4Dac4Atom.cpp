@@ -967,7 +967,7 @@ AP4_Dac4Atom::Ac4Dsi::SubStream::ParseSubstreamIdxInfo(AP4_BitReader &bits, unsi
 {
     if (b_substreams_present == 1) {
         if (bits.ReadBits(2) == 3) {    // substream_index
-            AP4_Ac4VariableBits(bits, 2);
+            ss_idx = AP4_Ac4VariableBits(bits, 2);
         }
     }
     return AP4_SUCCESS;
