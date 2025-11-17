@@ -50,9 +50,7 @@
 class AP4_Ac4Header {
 public:
     // constructor
-    AP4_Ac4Header(const AP4_UI08* bytes, unsigned int size);
-    // destructor
-    ~AP4_Ac4Header();
+    AP4_Ac4Header(const AP4_UI08* bytes, unsigned int size, bool header_exists=true);
     
     // methods
     AP4_Result Check();
@@ -84,6 +82,7 @@ public:
     AP4_UI32 m_ShortProgramId;
     AP4_UI32 m_BProgramUuidPresent;
     AP4_Byte m_ProgramUuid[16];
+    AP4_UI32 m_TocSize;
 
     static bool m_DeprecatedV0;
 

@@ -36,26 +36,31 @@ bool AP4_Ac4Header::m_DeprecatedV0 = true;
 /*----------------------------------------------------------------------+
 |    AP4_Ac4Header::AP4_Ac4Header
 +----------------------------------------------------------------------*/
-AP4_Ac4Header::AP4_Ac4Header(const AP4_UI08* bytes, unsigned int size)
+AP4_Ac4Header::AP4_Ac4Header(const AP4_UI08* bytes, unsigned int size, bool header_exists)
 {
     /* Read the entire the frame */
     AP4_BitReader bits(bytes, size);
 
-    m_SyncWord = bits.ReadBits(16);
-    m_HeaderSize = 2;
-    if (m_SyncWord == AP4_AC4_SYNC_WORD_CRC){
-        m_CrcSize = 2;
-    }else {
-        m_CrcSize = 0;
-    }
-    m_FrameSize = bits.ReadBits(16);
-    m_HeaderSize += 2;
-    if (m_FrameSize == 0xFFFF){
-        m_FrameSize = bits.ReadBits(24);
-        m_HeaderSize += 3; 
+    /* Sync word and frame_size()*/
+    if (header_exists) {
+        m_SyncWord = bits.ReadBits(16);
+        m_HeaderSize = 2;
+        if (m_SyncWord == AP4_AC4_SYNC_WORD_CRC){
+            m_CrcSize = 2;
+        }else {
+            m_CrcSize = 0;
+        }
+        m_FrameSize = bits.ReadBits(16);
+        m_HeaderSize += 2;
+        if (m_FrameSize == 0xFFFF){
+            m_FrameSize = bits.ReadBits(24);
+            m_HeaderSize += 3;
+        }
     }
 
     /* Begin to parse TOC */
+    AP4_Position tocStart = bits.GetBitsPosition() / 8;
+
     m_BitstreamVersion = bits.ReadBits(2);
     if (m_BitstreamVersion == 3) {
         m_BitstreamVersion = AP4_Ac4VariableBits(bits, 2);
@@ -168,15 +173,14 @@ AP4_Ac4Header::AP4_Ac4Header(const AP4_UI08* bytes, unsigned int size)
                 m_PresentationV1[pres_idx].d.v1.dolby_atmos_indicator |= m_PresentationV1[pres_idx].d.v1.substream_groups[sg].d.v1.dolby_atmos_indicator;
             }
         }
-        delete [] substream_groups;
+        delete[] substream_groups;
 
         if (bObjorAjoc == 0){
             m_ChannelCount = AP4_Ac4ChannelCountFromSpeakerGroupIndexMask(speakerGroupIndexMask);
         }else {
-            m_ChannelCount = channelCount;
+            m_ChannelCount = 2;
         }
     }
-}
 
 AP4_Ac4Header::~AP4_Ac4Header()
 {
@@ -195,10 +199,12 @@ AP4_Ac4Header::~AP4_Ac4Header()
             delete[] m_PresentationV1[pres_idx].d.v1.substream_groups;
             delete[] m_PresentationV1[pres_idx].d.v1.substream_group_indexs;
         }
-        delete[] m_PresentationV1;
     }
+    if (bits.GetBitsPosition() % 8) {
+        bits.SkipBits(8 - (bits.GetBitsPosition() % 8));
+    }
+    m_TocSize = bits.GetBitsPosition() / 8 - tocStart;
 }
-
 
 /*----------------------------------------------------------------------+
 |    AP4_Ac4Header::MatchFixed
@@ -374,7 +380,7 @@ AP4_Result
 AP4_Ac4Parser::FindFrame(AP4_Ac4Frame& frame)
 {
     unsigned int   available;
-    unsigned char  raw_header[AP4_AC4_HEADER_SIZE];
+    unsigned char  *raw_header = new unsigned char[AP4_AC4_HEADER_SIZE];
     AP4_Result     result;
 
     /* align to the start of the next byte */
@@ -391,6 +397,8 @@ AP4_Ac4Parser::FindFrame(AP4_Ac4Frame& frame)
         return AP4_ERROR_NOT_ENOUGH_DATA;
     }
 
+    delete[] raw_header;
+    raw_header = new unsigned char[sync_frame_size];
     /*
      * Error handling to skip the 'fake' sync word. 
      * - the maximum sync frame size is about (AP4_BITSTREAM_BUFFER_SIZE - 1) bytes.
@@ -402,15 +410,10 @@ AP4_Ac4Parser::FindFrame(AP4_Ac4Frame& frame)
         }
         return AP4_ERROR_NOT_ENOUGH_DATA;
     }
-
-    unsigned char *rawframe = new unsigned char[sync_frame_size];
-
     // copy the whole frame becasue toc size is unknown
-    m_Bits.PeekBytes(rawframe, sync_frame_size);
+    m_Bits.PeekBytes(raw_header, sync_frame_size);
     /* parse the header */
-    AP4_Ac4Header ac4_header(rawframe, sync_frame_size);
-
-    delete[] rawframe;
+    AP4_Ac4Header ac4_header(raw_header, sync_frame_size);
 
     // Place before goto statement to resolve Xcode compiler issue
     unsigned int bit_rate_mode = 0;
@@ -427,33 +430,31 @@ AP4_Ac4Parser::FindFrame(AP4_Ac4Frame& frame)
     // TODO: find the proper AP4_AC4_MAX_TOC_SIZE or just parse what this step need ?
     if (available >= ac4_header.m_FrameSize + ac4_header.m_HeaderSize + ac4_header.m_CrcSize + AP4_AC4_HEADER_SIZE + AP4_AC4_MAX_TOC_SIZE) {
         // enough to peek at the header of the next frame
+        unsigned char *peek_raw_header = new unsigned char[AP4_AC4_HEADER_SIZE];
 
         m_Bits.SkipBytes(ac4_header.m_FrameSize + ac4_header.m_HeaderSize + ac4_header.m_CrcSize);
-        m_Bits.PeekBytes(raw_header, AP4_AC4_HEADER_SIZE);
+        m_Bits.PeekBytes(peek_raw_header, AP4_AC4_HEADER_SIZE);
 
         // duplicated work, just to get the frame size
-        AP4_BitReader peak_tmp_bits(raw_header, AP4_AC4_HEADER_SIZE);
-        unsigned int next_sync_frame_size = GetSyncFrameSize(peak_tmp_bits);
+        AP4_BitReader peak_tmp_bits(peek_raw_header, AP4_AC4_HEADER_SIZE);
+        unsigned int peak_sync_frame_size = GetSyncFrameSize(peak_tmp_bits);
 
-        unsigned char *next_rawframe = new unsigned char[next_sync_frame_size];
-
+        delete[] peek_raw_header;
+        peek_raw_header = new unsigned char[peak_sync_frame_size];
         // copy the whole frame becasue toc size is unknown
-        if (m_Bits.GetBytesAvailable() < (next_sync_frame_size)) {
-            next_sync_frame_size = m_Bits.GetBytesAvailable();
+        if (m_Bits.GetBytesAvailable() < (peak_sync_frame_size)) {
+            peak_sync_frame_size = m_Bits.GetBytesAvailable();
         }
-        m_Bits.PeekBytes(next_rawframe, next_sync_frame_size);
+        m_Bits.PeekBytes(peek_raw_header, peak_sync_frame_size);
 
         m_Bits.SkipBytes(-((int)(ac4_header.m_FrameSize + ac4_header.m_HeaderSize + ac4_header.m_CrcSize)));
 
         /* check the header */
-        AP4_Ac4Header peek_ac4_header(next_rawframe, next_sync_frame_size);
-
-        delete[] next_rawframe;
-
+        AP4_Ac4Header peek_ac4_header(peek_raw_header, peak_sync_frame_size, true);
         result = peek_ac4_header.Check();
         if (AP4_FAILED(result)) {
             // TODO: need to reserve current sync frame ?
-            m_Bits.SkipBytes(sync_frame_size + next_sync_frame_size);
+            m_Bits.SkipBytes(sync_frame_size + peak_sync_frame_size);
             goto fail;
         }
 
@@ -461,7 +462,7 @@ AP4_Ac4Parser::FindFrame(AP4_Ac4Frame& frame)
         /* fixed part of the previous header                           */
         if (!AP4_Ac4Header::MatchFixed(ac4_header, peek_ac4_header)) {
             // TODO: need to reserve current sync frame ?
-            m_Bits.SkipBytes(sync_frame_size + next_sync_frame_size);
+            m_Bits.SkipBytes(sync_frame_size + peak_sync_frame_size);
             goto fail;
         }
     } else if (available < (ac4_header.m_FrameSize + ac4_header.m_HeaderSize + ac4_header.m_CrcSize) || (m_Bits.m_Flags & AP4_BITSTREAM_FLAG_EOS) == 0) {

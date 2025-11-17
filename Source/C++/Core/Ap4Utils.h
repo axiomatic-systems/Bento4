@@ -263,6 +263,8 @@ public:
     void         SkipBit();
     void         SkipBits(unsigned int bit_count);
 
+    unsigned int GetBitsPosition();
+
     unsigned int GetBitsRead();
 
 private:
