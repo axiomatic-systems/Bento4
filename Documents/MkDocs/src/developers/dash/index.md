@@ -157,6 +157,7 @@ Setting stream properties via input specifiers allows invoking `mp4dash` with ex
   `hls_group_match`   | `<hls-group-match>`                       | (only with `--hls`) |
   `hls_default`       | `YES` or `NO`                             | (only with `--hls`) |
   `hls_autoselect`    | `YES` or `NO`                             | (only with `--hls`) |
+  `hls_characteristic`| `<hls-characteristic>` (string)           | (only with `--hls`) |
 
 ### Multi-language
 

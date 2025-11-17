@@ -38,6 +38,11 @@
 AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_TrunAtom)
 
 /*----------------------------------------------------------------------
+|   constants
++---------------------------------------------------------------------*/
+#define AP4_TRUN_MAX_SAMPLE_COUNT 0xFFFFFF
+
+/*----------------------------------------------------------------------
 |   AP4_TrunAtom::Create
 +---------------------------------------------------------------------*/
 AP4_TrunAtom*
@@ -143,13 +148,21 @@ AP4_TrunAtom::AP4_TrunAtom(AP4_UI32        size,
     }
     
     int record_fields_count = (int)ComputeRecordFieldsCount(flags);
-    if (record_fields_count && ((bytes_left / (record_fields_count*4)) < sample_count)) {
-        // not enough data for all samples, the format is invalid
-        return;
+    if (record_fields_count) {
+        if ((bytes_left / (record_fields_count*4)) < sample_count) {
+            // not enough data for all samples, the format is invalid
+            return;
+        }
+    } else {
+        if (sample_count > AP4_TRUN_MAX_SAMPLE_COUNT) {
+            return;
+        }
     }
+
     if (AP4_FAILED(m_Entries.SetItemCount(sample_count))) {
         return;
     }
+        
     for (unsigned int i=0; i<sample_count; i++) {
         if (flags & AP4_TRUN_FLAG_SAMPLE_DURATION_PRESENT) {
             if (bytes_left < 4 || AP4_FAILED(stream.ReadUI32(m_Entries[i].sample_duration))) {

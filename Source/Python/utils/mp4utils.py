@@ -466,6 +466,7 @@ class Mp4Track:
             # Set the default values for Dolby audio codec flags
             self.dolby_ddp_atmos = 'No'
             self.dolby_ac4_ims   = 'No'
+            self.dolby_ac4_cbi   = 'No'
             if self.codec_family == 'ec-3' and 'dolby_digital_plus_info' in sample_desc:
                 self.channels = GetDolbyDigitalPlusChannels(self)[0]
                 self.dolby_ddp_atmos = sample_desc['dolby_digital_plus_info']['Dolby_Atmos']
@@ -473,6 +474,7 @@ class Mp4Track:
                     self.complexity_index = sample_desc['dolby_digital_plus_info']['complexity_index']
                     self.channels =  str(self.info['sample_descriptions'][0]['dolby_digital_plus_info']['complexity_index']) + '/JOC'
             elif self.codec_family == 'ac-4' and 'dolby_ac4_info' in sample_desc:
+                self.channels = str(self.channels)
                 if sample_desc['dolby_ac4_info']['dsi version'] == 0:
                     raise Exception("AC4 dsi version 0 is deprecated.")
                 elif sample_desc['dolby_ac4_info']['dsi version'] == 1:
@@ -482,7 +484,12 @@ class Mp4Track:
                         stream_type = sample_desc['dolby_ac4_info']['presentations'][0]['Stream Type']
                         if stream_type == 'Immersive stereo':
                             self.dolby_ac4_ims = 'Yes'
-                        self.channels = str(self.channels)
+                            self.channels = '2/IMSA'
+                        elif stream_type == 'Channel based immsersive':
+                            self.dolby_ac4_cbi = 'Yes'
+                            self.channels = self.channels + '/IMSA'
+            elif 'mpeg_4_audio_decoder_config' in sample_desc:
+                self.channels = sample_desc['mpeg_4_audio_decoder_config']['channels']
 
         self.language = info['language']
         self.language_name = LanguageNames.get(LanguageCodeMap.get(self.language, 'und'), '')
@@ -1060,7 +1067,7 @@ def ComputeDolbyDigitalPlusSmoothStreamingInfo(track):
     mask_hex_be = "{0:0{1}x}".format(channel_mask, 4)
     info += mask_hex_be[2:4]+mask_hex_be[0:2]+'0000'
     info += "af87fba7022dfb42a4d405cd93843bdd"
-    info += track.info['sample_descriptions'][0]['dolby_digital_info']['dec3_payload']
+    info += track.info['sample_descriptions'][0]['dolby_digital_plus_info']['dec3_payload']
     return (channel_count, info.lower())
 
 def ComputeMarlinPssh(options):
@@ -1305,9 +1312,6 @@ def ComputeWidevineHeader(header_spec, encryption_scheme, kid_hex):
         protobuf_fields.append((4, bytes.fromhex(fields['content_id'])))
     if 'policy' in fields:
         protobuf_fields.append((6, fields['policy']))
-
-    if encryption_scheme == 'cenc':
-        protobuf_fields.append((1, 1))
 
     four_cc = struct.unpack('>I', encryption_scheme.encode('ascii'))[0]
     protobuf_fields.append((9, four_cc))

@@ -422,7 +422,7 @@ AP4_Eac3Parser::FindHeader(AP4_UI08* header, AP4_Size& skip_size)
             
            return AP4_SUCCESS;
         } else {
-            m_Bits.ReadByte(); // skip
+            m_Bits.SkipBytes(1); // skip
             skip_size++;
         }
     }

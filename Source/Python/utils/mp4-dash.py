@@ -64,7 +64,7 @@ from mp4utils import (
 
 # setup main options
 VERSION = "2.0.0"
-SDK_REVISION = '639'
+SDK_REVISION = '641'
 SCRIPT_PATH = path.abspath(path.dirname(__file__))
 sys.path += [SCRIPT_PATH]
 
@@ -105,6 +105,8 @@ WIDEVINE_SCHEME_ID_URI      = 'urn:uuid:edef8ba9-79d6-4ace-a3c8-27dcd51d21ed'
 
 PRIMETIME_PSSH_SYSTEM_ID    = 'f239e769efa348509c16a903c6932efb'
 PRIMETIME_SCHEME_ID_URI     = 'urn:uuid:F239E769-EFA3-4850-9C16-A903C6932EFB'
+
+FAIRPLAY_SCHEME_ID_URI      = 'urn:uuid:94ce86fb-07ff-4f43-adb8-93d2fa968ca2'
 
 MPEG_COMMON_ENCRYPTION_SCHEME_ID_URI = 'urn:mpeg:dash:mp4protection:2011'
 
@@ -374,6 +376,11 @@ def AddContentProtection(options, container, tracks, all_tracks):
             pssh = xml.SubElement(cp, '{' + CENC_2013_NAMESPACE + '}pssh')
             pssh.text = pssh_b64
 
+    # FairPlay
+    if options.fairplay:
+        container.append(xml.Comment(' FairPlay '))
+        xml.SubElement(container, 'ContentProtection', schemeIdUri=FAIRPLAY_SCHEME_ID_URI)
+
 #############################################
 def AddDescriptor(adaptation_set, set_attributes, set_name, category_name):
     attributes = set_attributes.get(set_name)
@@ -468,7 +475,7 @@ def OutputDash(options, set_attributes, audio_sets, video_sets, subtitles_sets, 
             AddDescriptor(adaptation_set, set_attributes, 'video', None)
 
             # setup content protection
-            if options.encryption_key or options.marlin or options.playready or options.widevine:
+            if options.encryption_key or options.eme_signaling or options.marlin or options.playready or options.widevine or options.clearkey or options.primetime or options.fairplay:
                 AddContentProtection(options, adaptation_set, video_tracks, all_audio_tracks + all_video_tracks)
 
             if options.on_demand:
@@ -560,7 +567,7 @@ def OutputDash(options, set_attributes, audio_sets, video_sets, subtitles_sets, 
             AddDescriptor(adaptation_set, set_attributes, 'audio/' + language, 'audio')
 
             # setup content protection
-            if options.encryption_key or options.marlin or options.playready or options.widevine:
+            if options.encryption_key or options.eme_signaling or options.marlin or options.playready or options.widevine or options.clearkey or options.primetime or options.fairplay:
                 AddContentProtection(options, adaptation_set, audio_tracks, all_audio_tracks + all_video_tracks)
 
             if options.on_demand:
@@ -599,12 +606,7 @@ def OutputDash(options, set_attributes, audio_sets, video_sets, subtitles_sets, 
                     else:
                         scheme_id_uri = DOLBY_AC4_AUDIO_CHANNEL_CONFIGURATION_SCHEME_ID_URI
                 else:
-                    # detect the actual number of channels
-                    sample_description = audio_track.info['sample_descriptions'][0]
-                    if 'mpeg_4_audio_decoder_config' in sample_description:
-                        audio_channel_config_value = str(sample_description['mpeg_4_audio_decoder_config']['channels'])
-                    else:
-                        audio_channel_config_value = str(audio_track.channels)
+                    audio_channel_config_value = str(audio_track.channels)
                     scheme_id_uri = MPEG_DASH_AUDIO_CHANNEL_CONFIGURATION_SCHEME_ID_URI if options.use_legacy_audio_channel_config_uri else ISO_IEC_23001_8_AUDIO_CHANNEL_CONFIGURATION_SCHEME_ID_URI
                 xml.SubElement(representation,
                                'AudioChannelConfiguration',
@@ -980,7 +982,8 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
                 default = not default_selected
             if default:
                 default_selected = True
-            master_playlist_file.write('#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="{}",LANGUAGE="{}",NAME="{}",AUTOSELECT={},DEFAULT={},CHANNELS="{}",URI="{}"\n'.format(
+            
+            master_playlist_file.write('#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="{}",LANGUAGE="{}",NAME="{}",AUTOSELECT={},DEFAULT={},CHANNELS="{}",URI="{}"'.format(
                                        audio_group_name,
                                        audio_track.language,
                                        media_name,
@@ -988,6 +991,13 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
                                        'YES' if default else 'NO',
                                        audio_track.channels,
                                        media_playlist_path))
+            
+            hls_characteristic = audio_track.hls_characteristic
+            if hls_characteristic != None:
+                master_playlist_file.write(',CHARACTERISTIC="{}"'.format(hls_characteristic))
+
+            master_playlist_file.write("\n")
+
             OutputHlsTrack(options, audio_track, all_audio_tracks + all_video_tracks, media_subdir, media_playlist_name, media_file_name)
 
             # Add an audio stream entry for audio-only presentations or if the track specifiers include a '-' entry
@@ -1033,7 +1043,7 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
                 if '*' not in video_track.hls_group_match and audio_group_name not in video_track.hls_group_match:
                     continue
                 audio_codecs = ','.join(audio_groups[audio_group_name]['codecs'])
-                master_playlist_file.write('#EXT-X-STREAM-INF:{}AUDIO="{}",AVERAGE-BANDWIDTH={:.0f},BANDWIDTH={:.0f},VIDEO-RANGE={},CODECS="{}",RESOLUTION={:.0f}x{:.0f},FRAME-RATE={:.3f}\n'.format(
+                master_playlist_file.write('#EXT-X-STREAM-INF:{}AUDIO="{}",AVERAGE-BANDWIDTH={:.0f},BANDWIDTH={:.0f},VIDEO-RANGE={},CODECS="{}",RESOLUTION={:.0f}x{:.0f},FRAME-RATE={:.3f}'.format(
                                            subtitles_group,
                                            audio_group_name,
                                            video_track.average_segment_bitrate + audio_groups[audio_group_name]['average_segment_bitrate'],
@@ -1044,7 +1054,8 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
                                            video_track.height,
                                            video_track.frame_rate))
                 if supplemental_codec_string != '':
-                    master_playlist_file.write(',SUPPLEMENTAL-CODECS="{}"\n'.format(supplemental_codec_string))
+                    master_playlist_file.write(',SUPPLEMENTAL-CODECS="{}"'.format(supplemental_codec_string))
+                master_playlist_file.write('\n')
                 master_playlist_file.write(media_playlist_path+'\n')
         else:
             # no audio
@@ -1058,7 +1069,8 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
                                        video_track.height,
                                        video_track.frame_rate))
             if supplemental_codec_string != '':
-                master_playlist_file.write(',SUPPLEMENTAL-CODECS="{}"\n'.format(supplemental_codec_string))
+                master_playlist_file.write(',SUPPLEMENTAL-CODECS="{}"'.format(supplemental_codec_string))
+            master_playlist_file.write('\n')
             master_playlist_file.write(media_playlist_path+'\n')
 
         OutputHlsTrack(options, video_track, all_audio_tracks + all_video_tracks, media_subdir, media_playlist_name, media_file_name)
@@ -1073,10 +1085,10 @@ def OutputHls(options, set_attributes, audio_sets, video_sets, subtitles_sets, s
                                      video_track.width,
                                      video_track.height,
                                      iframes_playlist_path))
+
         if supplemental_codec_string != '':
-            iframe_playlist_lines.append(',SUPPLEMENTAL-CODECS="{}"\n'.format(supplemental_codec_string))
-        else:
-            iframe_playlist_lines.append('\n')
+            iframe_playlist_lines.append(',SUPPLEMENTAL-CODECS="{}"'.format(supplemental_codec_string))
+        iframe_playlist_lines.append('\n')
 
     master_playlist_file.write('\n# I-Frame Playlists\n')
     master_playlist_file.write(''.join(iframe_playlist_lines))
@@ -1155,11 +1167,7 @@ def OutputSmooth(options, audio_tracks, video_tracks):
 
     # process the audio tracks
     for audio_track in audio_tracks:
-        stream_name = audio_track.label
-        if stream_name == '':
-            stream_name = audio_track.language_name
-        if stream_name == '' or stream_name == 'Unknown':
-            stream_name = "audio_"+audio_track.language
+        stream_name = "audio_"+audio_track.language
         audio_url_pattern="QualityLevels({bitrate})/Fragments(%s={start time})" % (stream_name)
         stream_index = xml.SubElement(client_manifest,
                                       'StreamIndex',
@@ -1178,7 +1186,7 @@ def OutputSmooth(options, audio_tracks, video_tracks):
             audio_tag = '65534'
             fourcc = 'EC-3'
             channels = str(channels)
-            data_rate = int(audio_track.info['sample_descriptions'][0]['dolby_digital_info']['data_rate'])
+            data_rate = int(audio_track.info['sample_descriptions'][0]['dolby_digital_plus_info']['data_rate'])
             packet_size = str(4*data_rate)
         else:
             # assume AAC
@@ -1236,10 +1244,11 @@ def OutputSmooth(options, audio_tracks, video_tracks):
             xml.SubElement(stream_index, "c", d=str(duration))
 
     if options.playready:
+        key_info = None
         if video_tracks:
             key_info = video_tracks[0].key_info
-            if not key_info and len(audio_tracks):
-                key_info = audio_tracks[0].key_info
+        if not key_info and len(audio_tracks):
+            key_info = audio_tracks[0].key_info
 
         if not key_info:
             return
@@ -1463,6 +1472,7 @@ def SelectTracks(options, media_sources):
             track.hls_autoselect = BooleanFromString(media_source.spec.get('+hls_autoselect', 'YES'))
             track.hls_group = media_source.spec.get('+hls_group')
             track.hls_group_match = media_source.spec.get('+hls_group_match', '*').split('&')
+            track.hls_characteristic = media_source.spec.get('+hls_characteristic')
 
         # update label indexes (so that we can use numbers instead of strings for labels)
         for track in tracks:
@@ -1902,6 +1912,8 @@ def main():
                            "The <primetime-data> argument can be either: " +
                            "(1) the character '@' followed by the name of a file containing the Primetime Metadata to use, or "
                            "(2) the character '#' followed by the Primetime Metadata encoded in Base64")
+    parser.add_option('', "--fairplay", dest="fairplay", action="store_true", default=False,
+                      help="Add FairPlay signaling to the MPD (requires an encrypted input, or the --encryption-key option)")
     parser.add_option('', "--fairplay-key-uri", dest="fairplay_key_uri",
                       help="Specify the key URI to use for FairPlay Streaming key delivery (only valid with --hls option)")
     parser.add_option('', "--clearkey", dest="clearkey", action="store_true",
@@ -2007,6 +2019,10 @@ def main():
 
     if options.primetime_metadata:
         options.primetime = True
+
+    if options.fairplay:
+        if options.encryption_key and options.encryption_cenc_scheme != 'cbcs':
+            raise Exception('--fairplay requires --encryption-cenc-scheme=cbcs')
 
     if options.fairplay_key_uri:
         if not options.hls:

@@ -1,6 +1,6 @@
 /*****************************************************************
 |
-|    AP4 - saio Atoms 
+|    AP4 - saio Atoms
 |
 |    Copyright 2002-2011 Axiomatic Systems, LLC
 |
@@ -65,7 +65,7 @@ AP4_SaioAtom::AP4_SaioAtom() :
 /*----------------------------------------------------------------------
 |   AP4_SaioAtom::AddEntry
 +---------------------------------------------------------------------*/
-AP4_Result           
+AP4_Result
 AP4_SaioAtom::AddEntry(AP4_UI64 offset)
 {
     m_Entries.Append(offset);
@@ -77,19 +77,19 @@ AP4_SaioAtom::AddEntry(AP4_UI64 offset)
 /*----------------------------------------------------------------------
 |   AP4_SaioAtom::SetEntry
 +---------------------------------------------------------------------*/
-AP4_Result           
+AP4_Result
 AP4_SaioAtom::SetEntry(AP4_Ordinal entry_index, AP4_UI64 offset)
 {
     if (m_Entries.ItemCount() <= entry_index) return AP4_ERROR_OUT_OF_RANGE;
     m_Entries[entry_index] = offset;
-    
+
     return AP4_SUCCESS;
 }
 
 /*----------------------------------------------------------------------
 |   AP4_SaioAtom::AP4_SaioAtom
 +---------------------------------------------------------------------*/
-AP4_SaioAtom::AP4_SaioAtom(AP4_UI32        size, 
+AP4_SaioAtom::AP4_SaioAtom(AP4_UI32        size,
                            AP4_UI08        version,
                            AP4_UI32        flags,
                            AP4_ByteStream& stream) :
@@ -97,17 +97,19 @@ AP4_SaioAtom::AP4_SaioAtom(AP4_UI32        size,
     m_AuxInfoType(0),
     m_AuxInfoTypeParameter(0)
 {
-    AP4_UI32 remains = size-GetHeaderSize();
+    AP4_SI32 remains = size-AP4_FULL_ATOM_HEADER_SIZE;
     if (flags & 1) {
+        if (remains < 8) return;
         stream.ReadUI32(m_AuxInfoType);
         stream.ReadUI32(m_AuxInfoTypeParameter);
         remains -= 8;
     }
+    if (remains < 4) return;
     AP4_UI32 entry_count = 0;
     AP4_Result result = stream.ReadUI32(entry_count);
     if (AP4_FAILED(result)) return;
     remains -= 4;
-    if (remains < entry_count*(m_Version==0?4:8)) {
+    if (remains < (AP4_SI64)entry_count*(m_Version==0?4:8)) {
         return;
     }
     m_Entries.SetItemCount(entry_count);
@@ -150,7 +152,7 @@ AP4_SaioAtom::WriteFields(AP4_ByteStream& stream)
             if (AP4_FAILED(result)) return result;
         }
     }
-    
+
     return AP4_SUCCESS;
 }
 

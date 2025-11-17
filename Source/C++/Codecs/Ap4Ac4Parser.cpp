@@ -36,26 +36,31 @@ bool AP4_Ac4Header::m_DeprecatedV0 = true;
 /*----------------------------------------------------------------------+
 |    AP4_Ac4Header::AP4_Ac4Header
 +----------------------------------------------------------------------*/
-AP4_Ac4Header::AP4_Ac4Header(const AP4_UI08* bytes, unsigned int size)
+AP4_Ac4Header::AP4_Ac4Header(const AP4_UI08* bytes, unsigned int size, bool header_exists)
 {
     /* Read the entire the frame */
     AP4_BitReader bits(bytes, size);
 
-    m_SyncWord = bits.ReadBits(16);
-    m_HeaderSize = 2;
-    if (m_SyncWord == AP4_AC4_SYNC_WORD_CRC){
-        m_CrcSize = 2;
-    }else {
-        m_CrcSize = 0;
-    }
-    m_FrameSize = bits.ReadBits(16);
-    m_HeaderSize += 2;
-    if (m_FrameSize == 0xFFFF){
-        m_FrameSize = bits.ReadBits(24);
-        m_HeaderSize += 3; 
+    /* Sync word and frame_size()*/
+    if (header_exists) {
+        m_SyncWord = bits.ReadBits(16);
+        m_HeaderSize = 2;
+        if (m_SyncWord == AP4_AC4_SYNC_WORD_CRC){
+            m_CrcSize = 2;
+        }else {
+            m_CrcSize = 0;
+        }
+        m_FrameSize = bits.ReadBits(16);
+        m_HeaderSize += 2;
+        if (m_FrameSize == 0xFFFF){
+            m_FrameSize = bits.ReadBits(24);
+            m_HeaderSize += 3;
+        }
     }
 
     /* Begin to parse TOC */
+    AP4_Position tocStart = bits.GetBitsPosition() / 8;
+
     m_BitstreamVersion = bits.ReadBits(2);
     if (m_BitstreamVersion == 3) {
         m_BitstreamVersion = AP4_Ac4VariableBits(bits, 2);
@@ -119,7 +124,7 @@ AP4_Ac4Header::AP4_Ac4Header(const AP4_UI08* bytes, unsigned int size)
         unsigned int firstPresentationNSubstreamGroups = 0;
 
         if (m_NPresentations > 0){
-            m_PresentationV1= new AP4_Dac4Atom::Ac4Dsi::PresentationV1[m_NPresentations];
+            m_PresentationV1 = new AP4_Dac4Atom::Ac4Dsi::PresentationV1[m_NPresentations];
             AP4_SetMemory(m_PresentationV1, 0, m_NPresentations * sizeof(m_PresentationV1[0]));
         } else {
             m_PresentationV1 = NULL;
@@ -173,9 +178,34 @@ AP4_Ac4Header::AP4_Ac4Header(const AP4_UI08* bytes, unsigned int size)
         if (bObjorAjoc == 0){
             m_ChannelCount = AP4_Ac4ChannelCountFromSpeakerGroupIndexMask(speakerGroupIndexMask);
         }else {
-            m_ChannelCount = channelCount;
+            m_ChannelCount = 2;
         }
     }
+
+    // substream_index_table
+    AP4_UI32 n_substreams = bits.ReadBits(2);
+    if (n_substreams == 0) {
+        n_substreams = AP4_Ac4VariableBits(bits, 2) + 4;
+    }
+    AP4_UI08 b_size_present;
+    if (n_substreams == 1) {
+        b_size_present = bits.ReadBit();
+    } else {
+        b_size_present = 1;
+    }
+    if (b_size_present) {
+        for (AP4_UI32 s = 0; s < n_substreams; s++) {
+            AP4_UI08 b_more_bits = bits.ReadBit();
+            AP4_UI32 substream_size = bits.ReadBits(10);
+            if (b_more_bits) {
+                substream_size += (AP4_Ac4VariableBits(bits, 2) << 10);
+            }
+        }
+    }
+    if (bits.GetBitsPosition() % 8) {
+        bits.SkipBits(8 - (bits.GetBitsPosition() % 8));
+    }
+    m_TocSize = bits.GetBitsPosition() / 8 - tocStart;
 }
 
 /*----------------------------------------------------------------------+
@@ -422,7 +452,7 @@ AP4_Ac4Parser::FindFrame(AP4_Ac4Frame& frame)
         m_Bits.SkipBytes(-((int)(ac4_header.m_FrameSize + ac4_header.m_HeaderSize + ac4_header.m_CrcSize)));
 
         /* check the header */
-        AP4_Ac4Header peek_ac4_header(peek_raw_header, peak_sync_frame_size);
+        AP4_Ac4Header peek_ac4_header(peek_raw_header, peak_sync_frame_size, true);
         result = peek_ac4_header.Check();
         if (AP4_FAILED(result)) {
             // TODO: need to reserve current sync frame ?

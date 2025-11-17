@@ -1052,6 +1052,7 @@ AP4_AvcFrameParser::Feed(const AP4_UI08* nal_unit,
                                       nal_ref_idc,
                                       *slice_header);
             if (AP4_FAILED(result)) {
+                delete slice_header;
                 return AP4_ERROR_INVALID_FORMAT;
             }
             

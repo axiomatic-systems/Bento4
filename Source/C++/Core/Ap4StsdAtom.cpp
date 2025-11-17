@@ -72,6 +72,8 @@ AP4_StsdAtom::AP4_StsdAtom(AP4_SampleTable* sample_table) :
 
         // create an entry for the description
         AP4_SampleDescription* sample_description = sample_table->GetSampleDescription(i);
+        if (sample_description == 0)
+            continue;
         AP4_Atom* entry = sample_description->ToAtom();
         AddChild(entry);
     }
@@ -87,6 +89,7 @@ AP4_StsdAtom::AP4_StsdAtom(AP4_UI32         size,
                            AP4_AtomFactory& atom_factory) :
     AP4_ContainerAtom(AP4_ATOM_TYPE_STSD, size, false, version, flags)
 {
+    if (size < AP4_FULL_ATOM_HEADER_SIZE + 4) return;
     // read the number of entries
     AP4_UI32 entry_count;
     stream.ReadUI32(entry_count);

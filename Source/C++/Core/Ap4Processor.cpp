@@ -276,9 +276,14 @@ AP4_Processor::ProcessFragments(AP4_MoovAtom*              moov,
                 AP4_Atom* child_atom = child_item->GetData();
                 if (child_atom->GetType() == AP4_ATOM_TYPE_TRUN) {
                     AP4_TrunAtom* trun = AP4_DYNAMIC_CAST(AP4_TrunAtom, child_atom);
-                    truns.Append(trun);
+                    if (trun) {
+                        truns.Append(trun);
+                    }
                 }
-            }    
+            }
+            if (!truns.ItemCount()) {
+                continue;
+            }
             AP4_Ordinal   trun_index        = 0;
             AP4_Ordinal   trun_sample_index = 0;
             AP4_TrunAtom* trun = truns[0];
