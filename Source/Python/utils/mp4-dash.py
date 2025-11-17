@@ -128,6 +128,8 @@ DASHIF_NAMESPACE            = 'https://dashif.org/'
 
 DASH_DEFAULT_ROLE_NAMESPACE = 'urn:mpeg:dash:role:2011'
 
+SCTE_NAMESPACE              = 'urn:scte:dash:scte214-extensions'
+
 DASH_MEDIA_SEGMENT_URL_PATTERN_SMOOTH = "/QualityLevels($Bandwidth$)/Fragments(%s=$Time$)"
 DASH_MEDIA_SEGMENT_URL_PATTERN_HIPPO  = '%s/Bitrate($Bandwidth$)/Fragment($Time$)'
 
@@ -140,6 +142,10 @@ MPEG_DASH_AUDIO_CHANNEL_CONFIGURATION_SCHEME_ID_URI       = 'urn:mpeg:dash:23003
 ISO_IEC_23001_8_AUDIO_CHANNEL_CONFIGURATION_SCHEME_ID_URI = 'urn:mpeg:mpegB:cicp:ChannelConfiguration'
 DOLBY_DIGITAL_AUDIO_CHANNEL_CONFIGURATION_SCHEME_ID_URI   = 'tag:dolby.com,2014:dash:audio_channel_configuration:2011'
 DOLBY_AC4_AUDIO_CHANNEL_CONFIGURATION_SCHEME_ID_URI       = 'tag:dolby.com,2015:dash:audio_channel_configuration:2015'
+
+MPEG_DASH_MATRIX_COEFFICIENTS_SCHEME_ID_URI      = 'urn:mpeg:mpegB:cicp:MatrixCoefficients'
+MPEG_DASH_COLOUR_PRIMARIES_SCHEME_ID_URI         = 'urn:mpeg:mpegB:cicp:ColourPrimaries'
+MPEG_DASH_TRANSFER_CHARACTERISTICS_SCHEME_ID_URI = 'urn:mpeg:mpegB:cicp:TransferCharacteristics'
 
 ISOFF_MAIN_PROFILE          = 'urn:mpeg:dash:profile:isoff-main:2011'
 ISOFF_LIVE_PROFILE          = 'urn:mpeg:dash:profile:isoff-live:2011'
@@ -485,15 +491,50 @@ def OutputDash(options, set_attributes, audio_sets, video_sets, subtitles_sets, 
                 AddSegmentTemplate(options, adaptation_set, init_segment_url, media_segment_url_template_prefix, video_tracks[0], 'video')
 
             for video_track in video_tracks:
-                representation = xml.SubElement(adaptation_set,
-                                                'Representation',
-                                                id=video_track.representation_id,
-                                                codecs=video_track.codec,
-                                                width=str(video_track.width),
-                                                height=str(video_track.height),
-                                                scanType=video_track.scan_type,
-                                                frameRate=video_track.frame_rate_ratio,
-                                                bandwidth=str(video_track.bandwidth))
+                if hasattr(video_track, 'supplemental_codec') and hasattr(video_track, 'supplemental_profile'):
+                    #adding MatrixCoefficients
+                    if hasattr(video_track, 'matrix_coefficients'):
+                        xml.SubElement(adaptation_set,
+                                       'EssentialProperty',
+                                       schemeIdUri=MPEG_DASH_MATRIX_COEFFICIENTS_SCHEME_ID_URI,
+                                       value=video_track.matrix_coefficients)
+
+                    #adding ColourPrimaries
+                    if hasattr(video_track, 'colour_primaries'):
+                        xml.SubElement(adaptation_set,
+                                       'EssentialProperty',
+                                       schemeIdUri=MPEG_DASH_COLOUR_PRIMARIES_SCHEME_ID_URI,
+                                       value=video_track.colour_primaries)
+
+                    #adding TransferCharacteristics
+                    if hasattr(video_track, 'transfer_characteristics'):
+                        xml.SubElement(adaptation_set,
+                                       'EssentialProperty',
+                                       schemeIdUri=MPEG_DASH_TRANSFER_CHARACTERISTICS_SCHEME_ID_URI,
+                                       value=video_track.transfer_characteristics)
+
+                    representation = xml.SubElement(adaptation_set,
+                                                    'Representation',
+                                                    id=video_track.representation_id,
+                                                    codecs=video_track.codec.split(',')[0],
+                                                    width=str(video_track.width),
+                                                    height=str(video_track.height),
+                                                    scanType=video_track.scan_type,
+                                                    frameRate=video_track.frame_rate_ratio,
+                                                    bandwidth=str(video_track.bandwidth))
+                    xml.register_namespace('scte214', SCTE_NAMESPACE)
+                    representation.set('{'+SCTE_NAMESPACE+'}supplementalCodecs', video_track.supplemental_codec)
+                    representation.set('{'+SCTE_NAMESPACE+'}supplementalProfiles', video_track.supplemental_profile)
+                else:
+                    representation = xml.SubElement(adaptation_set,
+                                                    'Representation',
+                                                    id=video_track.representation_id,
+                                                    codecs=video_track.codec,
+                                                    width=str(video_track.width),
+                                                    height=str(video_track.height),
+                                                    scanType=video_track.scan_type,
+                                                    frameRate=video_track.frame_rate_ratio,
+                                                    bandwidth=str(video_track.bandwidth))
                 if hasattr(video_track, 'max_playout_rate'):
                     representation.set('maxPlayoutRate', video_track.max_playout_rate)
 
