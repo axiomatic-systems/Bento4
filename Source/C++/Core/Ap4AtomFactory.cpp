@@ -342,6 +342,10 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
             atom = new AP4_Ac4SampleEntry(type, size_32, stream, *this);
             break;
 
+          case AP4_ATOM_TYPE_MLPA:
+            atom = new AP4_MlpSampleEntry(type, size_32, stream, *this);
+            break;
+
           case AP4_ATOM_TYPE_ALAC:
           case AP4_ATOM_TYPE_DTSC:
           case AP4_ATOM_TYPE_DTSH:
@@ -774,6 +778,13 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
             if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
             if (GetContext() == AP4_ATOM_TYPE_AC_4 || GetContext() == AP4_ATOM_TYPE_ENCA) {
                 atom = AP4_Dac4Atom::Create(size_32, stream);
+            }
+            break;
+
+          case AP4_ATOM_TYPE_DMLP:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            if (GetContext() == AP4_ATOM_TYPE_MLPA || GetContext() == AP4_ATOM_TYPE_ENCA) {
+                atom = AP4_DmlpAtom::Create(size_32, stream);
             }
             break;
 
