@@ -135,7 +135,7 @@ public:
                          AP4_AtomFactory& atom_factory);
 
     // accessors
-    AP4_UI32 GetSampleRate();
+    virtual AP4_UI32 GetSampleRate();
     AP4_UI16 GetSampleSize() { return m_SampleSize; }
     AP4_UI16 GetChannelCount();
 
@@ -323,6 +323,27 @@ public:
                        AP4_AtomFactory& atom_factory);
                         
     // inherited from AP4_SampleEntry
+    virtual AP4_SampleDescription* ToSampleDescription();
+};
+
+/*----------------------------------------------------------------------
+|   AP4_MlpSampleEntry
++---------------------------------------------------------------------*/
+class AP4_MlpSampleEntry : public AP4_AudioSampleEntry
+{
+public:
+    AP4_MlpSampleEntry(AP4_UI32              format,
+                       AP4_UI32              sample_rate,
+                       AP4_UI16              sample_size,
+                       AP4_UI16              channel_count,
+                       const AP4_AtomParent* details);
+    AP4_MlpSampleEntry(AP4_UI32         type,
+                       AP4_Size         size,
+                       AP4_ByteStream&  stream,
+                       AP4_AtomFactory& atom_factory);
+                        
+    // inherited from AP4_SampleEntry
+    virtual AP4_UI32 GetSampleRate();
     virtual AP4_SampleDescription* ToSampleDescription();
 };
 

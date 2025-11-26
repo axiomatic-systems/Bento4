@@ -26,6 +26,7 @@ CORE_SOURCES = 								\
     Ap4DecoderSpecificInfoDescriptor.cpp    \
     Ap4Descriptor.cpp                       \
     Ap4DescriptorFactory.cpp                \
+    Ap4DmlpAtom.cpp                         \
     Ap4DrefAtom.cpp                         \
     Ap4EsDescriptor.cpp                     \
     Ap4EsdsAtom.cpp                         \
