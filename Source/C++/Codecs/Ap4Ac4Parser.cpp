@@ -59,7 +59,7 @@ AP4_Ac4Header::AP4_Ac4Header(const AP4_UI08* bytes, unsigned int size, bool head
     }
 
     /* Begin to parse TOC */
-    AP4_Position tocStart = bits.GetBitsPosition() / 8;
+    unsigned int tocStart = bits.GetBitsPosition() / 8;
 
     m_BitstreamVersion = bits.ReadBits(2);
     if (m_BitstreamVersion == 3) {
