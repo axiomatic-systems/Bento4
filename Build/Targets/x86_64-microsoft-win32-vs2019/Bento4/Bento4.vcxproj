@@ -168,6 +168,7 @@
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4Dac3Atom.cpp" />
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4Dac4Atom.cpp" />
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4Dec3Atom.cpp" />
+    <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4DmlpAtom.cpp" />
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4DvccAtom.cpp" />
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4HvccAtom.cpp" />
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4PsshAtom.cpp" />
@@ -303,6 +304,7 @@
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4Dac3Atom.h" />
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4Dac4Atom.h" />
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4Dec3Atom.h" />
+    <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4DmlpAtom.h" />
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4DvccAtom.h" />
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4PsshAtom.h" />
     <ClInclude Include="..\..\..\..\Source\C++\Core\Ap4SaioAtom.h" />
