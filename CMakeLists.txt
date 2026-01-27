@@ -81,8 +81,8 @@ target_include_directories(ap4 PUBLIC
   ${AP4_INCLUDE_DIRS}
 )
 
-# Use the statically linked C runtime library
-if(MSVC)
+option(MSVC_FORCE_STATIC_C_RUNTIME "Use the statically linked C runtime library when compiling with MSVC" ON)
+if(MSVC AND MSVC_FORCE_STATIC_C_RUNTIME)
   set_property(TARGET ap4 PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
   target_compile_definitions(ap4 PRIVATE -D_LIB)
 endif()
@@ -97,7 +97,7 @@ foreach(app ${BENTO4_APPS})
   add_executable(${binary_name} ${SOURCE_ROOT}/Apps/${app}/${app}.cpp)
   target_link_libraries(${binary_name} ap4)
 
-  if(MSVC)
+  if(MSVC AND MSVC_FORCE_STATIC_C_RUNTIME)
     set_property(TARGET ${binary_name} PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
     target_compile_definitions(${binary_name} PRIVATE -D_CONSOLE)
   endif()
