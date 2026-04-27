@@ -266,6 +266,7 @@ public:
     unsigned int GetBitsPosition();
 
     unsigned int GetBitsRead();
+    unsigned int GetBitsAvailable();
 
 private:
     // methods
