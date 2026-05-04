@@ -1,7 +1,41 @@
 Bento4
 =====
 ![CI](https://github.com/axiomatic-systems/Bento4/workflows/CI/badge.svg?branch=master)
-           
+
+---------------------------------------------------------------------
+
+## Security Audit Report: NULL Pointer Dereference Vulnerabilities (v1.5.0-617)
+
+### Summary
+
+This audit identified NULL pointer dereference vulnerabilities in factory/parser patterns where pointers returned from Create methods are used without null checks.
+
+### Candidates (by priority)
+
+**1. CRITICAL: Ap4AtomFactory::CreateAtomFromStream NULL dereference**
+- File: `Source/C++/Core/Ap4AtomFactory.cpp`
+- Lines: 248-251 (after switch), 350-365 (container atom cases)
+- After creating atoms via `AP4_ContainerAtom::Create()` (which can return NULL), code immediately calls `atom->SetSize32()` and `atom->SetSize64()` without NULL check
+- Confirmed: `AP4_ContainerAtom::Create` returns NULL on invalid size or failed header reads (lines 57-58)
+
+**2. HIGH: Ap4File::Parse atom factory without NULL check**
+- File: `Source/C++/Core/Ap4File.cpp`
+- Lines: 104-105
+- `CreateAtomFromStream` success checked but atom not verified before AddChild
+
+**3. HIGH: Multiple Create methods can return NULL**
+- 20+ verified Create methods return NULL including: HdlrAtom::Create (line 423), StsdAtom::Create (line 458), TrexAtom::Create (line 418), ContainerAtom::Create, etc.
+- These are called directly in switch cases without null checks
+
+**4. MEDIUM: Ap4DescriptorFactory/CommandFactory**
+- Similar direct new patterns without null checks
+
+### Uncertainties
+- The UnknownAtom fallback (lines 238-243) runs AFTER the null dereference at lines 248-251
+- Whether all code paths through the factory actually trigger NULL returns depends on malformed input specifics
+
+---------------------------------------------------------------------
+
 Bento4 is a C++ class library and tools designed to read and write ISO-MP4 files.
 This format is defined in international specifications ISO/IEC 14496-12, 14496-14 and 14496-15.
 The format is a derivative of the Apple Quicktime file format, so Bento4 can be used to read and write most Quicktime files as well.
