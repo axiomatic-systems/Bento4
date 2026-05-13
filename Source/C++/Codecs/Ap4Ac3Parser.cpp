@@ -43,6 +43,13 @@ AP4_Ac3Header::AP4_Ac3Header(const AP4_UI08* bytes)
     bits.SkipBits(16);                  // crc1
     m_Fscod       = bits.ReadBits(2);
     m_Frmsizecod  = bits.ReadBits(6);   // frmsizecod
+    if (m_Fscod >= sizeof(FRAME_SIZE_CODE_ARY_AC3)/sizeof(FRAME_SIZE_CODE_ARY_AC3[0]) ||
+        m_Frmsizecod >= sizeof(FRAME_SIZE_CODE_ARY_AC3[0])/sizeof(FRAME_SIZE_CODE_ARY_AC3[0][0])) {
+        m_FrameSize = 0;
+        // invalid frame size code, set bsid to an invalid value to make sure the header check will fail
+        m_Bsid = 0xFF;
+        return;
+    }
     m_FrameSize   = FRAME_SIZE_CODE_ARY_AC3[m_Fscod][m_Frmsizecod] * 2;
     
     m_Bsid        = bits.ReadBits(5);
@@ -58,6 +65,11 @@ AP4_Ac3Header::AP4_Ac3Header(const AP4_UI08* bytes)
         bits.SkipBits(2);               //dsurmod
     }
     m_Lfeon         = bits.ReadBit();
+    if (m_Acmod >= sizeof(GLOBAL_CHANNEL_ARY)/sizeof(GLOBAL_CHANNEL_ARY[0])) {
+        // invalid acmod, set bsid to an invalid value to make sure the header check will fail
+        m_Bsid = 0xFF;
+        return;
+    }
     m_ChannelCount  = GLOBAL_CHANNEL_ARY[m_Acmod] + m_Lfeon;
     bits.SkipBits(5);                   // dialnorm
     if(bits.ReadBit()){                 // compre
