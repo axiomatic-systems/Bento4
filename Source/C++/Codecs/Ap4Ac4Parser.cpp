@@ -131,6 +131,11 @@ AP4_Ac4Header::AP4_Ac4Header(const AP4_UI08* bytes, unsigned int size, bool head
         }
         // ac4_presentation_v1_info()
         for (unsigned int pres_idx = 0; pres_idx < m_NPresentations; pres_idx++){
+            if (!bits.GetBitsAvailable()) {
+                printf("Error: Not enough bits for %d PresentationV1Info, stop parsing.\n", m_NPresentations);
+                return;
+            }
+
             AP4_Dac4Atom::Ac4Dsi::PresentationV1& presentation = m_PresentationV1[pres_idx];
             presentation.ParsePresentationV1Info(bits,
                                                  m_BitstreamVersion,
@@ -146,6 +151,11 @@ AP4_Ac4Header::AP4_Ac4Header(const AP4_UI08* bytes, unsigned int size, bool head
         AP4_Dac4Atom::Ac4Dsi::SubStreamGroupV1 *substream_groups = new AP4_Dac4Atom::Ac4Dsi::SubStreamGroupV1[maxGroupIndex + 1];
         AP4_SetMemory(substream_groups, 0, (maxGroupIndex + 1) * sizeof(substream_groups[0]));
         for (unsigned int sg = 0 ; (sg < (maxGroupIndex + 1)) && (m_NPresentations > 0); sg ++) {
+            if (!bits.GetBitsAvailable()) {
+                printf("Error: Not enough bits for %d SubstreamGroupInfo, stop parsing.\n", maxGroupIndex + 1);
+                return;
+            }
+
             AP4_Dac4Atom::Ac4Dsi::SubStreamGroupV1 &substream_group = substream_groups[sg];
             AP4_Result pres_index = GetPresentationIndexBySGIndex(sg);
             if (pres_index == AP4_FAILURE) {

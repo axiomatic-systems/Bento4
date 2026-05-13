@@ -196,6 +196,10 @@ AP4_Dac4Atom::AP4_Dac4Atom(AP4_UI32 size, const AP4_UI08* payload) :
         m_Dsi.d.v1.presentations = new Ac4Dsi::PresentationV1[m_Dsi.d.v1.n_presentations];
         AP4_SetMemory(m_Dsi.d.v1.presentations, 0, m_Dsi.d.v1.n_presentations * sizeof(m_Dsi.d.v1.presentations[0]));
         for (unsigned int i = 0; i < m_Dsi.d.v1.n_presentations; i++) {
+            if (!bits.GetBitsAvailable()) {
+                printf("Error: Not enough bits for %d presentation, stop parsing.\n", m_Dsi.d.v1.n_presentations);
+                return;
+            }
             Ac4Dsi::PresentationV1& presentation = m_Dsi.d.v1.presentations[i];
             
             presentation.presentation_version = bits.ReadBits(8);
