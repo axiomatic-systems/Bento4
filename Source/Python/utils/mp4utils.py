@@ -489,7 +489,11 @@ class Mp4Track:
                             self.dolby_ac4_cbi = 'Yes'
                             self.channels = self.channels + '/IMSA'
             elif 'mpeg_4_audio_decoder_config' in sample_desc:
-                self.channels = sample_desc['mpeg_4_audio_decoder_config']['channels']
+                adc = sample_desc['mpeg_4_audio_decoder_config']
+                self.channels = adc['channels']
+                # For HE-AAC/SBR, use the output sample rate signaled in the extension config.
+                if 'sampling_frequency' in adc:
+                    self.sample_rate = adc['sampling_frequency']
 
         self.language = info['language']
         self.language_name = LanguageNames.get(LanguageCodeMap.get(self.language, 'und'), '')
