@@ -59,7 +59,7 @@ AP4_Ac4Header::AP4_Ac4Header(const AP4_UI08* bytes, unsigned int size, bool head
     }
 
     /* Begin to parse TOC */
-    AP4_Position tocStart = bits.GetBitsPosition() / 8;
+    unsigned int tocStart = bits.GetBitsPosition() / 8;
 
     m_BitstreamVersion = bits.ReadBits(2);
     if (m_BitstreamVersion == 3) {
@@ -512,7 +512,7 @@ AP4_Ac4Parser::FindFrame(AP4_Ac4Frame& frame)
                        sizeof(AP4_Dac4Atom::Ac4Dsi::PresentationV1) * ac4_header.m_NPresentations);
         for (unsigned int pres_idx = 0; pres_idx < ac4_header.m_NPresentations; pres_idx++) {
             assert(ac4_header.m_PresentationV1[pres_idx].d.v1.substream_groups != NULL);
-            int n_substream_group = ac4_header.m_PresentationV1[pres_idx].d.v1.n_substream_groups;
+            unsigned int n_substream_group = ac4_header.m_PresentationV1[pres_idx].d.v1.n_substream_groups;
             frame.m_Info.m_Ac4Dsi.d.v1.presentations[pres_idx].d.v1.substream_groups = new AP4_Dac4Atom::Ac4Dsi::SubStreamGroupV1[n_substream_group];
             frame.m_Info.m_Ac4Dsi.d.v1.presentations[pres_idx].d.v1.substream_group_indexs = new AP4_UI32[n_substream_group];
             AP4_CopyMemory(frame.m_Info.m_Ac4Dsi.d.v1.presentations[pres_idx].d.v1.substream_group_indexs,

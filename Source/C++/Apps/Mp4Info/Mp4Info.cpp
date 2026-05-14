@@ -653,6 +653,16 @@ ShowSampleDescription_Text(AP4_SampleDescription& description, bool verbose)
         break;
       }
 
+      case AP4_SAMPLE_FORMAT_MLPA: {
+        // Dolby TrueHD specifics
+        AP4_DmlpAtom* dmlp = AP4_DYNAMIC_CAST(AP4_DmlpAtom, desc->GetDetails().GetChild(AP4_ATOM_TYPE_DMLP));
+        if (dmlp) {
+            printf("    Format Info:    %d\n", dmlp->m_FormatInfo);
+            printf("    Peak Data Rate: %d\n", dmlp->m_PeakDataRate);
+        }
+        break;
+      }
+        
       // VPx Specifics
       case AP4_SAMPLE_FORMAT_VP8:
       case AP4_SAMPLE_FORMAT_VP9:
