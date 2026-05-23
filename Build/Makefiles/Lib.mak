@@ -133,6 +133,8 @@ CORE_SOURCES = 								\
     Ap4Eac3Parser.cpp                       \
     Ap4HevcParser.cpp                       \
     Ap4SegmentBuilder.cpp                   \
+    Ap4XMLAtom.cpp                          \
+    pugixml.cpp                             \
 
 
 CORE_OBJECTS=$(CORE_SOURCES:.cpp=.o)
@@ -164,6 +166,7 @@ VPATH += $(SOURCE_ROOT)/System/Posix
 VPATH += $(SOURCE_ROOT)/Codecs
 VPATH += $(SOURCE_ROOT)/MetaData
 VPATH += $(SOURCE_ROOT)/CApi
+VPATH += $(SOURCE_ROOT)/XML/src
 
 ##########################################################################
 # includes
