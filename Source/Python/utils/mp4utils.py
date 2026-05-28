@@ -16,6 +16,7 @@ import hashlib
 import fractions
 import xml.sax.saxutils as saxutils
 import base64
+import math
 
 LanguageCodeMap = {
     'aar': 'aa', 'abk': 'ab', 'afr': 'af', 'aka': 'ak', 'alb': 'sq', 'amh': 'am', 'ara': 'ar', 'arg': 'an',
@@ -523,7 +524,13 @@ class Mp4Track:
 
         # compute the max segment bitrates
         if len(self.segment_bitrates) > 1:
-            self.max_segment_bitrate = max(self.segment_bitrates[:-1])
+            # The peak segment bit rate of a Media Playlist is the largest bit rate
+            # of any contiguous set of segments whose total duration is between 0.5 and 1.5 times the target duration. 
+            target_duration = math.ceil(max(self.segment_durations))
+            self.max_segment_bitrate = 0
+            for i in range(len(self.segment_durations)):
+                if self.segment_durations[i] >= target_duration * 0.5 and self.segment_durations[i] <= target_duration * 1.5:
+                    self.max_segment_bitrate = max(self.segment_bitrates[i], self.max_segment_bitrate)
         else:
             self.max_segment_bitrate = self.average_segment_bitrate
 
