@@ -775,7 +775,7 @@ def OutputHlsCommon(options, track, all_tracks, media_subdir, playlist_name, med
         init_segment_size = track.parent.init_segment.position + track.parent.init_segment.size
         playlist_file.write('#EXT-X-MAP:URI="{}",BYTERANGE="{}@0"\n'.format(media_file_name, init_segment_size))
 
-    if options.encryption_key:
+    if options.encryption_key and track.key_info:
         key_lines = []
         if options.fairplay_key_uri:
             key_lines.append(ComputeHlsFairplayKeyLine(options))
