@@ -1081,6 +1081,22 @@ ShowSampleDescription_Json(AP4_SampleDescription& description, bool verbose)
         printf("}");
     }
 
+    // Color information from colr atom for non-VPx tracks
+    if (desc->GetFormat() != AP4_SAMPLE_FORMAT_VP8 &&
+        desc->GetFormat() != AP4_SAMPLE_FORMAT_VP9 &&
+        desc->GetFormat() != AP4_SAMPLE_FORMAT_VP10) {
+        AP4_ColrAtom* colr = AP4_DYNAMIC_CAST(AP4_ColrAtom, desc->GetDetails().GetChild(AP4_ATOM_TYPE_COLR));
+        if (colr && colr->GetColourParameterType() == AP4_SAMPLE_COLOR_TYPE_NCLX) {
+            printf(",\n");
+            printf("\"color_info\": {\n");
+            printf("    \"colour_primaries\":%d,\n", colr->GetPrimariesIndex());
+            printf("    \"transfer_characteristics\":%d,\n", colr->GetTransferFunctionIndex());
+            printf("    \"matrix_coefficients\":%d,\n", colr->GetMatrixIndex());
+            printf("    \"video_full_range_flag\":%s\n", colr->GetFullRangeFlag() ? "true" : "false");
+            printf("}");
+        }
+    }
+
     printf("\n}");
 }
 

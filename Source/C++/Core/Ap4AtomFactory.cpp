@@ -108,6 +108,7 @@
 #include "Ap4SidxAtom.h"
 #include "Ap4SbgpAtom.h"
 #include "Ap4SgpdAtom.h"
+#include "Ap4ColrAtom.h"
 
 /*----------------------------------------------------------------------
 |   AP4_AtomFactory::~AP4_AtomFactory
@@ -835,6 +836,10 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
           case AP4_ATOM_TYPE_MDAT:
             // generic atoms
             break;
+          case AP4_ATOM_TYPE_COLR:
+              if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+              atom = AP4_ColrAtom::Create(size_32, stream);
+              break;
             
           default: {
             // try all the external type handlers
