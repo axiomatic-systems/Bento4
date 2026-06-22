@@ -1,6 +1,6 @@
 /*****************************************************************
 |
-|    AP4 - hvcC Atoms
+|    AP4 - colr Atoms
 |
 |    Copyright 2002-2016 Axiomatic Systems, LLC
 |
@@ -110,16 +110,7 @@ AP4_ColrAtom::AP4_ColrAtom(AP4_UI32 size, const AP4_UI08* payload) :
     if (payload_size == 11) {
         m_FullRangeFlag = (payload[10] >> 7) & 0x01;
     }
-
 }
-
-///*----------------------------------------------------------------------
-//|   AP4_ColrAtom::UpdateRawBytes
-//+---------------------------------------------------------------------*/
-//void
-//AP4_ColrAtom::UpdateRawBytes()
-//{
-//}
 
 /*----------------------------------------------------------------------
 |   AP4_ColrAtom::WriteFields
