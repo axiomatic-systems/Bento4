@@ -45,6 +45,9 @@
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4Co64Atom.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4ColrAtom.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4Command.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

@@ -17,6 +17,7 @@ CORE_SOURCES = 								\
     Ap4Av1cAtom.cpp                         \
     Ap4ByteStream.cpp                       \
     Ap4Co64Atom.cpp                         \
+    Ap4ColrAtom.cpp                         \
     Ap4ContainerAtom.cpp                    \
     Ap4CttsAtom.cpp                         \
     Ap4DataBuffer.cpp                       \

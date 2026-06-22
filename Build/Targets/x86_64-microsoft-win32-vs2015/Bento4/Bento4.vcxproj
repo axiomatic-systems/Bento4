@@ -185,6 +185,7 @@
     <ClCompile Include="..\..\..\..\Source\C++\Codecs\Ap4BitStream.cpp" />
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4ByteStream.cpp" />
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4Co64Atom.cpp" />
+    <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4ColrAtom.cpp" />
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4Command.cpp" />
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4CommandFactory.cpp" />
     <ClCompile Include="..\..\..\..\Source\C++\Core\Ap4ContainerAtom.cpp" />
