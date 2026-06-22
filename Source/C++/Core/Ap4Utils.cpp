@@ -443,6 +443,11 @@ AP4_BitReader::GetBitsRead()
 AP4_BitReader::BitsWord
 AP4_BitReader::ReadCache() const
 {
+    // stop reading past the end of the buffer when more bits are requested
+    // than the input contains; the missing bytes read as zero
+    if (m_Position+AP4_WORD_BYTES > m_Buffer.GetBufferSize()) {
+        return 0;
+    }
     const AP4_UI08* out_ptr = m_Buffer.GetData()+m_Position;
     return (((AP4_BitReader::BitsWord) out_ptr[0]) << 24) |
            (((AP4_BitReader::BitsWord) out_ptr[1]) << 16) |
