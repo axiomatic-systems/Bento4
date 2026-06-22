@@ -316,6 +316,7 @@
 #include "Ap4Dec3Atom.h"
 #include "Ap4Dac4Atom.h"
 #include "Ap4SidxAtom.h"
+#include "Ap4ColrAtom.h"
 #include "Ap4AdtsParser.h"
 #include "Ap4Ac4Parser.h"
 #include "Ap4AvcParser.h"

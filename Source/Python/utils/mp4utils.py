@@ -413,7 +413,7 @@ class Mp4Track:
             self.width  = sample_desc['width']
             self.height = sample_desc['height']
 
-            # add dolby vision signaling if present
+            # add dolby vision signaling if present; otherwise detect HDR10/HLG
             if 'dolby_vision' in sample_desc:
                 dv_info = sample_desc['dolby_vision']
                 if dv_info['profile'] == 5:
@@ -459,6 +459,18 @@ class Mp4Track:
                         PrintErrorAndExit('ERROR: unsupported ccid for Dolby Vision profile 8/9.')
                 else:
                     PrintErrorAndExit('ERROR: unsupported Dolby Vision profile.')
+            elif 'color_info' in sample_desc:
+                tc = sample_desc['color_info'].get('transfer_characteristics', 1)
+                if tc == 16: 
+                    self.video_range = 'PQ'
+                elif tc == 18: 
+                    self.video_range = 'HLG'
+            elif 'vpx_info' in sample_desc:
+                tc = sample_desc['vpx_info'].get('transfer_characteristics', 1)
+                if tc == 16: 
+                    self.video_range = 'PQ'
+                elif tc == 18:
+                    self.video_range = 'HLG'
 
         if self.type == 'audio':
             self.sample_rate = sample_desc['sample_rate']
