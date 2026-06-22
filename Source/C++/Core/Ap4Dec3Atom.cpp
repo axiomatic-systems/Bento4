@@ -51,7 +51,7 @@ AP4_Dec3Atom::Create(AP4_Size size, AP4_ByteStream& stream)
     AP4_Result result = stream.Read(payload_data.UseData(), payload_size);
     if (AP4_FAILED(result)) return NULL;
     
-    // check the version
+    // create the atom from the raw bytes
     const AP4_UI08* payload = payload_data.GetData();
     return new AP4_Dec3Atom(size, payload);
 }

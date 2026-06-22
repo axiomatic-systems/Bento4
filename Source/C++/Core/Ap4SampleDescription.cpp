@@ -88,6 +88,7 @@ AP4_GetFormatName(AP4_UI32 format)
         case AP4_SAMPLE_FORMAT_AC_3: return "Dolby Digital (AC-3)";
         case AP4_SAMPLE_FORMAT_EC_3: return "Dolby Digital Plus (Enhanced AC-3)";
         case AP4_SAMPLE_FORMAT_AC_4: return "Dolby AC-4";
+        case AP4_SAMPLE_FORMAT_MLPA: return "Dolby TrueHD";
         case AP4_SAMPLE_FORMAT_DTSC: return "DTS";
         case AP4_SAMPLE_FORMAT_DTSH: return "DTS-HD";
         case AP4_SAMPLE_FORMAT_DTSL: return "DTS-HD Lossless";
@@ -386,12 +387,12 @@ AP4_AvcSampleDescription::AP4_AvcSampleDescription(AP4_UI32        format,
 {
     AP4_AvccAtom* avcc = AP4_DYNAMIC_CAST(AP4_AvccAtom, m_Details.GetChild(AP4_ATOM_TYPE_AVCC));
     if (avcc) {
-        m_AvccAtom = avcc;
+        m_AvccAtom = new AP4_AvccAtom(*avcc);
     } else {
         // shoud never happen
         m_AvccAtom = new AP4_AvccAtom();
-        m_Details.AddChild(m_AvccAtom);
     }
+    m_Details.AddChild(m_AvccAtom);
 }
 
 /*----------------------------------------------------------------------
@@ -522,12 +523,12 @@ AP4_HevcSampleDescription::AP4_HevcSampleDescription(AP4_UI32        format,
 {
     AP4_HvccAtom* hvcc = AP4_DYNAMIC_CAST(AP4_HvccAtom, m_Details.GetChild(AP4_ATOM_TYPE_HVCC));
     if (hvcc) {
-        m_HvccAtom = hvcc;
+        m_HvccAtom = new AP4_HvccAtom(*hvcc);
     } else {
         // shoud never happen
         m_HvccAtom = new AP4_HvccAtom();
-        m_Details.AddChild(m_HvccAtom);
     }
+    m_Details.AddChild(m_HvccAtom);
 }
 
 /*----------------------------------------------------------------------
@@ -812,12 +813,12 @@ AP4_Av1SampleDescription::AP4_Av1SampleDescription(AP4_UI32        format,
 {
     AP4_Av1cAtom* av1c = AP4_DYNAMIC_CAST(AP4_Av1cAtom, m_Details.GetChild(AP4_ATOM_TYPE_AV1C));
     if (av1c) {
-        m_Av1cAtom = av1c;
+        m_Av1cAtom = new AP4_Av1cAtom(*av1c);
     } else {
         // shoud never happen
         m_Av1cAtom = new AP4_Av1cAtom();
-        m_Details.AddChild(m_Av1cAtom);
     }
+    m_Details.AddChild(m_Av1cAtom);
 }
 
 /*----------------------------------------------------------------------
@@ -1097,49 +1098,46 @@ AP4_MpegAudioSampleDescription::GetMpeg4AudioObjectType() const
 }
 
 /*----------------------------------------------------------------------
- |   AP4_Ac3SampleDescription::AP4_Ac3SampleDescription
- +---------------------------------------------------------------------*/
+|   AP4_Ac3SampleDescription::AP4_Ac3SampleDescription
++---------------------------------------------------------------------*/
 AP4_Ac3SampleDescription::AP4_Ac3SampleDescription(AP4_UI32            sample_rate,
                                                    AP4_UI16            sample_size,
                                                    AP4_UI16            channel_count,
                                                    const AP4_Dac3Atom* dac3):
     AP4_SampleDescription(TYPE_AC3, AP4_SAMPLE_FORMAT_AC_3, NULL),
-    AP4_AudioSampleDescription(sample_rate, sample_size, channel_count)
+    AP4_AudioSampleDescription(sample_rate, sample_size, channel_count),
+    m_Dac3Atom(NULL)
 {
     if (dac3) {
         m_Dac3Atom = new AP4_Dac3Atom(*dac3);
+        m_Details.AddChild(m_Dac3Atom);
     } else {
         // TODO: add default construtor, m_Dac3Atom = new AP4_Dac3Atom() / should never happen
-        m_Dac3Atom = NULL;
     }
-    m_Details.AddChild(m_Dac3Atom);
 }
 
 /*----------------------------------------------------------------------
- |   AP4_Ac3SampleDescription::AP4_Ac3SampleDescription
- +---------------------------------------------------------------------*/
+|   AP4_Ac3SampleDescription::AP4_Ac3SampleDescription
++---------------------------------------------------------------------*/
 AP4_Ac3SampleDescription::AP4_Ac3SampleDescription(AP4_UI32        sample_rate,
                                                    AP4_UI16        sample_size,
                                                    AP4_UI16        channel_count,
                                                    AP4_AtomParent* details) :
     AP4_SampleDescription(TYPE_AC3, AP4_SAMPLE_FORMAT_AC_3, details),
     AP4_AudioSampleDescription(sample_rate, sample_size, channel_count),
-m_Dac3Atom(NULL)
+    m_Dac3Atom(NULL)
 {
-    AP4_Dac3Atom* ac3 = AP4_DYNAMIC_CAST(AP4_Dac3Atom, m_Details.GetChild(AP4_SAMPLE_FORMAT_AC_3));
-    if (ac3) {
-        m_Dac3Atom = ac3;
+    AP4_Dac3Atom* dac3 = AP4_DYNAMIC_CAST(AP4_Dac3Atom, m_Details.GetChild(AP4_ATOM_TYPE_DAC3));
+    if (dac3) {
+        m_Dac3Atom = dac3;
     } else {
         // TODO: add default construtor, m_Dac3Atom = new AP4_Dac3Atom() / should never happen
-        m_Dac3Atom = NULL;
-        m_Details.AddChild(m_Dac3Atom);
     }
 }
 
 /*----------------------------------------------------------------------
- |   AP4_Ac3SampleDescription::AP4_Ac3SampleDescription
- +---------------------------------------------------------------------*/
-
+|   AP4_Ac3SampleDescription::AP4_Ac3SampleDescription
++---------------------------------------------------------------------*/
 AP4_Ac3SampleDescription::AP4_Ac3SampleDescription(AP4_UI32                        sample_rate,
                                                    AP4_UI16                        sample_size,
                                                    AP4_UI16                        channel_count,
@@ -1153,9 +1151,8 @@ AP4_Ac3SampleDescription::AP4_Ac3SampleDescription(AP4_UI32                     
 }
 
 /*----------------------------------------------------------------------
- |   AP4_Ac3SampleDescription::ToAtom
- +---------------------------------------------------------------------*/
-
+|   AP4_Ac3SampleDescription::ToAtom
++---------------------------------------------------------------------*/
 AP4_Atom*
 AP4_Ac3SampleDescription::ToAtom() const
 {
@@ -1206,14 +1203,14 @@ AP4_Eac3SampleDescription::AP4_Eac3SampleDescription(AP4_UI32        sample_rate
     AP4_AudioSampleDescription(sample_rate, sample_size, channel_count),
     m_Dec3Atom(NULL)
 {
-    AP4_Dec3Atom* eac3 = AP4_DYNAMIC_CAST(AP4_Dec3Atom, m_Details.GetChild(AP4_SAMPLE_FORMAT_EC_3));
+    AP4_Dec3Atom* eac3 = AP4_DYNAMIC_CAST(AP4_Dec3Atom, m_Details.GetChild(AP4_ATOM_TYPE_DEC3));
     if (eac3) {
-        m_Dec3Atom = eac3;
+        m_Dec3Atom = new AP4_Dec3Atom(*eac3);
     } else {
         // shoud never happen
         m_Dec3Atom = new AP4_Dec3Atom();
-        m_Details.AddChild(m_Dec3Atom);
     }
+    m_Details.AddChild(m_Dec3Atom);
 }
 
 /*----------------------------------------------------------------------
@@ -1255,16 +1252,15 @@ AP4_Ac4SampleDescription::AP4_Ac4SampleDescription(AP4_UI32            sample_ra
                                                    AP4_UI16            channel_count,
                                                    const AP4_Dac4Atom* dac4):
     AP4_SampleDescription(TYPE_AC4, AP4_SAMPLE_FORMAT_AC_4, NULL),
-    AP4_AudioSampleDescription(sample_rate, sample_size, channel_count)
+    AP4_AudioSampleDescription(sample_rate, sample_size, channel_count),
+    m_Dac4Atom(NULL)
 {
     if (dac4) {
         m_Dac4Atom = dac4->CloneConst();
-;
+        m_Details.AddChild(m_Dac4Atom);
     } else {
         // TODO: add default construtor, m_Dac4Atom = new AP4_Dac4Atom() / should never happen
-        m_Dac4Atom = NULL;
     }
-    m_Details.AddChild(m_Dac4Atom);
 }
 
 /*----------------------------------------------------------------------
@@ -1283,8 +1279,6 @@ AP4_Ac4SampleDescription::AP4_Ac4SampleDescription(AP4_UI32        sample_rate,
         m_Dac4Atom = ac4;
     } else {
         // TODO: add default construtor, m_Dac4Atom = new AP4_Dac4Atom() / should never happen
-        m_Dac4Atom = NULL;
-        m_Details.AddChild(m_Dac4Atom);
     }
 }
 
@@ -1306,12 +1300,60 @@ AP4_Ac4SampleDescription::AP4_Ac4SampleDescription(AP4_UI32                    s
 /*----------------------------------------------------------------------
 |   AP4_Ac4SampleDescription::ToAtom
 +---------------------------------------------------------------------*/
-
 AP4_Atom*
 AP4_Ac4SampleDescription::ToAtom() const
 {
     return new AP4_Ac4SampleEntry(m_Format,
                                   m_SampleRate<<16,
+                                  m_SampleSize,
+                                  m_ChannelCount,
+                                  &m_Details);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_TrueHdSampleDescription::AP4_TrueHdSampleDescription
++---------------------------------------------------------------------*/
+AP4_TrueHdSampleDescription::AP4_TrueHdSampleDescription(AP4_UI32            sample_rate,
+                                                         AP4_UI16            sample_size,
+                                                         AP4_UI16            channel_count,
+                                                         const AP4_DmlpAtom* dmlp):
+    AP4_SampleDescription(TYPE_TRUEHD, AP4_SAMPLE_FORMAT_MLPA, NULL),
+    AP4_AudioSampleDescription(sample_rate, sample_size, channel_count),
+    m_DmlpAtom(NULL)
+{
+    if (dmlp) {
+        m_DmlpAtom = new AP4_DmlpAtom(*dmlp);
+        m_Details.AddChild(m_DmlpAtom);
+    }
+}
+
+/*----------------------------------------------------------------------
+|   AP4_TrueHdSampleDescription::AP4_TrueHdSampleDescription
++---------------------------------------------------------------------*/
+AP4_TrueHdSampleDescription::AP4_TrueHdSampleDescription(AP4_UI32        sample_rate,
+                                                         AP4_UI16        sample_size,
+                                                         AP4_UI16        channel_count,
+                                                         AP4_AtomParent* details) :
+    AP4_SampleDescription(TYPE_TRUEHD, AP4_SAMPLE_FORMAT_MLPA, details),
+    AP4_AudioSampleDescription(sample_rate, sample_size, channel_count)
+{
+    AP4_DmlpAtom* dmlp = AP4_DYNAMIC_CAST(AP4_DmlpAtom, m_Details.GetChild(AP4_ATOM_TYPE_DMLP));
+    if (dmlp) {
+        m_DmlpAtom = new AP4_DmlpAtom(*dmlp);
+    } else {
+        m_DmlpAtom = new AP4_DmlpAtom(0, 0);
+    }
+    m_Details.AddChild(m_DmlpAtom);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_TrueHdSampleDescription::ToAtom
++---------------------------------------------------------------------*/
+AP4_Atom*
+AP4_TrueHdSampleDescription::ToAtom() const
+{
+    return new AP4_MlpSampleEntry(m_Format,
+                                  m_SampleRate,
                                   m_SampleSize,
                                   m_ChannelCount,
                                   &m_Details);

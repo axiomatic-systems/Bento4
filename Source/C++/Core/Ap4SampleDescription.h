@@ -42,6 +42,7 @@
 #include "Ap4Av1cAtom.h"
 #include "Ap4DynamicCast.h"
 #include "Ap4Dac4Atom.h"
+#include "Ap4DmlpAtom.h"
 #include "Ap4Dec3Atom.h"
 #include "Ap4Dac3Atom.h"
 #include "Ap4DvccAtom.h"
@@ -78,6 +79,7 @@ const AP4_UI32 AP4_SAMPLE_FORMAT_DRA1 = AP4_ATOM_TYPE('d','r','a','1');
 const AP4_UI32 AP4_SAMPLE_FORMAT_AC_3 = AP4_ATOM_TYPE('a','c','-','3');
 const AP4_UI32 AP4_SAMPLE_FORMAT_AC_4 = AP4_ATOM_TYPE('a','c','-','4');
 const AP4_UI32 AP4_SAMPLE_FORMAT_EC_3 = AP4_ATOM_TYPE('e','c','-','3');
+const AP4_UI32 AP4_SAMPLE_FORMAT_MLPA = AP4_ATOM_TYPE('m','l','p','a');
 const AP4_UI32 AP4_SAMPLE_FORMAT_DTSC = AP4_ATOM_TYPE('d','t','s','c');
 const AP4_UI32 AP4_SAMPLE_FORMAT_DTSH = AP4_ATOM_TYPE('d','t','s','h');
 const AP4_UI32 AP4_SAMPLE_FORMAT_DTSL = AP4_ATOM_TYPE('d','t','s','l');
@@ -130,7 +132,8 @@ class AP4_SampleDescription
         TYPE_AV1       = 0x06,
         TYPE_AC3       = 0x07,
         TYPE_EAC3      = 0x08,
-        TYPE_AC4       = 0x09
+        TYPE_AC4       = 0x09,
+        TYPE_TRUEHD    = 0x0A
     };
 
     // constructors & destructor
@@ -801,6 +804,37 @@ public:
 
 private:
     AP4_Dac4Atom* m_Dac4Atom;
+};
+
+/*----------------------------------------------------------------------
+|   AP4_TrueHdSampleDescription
++---------------------------------------------------------------------*/
+class AP4_TrueHdSampleDescription : public AP4_SampleDescription,
+                                    public AP4_AudioSampleDescription
+{
+public:
+    AP4_IMPLEMENT_DYNAMIC_CAST_D2(AP4_TrueHdSampleDescription, AP4_SampleDescription, AP4_AudioSampleDescription)
+
+    // constructors
+    AP4_TrueHdSampleDescription(AP4_UI32            sample_rate,
+                                AP4_UI16            sample_size,
+                                AP4_UI16            channel_count,
+                                const AP4_DmlpAtom* dmlpAtom);
+    
+    AP4_TrueHdSampleDescription(AP4_UI32        sample_rate,
+                                AP4_UI16        sample_size,
+                                AP4_UI16        channel_count,
+                                AP4_AtomParent* details);
+        
+    // inherited from AP4_SampleDescription
+    virtual AP4_Result GetCodecString(AP4_String& codec) {
+        m_DmlpAtom->GetCodecString(codec);
+        return AP4_SUCCESS;
+    }
+    virtual AP4_Atom* ToAtom() const;
+
+private:
+    AP4_DmlpAtom* m_DmlpAtom;
 };
 
 /*----------------------------------------------------------------------
