@@ -2992,17 +2992,30 @@ AP4_CencSampleInfoTable::Create(AP4_UI08                  flags,
                 } else {
                     table->SetIv(saiz_index, constant_iv);
                 }
-                if (info_size < per_sample_iv_size+2) {
+                // Aux info layouts we must accept:
+                //   1) [IV][subsample_count:2][subsample_map:subsample_count*6]
+                //      (subsample encryption, e.g. video with cleartext slice
+                //      headers mixed with encrypted payload)
+                //   2) [IV]                                  (no subsample info)
+                //      (whole-sample encryption, common for audio where every
+                //      byte of the sample is encrypted and there is nothing
+                //      to describe — valid per ISO/IEC 23001-7)
+                AP4_UI16 subsample_count = 0;
+                if (info_size >= per_sample_iv_size+2) {
+                    subsample_count = AP4_BytesToUInt16BE(info_data+per_sample_iv_size);
+                    if (info_size < per_sample_iv_size+2+subsample_count*6) {
+                        // not enough data
+                        result = AP4_ERROR_INVALID_FORMAT;
+                        goto end;
+                    }
+                    table->AddSubSampleData(subsample_count, info_data+per_sample_iv_size+2);
+                } else if (info_size == per_sample_iv_size) {
+                    // IV-only aux info: whole sample is encrypted, no subsamples.
+                    table->AddSubSampleData(0, NULL);
+                } else {
                     result = AP4_ERROR_INVALID_FORMAT;
                     goto end;
                 }
-                AP4_UI16 subsample_count = AP4_BytesToUInt16BE(info_data+per_sample_iv_size);
-                if (info_size < per_sample_iv_size+2+subsample_count*6) {
-                    // not enough data
-                    result = AP4_ERROR_INVALID_FORMAT;
-                    goto end;
-                }
-                table->AddSubSampleData(subsample_count, info_data+per_sample_iv_size+2);
                 saiz_index++;
             }
         }
