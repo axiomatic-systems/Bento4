@@ -524,13 +524,23 @@ class Mp4Track:
 
         # compute the max segment bitrates
         if len(self.segment_bitrates) > 1:
-            # The peak segment bit rate of a Media Playlist is the largest bit rate
-            # of any contiguous set of segments whose total duration is between 0.5 and 1.5 times the target duration. 
+            # Per HLS spec: peak bitrate = largest bitrate of any contiguous set of segments
+            # whose total duration is between 0.5 and 1.5 times the target duration.
+            # The bitrate of a set = sum(sizes) / sum(durations).
             target_duration = math.ceil(max(self.segment_durations))
             self.max_segment_bitrate = 0
             for i in range(len(self.segment_durations)):
-                if self.segment_durations[i] >= target_duration * 0.5 and self.segment_durations[i] <= target_duration * 1.5:
-                    self.max_segment_bitrate = max(self.segment_bitrates[i], self.max_segment_bitrate)
+                total_size = 0
+                total_duration = 0
+                for j in range(i, len(self.segment_durations)):
+                    total_size += self.segment_sizes[j]
+                    total_duration += self.segment_durations[j]
+                    if total_duration > 1.5 * target_duration:
+                        break
+                    if total_duration >= 0.5 * target_duration:
+                        bitrate = 8.0 * total_size / total_duration
+                        if bitrate > self.max_segment_bitrate:
+                            self.max_segment_bitrate = bitrate
         else:
             self.max_segment_bitrate = self.average_segment_bitrate
 
