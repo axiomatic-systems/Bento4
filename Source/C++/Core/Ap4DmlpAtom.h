@@ -1,6 +1,6 @@
 /*****************************************************************
 |
-|    AP4 - dac4 Atoms
+|    AP4 - dmlp Atoms
 |
 |    Copyright 2002-2018 Axiomatic Systems, LLC
 |
