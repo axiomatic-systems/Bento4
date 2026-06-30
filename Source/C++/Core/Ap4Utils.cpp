@@ -438,6 +438,22 @@ AP4_BitReader::GetBitsRead()
 }
 
 /*----------------------------------------------------------------------
+|   AP4_BitReader::GetBitsAvailable
++---------------------------------------------------------------------*/
+unsigned int
+AP4_BitReader::GetBitsAvailable()
+{
+    unsigned int bits_read = GetBitsRead();
+    unsigned int bits_total = 8*m_Buffer.GetDataSize();
+
+    if (bits_read >= bits_total) {
+        return 0;
+    }
+
+    return bits_total - bits_read;
+}
+
+/*----------------------------------------------------------------------
 |   AP4_BitReader::ReadCache
 +---------------------------------------------------------------------*/
 AP4_BitReader::BitsWord
