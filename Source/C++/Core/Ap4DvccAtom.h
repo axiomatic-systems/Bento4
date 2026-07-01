@@ -93,7 +93,7 @@ public:
     bool     GetBlPresentFlag()  { return m_BlPresentFlag  != 0; }
     AP4_UI08 GetDvBlSignalCompatibilityID() { return m_DvBlSignalCompatibilityID; }
     AP4_UI08 GetDvMdCompression() { return m_DvMdCompression; }
-    AP4_UI08 GetDvFeatureFlags() { return m_DvFeatureFlags; }
+    AP4_UI16 GetDvFeatureFlags() { return m_DvFeatureFlags; }
 
     // helpers
     AP4_Result GetCodecString(const char* parent_codec_string,

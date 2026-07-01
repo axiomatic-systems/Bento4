@@ -1279,6 +1279,11 @@ AddH264DoviTrack(AP4_Movie&            movie,
             dv_bl_signal_comp_id = atoi(parameters[i].m_Value.GetChars());
         } else if (parameters[i].m_Name == "dv_md_compression") {
             dv_md_compression = atoi(parameters[i].m_Value.GetChars());
+            if (dv_md_compression > 3 || dv_md_compression < 0) {
+                fprintf(stderr, "ERROR: invalid dv_md_compression %s\n", parameters[i].m_Value.GetChars());
+                input->Release();
+                return;
+            }
         } else if (parameters[i].m_Name == "dv_feature_flags") {
             dv_feature_flags = (AP4_UI32)strtol(parameters[i].m_Value.GetChars(), NULL, 0);
             if (dv_feature_flags > 0x3FF) {
@@ -1857,6 +1862,11 @@ AddH265DoviTrack(AP4_Movie&           movie,
             dv_bl_signal_comp_id = atoi(parameters[i].m_Value.GetChars());
         } else if (parameters[i].m_Name == "dv_md_compression") {
             dv_md_compression = atoi(parameters[i].m_Value.GetChars());
+            if (dv_md_compression > 3 || dv_md_compression < 0) {
+                fprintf(stderr, "ERROR: invalid dv_md_compression %s\n", parameters[i].m_Value.GetChars());
+                input->Release();
+                return;
+            }
         } else if (parameters[i].m_Name == "dv_feature_flags") {
             dv_feature_flags = (AP4_UI32)strtol(parameters[i].m_Value.GetChars(), NULL, 0);
             if (dv_feature_flags > 0x3FF) {
