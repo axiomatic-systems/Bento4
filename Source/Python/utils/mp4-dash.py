@@ -839,9 +839,9 @@ def OutputHlsIframeIndex(options, track, all_tracks, media_subdir, iframes_playl
 
     iframe_total_segment_size = 0
     iframe_total_segment_duration = 0
-    iframe_bitrate = 0
-    iframe_max_bitrate = 0
     iframe_average_segment_bitrate = 0
+    iframe_segments = []  # (size, duration) pairs collected for peak bitrate calculation
+    target_duration = math.ceil(max(track.segment_durations))
 
     if not options.split:
         # get the I-frame index for a single file
@@ -856,13 +856,11 @@ def OutputHlsIframeIndex(options, track, all_tracks, media_subdir, iframes_playl
                 iframe_offset     = int(index_entry['offset'])
                 iframe_size       = int(index_entry['size'])
 
-                iframe_total_segment_size += iframe_size
-                iframe_total_segment_duration += iframe_segment_duration
-                iframe_bitrate = 8.0*(iframe_size/iframe_segment_duration)
-                if iframe_bitrate > iframe_max_bitrate:
-                    iframe_max_bitrate = iframe_bitrate
-
                 iframe_range_size = iframe_size + (iframe_offset-fragment_start)
+                iframe_total_segment_size += iframe_range_size
+                iframe_total_segment_duration += iframe_segment_duration
+                iframe_segments.append((iframe_range_size, iframe_segment_duration))
+
                 index_playlist_file.write('#EXT-X-BYTERANGE:{}@{}\n'.format(iframe_range_size, fragment_start))
                 index_playlist_file.write(media_file_name+'\n')
     else:
@@ -885,14 +883,29 @@ def OutputHlsIframeIndex(options, track, all_tracks, media_subdir, iframes_playl
             index_playlist_file.write('#EXT-X-BYTERANGE:{}@0\n'.format(iframe_range_size))
             index_playlist_file.write(fragment_basename+'\n')
 
-            iframe_total_segment_size += iframe_size
+            iframe_total_segment_size += iframe_range_size
             iframe_total_segment_duration += iframe_segment_duration
 
-            iframe_bitrate = 8.0*(iframe_size/iframe_segment_duration)
-            if iframe_bitrate > iframe_max_bitrate:
-                iframe_max_bitrate = iframe_bitrate
+            iframe_segments.append((iframe_range_size, iframe_segment_duration))
 
     index_playlist_file.write('#EXT-X-ENDLIST\n')
+    
+    # Per HLS spec: peak bitrate = largest bitrate of any contiguous set of segments
+    # whose total duration is between 0.5 and 1.5 times the target duration.
+    # The bitrate of a set = sum(sizes) / sum(durations).
+    iframe_max_bitrate = 0
+    for i in range(len(iframe_segments)):
+        total_size = 0
+        total_duration = 0
+        for j in range(i, len(iframe_segments)):
+            total_size += iframe_segments[j][0]
+            total_duration += iframe_segments[j][1]
+            if total_duration > 1.5 * target_duration:
+                break
+            if total_duration >= 0.5 * target_duration:
+                bitrate = 8.0 * total_size / total_duration
+                if bitrate > iframe_max_bitrate:
+                    iframe_max_bitrate = bitrate
 
     if iframe_total_segment_duration:
         iframe_average_segment_bitrate = 8.0*(iframe_total_segment_size/iframe_total_segment_duration)
