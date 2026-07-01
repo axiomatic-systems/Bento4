@@ -459,7 +459,9 @@ AP4_AvcDoviSampleDescription::AP4_AvcDoviSampleDescription(AP4_UI32             
                                                            bool                             rpu_present_flag,
                                                            bool                             el_present_flag,
                                                            bool                             bl_present_flag,
-                                                           AP4_UI08                         dv_bl_signal_compatibility_id) :
+                                                           AP4_UI08                         dv_bl_signal_compatibility_id,
+                                                           AP4_UI08                         dv_md_compression,
+                                                           AP4_UI16                         dv_feature_flags) :
     AP4_AvcSampleDescription(format,
                              width,
                              height,
@@ -482,7 +484,9 @@ AP4_AvcDoviSampleDescription::AP4_AvcDoviSampleDescription(AP4_UI32             
                                   rpu_present_flag,
                                   el_present_flag,
                                   bl_present_flag,
-                                  dv_bl_signal_compatibility_id);
+                                  dv_bl_signal_compatibility_id,
+                                  dv_md_compression,
+                                  dv_feature_flags);
     m_Details.AddChild(m_DvccAtom);
 }
 
@@ -694,7 +698,9 @@ AP4_HevcDoviSampleDescription::AP4_HevcDoviSampleDescription(AP4_UI32           
                                                              bool                             rpu_present_flag,
                                                              bool                             el_present_flag,
                                                              bool                             bl_present_flag,
-                                                             AP4_UI08                         dv_bl_signal_compatibility_id) :
+                                                             AP4_UI08                         dv_bl_signal_compatibility_id,
+                                                             AP4_UI08                         dv_md_compression,
+                                                             AP4_UI16                         dv_feature_flags) :
     AP4_HevcSampleDescription(format,
                               width,
                               height,
@@ -730,7 +736,9 @@ AP4_HevcDoviSampleDescription::AP4_HevcDoviSampleDescription(AP4_UI32           
                                   rpu_present_flag,
                                   el_present_flag,
                                   bl_present_flag,
-                                  dv_bl_signal_compatibility_id);
+                                  dv_bl_signal_compatibility_id,
+                                  dv_md_compression,
+                                  dv_feature_flags);
     m_Details.AddChild(m_DvccAtom);
 }
 

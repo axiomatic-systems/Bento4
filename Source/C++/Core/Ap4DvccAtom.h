@@ -75,7 +75,9 @@ public:
                  bool     rpu_present_flag,
                  bool     el_present_flag,
                  bool     bl_present_flag,
-                 AP4_UI08 dv_bl_signal_compatibility_id);
+                 AP4_UI08 dv_bl_signal_compatibility_id,
+                 AP4_UI08 dv_md_compression,
+                 AP4_UI16 dv_feature_flags);
     
     // methods
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
@@ -90,6 +92,8 @@ public:
     bool     GetElPresentFlag()  { return m_ElPresentFlag  != 0; }
     bool     GetBlPresentFlag()  { return m_BlPresentFlag  != 0; }
     AP4_UI08 GetDvBlSignalCompatibilityID() { return m_DvBlSignalCompatibilityID; }
+    AP4_UI08 GetDvMdCompression() { return m_DvMdCompression; }
+    AP4_UI08 GetDvFeatureFlags() { return m_DvFeatureFlags; }
 
     // helpers
     AP4_Result GetCodecString(const char* parent_codec_string,
@@ -106,6 +110,8 @@ private:
     AP4_UI08 m_ElPresentFlag;
     AP4_UI08 m_BlPresentFlag;
     AP4_UI08 m_DvBlSignalCompatibilityID;
+    AP4_UI08 m_DvMdCompression;
+    AP4_UI16 m_DvFeatureFlags;
 };
 
 #endif // _AP4_DVCC_ATOM_H_

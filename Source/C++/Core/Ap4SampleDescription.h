@@ -378,7 +378,9 @@ public:
                                      bool                             rpu_present_flag,
                                      bool                             el_present_flag,
                                      bool                             bl_present_flag,
-                                     AP4_UI08                         dv_bl_signal_compatibility_id);
+                                     AP4_UI08                         dv_bl_signal_compatibility_id,
+                                     AP4_UI08                         dv_md_compression,
+                                     AP4_UI16                         dv_feature_flags);
 private:
     AP4_DvccAtom* m_DvccAtom;
 };
@@ -509,7 +511,9 @@ public:
                                   bool                             rpu_present_flag,
                                   bool                             el_present_flag,
                                   bool                             bl_present_flag,
-                                  AP4_UI08                         dv_bl_signal_compatibility_id);
+                                  AP4_UI08                         dv_bl_signal_compatibility_id,
+                                  AP4_UI08                         dv_md_compression,
+                                  AP4_UI16                         dv_feature_flags);
 private:
     AP4_DvccAtom* m_DvccAtom;
 };

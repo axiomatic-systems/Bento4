@@ -94,12 +94,18 @@ PrintUsageAndExit()
             "    optional params:\n"
             "      dv_profile: integer number for Dolby vision profile ID (valid value: 9)\n"
             "      dv_bc: integer number for Dolby vision BL signal cross-compatibility ID (must be 2 if dv_profile is set to 9)\n"
+            "      dv_md_compression: integer number for Dolby vision metadata compression (valid value: 0, 1, 2, 3. default = 0)\n"
+            "      dv_feature_flags: a hex number to indicate 10-bit Dolby Vision features\n"
+            "            (example: if set 0x200, content has been authored for a Dolby Vision 2 experience. default = 0)\n"
             "      frame_rate: floating point number in frames per second (default=24.0)\n"
             "      format: avc1 (default) or avc3  for AVC tracks and Dolby Vision back-compatible tracks\n"
             "  h265: H265/HEVC NAL units\n"
             "    optional params:\n"
             "      dv_profile: integer number for Dolby vision profile ID (valid value: 5,8)\n"
             "      dv_bc: integer number for Dolby vision BL signal cross-compatibility ID (mandatory if dv_profile is set to 8)\n"
+            "      dv_md_compression: integer number for Dolby vision metadata compression (valid value: 0, 1, 2, 3. default = 0)\n"
+            "      dv_feature_flags: a hex number to indicate 10-bit Dolby Vision features\n"
+            "            (example: if set 0x200, content has been authored for a Dolby Vision 2 experience. default = 0)\n"
             "      frame_rate: floating point number in frames per second (default=24.0)\n"
             "      format: hev1 or hvc1 (default) for HEVC tracks and Dolby Vision backward-compatible tracks\n"
             "              dvhe or dvh1 (default) for Dolby vision tracks\n"
@@ -1230,6 +1236,8 @@ AddH264DoviTrack(AP4_Movie&            movie,
     AP4_UI32 dv_profile = 0;
     AP4_UI32 dv_bl_signal_comp_id = 0;
     AP4_UI32 dv_level = 0;
+    AP4_UI32 dv_md_compression = 0;
+    AP4_UI32 dv_feature_flags = 0;
 
     AP4_UI32 format = 0;
 
@@ -1269,6 +1277,15 @@ AddH264DoviTrack(AP4_Movie&            movie,
             dv_profile = atoi(parameters[i].m_Value.GetChars());
         } else if (parameters[i].m_Name == "dv_bc") {
             dv_bl_signal_comp_id = atoi(parameters[i].m_Value.GetChars());
+        } else if (parameters[i].m_Name == "dv_md_compression") {
+            dv_md_compression = atoi(parameters[i].m_Value.GetChars());
+        } else if (parameters[i].m_Name == "dv_feature_flags") {
+            dv_feature_flags = (AP4_UI32)strtol(parameters[i].m_Value.GetChars(), NULL, 0);
+            if (dv_feature_flags > 0x3FF) {
+                fprintf(stderr, "ERROR: invalid dv_feature_flags %s\n", parameters[i].m_Value.GetChars());
+                input->Release();
+                return;
+            }
         }
     }
 
@@ -1448,7 +1465,9 @@ AddH264DoviTrack(AP4_Movie&            movie,
                                          dv_rpu_flag,
                                          dv_el_flag,
                                          dv_bl_flag,
-                                         dv_bl_signal_comp_id);
+                                         dv_bl_signal_comp_id,
+                                         dv_md_compression,
+                                         dv_feature_flags);
     sample_table->AddSampleDescription(sample_description);
 
     AP4_UI32 movie_timescale      = 1000;
@@ -1795,6 +1814,8 @@ AddH265DoviTrack(AP4_Movie&           movie,
     AP4_UI32 dv_profile = 0;
     AP4_UI32 dv_bl_signal_comp_id = 0;
     AP4_UI32 dv_level = 0;
+    AP4_UI32 dv_md_compression = 0;
+    AP4_UI32 dv_feature_flags = 0;
 
     AP4_UI32 format = 0;
     
@@ -1834,6 +1855,15 @@ AddH265DoviTrack(AP4_Movie&           movie,
             dv_profile = atoi(parameters[i].m_Value.GetChars());
         } else if (parameters[i].m_Name == "dv_bc") {
             dv_bl_signal_comp_id = atoi(parameters[i].m_Value.GetChars());
+        } else if (parameters[i].m_Name == "dv_md_compression") {
+            dv_md_compression = atoi(parameters[i].m_Value.GetChars());
+        } else if (parameters[i].m_Name == "dv_feature_flags") {
+            dv_feature_flags = (AP4_UI32)strtol(parameters[i].m_Value.GetChars(), NULL, 0);
+            if (dv_feature_flags > 0x3FF) {
+                fprintf(stderr, "ERROR: invalid dv_feature_flags %s\n", parameters[i].m_Value.GetChars());
+                input->Release();
+                return;
+            }
         }
     }
     
@@ -2062,7 +2092,9 @@ AddH265DoviTrack(AP4_Movie&           movie,
                                           dv_rpu_flag,
                                           dv_el_flag,
                                           dv_bl_flag,
-                                          dv_bl_signal_comp_id);
+                                          dv_bl_signal_comp_id,
+                                          dv_md_compression,
+                                          dv_feature_flags);
     
     sample_table->AddSampleDescription(sample_description);
 
