@@ -745,7 +745,8 @@ AP4_Mpeg2TsVideoSampleStream::WriteSample(AP4_Sample&            sample,
 +---------------------------------------------------------------------*/
 AP4_Mpeg2TsWriter::AP4_Mpeg2TsWriter(AP4_UI16 pmt_pid) :
     m_Audio(NULL),
-    m_Video(NULL)
+    m_Video(NULL),
+    m_Id3(NULL)
 {
     m_PAT = new Stream(0);
     m_PMT = new Stream(pmt_pid);
@@ -760,6 +761,7 @@ AP4_Mpeg2TsWriter::~AP4_Mpeg2TsWriter()
     delete m_PMT;
     delete m_Audio;
     delete m_Video;
+    delete m_Id3;
 }
 
 /*----------------------------------------------------------------------
@@ -823,6 +825,10 @@ AP4_Mpeg2TsWriter::WritePMT(AP4_ByteStream& output)
         section_length += 5+m_Video->m_Descriptor.GetDataSize();;
         pcr_pid = m_Video->GetPID();
     }
+    if (m_Id3) {
+        section_length += 5+m_Id3->m_Descriptor.GetDataSize();
+        // Don't consider the ID3 stream for the PCR (Program Clock Reference)
+    }
 
     writer.Write(0, 8);        // pointer
     writer.Write(2, 8);        // table_id
@@ -863,6 +869,17 @@ AP4_Mpeg2TsWriter::WritePMT(AP4_ByteStream& output)
         }
     }
     
+    if (m_Id3) {
+        writer.Write(m_Id3->m_StreamType, 8);                  // stream_type
+        writer.Write(0x7, 3);                                  // reserved
+        writer.Write(m_Id3->GetPID(), 13);                     // elementary_PID
+        writer.Write(0xF, 4);                                  // reserved
+        writer.Write(m_Id3->m_Descriptor.GetDataSize(), 12);   // ES_info_length
+        for (unsigned int i=0; i<m_Id3->m_Descriptor.GetDataSize(); i++) {
+            writer.Write(m_Id3->m_Descriptor.GetData()[i], 8);
+        }
+    }
+
     writer.Write(ComputeCRC(writer.GetData()+1, section_length-1), 32); // CRC
     
     output.Write(writer.GetData(), section_length+4);
@@ -926,6 +943,16 @@ AP4_Mpeg2TsWriter::SetVideoStream(AP4_UI32        timescale,
                                                              pcr_offset);
     if (AP4_FAILED(result)) return result;
     stream = m_Video;
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_Mpeg2TsWriter::AssignId3Stream
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_Mpeg2TsWriter::AssignId3Stream(SampleStream* stream)
+{
+    m_Id3 = stream;
     return AP4_SUCCESS;
 }
 

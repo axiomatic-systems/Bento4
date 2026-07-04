@@ -168,12 +168,17 @@ public:
                               const AP4_UI08* descriptor = NULL,
                               AP4_Size        descriptor_length = 0,
                               AP4_UI64        pcr_offset = AP4_MPEG2_TS_DEFAULT_PCR_OFFSET);
-    
+
+    // Using 'Assign' instead of 'Set' since a stream object is not
+    // actually created like in SetAudioStream() or SetVideoStream()
+    AP4_Result AssignId3Stream(SampleStream* stream);
+
 private:
     Stream*       m_PAT;
     Stream*       m_PMT;
     SampleStream* m_Audio;
     SampleStream* m_Video;
+    SampleStream* m_Id3;
 };
 
 #endif // _AP4_MPEG2_TS_H_
