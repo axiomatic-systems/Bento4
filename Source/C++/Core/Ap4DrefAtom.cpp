@@ -85,12 +85,17 @@ AP4_DrefAtom::AP4_DrefAtom(AP4_UI32         size,
     // read children
     AP4_LargeSize bytes_available = size - (AP4_FULL_ATOM_HEADER_SIZE + 4);
     while (entry_count--) {
-        AP4_Atom* atom; 
+        AP4_Atom* atom = NULL;
+        bool progress = false;
         while (AP4_SUCCEEDED(atom_factory.CreateAtomFromStream(stream, 
                                                                bytes_available,
                                                                atom))) {
             m_Children.Add(atom);
+            progress = true;
         }
+        // the inner loop reads until the bytes run out, so an iteration that
+        // adds nothing means there is nothing left for the entries that remain
+        if (!progress) break;
     }
 }
 
