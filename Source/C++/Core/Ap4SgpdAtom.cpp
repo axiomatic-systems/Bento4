@@ -77,16 +77,21 @@ AP4_SgpdAtom::AP4_SgpdAtom(AP4_UI32         size,
     m_GroupingType(0),
     m_DefaultLength(0)
 {
+    if (size < AP4_FULL_ATOM_HEADER_SIZE) return;
     AP4_Size bytes_available = size-AP4_FULL_ATOM_HEADER_SIZE;
+
+    if (bytes_available < 4) return;
     stream.ReadUI32(m_GroupingType);
     bytes_available -= 4;
     if (version >= 1) {
+        if (bytes_available < 4) return;
         stream.ReadUI32(m_DefaultLength);
         bytes_available -= 4;
     }
 
     // read the number of entries
     AP4_UI32 entry_count = 0;
+    if (bytes_available < 4) return;
     AP4_Result result = stream.ReadUI32(entry_count);
     if (AP4_FAILED(result)) return;
     bytes_available -= 4;
@@ -97,19 +102,29 @@ AP4_SgpdAtom::AP4_SgpdAtom(AP4_UI32         size,
         if (m_Version == 0) {
             // entry size unknown, read the whole thing
             description_length = bytes_available;
-        } else {
-            if (m_DefaultLength == 0) {
-                description_length = stream.ReadUI32(description_length);
+        } else if (m_DefaultLength == 0) {
+            if (bytes_available < 4) break;
+            result = stream.ReadUI32(description_length);
+            if (AP4_FAILED(result)) break;
+            bytes_available -= 4;
+        }
+        if (description_length > bytes_available) break;
+
+        AP4_DataBuffer* payload = new AP4_DataBuffer();
+        if (description_length) {
+            payload->SetDataSize(description_length);
+            result = stream.Read(payload->UseData(), description_length);
+            if (AP4_FAILED(result)) {
+                delete payload;
+                break;
             }
         }
-        if (description_length <= bytes_available) {
-            AP4_DataBuffer* payload = new AP4_DataBuffer();
-            if (description_length) {
-                payload->SetDataSize(description_length);
-                stream.Read(payload->UseData(), description_length);
-            }
-            m_Entries.Add(payload);
-        }
+        m_Entries.Add(payload);
+        bytes_available -= description_length;
+
+        // a version 0 entry extends to the end of the atom, so there can be
+        // only one
+        if (m_Version == 0) break;
     }
 }
 
