@@ -2072,6 +2072,13 @@ main(int argc, char** argv)
                 unsigned int number_of_channels = 0;
                 AP4_String track_language;
                 AP4_Dec3Atom* dec3 = AP4_DYNAMIC_CAST(AP4_Dec3Atom, sample_description->GetDetails().GetChild(AP4_ATOM_TYPE_DEC3));
+                if (dec3 == NULL || dec3->GetSubStreams().ItemCount() == 0) {
+                    // sample description says E-AC-3 but the dec3 atom is missing, wrongly
+                    // typed, or carries no substream entries; the descriptor below reads
+                    // dec3->GetSubStreams()[0], which would fault on either.
+                    fprintf(stderr, "ERROR: E-AC-3 sample description is missing a usable dec3 atom\n");
+                    goto end;
+                }
                 AP4_BitWriter bits(8);
                 bits.Write(0xCC, 8);
                 bits.Write(0x06, 8);    // fixed value
