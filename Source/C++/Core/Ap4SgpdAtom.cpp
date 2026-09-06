@@ -78,15 +78,22 @@ AP4_SgpdAtom::AP4_SgpdAtom(AP4_UI32         size,
     m_DefaultLength(0)
 {
     AP4_Size bytes_available = size-AP4_FULL_ATOM_HEADER_SIZE;
+    // bytes_available is an unsigned counter of what's left in this atom;
+    // guard every read-and-decrement so a truncated sgpd cannot wrap it to
+    // 0xFFFFFFFC and let the entry loop below hand a giant length to
+    // SetDataSize (issue #1042).
+    if (bytes_available < 4) return;
     stream.ReadUI32(m_GroupingType);
     bytes_available -= 4;
     if (version >= 1) {
+        if (bytes_available < 4) return;
         stream.ReadUI32(m_DefaultLength);
         bytes_available -= 4;
     }
 
     // read the number of entries
     AP4_UI32 entry_count = 0;
+    if (bytes_available < 4) return;
     AP4_Result result = stream.ReadUI32(entry_count);
     if (AP4_FAILED(result)) return;
     bytes_available -= 4;
