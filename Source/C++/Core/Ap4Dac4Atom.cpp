@@ -362,9 +362,18 @@ AP4_Dac4Atom::AP4_Dac4Atom(AP4_UI32 size, const AP4_UI08* payload) :
                         bits.SkipBits(8 - (bits.GetBitsRead() % 8));
                     }
 
-                    presentation.d.v1.alternative_info.name_len = bits.ReadBits(16);
-                    for (int n = 0; n < presentation.d.v1.alternative_info.name_len; n++) { 
-                        presentation.d.v1.alternative_info.presentation_name[n] = bits.ReadBits(8);
+                    unsigned int name_len = bits.ReadBits(16);
+                    // presentation_name[] holds at most 256 bytes; consume the
+                    // full declared length to keep the bitstream in sync but
+                    // only store what fits, avoiding an out-of-bounds write
+                    // (and a matching out-of-bounds read on write-back).
+                    presentation.d.v1.alternative_info.name_len =
+                        (AP4_UI16)(name_len < 256 ? name_len : 256);
+                    for (unsigned int n = 0; n < name_len; n++) {
+                        AP4_UI08 name_byte = (AP4_UI08)bits.ReadBits(8);
+                        if (n < 256) {
+                            presentation.d.v1.alternative_info.presentation_name[n] = name_byte;
+                        }
                     }
                     presentation.d.v1.alternative_info.n_targets = bits.ReadBits(5);
                     for (int t = 0; t < presentation.d.v1.alternative_info.n_targets; t++ ){
