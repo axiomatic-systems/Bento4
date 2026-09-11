@@ -81,6 +81,10 @@ AP4_HvccAtom::GetChromaFormatName(AP4_UI08 chroma_format)
 AP4_HvccAtom*
 AP4_HvccAtom::Create(AP4_Size size, AP4_ByteStream& stream)
 {
+    // a configuration atom must at least contain the atom header, otherwise
+    // the payload size below would underflow
+    if (size < AP4_ATOM_HEADER_SIZE) return NULL;
+
     // read the raw bytes in a buffer
     unsigned int payload_size = size-AP4_ATOM_HEADER_SIZE;
     AP4_DataBuffer payload_data(payload_size);
