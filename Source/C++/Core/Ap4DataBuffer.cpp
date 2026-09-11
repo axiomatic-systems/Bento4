@@ -79,8 +79,10 @@ AP4_DataBuffer::AP4_DataBuffer(const AP4_DataBuffer& other) :
     m_BufferSize(other.m_DataSize),
     m_DataSize(other.m_DataSize)
 {
-    m_Buffer = new AP4_Byte[m_BufferSize];
-    AP4_CopyMemory(m_Buffer, other.m_Buffer, m_BufferSize);
+    if (m_BufferSize) {
+        m_Buffer = new AP4_Byte[m_BufferSize];
+        AP4_CopyMemory(m_Buffer, other.m_Buffer, m_BufferSize);
+    }
 }
 
 /*----------------------------------------------------------------------
