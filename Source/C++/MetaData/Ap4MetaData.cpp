@@ -1631,8 +1631,15 @@ AP4_MetaDataStringAtom::AP4_MetaDataStringAtom(Type type, const char* value) :
 AP4_MetaDataStringAtom::AP4_MetaDataStringAtom(Type type, AP4_UI32 size, AP4_ByteStream& stream) :
     AP4_Atom(type, size),
     m_Reserved(0),
-    m_Value((AP4_Size)(size-AP4_ATOM_HEADER_SIZE-4))
+    m_Value(size >= AP4_ATOM_HEADER_SIZE+4 ? (AP4_Size)(size-AP4_ATOM_HEADER_SIZE-4) : 0)
 {
+    if (size < AP4_ATOM_HEADER_SIZE+4) {
+        // Malformed atom: the declared size does not even cover the header and
+        // the reserved field.  Without this check, size-8-4 underflows to a huge
+        // AP4_Size, which AP4_String turns into a 1-byte allocation (m_Length+1
+        // wraps) that the subsequent read then overruns.
+        return;
+    }
     stream.ReadUI32(m_Reserved);
     stream.Read(m_Value.UseChars(), m_Value.GetLength());
 }
