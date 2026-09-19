@@ -61,7 +61,12 @@ AP4_EsDescriptor::AP4_EsDescriptor(AP4_UI16 es_id) :
 AP4_EsDescriptor::AP4_EsDescriptor(AP4_ByteStream& stream, 
                                    AP4_Size        header_size,
                                    AP4_Size        payload_size) :
-    AP4_Descriptor(AP4_DESCRIPTOR_TAG_ES, header_size, payload_size)
+    AP4_Descriptor(AP4_DESCRIPTOR_TAG_ES, header_size, payload_size),
+    m_EsId(0),
+    m_OcrEsId(0),
+    m_Flags(0),
+    m_StreamPriority(0),
+    m_DependsOn(0)
 {
     // read descriptor fields
     if (payload_size < 3) return;
