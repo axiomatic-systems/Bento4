@@ -208,7 +208,7 @@ AP4_IsmaCipher::DecryptSampleData(AP4_DataBuffer& data_in,
                 AP4_UI08 zero_enc[16];
                 m_Cipher->ProcessBuffer(zero, 16, zero_enc);
                 unsigned int offset = (unsigned int)(bso%16); 
-                unsigned int chunk = offset;
+                unsigned int chunk = 16-offset;
                 if (chunk > payload_size) chunk = payload_size;
                 for (unsigned int i=0; i<chunk; i++) {
                     out[i] = zero_enc[offset+i]^in[i];
