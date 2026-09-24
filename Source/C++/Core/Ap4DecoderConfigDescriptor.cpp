@@ -72,7 +72,13 @@ AP4_DecoderConfigDescriptor::AP4_DecoderConfigDescriptor(
     AP4_ByteStream& stream, AP4_Size header_size, AP4_Size payload_size) :
     AP4_Descriptor(AP4_DESCRIPTOR_TAG_DECODER_CONFIG, 
                    header_size, 
-                   payload_size)
+                   payload_size),
+    m_StreamType(0),
+    m_ObjectTypeIndication(0),
+    m_UpStream(false),
+    m_BufferSize(0),
+    m_MaxBitrate(0),
+    m_AverageBitrate(0)
 {
     // read descriptor fields
     if (payload_size < 13) return;

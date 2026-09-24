@@ -69,7 +69,9 @@ AP4_ObjectDescriptor::AP4_ObjectDescriptor(AP4_ByteStream& stream,
                                            AP4_UI08        tag,
                                            AP4_Size        header_size,
                                            AP4_Size        payload_size) :
-    AP4_Descriptor(tag, header_size, payload_size)
+    AP4_Descriptor(tag, header_size, payload_size),
+    m_ObjectDescriptorId(0),
+    m_UrlFlag(false)
 {
     // read descriptor fields
     unsigned short bits;
@@ -219,6 +221,7 @@ AP4_InitialObjectDescriptor::AP4_InitialObjectDescriptor(AP4_ByteStream& stream,
                                                          AP4_Size        header_size,
                                                          AP4_Size        payload_size) :
     AP4_ObjectDescriptor(tag, header_size, payload_size),
+    m_IncludeInlineProfileLevelFlag(false),
     m_OdProfileLevelIndication(0),
     m_SceneProfileLevelIndication(0),
     m_AudioProfileLevelIndication(0),
