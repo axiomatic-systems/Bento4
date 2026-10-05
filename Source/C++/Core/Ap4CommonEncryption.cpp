@@ -2410,7 +2410,12 @@ AP4_CencDecryptingProcessor::GetKeyForTrak(AP4_UI32 track_id, AP4_ProtectedSampl
             if (scheme_info) {
                 AP4_ContainerAtom* schi = scheme_info->GetSchiAtom();
                 if (schi) {
-                    AP4_TencAtom* tenc = AP4_DYNAMIC_CAST(AP4_TencAtom, schi->FindChild("tenc"));
+                    AP4_CencTrackEncryption* tenc =
+                        AP4_DYNAMIC_CAST(AP4_CencTrackEncryption, schi->GetChild(AP4_ATOM_TYPE_TENC));
+                    if (tenc == NULL) {
+                        tenc = AP4_DYNAMIC_CAST(AP4_CencTrackEncryption,
+                                                schi->GetChild(AP4_UUID_PIFF_TRACK_ENCRYPTION_ATOM));
+                    }
                     if (tenc) {
                         const AP4_UI08* kid = tenc->GetDefaultKid();
                         if (kid) {
