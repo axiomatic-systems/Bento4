@@ -70,7 +70,7 @@ public:
                  const AP4_UI08* config_obus,
                  AP4_Size        config_obus_size);
     AP4_Av1cAtom();
-    
+
     // methods
     virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
     virtual AP4_Result WriteFields(AP4_ByteStream& stream);

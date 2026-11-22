@@ -66,6 +66,20 @@ AP4_Atom::TypeFromString(const char* s)
 /*----------------------------------------------------------------------
 |   AP4_Atom::AP4_Atom
 +---------------------------------------------------------------------*/
+AP4_Atom::AP4_Atom(const AP4_Atom& other) :
+    m_Type(other.m_Type),
+    m_Size32(other.m_Size32),
+    m_Size64(other.m_Size64),
+    m_IsFull(other.m_IsFull),
+    m_Version(other.m_Version),
+    m_Flags(other.m_Flags),
+    m_Parent(NULL)
+{
+}
+
+/*----------------------------------------------------------------------
+|   AP4_Atom::AP4_Atom
++---------------------------------------------------------------------*/
 AP4_Atom::AP4_Atom(Type type, AP4_UI32 size /* = AP4_ATOM_HEADER_SIZE */) :
     m_Type(type),
     m_Size32(size),

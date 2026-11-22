@@ -388,12 +388,12 @@ AP4_AvcSampleDescription::AP4_AvcSampleDescription(AP4_UI32        format,
 {
     AP4_AvccAtom* avcc = AP4_DYNAMIC_CAST(AP4_AvccAtom, m_Details.GetChild(AP4_ATOM_TYPE_AVCC));
     if (avcc) {
-        m_AvccAtom = new AP4_AvccAtom(*avcc);
+        m_AvccAtom = avcc;
     } else {
-        // shoud never happen
+        // should never happen
         m_AvccAtom = new AP4_AvccAtom();
+        m_Details.AddChild(m_AvccAtom);
     }
-    m_Details.AddChild(m_AvccAtom);
 }
 
 /*----------------------------------------------------------------------
@@ -524,12 +524,12 @@ AP4_HevcSampleDescription::AP4_HevcSampleDescription(AP4_UI32        format,
 {
     AP4_HvccAtom* hvcc = AP4_DYNAMIC_CAST(AP4_HvccAtom, m_Details.GetChild(AP4_ATOM_TYPE_HVCC));
     if (hvcc) {
-        m_HvccAtom = new AP4_HvccAtom(*hvcc);
+        m_HvccAtom = hvcc;
     } else {
-        // shoud never happen
+        // should never happen
         m_HvccAtom = new AP4_HvccAtom();
+        m_Details.AddChild(m_HvccAtom);
     }
-    m_Details.AddChild(m_HvccAtom);
 }
 
 /*----------------------------------------------------------------------
@@ -814,12 +814,12 @@ AP4_Av1SampleDescription::AP4_Av1SampleDescription(AP4_UI32        format,
 {
     AP4_Av1cAtom* av1c = AP4_DYNAMIC_CAST(AP4_Av1cAtom, m_Details.GetChild(AP4_ATOM_TYPE_AV1C));
     if (av1c) {
-        m_Av1cAtom = new AP4_Av1cAtom(*av1c);
+        m_Av1cAtom = av1c;
     } else {
-        // shoud never happen
+        // should never happen
         m_Av1cAtom = new AP4_Av1cAtom();
+        m_Details.AddChild(m_Av1cAtom);
     }
-    m_Details.AddChild(m_Av1cAtom);
 }
 
 /*----------------------------------------------------------------------
@@ -1187,7 +1187,7 @@ AP4_Eac3SampleDescription::AP4_Eac3SampleDescription(AP4_UI32            sample_
     if (dec3) {
         m_Dec3Atom = new AP4_Dec3Atom(*dec3);
     } else {
-        // shoud never happen
+        // should never happen
         m_Dec3Atom = new AP4_Dec3Atom();
     }
     m_Details.AddChild(m_Dec3Atom);
@@ -1204,14 +1204,14 @@ AP4_Eac3SampleDescription::AP4_Eac3SampleDescription(AP4_UI32        sample_rate
     AP4_AudioSampleDescription(sample_rate, sample_size, channel_count),
     m_Dec3Atom(NULL)
 {
-    AP4_Dec3Atom* eac3 = AP4_DYNAMIC_CAST(AP4_Dec3Atom, m_Details.GetChild(AP4_ATOM_TYPE_DEC3));
-    if (eac3) {
-        m_Dec3Atom = new AP4_Dec3Atom(*eac3);
+    AP4_Dec3Atom* dec3 = AP4_DYNAMIC_CAST(AP4_Dec3Atom, m_Details.GetChild(AP4_ATOM_TYPE_DEC3));
+    if (dec3) {
+        m_Dec3Atom = dec3;
     } else {
-        // shoud never happen
+        // should never happen
         m_Dec3Atom = new AP4_Dec3Atom();
+        m_Details.AddChild(m_Dec3Atom);
     }
-    m_Details.AddChild(m_Dec3Atom);
 }
 
 /*----------------------------------------------------------------------
@@ -1275,9 +1275,9 @@ AP4_Ac4SampleDescription::AP4_Ac4SampleDescription(AP4_UI32        sample_rate,
     AP4_AudioSampleDescription(sample_rate, sample_size, channel_count),
     m_Dac4Atom(NULL)
 {
-    AP4_Dac4Atom* ac4 = AP4_DYNAMIC_CAST(AP4_Dac4Atom, m_Details.GetChild(AP4_ATOM_TYPE_AC_4));
-    if (ac4) {
-        m_Dac4Atom = ac4;
+    AP4_Dac4Atom* dac4 = AP4_DYNAMIC_CAST(AP4_Dac4Atom, m_Details.GetChild(AP4_ATOM_TYPE_AC_4));
+    if (dac4) {
+        m_Dac4Atom = dac4;
     } else {
         // TODO: add default construtor, m_Dac4Atom = new AP4_Dac4Atom() / should never happen
     }
@@ -1340,11 +1340,11 @@ AP4_TrueHdSampleDescription::AP4_TrueHdSampleDescription(AP4_UI32        sample_
 {
     AP4_DmlpAtom* dmlp = AP4_DYNAMIC_CAST(AP4_DmlpAtom, m_Details.GetChild(AP4_ATOM_TYPE_DMLP));
     if (dmlp) {
-        m_DmlpAtom = new AP4_DmlpAtom(*dmlp);
+        m_DmlpAtom = dmlp;
     } else {
         m_DmlpAtom = new AP4_DmlpAtom(0, 0);
+        m_Details.AddChild(m_DmlpAtom);
     }
-    m_Details.AddChild(m_DmlpAtom);
 }
 
 /*----------------------------------------------------------------------

@@ -269,6 +269,12 @@ public:
                                      AP4_UI32&       flags);
 
     // constructors
+    
+    /**
+     * This copy constructor does NOT copy the parent relationship.
+     */
+    AP4_Atom(const AP4_Atom& other);
+    
     /**
      * Create a simple atom with a specified type and 32-bit size.
      */
