@@ -148,6 +148,8 @@ AP4_Processor::ProcessFragments(AP4_MoovAtom*              moov,
 {
     unsigned int fragment_index = 0;
     AP4_Array<FragmentMapEntry> fragment_map;
+    AP4_UI64 fragment_start = 0;
+    if (sidx) fragment_start = sidx_position + sidx->GetSize() + sidx->GetFirstOffset();
     
     for (AP4_List<AP4_AtomLocator>::Item* item = atoms.FirstItem();
                                           item;
@@ -165,6 +167,8 @@ AP4_Processor::ProcessFragments(AP4_MoovAtom*              moov,
         if (atom->GetType() != AP4_ATOM_TYPE_MOOF) {
             result = atom->Write(output);
             if (AP4_FAILED(result)) return result;
+            if (fragment_index == 0) return AP4_ERROR_INTERNAL; // safeguard: do not expect this to happen since atoms always start with a moof box
+            --fragment_index;
             continue;
         }
         
@@ -368,12 +372,10 @@ AP4_Processor::ProcessFragments(AP4_MoovAtom*              moov,
         
         // update the sidx if we have one
         if (sidx && fragment_index < sidx->GetReferences().ItemCount()) {
-            if (fragment_index == 0) {
-                sidx->SetFirstOffset(moof_out_start-(sidx_position+sidx->GetSize()));
-            }
-            AP4_LargeSize fragment_size = mdat_out_end-moof_out_start;
+            AP4_LargeSize fragment_size = mdat_out_end-fragment_start;
             AP4_SidxAtom::Reference& sidx_ref = sidx->UseReferences()[fragment_index];
             sidx_ref.m_ReferencedSize = (AP4_UI32)fragment_size;
+            fragment_start = mdat_out_end;
         }
         
         // cleanup
