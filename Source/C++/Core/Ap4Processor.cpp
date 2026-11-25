@@ -185,6 +185,7 @@ AP4_Processor::ProcessFragments(AP4_MoovAtom*              moov,
                                            child_item;
                                            child_item = child_item->GetNext()) {
                 AP4_Atom* child_atom = child_item->GetData();
+                if (child_atom == NULL) continue;
                 if (child_atom->GetType() == AP4_ATOM_TYPE_TRAK) {
                     trak = AP4_DYNAMIC_CAST(AP4_TrakAtom, child_atom);
                     if (trak) {
@@ -206,6 +207,7 @@ AP4_Processor::ProcessFragments(AP4_MoovAtom*              moov,
                                                child_item;
                                                child_item = child_item->GetNext()) {
                     AP4_Atom* child_atom = child_item->GetData();
+                    if (child_atom == NULL) continue;
                     if (child_atom->GetType() == AP4_ATOM_TYPE_TREX) {
                         trex = AP4_DYNAMIC_CAST(AP4_TrexAtom, child_atom);
                         if (trex && trex->GetTrackId() == tfhd->GetTrackId()) {
