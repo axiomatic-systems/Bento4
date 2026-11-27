@@ -1036,6 +1036,9 @@ AP4_AvcFrameParser::Feed(const AP4_UI08* nal_unit,
                nal_unit_type,
                nal_unit_type_name);
         if (nal_unit_type == AP4_AVC_NAL_UNIT_TYPE_ACCESS_UNIT_DELIMITER) {
+            if (nal_unit_size < 2) {
+                return AP4_ERROR_INVALID_FORMAT;
+            }
             unsigned int primary_pic_type = (nal_unit[1]>>5);
             const char*  primary_pic_type_name = AP4_AvcNalParser::PrimaryPicTypeName(primary_pic_type);
             if (primary_pic_type_name == NULL) primary_pic_type_name = "UNKNOWN";
