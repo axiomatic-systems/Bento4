@@ -577,7 +577,8 @@ AP4_AtomParent::AddChild(AP4_Atom* child, int position)
 AP4_Result
 AP4_AtomParent::RemoveChild(AP4_Atom* child)
 {
-    // check that this is our child
+    // the child must exist and be one of ours
+    if (child == NULL) return AP4_ERROR_INVALID_PARAMETERS;
     if (child->GetParent() != this) return AP4_ERROR_INVALID_PARAMETERS;
 
     // remove the child

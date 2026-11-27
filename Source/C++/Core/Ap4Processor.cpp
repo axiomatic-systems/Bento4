@@ -486,7 +486,8 @@ AP4_Processor::Process(AP4_ByteStream&   input,
     }
 
     // check that we have at most one sidx (we can't deal with multi-sidx streams here
-    if (sidx_count > 1) {
+    // sidx is NULL if none of the sidx atoms could be parsed as AP4_SidxAtom
+    if (sidx_count > 1 && sidx) {
         top_level.RemoveChild(sidx);
         delete sidx;
         sidx = NULL;
