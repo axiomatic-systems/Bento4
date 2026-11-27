@@ -155,7 +155,8 @@ AP4_Mp4AudioDecoderConfig::ParseExtension(AP4_Mp4AudioDsiParser& parser)
                                                 m_Extension.m_SamplingFrequencyIndex,
                                                 m_Extension.m_SamplingFrequency);
                 if (AP4_FAILED(result)) return result;
-            } 
+            }
+            if (parser.BitsLeft() < 4) return AP4_ERROR_INVALID_FORMAT;
             parser.ReadBits(4); // extensionChannelConfiguration           
         }
     }
